@@ -154,10 +154,10 @@
     <value>Фильтр сглаживания (экспериментальный)</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
-    <value>Читатель комиксов UWP</value>
+    <value>Читатель Комиксов UWP</value>
   </data>
   <data name="AppDisplayName" xml:space="preserve">
-    <value>Читатель комиксов UWP</value>
+    <value>Читатель Комиксов UWP</value>
   </data>
   <data name="AppStoreName" xml:space="preserve">
     <value>Читатель комиксов UWP</value>
@@ -241,7 +241,7 @@
     <value>Описание:</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
-    <value>Читатель комиксов UWP [Dev]</value>
+    <value>Читатель Комиксов UWP [Dev]</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Режим дифференциации</value>

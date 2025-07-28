@@ -154,10 +154,10 @@
     <value>Anti-Aliasing-Filter (experimentell)</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
-    <value>Comic Reader UWP</value>
+    <value>Comic-Leser UWP</value>
   </data>
   <data name="AppDisplayName" xml:space="preserve">
-    <value>Comic Reader UWP</value>
+    <value>Comic-Leser UWP</value>
   </data>
   <data name="AppStoreName" xml:space="preserve">
     <value>Comic Reader UWP</value>
@@ -241,7 +241,7 @@
     <value>Beschreibung:</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
-    <value>Comic Reader UWP [Dev]</value>
+    <value>Comic-Leser UWP [Dev]</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff-Modus</value>

@@ -154,10 +154,10 @@
     <value>Filtre anti-aliasing (expérimental)</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
-    <value>Lecteur de bandes dessinées UWP</value>
+    <value>Lecteur de Bandes Dessinées UWP</value>
   </data>
   <data name="AppDisplayName" xml:space="preserve">
-    <value>Lecteur de bandes dessinées UWP</value>
+    <value>Lecteur de Bandes Dessinées UWP</value>
   </data>
   <data name="AppStoreName" xml:space="preserve">
     <value>Lecteur de bandes dessinées UWP</value>
@@ -241,7 +241,7 @@
     <value>Description:</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
-    <value>Lecteur de bandes dessinées UWP [Dev]</value>
+    <value>Lecteur de Bandes Dessinées UWP [Dev]</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Mode différentiel</value>

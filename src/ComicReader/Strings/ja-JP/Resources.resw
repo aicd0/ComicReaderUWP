@@ -154,10 +154,10 @@
     <value>アンチエイリアシングフィルタ（実験的）</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
-    <value>コミックリーダー UWP</value>
+    <value>マンガリーダー UWP</value>
   </data>
   <data name="AppDisplayName" xml:space="preserve">
-    <value>コミックリーダー UWP</value>
+    <value>マンガリーダー UWP</value>
   </data>
   <data name="AppStoreName" xml:space="preserve">
     <value>コミックリーダー UWP</value>
@@ -241,7 +241,7 @@
     <value>説明する：</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
-    <value>コミックリーダー UWP [Dev]</value>
+    <value>マンガリーダー [Dev]</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
     <value>差分モード</value>
