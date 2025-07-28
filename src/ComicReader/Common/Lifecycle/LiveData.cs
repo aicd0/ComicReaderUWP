@@ -30,6 +30,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
     protected LiveData(T initialValue)
     {
         _value = initialValue;
+        _version = 1;
     }
 
     public void Observe(FrameworkElement owner, Action<T> observer)
