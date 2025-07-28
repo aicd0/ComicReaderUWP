@@ -154,10 +154,10 @@
     <value>Filtro anti-aliasing (experimental)</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
-    <value>Lector de cómics UWP</value>
+    <value>Lector de Cómics UWP</value>
   </data>
   <data name="AppDisplayName" xml:space="preserve">
-    <value>Lector de cómics UWP</value>
+    <value>Lector de Cómics UWP</value>
   </data>
   <data name="AppStoreName" xml:space="preserve">
     <value>Lector de cómics UWP</value>
@@ -241,7 +241,7 @@
     <value>Descripción:</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
-    <value>Lector de cómics UWP [Dev]</value>
+    <value>Lector de Cómics [Dev]</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Modo diferencial</value>
