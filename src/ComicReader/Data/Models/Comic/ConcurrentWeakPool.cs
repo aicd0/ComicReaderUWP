@@ -65,6 +65,13 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
         }
     }
 
+    public bool Remove(K key)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        CleanupIfNeeded();
+        return _pool.TryRemove(key, out _);
+    }
+
     private void CleanupIfNeeded()
     {
         if (_pool.Count <= 256)

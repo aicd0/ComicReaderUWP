@@ -2,12 +2,19 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
+using ComicReader.Data;
 using ComicReader.Data.Models;
+using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
+using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.Views.Main;
 
 using Microsoft.UI.Xaml.Controls;
@@ -92,6 +99,69 @@ internal sealed partial class DevToolsPage : BasePage
         RestoreConfig();
     }
 
+    private void OnSyncFileNameClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        C0.Run(async () =>
+        {
+            List<long> ids = [];
+            await ComicData.EnqueueCommand(delegate
+            {
+                var command = new SelectCommand(ComicTable.Instance);
+                command.AppendCondition(new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false)));
+                IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
+                using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+                while (reader.Read())
+                {
+                    ids.Add(idToken.GetValue());
+                }
+            }, "SyncFileName");
+
+            foreach (long id in ids)
+            {
+                ComicModel? comic = await ComicModel.FromId(id, "SyncFileName");
+                if (comic is null)
+                {
+                    continue;
+                }
+
+                string path = comic.Location;
+                string parentDir = Path.GetDirectoryName(path) ?? string.Empty;
+                if (string.IsNullOrEmpty(parentDir))
+                {
+                    continue;
+                }
+
+                string? newName = SanitizeForNtfsFileName(comic.Title);
+                if (newName == null)
+                {
+                    continue;
+                }
+
+                string newPath;
+                if (File.Exists(path))
+                {
+                    string extension = Path.GetExtension(path);
+                    newPath = Path.Combine(parentDir, $"{newName}{extension}");
+                }
+                else if (Directory.Exists(path))
+                {
+                    newPath = Path.Combine(parentDir, newName);
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (path == newPath)
+                {
+                    continue;
+                }
+
+                await comic.MoveToLocation(newPath);
+            }
+        });
+    }
+
     //
     // Utilities
     //
@@ -114,5 +184,32 @@ internal sealed partial class DevToolsPage : BasePage
     private void RestoreConfig()
     {
         TbCommonConfigs.Text = DebugSwitchModel.Instance.SerializeToJson();
+    }
+
+    private static string? SanitizeForNtfsFileName(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return null;
+        }
+
+        // NTFS invalid characters: \ / : * ? " < > | and control chars (0-31)
+        string invalidChars = new(Path.GetInvalidFileNameChars());
+        string pattern = $"[{Regex.Escape(invalidChars)}]";
+
+        // Replace invalid characters with '_'
+        string sanitized = Regex.Replace(input, pattern, "_");
+
+        // Remove trailing dots and spaces (NTFS does not allow these)
+        sanitized = sanitized.TrimEnd('.', ' ');
+
+        // NTFS max file name length is 255 characters
+        if (sanitized.Length > 255)
+        {
+            return null;
+        }
+
+        // If result is empty, return a default name
+        return string.IsNullOrWhiteSpace(sanitized) ? null : sanitized;
     }
 }

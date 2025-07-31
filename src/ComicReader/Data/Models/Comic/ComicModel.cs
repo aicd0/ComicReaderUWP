@@ -127,6 +127,17 @@ internal sealed class ComicModel
         await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Completed);
     }
 
+    public async Task MoveToLocation(string newLocation)
+    {
+        string oldLocation = Location;
+        bool success = await _internalModel.MoveToLocation(newLocation);
+        if (success)
+        {
+            _locationPool.Remove(oldLocation);
+            _locationPool.GetOrAdd(newLocation, this);
+        }
+    }
+
     public Task SaveProgressAsync(int progress, double lastPosition)
     {
         return _internalModel.SaveProgressAsync(progress, lastPosition);

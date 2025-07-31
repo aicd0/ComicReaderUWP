@@ -507,6 +507,37 @@ internal abstract class ComicData
         }, "SetTags");
     }
 
+    public async Task<bool> MoveToLocation(string newLocation)
+    {
+        bool success = await MoveToLocationInternal(newLocation);
+        if (!success)
+        {
+            return false;
+        }
+
+        Location = newLocation;
+        _ = Enqueue(() =>
+        {
+            return SaveNoLock(() =>
+            {
+                new UpdateCommand(ComicTable.Instance)
+                    .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
+                    .AppendCondition(ComicTable.ColumnId, Id)
+                    .Execute(SqlDatabaseManager.MainDatabase);
+            });
+        }, "MoveToLocation");
+        return true;
+    }
+
+    //
+    // Virtual Methods
+    //
+
+    protected virtual Task<bool> MoveToLocationInternal(string newLocation)
+    {
+        return Task.FromResult(false);
+    }
+
     //
     // Unsorted
     //

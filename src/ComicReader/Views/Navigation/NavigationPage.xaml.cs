@@ -12,6 +12,7 @@ using ComicReader.Common.Lifecycle;
 using ComicReader.Data.Models;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.Views.DevTools;
 using ComicReader.Views.Main;
 
 using Microsoft.UI.Input;
@@ -168,13 +169,19 @@ internal sealed partial class NavigationPage : BasePage
 
     private void OnSearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        if (args.QueryText.Trim().Length == 0)
+        string queryText = args.QueryText;
+        if (queryText.Trim().Length == 0)
+        {
+            return;
+        }
+
+        if (InternalCommand.Parse(queryText))
         {
             return;
         }
 
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
-            .WithParam(RouterConstants.ARG_KEYWORD, args.QueryText);
+            .WithParam(RouterConstants.ARG_KEYWORD, queryText);
         GetMainPageAbility().OpenInCurrentTab(route);
     }
 

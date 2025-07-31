@@ -11,6 +11,7 @@ using ComicReader.Common;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 
 using Windows.Storage;
@@ -33,46 +34,81 @@ internal partial class ComicFolderData : ComicData
         Location = location;
     }
 
-    public static ComicData FromDatabase(string location)
+    public override string GetImageCacheKey(int index)
     {
-        return new ComicFolderData(location, false);
+        if (index < 0 || index >= _imageFiles.Count)
+        {
+            Logger.F(TAG, "GetImageCacheKey");
+            return string.Empty;
+        }
+
+        return _imageFiles[index].Path;
     }
 
-    public static ComicData? FromExternal(string directory, List<StorageFile> imageFiles)
+    public override int GetImageSignature(int index)
     {
-        if (imageFiles.Count == 0)
+        if (index < 0 || index >= _imageFiles.Count)
         {
-            return null;
+            Logger.F(TAG, "GetImageSignature");
+            return 0;
         }
 
-        imageFiles = [.. imageFiles.OrderBy(x => StringUtils.SmartFileNameKeySelector(x.DisplayName), StringUtils.SmartFileNameComparer)];
-        return new ComicFolderData(directory, true)
-        {
-            _imageFiles = imageFiles,
-        };
+        return FileUtils.GetFileHashCode(_imageFiles[index]);
     }
 
-    private async Task<StorageFolder?> GetFolder()
+    public override async Task<IComicConnection?> OpenComicAsync()
     {
-        StorageFolder? folder = _folder;
-        if (folder != null)
-        {
-            return folder;
-        }
+        await LoadImageFiles();
+        return new FolderComicConnection(_imageFiles);
+    }
 
-        if (Location == null)
+    protected override Task<bool> MoveToLocationInternal(string newLocation)
+    {
+        return CoroutineUtils.CreateTask("MoveToLocationInternal", TaskDispatcher.LongRunningThreadPool, () =>
         {
-            return null;
-        }
+            string sourceDir = Location;
+            string targetDir = newLocation;
+            if (string.IsNullOrWhiteSpace(sourceDir) || string.IsNullOrWhiteSpace(targetDir))
+            {
+                return false;
+            }
 
-        folder = await Storage.TryGetFolder(Location);
-        if (folder == null)
-        {
-            return null;
-        }
+            if (!Directory.Exists(sourceDir))
+            {
+                return false;
+            }
 
-        _folder = folder;
-        return folder;
+            if (Directory.Exists(targetDir))
+            {
+                return false;
+            }
+
+            string? targetParent = Path.GetDirectoryName(targetDir);
+            if (!string.IsNullOrEmpty(targetParent) && !Directory.Exists(targetParent))
+            {
+                try
+                {
+                    Directory.CreateDirectory(targetParent);
+                }
+                catch (Exception e)
+                {
+                    Logger.E($"Unable to create target parent directory '{targetParent}'.", e);
+                    return false;
+                }
+            }
+
+            try
+            {
+                Directory.Move(sourceDir, targetDir);
+            }
+            catch (Exception e)
+            {
+                Logger.E($"Unable to move directory.", e);
+                return false;
+            }
+
+            return true;
+        });
     }
 
     protected override async Task<TaskException> ReloadImages()
@@ -109,32 +145,46 @@ internal partial class ComicFolderData : ComicData
         return TaskException.Success;
     }
 
-    public override string GetImageCacheKey(int index)
+    private async Task<StorageFolder?> GetFolder()
     {
-        if (index < 0 || index >= _imageFiles.Count)
+        StorageFolder? folder = _folder;
+        if (folder != null)
         {
-            Logger.F(TAG, "GetImageCacheKey");
-            return string.Empty;
+            return folder;
         }
 
-        return _imageFiles[index].Path;
-    }
-
-    public override int GetImageSignature(int index)
-    {
-        if (index < 0 || index >= _imageFiles.Count)
+        if (Location == null)
         {
-            Logger.F(TAG, "GetImageSignature");
-            return 0;
+            return null;
         }
 
-        return FileUtils.GetFileHashCode(_imageFiles[index]);
+        folder = await Storage.TryGetFolder(Location);
+        if (folder == null)
+        {
+            return null;
+        }
+
+        _folder = folder;
+        return folder;
     }
 
-    public override async Task<IComicConnection?> OpenComicAsync()
+    public static ComicData FromDatabase(string location)
     {
-        await LoadImageFiles();
-        return new FolderComicConnection(_imageFiles);
+        return new ComicFolderData(location, false);
+    }
+
+    public static ComicData? FromExternal(string directory, List<StorageFile> imageFiles)
+    {
+        if (imageFiles.Count == 0)
+        {
+            return null;
+        }
+
+        imageFiles = [.. imageFiles.OrderBy(x => StringUtils.SmartFileNameKeySelector(x.DisplayName), StringUtils.SmartFileNameComparer)];
+        return new ComicFolderData(directory, true)
+        {
+            _imageFiles = imageFiles,
+        };
     }
 
     private partial class FolderComicConnection(IEnumerable<StorageFile> imageFiles) : IComicConnection
