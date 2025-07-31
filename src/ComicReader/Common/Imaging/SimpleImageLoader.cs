@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 
+using ComicReader.Common.Legacy;
+using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.Threading;
 
 namespace ComicReader.Common.Imaging;

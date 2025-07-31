@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Legacy;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Data.SqlHelpers;
@@ -275,6 +276,11 @@ internal sealed class ComicModel
     public static ComicModel? FromImageFiles(string directory, List<StorageFile> imageFiles)
     {
         ComicData? comic = ComicFolderData.FromExternal(directory, imageFiles);
+        if (comic is null)
+        {
+            return null;
+        }
+
         return ReplaceWithExisting(comic);
     }
 

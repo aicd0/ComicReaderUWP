@@ -10,12 +10,15 @@ using System.Threading.Tasks;
 using ComicReader.Common;
 using ComicReader.Common.Expression;
 using ComicReader.Common.Expression.Sql;
+using ComicReader.Common.Legacy;
+using ComicReader.Common.Utils;
 using ComicReader.Data;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.Views.Search;
 
 namespace ComicReader.Views.Home;
 

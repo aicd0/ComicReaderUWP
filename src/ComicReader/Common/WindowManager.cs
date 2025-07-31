@@ -13,6 +13,8 @@ namespace ComicReader.Common;
 
 class WindowManager<T> where T : Window
 {
+    private const string TAG = nameof(WindowManager<T>);
+
     private int _nextWindowId = 0;
     private readonly ConcurrentDictionary<int, WindowWrapper> _windows = [];
 
@@ -56,7 +58,8 @@ class WindowManager<T> where T : Window
         {
             return wrapper.EventBus;
         }
-        Logger.AssertNotReachHere("2399192BB68F8CC4");
+
+        Logger.F(TAG, $"Unable to get desired event bus, window ID {windowId} not found.");
         return EmptyEventBus.Instance;
     }
 

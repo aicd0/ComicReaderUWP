@@ -8,7 +8,7 @@ using ComicReader.SDK.Common.DebugTools;
 
 using Windows.Storage;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Legacy;
 
 internal static class Storage
 {

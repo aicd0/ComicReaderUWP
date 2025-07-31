@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;

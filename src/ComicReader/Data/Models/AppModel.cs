@@ -6,7 +6,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 
-using ComicReader.Common;
+using ComicReader.Common.Constants;
 using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
@@ -29,11 +29,11 @@ static class AppModel
     {
         get
         {
-            return (int)KVDatabase.GetDefaultMethod().GetLong(GlobalConstants.KV_DB_APP, KEY_DEFAULT_ARCHIVE_CODE_PAGE, -1);
+            return (int)KVDatabase.GetDefaultMethod().GetLong(DatabaseEntry.KV_DB_APP, KEY_DEFAULT_ARCHIVE_CODE_PAGE, -1);
         }
         set
         {
-            KVDatabase.GetDefaultMethod().SetLong(GlobalConstants.KV_DB_APP, KEY_DEFAULT_ARCHIVE_CODE_PAGE, value);
+            KVDatabase.GetDefaultMethod().SetLong(DatabaseEntry.KV_DB_APP, KEY_DEFAULT_ARCHIVE_CODE_PAGE, value);
         }
     }
 
@@ -41,11 +41,11 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.GetDefaultMethod().GetBoolean(GlobalConstants.KV_DB_APP, KEY_ANTI_ALIASING_ENABLED, false);
+            return KVDatabase.GetDefaultMethod().GetBoolean(DatabaseEntry.KV_DB_APP, KEY_ANTI_ALIASING_ENABLED, false);
         }
         set
         {
-            KVDatabase.GetDefaultMethod().SetBoolean(GlobalConstants.KV_DB_APP, KEY_ANTI_ALIASING_ENABLED, value);
+            KVDatabase.GetDefaultMethod().SetBoolean(DatabaseEntry.KV_DB_APP, KEY_ANTI_ALIASING_ENABLED, value);
         }
     }
 
@@ -53,11 +53,11 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.GetDefaultMethod().GetBoolean(GlobalConstants.KV_DB_APP, KEY_SAVE_BROWSING_HISTORY, true);
+            return KVDatabase.GetDefaultMethod().GetBoolean(DatabaseEntry.KV_DB_APP, KEY_SAVE_BROWSING_HISTORY, true);
         }
         set
         {
-            KVDatabase.GetDefaultMethod().SetBoolean(GlobalConstants.KV_DB_APP, KEY_SAVE_BROWSING_HISTORY, value);
+            KVDatabase.GetDefaultMethod().SetBoolean(DatabaseEntry.KV_DB_APP, KEY_SAVE_BROWSING_HISTORY, value);
         }
     }
 
@@ -65,11 +65,11 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.GetDefaultMethod().GetBoolean(GlobalConstants.KV_DB_APP, KEY_TRANSITION_ANIMATION, true);
+            return KVDatabase.GetDefaultMethod().GetBoolean(DatabaseEntry.KV_DB_APP, KEY_TRANSITION_ANIMATION, true);
         }
         set
         {
-            KVDatabase.GetDefaultMethod().SetBoolean(GlobalConstants.KV_DB_APP, KEY_TRANSITION_ANIMATION, value);
+            KVDatabase.GetDefaultMethod().SetBoolean(DatabaseEntry.KV_DB_APP, KEY_TRANSITION_ANIMATION, value);
         }
     }
 
@@ -77,18 +77,18 @@ static class AppModel
     {
         Logger.I(TAG, $"SetReadingComic(id={id})");
         Logger.Assert(id >= 0, "A93DA0E76912639F");
-        KVDatabase.GetDefaultMethod().SetLong(GlobalConstants.KV_DB_APP, KEY_READING_COMIC_ID, id);
+        KVDatabase.GetDefaultMethod().SetLong(DatabaseEntry.KV_DB_APP, KEY_READING_COMIC_ID, id);
     }
 
     public static void UnsetReadingComic()
     {
         Logger.I(TAG, "UnsetReadingComic");
-        KVDatabase.GetDefaultMethod().Remove(GlobalConstants.KV_DB_APP, KEY_READING_COMIC_ID);
+        KVDatabase.GetDefaultMethod().Remove(DatabaseEntry.KV_DB_APP, KEY_READING_COMIC_ID);
     }
 
     public static long GetReadingComic()
     {
-        long id = KVDatabase.GetDefaultMethod().GetLong(GlobalConstants.KV_DB_APP, KEY_READING_COMIC_ID, -1);
+        long id = KVDatabase.GetDefaultMethod().GetLong(DatabaseEntry.KV_DB_APP, KEY_READING_COMIC_ID, -1);
         Logger.I(TAG, $"GetReadingComic(id={id})");
         return id;
     }

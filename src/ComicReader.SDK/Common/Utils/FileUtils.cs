@@ -99,9 +99,13 @@ public static class FileUtils
                 return hash;
             }
         }
-        catch (Exception ex)
+        catch (FileNotFoundException)
         {
-            Logger.F(TAG, "GetFileHashCode", ex);
+            return 0;
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, "GetFileHashCode", e);
             return 0;
         }
     }

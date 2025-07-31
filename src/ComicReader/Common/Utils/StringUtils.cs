@@ -9,7 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Utils;
 
 class StringUtils
 {

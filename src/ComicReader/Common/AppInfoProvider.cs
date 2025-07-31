@@ -11,9 +11,10 @@ namespace ComicReader.Common;
 
 public class AppInfoProvider
 {
-    // File types.
-    public static readonly HashSet<string> SupportedImageExtensions = new()
-    {
+    private static ReadOnlyDictionary<int, Encoding> _supportedEncodings = null;
+
+    public static readonly HashSet<string> SupportedImageExtensions =
+    [
         ".bmp",
         ".gif",
         ".jpg",
@@ -23,10 +24,10 @@ public class AppInfoProvider
         ".tif",
         ".tiff",
         ".webp",
-    };
+    ];
 
-    public static readonly HashSet<string> SupportedArchiveExtensions = new()
-    {
+    public static readonly HashSet<string> SupportedArchiveExtensions =
+    [
         ".7z",
         ".bz2",
         ".cb7",
@@ -38,27 +39,27 @@ public class AppInfoProvider
         ".tar",
         ".xz",
         ".zip",
-    };
+    ];
 
-    public static readonly HashSet<string> SupportedDocumentExtensions = new()
-    {
+    public static readonly HashSet<string> SupportedDocumentExtensions =
+    [
         ".pdf",
-    };
+    ];
 
-    private static HashSet<string> m_SupportedExternalFileExtensions = null;
+    private static HashSet<string> _supportedExternalFileExtensions = null;
     public static HashSet<string> SupportedExternalFileExtensions
     {
         get
         {
-            if (m_SupportedExternalFileExtensions == null)
+            if (_supportedExternalFileExtensions == null)
             {
-                m_SupportedExternalFileExtensions = new HashSet<string>();
-                m_SupportedExternalFileExtensions.UnionWith(SupportedImageExtensions);
-                m_SupportedExternalFileExtensions.UnionWith(SupportedArchiveExtensions);
-                m_SupportedExternalFileExtensions.UnionWith(SupportedDocumentExtensions);
+                _supportedExternalFileExtensions = [];
+                _supportedExternalFileExtensions.UnionWith(SupportedImageExtensions);
+                _supportedExternalFileExtensions.UnionWith(SupportedArchiveExtensions);
+                _supportedExternalFileExtensions.UnionWith(SupportedDocumentExtensions);
             }
 
-            return m_SupportedExternalFileExtensions;
+            return _supportedExternalFileExtensions;
         }
     }
 
@@ -81,9 +82,6 @@ public class AppInfoProvider
     {
         return SupportedDocumentExtensions.Contains(extension.ToLower());
     }
-
-    // Encodings.
-    private static ReadOnlyDictionary<int, Encoding> _supportedEncodings = null;
 
     public static ReadOnlyDictionary<int, Encoding> GetSupportedEncodings()
     {

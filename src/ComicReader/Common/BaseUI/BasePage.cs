@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.Lifecycle;
+using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 

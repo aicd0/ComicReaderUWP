@@ -1,9 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Constants;
 
-internal static class GlobalConstants
+internal static class DatabaseEntry
 {
     public const string LOCAL_SETTINGS_KEY_WINDOW_STATES = "WindowStates";
 

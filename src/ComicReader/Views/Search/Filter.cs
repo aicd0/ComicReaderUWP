@@ -6,6 +6,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using ComicReader.Common;
+using ComicReader.Common.Legacy;
 using ComicReader.Data;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Data.SqlHelpers;
@@ -14,7 +16,7 @@ using LiteDB;
 
 using Microsoft.Data.Sqlite;
 
-namespace ComicReader.Common;
+namespace ComicReader.Views.Search;
 
 public class Filter
 {
@@ -171,7 +173,7 @@ public class Filter
             return;
         }
 
-        m_subfilters.OrderBy((SubFilter x) => x.UniqueString);
+        m_subfilters.OrderBy((x) => x.UniqueString);
     }
 
     private static List<SubFilter> ParseFilters(string desc, out List<string> remaining)
@@ -581,7 +583,7 @@ public class SubFilterCategoryTag : SubFilter
 
         // Intersect two.
         IEnumerable<MatchedItem> matched = C3<MatchedItem, long, long>.Intersect(tag_category_matched, tag_matched,
-            (MatchedItem x) => x.TagCategoryId, (long x) => x,
+            (x) => x.TagCategoryId, (x) => x,
             new C1<long>.DefaultEqualityComparer());
 
         var results = new List<long>(matched.Count());

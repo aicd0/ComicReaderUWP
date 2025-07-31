@@ -3,7 +3,7 @@
 
 using System;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Utils;
 
 interface IBaseTransaction<out T> { }
 

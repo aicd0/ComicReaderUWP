@@ -11,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Legacy;
 using ComicReader.Common.Lifecycle;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.AutoProperty;
 using ComicReader.SDK.Common.DebugTools;
@@ -666,7 +668,6 @@ internal abstract class ComicData
         }
 
         TaskException result = await ReloadImages();
-
         if (!result.Successful())
         {
             return result;

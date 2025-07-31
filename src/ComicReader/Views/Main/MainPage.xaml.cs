@@ -7,8 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Constants;
+using ComicReader.Common.Legacy;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;

@@ -7,12 +7,13 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
+using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Native;
 
 using Microsoft.Win32.SafeHandles;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Legacy;
 
 public class Win32IO
 {

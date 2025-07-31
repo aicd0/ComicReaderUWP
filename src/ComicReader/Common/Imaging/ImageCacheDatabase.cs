@@ -12,7 +12,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
+using ComicReader.Common.Legacy;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
 

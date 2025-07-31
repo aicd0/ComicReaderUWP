@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-using ComicReader.Common;
+using ComicReader.Common.Constants;
 using ComicReader.Common.Lifecycle;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Data;

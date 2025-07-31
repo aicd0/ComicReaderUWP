@@ -3,8 +3,8 @@
 
 using System;
 
-using ComicReader.Common;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Legacy;
 using ComicReader.Data.Models;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;

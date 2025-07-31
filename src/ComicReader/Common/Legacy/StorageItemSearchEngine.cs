@@ -7,9 +7,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
+using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Legacy;
 
 public enum PathType
 {
