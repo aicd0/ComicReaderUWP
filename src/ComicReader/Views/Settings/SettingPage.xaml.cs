@@ -6,6 +6,7 @@ using System.Text;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Legacy;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;

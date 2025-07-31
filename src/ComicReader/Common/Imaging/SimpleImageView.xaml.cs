@@ -5,6 +5,7 @@
 
 using System;
 
+using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.Threading;
 
 using Microsoft.UI.Xaml;

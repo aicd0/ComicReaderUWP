@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using ComicReader.Common.Threading;
 using ComicReader.SDK.Common.DebugTools;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Legacy;
 
 internal class KeyFrameAnimation
 {

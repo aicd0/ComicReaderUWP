@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-using ComicReader.Common;
+using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Data;
@@ -25,14 +25,14 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         {
             if (!_debugMode.HasValue)
             {
-                _debugMode = KVDatabase.GetDefaultMethod().GetBoolean(GlobalConstants.KV_DB_APP, KEY_DEBUG_MODE, DebugUtils.DebugBuild);
+                _debugMode = KVDatabase.GetDefaultMethod().GetBoolean(DatabaseEntry.KV_DB_APP, KEY_DEBUG_MODE, DebugUtils.DebugBuild);
             }
             return _debugMode.Value;
         }
         set
         {
             _debugMode = value;
-            KVDatabase.GetDefaultMethod().SetBoolean(GlobalConstants.KV_DB_APP, KEY_DEBUG_MODE, value);
+            KVDatabase.GetDefaultMethod().SetBoolean(DatabaseEntry.KV_DB_APP, KEY_DEBUG_MODE, value);
             DebugUtils.DebugMode = value;
         }
     }

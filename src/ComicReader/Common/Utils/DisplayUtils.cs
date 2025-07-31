@@ -10,18 +10,18 @@ using ComicReader.SDK.Common.Native;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Utils;
 
 internal static class DisplayUtils
 {
-    private const string TAG = "DisplayUtils";
+    private const string TAG = nameof(DisplayUtils);
 
     private static double sRawPixelPerPixel = -1;
 
     public static void GetScreenSize(out int width, out int height)
     {
-        using var graphics = Graphics.FromHwnd(IntPtr.Zero);
-        IntPtr hdc = graphics.GetHdc();
+        using var graphics = Graphics.FromHwnd(nint.Zero);
+        nint hdc = graphics.GetHdc();
         width = NativeMethods.GetDeviceCaps(hdc, 118);
         height = NativeMethods.GetDeviceCaps(hdc, 117);
     }

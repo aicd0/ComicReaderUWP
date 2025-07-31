@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 
-using ComicReader.Common;
+using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 
 using Microsoft.UI.Input;

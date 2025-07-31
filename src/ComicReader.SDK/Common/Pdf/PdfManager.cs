@@ -57,9 +57,14 @@ public static class PdfManager
             {
                 pdfDocument = PdfDocument.Load(fullpath, password);
             }
-            catch (Exception ex)
+            catch (PdfException e)
             {
-                Logger.F(TAG, "OpenDocument", ex);
+                Logger.E(TAG, $"Unable to load PDF file '{fullpath}'. The file might be corrupted.", e);
+                return null;
+            }
+            catch (Exception e)
+            {
+                Logger.F(TAG, "OpenDocument", e);
                 return null;
             }
 

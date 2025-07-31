@@ -5,12 +5,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+
+using ComicReader.Common.Legacy;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Utils;
 
 internal static class Extensions
 {
@@ -51,22 +52,5 @@ internal static class Extensions
         }
 
         return null;
-    }
-
-    public static void SafeAppend(this StringBuilder sb, string category, Func<object> func)
-    {
-        string value;
-        try
-        {
-            value = func()?.ToString() ?? "[null]";
-        }
-        catch (Exception)
-        {
-            return;
-        }
-        sb.Append(category);
-        sb.Append(": ");
-        sb.Append(value);
-        sb.Append('\n');
     }
 }

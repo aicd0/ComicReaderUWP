@@ -8,9 +8,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Imaging;
+using ComicReader.Common.Legacy;
 using ComicReader.Common.Threading;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;

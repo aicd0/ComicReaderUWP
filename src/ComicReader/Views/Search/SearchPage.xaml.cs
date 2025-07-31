@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Legacy;
+using ComicReader.Common.Utils;
 using ComicReader.Data;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;

@@ -9,9 +9,12 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Constants;
 using ComicReader.Common.Imaging;
+using ComicReader.Common.Legacy;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Imaging;
@@ -136,7 +139,7 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnStart(bundle);
 
-        bool tipShown = KVDatabase.GetDefaultMethod().GetBoolean(GlobalConstants.KV_DB_TIPS, KEY_TIP_SHOWN, false);
+        bool tipShown = KVDatabase.GetDefaultMethod().GetBoolean(DatabaseEntry.KV_DB_TIPS, KEY_TIP_SHOWN, false);
         if (!tipShown)
         {
             ReaderTip.IsOpen = !tipShown;
@@ -783,7 +786,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
     {
-        KVDatabase.GetDefaultMethod().SetBoolean(GlobalConstants.KV_DB_TIPS, KEY_TIP_SHOWN, true);
+        KVDatabase.GetDefaultMethod().SetBoolean(DatabaseEntry.KV_DB_TIPS, KEY_TIP_SHOWN, true);
     }
 
     private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)

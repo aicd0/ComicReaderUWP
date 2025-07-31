@@ -7,7 +7,8 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
+using ComicReader.Common.Legacy;
+using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Pdf;
 using ComicReader.SDK.Common.Utils;
@@ -19,9 +20,9 @@ namespace ComicReader.Data.Models.Comic;
 
 internal class ComicPdfData : ComicData
 {
-    private const string TAG = "ComicPdfData";
+    private const string TAG = nameof(ComicPdfData);
 
-    private StorageFile? ThisFile = null;
+    private StorageFile? _pdfFile;
 
     public override bool IsEditable => !IsExternal;
 
@@ -51,7 +52,7 @@ internal class ComicPdfData : ComicData
 
     private async Task<StorageFile?> GetFile()
     {
-        StorageFile? file = ThisFile;
+        StorageFile? file = _pdfFile;
         if (file != null)
         {
             return file;
@@ -69,7 +70,7 @@ internal class ComicPdfData : ComicData
             return null;
         }
 
-        ThisFile = file;
+        _pdfFile = file;
         return file;
     }
 
@@ -86,7 +87,7 @@ internal class ComicPdfData : ComicData
 
     public override string GetImageCacheKey(int index)
     {
-        StorageFile? file = ThisFile;
+        StorageFile? file = _pdfFile;
         if (file == null)
         {
             return string.Empty;
@@ -97,7 +98,7 @@ internal class ComicPdfData : ComicData
 
     public override int GetImageSignature(int index)
     {
-        return FileUtils.GetFileHashCode(ThisFile);
+        return FileUtils.GetFileHashCode(_pdfFile);
     }
 
     public override async Task<IComicConnection?> OpenComicAsync()

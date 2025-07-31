@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Legacy;
 
 public class CancellationLock
 {

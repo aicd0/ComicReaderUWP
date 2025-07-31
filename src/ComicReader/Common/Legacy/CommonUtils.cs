@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Legacy;
 
 internal class C0
 {

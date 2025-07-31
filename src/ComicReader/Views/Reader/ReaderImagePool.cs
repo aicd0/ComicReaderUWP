@@ -7,8 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
-using ComicReader.Common;
 using ComicReader.Common.Imaging;
+using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 

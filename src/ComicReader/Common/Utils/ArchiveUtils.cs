@@ -7,12 +7,13 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
+using ComicReader.Common.Legacy;
 using ComicReader.Data.Models;
 using ComicReader.SDK.Common.DebugTools;
 
 using Windows.Storage;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Utils;
 
 #nullable disable
 
@@ -324,6 +325,11 @@ public class ArchiveAccess
                         try
                         {
                             hasNext = reader.MoveToNextEntry();
+                        }
+                        catch (EndOfStreamException e)
+                        {
+                            Logger.E(TAG, "Unable to read next archive entry: unexpected end of the stream.", e);
+                            break;
                         }
                         catch (Exception e)
                         {

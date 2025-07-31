@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Utils;
 
 internal sealed class CancellationSession
 {

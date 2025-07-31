@@ -3,8 +3,8 @@
 
 using System.Collections.ObjectModel;
 
-using ComicReader.Common;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
