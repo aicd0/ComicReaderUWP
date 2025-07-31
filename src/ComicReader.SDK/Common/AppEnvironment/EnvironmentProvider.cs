@@ -2,11 +2,14 @@
 // Licensed under the MIT License.
 
 using System.Globalization;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Utils;
 
@@ -18,8 +21,12 @@ namespace ComicReader.SDK.Common.AppEnvironment;
 
 public class EnvironmentProvider
 {
+    private const string KEY_DEVICE_ID = "DeviceId";
+
     public static EnvironmentProvider Instance = new();
 
+    private readonly object _lock = new();
+    private string _deviceId = string.Empty;
     private string _appLanguageTag = string.Empty;
     private readonly DateTimeOffset _launchTime;
     private string _additionalDebugInformation = string.Empty;
@@ -46,6 +53,7 @@ public class EnvironmentProvider
         sb.SafeAppend("Installed system language", () => CultureInfo.InstalledUICulture.Name);
         sb.SafeAppend("Current system language", GetCurrentSystemLanguage);
         sb.SafeAppend("Current app language", GetCurrentAppLanguage);
+        sb.SafeAppend("Device ID", GetDeviceId);
         sb.SafeAppend("Machine name", () => Environment.MachineName);
         sb.SafeAppend("Device model", DeviceInformationHelper.Instance.GetDeviceModel);
         sb.SafeAppend("OEM name", DeviceInformationHelper.Instance.GetDeviceOemName);
@@ -63,6 +71,51 @@ public class EnvironmentProvider
             sb.Append(_additionalDebugInformation);
             sb.Append('\n');
         }
+    }
+
+    public string GetDeviceId()
+    {
+        string deviceId = _deviceId;
+        if (!string.IsNullOrEmpty(deviceId))
+        {
+            return deviceId;
+        }
+
+        deviceId = KVDatabase.GetDefaultMethod().With(ServiceManager.GetService<IApplicationService>().GetKVDatabaseName())
+            .GetString(KEY_DEVICE_ID);
+        if (!string.IsNullOrEmpty(deviceId))
+        {
+            _deviceId = deviceId;
+            return deviceId;
+        }
+
+        string[] macAddresses = [.. NetworkInterface.GetAllNetworkInterfaces()
+            .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
+            .Select(nic => nic.GetPhysicalAddress().ToString())
+            .Where(mac => !string.IsNullOrEmpty(mac))];
+
+        string combined = string.Join("-", macAddresses);
+        if (combined.Length < 12)
+        {
+            combined = Guid.NewGuid().ToString();
+        }
+
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
+        deviceId = Convert.ToHexString(hash)[..16];
+
+        lock (_lock)
+        {
+            if (!string.IsNullOrEmpty(_deviceId))
+            {
+                return _deviceId;
+            }
+
+            _deviceId = deviceId;
+            KVDatabase.GetDefaultMethod().With(ServiceManager.GetService<IApplicationService>().GetKVDatabaseName())
+                .SetString(KEY_DEVICE_ID, deviceId);
+        }
+
+        return deviceId;
     }
 
     public string GetCurrentAppLanguage()
