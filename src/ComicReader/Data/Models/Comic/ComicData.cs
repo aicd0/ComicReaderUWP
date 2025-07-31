@@ -666,7 +666,6 @@ internal abstract class ComicData
         }
 
         TaskException result = await ReloadImages();
-
         if (!result.Successful())
         {
             return result;

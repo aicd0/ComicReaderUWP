@@ -275,6 +275,11 @@ internal sealed class ComicModel
     public static ComicModel? FromImageFiles(string directory, List<StorageFile> imageFiles)
     {
         ComicData? comic = ComicFolderData.FromExternal(directory, imageFiles);
+        if (comic is null)
+        {
+            return null;
+        }
+
         return ReplaceWithExisting(comic);
     }
 
