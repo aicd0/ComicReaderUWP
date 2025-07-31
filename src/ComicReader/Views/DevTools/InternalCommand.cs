@@ -23,10 +23,10 @@ xp8vQPBayknp/N1WAT768SYpXAT/nta/ddJnCkbMsCd/C1AZhDDwsjk4+Bsmj3DK
 5RycCc4/1JVY+rervfzfCzXLTOyPdmvE6QIDAQAB
 -----END RSA PUBLIC KEY-----";
 
-    public static bool Parse(string encryptedCommand)
+    public static bool Parse(string signedCommand)
     {
-        encryptedCommand = encryptedCommand.Trim();
-        byte[]? signatureAndPayloadBytes = DecodeWithBase64(encryptedCommand);
+        signedCommand = signedCommand.Trim();
+        byte[]? signatureAndPayloadBytes = DecodeWithBase64(signedCommand);
         if (signatureAndPayloadBytes == null || signatureAndPayloadBytes.Length < SIGNATURE_LENGTH)
         {
             return false;
