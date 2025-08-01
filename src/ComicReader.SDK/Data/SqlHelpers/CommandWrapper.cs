@@ -4,7 +4,6 @@
 using System.Text;
 
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.ServiceManagement;
 
 using Microsoft.Data.Sqlite;
 
@@ -70,6 +69,7 @@ public sealed class CommandWrapper : ICommandContext
         {
             sb.Replace(parameter.Key, ValueToStringRepresentation(parameter.Value));
         }
+
         return sb.ToString();
     }
 
@@ -84,15 +84,17 @@ public sealed class CommandWrapper : ICommandContext
         {
             command.Parameters.AddWithValue(parameter.Key, parameter.Value);
         }
+
         return command;
     }
 
     private void LogCommand()
     {
-        if (!ServiceManager.GetService<IDebugService>().EnableSqliteDatabaseLog())
+        if (!DebugSwitchModel.Instance.SqliteLogEnabled)
         {
             return;
         }
+
         Logger.I("SQLCommand", ToString());
     }
 
@@ -102,10 +104,12 @@ public sealed class CommandWrapper : ICommandContext
         {
             return booleanValue ? "TRUE" : "FALSE";
         }
+
         if (value is string stringValue)
         {
             return "\"" + stringValue.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
         }
+
         return value.ToString() ?? "NULL";
     }
 }

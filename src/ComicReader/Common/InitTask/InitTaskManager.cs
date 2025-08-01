@@ -36,7 +36,7 @@ internal class InitTaskManager(Application application)
         // Register crash handler
         _application.UnhandledException += (_, e) =>
         {
-            CaptureFatalError(e.Exception);
+            DebugUtils.CaptureFatalError(e.Exception);
         };
 
         // Register services
@@ -58,8 +58,8 @@ internal class InitTaskManager(Application application)
 
     private void InitOnAppLaunchInternal()
     {
-        // Initialize debug switches
-        DebugSwitchModel.Instance.Initialize();
+        // Initialize debug tools
+        DebugUtils.Initialize();
 
         // Initialize logger
         Logger.Initialize();
@@ -111,15 +111,9 @@ internal class InitTaskManager(Application application)
         }
         catch (Exception e)
         {
-            CaptureFatalError(e);
+            DebugUtils.CaptureFatalError(e);
             Environment.FailFast("A fatal error occurred during startup.", e);
             throw;
         }
-    }
-
-    private void CaptureFatalError(Exception e)
-    {
-        SentryManager.CaptureError(e);
-        CrashHandler.OnUnhandledException(e);
     }
 }

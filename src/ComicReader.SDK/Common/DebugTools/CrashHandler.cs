@@ -8,7 +8,7 @@ using ComicReader.SDK.Common.Storage;
 
 namespace ComicReader.SDK.Common.DebugTools;
 
-public static class CrashHandler
+internal static class CrashHandler
 {
     public static void OnUnhandledException(Exception e)
     {
@@ -55,7 +55,7 @@ public static class CrashHandler
             Console(ex.ToString());
         }
 
-        if (DebugUtils.DebugBuild && System.Diagnostics.Debugger.IsAttached)
+        if (DebugUtils.DeveloperMode && System.Diagnostics.Debugger.IsAttached)
         {
             System.Diagnostics.Debugger.Break();
         }

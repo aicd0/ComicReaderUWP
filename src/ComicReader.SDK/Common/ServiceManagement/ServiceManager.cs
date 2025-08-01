@@ -9,7 +9,16 @@ public static class ServiceManager
 {
     private static readonly ConcurrentDictionary<Type, IService> _services = [];
 
-    public static T GetService<T>() where T : IService
+    public static void RegisterService<T>(T service) where T : IService
+    {
+        ArgumentNullException.ThrowIfNull(service, nameof(service));
+        if (!_services.TryAdd(typeof(T), service))
+        {
+            throw new InvalidOperationException($"Service of type {typeof(T).FullName} is already registered.");
+        }
+    }
+
+    internal static T GetService<T>() where T : IService
     {
         ArgumentNullException.ThrowIfNull(typeof(T), nameof(T));
         if (_services.TryGetValue(typeof(T), out IService? service))
@@ -27,14 +36,5 @@ public static class ServiceManager
             return (T)service;
         }
         return default;
-    }
-
-    public static void RegisterService<T>(T service) where T : IService
-    {
-        ArgumentNullException.ThrowIfNull(service, nameof(service));
-        if (!_services.TryAdd(typeof(T), service))
-        {
-            throw new InvalidOperationException($"Service of type {typeof(T).FullName} is already registered.");
-        }
     }
 }

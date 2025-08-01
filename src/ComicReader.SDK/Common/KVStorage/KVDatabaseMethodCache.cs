@@ -1,15 +1,13 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 
 namespace ComicReader.SDK.Common.KVStorage;
 
 internal class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
 {
-    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object>> _cache = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object?>> _cache = new();
 
     public override bool? GetBoolean(string lib, string key)
     {
@@ -17,6 +15,7 @@ internal class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
         {
             return value;
         }
+
         value = method.GetBoolean(lib, key);
         SetValue(lib, key, value);
         return value;
@@ -28,17 +27,19 @@ internal class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
         {
             return value;
         }
+
         value = method.GetLong(lib, key);
         SetValue(lib, key, value);
         return value;
     }
 
-    public override string GetString(string lib, string key)
+    public override string? GetString(string lib, string key)
     {
-        if (GetClassValue(lib, key, out string value))
+        if (GetClassValue(lib, key, out string? value))
         {
             return value;
         }
+
         value = method.GetString(lib, key);
         SetValue(lib, key, value);
         return value;
@@ -68,15 +69,15 @@ internal class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
         method.SetString(lib, key, value);
     }
 
-    private bool GetPrimitiveValue<T>(string lib, string key, out Nullable<T> value) where T : struct
+    private bool GetPrimitiveValue<T>(string lib, string key, out T? value) where T : struct
     {
-        if (!_cache.TryGetValue(lib, out ConcurrentDictionary<string, object> libDict))
+        if (!_cache.TryGetValue(lib, out ConcurrentDictionary<string, object?>? libDict))
         {
             value = null;
             return false;
         }
 
-        if (!libDict.TryGetValue(key, out object cacheValue))
+        if (!libDict.TryGetValue(key, out object? cacheValue))
         {
             value = null;
             return false;
@@ -92,15 +93,15 @@ internal class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
         return true;
     }
 
-    private bool GetClassValue<T>(string lib, string key, out T value) where T : class
+    private bool GetClassValue<T>(string lib, string key, out T? value) where T : class
     {
-        if (!_cache.TryGetValue(lib, out ConcurrentDictionary<string, object> libDict))
+        if (!_cache.TryGetValue(lib, out ConcurrentDictionary<string, object?>? libDict))
         {
             value = null;
             return false;
         }
 
-        if (!libDict.TryGetValue(key, out object cacheValue))
+        if (!libDict.TryGetValue(key, out object? cacheValue))
         {
             value = null;
             return false;
@@ -116,11 +117,11 @@ internal class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
         return true;
     }
 
-    private void SetValue(string lib, string key, object value)
+    private void SetValue(string lib, string key, object? value)
     {
-        if (!_cache.TryGetValue(lib, out ConcurrentDictionary<string, object> libDict))
+        if (!_cache.TryGetValue(lib, out ConcurrentDictionary<string, object?>? libDict))
         {
-            libDict = new ConcurrentDictionary<string, object>();
+            libDict = new ConcurrentDictionary<string, object?>();
             if (!_cache.TryAdd(lib, libDict))
             {
                 libDict = _cache[lib];
@@ -132,7 +133,7 @@ internal class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
 
     private void RemoveValue(string lib, string key)
     {
-        if (!_cache.TryGetValue(lib, out ConcurrentDictionary<string, object> libDict))
+        if (!_cache.TryGetValue(lib, out ConcurrentDictionary<string, object?>? libDict))
         {
             return;
         }

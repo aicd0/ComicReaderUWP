@@ -9,7 +9,6 @@ using System.Text.RegularExpressions;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
 using ComicReader.Data;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
@@ -83,7 +82,7 @@ internal sealed partial class DevToolsPage : BasePage
         string configs = TbCommonConfigs.Text;
         try
         {
-            DebugSwitchModel.Instance.SaveConfig(configs);
+            DebugUtils.SaveConfigFromJson(configs);
         }
         catch (Exception ex)
         {
@@ -162,6 +161,16 @@ internal sealed partial class DevToolsPage : BasePage
         });
     }
 
+    private void DeveloperModeToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        DebugUtils.DeveloperMode = DeveloperModeToggleSwitch.IsOn;
+    }
+
+    private void SentryToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        DebugUtils.SentryEnabled = SentryToggleSwitch.IsOn;
+    }
+
     //
     // Utilities
     //
@@ -183,7 +192,9 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void RestoreConfig()
     {
-        TbCommonConfigs.Text = DebugSwitchModel.Instance.SerializeToJson();
+        TbCommonConfigs.Text = DebugUtils.GetConfigAsJson();
+        DeveloperModeToggleSwitch.IsOn = DebugUtils.DeveloperMode;
+        SentryToggleSwitch.IsOn = DebugUtils.SentryEnabled;
     }
 
     private static string? SanitizeForNtfsFileName(string input)

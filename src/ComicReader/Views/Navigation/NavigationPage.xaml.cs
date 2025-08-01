@@ -12,7 +12,6 @@ using ComicReader.Common.Lifecycle;
 using ComicReader.Data.Models;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.Views.DevTools;
 using ComicReader.Views.Main;
 
 using Microsoft.UI.Input;
@@ -44,7 +43,7 @@ internal sealed partial class NavigationPage : BasePage
         base.OnResume();
 
         ObserveData();
-        ViewModel.DevToolsVisible = DebugUtils.DebugBuild;
+        ViewModel.DevToolsVisible = DebugUtils.DeveloperMode;
     }
 
     private void ObserveData()
@@ -148,11 +147,8 @@ internal sealed partial class NavigationPage : BasePage
 
     private void OnDevToolsClick(object sender, RoutedEventArgs e)
     {
-        if (DebugUtils.DebugBuild)
-        {
-            var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
-            GetMainPageAbility().OpenInNewTab(route);
-        }
+        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
+        GetMainPageAbility().OpenInNewTab(route);
     }
 
     // Search box
@@ -175,7 +171,7 @@ internal sealed partial class NavigationPage : BasePage
             return;
         }
 
-        if (InternalCommand.Parse(queryText))
+        if (DebugCommand.TryExecute(queryText))
         {
             return;
         }

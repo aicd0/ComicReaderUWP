@@ -17,12 +17,12 @@ public static class SentryManager
 
     public static void Initialize(string dsn, IReadOnlyDictionary<string, string> tags)
     {
-        if (_initialized)
+        if (!DebugUtils.SentryEnabled || _initialized)
         {
             return;
         }
 
-        if (dsn.Length == 0)
+        if (string.IsNullOrEmpty(dsn))
         {
             return;
         }
@@ -40,12 +40,13 @@ public static class SentryManager
                 o.DefaultTags[tag.Key] = tag.Value;
             }
         });
+
         _initialized = true;
 
         //CaptureInfo("SentryInit");
     }
 
-    public static void CaptureInfo(string message)
+    internal static void CaptureInfo(string message)
     {
         if (!_initialized)
         {
@@ -57,7 +58,7 @@ public static class SentryManager
         SentrySdk.CaptureMessage(message);
     }
 
-    public static void CaptureWarning(Exception exception)
+    internal static void CaptureWarning(Exception exception)
     {
         if (!_initialized)
         {
@@ -69,7 +70,7 @@ public static class SentryManager
         SentrySdk.CaptureException(exception);
     }
 
-    public static void CaptureError(Exception exception)
+    internal static void CaptureError(Exception exception)
     {
         if (!_initialized)
         {

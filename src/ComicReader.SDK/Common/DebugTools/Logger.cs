@@ -42,6 +42,7 @@ public static class Logger
             IsBackground = true,
             Priority = ThreadPriority.Lowest,
         };
+
         logThread.Start();
     }
 
@@ -173,6 +174,7 @@ public static class Logger
         {
             return;
         }
+
         AssertNotReachHereInternal(eventName, null, null);
     }
 
@@ -248,6 +250,7 @@ public static class Logger
                 levelTag = "U";
                 break;
         }
+
         string realMessage = $"{DateTimeOffset.Now:yyyy/M/d HH:mm:ss.fff} [{levelTag},{tag}] {message}";
         if (exception != null)
         {
@@ -270,6 +273,7 @@ public static class Logger
                 Tag = tag,
                 Message = realMessage,
             };
+
             LogToFile(item);
         }
     }
@@ -316,6 +320,7 @@ public static class Logger
             sb.Append(item.Message);
             sb.Append('\n');
         }
+
         string content = sb.ToString();
 
         string fileName = "log_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
@@ -401,7 +406,7 @@ public static class Logger
 
         if (DebugUtils.DebugMode)
         {
-            if (DebugUtils.DebugBuild && System.Diagnostics.Debugger.IsAttached)
+            if (DebugUtils.DeveloperMode && System.Diagnostics.Debugger.IsAttached)
             {
                 System.Diagnostics.Debugger.Break();
             }
@@ -446,10 +451,12 @@ public static class Logger
             {
                 sb.Append(eventName);
             }
+
             if (!string.IsNullOrEmpty(message))
             {
                 sb.Append(" (").Append(message).Append(')');
             }
+
             return sb.ToString();
         }
     }

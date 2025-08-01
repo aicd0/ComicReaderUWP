@@ -1,18 +1,18 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.Security.Cryptography;
 
-using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.AppEnvironment;
-using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Constants;
+using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Common.ServiceManagement;
 
-namespace ComicReader.Views.DevTools;
+namespace ComicReader.SDK.Common.DebugTools;
 
-internal static class InternalCommand
+public static class DebugCommand
 {
-    private const string TAG = nameof(InternalCommand);
+    private const string TAG = nameof(DebugCommand);
     private const int SIGNATURE_LENGTH = 256;
     private const string PUBLIC_KEY_PEM = @"-----BEGIN RSA PUBLIC KEY-----
 MIIBCgKCAQEAmyJ4ckZZJaRPsTrHz2VNB+rV7sFb2c9L2aaxg72D71vR44KPFVJO
@@ -23,13 +23,44 @@ xp8vQPBayknp/N1WAT768SYpXAT/nta/ddJnCkbMsCd/C1AZhDDwsjk4+Bsmj3DK
 5RycCc4/1JVY+rervfzfCzXLTOyPdmvE6QIDAQAB
 -----END RSA PUBLIC KEY-----";
 
-    public static bool Parse(string signedCommand)
+    private static bool? _unlockedDeveloperMode = null;
+    internal static bool UnlockedDeveloperMode
     {
-        signedCommand = signedCommand.Trim();
-        byte[]? signatureAndPayloadBytes = DecodeWithBase64(signedCommand);
-        if (signatureAndPayloadBytes == null || signatureAndPayloadBytes.Length < SIGNATURE_LENGTH)
+        get
+        {
+            if (!_unlockedDeveloperMode.HasValue)
+            {
+                string? token = KVDatabase.Sdk.GetString(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN);
+                bool tokenValid = token != null && ParseCommand(token) != null;
+                _unlockedDeveloperMode = tokenValid;
+            }
+
+            return _unlockedDeveloperMode.Value;
+        }
+    }
+
+    public static bool TryExecute(string command)
+    {
+        string? parsedCommand = ParseCommand(command);
+        if (parsedCommand == null)
         {
             return false;
+        }
+
+        // Save developer mode token
+        _unlockedDeveloperMode = true;
+        KVDatabase.Sdk.SetString(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
+
+        return ProcessCommand(parsedCommand);
+    }
+
+    private static string? ParseCommand(string command)
+    {
+        command = command.Trim();
+        byte[]? signatureAndPayloadBytes = DecodeWithBase64(command);
+        if (signatureAndPayloadBytes == null || signatureAndPayloadBytes.Length < SIGNATURE_LENGTH)
+        {
+            return null;
         }
 
         byte[] signatureBytes = new byte[SIGNATURE_LENGTH];
@@ -42,13 +73,12 @@ xp8vQPBayknp/N1WAT768SYpXAT/nta/ddJnCkbMsCd/C1AZhDDwsjk4+Bsmj3DK
         Array.Copy(signatureAndPayloadBytes, SIGNATURE_LENGTH, payloadBytes, deviceIdBytes.Length, signatureAndPayloadBytes.Length - SIGNATURE_LENGTH);
         if (!VerifySignature(payloadBytes, signatureBytes, PUBLIC_KEY_PEM))
         {
-            return false;
+            return null;
         }
 
         byte[] commandBytes = new byte[signatureAndPayloadBytes.Length - SIGNATURE_LENGTH];
         Array.Copy(signatureAndPayloadBytes, SIGNATURE_LENGTH, commandBytes, 0, signatureAndPayloadBytes.Length - SIGNATURE_LENGTH);
-        string command = System.Text.Encoding.UTF8.GetString(commandBytes);
-        return ProcessCommand(command);
+        return System.Text.Encoding.UTF8.GetString(commandBytes);
     }
 
     private static bool VerifySignature(byte[] payloadBytes, byte[] signatureBytes, string publicKeyPem)
@@ -81,13 +111,7 @@ xp8vQPBayknp/N1WAT768SYpXAT/nta/ddJnCkbMsCd/C1AZhDDwsjk4+Bsmj3DK
 
     private static bool ProcessCommand(string command)
     {
-        if (command == "dev_tools")
-        {
-            var newWindow = new MainWindow(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
-            newWindow.Activate();
-            return true;
-        }
-
-        return false;
+        IDebugService? debugService = ServiceManager.GetServiceNullable<IDebugService>();
+        return debugService != null && debugService.HandleDebugCommand(command);
     }
 }
