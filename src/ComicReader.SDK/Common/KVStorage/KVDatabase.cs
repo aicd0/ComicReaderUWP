@@ -7,11 +7,14 @@ public static class KVDatabase
 {
     private static readonly Lazy<KVDatabaseMethod> sDefaultMethod = new(delegate
     {
-        return new KVDatabaseMethodCache(KVDatabaseMethodLiteDB.GetInstance());
+        return new KVDatabaseMethodCache(new KVDatabaseMethodLiteDB("lib"));
     });
 
-    public static KVDatabaseMethod GetDefaultMethod()
+    private static readonly Lazy<KVDatabaseMethod> sSdkMethod = new(delegate
     {
-        return sDefaultMethod.Value;
-    }
+        return new KVDatabaseMethodCache(new KVDatabaseMethodLiteDB("sdk"));
+    });
+
+    public static KVDatabaseMethod Default => sDefaultMethod.Value;
+    internal static KVDatabaseMethod Sdk => sSdkMethod.Value;
 }

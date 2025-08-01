@@ -5,37 +5,13 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-using ComicReader.Common.Constants;
-using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Data;
 
-namespace ComicReader.Data.Models;
+namespace ComicReader.SDK.Common.DebugTools;
 
 internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 {
-    private const string KEY_DEBUG_MODE = "debug_mode";
-
     public static readonly DebugSwitchModel Instance = new();
-
-    private static bool? _debugMode = null;
-    public static bool DebugMode
-    {
-        get
-        {
-            if (!_debugMode.HasValue)
-            {
-                _debugMode = KVDatabase.GetDefaultMethod().GetBoolean(DatabaseEntry.KV_DB_APP, KEY_DEBUG_MODE, DebugUtils.DebugBuild);
-            }
-            return _debugMode.Value;
-        }
-        set
-        {
-            _debugMode = value;
-            KVDatabase.GetDefaultMethod().SetBoolean(DatabaseEntry.KV_DB_APP, KEY_DEBUG_MODE, value);
-            DebugUtils.DebugMode = value;
-        }
-    }
 
     private JsonModel? _config;
     private LogTag? _consoleWhitelist;
@@ -47,7 +23,7 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 
     private bool ConsoleEnabled
     {
-        get => DebugUtils.DebugBuild && GetConfig().ConsoleEnabled;
+        get => DebugUtils.DeveloperMode && GetConfig().ConsoleEnabled;
         set
         {
             JsonModel model = GetConfig();
@@ -58,7 +34,7 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 
     private bool LogTreeEnabled
     {
-        get => DebugUtils.DebugBuild && GetConfig().LogTreeEnabled;
+        get => DebugUtils.DeveloperMode && GetConfig().LogTreeEnabled;
         set
         {
             JsonModel model = GetConfig();
@@ -101,7 +77,6 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 
     public void Initialize()
     {
-        DebugUtils.DebugMode = DebugMode;
         JsonModel model = Read((m) => m);
         UpdateConfig(model);
     }

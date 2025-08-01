@@ -108,7 +108,7 @@ public sealed partial class MainWindow : Window
         var placement = new NativeModels.WindowPlacement();
         NativeMethods.GetWindowPlacement(WindowHandle, out placement);
         string serialized = JsonSerializer.Serialize(placement);
-        KVDatabase.GetDefaultMethod().With(DatabaseEntry.KV_DB_APP).SetString(DatabaseEntry.LOCAL_SETTINGS_KEY_WINDOW_STATES, serialized);
+        KVDatabase.Default.With(DatabaseEntry.KV_LIB_APP).SetString(DatabaseEntry.KV_KEY_APP_WINDOW_STATES, serialized);
     }
 
     private void OnPageFrameLoaded(object sender, RoutedEventArgs e)
@@ -231,7 +231,7 @@ public sealed partial class MainWindow : Window
 
     private void TryRecoverWindowStates()
     {
-        string windowStates = KVDatabase.GetDefaultMethod().GetString(DatabaseEntry.KV_DB_APP, DatabaseEntry.LOCAL_SETTINGS_KEY_WINDOW_STATES);
+        string windowStates = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_WINDOW_STATES);
         NativeModels.WindowPlacement windowPlacement;
         try
         {

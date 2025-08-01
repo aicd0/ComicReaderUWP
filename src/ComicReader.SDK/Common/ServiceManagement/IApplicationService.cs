@@ -8,6 +8,4 @@ public interface IApplicationService : IService
     bool IsPortableBuild();
 
     string GetEnvironmentDebugInfo();
-
-    string GetKVDatabaseName();
 }

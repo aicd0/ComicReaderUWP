@@ -3,7 +3,6 @@
 
 using System.Text;
 
-using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.ServiceManagement;
 
@@ -25,10 +24,5 @@ internal class ApplicationService : IApplicationService
         StringBuilder sb = new();
         EnvironmentProvider.Instance.AppendDebugText(sb);
         return sb.ToString();
-    }
-
-    public string GetKVDatabaseName()
-    {
-        return DatabaseEntry.KV_DB_SDK;
     }
 }

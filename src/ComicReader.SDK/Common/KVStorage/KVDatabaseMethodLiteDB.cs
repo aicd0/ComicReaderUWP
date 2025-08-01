@@ -9,16 +9,13 @@ using LiteDB;
 
 namespace ComicReader.SDK.Common.KVStorage;
 
-internal class KVDatabaseMethodLiteDB : KVDatabaseMethod, IDisposable
+internal class KVDatabaseMethodLiteDB(string prefix) : KVDatabaseMethod, IDisposable
 {
     private const string DEFAULT_COLLECTION = "default";
 
-    private static readonly KVDatabaseMethodLiteDB sInstance = new();
-
     private readonly object _lock = new();
+    private readonly string _prefix = prefix;
     private readonly ConcurrentDictionary<string, LiteDatabase> _db = [];
-
-    private KVDatabaseMethodLiteDB() { }
 
     public void Dispose()
     {
@@ -101,7 +98,7 @@ internal class KVDatabaseMethodLiteDB : KVDatabaseMethod, IDisposable
             }
 
             string databaseFolder = Path.Combine(StorageLocation.GetLocalFolderPath(), "database_kv");
-            string databasePath = Path.Combine(databaseFolder, $"lib_{lib}.db");
+            string databasePath = Path.Combine(databaseFolder, $"{_prefix}_{lib}.db");
             Directory.CreateDirectory(databaseFolder);
             db = new LiteDatabase(databasePath);
             _db[lib] = db;
@@ -132,6 +129,7 @@ internal class KVDatabaseMethodLiteDB : KVDatabaseMethod, IDisposable
                 Key = key,
                 Value = value
             };
+
             col.Insert(pair);
         }
         else
@@ -146,15 +144,11 @@ internal class KVDatabaseMethodLiteDB : KVDatabaseMethod, IDisposable
         }
     }
 
-    public static KVDatabaseMethodLiteDB GetInstance()
-    {
-        return sInstance;
-    }
-
     private class KVPair
     {
         [BsonId]
         public required string Key { get; set; }
+
         public required string Value { get; set; }
     }
 }

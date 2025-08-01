@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
+using ComicReader.SDK.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.ServiceManagement;
@@ -21,9 +22,7 @@ namespace ComicReader.SDK.Common.AppEnvironment;
 
 public class EnvironmentProvider
 {
-    private const string KEY_DEVICE_ID = "DeviceId";
-
-    public static EnvironmentProvider Instance = new();
+    public static EnvironmentProvider Instance { get; } = new();
 
     private readonly object _lock = new();
     private string _deviceId = string.Empty;
@@ -75,14 +74,13 @@ public class EnvironmentProvider
 
     public string GetDeviceId()
     {
-        string deviceId = _deviceId;
+        string? deviceId = _deviceId;
         if (!string.IsNullOrEmpty(deviceId))
         {
             return deviceId;
         }
 
-        deviceId = KVDatabase.GetDefaultMethod().With(ServiceManager.GetService<IApplicationService>().GetKVDatabaseName())
-            .GetString(KEY_DEVICE_ID);
+        deviceId = KVDatabase.Sdk.With(DatabaseEntry.KV_LIB_MAIN).GetString(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID);
         if (!string.IsNullOrEmpty(deviceId))
         {
             _deviceId = deviceId;
@@ -111,8 +109,7 @@ public class EnvironmentProvider
             }
 
             _deviceId = deviceId;
-            KVDatabase.GetDefaultMethod().With(ServiceManager.GetService<IApplicationService>().GetKVDatabaseName())
-                .SetString(KEY_DEVICE_ID, deviceId);
+            KVDatabase.Sdk.With(DatabaseEntry.KV_LIB_MAIN).SetString(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID, deviceId);
         }
 
         return deviceId;

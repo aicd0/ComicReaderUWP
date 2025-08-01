@@ -5,5 +5,5 @@ namespace ComicReader.SDK.Common.ServiceManagement;
 
 public interface IDebugService : IService
 {
-    bool EnableSqliteDatabaseLog();
+    bool HandleDebugCommand(string command);
 }

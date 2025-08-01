@@ -1,23 +1,21 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 namespace ComicReader.SDK.Common.KVStorage;
 
 public abstract class KVDatabaseMethod
 {
-    private readonly Dictionary<string, KVDatabaseLib> mLibs = new();
+    private readonly Dictionary<string, KVDatabaseLib> _libs = [];
 
     public KVDatabaseLib With(string libName)
     {
-        if (mLibs.TryGetValue(libName, out KVDatabaseLib lib))
+        if (_libs.TryGetValue(libName, out KVDatabaseLib? lib))
         {
             return lib;
         }
 
         lib = new KVDatabaseLib(this, libName);
-        mLibs.Add(libName, lib);
+        _libs.Add(libName, lib);
         return lib;
     }
 
@@ -25,11 +23,11 @@ public abstract class KVDatabaseMethod
 
     public abstract void SetString(string lib, string key, string value);
 
-    public abstract string GetString(string lib, string key);
+    public abstract string? GetString(string lib, string key);
 
     public string GetString(string lib, string key, string defaultValue)
     {
-        string value = GetString(lib, key);
+        string? value = GetString(lib, key);
         if (value != null)
         {
             return value;

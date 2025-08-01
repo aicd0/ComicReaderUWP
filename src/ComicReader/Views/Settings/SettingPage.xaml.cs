@@ -11,6 +11,7 @@ using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.AppEnvironment;
+using ComicReader.SDK.Common.DebugTools;
 using ComicReader.Views.Main;
 
 using Microsoft.UI.Xaml;
@@ -83,7 +84,7 @@ internal sealed partial class SettingPage : BasePage
             }
 
             ViewModel.DebugMode = debugMode;
-            DebugSwitchModel.DebugMode = debugMode;
+            DebugUtils.DebugMode = debugMode;
         });
     }
 
