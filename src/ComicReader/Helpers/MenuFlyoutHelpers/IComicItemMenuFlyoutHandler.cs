@@ -1,34 +1,31 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Input;
-
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
 internal interface IComicItemMenuFlyoutHandler
 {
-    void OnItemTapped(object sender, TappedRoutedEventArgs e);
+    void OnItemTapped();
 
-    void OnOpenInNewTabClicked(object sender, RoutedEventArgs e);
+    void OnOpenInNewTabClicked();
 
-    void OnAddToFavoritesClicked(object sender, RoutedEventArgs e);
+    void OnAddToFavoritesClicked();
 
-    void OnRemoveFromFavoritesClicked(object sender, RoutedEventArgs e);
+    void OnRemoveFromFavoritesClicked();
 
-    void OnHideClicked(object sender, RoutedEventArgs e);
+    void OnHideClicked();
 
-    void OnUnhideClicked(object sender, RoutedEventArgs e);
+    void OnUnhideClicked();
 
-    void OnMarkAsReadClicked(object sender, RoutedEventArgs e);
+    void OnMarkAsReadClicked();
 
-    void OnMarkAsReadingClicked(object sender, RoutedEventArgs e);
+    void OnMarkAsReadingClicked();
 
-    void OnMarkAsUnreadClicked(object sender, RoutedEventArgs e);
+    void OnMarkAsUnreadClicked();
 
-    void OnEditClick(object sender, RoutedEventArgs e);
+    void OnEditClick();
 
-    void OnSelectClicked(object sender, RoutedEventArgs e);
+    void OnSelectClicked();
 
-    void OnOpenInFileExplorerClicked(object sender, RoutedEventArgs e);
+    void OnOpenInFileExplorerClicked();
 }

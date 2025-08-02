@@ -37,7 +37,8 @@
         Background="{ThemeResource ComicItemBackground}"
         DataContextChanged="RootGrid_DataContextChanged"
         PointerEntered="RootGrid_PointerEntered"
-        PointerExited="RootGrid_PointerExited">
+        PointerExited="RootGrid_PointerExited"
+        Tapped="RootGrid_Tapped">
         <Grid.BackgroundTransition>
             <BrushTransition Duration="0:0:0.1" />
         </Grid.BackgroundTransition>

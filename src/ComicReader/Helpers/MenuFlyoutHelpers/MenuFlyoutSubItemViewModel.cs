@@ -1,29 +1,29 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
+using System.Collections.Generic;
 
 using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
-internal class MenuFlyoutItemViewModel(string text) : BaseMenuFlyoutItemViewModel
+internal class MenuFlyoutSubItemViewModel(string text) : BaseMenuFlyoutItemViewModel
 {
     public string Text { get; set; } = text;
     public IconElement? Icon { get; set; }
-    public Action? OnClick { get; set; }
+    public List<BaseMenuFlyoutItemViewModel> Items { get; set; } = [];
 
     protected override MenuFlyoutItemBase CreateMenuFlyoutItemInternal()
     {
-        var item = new MenuFlyoutItem
+        var item = new MenuFlyoutSubItem
         {
             Text = Text,
             Icon = Icon,
         };
 
-        if (OnClick != null)
+        foreach (BaseMenuFlyoutItemViewModel subItem in Items)
         {
-            item.Click += (sender, args) => OnClick.Invoke();
+            item.Items.Add(subItem.CreateMenuFlyoutItem());
         }
 
         return item;

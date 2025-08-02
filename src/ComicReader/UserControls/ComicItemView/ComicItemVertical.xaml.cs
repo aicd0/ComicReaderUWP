@@ -80,6 +80,15 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
         VisualStateManager.GoToState(this, "Normal", true);
     }
 
+    private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        ComicItemViewModel? item = Item;
+        if (item != null)
+        {
+            _itemHandler?.OnItemTapped(item);
+        }
+    }
+
     public void Bind(ComicItemViewModel item, IComicItemViewHandler handler)
     {
         if (item != Item)
@@ -88,22 +97,16 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
             Item = item;
         }
 
-        IComicItemViewHandler? oldHandler = _itemHandler;
-        if (oldHandler != null)
-        {
-            RootGrid.Tapped -= oldHandler.OnItemTapped;
-        }
         _itemHandler = handler;
-        RootGrid.Tapped += handler.OnItemTapped;
 
         BindImage(item);
         RequestImageIfNeeded(item);
 
-        List<MenuFlyoutItemBase> menuItems = ComicItemMenuFlyoutCreator.CreateMenuItems(item, new BaseComicItemMenuFlyoutHandler(item.Comic, handler));
+        List<BaseMenuFlyoutItemViewModel> menuItems = ComicItemMenuFlyoutCreator.CreateMenuItems(item, new BaseComicItemMenuFlyoutHandler(item, handler));
         MenuFlyout menuFlyout = new();
-        foreach (MenuFlyoutItemBase menuItem in menuItems)
+        foreach (BaseMenuFlyoutItemViewModel menuItem in menuItems)
         {
-            menuFlyout.Items.Add(menuItem);
+            menuFlyout.Items.Add(menuItem.CreateMenuFlyoutItem());
         }
         RootGrid.ContextFlyout = menuFlyout;
     }

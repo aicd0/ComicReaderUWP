@@ -25,7 +25,8 @@
     <Grid
         x:Name="RootGrid"
         Background="Transparent"
-        DataContextChanged="RootGrid_DataContextChanged">
+        DataContextChanged="RootGrid_DataContextChanged"
+        Tapped="RootGrid_Tapped">
         <Grid Margin="10,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />

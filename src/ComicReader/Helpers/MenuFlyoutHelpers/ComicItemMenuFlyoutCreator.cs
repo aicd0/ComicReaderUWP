@@ -12,148 +12,159 @@ namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
 internal static class ComicItemMenuFlyoutCreator
 {
-    public static List<MenuFlyoutItemBase> CreateMenuItems(ComicItemViewModel model, IComicItemMenuFlyoutHandler handler)
+    public static List<BaseMenuFlyoutItemViewModel> CreateMenuItems(ComicItemViewModel model, IComicItemMenuFlyoutHandler handler)
     {
-        List<MenuFlyoutItemBase> result = [];
+        List<BaseMenuFlyoutItemViewModel> result = [];
         {
-            MenuFlyoutItem item = new()
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInNewTab)
             {
-                Text = StringResourceProvider.Instance.OpenInNewTab,
                 Icon = new FontIcon
                 {
                     Glyph = "\uE8A5"
-                }
+                },
+                OnClick = handler.OnOpenInNewTabClicked,
             };
-            item.Click += handler.OnOpenInNewTabClicked;
+
             result.Add(item);
         }
+
         if (!model.IsFavorite)
         {
-            MenuFlyoutItem item = new()
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.AddToFavorites)
             {
-                Text = StringResourceProvider.Instance.AddToFavorites,
                 Icon = new FontIcon
                 {
                     Glyph = "\uE734"
-                }
+                },
+                OnClick = handler.OnAddToFavoritesClicked,
             };
-            item.Click += handler.OnAddToFavoritesClicked;
+
             result.Add(item);
         }
+
         if (model.IsFavorite)
         {
-            MenuFlyoutItem item = new()
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.RemoveFromFavorites)
             {
-                Text = StringResourceProvider.Instance.RemoveFromFavorites,
                 Icon = new FontIcon
                 {
                     Glyph = "\uE8D9"
-                }
+                },
+                OnClick = handler.OnRemoveFromFavoritesClicked,
             };
-            item.Click += handler.OnRemoveFromFavoritesClicked;
+
             result.Add(item);
         }
+
         {
-            MenuFlyoutSubItem groupItem = new()
+            MenuFlyoutSubItemViewModel groupItem = new(StringResourceProvider.Instance.SetCompletionState)
             {
-                Text = StringResourceProvider.Instance.SetCompletionState,
                 Icon = new FontIcon
                 {
                     Glyph = "\uE7C1"
-                }
+                },
             };
+
             if (model.Comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.NotStarted)
             {
-                MenuFlyoutItem item = new()
+                MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsUnread)
                 {
-                    Text = StringResourceProvider.Instance.MarkAsUnread,
+                    OnClick = handler.OnMarkAsUnreadClicked,
                 };
-                item.Click += handler.OnMarkAsUnreadClicked;
                 groupItem.Items.Add(item);
             }
+
             if (model.Comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Started)
             {
-                MenuFlyoutItem item = new()
+                MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsReading)
                 {
-                    Text = StringResourceProvider.Instance.MarkAsReading,
+                    OnClick = handler.OnMarkAsReadingClicked,
                 };
-                item.Click += handler.OnMarkAsReadingClicked;
+
                 groupItem.Items.Add(item);
             }
             if (model.Comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Completed)
             {
-                MenuFlyoutItem item = new()
+                MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsRead)
                 {
-                    Text = StringResourceProvider.Instance.MarkAsRead,
+                    OnClick = handler.OnMarkAsReadClicked,
                 };
-                item.Click += handler.OnMarkAsReadClicked;
+
                 groupItem.Items.Add(item);
             }
+
             result.Add(groupItem);
         }
+
         if (!model.IsHide)
         {
-            MenuFlyoutItem item = new()
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Hide)
             {
-                Text = StringResourceProvider.Instance.Hide,
                 Icon = new FontIcon
                 {
                     Glyph = "\uED1A"
-                }
+                },
+                OnClick = handler.OnHideClicked,
             };
-            item.Click += handler.OnHideClicked;
+
             result.Add(item);
         }
+
         if (model.IsHide)
         {
-            MenuFlyoutItem item = new()
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Unhide)
             {
-                Text = StringResourceProvider.Instance.Unhide,
                 Icon = new FontIcon
                 {
                     Glyph = "\uE7B3"
-                }
+                },
+                OnClick = handler.OnUnhideClicked,
             };
-            item.Click += handler.OnUnhideClicked;
+
             result.Add(item);
         }
+
         {
-            MenuFlyoutItem item = new()
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Edit)
             {
-                Text = StringResourceProvider.Instance.Edit,
                 Icon = new FontIcon
                 {
                     Glyph = "\uE70F"
-                }
+                },
+                OnClick = handler.OnEditClick,
             };
-            item.Click += handler.OnEditClick;
+
             result.Add(item);
         }
+
         {
-            MenuFlyoutItem item = new()
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInFileExplorer)
             {
-                Text = StringResourceProvider.Instance.OpenInFileExplorer,
                 Icon = new FontIcon
                 {
                     Glyph = "\uE838"
-                }
+                },
+                OnClick = handler.OnOpenInFileExplorerClicked,
             };
-            item.Click += handler.OnOpenInFileExplorerClicked;
+
             result.Add(item);
         }
-        result.Add(new MenuFlyoutSeparator());
+
+        result.Add(new MenuFlyoutSeperatorViewModel());
+
         {
-            MenuFlyoutItem item = new()
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Select)
             {
-                Text = StringResourceProvider.Instance.Select,
                 Icon = new FontIcon
                 {
                     Glyph = "\uE762"
-                }
+                },
+                OnClick = handler.OnSelectClicked,
             };
-            item.Click += handler.OnSelectClicked;
+
             result.Add(item);
         }
+
         return result;
     }
 }
