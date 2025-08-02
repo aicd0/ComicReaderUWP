@@ -17,6 +17,7 @@
 
     <Page.Resources>
         <ResourceDictionary>
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/AppBarButton.xaml" />
                 <ResourceDictionary Source="/Styles/Button.xaml" />
@@ -24,16 +25,15 @@
                 <ResourceDictionary Source="/Styles/ToggleButton.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!--  Converters  -->
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToDoubleConverter x:Key="BooleanToDoubleConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
 
-            <!--  Shadows  -->
             <cwm:AttachedCardShadow
                 x:Key="CommonShadow"
                 Opacity="0.1"
                 Offset="0" />
+
         </ResourceDictionary>
     </Page.Resources>
 

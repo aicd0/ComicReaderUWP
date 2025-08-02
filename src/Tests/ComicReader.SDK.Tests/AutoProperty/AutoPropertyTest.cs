@@ -3,12 +3,19 @@
 
 using ComicReader.SDK.Common.AutoProperty;
 using ComicReader.SDK.Common.AutoProperty.Presets;
+using ComicReader.SDK.Tests.Common;
 
 namespace ComicReader.SDK.Tests.AutoProperty;
 
 [TestFixture]
 public class AutoPropertyTest
 {
+    [OneTimeSetUp]
+    public void OneTimeSetUp()
+    {
+        SetUp.CommonSetUp();
+    }
+
     [Test]
     public void TestPropertyException()
     {

@@ -135,7 +135,7 @@ internal class HistoryModel : JsonDatabase<HistoryModel.JsonModel>
 
     private void DispatchUpdateEvent()
     {
-        EventBus.Default.With(EventId.SidePaneUpdate).Emit(0);
+        EventBus.Default.With(EventId.HistoryUpdated).Emit(0);
     }
 
     private static ExternalModel ConvertToExternalModel(JsonModel model)

@@ -245,7 +245,7 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
 
     private void DispatchUpdateEvent()
     {
-        EventBus.Default.With(EventId.SidePaneUpdate).Emit(0);
+        EventBus.Default.With(EventId.FavoritesUpdated).Emit(0);
     }
 
     private static ExternalModel ConvertToExternalModel(JsonModel model)

@@ -27,6 +27,8 @@ public static class Logger
     private static readonly ConcurrentQueue<LogItem> sBuffer = new();
     private static long sLastErrorReportTime = 0;
 
+    private static bool Initialized => sInitialized == 1;
+
     public static void Initialize()
     {
         if (Interlocked.CompareExchange(ref sInitialized, 1, 0) != 0)
@@ -63,6 +65,11 @@ public static class Logger
 
     public static void Flush()
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         FlushToFile();
     }
 
@@ -223,6 +230,11 @@ public static class Logger
 
     private static void Log(int level, LogTag? tag, string? message, Exception? exception)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         tag ??= LogTag.Empty;
         string levelTag;
         switch (level)
@@ -397,6 +409,11 @@ public static class Logger
 
     private static void FailOnDebug(AssertException exception)
     {
+        if (!Initialized)
+        {
+            return;
+        }
+
         long time = GetTick();
         if (time - sLastErrorReportTime > 5000)
         {

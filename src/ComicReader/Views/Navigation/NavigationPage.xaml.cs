@@ -329,10 +329,12 @@ internal sealed partial class NavigationPage : BasePage
     {
         Route route = item switch
         {
-            "Favorites" => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_FAVORITE),
-            "History" => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HISTORY),
+            "Favorites" => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
+            "History" => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_HISTORY),
+            "Tags" => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_TAGS),
             _ => throw new Exception(),
         };
+
         route.WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
         NavigationBundle bundle = AppRouter.Process(route);
         TransferAbility(bundle.Communicator);

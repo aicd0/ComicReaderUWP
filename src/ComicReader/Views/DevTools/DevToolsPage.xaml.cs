@@ -103,7 +103,7 @@ internal sealed partial class DevToolsPage : BasePage
         C0.Run(async () =>
         {
             List<long> ids = [];
-            await ComicData.EnqueueCommand(delegate
+            await ComicData.Enqueue("SyncFileName", delegate
             {
                 var command = SelectCommand.Create(ComicTable.Instance);
                 command.AppendCondition(new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false)));
@@ -113,7 +113,9 @@ internal sealed partial class DevToolsPage : BasePage
                 {
                     ids.Add(idToken.GetValue());
                 }
-            }, "SyncFileName");
+
+                return true;
+            });
 
             foreach (long id in ids)
             {

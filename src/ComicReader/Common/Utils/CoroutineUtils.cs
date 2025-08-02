@@ -10,6 +10,11 @@ namespace ComicReader.Common.Utils;
 
 internal static class CoroutineUtils
 {
+    public static void Start(Func<Task> task)
+    {
+        _ = task();
+    }
+
     public static Task<T> CreateTask<T>(string taskName, ITaskDispatcher dispatcher, Func<T> function)
     {
         TaskCompletionSource<T> completionSource = new();

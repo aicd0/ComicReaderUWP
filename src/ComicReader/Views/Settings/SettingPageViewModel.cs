@@ -528,13 +528,15 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         long unreadComicCount = 0;
         long readingComicCount = 0;
         long finishedComicCount = 0;
-        ComicData.EnqueueCommand(() =>
+        ComicData.Enqueue("SettingPage#UpdateStatistis", () =>
         {
             comicCount = QueryComicCount();
             unreadComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.NotStarted));
             readingComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.Started));
             finishedComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.Completed));
-        }, "SettingPage#UpdateStatistis").Wait();
+            return true;
+        }).Wait();
+
         string textWithColon = StringResourceProvider.Instance.TextWithColon;
         StringBuilder sb = new();
         sb.Append(textWithColon.Replace("$text", StringResourceProvider.Instance.TotalComics)).Append(comicCount.ToString("#,#0", CultureInfo.InvariantCulture));

@@ -111,7 +111,7 @@ internal class ComicSearchEngine
         {
             ids = await SearchByKeywords(searchText, expressionCondition);
         }
-        List<ComicModel> comicItems = await ComicModel.BatchFromId(ids, "HomeLoadComic");
+        List<ComicModel> comicItems = await ComicModel.BatchFromId("HomeLoadComic", ids);
 
         _comicItems.Clear();
         _comicItems.AddRange(comicItems);
@@ -146,7 +146,7 @@ internal class ComicSearchEngine
     private async Task<List<long>> SearchAll(ICondition? additionalCondition)
     {
         List<long> ids = [];
-        await ComicData.EnqueueCommand(delegate
+        await ComicData.Enqueue("HomeLoadLibrary", delegate
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             command.AppendCondition(new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false)));
@@ -160,7 +160,10 @@ internal class ComicSearchEngine
             {
                 ids.Add(idToken.GetValue());
             }
-        }, "HomeLoadLibrary");
+
+            return true;
+        });
+
         return ids;
     }
 
@@ -214,7 +217,7 @@ internal class ComicSearchEngine
         var keyword_matched = new List<Match>();
         List<long> filter_matched = [];
 
-        await ComicData.EnqueueCommand(delegate
+        await ComicData.Enqueue("SearchComics", delegate
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
@@ -261,7 +264,8 @@ internal class ComicSearchEngine
             }
 
             filter_matched = filter.Match(all);
-        }, "SearchComics");
+            return true;
+        });
 
         // Intersect two.
         var matches = C3<Match, long, long>.Intersect(keyword_matched, filter_matched,

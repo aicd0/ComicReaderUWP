@@ -25,7 +25,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 
-namespace ComicReader.Views.Favorite;
+namespace ComicReader.Views.SidePane.Favorite;
 
 internal sealed partial class FavoritePage : BasePage
 {
@@ -47,7 +47,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void ObserveData()
     {
-        EventBus.Default.With(EventId.SidePaneUpdate).Observe(this, delegate
+        EventBus.Default.With(EventId.FavoritesUpdated).Observe(this, delegate
         {
             Update();
         });

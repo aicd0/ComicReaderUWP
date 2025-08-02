@@ -88,6 +88,17 @@ internal class TagInfoModel
     // Static methods
     //
 
+    public static async Task<T> Enqueue<T>(string taskName, Func<T> op)
+    {
+        var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _databaseDispatcher.Submit(taskName, delegate
+        {
+            taskResult.SetResult(op());
+        });
+
+        return await taskResult.Task;
+    }
+
     public static async Task<TagInfoModel> Get(string tag, string tagCategory)
     {
         Key key = new(tag, tagCategory);
@@ -172,17 +183,6 @@ internal class TagInfoModel
             .Update(TagInfoTable.ColumnExt, valueExt)
             .End()
             .Execute(SqlDatabaseManager.TagInfoDatabase);
-    }
-
-    private static async Task<T> Enqueue<T>(string taskName, Func<T> op)
-    {
-        var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _databaseDispatcher.Submit(taskName, delegate
-        {
-            taskResult.SetResult(op());
-        });
-
-        return await taskResult.Task;
     }
 
     //

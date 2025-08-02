@@ -7,7 +7,9 @@ internal class EventId
 {
     public const string NavigationBarHeightChange = "NavigationBarHeightChange";
     public const string RootTabHeightChange = "RootTabHeightChange";
-    public const string SidePaneUpdate = "SidePaneUpdate";
+    public const string FavoritesUpdated = "FavoritesUpdated";
+    public const string HistoryUpdated = "HistoryUpdated";
+    public const string TagsUpdated = "TagsUpdated";
     public const string TitleBarHeightChange = "TitleBarHeightChange";
     public const string TitleBarOpacity = "TitleBarOpacity";
     public const string CloseTab = "CloseTab";

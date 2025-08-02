@@ -174,7 +174,7 @@ internal sealed partial class SearchPage : BasePage
         var keyword_matched = new List<Match>();
         List<long> filter_matched = null;
 
-        await ComicData.EnqueueCommand(delegate
+        await ComicData.Enqueue("SearchComics", delegate
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
@@ -217,7 +217,8 @@ internal sealed partial class SearchPage : BasePage
             }
 
             filter_matched = filter.Match(all);
-        }, "SearchComics");
+            return true;
+        });
 
         // Intersect two.
         _matches = C3<Match, long, long>.Intersect(keyword_matched, filter_matched,

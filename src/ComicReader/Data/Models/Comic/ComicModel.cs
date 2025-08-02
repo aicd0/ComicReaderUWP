@@ -296,11 +296,12 @@ internal sealed class ComicModel
         return ReplaceWithExisting(comic);
     }
 
-    public static async Task<List<ComicModel>> BatchFromId(IEnumerable<long> ids, string taskName)
+    public static async Task<List<ComicModel>> BatchFromId(string taskName, IEnumerable<long> ids)
     {
         HashSet<long> idsUnique = [.. ids];
         List<ComicModel> results = [];
         List<long> requestingIds = [];
+
         foreach (long id in idsUnique)
         {
             if (TryGetExisting(id, out ComicModel? model))
@@ -312,6 +313,7 @@ internal sealed class ComicModel
                 requestingIds.Add(id);
             }
         }
+
         if (requestingIds.Count > 0)
         {
             List<ComicData> requestResults = await ComicData.BatchFromId(requestingIds, taskName);
@@ -320,6 +322,7 @@ internal sealed class ComicModel
                 results.Add(ReplaceWithExisting(result));
             }
         }
+
         return results;
     }
 

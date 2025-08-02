@@ -21,7 +21,7 @@ using ComicReader.Views.Navigation;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReader.Views.History;
+namespace ComicReader.Views.SidePane.History;
 
 internal sealed partial class HistoryPage : BasePage
 {
@@ -39,7 +39,7 @@ internal sealed partial class HistoryPage : BasePage
 
     private void ObserveData()
     {
-        EventBus.Default.With(EventId.SidePaneUpdate).Observe(this, delegate
+        EventBus.Default.With(EventId.HistoryUpdated).Observe(this, delegate
         {
             Update();
         });
