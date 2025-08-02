@@ -12,6 +12,7 @@ using ComicReader.Common.Lifecycle;
 using ComicReader.Data.Models;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.KVStorage;
 using ComicReader.Views.Main;
 
 using Microsoft.UI.Input;
@@ -38,12 +39,17 @@ internal sealed partial class NavigationPage : BasePage
         _ability = new(this);
     }
 
+    //
+    // Lifecycle
+    //
+
     protected override void OnResume()
     {
         base.OnResume();
 
         ObserveData();
         ViewModel.DevToolsVisible = DebugUtils.DeveloperMode;
+        NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
     }
 
     private void ObserveData()
@@ -61,13 +67,21 @@ internal sealed partial class NavigationPage : BasePage
         });
     }
 
+    //
+    // Public API
+    //
+
     public void Navigate(NavigationBundle bundle)
     {
         TransferAbility(bundle.Communicator);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
     }
 
-    public bool GoBack()
+    //
+    // Navigation
+    //
+
+    private bool GoBack()
     {
         if (ContentFrame == null)
         {
@@ -83,7 +97,7 @@ internal sealed partial class NavigationPage : BasePage
         return true;
     }
 
-    public bool GoForward()
+    private bool GoForward()
     {
         if (ContentFrame == null)
         {
@@ -118,10 +132,9 @@ internal sealed partial class NavigationPage : BasePage
         UpdateTopPadding();
     }
 
-    private IMainPageAbility GetMainPageAbility()
-    {
-        return GetAbility<IMainPageAbility>();
-    }
+    //
+    // Top tile
+    //
 
     private void OnTopTileSizeChanged(object sender, SizeChangedEventArgs e)
     {
@@ -145,13 +158,10 @@ internal sealed partial class NavigationPage : BasePage
         }
     }
 
-    private void OnDevToolsClick(object sender, RoutedEventArgs e)
-    {
-        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
-        GetMainPageAbility().OpenInNewTab(route);
-    }
-
+    //
     // Search box
+    //
+
     public void SetSearchBox(string keywords)
     {
         SearchBox.Focus(FocusState.Programmatic);
@@ -181,7 +191,16 @@ internal sealed partial class NavigationPage : BasePage
         GetMainPageAbility().OpenInCurrentTab(route);
     }
 
+    //
     // Buttons
+    //
+
+    private void OnDevToolsClick(object sender, RoutedEventArgs e)
+    {
+        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
+        GetMainPageAbility().OpenInNewTab(route);
+    }
+
     private void OnGoBackClick(object sender, RoutedEventArgs e)
     {
         _ = GoBack();
@@ -238,33 +257,6 @@ internal sealed partial class NavigationPage : BasePage
         _ability.SendFavoriteChangedEvent(isFavorite);
     }
 
-    // Pointer events
-    private PointerPoint m_last_pointer_point = null;
-
-    private void OnPagePointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        m_last_pointer_point = e.GetCurrentPoint(sender as UIElement);
-    }
-
-    private void OnPagePointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        if (m_last_pointer_point == null)
-        {
-            return;
-        }
-
-        if (m_last_pointer_point.Properties.IsXButton1Pressed)
-        {
-            _ = GoBack();
-        }
-        else if (m_last_pointer_point.Properties.IsXButton2Pressed)
-        {
-            _ = GoForward();
-        }
-
-        m_last_pointer_point = null;
-    }
-
     private void AbtbPreviewButton_Checked(object sender, RoutedEventArgs e)
     {
         _ability.SendGridViewModeChangedEvent(true);
@@ -294,6 +286,45 @@ internal sealed partial class NavigationPage : BasePage
         _ability.SendReaderSettingsChangedEvent(data);
     }
 
+    private void SetGridViewModeEnabled(bool enabled)
+    {
+        AbtbPreviewButton.IsChecked = enabled;
+    }
+
+    //
+    // Pointer events
+    //
+
+    private PointerPoint m_last_pointer_point = null;
+
+    private void OnPagePointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        m_last_pointer_point = e.GetCurrentPoint(sender as UIElement);
+    }
+
+    private void OnPagePointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (m_last_pointer_point == null)
+        {
+            return;
+        }
+
+        if (m_last_pointer_point.Properties.IsXButton1Pressed)
+        {
+            _ = GoBack();
+        }
+        else if (m_last_pointer_point.Properties.IsXButton2Pressed)
+        {
+            _ = GoForward();
+        }
+
+        m_last_pointer_point = null;
+    }
+
+    //
+    // Side pane
+    //
+
     private void OnSidePaneSelectionChanged(SidePane sender, string item)
     {
         Route route = item switch
@@ -308,6 +339,21 @@ internal sealed partial class NavigationPage : BasePage
         sender.Navigate(bundle);
     }
 
+    private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        double newWidth = NavigationPageSidePane.OpenPaneLength;
+        KVDatabase.Default.SetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
+    }
+
+    //
+    // Utilities
+    //
+
+    private IMainPageAbility GetMainPageAbility()
+    {
+        return GetAbility<IMainPageAbility>();
+    }
+
     private void TransferAbility(PageCommunicator communicator)
     {
         communicator.RegisterAbility(GetAbility<ICommonPageAbility>());
@@ -315,10 +361,9 @@ internal sealed partial class NavigationPage : BasePage
         communicator.RegisterAbility<INavigationPageAbility>(_ability);
     }
 
-    private void SetGridViewModeEnabled(bool enabled)
-    {
-        AbtbPreviewButton.IsChecked = enabled;
-    }
+    //
+    // Page ability
+    //
 
     private class NavigationPageAbility : INavigationPageAbility
     {

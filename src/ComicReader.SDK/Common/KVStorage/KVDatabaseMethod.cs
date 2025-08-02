@@ -65,4 +65,19 @@ public abstract class KVDatabaseMethod
 
         return defaultValue;
     }
+
+    public abstract void SetDouble(string lib, string key, double value);
+
+    public abstract double? GetDouble(string lib, string key);
+
+    public double GetDouble(string lib, string key, double defaultValue)
+    {
+        double? value = GetDouble(lib, key);
+        if (value.HasValue)
+        {
+            return value.Value;
+        }
+
+        return defaultValue;
+    }
 }

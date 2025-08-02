@@ -5,6 +5,7 @@
     xmlns:base="using:ComicReader.Common.BaseUI"
     xmlns:controls="using:ComicReader.UserControls"
     xmlns:converters="using:ComicReader.Converters"
+    xmlns:cwc="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:navigation="using:ComicReader.Views.Navigation"
@@ -230,7 +231,19 @@
                 PaneBackground="{ThemeResource SidePaneBackground}"
                 PanePlacement="Right">
                 <SplitView.Pane>
-                    <navigation:SidePane SelectionChanged="OnSidePaneSelectionChanged" />
+                    <Grid SizeChanged="NavigationPageSidePane_SizeChanged">
+                        <navigation:SidePane SelectionChanged="OnSidePaneSelectionChanged" />
+                        <Rectangle
+                            Width="1"
+                            HorizontalAlignment="Left"
+                            Fill="{ThemeResource SidePaneBorderBrush}" />
+                        <cwc:PropertySizer
+                            HorizontalAlignment="Left"
+                            Binding="{x:Bind NavigationPageSidePane.OpenPaneLength, Mode=TwoWay}"
+                            IsDragInverted="True"
+                            Minimum="360"
+                            Opacity="0" />
+                    </Grid>
                 </SplitView.Pane>
             </SplitView>
 

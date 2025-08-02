@@ -35,11 +35,6 @@
                 </muxc:NavigationViewItem>
             </muxc:NavigationView.MenuItems>
         </muxc:NavigationView>
-
-        <!--  Border  -->
-        <Rectangle
-            Width="1"
-            HorizontalAlignment="Left"
-            Fill="{ThemeResource SidePaneBorderBrush}" />
     </Grid>
+
 </base:BaseUserControl>
