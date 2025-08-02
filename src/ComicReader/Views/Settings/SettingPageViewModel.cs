@@ -512,7 +512,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     {
         long QueryComicCount(Action<SelectCommand>? condition = null)
         {
-            SelectCommand command = new(ComicTable.Instance);
+            var command = SelectCommand.Create(ComicTable.Instance);
             condition?.Invoke(command);
             IReaderToken<long> comicCountToken = command.PutQueryCountAll();
             using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);

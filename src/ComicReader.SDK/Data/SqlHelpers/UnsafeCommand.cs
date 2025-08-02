@@ -9,9 +9,14 @@ public class UnsafeCommand
 
     private bool _executed = false;
 
-    public UnsafeCommand(string command)
+    private UnsafeCommand(string command)
     {
         _command = command;
+    }
+
+    public static UnsafeCommand Create(string command)
+    {
+        return new(command);
     }
 
     public void Execute(SqlDatabase database)

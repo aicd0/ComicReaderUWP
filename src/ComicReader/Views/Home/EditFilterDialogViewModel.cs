@@ -114,7 +114,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             return;
         }
 
-        SelectCommand command = new(ComicTable.Instance);
+        var command = SelectCommand.Create(ComicTable.Instance);
         command.PutQueryInt64(ComicTable.ColumnId);
         command.AppendCondition(condition);
 

@@ -135,7 +135,7 @@ public class SqlDatabaseManager
 
     private static void ExecuteCommand(SqlDatabase database, string commandText)
     {
-        UnsafeCommand command = new(commandText);
-        command.Execute(database);
+        UnsafeCommand.Create(commandText)
+            .Execute(database);
     }
 }

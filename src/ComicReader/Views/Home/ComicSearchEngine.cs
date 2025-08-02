@@ -148,7 +148,7 @@ internal class ComicSearchEngine
         List<long> ids = [];
         await ComicData.EnqueueCommand(delegate
         {
-            var command = new SelectCommand(ComicTable.Instance);
+            var command = SelectCommand.Create(ComicTable.Instance);
             command.AppendCondition(new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false)));
             if (additionalCondition is not null)
             {
@@ -216,7 +216,7 @@ internal class ComicSearchEngine
 
         await ComicData.EnqueueCommand(delegate
         {
-            var command = new SelectCommand(ComicTable.Instance);
+            var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
             IReaderToken<string> title1Token = command.PutQueryString(ComicTable.ColumnTitle1);
             IReaderToken<string> title2Token = command.PutQueryString(ComicTable.ColumnTitle2);

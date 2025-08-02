@@ -335,7 +335,7 @@ internal sealed class ComicModel
     public static async Task<List<string>> GetAllTagCategories()
     {
         HashSet<string> tags = [];
-        var command = new SelectCommand(TagCategoryTable.Instance);
+        var command = SelectCommand.Create(TagCategoryTable.Instance);
         IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
         command.Distinct();
         using SelectCommand.IReader reader = await command.ExecuteAsync(SqlDatabaseManager.MainDatabase);

@@ -176,7 +176,7 @@ internal sealed partial class SearchPage : BasePage
 
         await ComicData.EnqueueCommand(delegate
         {
-            var command = new SelectCommand(ComicTable.Instance);
+            var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
             IReaderToken<string> title1Token = command.PutQueryString(ComicTable.ColumnTitle1);
             IReaderToken<string> title2Token = command.PutQueryString(ComicTable.ColumnTitle2);

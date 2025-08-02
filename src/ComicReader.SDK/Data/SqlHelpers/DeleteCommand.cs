@@ -12,9 +12,14 @@ public class DeleteCommand
 
     private bool _executed = false;
 
-    public DeleteCommand(ITable table)
+    private DeleteCommand(ITable table)
     {
         _table = table;
+    }
+
+    public static DeleteCommand Create(ITable table)
+    {
+        return new(table);
     }
 
     public DeleteCommand AppendCondition(IColumnTypeless column, object value)

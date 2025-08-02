@@ -204,7 +204,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
 
     private static ICondition CreateTagCondition(ICondition condition)
     {
-        SelectCommand subquery = new(TagTable.Instance);
+        var subquery = SelectCommand.Create(TagTable.Instance);
         subquery.AppendCondition(condition);
         subquery.PutQueryInt64(TagTable.ColumnComicId);
         subquery.Distinct();
@@ -213,7 +213,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
 
     private static ICondition CreateTagCategoryCondition(string category)
     {
-        SelectCommand subquery = new(TagCategoryTable.Instance);
+        var subquery = SelectCommand.Create(TagCategoryTable.Instance);
         subquery.AppendCondition(TagCategoryTable.ColumnName, category);
         subquery.PutQueryInt64(TagCategoryTable.ColumnComicId);
         subquery.Distinct();
@@ -222,11 +222,11 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
 
     private static ICondition CreateTagInTagCategoryCondition(string category, ICondition condition)
     {
-        SelectCommand subquery1 = new(TagCategoryTable.Instance);
+        var subquery1 = SelectCommand.Create(TagCategoryTable.Instance);
         subquery1.AppendCondition(TagCategoryTable.ColumnName, category);
         subquery1.PutQueryInt64(TagCategoryTable.ColumnId);
         subquery1.Distinct();
-        SelectCommand subquery2 = new(TagTable.Instance);
+        var subquery2 = SelectCommand.Create(TagTable.Instance);
         subquery2.AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subquery1));
         subquery2.AppendCondition(condition);
         subquery2.PutQueryInt64(TagTable.ColumnComicId);

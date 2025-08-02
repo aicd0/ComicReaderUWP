@@ -17,9 +17,14 @@ public class SelectCommand
     private int _limit = 0;
     private bool _executed = false;
 
-    public SelectCommand(ITable table)
+    private SelectCommand(ITable table)
     {
         _table = table;
+    }
+
+    public static SelectCommand Create(ITable table)
+    {
+        return new(table);
     }
 
     public SelectCommand Distinct()

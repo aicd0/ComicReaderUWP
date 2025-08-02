@@ -114,9 +114,10 @@ internal class TagInfoModel
 
     private static TagInfoModel? QueryNoLock(string tag, string tagCategory)
     {
-        SelectCommand command = new SelectCommand(TagInfoTable.Instance).Limit(1)
+        SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
             .AppendCondition(TagInfoTable.ColumnTag, tag)
-            .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory);
+            .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
+            .Limit(1);
         IReaderToken<string> extToken = command.PutQueryString(TagInfoTable.ColumnExt);
         SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.TagInfoDatabase);
 

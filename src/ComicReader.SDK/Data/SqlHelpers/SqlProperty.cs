@@ -148,7 +148,7 @@ public sealed class SqlProperty<T, K, V>(ITaskDispatcher dispatcher, SqlDatabase
 
         public void Perform(SqlProperty<T, K, V> property, Dictionary<long, PropertyResponseContent<V>> responses)
         {
-            SelectCommand command = new(property._table);
+            var command = SelectCommand.Create(property._table);
             command.AppendCondition(new InCondition(ColumnOrValue.FromColumn(KeyColumn), Keys.Keys.Select(x => ColumnOrValue.FromValue(x))));
             IReaderToken<K> keyToken = KeyColumn.PutQuery(command);
             IReaderToken<V> valueToken = ValueColumn.PutQuery(command);
@@ -179,7 +179,7 @@ public sealed class SqlProperty<T, K, V>(ITaskDispatcher dispatcher, SqlDatabase
             {
                 foreach (SingleModifySqlOperation operation in Operations)
                 {
-                    UpdateCommand command = new(property._table);
+                    var command = UpdateCommand.Create(property._table);
                     command.AppendColumn(operation.ValueColumn, operation.Value);
                     command.AppendCondition(operation.KeyColumn, operation.Key);
                     command.Execute(property._database);

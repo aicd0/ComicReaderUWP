@@ -15,9 +15,14 @@ public class UpdateCommand
 
     private bool _executed = false;
 
-    public UpdateCommand(ITable table)
+    private UpdateCommand(ITable table)
     {
         _table = table;
+    }
+
+    public static UpdateCommand Create(ITable table)
+    {
+        return new(table);
     }
 
     public UpdateCommand AppendColumn(IColumnTypeless column, object value)
