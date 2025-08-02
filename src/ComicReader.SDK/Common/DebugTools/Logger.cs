@@ -35,7 +35,7 @@ public static class Logger
             return;
         }
 
-        sLogFolderPath = StorageLocation.GetLocalCacheFolderPath() + "\\logs\\";
+        sLogFolderPath = StorageLocation.LocalCacheFolderPath + "\\logs\\";
 
         Thread logThread = new(LogThreadMain)
         {

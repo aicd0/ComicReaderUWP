@@ -16,7 +16,7 @@ internal class ThirdPartyLauncher
 
     public static void StartTemporaryTextFile(string filename, string text)
     {
-        string directoryPath = StorageLocation.GetTemporaryFolderPath();
+        string directoryPath = StorageLocation.TemporaryFolderPath;
         try
         {
             Directory.CreateDirectory(directoryPath);

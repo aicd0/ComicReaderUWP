@@ -9,7 +9,7 @@ using System.Threading;
 
 using ComicReader.SDK.Common.DebugTools;
 
-namespace ComicReader.Data.Models.Comic;
+namespace ComicReader.Common.Utils;
 
 internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
 {
@@ -53,6 +53,7 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
                 return value;
             }
         }
+
         Logger.F(TAG, "Failed to update the pool after multiple attempts.");
         lock (_pool)
         {

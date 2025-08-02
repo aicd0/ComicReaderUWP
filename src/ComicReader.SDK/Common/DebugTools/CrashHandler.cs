@@ -37,7 +37,7 @@ internal static class CrashHandler
             }
 
             string fileName = $"crash_report_{DateTimeOffset.Now:yyyyMMddHHmmss}_{RandomString(4)}.txt";
-            string filePath = StorageLocation.GetLocalCacheFolderPath() + "\\" + fileName;
+            string filePath = StorageLocation.LocalCacheFolderPath + "\\" + fileName;
             using StreamWriter writer = new(filePath, true, Encoding.UTF8);
             writer.Write(sb.ToString());
         }

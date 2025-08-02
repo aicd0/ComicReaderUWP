@@ -46,7 +46,7 @@ internal class XmlDatabaseManager
 {
     private const string TAG = "XmlDatabaseManager";
 
-    private static string DatabaseFolderPath => StorageLocation.GetLocalFolderPath();
+    private static string DatabaseFolderPath => StorageLocation.LocalFolderPath;
 
     private static bool m_database_ready = false;
     private static readonly SemaphoreSlim m_database_lock = new(1);

@@ -30,7 +30,7 @@ public static class SentryManager
         SentrySdk.Init(o =>
         {
             o.AutoSessionTracking = true;
-            o.CacheDirectoryPath = StorageLocation.GetLocalCacheFolderPath();
+            o.CacheDirectoryPath = StorageLocation.LocalCacheFolderPath;
             o.Distribution = EnvironmentProvider.IsPortable() ? "portable" : "packaged";
             o.Dsn = dsn;
             o.Release = EnvironmentProvider.GetVersionName();

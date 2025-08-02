@@ -607,7 +607,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     private static string GetCacheSize()
     {
-        var d = new DirectoryInfo(StorageLocation.GetLocalCacheFolderPath());
+        var d = new DirectoryInfo(StorageLocation.LocalCacheFolderPath);
         long size = GetCacheSize(d);
         string[] sizes = ["B", "KB", "MB", "GB", "TB"];
         int order = 0;
@@ -678,7 +678,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     private static void ClearCacheInternal()
     {
-        var cacheDir = new DirectoryInfo(StorageLocation.GetLocalCacheFolderPath());
+        var cacheDir = new DirectoryInfo(StorageLocation.LocalCacheFolderPath);
 
         foreach (FileInfo file in cacheDir.GetFiles())
         {

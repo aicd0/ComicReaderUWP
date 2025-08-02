@@ -825,14 +825,14 @@ internal abstract class ComicData
 
         foreach (TagData category in Tags)
         {
-            long tagCategoryId = new InsertCommand(TagCategoryTable.Instance)
+            long tagCategoryId = InsertCommand.Create(TagCategoryTable.Instance)
                 .AppendColumn(TagCategoryTable.ColumnName, category.Name)
                 .AppendColumn(TagCategoryTable.ColumnComicId, Id)
                 .Execute(SqlDatabaseManager.MainDatabase);
 
             foreach (string tag in category.Tags)
             {
-                new InsertCommand(TagTable.Instance)
+                InsertCommand.Create(TagTable.Instance)
                     .AppendColumn(TagTable.ColumnContent, tag)
                     .AppendColumn(TagTable.ColumnComicId, Id)
                     .AppendColumn(TagTable.ColumnTagCategoryId, tagCategoryId)
@@ -843,7 +843,7 @@ internal abstract class ComicData
 
     private void InternalInsertNoLock()
     {
-        Id = new InsertCommand(ComicTable.Instance)
+        Id = InsertCommand.Create(ComicTable.Instance)
             .AppendColumn(ComicTable.ColumnType, (long)ValueType)
             .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
             .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)

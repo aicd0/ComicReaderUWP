@@ -58,7 +58,7 @@ internal sealed partial class DevToolsPage : BasePage
     {
         C0.Run(async () =>
         {
-            string path = StorageLocation.GetLocalFolderPath();
+            string path = StorageLocation.LocalFolderPath;
             StorageFolder? folder = await Storage.TryGetFolder(path);
             if (folder != null)
             {
