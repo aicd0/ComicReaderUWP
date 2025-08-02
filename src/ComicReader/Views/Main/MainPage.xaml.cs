@@ -12,6 +12,7 @@ using ComicReader.Common.Constants;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;

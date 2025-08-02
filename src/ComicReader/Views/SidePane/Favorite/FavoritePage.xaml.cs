@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Constants;
 using ComicReader.Common.Legacy;
-using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
@@ -47,7 +45,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void ObserveData()
     {
-        EventBus.Default.With(EventId.FavoritesUpdated).Observe(this, delegate
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
         {
             Update();
         });

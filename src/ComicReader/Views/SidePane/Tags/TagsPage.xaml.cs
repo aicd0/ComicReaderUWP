@@ -1,11 +1,14 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReader.Common;
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Constants;
-using ComicReader.Common.Lifecycle;
+using ComicReader.Common.Utils;
 using ComicReader.Views.Main;
 using ComicReader.Views.Navigation;
+using ComicReader.Views.Reader;
+
+using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Views.SidePane.Tags;
 
@@ -27,9 +30,42 @@ internal sealed partial class TagsPage : BasePage
 
     private void ObserveData()
     {
-        EventBus.Default.With(EventId.TagsUpdated).Observe(this, delegate
+        GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
         {
             ViewModel.UpdateTags();
+        });
+
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
+        {
+            ViewModel.UpdateTags();
+        });
+
+        ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
+        {
+            GetMainPageAbility().OpenInCurrentTab(route);
+        });
+
+        ViewModel.OpenInNewTabLiveData.Observe(this, route =>
+        {
+            GetMainPageAbility().OpenInNewTab(route);
+        });
+
+        ViewModel.EditComicLiveData.Observe(this, comics =>
+        {
+            CoroutineUtils.Start(async () =>
+            {
+                if (comics.Count == 0)
+                {
+                    return;
+                }
+
+                var dialog = new EditComicInfoDialog(comics);
+                ContentDialogResult result = await dialog.ShowAsync(XamlRoot);
+                if (result == ContentDialogResult.Primary)
+                {
+                    ViewModel.UpdateTags();
+                }
+            });
         });
     }
 

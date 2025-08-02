@@ -1,9 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 
 using ComicReader.Common.Threading;
@@ -16,7 +13,7 @@ namespace ComicReader.Common.Lifecycle;
 public class LiveData<T> : ILiveData<T>, ILiveDataNoType
 {
     private readonly Dictionary<IObserver<T>, ObserverWrapper> _observers = new();
-    private T _value;
+    private T? _value;
     private int _version = 0;
     private bool _dispatchingValue = false;
     private bool _dispatchInvalidated = false;
@@ -33,18 +30,6 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         _version = 1;
     }
 
-    public void Observe(FrameworkElement owner, Action<T> observer)
-    {
-        var wrapper = new Observer<T>(observer);
-        Observe(owner, wrapper);
-    }
-
-    public void ObserveSticky(FrameworkElement owner, Action<T> observer)
-    {
-        var wrapper = new Observer<T>(observer);
-        ObserveSticky(owner, wrapper);
-    }
-
     public void Observe(FrameworkElement owner, IObserver<T> observer)
     {
         ObserveInternal(owner, observer, false);
@@ -55,7 +40,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         ObserveInternal(owner, observer, true);
     }
 
-    public T GetValue()
+    public T? GetValue()
     {
         return _value;
     }
@@ -99,7 +84,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
             return;
         }
 
-        if (_observers.TryGetValue(observer, out ObserverWrapper wrapper))
+        if (_observers.TryGetValue(observer, out ObserverWrapper? wrapper))
         {
             if (wrapper.IsSameOwner(owner))
             {
@@ -112,11 +97,11 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
 
         if (sticky && _version > 0)
         {
-            DispatchValue(observer, _value);
+            DispatchValue(observer, _value!);
         }
     }
 
-    private void DispatchValue(IObserver<T> initiator, T value)
+    private void DispatchValue(IObserver<T>? initiator, T value)
     {
         if (_dispatchingValue)
         {
@@ -151,21 +136,6 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
     private void ConsiderNotify(IObserver<T> observer, T value)
     {
         observer.OnChanged(value);
-    }
-
-    private class Observer<U> : IObserver<U>
-    {
-        private readonly Action<U> _action;
-
-        public Observer(Action<U> action)
-        {
-            _action = action;
-        }
-
-        public void OnChanged(U value)
-        {
-            _action(value);
-        }
     }
 
     private class ObserverWrapper

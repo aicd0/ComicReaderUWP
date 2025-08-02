@@ -4,7 +4,8 @@
 using System.Collections.Generic;
 
 using ComicReader.Common;
-using ComicReader.ViewModels;
+using ComicReader.Data.Models;
+using ComicReader.Data.Models.Comic;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -12,7 +13,8 @@ namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
 internal static class ComicItemMenuFlyoutCreator
 {
-    public static List<BaseMenuFlyoutItemViewModel> CreateMenuItems(ComicItemViewModel model, IComicItemMenuFlyoutHandler handler)
+    public static List<BaseMenuFlyoutItemViewModel> CreateMenuItems(ComicModel comic,
+        IComicItemMenuFlyoutHandler handler, bool supportSelection = false)
     {
         List<BaseMenuFlyoutItemViewModel> result = [];
         {
@@ -28,7 +30,8 @@ internal static class ComicItemMenuFlyoutCreator
             result.Add(item);
         }
 
-        if (!model.IsFavorite)
+        bool isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
+        if (!isFavorite)
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.AddToFavorites)
             {
@@ -42,7 +45,7 @@ internal static class ComicItemMenuFlyoutCreator
             result.Add(item);
         }
 
-        if (model.IsFavorite)
+        if (isFavorite)
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.RemoveFromFavorites)
             {
@@ -65,7 +68,7 @@ internal static class ComicItemMenuFlyoutCreator
                 },
             };
 
-            if (model.Comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.NotStarted)
+            if (comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.NotStarted)
             {
                 MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsUnread)
                 {
@@ -74,7 +77,7 @@ internal static class ComicItemMenuFlyoutCreator
                 groupItem.Items.Add(item);
             }
 
-            if (model.Comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Started)
+            if (comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Started)
             {
                 MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsReading)
                 {
@@ -83,7 +86,7 @@ internal static class ComicItemMenuFlyoutCreator
 
                 groupItem.Items.Add(item);
             }
-            if (model.Comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Completed)
+            if (comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Completed)
             {
                 MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsRead)
                 {
@@ -96,7 +99,7 @@ internal static class ComicItemMenuFlyoutCreator
             result.Add(groupItem);
         }
 
-        if (!model.IsHide)
+        if (!comic.Hidden)
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Hide)
             {
@@ -110,7 +113,7 @@ internal static class ComicItemMenuFlyoutCreator
             result.Add(item);
         }
 
-        if (model.IsHide)
+        if (comic.Hidden)
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Unhide)
             {
@@ -150,19 +153,22 @@ internal static class ComicItemMenuFlyoutCreator
             result.Add(item);
         }
 
-        result.Add(new MenuFlyoutSeperatorViewModel());
-
+        if (supportSelection)
         {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Select)
-            {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE762"
-                },
-                OnClick = handler.OnSelectClicked,
-            };
+            result.Add(new MenuFlyoutSeperatorViewModel());
 
-            result.Add(item);
+            {
+                MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Select)
+                {
+                    Icon = new FontIcon
+                    {
+                        Glyph = "\uE762"
+                    },
+                    OnClick = handler.OnSelectClicked,
+                };
+
+                result.Add(item);
+            }
         }
 
         return result;

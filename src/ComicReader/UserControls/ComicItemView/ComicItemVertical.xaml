@@ -20,22 +20,21 @@
 
     <base:BaseUserControl.Resources>
         <ResourceDictionary>
-            <!--  Converters  -->
+
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
 
-            <!--  Shadows  -->
             <cwm:AttachedCardShadow
                 x:Key="CommonShadow"
                 Opacity="0.1"
                 Offset="0" />
+
         </ResourceDictionary>
     </base:BaseUserControl.Resources>
 
     <Grid
         x:Name="RootGrid"
         Background="{ThemeResource ComicItemBackground}"
-        DataContextChanged="RootGrid_DataContextChanged"
         PointerEntered="RootGrid_PointerEntered"
         PointerExited="RootGrid_PointerExited"
         Tapped="RootGrid_Tapped">
@@ -65,28 +64,28 @@
                         FontSize="14"
                         FontWeight="SemiBold"
                         MaxLines="2"
-                        Text="{x:Bind Ctx.Title}"
+                        Text="{x:Bind Item.Title, Mode=OneWay}"
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="Wrap"
-                        ToolTipService.ToolTip="{x:Bind Ctx.Title}" />
+                        ToolTipService.ToolTip="{x:Bind Item.Title, Mode=OneWay}" />
 
                     <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                         <Viewbox
                             Height="20"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center">
-                            <controls:ReadonlyRatingView PlaceholderValue="{x:Bind Ctx.Rating}" Visibility="{x:Bind Ctx.IsRatingVisible}" />
+                            <controls:ReadonlyRatingView PlaceholderValue="{x:Bind Item.Rating, Mode=OneWay}" Visibility="{x:Bind Item.IsRatingVisible, Mode=OneWay}" />
                         </Viewbox>
                         <TextBlock
                             FontSize="12"
                             Opacity="0.6"
-                            Text="{x:Bind Ctx.Progress}" />
+                            Text="{x:Bind Item.Progress, Mode=OneWay}" />
                     </StackPanel>
                 </StackPanel>
                 <Grid
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
-                    Visibility="{x:Bind Ctx.IsFavorite}">
+                    Visibility="{x:Bind Item.IsFavorite, Mode=OneWay}">
                     <FontIcon
                         FontSize="14"
                         Foreground="{ThemeResource SystemAccentColor}"
@@ -109,4 +108,5 @@
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
     </Grid>
+
 </base:BaseUserControl>

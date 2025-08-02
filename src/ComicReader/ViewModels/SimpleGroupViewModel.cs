@@ -88,14 +88,15 @@ internal partial class SimpleGroupViewModel<T> : INotifyPropertyChanged
     /// <param name="items">The new collection of items to update the current list with. This collection must be read-only.</param>
     /// <param name="comparer">A function that compares two items and returns <see langword="true"/> if they are considered equal; otherwise,
     /// <see langword="false"/>.</param>
-    public void UpdateItems(IReadOnlyList<T> items, Func<T, T, bool> comparer)
+    /// <param name="updater">A function that updates the first item with the second item if they are considered equal.</param>
+    public void UpdateItems(IReadOnlyList<T> items, Func<T, T, bool> comparer, Action<T, T> updater)
     {
         Items.Clear();
         Items.AddRange(items);
 
         if (!_collaped)
         {
-            DiffUtils.UpdateCollection(DisplayItems, items, comparer);
+            DiffUtils.UpdateCollection(DisplayItems, items, comparer, updater);
         }
     }
 

@@ -12,6 +12,7 @@ using System.Threading;
 
 using ComicReader.Common;
 using ComicReader.Common.Threading;
+using ComicReader.Common.Utils;
 using ComicReader.Data;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;

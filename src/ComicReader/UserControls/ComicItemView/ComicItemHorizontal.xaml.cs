@@ -22,7 +22,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
     private readonly CancellationSession _loadImageToken = new();
     private IComicItemViewHandler? _itemHandler;
 
-    public ComicItemViewModel? Ctx => DataContext as ComicItemViewModel;
     public ComicItemViewModel? Item { get; private set; }
 
     public ComicItemHorizontal()
@@ -65,11 +64,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         e.Handled = true;
     }
 
-    private void RootGrid_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
-    {
-        Bindings.Update();
-    }
-
     private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
     {
         ComicItemViewModel? item = Item;
@@ -85,6 +79,7 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         {
             item.Image.ImageRequested = false;
             Item = item;
+            Bindings.Update();
         }
 
         _itemHandler = handler;
@@ -92,7 +87,8 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         BindImage(item);
         RequestImageIfNeeded(item);
 
-        List<BaseMenuFlyoutItemViewModel> menuItems = ComicItemMenuFlyoutCreator.CreateMenuItems(item, new BaseComicItemMenuFlyoutHandler(item, handler));
+        List<BaseMenuFlyoutItemViewModel> menuItems = ComicItemMenuFlyoutCreator.CreateMenuItems(
+            item.Comic, new BaseComicItemMenuFlyoutHandler(item, handler), supportSelection: true);
         MenuFlyout menuFlyout = new();
         foreach (BaseMenuFlyoutItemViewModel menuItem in menuItems)
         {

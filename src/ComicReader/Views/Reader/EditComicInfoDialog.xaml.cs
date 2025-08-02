@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 
 using Microsoft.UI.Xaml;

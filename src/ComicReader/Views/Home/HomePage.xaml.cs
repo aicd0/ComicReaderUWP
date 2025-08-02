@@ -64,11 +64,20 @@ internal sealed partial class HomePage : BasePage
     {
         base.OnResume();
         ObserveData();
-        ViewModel.UpdateLibrary();
     }
 
     private void ObserveData()
     {
+        GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
+        {
+            ViewModel.UpdateLibrary();
+        });
+
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
+        {
+            ViewModel.UpdateLibrary();
+        });
+
         ViewModel.FilterLiveData.ObserveSticky(this, UpdateFilters);
 
         ViewModel.GroupingEnabledLiveData.ObserveSticky(this, delegate (bool grouped)
@@ -77,7 +86,9 @@ internal sealed partial class HomePage : BasePage
             {
                 return;
             }
+
             _usingGroupSource = grouped;
+
             if (grouped)
             {
                 ComicGridView.SetBinding(ItemsControl.ItemsSourceProperty, new Binding()

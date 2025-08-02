@@ -6,8 +6,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-using ComicReader.Common.Constants;
-using ComicReader.Common.Lifecycle;
+using ComicReader.Common;
 
 using ComicReader.SDK.Data;
 
@@ -245,7 +244,7 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
 
     private void DispatchUpdateEvent()
     {
-        EventBus.Default.With(EventId.FavoritesUpdated).Emit(0);
+        GlobalEvent.Instance.FavoriteUpdated.Emit(0);
     }
 
     private static ExternalModel ConvertToExternalModel(JsonModel model)

@@ -75,6 +75,7 @@ internal sealed class ComicModel
     public void SetExt(string key, string? value)
     {
         _internalModel.SetExt(key, value);
+        DispatchUpdateEvent();
     }
 
     public void FlushExt()
@@ -85,33 +86,39 @@ internal sealed class ComicModel
     public void SetTitle1(string title)
     {
         _internalModel.SetTitle1(title);
+        DispatchUpdateEvent();
     }
 
     public void SetTitle2(string title)
     {
         _internalModel.SetTitle2(title);
+        DispatchUpdateEvent();
     }
 
     public void SetDescription(string description)
     {
         _internalModel.SetDescription(description);
+        DispatchUpdateEvent();
     }
 
     public void SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
     {
         _internalModel.SetTags(tags);
+        DispatchUpdateEvent();
     }
 
     public async Task SetCompletionStateToNotStarted()
     {
         await SaveProgressAsync(-1, 0);
         await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.NotStarted);
+        DispatchUpdateEvent();
     }
 
     public async Task SetCompletionStateToStarted()
     {
         _internalModel.SetAsStarted();
         await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Started);
+        DispatchUpdateEvent();
     }
 
     public async Task SetCompletionStateToAtLeastStarted()
@@ -120,12 +127,14 @@ internal sealed class ComicModel
         if (CompletionState == ComicCompletionStatusEnum.NotStarted)
         {
             await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Started);
+            DispatchUpdateEvent();
         }
     }
 
     public async Task SetCompletionStateToCompleted()
     {
         await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Completed);
+        DispatchUpdateEvent();
     }
 
     public async Task MoveToLocation(string newLocation)
@@ -136,22 +145,26 @@ internal sealed class ComicModel
         {
             _locationPool.Remove(oldLocation);
             _locationPool.GetOrAdd(newLocation, this);
+            DispatchUpdateEvent();
         }
     }
 
-    public Task SaveProgressAsync(int progress, double lastPosition)
+    public async Task SaveProgressAsync(int progress, double lastPosition)
     {
-        return _internalModel.SaveProgressAsync(progress, lastPosition);
+        await _internalModel.SaveProgressAsync(progress, lastPosition);
+        DispatchUpdateEvent();
     }
 
     public void SaveRating(int rating)
     {
         _internalModel.SaveRating(rating);
+        DispatchUpdateEvent();
     }
 
-    public Task SaveHiddenAsync(bool hidden)
+    public async Task SaveHiddenAsync(bool hidden)
     {
-        return _internalModel.SaveHiddenAsync(hidden);
+        await _internalModel.SaveHiddenAsync(hidden);
+        DispatchUpdateEvent();
     }
 
     //
@@ -348,5 +361,10 @@ internal sealed class ComicModel
             tags.Add(name);
         }
         return [.. tags];
+    }
+
+    private static void DispatchUpdateEvent()
+    {
+        GlobalEvent.Instance.ComicUpdated.Emit(0);
     }
 }

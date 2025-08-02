@@ -1,16 +1,20 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
+using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Data;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
+using ComicReader.Helpers.MenuFlyoutHelpers;
+using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.ViewModels;
@@ -21,6 +25,10 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 {
     private bool _updatingTags = false;
     private bool _updatingTagsInvalidated = false;
+
+    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
+    public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
+    public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -201,6 +209,8 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         Glyph = "\uE8B9",
                         Title = comic.Title,
                         CanExpand = false,
+                        MenuFlyoutItems = ComicItemMenuFlyoutCreator.CreateMenuItems(
+                            comic, new ComicItemMenuFlyoutHandler(this, comic)),
                     };
 
                     tagNode.Children.Add(comicNode);
@@ -235,5 +245,25 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
     private class TagModel
     {
         public HashSet<long> ComicIds { get; } = [];
+    }
+
+    private class ComicItemMenuFlyoutHandler(TagsPageViewModel viewModel, ComicModel comic) : SimpleComicItemMenuFlyoutHandler(comic)
+    {
+        private readonly ComicModel _comic = comic;
+
+        public override void OnEditClick()
+        {
+            viewModel.EditComicLiveData.Emit([_comic]);
+        }
+
+        protected override void OpenInCurrentTab(Route route)
+        {
+            viewModel.OpenInCurrentTabLiveData.Emit(route);
+        }
+
+        protected override void OpenInNewTab(Route route)
+        {
+            viewModel.OpenInNewTabLiveData.Emit(route);
+        }
     }
 }

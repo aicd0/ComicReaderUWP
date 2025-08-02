@@ -1006,32 +1006,23 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         await MainThreadUtils.RunInMainThread(delegate
         {
             bool ComicComparer(ComicItemViewModel x, ComicItemViewModel y) => x.Comic.Id == y.Comic.Id;
+            void ComicUpdater(ComicItemViewModel x, ComicItemViewModel y) => x.Update(y);
 
             LibraryEmptyVisible = isEmpty;
 
             if (comicsGrouped != null)
             {
-                Dictionary<string, ComicGroupViewModel> groupMap = [];
-                foreach (ComicGroupViewModel item in comicsGrouped)
+                DiffUtils.UpdateCollection(GroupedComicItems, comicsGrouped, (x, y) => x.GroupName == y.GroupName, (x, y) =>
                 {
-                    groupMap[item.GroupName] = item;
-                }
+                    x.Description = y.Description;
+                    x.UpdateItems(y.Items, ComicComparer, ComicUpdater);
+                });
 
-                foreach (ComicGroupViewModel item in GroupedComicItems)
-                {
-                    if (groupMap.TryGetValue(item.GroupName, out ComicGroupViewModel? group))
-                    {
-                        item.Description = group.Description;
-                        item.UpdateItems(group.Items, ComicComparer);
-                    }
-                }
-
-                DiffUtils.UpdateCollection(GroupedComicItems, comicsGrouped, (x, y) => x.GroupName == y.GroupName);
                 GroupingEnabledLiveData.Emit(true);
             }
             else if (comicsUngrouped != null)
             {
-                DiffUtils.UpdateCollection(UngroupedComicItems, comicsUngrouped, ComicComparer);
+                DiffUtils.UpdateCollection(UngroupedComicItems, comicsUngrouped, ComicComparer, ComicUpdater);
                 GroupingEnabledLiveData.Emit(false);
             }
 

@@ -5,8 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-using ComicReader.Common.Constants;
-using ComicReader.Common.Lifecycle;
+using ComicReader.Common;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Data;
 
@@ -135,7 +134,7 @@ internal class HistoryModel : JsonDatabase<HistoryModel.JsonModel>
 
     private void DispatchUpdateEvent()
     {
-        EventBus.Default.With(EventId.HistoryUpdated).Emit(0);
+        GlobalEvent.Instance.HistoryUpdated.Emit(0);
     }
 
     private static ExternalModel ConvertToExternalModel(JsonModel model)
