@@ -87,7 +87,7 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         BindImage(item);
         RequestImageIfNeeded(item);
 
-        List<BaseMenuFlyoutItemViewModel> menuItems = ComicItemMenuFlyoutCreator.CreateMenuItems(
+        List<BaseMenuFlyoutItemViewModel> menuItems = MenuFlyoutItemsCreator.CreateMenuItems(
             item.Comic, new BaseComicItemMenuFlyoutHandler(item, handler), supportSelection: true);
         MenuFlyout menuFlyout = new();
         foreach (BaseMenuFlyoutItemViewModel menuItem in menuItems)

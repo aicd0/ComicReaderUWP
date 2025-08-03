@@ -11,7 +11,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
-internal static class ComicItemMenuFlyoutCreator
+internal static class MenuFlyoutItemsCreator
 {
     public static List<BaseMenuFlyoutItemViewModel> CreateMenuItems(ComicModel comic,
         IComicItemMenuFlyoutHandler handler, bool supportSelection = false)

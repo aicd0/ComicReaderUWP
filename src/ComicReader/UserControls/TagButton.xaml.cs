@@ -8,7 +8,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.UserControls;
 
-public sealed partial class TagButton : UserControl
+internal sealed partial class TagButton : UserControl
 {
     public TagViewModel? ViewModel => DataContext as TagViewModel;
 

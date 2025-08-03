@@ -18,12 +18,14 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Imaging;
+using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
 using ComicReader.Views.Dialogs.EditComicInfo;
+using ComicReader.Views.Dialogs.EditTag;
 using ComicReader.Views.Pages.Main;
 using ComicReader.Views.Pages.Navigation;
 
@@ -188,15 +190,30 @@ internal sealed partial class ReaderPage : BasePage
 
     private void ObserveData()
     {
-        GetMainPageAbility().RegisterTabUnselectedHandler(this, AppModel.UnsetReadingComic);
-        GetNavigationPageAbility().RegisterLeavingHandler(this, AppModel.UnsetReadingComic);
-
-        ViewModel.TagClickLiveData.Observe(this, (string tag) =>
+        GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
         {
-            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
-                .WithParam(RouterConstants.ARG_KEYWORD, "<tag: " + tag + ">");
-            GetMainPageAbility().OpenInNewTab(route);
+            LoadComicInfo();
         });
+
+        GetEventBus().With<double>(EventId.TitleBarHeightChange).ObserveSticky(this, delegate (double h)
+        {
+            TitleBarArea.Height = h;
+            PreviewTitleBarPlaceHolder.Height = h;
+        });
+
+        GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
+        {
+            BottomGrid.Opacity = opacity;
+        });
+
+        GetMainPageAbility().RegisterTabUnselectedHandler(this, AppModel.UnsetReadingComic);
+
+        GetMainPageAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
+        {
+            ViewModel.IsFullscreen = isFullscreen;
+        });
+
+        GetNavigationPageAbility().RegisterLeavingHandler(this, AppModel.UnsetReadingComic);
 
         GetNavigationPageAbility().RegisterGridViewModeChangedHandler(this, delegate (bool enabled)
         {
@@ -209,22 +226,6 @@ internal sealed partial class ReaderPage : BasePage
             {
                 InfoPane.IsPaneOpen = true;
             }
-        });
-
-        GetMainPageAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
-        {
-            ViewModel.IsFullscreen = isFullscreen;
-        });
-
-        GetEventBus().With<double>(EventId.TitleBarHeightChange).ObserveSticky(this, delegate (double h)
-        {
-            TitleBarArea.Height = h;
-            PreviewTitleBarPlaceHolder.Height = h;
-        });
-
-        GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
-        {
-            BottomGrid.Opacity = opacity;
         });
 
         GetNavigationPageAbility().RegisterReaderSettingsChangedEventHandler(this, delegate (ReaderSettingDataModel setting)
@@ -247,17 +248,24 @@ internal sealed partial class ReaderPage : BasePage
             UpdateReaderUI();
         });
 
+        GetNavigationPageAbility().RegisterFavoriteChangedEventHandler(this, delegate (bool isFavorite)
+        {
+            SetIsFavorite(isFavorite, true);
+        });
+
+        ViewModel.TagClickLiveData.Observe(this, (string tag) =>
+        {
+            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
+                .WithParam(RouterConstants.ARG_KEYWORD, "<tag: " + tag + ">");
+            GetMainPageAbility().OpenInNewTab(route);
+        });
+
         IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
         {
             RcRating.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
             FavoriteBt.IsEnabled = !isExternal;
             SetCompletionStateButton.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
             GetNavigationPageAbility().SetExternalComic(isExternal);
-        });
-
-        GetNavigationPageAbility().RegisterFavoriteChangedEventHandler(this, delegate (bool isFavorite)
-        {
-            SetIsFavorite(isFavorite, true);
         });
 
         ReaderStatusLiveData.Observe(this, delegate (ReaderStatusEnum status)
@@ -276,7 +284,7 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     //
-    // Loader
+    // Comic Loader
     //
 
     public async Task LoadComic(ComicModel comic)
@@ -397,6 +405,10 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
+    //
+    // Reader Settings
+    //
+
     private void LoadReaderSettings()
     {
         ComicModel? comic = _comic;
@@ -418,6 +430,77 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetFlowDirection(readerSettingModel.IsLeftToRight);
         reader.SetPageGap(readerSettingModel.PageGap);
     }
+
+    private ReaderSettingDataModel GetReaderSettingModel(ComicModel comic)
+    {
+        PageArrangementEnum? ParsePageArrangement(string? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            if (Enum.TryParse(value, out PageArrangementEnum arrangement))
+            {
+                return arrangement;
+            }
+            return null;
+        }
+
+        AppSettingsModel.ReaderSettingModel readerSettings = AppSettingsModel.Instance.GetModel().DefaultReaderSetting;
+        bool useDefault = comic.GetExt(ComicExt.USE_DEFAULT_READER_SETTINGS)?.Equals("1") ?? true;
+        bool verticalReading;
+        bool leftToRight;
+        bool verticalContinuous;
+        bool horizontalContinuous;
+        PageArrangementEnum verticalPageArrangement;
+        PageArrangementEnum horizontalPageArrangement;
+        int pageGap;
+
+        if (useDefault)
+        {
+            verticalReading = readerSettings.VerticalReading;
+            leftToRight = readerSettings.LeftToRight;
+            verticalContinuous = readerSettings.VerticalContinuous;
+            horizontalContinuous = readerSettings.HorizontalContinuous;
+            verticalPageArrangement = readerSettings.VerticalPageArrangement;
+            horizontalPageArrangement = readerSettings.HorizontalPageArrangement;
+            pageGap = readerSettings.PageGap;
+        }
+        else
+        {
+            verticalReading = comic.GetExt(ComicExt.VERTICAL_READING)?.Equals("1") ?? readerSettings.VerticalReading;
+            leftToRight = comic.GetExt(ComicExt.LEFT_TO_RIGHT)?.Equals("1") ?? readerSettings.LeftToRight;
+            verticalContinuous = comic.GetExt(ComicExt.VERTICAL_CONTINUOUS)?.Equals("1") ?? readerSettings.VerticalContinuous;
+            horizontalContinuous = comic.GetExt(ComicExt.HORIZONTAL_CONTINUOUS)?.Equals("1") ?? readerSettings.HorizontalContinuous;
+            verticalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT)) ?? readerSettings.VerticalPageArrangement;
+            horizontalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT)) ?? readerSettings.HorizontalPageArrangement;
+
+            pageGap = readerSettings.PageGap;
+            {
+                string? pageGapString = comic.GetExt(ComicExt.PAGE_GAP);
+                if (!string.IsNullOrEmpty(pageGapString) && int.TryParse(pageGapString, out int parsedPageGap))
+                {
+                    pageGap = parsedPageGap;
+                }
+            }
+        }
+
+        return new ReaderSettingDataModel
+        {
+            UseDefault = useDefault,
+            IsVertical = verticalReading,
+            IsLeftToRight = leftToRight,
+            IsVerticalContinuous = verticalContinuous,
+            IsHorizontalContinuous = horizontalContinuous,
+            VerticalPageArrangement = verticalPageArrangement,
+            HorizontalPageArrangement = horizontalPageArrangement,
+            PageGap = pageGap,
+        };
+    }
+
+    //
+    // Comic Info
+    //
 
     private void LoadComicInfo()
     {
@@ -535,104 +618,65 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        var new_collection = new ObservableCollection<TagCollectionViewModel>();
+        var newCollection = new ObservableCollection<TagCollectionViewModel>();
 
         for (int i = 0; i < _comic.Tags.Count; ++i)
         {
             ComicData.TagData tags = _comic.Tags[i];
-            var tags_model = new TagCollectionViewModel(tags.Name);
+            var tagCollectionModel = new TagCollectionViewModel(tags.Name);
 
             foreach (string tag in tags.Tags)
             {
-                var tag_model = new TagViewModel
+                TagViewModel tagModel = new()
                 {
                     Tag = tag,
+                    MenuFlyoutItems = CreateTagContextMenuItems(tags.Name, tag),
                     OnClicked = () =>
                     {
                         ViewModel.TagClickLiveData.Emit(tag);
                     },
                 };
-                tags_model.Tags.Add(tag_model);
+
+                tagCollectionModel.Tags.Add(tagModel);
             }
 
-            new_collection.Add(tags_model);
+            newCollection.Add(tagCollectionModel);
         }
 
-        ViewModel.ComicTags = new_collection;
+        ViewModel.ComicTags = newCollection;
     }
 
-    private ReaderSettingDataModel GetReaderSettingModel(ComicModel comic)
+    private List<BaseMenuFlyoutItemViewModel> CreateTagContextMenuItems(string tagCategory, string tag)
     {
-        PageArrangementEnum? ParsePageArrangement(string? value)
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
-            if (value == null)
+            OnClick = () =>
             {
-                return null;
-            }
-            if (Enum.TryParse(value, out PageArrangementEnum arrangement))
+                var dialog = new EditTagDialog(tagCategory, tag);
+                _ = dialog.ShowAsync(XamlRoot);
+            },
+        });
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
+        {
+            OnClick = () =>
             {
-                return arrangement;
-            }
-            return null;
-        }
+                _ = TagInfoModel.DeleteTag(tagCategory, tag);
+            },
+        });
 
-        AppSettingsModel.ReaderSettingModel readerSettings = AppSettingsModel.Instance.GetModel().DefaultReaderSetting;
-        bool useDefault = comic.GetExt(ComicExt.USE_DEFAULT_READER_SETTINGS)?.Equals("1") ?? true;
-        bool verticalReading;
-        bool leftToRight;
-        bool verticalContinuous;
-        bool horizontalContinuous;
-        PageArrangementEnum verticalPageArrangement;
-        PageArrangementEnum horizontalPageArrangement;
-        int pageGap;
-
-        if (useDefault)
-        {
-            verticalReading = readerSettings.VerticalReading;
-            leftToRight = readerSettings.LeftToRight;
-            verticalContinuous = readerSettings.VerticalContinuous;
-            horizontalContinuous = readerSettings.HorizontalContinuous;
-            verticalPageArrangement = readerSettings.VerticalPageArrangement;
-            horizontalPageArrangement = readerSettings.HorizontalPageArrangement;
-            pageGap = readerSettings.PageGap;
-        }
-        else
-        {
-            verticalReading = comic.GetExt(ComicExt.VERTICAL_READING)?.Equals("1") ?? readerSettings.VerticalReading;
-            leftToRight = comic.GetExt(ComicExt.LEFT_TO_RIGHT)?.Equals("1") ?? readerSettings.LeftToRight;
-            verticalContinuous = comic.GetExt(ComicExt.VERTICAL_CONTINUOUS)?.Equals("1") ?? readerSettings.VerticalContinuous;
-            horizontalContinuous = comic.GetExt(ComicExt.HORIZONTAL_CONTINUOUS)?.Equals("1") ?? readerSettings.HorizontalContinuous;
-            verticalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT)) ?? readerSettings.VerticalPageArrangement;
-            horizontalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT)) ?? readerSettings.HorizontalPageArrangement;
-
-            pageGap = readerSettings.PageGap;
-            {
-                string? pageGapString = comic.GetExt(ComicExt.PAGE_GAP);
-                if (!string.IsNullOrEmpty(pageGapString) && int.TryParse(pageGapString, out int parsedPageGap))
-                {
-                    pageGap = parsedPageGap;
-                }
-            }
-        }
-
-        return new ReaderSettingDataModel
-        {
-            UseDefault = useDefault,
-            IsVertical = verticalReading,
-            IsLeftToRight = leftToRight,
-            IsVerticalContinuous = verticalContinuous,
-            IsHorizontalContinuous = horizontalContinuous,
-            VerticalPageArrangement = verticalPageArrangement,
-            HorizontalPageArrangement = horizontalPageArrangement,
-            PageGap = pageGap,
-        };
+        return items;
     }
 
     //
     // UI
     //
 
-    public void UpdateReaderUI()
+    private void UpdateReaderUI()
     {
         bool isWorking = ReaderStatusLiveData.GetValue() == ReaderStatusEnum.Working;
         bool previewVisible = isWorking && _gridViewModeEnabled;
@@ -690,6 +734,89 @@ internal sealed partial class ReaderPage : BasePage
                 _comic?.SaveProgressAsync(progress, page).Wait();
                 _updatingProgress = false;
             });
+        }
+    }
+
+    //
+    // Bottom Tile
+    //
+
+    private void OnReaderPointerExited()
+    {
+        _buttomTilePointerIn = true;
+        BottomTileShow();
+    }
+
+    public void BottomTileShow()
+    {
+        if (_buttomTileShowed)
+        {
+            return;
+        }
+
+        GetMainPageAbility().ShowOrHideTitleBar(true);
+        _buttomTileShowed = true;
+    }
+
+    public void BottomTileHide(int timeout)
+    {
+        _buttomTileHideRequestTime = DateTimeOffset.Now;
+
+        if (timeout > 0)
+        {
+            _ = Task.Run(() =>
+            {
+                Task.Delay(timeout + 1).Wait();
+
+                if ((DateTimeOffset.Now - _buttomTileHideRequestTime).TotalMilliseconds < timeout)
+                {
+                    return;
+                }
+
+                _ = MainThreadUtils.RunInMainThread(delegate
+                {
+                    BottomTileHide(0);
+                });
+            });
+            return;
+        }
+
+        if (!_buttomTileShowed || _buttomTileHold || _buttomTilePointerIn || InfoPane.IsPaneOpen)
+        {
+            return;
+        }
+
+        if (GridViewModeEnabled)
+        {
+            return;
+        }
+
+        if (GetNavigationPageAbility().GetIsSidePaneOpen())
+        {
+            return;
+        }
+
+        BottomGridForceHide();
+    }
+
+    private void BottomGridForceHide()
+    {
+        GetMainPageAbility().ShowOrHideTitleBar(false);
+        _buttomTileShowed = false;
+        _buttomTileHold = false;
+    }
+
+    private void BottomTileSetHold(bool val)
+    {
+        _buttomTileHold = val;
+
+        if (_buttomTileHold)
+        {
+            BottomTileShow();
+        }
+        else
+        {
+            BottomTileHide(0);
         }
     }
 
@@ -810,89 +937,6 @@ internal sealed partial class ReaderPage : BasePage
         var item = args.Item as ReaderImagePreviewViewModel;
         var viewHolder = args.ItemContainer.ContentTemplateRoot as ReaderPreviewImage;
         viewHolder?.SetModel(item, args.InRecycleQueue);
-    }
-
-    //
-    // Bottom Tile
-    //
-
-    private void OnReaderPointerExited()
-    {
-        _buttomTilePointerIn = true;
-        BottomTileShow();
-    }
-
-    public void BottomTileShow()
-    {
-        if (_buttomTileShowed)
-        {
-            return;
-        }
-
-        GetMainPageAbility().ShowOrHideTitleBar(true);
-        _buttomTileShowed = true;
-    }
-
-    public void BottomTileHide(int timeout)
-    {
-        _buttomTileHideRequestTime = DateTimeOffset.Now;
-
-        if (timeout > 0)
-        {
-            _ = Task.Run(() =>
-            {
-                Task.Delay(timeout + 1).Wait();
-
-                if ((DateTimeOffset.Now - _buttomTileHideRequestTime).TotalMilliseconds < timeout)
-                {
-                    return;
-                }
-
-                _ = MainThreadUtils.RunInMainThread(delegate
-                {
-                    BottomTileHide(0);
-                });
-            });
-            return;
-        }
-
-        if (!_buttomTileShowed || _buttomTileHold || _buttomTilePointerIn || InfoPane.IsPaneOpen)
-        {
-            return;
-        }
-
-        if (GridViewModeEnabled)
-        {
-            return;
-        }
-
-        if (GetNavigationPageAbility().GetIsSidePaneOpen())
-        {
-            return;
-        }
-
-        BottomGridForceHide();
-    }
-
-    private void BottomGridForceHide()
-    {
-        GetMainPageAbility().ShowOrHideTitleBar(false);
-        _buttomTileShowed = false;
-        _buttomTileHold = false;
-    }
-
-    private void BottomTileSetHold(bool val)
-    {
-        _buttomTileHold = val;
-
-        if (_buttomTileHold)
-        {
-            BottomTileShow();
-        }
-        else
-        {
-            BottomTileHide(0);
-        }
     }
 
     //

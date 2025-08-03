@@ -218,7 +218,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         Glyph = "\uE8B9",
                         Title = comic.Title,
                         CanExpand = false,
-                        MenuFlyoutItems = ComicItemMenuFlyoutCreator.CreateMenuItems(
+                        MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(
                             comic, new ComicItemMenuFlyoutHandler(this, comic)),
                         OnClick = () =>
                         {
