@@ -50,19 +50,20 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
 
     public ICondition CreateInCondition(List<VariableOrValue> left, List<VariableOrValue> right)
     {
-        List<ColumnOrValue> rightValueLiterals = [];
+        List<object?> rightValueLiterals = [];
         List<IReadOnlyList<string>> rightPaths = [];
         foreach (VariableOrValue rightItem in right)
         {
             if (rightItem.Path is null)
             {
-                rightValueLiterals.Add(ColumnOrValue.FromValue(rightItem.Value));
+                rightValueLiterals.Add(rightItem.Value);
             }
             else
             {
                 rightPaths.Add(rightItem.Path);
             }
         }
+
         List<ICondition> conditions = [];
         foreach (VariableOrValue leftItem in left)
         {
@@ -72,6 +73,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
                 {
                     conditions.Add(new InCondition(ColumnOrValue.FromValue(leftItem.Value), rightValueLiterals));
                 }
+
                 foreach (IReadOnlyList<string> rightPath in rightPaths)
                 {
                     conditions.Add(CreateCondition(rightPath, (column) => new ComparisonCondition(ColumnOrValue.FromValue(leftItem.Value), ColumnOrValue.FromColumn(column), ToSQLComparisonType(ComparisonTypeEnum.Equal))));
@@ -83,12 +85,14 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
                 {
                     conditions.Add(CreateCondition(leftItem.Path, (column) => new InCondition(ColumnOrValue.FromColumn(column), rightValueLiterals)));
                 }
+
                 foreach (IReadOnlyList<string> rightPath in rightPaths)
                 {
                     conditions.Add(CreateCondition(leftItem.Path, rightPath));
                 }
             }
         }
+
         return new OrCondition(conditions);
     }
 

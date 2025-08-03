@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections;
 using System.Text;
 
 namespace ComicReader.SDK.Data.SqlHelpers;
@@ -11,10 +12,15 @@ public class InCondition : ICondition
     private readonly ColumnOrValue _source;
     private readonly List<ColumnOrValue> _values;
 
-    public InCondition(ColumnOrValue source, IEnumerable<ColumnOrValue> values)
+    public InCondition(ColumnOrValue source, IEnumerable values)
     {
         _source = source;
-        _values = [.. values];
+
+        _values = [];
+        foreach (object? value in values)
+        {
+            _values.Add(ColumnOrValue.FromValue(value));
+        }
     }
 
     public InCondition(ColumnOrValue source, SelectCommand subquery)

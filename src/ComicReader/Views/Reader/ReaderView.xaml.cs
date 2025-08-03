@@ -1412,7 +1412,7 @@ internal partial class ReaderView : UserControl
         frame = Math.Max(0, frame);
 
         double page = FrameDataSource[frame].Page;
-        float? zoom = _zoom > 101f ? 100f : (float?)null;
+        float? zoom = _zoom > 101f ? 100f : null;
 
         SetScrollViewer2(zoom, page, disable_animation, reason);
     }

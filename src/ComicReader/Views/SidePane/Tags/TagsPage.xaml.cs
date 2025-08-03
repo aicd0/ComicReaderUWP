@@ -24,6 +24,7 @@ internal sealed partial class TagsPage : BasePage
     protected override void OnResume()
     {
         base.OnResume();
+
         ObserveData();
         ViewModel.UpdateTags();
     }
@@ -66,6 +67,16 @@ internal sealed partial class TagsPage : BasePage
                     ViewModel.UpdateTags();
                 }
             });
+        });
+
+        ViewModel.EditTagCategoryLiveData.Observe(this, tagCategory =>
+        {
+            var dialog = new EditTagCateogoryDialog(tagCategory);
+            _ = dialog.ShowAsync(XamlRoot);
+        });
+
+        ViewModel.EditTagLiveData.Observe(this, pair =>
+        {
         });
     }
 

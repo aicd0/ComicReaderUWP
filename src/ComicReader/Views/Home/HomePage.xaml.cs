@@ -55,15 +55,19 @@ internal sealed partial class HomePage : BasePage
     protected override void OnStart(PageBundle bundle)
     {
         base.OnStart(bundle);
+
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
+
         ViewModel.Initialize();
     }
 
     protected override void OnResume()
     {
         base.OnResume();
+
         ObserveData();
+        ViewModel.UpdateLibrary();
     }
 
     private void ObserveData()
@@ -148,7 +152,7 @@ internal sealed partial class HomePage : BasePage
     }
 
     //
-    // GridView
+    // Grid View
     //
 
     private void ComicGridView_Loaded(object sender, RoutedEventArgs e)

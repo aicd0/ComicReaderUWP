@@ -30,14 +30,12 @@ class DatabaseUpgradeManager
         {
             case 0:
                 {
-                    string newDirPath = Path.Combine(StorageLocation.LocalFolderPath, "database_sql");
-                    if (!Directory.Exists(newDirPath))
+                    string oldPath = Path.Combine(StorageLocation.LocalFolderPath, "database.db");
+                    string newPath = Path.Combine(StorageLocation.LocalFolderPath, "database_sql", "main.db");
+                    if (File.Exists(oldPath))
                     {
-                        Directory.CreateDirectory(newDirPath);
+                        MoveFile(oldPath, newPath);
                     }
-
-                    File.Move(Path.Combine(StorageLocation.LocalFolderPath, "database.db"),
-                        Path.Combine(newDirPath, "main.db"));
                 }
                 goto case VERSION;
             case VERSION:
@@ -46,7 +44,7 @@ class DatabaseUpgradeManager
                 goto case VERSION;
         }
 
-        WriteVersion(VERSION);
+        File.WriteAllText(VersionFilePath, VERSION.ToString());
     }
 
     public void UpgradeDatabaseAfterInitialization()
@@ -71,46 +69,6 @@ class DatabaseUpgradeManager
             {
                 DatabaseVersionModel.Instance.UpdateModel(databaseVersions);
             }
-        }
-    }
-
-    private int ReadVersion()
-    {
-        string versionFile = VersionFilePath;
-        if (!File.Exists(versionFile))
-        {
-            return 0;
-        }
-
-        string versionContent;
-        try
-        {
-            versionContent = File.ReadAllText(versionFile);
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, e);
-            return 0;
-        }
-
-        if (int.TryParse(versionContent, out int version))
-        {
-            return version;
-        }
-
-        return 0;
-    }
-
-    private void WriteVersion(int version)
-    {
-        string versionFile = VersionFilePath;
-        try
-        {
-            File.WriteAllText(versionFile, version.ToString());
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, e);
         }
     }
 
@@ -217,5 +175,48 @@ class DatabaseUpgradeManager
 
         versions.AppSettingVersion = 1;
         return true;
+    }
+
+    private static int ReadVersion()
+    {
+        string versionFile = VersionFilePath;
+        if (!File.Exists(versionFile))
+        {
+            return 0;
+        }
+
+        string versionContent;
+        try
+        {
+            versionContent = File.ReadAllText(versionFile);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+            return 0;
+        }
+
+        if (int.TryParse(versionContent, out int version))
+        {
+            return version;
+        }
+
+        return 0;
+    }
+
+    private static void MoveFile(string oldPath, string newPath)
+    {
+        if (File.Exists(newPath))
+        {
+            throw new IOException("File already exists at the new path: " + newPath);
+        }
+
+        string? newDir = Path.GetDirectoryName(newPath);
+        if (newDir != null && !Directory.Exists(newDir))
+        {
+            Directory.CreateDirectory(newDir);
+        }
+
+        File.Move(oldPath, newPath);
     }
 }

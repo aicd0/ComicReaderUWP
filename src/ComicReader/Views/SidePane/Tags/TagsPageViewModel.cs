@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
+using ComicReader.Common;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Data;
@@ -29,6 +30,8 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
     public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
     public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
     public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
+    public readonly MutableLiveData<string> EditTagCategoryLiveData = new();
+    public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -183,6 +186,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 Title = tagCategory,
                 CanExpand = true,
                 Expanded = true,
+                MenuFlyoutItems = CreateTagCategoryMenuItems(tagCategory),
             };
 
             foreach (string tag in tags)
@@ -195,6 +199,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                     Title = tag,
                     CanExpand = true,
                     Expanded = false,
+                    MenuFlyoutItems = CreateTagMenuItems(tagCategory, tag),
                 };
 
                 foreach (long comicId in tagModel.ComicIds)
@@ -233,6 +238,56 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         DiffUtils.UpdateCollection(DataSource, dataSource, (x, y) => x.Title == y.Title, UpdateItem);
         NoTagsVisible = dataSource.Count == 0;
+    }
+
+    private List<BaseMenuFlyoutItemViewModel> CreateTagCategoryMenuItems(string tagCategory)
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
+        {
+            OnClick = () =>
+            {
+                EditTagCategoryLiveData.Emit(tagCategory);
+            },
+        });
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
+        {
+            OnClick = () =>
+            {
+                _ = TagInfoModel.DeleteTagCategory(tagCategory);
+            },
+        });
+
+        return items;
+    }
+
+    private List<BaseMenuFlyoutItemViewModel> CreateTagMenuItems(string tagCategory, string tag)
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
+        {
+            OnClick = () =>
+            {
+                EditTagLiveData.Emit(new(tagCategory, tag));
+            },
+        });
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
+        {
+            OnClick = () =>
+            {
+                _ = TagInfoModel.DeleteTag(tagCategory, tag);
+            },
+        });
+
+        return items;
     }
 
     private class TagCateogryModel(string name, long comicId)

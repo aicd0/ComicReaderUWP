@@ -53,6 +53,29 @@ internal sealed class ComicModel
     public string Title2 => _internalModel.Title2;
     public ComicCompletionStatusEnum CompletionState => _internalModel.CompletionState;
 
+    public Dictionary<string, HashSet<string>> TagsCopy
+    {
+        get
+        {
+            Dictionary<string, HashSet<string>> tagsCopy = [];
+            foreach (TagData tagData in _internalModel.Tags)
+            {
+                if (!tagsCopy.TryGetValue(tagData.Name, out HashSet<string>? tagSet))
+                {
+                    tagSet = [];
+                    tagsCopy[tagData.Name] = tagSet;
+                }
+
+                foreach (string tag in tagData.Tags)
+                {
+                    tagSet.Add(tag);
+                }
+            }
+
+            return tagsCopy;
+        }
+    }
+
     public string? GetExt(string key)
     {
         return _internalModel.GetExt(key);

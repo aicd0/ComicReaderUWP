@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Utils;
+using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
@@ -183,6 +184,93 @@ internal class TagInfoModel
             .Update(TagInfoTable.ColumnExt, valueExt)
             .End()
             .Execute(SqlDatabaseManager.TagInfoDatabase);
+    }
+
+    //
+    // Utilities
+    //
+
+    public static async Task DeleteTag(string tagCategory, string tag)
+    {
+        await Enqueue("DeleteTag", () =>
+        {
+            DeleteCommand.Create(TagInfoTable.Instance)
+                .AppendCondition(TagInfoTable.ColumnTag, tag)
+                .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
+                .Execute(SqlDatabaseManager.TagInfoDatabase);
+            return true;
+        });
+
+        HashSet<long> comicIds = [];
+        await ComicData.Enqueue("DeleteTag", () =>
+        {
+            SelectCommand subQuery = SelectCommand.Create(TagCategoryTable.Instance)
+                .AppendCondition(TagCategoryTable.ColumnName, tagCategory);
+            subQuery.PutQueryInt64(TagCategoryTable.ColumnId);
+
+            SelectCommand command = SelectCommand.Create(TagTable.Instance)
+                .AppendCondition(TagTable.ColumnContent, tag)
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subQuery));
+            IReaderToken<long> comicIdToken = command.PutQueryInt64(TagTable.ColumnComicId);
+            SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+
+            while (reader.Read())
+            {
+                long comicId = comicIdToken.GetValue();
+                comicIds.Add(comicId);
+            }
+
+            return true;
+        });
+
+        List<ComicModel> comics = await ComicModel.BatchFromId("DeleteTag", comicIds);
+        foreach (ComicModel comic in comics)
+        {
+            Dictionary<string, HashSet<string>> comicTags = comic.TagsCopy;
+            if (comicTags.TryGetValue(tagCategory, out HashSet<string>? tags))
+            {
+                tags.Remove(tag);
+                comic.SetTags(comicTags);
+            }
+        }
+    }
+
+    public static async Task DeleteTagCategory(string tagCategory)
+    {
+        await Enqueue("DeleteTag", () =>
+        {
+            DeleteCommand.Create(TagInfoTable.Instance)
+                .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
+                .Execute(SqlDatabaseManager.TagInfoDatabase);
+            return true;
+        });
+
+        HashSet<long> comicIds = [];
+        await ComicData.Enqueue("DeleteTag", () =>
+        {
+            SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
+                .AppendCondition(TagCategoryTable.ColumnName, tagCategory);
+            IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
+            SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+
+            while (reader.Read())
+            {
+                long comicId = comicIdToken.GetValue();
+                comicIds.Add(comicId);
+            }
+
+            return true;
+        });
+
+        List<ComicModel> comics = await ComicModel.BatchFromId("DeleteTag", comicIds);
+        foreach (ComicModel comic in comics)
+        {
+            Dictionary<string, HashSet<string>> comicTags = comic.TagsCopy;
+            if (comicTags.Remove(tagCategory))
+            {
+                comic.SetTags(comicTags);
+            }
+        }
     }
 
     //

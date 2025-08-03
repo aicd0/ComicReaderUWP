@@ -9,8 +9,6 @@ using ComicReader.Data.Models;
 
 using Microsoft.UI.Xaml.Controls;
 
-using static ComicReader.Views.Home.EditFilterDialogViewModel;
-
 namespace ComicReader.Views.Home;
 
 internal sealed partial class EditFilterDialog : BaseContentDialog
@@ -20,6 +18,7 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
     public EditFilterDialog(ComicFilterModel.ExternalFilterModel filter)
     {
         InitializeComponent();
+
         ViewModel.Initialize(filter);
     }
 
@@ -34,10 +33,12 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
         {
             NameTextBox.Text = text ?? "";
         });
+
         ViewModel.ExpressionLiveData.ObserveSticky(this, delegate (string text)
         {
             ExpressionTextBox.Text = text ?? "";
         });
+
         ViewModel.ParseResultLiveData.ObserveSticky(this, delegate (string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -50,15 +51,18 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
                 ParseResultTextBlock.Text = text ?? "";
             }
         });
+
         ViewModel.SaveEnableLiveData.ObserveSticky(this, delegate (bool enabled)
         {
             SaveButton.IsEnabled = enabled;
         });
+
         ViewModel.SaveAsNewEnableLiveData.ObserveSticky(this, delegate (bool enabled)
         {
             SaveAsNewButton.IsEnabled = enabled;
         });
-        ViewModel.AppendToExpressionLiveData.Observe(this, (ExpressionTokenInfo info) =>
+
+        ViewModel.AppendToExpressionLiveData.Observe(this, info =>
         {
             string existingText = ExpressionTextBox.Text;
             int selectionStart = ExpressionTextBox.SelectionStart;

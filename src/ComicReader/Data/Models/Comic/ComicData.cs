@@ -119,7 +119,7 @@ internal abstract class ComicData
         Dictionary<long, ComicData> comics = new(ids.Count());
         {
             SelectCommand command = SelectCommand.Create(ComicTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), ids.Select(x => ColumnOrValue.FromValue(x))));
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), ids));
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
             IReaderToken<long> typeToken = command.PutQueryInt64(ComicTable.ColumnType);
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
@@ -199,7 +199,7 @@ internal abstract class ComicData
         Dictionary<long, TagTempData> tagCategories = new(comics.Count);
         {
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), comics.Keys.Select(x => ColumnOrValue.FromValue(x))));
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), comics.Keys));
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
             IReaderToken<long> tagCategoryIdToken = command.PutQueryInt64(TagCategoryTable.ColumnId);
             IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
@@ -224,7 +224,7 @@ internal abstract class ComicData
 
         {
             SelectCommand command = SelectCommand.Create(TagTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), tagCategories.Keys.Select(x => ColumnOrValue.FromValue(x))));
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), tagCategories.Keys));
             IReaderToken<long> tagCategoryIdToken = command.PutQueryInt64(TagTable.ColumnTagCategoryId);
             IReaderToken<string> tagToken = command.PutQueryString(TagTable.ColumnContent);
             using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
@@ -481,6 +481,7 @@ internal abstract class ComicData
             {
                 continue;
             }
+
             HashSet<string> processedTags = [];
             foreach (string tag in pair.Value)
             {
@@ -489,12 +490,15 @@ internal abstract class ComicData
                 {
                     continue;
                 }
+
                 processedTags.Add(processedTag);
             }
+
             if (processedTags.Count == 0)
             {
                 continue;
             }
+
             TagData tagData = new(name, processedTags);
             newTags.Add(tagData);
         }
