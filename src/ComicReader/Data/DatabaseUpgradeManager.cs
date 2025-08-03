@@ -26,6 +26,11 @@ class DatabaseUpgradeManager
     public void UpgradeDatabaseBeforeInitialization()
     {
         int version = ReadVersion();
+        if (version == VERSION)
+        {
+            return;
+        }
+
         switch (version)
         {
             case 0:
@@ -37,11 +42,9 @@ class DatabaseUpgradeManager
                         MoveFile(oldPath, newPath);
                     }
                 }
-                goto case VERSION;
-            case VERSION:
                 break;
             default:
-                goto case VERSION;
+                break;
         }
 
         File.WriteAllText(VersionFilePath, VERSION.ToString());

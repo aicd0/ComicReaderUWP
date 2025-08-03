@@ -152,7 +152,7 @@ internal class TagInfoModel
             .AppendCondition(TagInfoTable.ColumnTag, tag)
             .Limit(1);
         IReaderToken<string> extToken = command.PutQueryString(TagInfoTable.ColumnExt);
-        SelectCommand.IReader reader = command.Execute();
+        using SelectCommand.IReader reader = command.Execute();
 
         bool hasRecord = false;
         string extJson = string.Empty;
@@ -219,7 +219,7 @@ internal class TagInfoModel
         SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
             .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory);
         IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnTag);
-        SelectCommand.IReader reader = command.Execute();
+        using SelectCommand.IReader reader = command.Execute();
         while (reader.Read())
         {
             string tag = tagToken.GetValue();
@@ -274,7 +274,7 @@ internal class TagInfoModel
                 .AppendCondition(TagTable.ColumnContent, tag)
                 .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subQuery));
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagTable.ColumnComicId);
-            SelectCommand.IReader reader = command.Execute();
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 long comicId = comicIdToken.GetValue();
@@ -314,7 +314,7 @@ internal class TagInfoModel
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnName, tagCategory);
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
-            SelectCommand.IReader reader = command.Execute();
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 long comicId = comicIdToken.GetValue();
@@ -347,7 +347,7 @@ internal class TagInfoModel
             SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
                 .AppendCondition(TagInfoTable.ColumnTagCategory, oldName);
             IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnTag);
-            SelectCommand.IReader reader = command.Execute();
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 string tag = tagToken.GetValue();
@@ -379,7 +379,7 @@ internal class TagInfoModel
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnName, oldName);
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
-            SelectCommand.IReader reader = command.Execute();
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 long comicId = comicIdToken.GetValue();
@@ -446,7 +446,7 @@ internal class TagInfoModel
                 .AppendCondition(TagTable.ColumnContent, oldTag)
                 .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subQuery));
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagTable.ColumnComicId);
-            SelectCommand.IReader reader = command.Execute();
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 long comicId = comicIdToken.GetValue();

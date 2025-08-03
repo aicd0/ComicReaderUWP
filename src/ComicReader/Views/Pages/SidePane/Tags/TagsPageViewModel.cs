@@ -87,7 +87,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 IReaderToken<long> idToken = command.PutQueryInt64(TagCategoryTable.ColumnId);
                 IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
                 IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
-                SelectCommand.IReader reader = command.Execute();
+                using SelectCommand.IReader reader = command.Execute();
                 while (reader.Read())
                 {
                     long id = idToken.GetValue();
@@ -101,7 +101,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 var command = SelectCommand.Create(TagTable.Instance);
                 IReaderToken<string> contentToken = command.PutQueryString(TagTable.ColumnContent);
                 IReaderToken<long> categoryIdToken = command.PutQueryInt64(TagTable.ColumnTagCategoryId);
-                SelectCommand.IReader reader = command.Execute();
+                using SelectCommand.IReader reader = command.Execute();
                 while (reader.Read())
                 {
                     string content = contentToken.GetValue();
@@ -139,7 +139,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             var command = SelectCommand.Create(TagInfoTable.Instance);
             IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnTag);
             IReaderToken<string> tagCategoryToken = command.PutQueryString(TagInfoTable.ColumnTagCategory);
-            SelectCommand.IReader reader = command.Execute();
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 string tag = tagToken.GetValue();

@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
-using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Data.SqlHelpers;
 
@@ -117,18 +117,24 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
 
         CoroutineUtils.Start(async () =>
         {
-            OverwriteWarning = !IsSameCategory && await ComicData.Enqueue("UpdateButtonStates", () =>
-            {
-                SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
-                    .AppendCondition(TagInfoTable.ColumnTagCategory, _name);
-                SelectCommand.IReader reader = command.Execute();
-                while (reader.Read())
-                {
-                    return true;
-                }
+            OverwriteWarning = !IsSameCategory && await MayOverwriteExistingEntries(_name);
+        });
+    }
 
-                return false;
-            });
+    private async Task<bool> MayOverwriteExistingEntries(string tagCategory)
+    {
+        return await TagInfoModel.Enqueue("MayOverwriteExistingEntries", () =>
+        {
+            SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
+                .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory);
+            command.PutQueryString(TagInfoTable.ColumnTagCategory);
+            using SelectCommand.IReader reader = command.Execute();
+            while (reader.Read())
+            {
+                return true;
+            }
+
+            return false;
         });
     }
 }

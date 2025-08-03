@@ -152,7 +152,7 @@ public sealed class SqlProperty<T, K, V>(ITaskDispatcher dispatcher, SqlDatabase
             command.AppendCondition(new InCondition(ColumnOrValue.FromColumn(KeyColumn), Keys.Keys));
             IReaderToken<K> keyToken = KeyColumn.PutQuery(command);
             IReaderToken<V> valueToken = ValueColumn.PutQuery(command);
-            SelectCommand.IReader reader = command.Execute();
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 K key = keyToken.GetValue();
