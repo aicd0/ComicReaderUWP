@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>キャンセル</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>カテゴリ</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>画像を検索する場所を選択する</value>
   </data>
@@ -507,6 +510,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>ランダムにコミックを開く</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>この操作により既存のエントリが上書きされます。</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>ページ間隔</value>

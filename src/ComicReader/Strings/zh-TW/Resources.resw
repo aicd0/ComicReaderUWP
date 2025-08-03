@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>取消</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>類別</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>新增或修改圖片位置</value>
   </data>
@@ -507,6 +510,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>開啟隨機漫畫</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>此操作將覆蓋現有條目。</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>頁面間距</value>

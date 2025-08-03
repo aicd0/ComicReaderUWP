@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>Stornieren</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Wählen Sie aus, wo wir nach Bildern suchen</value>
   </data>
@@ -507,6 +510,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Öffne einen zufälligen Comic</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>Dieser Vorgang überschreibt vorhandene Einträge.</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>Seitenabstand</value>

@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>Cancelar</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Elige dónde buscamos imágenes</value>
   </data>
@@ -507,6 +510,9 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Abre un cómic al azar</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>Esta operación sobrescribirá las entradas existentes.</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>Espaciado</value>
