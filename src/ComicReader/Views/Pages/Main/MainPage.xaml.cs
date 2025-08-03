@@ -1,15 +1,12 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
@@ -25,6 +22,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 
 using Windows.ApplicationModel.DataTransfer;
 
@@ -36,17 +34,24 @@ internal sealed partial class MainPage : BasePage
     // Member variables
     //
 
-    private Grid _tabContainerGrid;
-    private ContentPresenter _tabContentPresenter;
-    private KeyFrameAnimation _titleBarAnimation;
+    private Grid? _tabContainerGrid;
+    private ContentPresenter? _tabContentPresenter;
+    private Storyboard? _titleBarAnimation;
+    private long _tabContainerGridOpacityListenerToken = 0;
 
-    private readonly List<TabInfo> _tabs = new();
-    private TabInfo _currentTab;
+    private readonly List<TabInfo> _tabs = [];
+    private TabInfo? _currentTab;
     private int _nextTabId = 0;
     private bool _isFullscreen = false;
 
     private double _rootTabHeight = 0;
     private double _navigationBarHeight = 0;
+
+    //
+    // Properties
+    //
+
+    private Window? CurrentWindow => App.WindowManager.GetWindow(WindowId);
 
     //
     // Constructors
@@ -58,7 +63,7 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
-    // Public Interfaces
+    // Public Methods
     //
 
     public void OpenInNewTab(Route route)
@@ -75,14 +80,14 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
-    // Page Lifecycle
+    // Lifecycle
     //
 
     protected override void OnStart(PageBundle bundle)
     {
         base.OnStart(bundle);
 
-        Window window = App.WindowManager.GetWindow(WindowId);
+        Window window = CurrentWindow!;
         window.SetTitleBar(MainTitleBar);
 
         AppWindowTitleBar titleBar = window.AppWindow.TitleBar;
@@ -118,7 +123,7 @@ internal sealed partial class MainPage : BasePage
             long id = AppModel.GetReadingComic();
             if (id >= 0)
             {
-                ComicModel comic = await ComicModel.FromId(id, "FetchLastComic");
+                ComicModel? comic = await ComicModel.FromId(id, "FetchLastComic");
                 if (comic != null)
                 {
                     Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
@@ -133,42 +138,6 @@ internal sealed partial class MainPage : BasePage
             var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
             OpenInNewTab(route);
         }
-    }
-
-    private void ShowOrHideTitleBar(bool show)
-    {
-        if (_currentTab == null || !_currentTab.CurrentPageTrait.ImmersiveMode())
-        {
-            return;
-        }
-
-        if (_titleBarAnimation == null)
-        {
-            _titleBarAnimation = new KeyFrameAnimation
-            {
-                Duration = 0.2,
-                UpdateCallback = delegate (double value)
-                {
-                    GetEventBus().With<double>(EventId.TitleBarOpacity).Emit(value);
-                }
-            };
-        }
-        else
-        {
-            _titleBarAnimation.RemoveAllKeyFrames();
-        }
-
-        _titleBarAnimation.StartValue = _tabContainerGrid.Opacity;
-        if (show)
-        {
-            _titleBarAnimation.InsertKeyFrame(1.0, 1.0);
-        }
-        else
-        {
-            _titleBarAnimation.InsertKeyFrame(1.0, 0.0);
-        }
-
-        _titleBarAnimation.Start();
     }
 
     private void ObserveData()
@@ -198,6 +167,10 @@ internal sealed partial class MainPage : BasePage
         GetEventBus().With<int>(EventId.CloseTab).Observe(this, CloseTab);
     }
 
+    //
+    // Tab Management
+    //
+
     private int AddTab(NavigationBundle bundle)
     {
         var item = new TabViewItem
@@ -207,11 +180,14 @@ internal sealed partial class MainPage : BasePage
         };
 
         int tabId = _nextTabId++;
-        var tabInfo = new TabInfo(tabId, item);
         var ability = new MainPageAbility(this, tabId);
-        tabInfo.CurrentPageTrait = bundle.PageTrait;
-        tabInfo.CurrentUrl = bundle.Url;
-        tabInfo.Ability = ability;
+        var tabInfo = new TabInfo(tabId, item)
+        {
+            CurrentPageTrait = bundle.PageTrait,
+            CurrentUrl = bundle.Url,
+            Ability = ability
+        };
+
         RegisterPageAbility(bundle.Communicator, ability);
         _tabs.Add(tabInfo);
         RootTabView.TabItems.Add(item);
@@ -255,7 +231,7 @@ internal sealed partial class MainPage : BasePage
             tabId = AddTab(bundle);
         }
 
-        TabInfo tabInfo = GetTabInfo(tabId);
+        TabInfo? tabInfo = GetTabInfo(tabId);
 
         if (tabInfo == null)
         {
@@ -286,7 +262,7 @@ internal sealed partial class MainPage : BasePage
                 }
             }
 
-            var contentPage = (NavigationPage)frame.Content;
+            var contentPage = (NavigationPage)frame.Content!;
             contentPage.Navigate(bundle);
         }
         else
@@ -304,7 +280,7 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        TabInfo closingTab = null;
+        TabInfo? closingTab = null;
         for (int i = 0; i < _tabs.Count; ++i)
         {
             TabInfo tabInfo = _tabs[i];
@@ -323,7 +299,7 @@ internal sealed partial class MainPage : BasePage
 
         if (RootTabView.TabItems.Count <= 0)
         {
-            App.WindowManager.GetWindow(WindowId).Close();
+            CurrentWindow?.Close();
         }
     }
 
@@ -334,7 +310,7 @@ internal sealed partial class MainPage : BasePage
         RootTabView.TabItems.Remove(tabInfo.Item);
     }
 
-    private TabInfo GetTabInfo(int tabId)
+    private TabInfo? GetTabInfo(int tabId)
     {
         foreach (TabInfo tab in _tabs)
         {
@@ -348,7 +324,7 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
-    // TabView
+    // Tab View
     //
 
     private void OnAddTabButtonClicked(TabView sender, object args)
@@ -380,9 +356,9 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        TabInfo lastSelectedTab = _currentTab;
+        TabInfo? lastSelectedTab = _currentTab;
         var newSelectedTabItem = (TabViewItem)e.AddedItems[0];
-        TabInfo newSelectedTab = null;
+        TabInfo? newSelectedTab = null;
         foreach (TabInfo tabInfo in _tabs)
         {
             if (tabInfo.Item == newSelectedTabItem)
@@ -407,7 +383,7 @@ internal sealed partial class MainPage : BasePage
 
     private void OnRootTabViewTabDragStarting(TabView sender, TabViewTabDragStartingEventArgs args)
     {
-        TabInfo draggingTab = null;
+        TabInfo? draggingTab = null;
         foreach (TabInfo tabInfo in _tabs)
         {
             if (tabInfo.Item == args.Tab)
@@ -475,7 +451,7 @@ internal sealed partial class MainPage : BasePage
         TabViewItem tab = args.Tab;
         Logger.Assert(tab != null, "556A8735ED29D6B5");
 
-        TabInfo removingTab = null;
+        TabInfo? removingTab = null;
         foreach (TabInfo tabInfo in _tabs)
         {
             if (tabInfo.Item == tab)
@@ -505,7 +481,7 @@ internal sealed partial class MainPage : BasePage
     {
         UpdateTopPadding();
 
-        TabInfo currentTab = _currentTab;
+        TabInfo? currentTab = _currentTab;
         if (currentTab != null)
         {
             IPageTrait pageTrait = currentTab.CurrentPageTrait;
@@ -544,12 +520,108 @@ internal sealed partial class MainPage : BasePage
 
     private void OnTabContainerGridLoaded(object sender, RoutedEventArgs e)
     {
-        _tabContainerGrid = sender as Grid;
+        _tabContainerGrid = (Grid)sender;
+
+        _tabContainerGridOpacityListenerToken = _tabContainerGrid.RegisterPropertyChangedCallback(OpacityProperty, (sender, dp) =>
+        {
+            GetEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
+        });
+    }
+
+    private void OnTabContainerGridUnloaded(object sender, RoutedEventArgs e)
+    {
+        _tabContainerGrid?.UnregisterPropertyChangedCallback(OpacityProperty, _tabContainerGridOpacityListenerToken);
+        _tabContainerGrid = null;
     }
 
     private void OnTabContentPresenterLoaded(object sender, RoutedEventArgs e)
     {
         _tabContentPresenter = sender as ContentPresenter;
+    }
+
+    //
+    // Title Bar Animation
+    //
+
+    private void ShowOrHideTitleBar(bool show)
+    {
+        if (_currentTab == null || !_currentTab.CurrentPageTrait.ImmersiveMode())
+        {
+            return;
+        }
+
+        UIElement? targetElement = _tabContainerGrid;
+        if (targetElement == null)
+        {
+            return;
+        }
+
+        if (_titleBarAnimation != null)
+        {
+            _titleBarAnimation.Stop();
+            _titleBarAnimation = null;
+        }
+
+        DoubleAnimation animation = new()
+        {
+            From = targetElement.Opacity,
+            To = show ? 1.0 : 0.0,
+            Duration = TimeSpan.FromSeconds(0.2),
+        };
+
+        Storyboard.SetTarget(animation, targetElement);
+        Storyboard.SetTargetProperty(animation, "Opacity");
+        Storyboard storyboard = new();
+        storyboard.Children.Add(animation);
+        storyboard.Begin();
+        _titleBarAnimation = storyboard;
+    }
+
+    //
+    // Fullscreen
+    //
+
+    private void EnterFullscreen()
+    {
+        Window? window = CurrentWindow;
+        if (window == null || IsFullScreen(window))
+        {
+            return;
+        }
+
+        window.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+        DispatchFullscreenChangeEvent(true);
+    }
+
+    private void ExitFullscreen()
+    {
+        Window? window = CurrentWindow;
+        if (window == null || !IsFullScreen(window))
+        {
+            return;
+        }
+
+        window.AppWindow.SetPresenter(AppWindowPresenterKind.Default);
+        DispatchFullscreenChangeEvent(false);
+    }
+
+    private void DispatchFullscreenChangeEvent(bool isFullscreen)
+    {
+        if (_isFullscreen == isFullscreen)
+        {
+            return;
+        }
+        _isFullscreen = isFullscreen;
+
+        DispatchToAllTabs(delegate (MainPageAbility ability)
+        {
+            ability.SendFullscreenChangedEvent(isFullscreen);
+        });
+    }
+
+    private bool IsFullScreen(Window window)
+    {
+        return window.AppWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen;
     }
 
     //
@@ -563,7 +635,8 @@ internal sealed partial class MainPage : BasePage
 
     private void OnRootGridSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (!IsFullScreen())
+        Window? window = CurrentWindow;
+        if (window != null && !IsFullScreen(window))
         {
             DispatchFullscreenChangeEvent(false);
         }
@@ -594,51 +667,6 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
-    // Fullscreen
-    //
-
-    private void EnterFullscreen()
-    {
-        if (IsFullScreen())
-        {
-            return;
-        }
-
-        App.WindowManager.GetWindow(WindowId).AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
-        DispatchFullscreenChangeEvent(true);
-    }
-
-    private void ExitFullscreen()
-    {
-        if (!IsFullScreen())
-        {
-            return;
-        }
-
-        App.WindowManager.GetWindow(WindowId).AppWindow.SetPresenter(AppWindowPresenterKind.Default);
-        DispatchFullscreenChangeEvent(false);
-    }
-
-    private void DispatchFullscreenChangeEvent(bool isFullscreen)
-    {
-        if (_isFullscreen == isFullscreen)
-        {
-            return;
-        }
-        _isFullscreen = isFullscreen;
-
-        DispatchToAllTabs(delegate (MainPageAbility ability)
-        {
-            ability.SendFullscreenChangedEvent(isFullscreen);
-        });
-    }
-
-    private bool IsFullScreen()
-    {
-        return App.WindowManager.GetWindow(WindowId).AppWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen;
-    }
-
-    //
     // Utilities
     //
 
@@ -655,28 +683,26 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
+    //
+    // Page Ability
+    //
+
     private static void RegisterPageAbility(PageCommunicator communicator, MainPageAbility ability)
     {
         communicator.RegisterAbility<ICommonPageAbility>(ability);
         communicator.RegisterAbility<IMainPageAbility>(ability);
     }
 
-    private class MainPageAbility : ICommonPageAbility, IMainPageAbility
+    private class MainPageAbility(MainPage parent, int tabId) : ICommonPageAbility, IMainPageAbility
     {
         private const string EVENT_TAB_UNSELECTED = "TabUnselected";
         private const string EVENT_FULLSCREEN_CHANGED = "FullscreenChanged";
 
-        private readonly WeakReference<MainPage> _parent;
+        private readonly WeakReference<MainPage> _parent = new(parent);
         private readonly EventBus _eventBus = new();
-        private readonly int _tabId;
+        private readonly int _tabId = tabId;
 
-        private PageStopEventHandler _pageStopped;
-
-        public MainPageAbility(MainPage parent, int tabId)
-        {
-            _parent = new WeakReference<MainPage>(parent);
-            _tabId = tabId;
-        }
+        private PageStopEventHandler? _pageStopped;
 
         public void RegisterPageStopHandler(PageStopEventHandler handler)
         {
@@ -696,7 +722,7 @@ internal sealed partial class MainPage : BasePage
 
         public void OpenInCurrentTab(Route route)
         {
-            if (!_parent.TryGetTarget(out MainPage parent))
+            if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
@@ -706,7 +732,7 @@ internal sealed partial class MainPage : BasePage
 
         public void OpenInNewTab(Route route)
         {
-            if (!_parent.TryGetTarget(out MainPage parent))
+            if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
@@ -716,7 +742,7 @@ internal sealed partial class MainPage : BasePage
 
         public void EnterFullscreen()
         {
-            if (!_parent.TryGetTarget(out MainPage parent))
+            if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
@@ -726,7 +752,7 @@ internal sealed partial class MainPage : BasePage
 
         public void ExitFullscreen()
         {
-            if (!_parent.TryGetTarget(out MainPage parent))
+            if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
@@ -736,7 +762,7 @@ internal sealed partial class MainPage : BasePage
 
         public void SetTitle(string title)
         {
-            TabInfo tab = GetTab();
+            TabInfo? tab = GetTab();
             if (tab == null)
             {
                 return;
@@ -747,7 +773,7 @@ internal sealed partial class MainPage : BasePage
 
         public void SetIcon(IconSource icon)
         {
-            TabInfo tab = GetTab();
+            TabInfo? tab = GetTab();
             if (tab == null)
             {
                 return;
@@ -758,12 +784,12 @@ internal sealed partial class MainPage : BasePage
 
         public void SetCurrentPageInfo(string url, IPageTrait pageTrait)
         {
-            if (!_parent.TryGetTarget(out MainPage parent))
+            if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
 
-            TabInfo tab = parent.GetTabInfo(_tabId);
+            TabInfo? tab = parent.GetTabInfo(_tabId);
             if (tab == null)
             {
                 return;
@@ -797,7 +823,7 @@ internal sealed partial class MainPage : BasePage
 
         public void ShowOrHideTitleBar(bool show)
         {
-            if (!_parent.TryGetTarget(out MainPage parent))
+            if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
@@ -810,9 +836,9 @@ internal sealed partial class MainPage : BasePage
             _eventBus.With<bool>(EVENT_FULLSCREEN_CHANGED).Emit(isFullscreen);
         }
 
-        private TabInfo GetTab()
+        private TabInfo? GetTab()
         {
-            if (!_parent.TryGetTarget(out MainPage parent))
+            if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return null;
             }
@@ -821,18 +847,16 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    private class TabInfo
-    {
-        public TabInfo(int id, TabViewItem item)
-        {
-            Id = id;
-            Item = item;
-        }
+    //
+    // Types
+    //
 
-        public TabViewItem Item { get; }
-        public int Id { get; }
-        public MainPageAbility Ability { get; set; }
-        public string CurrentUrl { get; set; }
-        public IPageTrait CurrentPageTrait { get; set; }
+    private class TabInfo(int id, TabViewItem item)
+    {
+        public TabViewItem Item { get; } = item;
+        public int Id { get; } = id;
+        public required MainPageAbility Ability { get; set; }
+        public required string CurrentUrl { get; set; }
+        public required IPageTrait CurrentPageTrait { get; set; }
     }
 }

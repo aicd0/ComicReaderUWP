@@ -12,6 +12,7 @@
     mc:Ignorable="d">
 
     <Page.Resources>
+
         <Style x:Name="TabViewButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="{ThemeResource TabViewButtonBackground}" />
             <Setter Property="Foreground" Value="{ThemeResource TabViewButtonForeground}" />
@@ -97,6 +98,7 @@
                                 Background="{TemplateBinding Background}"
                                 Loaded="OnTabContainerGridLoaded"
                                 SizeChanged="OnTabContainerGridSizeChanged"
+                                Unloaded="OnTabContainerGridUnloaded"
                                 XYFocusKeyboardNavigation="Enabled">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition x:Name="LeftContentColumn" Width="Auto" />
@@ -154,6 +156,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
     </Page.Resources>
 
     <Grid SizeChanged="OnRootGridSizeChanged">
@@ -175,4 +178,5 @@
             </muxc:TabView.TabStripFooter>
         </muxc:TabView>
     </Grid>
+
 </base:BasePage>
