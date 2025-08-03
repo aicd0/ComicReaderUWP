@@ -37,18 +37,22 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
         {
             Title1TextBox.Text = text;
         });
+
         ViewModel.Title2TextLiveData.ObserveSticky(this, (text) =>
         {
             Title2TextBox.Text = text;
         });
+
         ViewModel.DescriptionTextLiveData.ObserveSticky(this, (text) =>
         {
             DescriptionTextBox.Text = text;
         });
+
         ViewModel.TagTextLiveData.ObserveSticky(this, (text) =>
         {
             TagTextBox.Text = text;
         });
+
         ViewModel.Title1ChangedLiveData.ObserveSticky(this, (changed) =>
         {
             string name = StringResource.Title1Colon;
@@ -58,6 +62,7 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
             }
             Title1NameTextBlock.Text = name;
         });
+
         ViewModel.Title2ChangedLiveData.ObserveSticky(this, (changed) =>
         {
             string name = StringResource.Title2Colon;
@@ -67,15 +72,17 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
             }
             Title2NameTextBlock.Text = name;
         });
+
         ViewModel.DescriptionChangedLiveData.ObserveSticky(this, (changed) =>
         {
-            string name = StringResource.DescriptionColon;
+            string name = StringResource.WithColon(StringResource.Description);
             if (changed)
             {
                 name += " *";
             }
             DescriptionNameTextBlock.Text = name;
         });
+
         ViewModel.TagChangedLiveData.ObserveSticky(this, (changed) =>
         {
             string name = StringResource.TagsColon;

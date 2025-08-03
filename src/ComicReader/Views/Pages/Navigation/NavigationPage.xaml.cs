@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 
 using ComicReader.Common;
@@ -29,7 +27,7 @@ internal sealed partial class NavigationPage : BasePage
     private bool _isFavorite = false;
     private double _rootTabHeight = 0;
     private double _navigationBarHeight = 0;
-    private NavigationBundle _currentBundle;
+    private NavigationBundle? _currentBundle;
     private readonly NavigationPageAbility _ability;
 
     private NavigationPageViewModel ViewModel { get; } = new();
@@ -49,8 +47,7 @@ internal sealed partial class NavigationPage : BasePage
         base.OnResume();
 
         ObserveData();
-        ViewModel.DevToolsVisible = DebugUtils.DeveloperMode;
-        NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
+        UpdateUI();
     }
 
     private void ObserveData()
@@ -66,6 +63,18 @@ internal sealed partial class NavigationPage : BasePage
             TopTile.Opacity = opacity;
             TopTile.IsHitTestVisible = opacity > 0.5;
         });
+    }
+
+    private void UpdateUI()
+    {
+        ViewModel.DevToolsVisible = DebugUtils.DeveloperMode;
+        NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
+
+        string lastSidePaneItem = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
+        if (!RightSidePane.NavigateToItem(lastSidePaneItem))
+        {
+            RightSidePane.NavigateToItem(SidePane.FAVORITES);
+        }
     }
 
     //
@@ -119,7 +128,7 @@ internal sealed partial class NavigationPage : BasePage
         _ability.SendLeavingEvent();
         _ability.ClearSubscriptions();
 
-        _currentBundle = e.Parameter as NavigationBundle;
+        _currentBundle = (NavigationBundle)e.Parameter;
         GetMainPageAbility().SetCurrentPageInfo(_currentBundle.Url, _currentBundle.PageTrait);
 
         NavigationPageSidePane.IsPaneOpen = false;
@@ -146,7 +155,7 @@ internal sealed partial class NavigationPage : BasePage
 
     private void UpdateTopPadding()
     {
-        if (_currentBundle.PageTrait.ImmersiveMode())
+        if (_currentBundle!.PageTrait.ImmersiveMode())
         {
             TopTile.Margin = new Thickness(0, _rootTabHeight, 0, 0);
             ContentGrid.Margin = new Thickness(0, 0, 0, 0);
@@ -296,30 +305,30 @@ internal sealed partial class NavigationPage : BasePage
     // Pointer events
     //
 
-    private PointerPoint m_last_pointer_point = null;
+    private PointerPoint? _lastPointerPoint;
 
     private void OnPagePointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        m_last_pointer_point = e.GetCurrentPoint(sender as UIElement);
+        _lastPointerPoint = e.GetCurrentPoint(sender as UIElement);
     }
 
     private void OnPagePointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (m_last_pointer_point == null)
+        if (_lastPointerPoint == null)
         {
             return;
         }
 
-        if (m_last_pointer_point.Properties.IsXButton1Pressed)
+        if (_lastPointerPoint.Properties.IsXButton1Pressed)
         {
             _ = GoBack();
         }
-        else if (m_last_pointer_point.Properties.IsXButton2Pressed)
+        else if (_lastPointerPoint.Properties.IsXButton2Pressed)
         {
             _ = GoForward();
         }
 
-        m_last_pointer_point = null;
+        _lastPointerPoint = null;
     }
 
     //
@@ -330,16 +339,18 @@ internal sealed partial class NavigationPage : BasePage
     {
         Route route = item switch
         {
-            "Favorites" => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
-            "History" => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_HISTORY),
-            "Tags" => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_TAGS),
-            _ => throw new Exception(),
+            SidePane.FAVORITES => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
+            SidePane.HISTORY => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_HISTORY),
+            SidePane.TAGS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_TAGS),
+            _ => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
         };
 
         route.WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
         NavigationBundle bundle = AppRouter.Process(route);
         TransferAbility(bundle.Communicator);
         sender.Navigate(bundle);
+
+        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
     }
 
     private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -354,12 +365,12 @@ internal sealed partial class NavigationPage : BasePage
 
     private IMainPageAbility GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>();
+        return GetAbility<IMainPageAbility>()!;
     }
 
     private void TransferAbility(PageCommunicator communicator)
     {
-        communicator.RegisterAbility(GetAbility<ICommonPageAbility>());
+        communicator.RegisterAbility(GetAbility<ICommonPageAbility>()!);
         communicator.RegisterAbility(GetMainPageAbility());
         communicator.RegisterAbility<INavigationPageAbility>(_ability);
     }
@@ -393,7 +404,7 @@ internal sealed partial class NavigationPage : BasePage
 
         public bool GetIsSidePaneOpen()
         {
-            if (!_parent.TryGetTarget(out NavigationPage parent))
+            if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return false;
             }
@@ -403,7 +414,7 @@ internal sealed partial class NavigationPage : BasePage
 
         public void SetExternalComic(bool isExternal)
         {
-            if (!_parent.TryGetTarget(out NavigationPage parent))
+            if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return;
             }
@@ -413,7 +424,7 @@ internal sealed partial class NavigationPage : BasePage
 
         public void SetFavorite(bool isFavorite)
         {
-            if (!_parent.TryGetTarget(out NavigationPage parent))
+            if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return;
             }
@@ -423,7 +434,7 @@ internal sealed partial class NavigationPage : BasePage
 
         public void SetGridViewMode(bool enabled)
         {
-            if (!_parent.TryGetTarget(out NavigationPage parent))
+            if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return;
             }
@@ -433,7 +444,7 @@ internal sealed partial class NavigationPage : BasePage
 
         public void SetIsSidePaneOpen(bool isOpen)
         {
-            if (!_parent.TryGetTarget(out NavigationPage parent))
+            if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return;
             }
@@ -443,7 +454,7 @@ internal sealed partial class NavigationPage : BasePage
 
         public void SetReaderSettings(ReaderSettingDataModel settings)
         {
-            if (!_parent.TryGetTarget(out NavigationPage parent))
+            if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return;
             }
@@ -453,7 +464,7 @@ internal sealed partial class NavigationPage : BasePage
 
         public void SetSearchBox(string text)
         {
-            if (!_parent.TryGetTarget(out NavigationPage parent))
+            if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return;
             }

@@ -28,12 +28,12 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock
-                x:Uid="NameTextBlock"
                 Grid.Row="0"
                 Grid.Column="0"
                 Margin="0,7,0,0"
                 HorizontalAlignment="Right"
-                VerticalAlignment="Top" />
+                VerticalAlignment="Top"
+                Text="{x:Bind StringResource.Name}" />
             <TextBox
                 x:Name="NameTextBox"
                 Grid.Row="0"
@@ -101,10 +101,10 @@
             </Grid.ColumnDefinitions>
             <Button
                 x:Name="SaveButton"
-                x:Uid="SaveButton"
                 Grid.Column="0"
                 HorizontalAlignment="Stretch"
-                Click="SaveButton_Click" />
+                Click="SaveButton_Click"
+                Content="{x:Bind StringResource.Save}" />
             <Button
                 x:Name="SaveAsNewButton"
                 x:Uid="SaveAsNewButton"

@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Choose where we look for images</value>
   </data>
@@ -237,8 +240,8 @@
   <data name="Descending" xml:space="preserve">
     <value>Descending</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>Description:</value>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Comic Reader UWP [Dev]</value>
@@ -474,7 +477,7 @@ The evaluation will be performed in the following order:
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>More</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -509,6 +512,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Open a random comic</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>This operation will overwrite existing entries.</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>Page spacing</value>
@@ -582,14 +588,14 @@ The evaluation will be performed in the following order:
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>R to L</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Save as default configurations</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Save as new</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>Save</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Save browsing history</value>

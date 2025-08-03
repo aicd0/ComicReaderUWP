@@ -4,7 +4,9 @@
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Utils;
+using ComicReader.ViewModels;
 using ComicReader.Views.Dialogs.EditComicInfo;
+using ComicReader.Views.Dialogs.EditTag;
 using ComicReader.Views.Dialogs.EditTagCategory;
 using ComicReader.Views.Pages.Main;
 using ComicReader.Views.Pages.Navigation;
@@ -32,6 +34,11 @@ internal sealed partial class TagsPage : BasePage
 
     private void ObserveData()
     {
+        GlobalEvent.Instance.TagInfoUpdated.Observe(this, delegate
+        {
+            ViewModel.UpdateTags();
+        });
+
         GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
         {
             ViewModel.UpdateTags();
@@ -78,6 +85,8 @@ internal sealed partial class TagsPage : BasePage
 
         ViewModel.EditTagLiveData.Observe(this, pair =>
         {
+            var dialog = new EditTagDialog(pair.Key, pair.Value);
+            _ = dialog.ShowAsync(XamlRoot);
         });
     }
 
@@ -93,5 +102,15 @@ internal sealed partial class TagsPage : BasePage
     private INavigationPageAbility GetNavigationPageAbility()
     {
         return GetAbility<INavigationPageAbility>()!;
+    }
+
+    //
+    // Events
+    //
+
+    private void TreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+    {
+        var item = (TreeNodeViewModel)args.InvokedItem;
+        item.OnClick?.Invoke();
     }
 }

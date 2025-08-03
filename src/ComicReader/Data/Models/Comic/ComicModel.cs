@@ -166,7 +166,7 @@ internal sealed class ComicModel
         bool success = await _internalModel.MoveToLocation(newLocation);
         if (success)
         {
-            _locationPool.Remove(oldLocation);
+            _locationPool.TryRemove(oldLocation, out _);
             _locationPool.GetOrAdd(newLocation, this);
             DispatchUpdateEvent();
         }
@@ -377,7 +377,7 @@ internal sealed class ComicModel
         var command = SelectCommand.Create(TagCategoryTable.Instance);
         IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
         command.Distinct();
-        using SelectCommand.IReader reader = await command.ExecuteAsync(SqlDatabaseManager.MainDatabase);
+        using SelectCommand.IReader reader = await command.ExecuteAsync();
         while (reader.Read())
         {
             string name = nameToken.GetValue();

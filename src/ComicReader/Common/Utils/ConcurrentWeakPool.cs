@@ -7,14 +7,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
-using ComicReader.SDK.Common.DebugTools;
-
 namespace ComicReader.Common.Utils;
 
 internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
 {
-    private const string TAG = nameof(ConcurrentWeakPool<K, V>);
-
     private readonly ConcurrentDictionary<K, WeakReference<V>> _pool = new();
     private int _cleaning = 0;
     private long _lastCleanupTime = 0;
@@ -22,13 +18,13 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
     public bool TryGetValue(K key, [MaybeNullWhen(false)] out V value)
     {
         ArgumentNullException.ThrowIfNull(key);
-
         CleanupIfNeeded();
 
         if (_pool.TryGetValue(key, out WeakReference<V>? valueRef) && valueRef.TryGetTarget(out value))
         {
             return true;
         }
+
         value = null;
         return false;
     }
@@ -37,7 +33,6 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
     {
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(value);
-
         CleanupIfNeeded();
 
         WeakReference<V> valueRef = new(value);
@@ -48,13 +43,13 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
             {
                 return existingValue;
             }
+
             if (_pool.TryUpdate(key, valueRef, existingRef))
             {
                 return value;
             }
         }
 
-        Logger.F(TAG, "Failed to update the pool after multiple attempts.");
         lock (_pool)
         {
             if (_pool.TryGetValue(key, out WeakReference<V>? existingRef) && existingRef.TryGetTarget(out V? existingValue))
@@ -66,11 +61,33 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
         }
     }
 
-    public bool Remove(K key)
+    public void Set(K key, V value)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(value);
+        CleanupIfNeeded();
+
+        WeakReference<V> valueRef = new(value);
+        _pool[key] = valueRef;
+    }
+
+    public bool TryRemove(K key, [NotNullWhen(true)] out V? value)
     {
         ArgumentNullException.ThrowIfNull(key);
         CleanupIfNeeded();
-        return _pool.TryRemove(key, out _);
+
+        if (!_pool.TryRemove(key, out WeakReference<V>? valueRef))
+        {
+            value = null;
+            return false;
+        }
+
+        if (valueRef.TryGetTarget(out value))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private void CleanupIfNeeded()
@@ -79,10 +96,12 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
         {
             return;
         }
+
         if (_cleaning != 0 || Interlocked.CompareExchange(ref _cleaning, 1, 0) != 0)
         {
             return;
         }
+
         try
         {
             long tick = GetTick();
@@ -90,6 +109,7 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
             {
                 return;
             }
+
             _lastCleanupTime = tick;
 
             var kvpToRemove = new List<KeyValuePair<K, WeakReference<V>>>();
@@ -100,6 +120,7 @@ internal class ConcurrentWeakPool<K, V> where K : notnull where V : class
                     kvpToRemove.Add(kvp);
                 }
             }
+
             foreach (KeyValuePair<K, WeakReference<V>> kvp in kvpToRemove)
             {
                 _pool.TryRemove(kvp);

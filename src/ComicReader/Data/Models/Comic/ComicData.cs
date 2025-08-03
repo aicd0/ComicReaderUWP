@@ -134,7 +134,7 @@ internal abstract class ComicData
             IReaderToken<string> descriptionToken = command.PutQueryString(ComicTable.ColumnDescription);
             IReaderToken<int> completionStateToken = command.PutQueryInt32(ComicTable.ColumnCompletionState);
             IReaderToken<string> extToken = command.PutQueryString(ComicTable.ColumnExt);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {
@@ -203,7 +203,7 @@ internal abstract class ComicData
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
             IReaderToken<long> tagCategoryIdToken = command.PutQueryInt64(TagCategoryTable.ColumnId);
             IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {
@@ -227,7 +227,7 @@ internal abstract class ComicData
                 .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), tagCategories.Keys));
             IReaderToken<long> tagCategoryIdToken = command.PutQueryInt64(TagTable.ColumnTagCategoryId);
             IReaderToken<string> tagToken = command.PutQueryString(TagTable.ColumnContent);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {
@@ -273,7 +273,7 @@ internal abstract class ComicData
             .AppendCondition(ComicTable.ColumnLocation, location)
             .Limit(1);
         IReaderToken<long> comicIdToken = command.PutQueryInt64(ComicTable.ColumnId);
-        using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+        using SelectCommand.IReader reader = command.Execute();
 
         if (!reader.Read())
         {
@@ -421,7 +421,7 @@ internal abstract class ComicData
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnExt, ValueExt)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -436,7 +436,7 @@ internal abstract class ComicData
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -451,7 +451,7 @@ internal abstract class ComicData
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnTitle2, ValueTitle2)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -466,7 +466,7 @@ internal abstract class ComicData
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnDescription, ValueDescription)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -531,7 +531,7 @@ internal abstract class ComicData
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
         return true;
@@ -568,7 +568,7 @@ internal abstract class ComicData
                 .AppendColumn(ComicTable.ColumnDescription, ValueDescription)
                 .AppendColumn(ComicTable.ColumnExt, ValueExt)
                 .AppendCondition(ComicTable.ColumnId, Id)
-                .Execute(SqlDatabaseManager.MainDatabase);
+                .Execute();
             InternalSaveTagsNoLock();
         });
     }
@@ -584,7 +584,7 @@ internal abstract class ComicData
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnHidden, ValueHidden)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -606,7 +606,7 @@ internal abstract class ComicData
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnRating, ValueRating)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -624,7 +624,7 @@ internal abstract class ComicData
                     .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
                     .AppendColumn(ComicTable.ColumnLastPosition, ValueLastPosition)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -642,7 +642,7 @@ internal abstract class ComicData
                     .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
                     .AppendColumn(ComicTable.ColumnLastVisit, ValueLastVisit)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -658,7 +658,7 @@ internal abstract class ComicData
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnCoverCacheKey, ValueCoverCacheKey)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
         });
     }
@@ -819,7 +819,7 @@ internal abstract class ComicData
         {
             DeleteCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnComicId, Id)
-                .Execute(SqlDatabaseManager.MainDatabase);
+                .Execute();
         }
 
         foreach (TagData category in Tags)
@@ -827,7 +827,7 @@ internal abstract class ComicData
             long tagCategoryId = InsertCommand.Create(TagCategoryTable.Instance)
                 .AppendColumn(TagCategoryTable.ColumnName, category.Name)
                 .AppendColumn(TagCategoryTable.ColumnComicId, Id)
-                .Execute(SqlDatabaseManager.MainDatabase);
+                .Execute();
 
             foreach (string tag in category.Tags)
             {
@@ -835,7 +835,7 @@ internal abstract class ComicData
                     .AppendColumn(TagTable.ColumnContent, tag)
                     .AppendColumn(TagTable.ColumnComicId, Id)
                     .AppendColumn(TagTable.ColumnTagCategoryId, tagCategoryId)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             }
         }
     }
@@ -856,7 +856,7 @@ internal abstract class ComicData
             .AppendColumn(ComicTable.ColumnDescription, Description)
             .AppendColumn(ComicTable.ColumnCompletionState, CompletionState)
             .AppendColumn(ComicTable.ColumnExt, ValueExt)
-            .Execute(SqlDatabaseManager.MainDatabase);
+            .Execute();
 
         InternalSaveTagsNoLock(removeOld: false);
     }
@@ -894,7 +894,7 @@ internal abstract class ComicData
     {
         DeleteCommand.Create(ComicTable.Instance)
             .AppendCondition(new LikeCondition(ComicTable.ColumnLocation, location + "%"))
-            .Execute(SqlDatabaseManager.MainDatabase);
+            .Execute();
     }
 
     private static async Task<TaskException> UpdateAllComicsInternal(bool skipExistingLocation)
@@ -907,7 +907,7 @@ internal abstract class ComicData
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 locExist.Add(locationToken.GetValue());

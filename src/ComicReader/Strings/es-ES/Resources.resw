@@ -237,8 +237,8 @@
   <data name="Descending" xml:space="preserve">
     <value>Descendiendo</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>Descripción:</value>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Lector de Cómics [Dev]</value>
@@ -472,7 +472,7 @@ La evaluación se realizará en el siguiente orden:
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Más</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>Nombre</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -580,14 +580,14 @@ La evaluación se realizará en el siguiente orden:
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>De derecha a izquierda</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>Ahorrar</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Guardar como configuraciones predeterminadas</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Guardar como nuevo</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>Ahorrar</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Guardar el historial de navegación</value>

@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Utils;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -26,15 +25,6 @@ internal sealed partial class EditTagCateogoryDialog : BaseContentDialog
 
     private void ObserveData()
     {
-        ViewModel.NameLiveData.ObserveSticky(this, delegate (string text)
-        {
-            NameTextBox.Text = text ?? "";
-        });
-
-        ViewModel.SaveEnableLiveData.ObserveSticky(this, delegate (bool enabled)
-        {
-            SaveButton.IsEnabled = enabled;
-        });
     }
 
     //
@@ -54,6 +44,6 @@ internal sealed partial class EditTagCateogoryDialog : BaseContentDialog
 
     private void NameTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        ViewModel.UpdateName(NameTextBox.Text ?? "");
+        ViewModel.UpdateName(((TextBox)sender).Text ?? "");
     }
 }

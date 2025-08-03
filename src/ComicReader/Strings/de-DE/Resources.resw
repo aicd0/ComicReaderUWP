@@ -237,8 +237,8 @@
   <data name="Descending" xml:space="preserve">
     <value>Absteigend</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>Beschreibung:</value>
+  <data name="Description" xml:space="preserve">
+    <value>Beschreibung</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Comic-Leser UWP [Dev]</value>
@@ -472,7 +472,7 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Mehr</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -580,14 +580,14 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>Von rechts nach links</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Als Standardkonfigurationen speichern</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Als neu speichern</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>Speichern</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Browserverlauf speichern</value>

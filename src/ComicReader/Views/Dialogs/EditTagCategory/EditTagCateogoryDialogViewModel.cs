@@ -1,31 +1,88 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Collections.Generic;
+using System.ComponentModel;
 
-using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
-using ComicReader.Data;
+using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Data.SqlHelpers;
 
 namespace ComicReader.Views.Dialogs.EditTagCategory;
 
-internal partial class EditTagCateogoryDialogViewModel
+internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
 {
-    public MutableLiveData<string> NameLiveData = new();
-    public MutableLiveData<bool> SaveEnableLiveData = new();
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private string _title = string.Empty;
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            if (_title != value)
+            {
+                _title = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
+            }
+        }
+    }
+
+    private string _name = string.Empty;
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (_name != value)
+            {
+                _name = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+            }
+        }
+    }
+
+    private bool _saveEnabled = false;
+    public bool SaveEnabled
+    {
+        get => _saveEnabled;
+        set
+        {
+            if (_saveEnabled != value)
+            {
+                _saveEnabled = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveEnabled)));
+            }
+        }
+    }
+
+    private bool _overwriteWarning = false;
+    public bool OverwriteWarning
+    {
+        get => _overwriteWarning;
+        set
+        {
+            if (_overwriteWarning != value)
+            {
+                _overwriteWarning = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OverwriteWarning)));
+            }
+        }
+    }
 
     private string _oldName = string.Empty;
-    private string _name = string.Empty;
     private bool _isNameValid = false;
+
+    private bool IsSameCategory =>
+        _oldName == _name;
 
     public void Initialize(string tagCategory)
     {
         _oldName = tagCategory;
-        UpdateName(tagCategory);
-        NameLiveData.Emit(tagCategory);
+        Title = tagCategory;
+        Name = tagCategory;
+        UpdateUIStates();
     }
 
     public void UpdateName(string name)
@@ -37,62 +94,41 @@ internal partial class EditTagCateogoryDialogViewModel
         }
 
         _name = name;
-        _isNameValid = name.Length > 0;
-        UpdateButtonStates();
+        UpdateUIStates();
     }
 
     public void Save()
     {
-        if (!_isNameValid || _name == _oldName)
+        if (!_isNameValid)
         {
             return;
         }
 
-        CoroutineUtils.Start(async () =>
+        if (!IsSameCategory)
         {
-            List<long> comicIds = [];
-            await ComicData.Enqueue("SaveTagCategory", () =>
-            {
-                SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
-                    .AppendCondition(TagCategoryTable.ColumnName, _oldName);
-                IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
-                SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
-                while (reader.Read())
-                {
-                    long comicId = comicIdToken.GetValue();
-                    comicIds.Add(comicId);
-                }
-
-                return true;
-            });
-
-            List<ComicModel> comics = await ComicModel.BatchFromId("SaveTagCategory", comicIds);
-            foreach (ComicModel comic in comics)
-            {
-                Dictionary<string, HashSet<string>> tags = comic.TagsCopy;
-                if (!tags.TryGetValue(_name, out HashSet<string>? tagSet))
-                {
-                    tagSet = [];
-                    tags[_name] = tagSet;
-                }
-
-                if (tags.TryGetValue(_oldName, out HashSet<string>? oldTagSet))
-                {
-                    tags.Remove(_oldName);
-                    foreach (string tag in oldTagSet)
-                    {
-                        tagSet.Add(tag);
-                    }
-                }
-
-                comic.SetTags(tags);
-            }
-        });
+            _ = TagInfoModel.RenameTagCategory(_oldName, _name);
+        }
     }
 
-    private void UpdateButtonStates()
+    private void UpdateUIStates()
     {
-        bool isInputValid = _isNameValid;
-        SaveEnableLiveData.Emit(isInputValid);
+        _isNameValid = !string.IsNullOrEmpty(_name);
+        SaveEnabled = _isNameValid;
+
+        CoroutineUtils.Start(async () =>
+        {
+            OverwriteWarning = !IsSameCategory && await ComicData.Enqueue("UpdateButtonStates", () =>
+            {
+                SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
+                    .AppendCondition(TagInfoTable.ColumnTagCategory, _name);
+                SelectCommand.IReader reader = command.Execute();
+                while (reader.Read())
+                {
+                    return true;
+                }
+
+                return false;
+            });
+        });
     }
 }

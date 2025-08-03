@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using ComicReader.Common;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
-using ComicReader.Data;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
@@ -88,7 +87,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 IReaderToken<long> idToken = command.PutQueryInt64(TagCategoryTable.ColumnId);
                 IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
                 IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
-                SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+                SelectCommand.IReader reader = command.Execute();
                 while (reader.Read())
                 {
                     long id = idToken.GetValue();
@@ -102,7 +101,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 var command = SelectCommand.Create(TagTable.Instance);
                 IReaderToken<string> contentToken = command.PutQueryString(TagTable.ColumnContent);
                 IReaderToken<long> categoryIdToken = command.PutQueryInt64(TagTable.ColumnTagCategoryId);
-                SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+                SelectCommand.IReader reader = command.Execute();
                 while (reader.Read())
                 {
                     string content = contentToken.GetValue();
@@ -140,7 +139,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             var command = SelectCommand.Create(TagInfoTable.Instance);
             IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnTag);
             IReaderToken<string> tagCategoryToken = command.PutQueryString(TagInfoTable.ColumnTagCategory);
-            SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.TagInfoDatabase);
+            SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 string tag = tagToken.GetValue();
@@ -216,6 +215,12 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         CanExpand = false,
                         MenuFlyoutItems = ComicItemMenuFlyoutCreator.CreateMenuItems(
                             comic, new ComicItemMenuFlyoutHandler(this, comic)),
+                        OnClick = () =>
+                        {
+                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+                            OpenInCurrentTabLiveData.Emit(route);
+                        },
                     };
 
                     tagNode.Children.Add(comicNode);
@@ -309,11 +314,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         public override void OnEditClick()
         {
             viewModel.EditComicLiveData.Emit([_comic]);
-        }
-
-        protected override void OpenInCurrentTab(Route route)
-        {
-            viewModel.OpenInCurrentTabLiveData.Emit(route);
         }
 
         protected override void OpenInNewTab(Route route)

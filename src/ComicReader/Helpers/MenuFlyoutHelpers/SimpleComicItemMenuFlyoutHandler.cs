@@ -23,13 +23,6 @@ internal abstract class SimpleComicItemMenuFlyoutHandler(ComicModel comic) : ICo
         });
     }
 
-    void IComicItemMenuFlyoutHandler.OnItemTapped()
-    {
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-        OpenInCurrentTab(route);
-    }
-
     void IComicItemMenuFlyoutHandler.OnMarkAsReadClicked()
     {
         CoroutineUtils.Start(async () =>
@@ -82,8 +75,6 @@ internal abstract class SimpleComicItemMenuFlyoutHandler(ComicModel comic) : ICo
     public virtual void OnSelectClicked() { }
 
     public abstract void OnEditClick();
-
-    protected abstract void OpenInCurrentTab(Route route);
 
     protected abstract void OpenInNewTab(Route route);
 }

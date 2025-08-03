@@ -23,8 +23,7 @@
                 AutomationProperties.Name="{x:Bind Title}"
                 ContextFlyout="{x:Bind ContextFlyout, Mode=OneWay}"
                 IsExpanded="{x:Bind Expanded, Mode=TwoWay}"
-                ItemsSource="{x:Bind Children}"
-                PointerPressed="{x:Bind OnPointerPressed, Mode=OneWay}">
+                ItemsSource="{x:Bind Children}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -70,7 +69,10 @@
             FontWeight="SemiBold"
             Text="{x:Bind StringResource.NoResults}"
             Visibility="{x:Bind ViewModel.NoTagsVisible, Mode=OneWay}" />
-        <muxc:TreeView ItemTemplate="{StaticResource NormalTemplate}" ItemsSource="{x:Bind ViewModel.DataSource}" />
+        <muxc:TreeView
+            ItemInvoked="TreeView_ItemInvoked"
+            ItemTemplate="{StaticResource NormalTemplate}"
+            ItemsSource="{x:Bind ViewModel.DataSource}" />
     </Grid>
 
 </base:BasePage>

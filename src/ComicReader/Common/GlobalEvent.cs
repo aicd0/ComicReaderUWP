@@ -19,4 +19,5 @@ internal class GlobalEvent
     public IMutableLiveData<object> ComicUpdated = new MutableLiveDataWithMinInterval<object>(EventBus.Default.With("ComicUpdated"), 1000);
     public IMutableLiveData<object> FavoriteUpdated = new MutableLiveDataWithMinInterval<object>(EventBus.Default.With("FavoriteUpdated"), 1000);
     public IMutableLiveData<object> HistoryUpdated = new MutableLiveDataWithMinInterval<object>(EventBus.Default.With("HistoryUpdated"), 1000);
+    public IMutableLiveData<object> TagInfoUpdated = new MutableLiveDataWithMinInterval<object>(EventBus.Default.With("TagInfoUpdated"), 1000);
 }

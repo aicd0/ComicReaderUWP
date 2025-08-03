@@ -237,8 +237,8 @@
   <data name="Descending" xml:space="preserve">
     <value>降順</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>説明する：</value>
+  <data name="Description" xml:space="preserve">
+    <value>説明する</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>マンガリーダー [Dev]</value>
@@ -472,7 +472,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>もっと</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>名前</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -580,14 +580,14 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>右から左へ</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>デフォルト設定として保存</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>新しい構成として保存</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>保存</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>閲覧履歴を記録する</value>

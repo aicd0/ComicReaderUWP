@@ -12,7 +12,6 @@ using ComicReader.Common.Expression;
 using ComicReader.Common.Expression.Sql;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
-using ComicReader.Data;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
@@ -155,7 +154,7 @@ internal class ComicSearchEngine
                 command.AppendCondition(additionalCondition);
             }
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 ids.Add(idToken.GetValue());
@@ -227,7 +226,7 @@ internal class ComicSearchEngine
             {
                 command.AppendCondition(additionalCondition);
             }
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {

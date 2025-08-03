@@ -26,6 +26,11 @@ internal class ComicTable : ITable
 
     private ComicTable() { }
 
+    public SqlDatabase GetDatabase()
+    {
+        return SqlDatabaseManager.MainDatabase;
+    }
+
     public string GetTableName()
     {
         return "comics";

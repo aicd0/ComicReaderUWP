@@ -1,5 +1,5 @@
 ﻿<base:BaseContentDialog
-    x:Class="ComicReader.Views.Dialogs.EditTagCategory.EditTagCateogoryDialog"
+    x:Class="ComicReader.Views.Dialogs.EditTag.EditTagDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReader.Common.BaseUI"
@@ -13,7 +13,7 @@
     Loaded="ContentDialog_Loaded"
     mc:Ignorable="d">
 
-    <StackPanel Width="400" Orientation="Vertical">
+    <StackPanel Width="600" Orientation="Vertical">
         <Grid Margin="0,10,0,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -22,6 +22,10 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock
                 Grid.Row="0"
@@ -29,12 +33,39 @@
                 Margin="0,7,0,0"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                Text="{x:Bind StringResource.Name}" />
+                Text="{x:Bind StringResource.Category}" />
             <TextBox
                 Grid.Row="0"
                 Grid.Column="2"
-                Text="{x:Bind ViewModel.Name, Mode=OneWay}"
-                TextChanged="NameTextBox_TextChanged"
+                Text="{x:Bind ViewModel.TagCategoryName, Mode=OneWay}"
+                TextChanged="TagCategoryNameTextBox_TextChanged"
+                TextWrapping="Wrap" />
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="0"
+                Margin="0,7,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Text="{x:Bind StringResource.Name}" />
+            <TextBox
+                Grid.Row="2"
+                Grid.Column="2"
+                Text="{x:Bind ViewModel.TagName, Mode=OneWay}"
+                TextChanged="TagNameTextBox_TextChanged"
+                TextWrapping="Wrap" />
+            <TextBlock
+                Grid.Row="4"
+                Grid.Column="0"
+                Margin="0,7,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Text="{x:Bind StringResource.Description}" />
+            <TextBox
+                Grid.Row="4"
+                Grid.Column="2"
+                AcceptsReturn="True"
+                Text="{x:Bind ViewModel.Description, Mode=OneWay}"
+                TextChanged="DescriptionTextBox_TextChanged"
                 TextWrapping="Wrap" />
         </Grid>
         <TextBlock Text="{x:Bind StringResource.OverwriteExistingEntries}" Visibility="{x:Bind ViewModel.OverwriteWarning, Mode=OneWay}" />

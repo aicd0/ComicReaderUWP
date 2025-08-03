@@ -5,8 +5,6 @@ namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
 internal interface IComicItemMenuFlyoutHandler
 {
-    void OnItemTapped();
-
     void OnOpenInNewTabClicked();
 
     void OnAddToFavoritesClicked();

@@ -35,7 +35,7 @@ public class InsertCommand
         return new(this, columns);
     }
 
-    public long Execute(SqlDatabase database)
+    public long Execute()
     {
         if (_executed)
         {
@@ -104,7 +104,7 @@ public class InsertCommand
                 }
             }
 
-            sb.Append(" DO UPDATE SET ");
+            sb.Append(") DO UPDATE SET ");
             {
                 bool divider = false;
                 foreach (Token token in op.Tokens.Values)
@@ -121,10 +121,10 @@ public class InsertCommand
             }
         }
 
-        sb.Append(";SELECT LAST_INSERT_ROWID();");
+        sb.Append("; SELECT LAST_INSERT_ROWID();");
 
         command.SetCommandText(sb.ToString());
-        return (long)command.ExecuteScalar(database)!;
+        return (long)command.ExecuteScalar(_table.GetDatabase())!;
     }
 
     private class Token(IColumnTypeless column, object value)

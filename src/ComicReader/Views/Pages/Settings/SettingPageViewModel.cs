@@ -13,7 +13,6 @@ using System.Threading;
 using ComicReader.Common;
 using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
-using ComicReader.Data;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
@@ -516,7 +515,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             var command = SelectCommand.Create(ComicTable.Instance);
             condition?.Invoke(command);
             IReaderToken<long> comicCountToken = command.PutQueryCountAll();
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
             long result = 0;
             if (reader.Read())
             {
@@ -540,13 +539,13 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
         string textWithColon = StringResourceProvider.Instance.TextWithColon;
         StringBuilder sb = new();
-        sb.Append(textWithColon.Replace("$text", StringResourceProvider.Instance.TotalComics)).Append(comicCount.ToString("#,#0", CultureInfo.InvariantCulture));
+        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.TotalComics)).Append(comicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         sb.Append('\n');
-        sb.Append(textWithColon.Replace("$text", StringResourceProvider.Instance.Unread)).Append(unreadComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
+        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.Unread)).Append(unreadComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         sb.Append('\n');
-        sb.Append(textWithColon.Replace("$text", StringResourceProvider.Instance.Reading)).Append(readingComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
+        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.Reading)).Append(readingComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         sb.Append('\n');
-        sb.Append(textWithColon.Replace("$text", StringResourceProvider.Instance.Finished)).Append(finishedComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
+        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.Finished)).Append(finishedComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         string statisticText = sb.ToString();
 
         MainThreadUtils.RunInMainThread(() =>

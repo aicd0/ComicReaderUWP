@@ -237,8 +237,8 @@
   <data name="Descending" xml:space="preserve">
     <value>降序</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>描述：</value>
+  <data name="Description" xml:space="preserve">
+    <value>描述</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>漫画阅读器 UWP [Dev]</value>
@@ -472,7 +472,7 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>更多</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>名称</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -580,14 +580,14 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>自右向左</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>保存为默认配置</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>保存为新配置</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>保存</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>记录您的浏览历史</value>

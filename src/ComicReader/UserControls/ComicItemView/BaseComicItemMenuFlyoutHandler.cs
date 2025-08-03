@@ -23,11 +23,6 @@ internal class BaseComicItemMenuFlyoutHandler(ComicItemViewModel item, IComicIte
         handler.OnHideClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnItemTapped()
-    {
-        handler.OnItemTapped(item);
-    }
-
     void IComicItemMenuFlyoutHandler.OnMarkAsReadClicked()
     {
         handler.OnMarkAsReadClicked(item);

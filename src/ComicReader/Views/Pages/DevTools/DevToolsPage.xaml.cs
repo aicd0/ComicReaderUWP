@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
-using ComicReader.Data;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
@@ -108,7 +107,7 @@ internal sealed partial class DevToolsPage : BasePage
                 var command = SelectCommand.Create(ComicTable.Instance);
                 command.AppendCondition(new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false)));
                 IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
-                using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+                using SelectCommand.IReader reader = command.Execute();
                 while (reader.Read())
                 {
                     ids.Add(idToken.GetValue());

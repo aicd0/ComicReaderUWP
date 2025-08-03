@@ -43,7 +43,7 @@ public class UpdateCommand
         return this;
     }
 
-    public void Execute(SqlDatabase database)
+    public int Execute()
     {
         if (_executed)
         {
@@ -53,7 +53,7 @@ public class UpdateCommand
 
         if (_tokens.Count == 0)
         {
-            return;
+            return 0;
         }
 
         CommandWrapper command = new();
@@ -89,7 +89,7 @@ public class UpdateCommand
         }
 
         command.SetCommandText(sb.ToString());
-        command.ExecuteNonQuery(database);
+        return command.ExecuteNonQuery(_table.GetDatabase());
     }
 
     private class Token : IToken

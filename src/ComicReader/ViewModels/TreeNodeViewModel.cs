@@ -11,7 +11,6 @@ using ComicReader.Helpers.MenuFlyoutHelpers;
 
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
 
 namespace ComicReader.ViewModels;
 
@@ -104,9 +103,6 @@ internal partial class TreeNodeViewModel : BaseViewModel, INotifyPropertyChanged
         {
             _onClick = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OnClick)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OnPointerPressed)));
         }
     }
-
-    public PointerEventHandler? OnPointerPressed => new((sender, e) => OnClick?.Invoke());
 }

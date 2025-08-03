@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using ComicReader.Common;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
@@ -100,28 +101,46 @@ internal class TagInfoModel
         return await taskResult.Task;
     }
 
-    public static async Task<TagInfoModel> Get(string tag, string tagCategory)
+    public static async Task<TagInfoModel?> Get(string tagCategory, string tag)
     {
-        Key key = new(tag, tagCategory);
+        Key key = new(tagCategory, tag);
         if (_cache.TryGetValue(key, out TagInfoModel? model))
         {
             return model;
         }
 
-        model = await Enqueue("Get", () =>
+        return await Enqueue("Get", () =>
+        {
+            TagInfoModel? model = QueryNoLock(tag, tagCategory);
+            if (model == null)
+            {
+                return null;
+            }
+
+            return _cache.GetOrAdd(key, model);
+        });
+    }
+
+    public static async Task<TagInfoModel> GetOrCreate(string tagCategory, string tag)
+    {
+        Key key = new(tagCategory, tag);
+        if (_cache.TryGetValue(key, out TagInfoModel? model))
+        {
+            return model;
+        }
+
+        return await Enqueue("GetOrCreate", () =>
         {
             TagInfoModel? model = QueryNoLock(tag, tagCategory);
             if (model != null)
             {
-                return model;
+                return _cache.GetOrAdd(key, model);
             }
 
-            model = new(tag, tagCategory);
+            model = new(tagCategory, tag);
             SaveNoLock(model);
-            return model;
+            return _cache.GetOrAdd(key, model);
         });
-
-        return _cache.GetOrAdd(key, model);
     }
 
     private static TagInfoModel? QueryNoLock(string tag, string tagCategory)
@@ -131,7 +150,7 @@ internal class TagInfoModel
             .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
             .Limit(1);
         IReaderToken<string> extToken = command.PutQueryString(TagInfoTable.ColumnExt);
-        SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.TagInfoDatabase);
+        SelectCommand.IReader reader = command.Execute();
 
         bool hasRecord = false;
         string extJson = string.Empty;
@@ -146,7 +165,7 @@ internal class TagInfoModel
             return null;
         }
 
-        TagInfoModel model = new(tag, tagCategory);
+        TagInfoModel model = new(tagCategory, tag);
 
         if (!string.IsNullOrEmpty(extJson))
         {
@@ -176,14 +195,59 @@ internal class TagInfoModel
     {
         string valueExt = model.ValueExt;
 
-        InsertCommand.Create(TagInfoTable.Instance)
-            .AppendColumn(TagInfoTable.ColumnTag, model.Tag)
-            .AppendColumn(TagInfoTable.ColumnTagCategory, model.TagCategory)
+        int rowsUpdated = UpdateCommand.Create(TagInfoTable.Instance)
+            .AppendCondition(TagInfoTable.ColumnTag, model.Tag)
+            .AppendCondition(TagInfoTable.ColumnTagCategory, model.TagCategory)
             .AppendColumn(TagInfoTable.ColumnExt, valueExt)
-            .OnConflict([TagInfoTable.ColumnTag, TagInfoTable.ColumnTagCategory])
-            .Update(TagInfoTable.ColumnExt, valueExt)
-            .End()
-            .Execute(SqlDatabaseManager.TagInfoDatabase);
+            .Execute();
+
+        if (rowsUpdated == 0)
+        {
+            InsertCommand.Create(TagInfoTable.Instance)
+                .AppendColumn(TagInfoTable.ColumnTag, model.Tag)
+                .AppendColumn(TagInfoTable.ColumnTagCategory, model.TagCategory)
+                .AppendColumn(TagInfoTable.ColumnExt, valueExt)
+                .Execute();
+        }
+    }
+
+    private static void DeleteTagCategoryNoLock(string tagCategory)
+    {
+        List<string> tags = [];
+        SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
+            .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory);
+        IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnTag);
+        SelectCommand.IReader reader = command.Execute();
+        while (reader.Read())
+        {
+            string tag = tagToken.GetValue();
+            tags.Add(tag);
+        }
+
+        DeleteCommand.Create(TagInfoTable.Instance)
+            .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
+            .Execute();
+
+        foreach (string tag in tags)
+        {
+            Key key = new(tagCategory, tag);
+            _cache.TryRemove(key, out _);
+        }
+    }
+
+    private static void DeleteTagNoLock(string tagCategory, string tag)
+    {
+        DeleteCommand.Create(TagInfoTable.Instance)
+            .AppendCondition(TagInfoTable.ColumnTag, tag)
+            .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
+            .Execute();
+        Key key = new(tagCategory, tag);
+        _cache.TryRemove(key, out _);
+    }
+
+    private static void DispatchTagInfoUpdateEvents()
+    {
+        GlobalEvent.Instance.TagInfoUpdated.Emit(0);
     }
 
     //
@@ -194,10 +258,7 @@ internal class TagInfoModel
     {
         await Enqueue("DeleteTag", () =>
         {
-            DeleteCommand.Create(TagInfoTable.Instance)
-                .AppendCondition(TagInfoTable.ColumnTag, tag)
-                .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
-                .Execute(SqlDatabaseManager.TagInfoDatabase);
+            DeleteTagNoLock(tagCategory, tag);
             return true;
         });
 
@@ -212,7 +273,7 @@ internal class TagInfoModel
                 .AppendCondition(TagTable.ColumnContent, tag)
                 .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subQuery));
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagTable.ColumnComicId);
-            SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {
@@ -233,6 +294,8 @@ internal class TagInfoModel
                 comic.SetTags(comicTags);
             }
         }
+
+        DispatchTagInfoUpdateEvents();
     }
 
     public static async Task DeleteTagCategory(string tagCategory)
@@ -241,7 +304,7 @@ internal class TagInfoModel
         {
             DeleteCommand.Create(TagInfoTable.Instance)
                 .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
-                .Execute(SqlDatabaseManager.TagInfoDatabase);
+                .Execute();
             return true;
         });
 
@@ -251,7 +314,7 @@ internal class TagInfoModel
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnName, tagCategory);
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
-            SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {
@@ -271,16 +334,157 @@ internal class TagInfoModel
                 comic.SetTags(comicTags);
             }
         }
+
+        DispatchTagInfoUpdateEvents();
+    }
+
+    public static async Task RenameTagCategory(string oldName, string newName)
+    {
+        await Enqueue("RenameTagCategory", () =>
+        {
+            DeleteTagCategoryNoLock(newName);
+
+            List<string> tags = [];
+            SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
+                .AppendCondition(TagInfoTable.ColumnTagCategory, oldName);
+            IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnTag);
+            SelectCommand.IReader reader = command.Execute();
+            while (reader.Read())
+            {
+                string tag = tagToken.GetValue();
+                tags.Add(tag);
+            }
+
+            UpdateCommand.Create(TagInfoTable.Instance)
+                .AppendColumn(TagInfoTable.ColumnTagCategory, newName)
+                .AppendCondition(TagInfoTable.ColumnTagCategory, oldName)
+                .Execute();
+
+            foreach (string tag in tags)
+            {
+                Key oldKey = new(oldName, tag);
+                Key newKey = new(newName, tag);
+                if (_cache.TryRemove(oldKey, out TagInfoModel? tagInfoModel))
+                {
+                    tagInfoModel.TagCategory = newName;
+                    _cache.Set(newKey, tagInfoModel);
+                }
+            }
+
+            return true;
+        });
+
+        List<long> comicIds = [];
+        await ComicData.Enqueue("RenameTagCategory", () =>
+        {
+            SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
+                .AppendCondition(TagCategoryTable.ColumnName, oldName);
+            IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
+            SelectCommand.IReader reader = command.Execute();
+            while (reader.Read())
+            {
+                long comicId = comicIdToken.GetValue();
+                comicIds.Add(comicId);
+            }
+
+            return true;
+        });
+
+        List<ComicModel> comics = await ComicModel.BatchFromId("RenameTagCategory", comicIds);
+        foreach (ComicModel comic in comics)
+        {
+            Dictionary<string, HashSet<string>> tags = comic.TagsCopy;
+            if (!tags.TryGetValue(newName, out HashSet<string>? tagSet))
+            {
+                tagSet = [];
+                tags[newName] = tagSet;
+            }
+
+            if (tags.TryGetValue(oldName, out HashSet<string>? oldTagSet))
+            {
+                tags.Remove(oldName);
+                foreach (string tag in oldTagSet)
+                {
+                    tagSet.Add(tag);
+                }
+            }
+
+            comic.SetTags(tags);
+        }
+
+        DispatchTagInfoUpdateEvents();
+    }
+
+    public static async Task RenameTag(string oldTagCategory, string oldTag, string newTagCategory, string newTag)
+    {
+        await Enqueue("RenameTag", () =>
+        {
+            DeleteTagNoLock(newTagCategory, newTag);
+
+            if (_cache.TryGetValue(new Key(oldTagCategory, oldTag), out TagInfoModel? tagInfoModel))
+            {
+                tagInfoModel.Tag = newTag;
+                tagInfoModel.TagCategory = newTagCategory;
+            }
+
+            UpdateCommand.Create(TagInfoTable.Instance)
+                .AppendColumn(TagInfoTable.ColumnTag, newTag)
+                .AppendColumn(TagInfoTable.ColumnTagCategory, newTagCategory)
+                .AppendCondition(TagInfoTable.ColumnTag, oldTag)
+                .AppendCondition(TagInfoTable.ColumnTagCategory, oldTagCategory)
+                .Execute();
+            return true;
+        });
+
+        List<long> comicIds = [];
+        await ComicData.Enqueue("RenameTag", () =>
+        {
+            SelectCommand subQuery = SelectCommand.Create(TagCategoryTable.Instance)
+                .AppendCondition(TagCategoryTable.ColumnName, oldTagCategory);
+            subQuery.PutQueryInt64(TagCategoryTable.ColumnId);
+            SelectCommand command = SelectCommand.Create(TagTable.Instance)
+                .AppendCondition(TagTable.ColumnContent, oldTag)
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subQuery));
+            IReaderToken<long> comicIdToken = command.PutQueryInt64(TagTable.ColumnComicId);
+            SelectCommand.IReader reader = command.Execute();
+            while (reader.Read())
+            {
+                long comicId = comicIdToken.GetValue();
+                comicIds.Add(comicId);
+            }
+
+            return true;
+        });
+
+        List<ComicModel> comics = await ComicModel.BatchFromId("RenameTag", comicIds);
+        foreach (ComicModel comic in comics)
+        {
+            Dictionary<string, HashSet<string>> comicTags = comic.TagsCopy;
+            if (comicTags.TryGetValue(oldTagCategory, out HashSet<string>? tags))
+            {
+                tags.Remove(oldTag);
+                if (!comicTags.TryGetValue(newTagCategory, out HashSet<string>? newTags))
+                {
+                    newTags = [];
+                    comicTags[newTagCategory] = newTags;
+                }
+
+                newTags.Add(newTag);
+                comic.SetTags(comicTags);
+            }
+        }
+
+        DispatchTagInfoUpdateEvents();
     }
 
     //
     // Types
     //
 
-    private class Key(string tag, string tagCategory)
+    private class Key(string tagCategory, string tag)
     {
-        public string Tag { get; } = tag;
         public string TagCategory { get; } = tagCategory;
+        public string Tag { get; } = tag;
 
         public override bool Equals(object? obj)
         {
