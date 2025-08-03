@@ -4,12 +4,12 @@
 using System;
 
 using ComicReader.Common.BaseUI;
-using ComicReader.Views.DevTools;
-using ComicReader.Views.Main;
-using ComicReader.Views.Navigation;
-using ComicReader.Views.SidePane.Favorite;
-using ComicReader.Views.SidePane.History;
-using ComicReader.Views.SidePane.Tags;
+using ComicReader.Views.Pages.DevTools;
+using ComicReader.Views.Pages.Main;
+using ComicReader.Views.Pages.Navigation;
+using ComicReader.Views.Pages.SidePane.Favorite;
+using ComicReader.Views.Pages.SidePane.History;
+using ComicReader.Views.Pages.SidePane.Tags;
 
 namespace ComicReader.Helpers.Navigation;
 

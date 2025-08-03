@@ -6,9 +6,10 @@
 using System;
 
 using ComicReader.Common.BaseUI;
-using ComicReader.Views.Home;
-using ComicReader.Views.Search;
-using ComicReader.Views.Settings;
+using ComicReader.Views.Pages.Home;
+using ComicReader.Views.Pages.Reader;
+using ComicReader.Views.Pages.Search;
+using ComicReader.Views.Pages.Settings;
 
 namespace ComicReader.Helpers.Navigation;
 
@@ -133,7 +134,7 @@ internal class ReaderPageTrait : IPageTrait
 
     public Type GetPageType()
     {
-        return typeof(Views.Reader.ReaderPage);
+        return typeof(ReaderPage);
     }
 
     public bool HasNavigationBar()
