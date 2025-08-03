@@ -127,8 +127,8 @@ public class SqlDatabaseManager
         string tagInfoTable = TagInfoTable.Instance.GetTableName();
 
         ExecuteCommand(TagInfoDatabase, "CREATE TABLE IF NOT EXISTS " + tagInfoTable + " (" +
-            TagInfoTable.ColumnTag.Name + " TEXT NOT NULL" +
-            "," + TagInfoTable.ColumnTagCategory.Name + " TEXT NOT NULL" +
+            TagInfoTable.ColumnTagCategory.Name + " TEXT NOT NULL" +
+            "," + TagInfoTable.ColumnTag.Name + " TEXT NOT NULL" +
             "," + TagInfoTable.ColumnExt.Name + " TEXT" +
             ")");
     }

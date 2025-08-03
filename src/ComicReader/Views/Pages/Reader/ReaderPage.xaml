@@ -38,6 +38,7 @@
     </Page.Resources>
 
     <Grid>
+        
         <!--  Main section  -->
         <Grid x:Name="GMainSection">
             <TextBlock

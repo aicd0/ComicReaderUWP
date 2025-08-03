@@ -16,7 +16,7 @@
         VerticalAlignment="Center"
         Background="{ThemeResource TagButtonBackground}"
         BorderThickness="1.5"
-        Click="{x:Bind ViewModel.ItemHandler.OnClicked}"
+        Click="Button_Click"
         CornerRadius="13"
         FontSize="13"
         FontWeight="Bold"

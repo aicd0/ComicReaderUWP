@@ -17,8 +17,6 @@ using ComicReader.Data.Tables;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.ViewModels;
 
-using Microsoft.UI.Xaml;
-
 namespace ComicReader.Views.Dialogs.EditFilter;
 
 internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
@@ -189,30 +187,43 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
     private async Task InitializeAsync(ComicFilterModel.ExternalFilterModel filter)
     {
         {
+            void OnClickButton(string text, int cursorPosition = -1)
+            {
+                var info = new ExpressionTokenInfo()
+                {
+                    Text = text,
+                    CursorPosition = cursorPosition
+                };
+
+                AppendToExpressionLiveData.Emit(info);
+            }
+
             ObservableCollection<TagViewModel> buttons = [];
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionAnd, ItemHandler = CreateExpressionButtonHandler("and ") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionOr, ItemHandler = CreateExpressionButtonHandler("or ") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionNot, ItemHandler = CreateExpressionButtonHandler("not ") });
-            buttons.Add(new() { Tag = "=", ItemHandler = CreateExpressionButtonHandler("= ") });
-            buttons.Add(new() { Tag = ">", ItemHandler = CreateExpressionButtonHandler("> ") });
-            buttons.Add(new() { Tag = "<", ItemHandler = CreateExpressionButtonHandler("< ") });
-            buttons.Add(new() { Tag = ">=", ItemHandler = CreateExpressionButtonHandler(">= ") });
-            buttons.Add(new() { Tag = "<=", ItemHandler = CreateExpressionButtonHandler("<= ") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionIn, ItemHandler = CreateExpressionButtonHandler("in ()", -2) });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, ItemHandler = CreateExpressionButtonHandler("%title") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Rating, ItemHandler = CreateExpressionButtonHandler("%rating") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Unread, ItemHandler = CreateExpressionButtonHandler($"%completion_state = {(int)ComicCompletionStatusEnum.NotStarted}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Reading, ItemHandler = CreateExpressionButtonHandler($"%completion_state = {(int)ComicCompletionStatusEnum.Started}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Finished, ItemHandler = CreateExpressionButtonHandler($"%completion_state = {(int)ComicCompletionStatusEnum.Completed}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Progress, ItemHandler = CreateExpressionButtonHandler("%progress") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title1, ItemHandler = CreateExpressionButtonHandler("%title1") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, ItemHandler = CreateExpressionButtonHandler("%title2") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Tag, ItemHandler = CreateExpressionButtonHandler("%tag") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionAnd, OnClicked = () => OnClickButton("and ") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionOr, OnClicked = () => OnClickButton("or ") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionNot, OnClicked = () => OnClickButton("not ") });
+            buttons.Add(new() { Tag = "=", OnClicked = () => OnClickButton("= ") });
+            buttons.Add(new() { Tag = ">", OnClicked = () => OnClickButton("> ") });
+            buttons.Add(new() { Tag = "<", OnClicked = () => OnClickButton("< ") });
+            buttons.Add(new() { Tag = ">=", OnClicked = () => OnClickButton(">= ") });
+            buttons.Add(new() { Tag = "<=", OnClicked = () => OnClickButton("<= ") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionIn, OnClicked = () => OnClickButton("in ()", -2) });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, OnClicked = () => OnClickButton("%title") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Rating, OnClicked = () => OnClickButton("%rating") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Unread, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.NotStarted}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Reading, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.Started}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Finished, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.Completed}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Progress, OnClicked = () => OnClickButton("%progress") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title1, OnClicked = () => OnClickButton("%title1") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, OnClicked = () => OnClickButton("%title2") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Tag, OnClicked = () => OnClickButton("%tag") });
+
             List<string> tagCategories = await ComicModel.GetAllTagCategories();
             foreach (string category in tagCategories)
             {
-                buttons.Add(new() { Tag = $"{StringResourceProvider.Instance.Tag}.{category}", ItemHandler = CreateExpressionButtonHandler($"%tag.\"{ParserUtils.EscapeString(category)}\"") });
+                buttons.Add(new() { Tag = $"{StringResourceProvider.Instance.Tag}.{category}", OnClicked = () => OnClickButton($"%tag.\"{ParserUtils.EscapeString(category)}\"") });
             }
+
             ExpressionButtons = buttons;
         }
 
@@ -267,23 +278,6 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         if (oldFilter != null)
         {
             filterModel.Filters.Remove(oldFilter);
-        }
-    }
-
-    private ExpressionButtonClickHandler CreateExpressionButtonHandler(string text, int cursorPosition = -1)
-    {
-        return new ExpressionButtonClickHandler(this, new ExpressionTokenInfo()
-        {
-            Text = text,
-            CursorPosition = cursorPosition
-        });
-    }
-
-    private class ExpressionButtonClickHandler(EditFilterDialogViewModel viewModel, ExpressionTokenInfo info) : TagViewModel.IItemHandler
-    {
-        public void OnClicked(object sender, RoutedEventArgs e)
-        {
-            viewModel.AppendToExpressionLiveData.Emit(info);
         }
     }
 

@@ -9,8 +9,8 @@ internal class TagInfoTable : ITable
 {
     public static TagInfoTable Instance { get; } = new TagInfoTable();
 
-    public static StringColumn ColumnTag { get; } = new("Tag");
     public static StringColumn ColumnTagCategory { get; } = new("TagCategory");
+    public static StringColumn ColumnTag { get; } = new("Tag");
     public static StringColumn ColumnExt { get; } = new("Ext");
 
     private TagInfoTable() { }

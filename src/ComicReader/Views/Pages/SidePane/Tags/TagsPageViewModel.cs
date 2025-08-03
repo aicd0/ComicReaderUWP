@@ -166,6 +166,11 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             List<ComicModel> requestedComics = await ComicModel.BatchFromId("UpdateTags", requestingComicIds);
             foreach (ComicModel comic in requestedComics)
             {
+                if (comic.Hidden)
+                {
+                    continue;
+                }
+
                 comicMap[comic.Id] = comic;
             }
         }

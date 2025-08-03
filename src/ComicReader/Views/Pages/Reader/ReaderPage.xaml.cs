@@ -547,7 +547,10 @@ internal sealed partial class ReaderPage : BasePage
                 var tag_model = new TagViewModel
                 {
                     Tag = tag,
-                    ItemHandler = ViewModel._tagItemHandler,
+                    OnClicked = () =>
+                    {
+                        ViewModel.TagClickLiveData.Emit(tag);
+                    },
                 };
                 tags_model.Tags.Add(tag_model);
             }

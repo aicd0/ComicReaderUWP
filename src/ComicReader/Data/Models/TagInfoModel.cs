@@ -29,12 +29,12 @@ internal class TagInfoModel
     // Properties
     //
 
-    public string Tag { get; private set; }
     public string TagCategory { get; private set; }
+    public string Tag { get; private set; }
 
     private string ValueExt => JsonSerializer.Serialize(_ext);
 
-    private TagInfoModel(string tag, string tagCategory)
+    private TagInfoModel(string tagCategory, string tag)
     {
         Tag = tag;
         TagCategory = tagCategory;
@@ -111,7 +111,7 @@ internal class TagInfoModel
 
         return await Enqueue("Get", () =>
         {
-            TagInfoModel? model = QueryNoLock(tag, tagCategory);
+            TagInfoModel? model = QueryNoLock(tagCategory, tag);
             if (model == null)
             {
                 return null;
@@ -131,7 +131,7 @@ internal class TagInfoModel
 
         return await Enqueue("GetOrCreate", () =>
         {
-            TagInfoModel? model = QueryNoLock(tag, tagCategory);
+            TagInfoModel? model = QueryNoLock(tagCategory, tag);
             if (model != null)
             {
                 return _cache.GetOrAdd(key, model);
@@ -143,11 +143,11 @@ internal class TagInfoModel
         });
     }
 
-    private static TagInfoModel? QueryNoLock(string tag, string tagCategory)
+    private static TagInfoModel? QueryNoLock(string tagCategory, string tag)
     {
         SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
-            .AppendCondition(TagInfoTable.ColumnTag, tag)
             .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
+            .AppendCondition(TagInfoTable.ColumnTag, tag)
             .Limit(1);
         IReaderToken<string> extToken = command.PutQueryString(TagInfoTable.ColumnExt);
         SelectCommand.IReader reader = command.Execute();
@@ -196,16 +196,16 @@ internal class TagInfoModel
         string valueExt = model.ValueExt;
 
         int rowsUpdated = UpdateCommand.Create(TagInfoTable.Instance)
-            .AppendCondition(TagInfoTable.ColumnTag, model.Tag)
             .AppendCondition(TagInfoTable.ColumnTagCategory, model.TagCategory)
+            .AppendCondition(TagInfoTable.ColumnTag, model.Tag)
             .AppendColumn(TagInfoTable.ColumnExt, valueExt)
             .Execute();
 
         if (rowsUpdated == 0)
         {
             InsertCommand.Create(TagInfoTable.Instance)
-                .AppendColumn(TagInfoTable.ColumnTag, model.Tag)
                 .AppendColumn(TagInfoTable.ColumnTagCategory, model.TagCategory)
+                .AppendColumn(TagInfoTable.ColumnTag, model.Tag)
                 .AppendColumn(TagInfoTable.ColumnExt, valueExt)
                 .Execute();
         }
@@ -238,8 +238,8 @@ internal class TagInfoModel
     private static void DeleteTagNoLock(string tagCategory, string tag)
     {
         DeleteCommand.Create(TagInfoTable.Instance)
-            .AppendCondition(TagInfoTable.ColumnTag, tag)
             .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory)
+            .AppendCondition(TagInfoTable.ColumnTag, tag)
             .Execute();
         Key key = new(tagCategory, tag);
         _cache.TryRemove(key, out _);
@@ -268,13 +268,11 @@ internal class TagInfoModel
             SelectCommand subQuery = SelectCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnName, tagCategory);
             subQuery.PutQueryInt64(TagCategoryTable.ColumnId);
-
             SelectCommand command = SelectCommand.Create(TagTable.Instance)
                 .AppendCondition(TagTable.ColumnContent, tag)
                 .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subQuery));
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagTable.ColumnComicId);
             SelectCommand.IReader reader = command.Execute();
-
             while (reader.Read())
             {
                 long comicId = comicIdToken.GetValue();
@@ -315,7 +313,6 @@ internal class TagInfoModel
                 .AppendCondition(TagCategoryTable.ColumnName, tagCategory);
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
             SelectCommand.IReader reader = command.Execute();
-
             while (reader.Read())
             {
                 long comicId = comicIdToken.GetValue();
@@ -421,17 +418,18 @@ internal class TagInfoModel
         {
             DeleteTagNoLock(newTagCategory, newTag);
 
-            if (_cache.TryGetValue(new Key(oldTagCategory, oldTag), out TagInfoModel? tagInfoModel))
+            if (_cache.TryRemove(new Key(oldTagCategory, oldTag), out TagInfoModel? tagInfoModel))
             {
-                tagInfoModel.Tag = newTag;
                 tagInfoModel.TagCategory = newTagCategory;
+                tagInfoModel.Tag = newTag;
+                _cache.Set(new Key(newTagCategory, newTag), tagInfoModel);
             }
 
             UpdateCommand.Create(TagInfoTable.Instance)
-                .AppendColumn(TagInfoTable.ColumnTag, newTag)
                 .AppendColumn(TagInfoTable.ColumnTagCategory, newTagCategory)
-                .AppendCondition(TagInfoTable.ColumnTag, oldTag)
+                .AppendColumn(TagInfoTable.ColumnTag, newTag)
                 .AppendCondition(TagInfoTable.ColumnTagCategory, oldTagCategory)
+                .AppendCondition(TagInfoTable.ColumnTag, oldTag)
                 .Execute();
             return true;
         });
