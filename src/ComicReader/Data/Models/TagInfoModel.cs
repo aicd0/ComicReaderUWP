@@ -68,6 +68,8 @@ internal class TagInfoModel
         {
             _ext[key] = value;
         }
+
+        DispatchTagInfoUpdateEvents();
     }
 
     public void FlushExt()

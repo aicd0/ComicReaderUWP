@@ -38,7 +38,7 @@
     </Page.Resources>
 
     <Grid>
-        
+
         <!--  Main section  -->
         <Grid x:Name="GMainSection">
             <TextBlock
@@ -207,6 +207,15 @@
                                     IsTextSelectionEnabled="True"
                                     TextWrapping="Wrap" />
 
+                                <!--  Tag Descriptions  -->
+                                <TextBlock
+                                    x:Name="TagDescriptionTextBlock"
+                                    Margin="0,10,0,0"
+                                    FontSize="13"
+                                    FontWeight="SemiLight"
+                                    IsTextSelectionEnabled="True"
+                                    TextWrapping="Wrap" />
+
                                 <!--  Rating  -->
                                 <muxc:RatingControl
                                     x:Name="RcRating"
@@ -340,9 +349,14 @@
                                 </AppBarButton.Flyout>
                             </AppBarButton>
                         </StackPanel>
+
                     </Grid>
                 </SplitView.Pane>
+
             </SplitView>
+
         </Grid>
+
     </Grid>
+
 </base:BasePage>

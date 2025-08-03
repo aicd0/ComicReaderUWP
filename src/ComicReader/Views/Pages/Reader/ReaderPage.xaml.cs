@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -191,6 +192,16 @@ internal sealed partial class ReaderPage : BasePage
     private void ObserveData()
     {
         GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
+        {
+            LoadComicInfo();
+        });
+
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
+        {
+            LoadComicInfo();
+        });
+
+        GlobalEvent.Instance.TagInfoUpdated.Observe(this, delegate
         {
             LoadComicInfo();
         });
@@ -504,111 +515,81 @@ internal sealed partial class ReaderPage : BasePage
 
     private void LoadComicInfo()
     {
-        if (_comic == null)
+        ComicModel? comic = _comic;
+        if (comic == null)
         {
             return;
         }
 
-        _isExternalComicLiveData.Emit(_comic.IsExternal);
-
-        if (_comic.Title1.Length == 0)
+        CoroutineUtils.Start(async () =>
         {
-            ViewModel.ComicTitle1 = _comic.Title;
-        }
-        else
-        {
-            ViewModel.ComicTitle1 = _comic.Title1;
-            ViewModel.ComicTitle2 = _comic.Title2;
-        }
+            _isExternalComicLiveData.Emit(comic.IsExternal);
 
-        LoadDescription(_comic.Description);
-        ViewModel.ComicDir = _comic.Location;
-        ViewModel.IsEditable = _comic.IsEditable;
+            if (comic.Title1.Length == 0)
+            {
+                ViewModel.ComicTitle1 = comic.Title;
+            }
+            else
+            {
+                ViewModel.ComicTitle1 = comic.Title1;
+                ViewModel.ComicTitle2 = comic.Title2;
+            }
 
-        LoadComicTag();
+            FillRichTextInlines(TbComicDescription.Inlines, comic.Description);
+            TbComicDescription.Visibility = TbComicDescription.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        bool isFavorite = !_comic.IsExternal && FavoriteModel.Instance.FromId(_comic.Id) != null;
-        SetIsFavorite(isFavorite, false);
+            FillRichTextInlines(TagDescriptionTextBlock.Inlines, await CreateTagDescripionText(comic));
+            TagDescriptionTextBlock.Visibility = TagDescriptionTextBlock.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        SetCompletionState(_comic.CompletionState, false);
+            ViewModel.ComicDir = comic.Location;
+            ViewModel.IsEditable = comic.IsEditable;
 
-        if (!_comic.IsExternal)
-        {
-            ViewModel.Rating = _comic.Rating;
-        }
+            LoadComicTag();
+
+            bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
+            SetIsFavorite(isFavorite, false);
+
+            SetCompletionState(comic.CompletionState, false);
+
+            if (!comic.IsExternal)
+            {
+                ViewModel.Rating = comic.Rating;
+            }
+        });
     }
 
-    private void LoadDescription(string description)
+    private async Task<string> CreateTagDescripionText(ComicModel comic)
     {
-        InlineCollection inlines = TbComicDescription.Inlines;
-        inlines.Clear();
-
-        Regex urlRegex = new(REGEX_URL, RegexOptions.None);
-        MatchCollection matches = urlRegex.Matches(description);
-        int currentIndex = 0;
-
-        foreach (Match match in matches)
+        StringBuilder sb = new();
+        bool first = true;
+        foreach (ComicData.TagData tagData in comic.Tags)
         {
-            Uri uri;
-            try
+            foreach (string tag in tagData.Tags)
             {
-                uri = new Uri(match.Value);
-            }
-            catch (Exception)
-            {
-                continue;
-            }
-
-            int startIndex = match.Index;
-            int endIndex = match.Index + match.Length;
-
-            if (endIndex <= currentIndex)
-            {
-                continue;
-            }
-
-            if (startIndex > currentIndex)
-            {
-                var run = new Run
+                TagInfoModel? tagInfoModel = await TagInfoModel.Get(tagData.Name, tag);
+                if (tagInfoModel == null)
                 {
-                    Text = description[currentIndex..startIndex]
-                };
-                inlines.Add(run);
-            }
+                    continue;
+                }
 
-            {
-                var run = new Run
+                string? description = tagInfoModel.GetExt(TagInfoExt.DESCRIPTION);
+                if (string.IsNullOrEmpty(description))
                 {
-                    Text = match.Value
-                };
-                var hyperlink = new Hyperlink
+                    continue;
+                }
+
+                if (!first)
                 {
-                    NavigateUri = uri
-                };
-                hyperlink.Inlines.Add(run);
-                inlines.Add(hyperlink);
+                    sb.Append('\n');
+                }
+
+                first = false;
+                sb.Append(StringResourceProvider.Instance.WithColon(tag));
+                sb.Append(description);
             }
-
-            currentIndex = endIndex;
         }
 
-        if (currentIndex < description.Length)
-        {
-            var run = new Run
-            {
-                Text = description[currentIndex..]
-            };
-            inlines.Add(run);
-        }
-
-        if (inlines.Count == 0)
-        {
-            TbComicDescription.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            TbComicDescription.Visibility = Visibility.Visible;
-        }
+        return sb.ToString();
     }
 
     private void LoadComicTag()
@@ -1036,6 +1017,74 @@ internal sealed partial class ReaderPage : BasePage
                 default:
                     break;
             }
+        }
+    }
+
+    [GeneratedRegex(REGEX_URL, RegexOptions.None)]
+    private static partial Regex URL_REGEX();
+
+    private void FillRichTextInlines(InlineCollection inlines, string richText)
+    {
+        inlines.Clear();
+
+        Regex urlRegex = URL_REGEX();
+        MatchCollection matches = urlRegex.Matches(richText);
+        int currentIndex = 0;
+
+        foreach (Match match in matches)
+        {
+            Uri uri;
+            try
+            {
+                uri = new Uri(match.Value);
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            int startIndex = match.Index;
+            int endIndex = match.Index + match.Length;
+            if (endIndex <= currentIndex)
+            {
+                continue;
+            }
+
+            if (startIndex > currentIndex)
+            {
+                var run = new Run
+                {
+                    Text = richText[currentIndex..startIndex]
+                };
+                inlines.Add(run);
+            }
+
+            {
+                var run = new Run
+                {
+                    Text = match.Value
+                };
+
+                var hyperlink = new Hyperlink
+                {
+                    NavigateUri = uri
+                };
+
+                hyperlink.Inlines.Add(run);
+                inlines.Add(hyperlink);
+            }
+
+            currentIndex = endIndex;
+        }
+
+        if (currentIndex < richText.Length)
+        {
+            var run = new Run
+            {
+                Text = richText[currentIndex..]
+            };
+
+            inlines.Add(run);
         }
     }
 
