@@ -34,7 +34,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ObservableCollection<TreeNodeViewModel> DataSource { get; set; } = [];
+    public ObservableCollection<TagNodeViewModel> DataSource { get; set; } = [];
 
     private bool _noTagsVisible = false;
     public bool NoTagsVisible
@@ -175,7 +175,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             }
         }
 
-        List<TreeNodeViewModel> dataSource = [];
+        List<TagNodeViewModel> dataSource = [];
         List<string> tagCategories = [.. tagCategoryMap.Keys];
         tagCategories.Sort();
         foreach (string tagCategory in tagCategories)
@@ -184,7 +184,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             List<string> tags = [.. tagMap.Keys];
             tags.Sort();
 
-            TreeNodeViewModel tagCategoryNode = new()
+            TagNodeViewModel tagCategoryNode = new()
             {
                 Glyph = "\uE8EC",
                 Title = tagCategory,
@@ -197,7 +197,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             {
                 TagModel tagModel = tagMap[tag];
 
-                TreeNodeViewModel tagNode = new()
+                TagNodeViewModel tagNode = new()
                 {
                     Glyph = "\uE8EC",
                     Title = tag,
@@ -213,7 +213,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         continue;
                     }
 
-                    TreeNodeViewModel comicNode = new()
+                    TagNodeViewModel comicNode = new()
                     {
                         Glyph = "\uE8B9",
                         Title = comic.Title,
@@ -231,13 +231,15 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                     tagNode.Children.Add(comicNode);
                 }
 
+                tagNode.Description = $"({tagNode.Children.Count})";
                 tagCategoryNode.Children.Add(tagNode);
             }
 
+            tagCategoryNode.Description = $"({tagCategoryNode.Children.Count})";
             dataSource.Add(tagCategoryNode);
         }
 
-        void UpdateItem(TreeNodeViewModel from, TreeNodeViewModel to)
+        void UpdateItem(TagNodeViewModel from, TagNodeViewModel to)
         {
             from.Glyph = to.Glyph;
             from.CanExpand = to.CanExpand;
