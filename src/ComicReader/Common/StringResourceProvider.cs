@@ -9,8 +9,9 @@ public class StringResourceProvider
 {
     private static readonly ResourceLoader sResourceLoader = new();
 
-    public static StringResourceProvider Instance = new();
+    public static StringResourceProvider Instance { get; } = new();
 
+    //// SECTION MARKER - DO NOT MOVE ////
     public string About => GetResourceString("About");
     public string AboutCopyright => GetResourceString("AboutCopyright");
     public string AddFolder => GetResourceString("AddFolder");
@@ -20,8 +21,10 @@ public class StringResourceProvider
     public string AllHidden => GetResourceString("AllHidden");
     public string AllMatchedResults => GetResourceString("AllMatchedResults");
     public string AllPages => GetResourceString("AllPages");
-    public string ApplyOnNextLaunch => GetResourceString("ApplyOnNextLaunch");
+    public string AppDescription => GetResourceString("AppDescription");
     public string AppDisplayName => GetResourceString("AppDisplayName");
+    public string AppStoreName => GetResourceString("AppStoreName");
+    public string ApplyOnNextLaunch => GetResourceString("ApplyOnNextLaunch");
     public string Ascending => GetResourceString("Ascending");
     public string Calculating => GetResourceString("Calculating");
     public string Cancel => GetResourceString("Cancel");
@@ -30,31 +33,32 @@ public class StringResourceProvider
     public string CollapseAll => GetResourceString("CollapseAll");
     public string ComicInfo => GetResourceString("ComicInfo");
     public string CompletionState => GetResourceString("CompletionState");
-    public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
     public string ContributionRunAfterLink => GetResourceString("ContributionRunAfterLink");
+    public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
     public string DebugModeWarning => GetResourceString("DebugModeWarning");
     public string Default => GetResourceString("Default");
     public string DefaultTags => GetResourceString("DefaultTags");
     public string Delete => GetResourceString("Delete");
     public string Descending => GetResourceString("Descending");
     public string Description => GetResourceString("Description");
+    public string DevAppDisplayName => GetResourceString("DevAppDisplayName");
     public string DiffMode => GetResourceString("DiffMode");
     public string Done => GetResourceString("Done");
     public string Edit => GetResourceString("Edit");
     public string ExpandAll => GetResourceString("ExpandAll");
     public string ExpressionAnd => GetResourceString("ExpressionAnd");
     public string ExpressionIn => GetResourceString("ExpressionIn");
+    public string ExpressionInvalid => GetResourceString("ExpressionInvalid");
     public string ExpressionNot => GetResourceString("ExpressionNot");
     public string ExpressionOr => GetResourceString("ExpressionOr");
     public string ExpressionReference => GetResourceString("ExpressionReference");
     public string ExpressionValid => GetResourceString("ExpressionValid");
-    public string ExpressionInvalid => GetResourceString("ExpressionInvalid");
     public string Favorite => GetResourceString("Favorite");
     public string Favorites => GetResourceString("Favorites");
-    public string FilteredBy => GetResourceString("FilteredBy");
     public string FilterSettings => GetResourceString("FilterSettings");
-    public string Finished => GetResourceString("Finished");
+    public string FilteredBy => GetResourceString("FilteredBy");
     public string FinishPercentage => GetResourceString("FinishPercentage");
+    public string Finished => GetResourceString("Finished");
     public string FunctionAverage => GetResourceString("FunctionAverage");
     public string FunctionItemCount => GetResourceString("FunctionItemCount");
     public string FunctionMax => GetResourceString("FunctionMax");
@@ -63,6 +67,7 @@ public class StringResourceProvider
     public string GoBack => GetResourceString("GoBack");
     public string GoForward => GetResourceString("GoForward");
     public string Group => GetResourceString("Group");
+    public string Help => GetResourceString("Help");
     public string Hide => GetResourceString("Hide");
     public string History => GetResourceString("History");
     public string LastReadTime => GetResourceString("LastReadTime");
@@ -72,19 +77,20 @@ public class StringResourceProvider
     public string Name => GetResourceString("Name");
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
-    public string None => GetResourceString("None");
     public string NoRating => GetResourceString("NoRating");
     public string NoResults => GetResourceString("NoResults");
+    public string NoTagsHint => GetResourceString("NoTagsHint");
+    public string None => GetResourceString("None");
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenRandomComic => GetResourceString("OpenRandomComic");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
-    public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
-    public string PageLayoutDualWithCover => GetResourceString("PageLayoutDualWithCover");
-    public string PageLayoutDualWithCoverMirrored => GetResourceString("PageLayoutDualWithCoverMirrored");
+    public string PageGap => GetResourceString("PageGap");
     public string PageLayoutDualNoCover => GetResourceString("PageLayoutDualNoCover");
     public string PageLayoutDualNoCoverMirrored => GetResourceString("PageLayoutDualNoCoverMirrored");
-    public string PageGap => GetResourceString("PageGap");
+    public string PageLayoutDualWithCover => GetResourceString("PageLayoutDualWithCover");
+    public string PageLayoutDualWithCoverMirrored => GetResourceString("PageLayoutDualWithCoverMirrored");
+    public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
     public string Rating => GetResourceString("Rating");
@@ -98,8 +104,8 @@ public class StringResourceProvider
     public string SearchResults => GetResourceString("SearchResults");
     public string SearchResultsOf => GetResourceString("SearchResultsOf");
     public string Select => GetResourceString("Select");
-    public string Settings => GetResourceString("Settings");
     public string SetCompletionState => GetResourceString("SetCompletionState");
+    public string Settings => GetResourceString("Settings");
     public string ShowTagId => GetResourceString("ShowTagId");
     public string Sort => GetResourceString("Sort");
     public string SortingFunction => GetResourceString("SortingFunction");
@@ -124,6 +130,7 @@ public class StringResourceProvider
     public string ViewTypeLarge => GetResourceString("ViewTypeLarge");
     public string ViewTypeMedium => GetResourceString("ViewTypeMedium");
     public string Warning => GetResourceString("Warning");
+    //// SECTION MARKER - DO NOT MOVE ////
 
     private StringResourceProvider() { }
 

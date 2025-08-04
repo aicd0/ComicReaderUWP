@@ -499,6 +499,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="NoResultsDetail.Text" xml:space="preserve">
     <value>尝试使用不同关键词进行搜索</value>
   </data>
+  <data name="NoTagsHint" xml:space="preserve">
+    <value>您的标签会显示在此处</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>无</value>
   </data>

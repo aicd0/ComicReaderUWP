@@ -14,7 +14,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReader.ViewModels;
 
-internal partial class TreeNodeViewModel : BaseViewModel, INotifyPropertyChanged
+internal partial class TagNodeViewModel : BaseViewModel, INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -40,6 +40,17 @@ internal partial class TreeNodeViewModel : BaseViewModel, INotifyPropertyChanged
         }
     }
 
+    private string _description = string.Empty;
+    public string Description
+    {
+        get => _description;
+        set
+        {
+            _description = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Description)));
+        }
+    }
+
     private bool _canExpand = false;
     public bool CanExpand
     {
@@ -62,7 +73,7 @@ internal partial class TreeNodeViewModel : BaseViewModel, INotifyPropertyChanged
         }
     }
 
-    public ObservableCollection<TreeNodeViewModel> Children { get; } = [];
+    public ObservableCollection<TagNodeViewModel> Children { get; } = [];
 
     private List<BaseMenuFlyoutItemViewModel> _menuFlyoutItems = [];
     public List<BaseMenuFlyoutItemViewModel> MenuFlyoutItems

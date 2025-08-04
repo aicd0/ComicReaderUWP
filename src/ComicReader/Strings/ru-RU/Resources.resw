@@ -500,6 +500,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="NoResultsDetail.Text" xml:space="preserve">
     <value>Попробуйте выполнить поиск по другим ключевым словам.</value>
   </data>
+  <data name="NoTagsHint" xml:space="preserve">
+    <value>Ваши теги будут отображаться здесь</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Никто</value>
   </data>

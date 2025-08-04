@@ -110,7 +110,7 @@ internal sealed partial class TagsPage : BasePage
 
     private void TreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
     {
-        var item = (TreeNodeViewModel)args.InvokedItem;
+        var item = (TagNodeViewModel)args.InvokedItem;
         item.OnClick?.Invoke();
     }
 }

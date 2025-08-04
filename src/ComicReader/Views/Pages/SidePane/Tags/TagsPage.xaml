@@ -14,8 +14,9 @@
     <Page.Resources>
 
         <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
 
-        <DataTemplate x:Key="NormalTemplate" x:DataType="vm:TreeNodeViewModel">
+        <DataTemplate x:Key="NormalTemplate" x:DataType="vm:TagNodeViewModel">
             <muxc:TreeViewItem
                 HorizontalContentAlignment="Stretch"
                 VerticalContentAlignment="Stretch"
@@ -28,33 +29,42 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="8" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0" Height="25">
+                    <Grid Grid.Column="0" Height="24">
                         <Grid Visibility="{x:Bind CanExpand, Mode=OneWay}">
                             <FontIcon
                                 Margin="0,2,0,0"
-                                FontSize="18"
+                                FontSize="16"
                                 Glyph="{x:Bind Glyph, Mode=OneWay}"
                                 Visibility="{x:Bind Expanded, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
                             <FontIcon
                                 Margin="0,2,0,0"
-                                FontSize="18"
+                                FontSize="16"
                                 Glyph="{x:Bind Glyph, Mode=OneWay}"
                                 Visibility="{x:Bind Expanded, Mode=OneWay}" />
                         </Grid>
                         <FontIcon
                             Margin="0,2,0,0"
-                            FontSize="18"
+                            FontSize="16"
                             Glyph="{x:Bind Glyph, Mode=OneWay}"
                             Visibility="{x:Bind CanExpand, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
                     </Grid>
                     <TextBlock
                         Grid.Column="2"
                         VerticalAlignment="Center"
-                        Text="{x:Bind Title}"
+                        Text="{x:Bind Title, Mode=OneWay}"
                         TextTrimming="CharacterEllipsis"
-                        ToolTipService.ToolTip="{x:Bind Title}" />
+                        ToolTipService.ToolTip="{x:Bind Title, Mode=OneWay}" />
+                    <TextBlock
+                        Grid.Column="3"
+                        Margin="4,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource ForegroundGrey2}"
+                        Text="{x:Bind Description, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis"
+                        Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
                 </Grid>
             </muxc:TreeViewItem>
         </DataTemplate>
@@ -63,11 +73,10 @@
 
     <Grid>
         <TextBlock
-            x:Name="NoContentTextBlock"
             Margin="0,10"
             HorizontalAlignment="Center"
             FontWeight="SemiBold"
-            Text="{x:Bind StringResource.NoResults}"
+            Text="{x:Bind StringResource.NoTagsHint}"
             Visibility="{x:Bind ViewModel.NoTagsVisible, Mode=OneWay}" />
         <muxc:TreeView
             ItemInvoked="TreeView_ItemInvoked"

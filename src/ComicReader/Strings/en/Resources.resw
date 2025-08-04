@@ -501,6 +501,9 @@ The evaluation will be performed in the following order:
   <data name="NoResultsDetail.Text" xml:space="preserve">
     <value>Try searching with different keywords</value>
   </data>
+  <data name="NoTagsHint" xml:space="preserve">
+    <value>Your tags appear here</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>None</value>
   </data>

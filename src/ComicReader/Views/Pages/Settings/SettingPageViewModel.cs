@@ -284,7 +284,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     public void OnPageResume(FrameworkElement owner)
     {
-        ComicData.LibraryUpdated.Observe(owner, (_) =>
+        GlobalEvent.Instance.ComicUpdated.Observe(owner, (_) =>
         {
             _dispatcher.Submit($"{TAG}#UpdateStatistis", () =>
             {

@@ -83,6 +83,13 @@ internal sealed partial class HomePage : BasePage
             ViewModel.UpdateLibrary();
         });
 
+        GetNavigationPageAbility().RegisterSearchTextChangeHandler(this, ViewModel.SetSearchText);
+
+        GetNavigationPageAbility().RegisterRefreshHandler(this, () =>
+        {
+            ComicModel.UpdateAllComics("HomePage#RefreshPage");
+        });
+
         ViewModel.FilterLiveData.ObserveSticky(this, UpdateFilters);
 
         ViewModel.GroupingEnabledLiveData.ObserveSticky(this, delegate (bool grouped)
@@ -137,18 +144,6 @@ internal sealed partial class HomePage : BasePage
                     Logger.AssertNotReachHere("DBC3B0E205A8C333");
                     break;
             }
-        });
-
-        GetNavigationPageAbility().RegisterSearchTextChangeHandler(this, ViewModel.SetSearchText);
-
-        GetNavigationPageAbility().RegisterRefreshHandler(this, () =>
-        {
-            ComicModel.UpdateAllComics("HomePage#RefreshPage");
-        });
-
-        ComicData.LibraryUpdated.Observe(this, (_) =>
-        {
-            ViewModel.UpdateLibrary();
         });
     }
 

@@ -499,6 +499,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="NoResultsDetail.Text" xml:space="preserve">
     <value>Essayez de rechercher avec différents mots-clés</value>
   </data>
+  <data name="NoTagsHint" xml:space="preserve">
+    <value>Vos tags apparaîtront ici</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Aucun</value>
   </data>
