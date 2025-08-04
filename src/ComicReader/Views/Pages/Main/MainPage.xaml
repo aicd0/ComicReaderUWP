@@ -185,7 +185,7 @@
         <ListView
             x:Name="LogListView"
             HorizontalAlignment="Left"
-            VerticalAlignment="Bottom"
+            VerticalAlignment="Top"
             IsHitTestVisible="False"
             ItemsSource="{x:Bind ViewModel.LogItems}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled"

@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
@@ -45,11 +46,8 @@ public sealed partial class MainWindow : Window
     // or else memory leaks will occur.
     // See http://github.com/microsoft/microsoft-ui-xaml/issues/7282 for more details.
 
-    private MainPage? _mainPage;
-    private string? _url;
-    private Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _originProc;
-    private Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _wndProcDelegate;
-    private HotKeyManager? _hotKeyManager;
+    private WindowMembers? _members;
+    private WindowMembers Members => _members!;
 
     public int WindowId { get; }
     public IntPtr WindowHandle { get; private set; }
@@ -60,7 +58,9 @@ public sealed partial class MainWindow : Window
 
     public MainWindow(string url)
     {
-        _url = url;
+        WindowMembers members = new();
+        _members = members;
+        Members._url = url;
 
         InitializeComponent();
 
@@ -71,8 +71,8 @@ public sealed partial class MainWindow : Window
         {
             RegisterMessageLoop();
 
-            _hotKeyManager = new(WindowId);
-            _hotKeyManager.RegisterHotKeys(WindowHandle);
+            Members._hotKeyManager = new(WindowId);
+            Members._hotKeyManager.RegisterHotKeys(WindowHandle);
         }
 
         Title = StringResourceProvider.Instance.AppDisplayName;
@@ -114,7 +114,7 @@ public sealed partial class MainWindow : Window
 
     private void OnWindowSizeChanged(object sender, WindowSizeChangedEventArgs args)
     {
-        if (_mainPage == null)
+        if (Members._mainPage == null)
         {
             return;
         }
@@ -131,20 +131,22 @@ public sealed partial class MainWindow : Window
 
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
             .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString())
-            .WithParam(RouterConstants.ARG_URL, _url);
-        AppRouter.OpenInFrame(PageFrame, route);
-        _mainPage = (MainPage)PageFrame.Content;
+            .WithParam(RouterConstants.ARG_URL, Members._url);
+        NavigationBundle bundle = AppRouter.Process(route)!;
+        bundle.Communicator.RegisterAbility<ICommonPageAbility>(Members._mainWindowAbility);
+        PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+        Members._mainPage = (MainPage)PageFrame.Content;
     }
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
     {
-        _mainPage!.CloseAllTabs();
-
+        Members._mainPage!.CloseAllTabs();
+        Members._mainWindowAbility.DispatchPageStoppedEvent();
         UnsubscribeEvents();
+        UnregisterMessageLoop();
         App.WindowManager.UnregisterWindow(WindowId);
-        _mainPage = null;
-        _url = null;
-        _hotKeyManager = null;
+
+        _members = null;
         PageFrame.Content = null;
         PageFrame = null;
         WindowHandle = IntPtr.Zero;
@@ -158,7 +160,7 @@ public sealed partial class MainWindow : Window
     {
         Windows.Win32.Foundation.HWND hwnd = new(WindowHandle.ToInt32());
         var wndProcDelegate = new Windows.Win32.UI.WindowsAndMessaging.WNDPROC(MessageLoopProc);
-        _wndProcDelegate = wndProcDelegate;
+        Members._wndProcDelegate = wndProcDelegate;
         nint wndPrcPointer = Marshal.GetFunctionPointerForDelegate(wndProcDelegate);
         nint prevWndProc = PInvoke.SetWindowLongPtr(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, wndPrcPointer);
         if (prevWndProc == IntPtr.Zero)
@@ -167,7 +169,20 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        _originProc = Marshal.GetDelegateForFunctionPointer<Windows.Win32.UI.WindowsAndMessaging.WNDPROC>(prevWndProc);
+        Members._originProc = Marshal.GetDelegateForFunctionPointer<Windows.Win32.UI.WindowsAndMessaging.WNDPROC>(prevWndProc);
+    }
+
+    private void UnregisterMessageLoop()
+    {
+        if (Members._originProc != null && Members._wndProcDelegate != null && WindowHandle != IntPtr.Zero)
+        {
+            Windows.Win32.Foundation.HWND hwnd = new(WindowHandle.ToInt32());
+            nint originProcPtr = Marshal.GetFunctionPointerForDelegate(Members._originProc);
+            PInvoke.SetWindowLongPtr(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, originProcPtr);
+
+            Members._originProc = null;
+            Members._wndProcDelegate = null;
+        }
     }
 
     private Windows.Win32.Foundation.LRESULT MessageLoopProc(Windows.Win32.Foundation.HWND hwnd,
@@ -178,13 +193,13 @@ public sealed partial class MainWindow : Window
         if (uMsg == WM_HOTKEY)
         {
             int hotkeyId = (int)wParam.Value;
-            if (_hotKeyManager != null && _hotKeyManager.HandleHotKey(hotkeyId))
+            if (Members._hotKeyManager != null && Members._hotKeyManager.HandleHotKey(hotkeyId))
             {
                 return (Windows.Win32.Foundation.LRESULT)IntPtr.Zero;
             }
         }
 
-        return PInvoke.CallWindowProc(_originProc, hwnd, uMsg, wParam, lParam);
+        return PInvoke.CallWindowProc(Members._originProc, hwnd, uMsg, wParam, lParam);
     }
 
     //
@@ -203,13 +218,13 @@ public sealed partial class MainWindow : Window
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
             .WithParam(RouterConstants.ARG_COMIC_TOKEN, token);
 
-        if (_mainPage == null)
+        if (Members._mainPage == null)
         {
-            _url = route.Url;
+            Members._url = route.Url;
             return;
         }
 
-        _mainPage.OpenInNewTab(route);
+        Members._mainPage.OpenInNewTab(route);
     }
 
     private async Task<ComicModel?> GetStartupComic(FileActivatedEventArgs args)
@@ -307,5 +322,44 @@ public sealed partial class MainWindow : Window
         WindowId windowId = Win32Interop.GetWindowIdFromWindow(WindowHandle);
         var appWindow = AppWindow.GetFromWindowId(windowId);
         appWindow.SetIcon(@"Assets\AppIcon.ico");
+    }
+
+    //
+    // Page Ability
+    //
+
+    private class MainWindowAbility : ICommonPageAbility
+    {
+        private PageStopEventHandler? _pageStopped;
+
+        public void RegisterPageStopHandler(PageStopEventHandler handler)
+        {
+            _pageStopped += handler;
+        }
+
+        public void UnregisterPageStopHandler(PageStopEventHandler handler)
+        {
+            _pageStopped -= handler;
+        }
+
+        public void DispatchPageStoppedEvent()
+        {
+            _pageStopped?.Invoke();
+            _pageStopped = null;
+        }
+    }
+
+    //
+    // Types
+    //
+
+    private class WindowMembers
+    {
+        public MainPage? _mainPage;
+        public string _url = string.Empty;
+        public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _originProc;
+        public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _wndProcDelegate;
+        public HotKeyManager? _hotKeyManager;
+        public readonly MainWindowAbility _mainWindowAbility = new();
     }
 }

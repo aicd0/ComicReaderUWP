@@ -346,7 +346,7 @@ internal sealed partial class NavigationPage : BasePage
         };
 
         route.WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-        NavigationBundle bundle = AppRouter.Process(route);
+        NavigationBundle bundle = AppRouter.Process(route)!;
         TransferAbility(bundle.Communicator);
         sender.Navigate(bundle);
 

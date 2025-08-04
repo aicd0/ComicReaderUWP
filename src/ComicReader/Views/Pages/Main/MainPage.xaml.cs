@@ -221,12 +221,11 @@ internal sealed partial class MainPage : BasePage
     {
         if (tabId < -1)
         {
-            throw new ArgumentException();
+            throw new ArgumentException($"Invalid tab ID {tabId}.");
         }
 
         route.WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-        NavigationBundle bundle = AppRouter.Process(route);
-
+        NavigationBundle? bundle = AppRouter.Process(route)!;
         if (!bundle.PageTrait.SupportMultiInstance())
         {
             foreach (TabInfo tab in _tabs)
@@ -269,7 +268,7 @@ internal sealed partial class MainPage : BasePage
             {
                 Route navigationRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_NAVIGATION)
                     .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-                NavigationBundle navigationPageBundle = AppRouter.Process(navigationRoute);
+                NavigationBundle? navigationPageBundle = AppRouter.Process(navigationRoute)!;
                 RegisterPageAbility(navigationPageBundle.Communicator, tabInfo.Ability);
                 if (!frame.Navigate(navigationPageBundle.PageTrait.GetPageType(), navigationPageBundle))
                 {
@@ -539,6 +538,11 @@ internal sealed partial class MainPage : BasePage
 
         _tabContainerGridOpacityListenerToken = _tabContainerGrid.RegisterPropertyChangedCallback(OpacityProperty, (sender, dp) =>
         {
+            if (!IsStarted)
+            {
+                return;
+            }
+
             GetEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
         });
     }
