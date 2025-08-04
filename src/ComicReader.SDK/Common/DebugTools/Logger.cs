@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Text;
 
 using ComicReader.SDK.Common.Storage;
@@ -26,6 +27,7 @@ public static class Logger
     private static string sLogFolderPath = "";
     private static readonly ConcurrentQueue<LogItem> sBuffer = new();
     private static long sLastErrorReportTime = 0;
+    private static ImmutableList<ILogListener> sListeners = [];
 
     private static bool Initialized => sInitialized == 1;
 
@@ -46,6 +48,26 @@ public static class Logger
         };
 
         logThread.Start();
+    }
+
+    public static void AddListener(ILogListener listener)
+    {
+        if (listener == null)
+        {
+            return;
+        }
+
+        sListeners = sListeners.Add(listener);
+    }
+
+    public static void RemoveListener(ILogListener listener)
+    {
+        if (listener == null)
+        {
+            return;
+        }
+
+        sListeners = sListeners.Remove(listener);
     }
 
     public static void SetConsoleEnabled(bool enabled)
@@ -288,6 +310,11 @@ public static class Logger
 
             LogToFile(item);
         }
+
+        foreach (ILogListener listener in sListeners)
+        {
+            listener.OnLog(realMessage);
+        }
     }
 
     private static void LogToFile(LogItem message)
@@ -476,5 +503,10 @@ public static class Logger
 
             return sb.ToString();
         }
+    }
+
+    public interface ILogListener
+    {
+        void OnLog(string message);
     }
 }

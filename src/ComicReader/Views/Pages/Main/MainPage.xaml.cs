@@ -30,6 +30,8 @@ namespace ComicReader.Views.Pages.Main;
 
 internal sealed partial class MainPage : BasePage
 {
+    public MainPageViewModel ViewModel { get; } = new();
+
     //
     // Member variables
     //
@@ -100,6 +102,8 @@ internal sealed partial class MainPage : BasePage
         titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
         titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
 
+        ViewModel.OnStart();
+
         string url = bundle.GetString(RouterConstants.ARG_URL);
         _ = OnFirstStartUp(url);
     }
@@ -108,6 +112,12 @@ internal sealed partial class MainPage : BasePage
     {
         base.OnResume();
         ObserveData();
+    }
+
+    protected override void OnStop()
+    {
+        base.OnStop();
+        ViewModel.OnStop();
     }
 
     private async Task OnFirstStartUp(string url)
@@ -165,6 +175,11 @@ internal sealed partial class MainPage : BasePage
         });
 
         GetEventBus().With<int>(EventId.CloseTab).Observe(this, CloseTab);
+
+        GetEventBus().With(EventId.HotKeyF11).Observe(this, delegate
+        {
+            ViewModel.NextLogType();
+        });
     }
 
     //

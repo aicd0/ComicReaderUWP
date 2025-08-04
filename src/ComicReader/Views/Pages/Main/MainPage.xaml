@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:primitiveContract7Present="using:Microsoft.UI.Xaml.Controls.Primitives?IsApiContractPresent(Windows.Foundation.UniversalApiContract,7)"
+    xmlns:vm="using:ComicReader.ViewModels"
     KeyDown="OnKeyDown"
     mc:Ignorable="d">
 
@@ -160,6 +161,8 @@
     </Page.Resources>
 
     <Grid SizeChanged="OnRootGridSizeChanged">
+
+        <!--  Content  -->
         <muxc:TabView
             x:Name="RootTabView"
             VerticalAlignment="Stretch"
@@ -177,6 +180,37 @@
                 <main:TitleBar x:Name="MainTitleBar" />
             </muxc:TabView.TabStripFooter>
         </muxc:TabView>
+
+        <!--  Logs  -->
+        <ListView
+            x:Name="LogListView"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            IsHitTestVisible="False"
+            ItemsSource="{x:Bind ViewModel.LogItems}"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+            ScrollViewer.VerticalScrollBarVisibility="Disabled"
+            Visibility="{x:Bind ViewModel.IsLogVisible, Mode=OneWay}">
+            <ListView.ItemContainerTransitions>
+                <TransitionCollection />
+            </ListView.ItemContainerTransitions>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="MinHeight" Value="0" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="vm:LogItemViewModel">
+                    <Grid HorizontalAlignment="Left" Background="#50000000">
+                        <TextBlock Foreground="#A0FFFFFF" Text="{x:Bind Text}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
     </Grid>
 
 </base:BasePage>
