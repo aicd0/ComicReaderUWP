@@ -257,7 +257,7 @@
 
                                 <ListView
                                     Margin="0,0,0,0"
-                                    ItemsSource="{x:Bind ViewModel.ComicTags, Mode=OneWay}"
+                                    ItemsSource="{x:Bind ViewModel.ComicTags}"
                                     SelectionMode="None">
                                     <ListView.ItemContainerStyle>
                                         <Style TargetType="ListViewItem">

@@ -1,10 +1,16 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
+using ComicReader.Common;
 using ComicReader.Common.Lifecycle;
+using ComicReader.Data.Models;
+using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.MenuFlyoutHelpers;
+using ComicReader.SDK.Common.Algorithm;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Pages.Reader;
@@ -14,8 +20,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public readonly MutableLiveData<string> TagClickLiveData = new();
-
-    public ReaderPageViewModel() { }
+    public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
 
     private string _comicTitle1 = "";
     public string ComicTitle1
@@ -53,19 +58,16 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private ObservableCollection<TagCollectionViewModel> _comicTags = [];
-    public ObservableCollection<TagCollectionViewModel> ComicTags
+    private bool _isComicTagsVisible = false;
+    public bool IsComicTagsVisible
     {
-        get => _comicTags;
+        get => _isComicTagsVisible;
         set
         {
-            _comicTags = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ComicTags)));
+            _isComicTagsVisible = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsComicTagsVisible)));
         }
     }
-
-    public bool IsComicTagsVisible => ComicTags != null && ComicTags.Count > 0;
 
     private bool _isEditable;
     public bool IsEditable
@@ -100,5 +102,84 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
     public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];
+
+    private ComicModel? _comic;
+
+    public ReaderPageViewModel() { }
+
+    public void SetComic(ComicModel comic)
+    {
+        _comic = comic;
+    }
+
+    public void LoadComicTag()
+    {
+        ComicModel? comic = _comic;
+        if (comic == null)
+        {
+            return;
+        }
+
+        var newCollection = new ObservableCollection<TagCollectionViewModel>();
+
+        for (int i = 0; i < comic.Tags.Count; ++i)
+        {
+            ComicData.TagData tags = comic.Tags[i];
+            var tagCollectionModel = new TagCollectionViewModel(tags.Name);
+            foreach (string tag in tags.Tags)
+            {
+                TagViewModel tagModel = new()
+                {
+                    Tag = tag,
+                    MenuFlyoutItems = CreateTagContextMenuItems(tags.Name, tag),
+                    OnClicked = () =>
+                    {
+                        TagClickLiveData.Emit(tag);
+                    },
+                };
+
+                tagCollectionModel.Tags.Add(tagModel);
+            }
+
+            newCollection.Add(tagCollectionModel);
+        }
+
+        DiffUtils.UpdateCollection(ComicTags, newCollection, (x, y) => x.Name == y.Name, (x, y) =>
+        {
+            DiffUtils.UpdateCollection(x.Tags, y.Tags, (a, b) => a.Tag == b.Tag, (a, b) =>
+            {
+                a.MenuFlyoutItems = b.MenuFlyoutItems;
+                a.OnClicked = b.OnClicked;
+            });
+        });
+
+        IsComicTagsVisible = newCollection.Count > 0;
+    }
+
+    private List<BaseMenuFlyoutItemViewModel> CreateTagContextMenuItems(string tagCategory, string tag)
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
+        {
+            OnClick = () =>
+            {
+                EditTagLiveData.Emit(new(tagCategory, tag));
+            },
+        });
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
+        {
+            OnClick = () =>
+            {
+                _ = TagInfoModel.DeleteTag(tagCategory, tag);
+            },
+        });
+
+        return items;
+    }
 }
