@@ -25,6 +25,7 @@ public class StringResourceProvider
     public string Ascending => GetResourceString("Ascending");
     public string Calculating => GetResourceString("Calculating");
     public string Cancel => GetResourceString("Cancel");
+    public string Category => GetResourceString("Category");
     public string ClearCacheDetail => GetResourceString("ClearCacheDetail");
     public string CollapseAll => GetResourceString("CollapseAll");
     public string ComicInfo => GetResourceString("ComicInfo");
@@ -36,7 +37,7 @@ public class StringResourceProvider
     public string DefaultTags => GetResourceString("DefaultTags");
     public string Delete => GetResourceString("Delete");
     public string Descending => GetResourceString("Descending");
-    public string DescriptionColon => GetResourceString("DescriptionColon");
+    public string Description => GetResourceString("Description");
     public string DiffMode => GetResourceString("DiffMode");
     public string Done => GetResourceString("Done");
     public string Edit => GetResourceString("Edit");
@@ -68,6 +69,7 @@ public class StringResourceProvider
     public string MarkAsRead => GetResourceString("MarkAsRead");
     public string MarkAsReading => GetResourceString("MarkAsReading");
     public string MarkAsUnread => GetResourceString("MarkAsUnread");
+    public string Name => GetResourceString("Name");
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
     public string None => GetResourceString("None");
@@ -76,6 +78,7 @@ public class StringResourceProvider
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenRandomComic => GetResourceString("OpenRandomComic");
+    public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
     public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
     public string PageLayoutDualWithCover => GetResourceString("PageLayoutDualWithCover");
     public string PageLayoutDualWithCoverMirrored => GetResourceString("PageLayoutDualWithCoverMirrored");
@@ -90,6 +93,7 @@ public class StringResourceProvider
     public string Reading => GetResourceString("Reading");
     public string Refresh => GetResourceString("Refresh");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
+    public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");
     public string SearchResults => GetResourceString("SearchResults");
     public string SearchResultsOf => GetResourceString("SearchResultsOf");
@@ -122,6 +126,11 @@ public class StringResourceProvider
     public string Warning => GetResourceString("Warning");
 
     private StringResourceProvider() { }
+
+    public string WithColon(string text)
+    {
+        return TextWithColon.Replace("$text", text);
+    }
 
     private static string GetResourceString(string resource)
     {

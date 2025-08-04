@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>取消</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>類別</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>新增或修改圖片位置</value>
   </data>
@@ -237,8 +240,8 @@
   <data name="Descending" xml:space="preserve">
     <value>降序</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>描述：</value>
+  <data name="Description" xml:space="preserve">
+    <value>描述</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>漫畫閱讀器 UWP [Dev]</value>
@@ -472,7 +475,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>更多</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>名稱</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -507,6 +510,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>開啟隨機漫畫</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>此操作將覆蓋現有條目。</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>頁面間距</value>
@@ -580,14 +586,14 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>自右向左</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>儲存</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>儲存為預設配置</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>儲存為新配置</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>儲存</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>記錄您的瀏覽紀錄</value>

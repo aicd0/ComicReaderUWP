@@ -78,13 +78,9 @@ public abstract class TaskDispatcher : ITaskDispatcher
         return DateTimeOffset.Now.ToUnixTimeMilliseconds();
     }
 
-    private class QueueDispatcher : TaskDispatcher
+    private class QueueDispatcher(string name) : TaskDispatcher(name)
     {
         private Task _queue = Task.Factory.StartNew(() => { });
-
-        public QueueDispatcher(string name) : base(name)
-        {
-        }
 
         protected override void SubmitInternal(Action action)
         {

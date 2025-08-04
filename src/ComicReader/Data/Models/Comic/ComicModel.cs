@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Legacy;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Data.SqlHelpers;
@@ -52,6 +53,29 @@ internal sealed class ComicModel
     public string Title2 => _internalModel.Title2;
     public ComicCompletionStatusEnum CompletionState => _internalModel.CompletionState;
 
+    public Dictionary<string, HashSet<string>> TagsCopy
+    {
+        get
+        {
+            Dictionary<string, HashSet<string>> tagsCopy = [];
+            foreach (TagData tagData in _internalModel.Tags)
+            {
+                if (!tagsCopy.TryGetValue(tagData.Name, out HashSet<string>? tagSet))
+                {
+                    tagSet = [];
+                    tagsCopy[tagData.Name] = tagSet;
+                }
+
+                foreach (string tag in tagData.Tags)
+                {
+                    tagSet.Add(tag);
+                }
+            }
+
+            return tagsCopy;
+        }
+    }
+
     public string? GetExt(string key)
     {
         return _internalModel.GetExt(key);
@@ -74,6 +98,7 @@ internal sealed class ComicModel
     public void SetExt(string key, string? value)
     {
         _internalModel.SetExt(key, value);
+        DispatchUpdateEvent();
     }
 
     public void FlushExt()
@@ -84,33 +109,39 @@ internal sealed class ComicModel
     public void SetTitle1(string title)
     {
         _internalModel.SetTitle1(title);
+        DispatchUpdateEvent();
     }
 
     public void SetTitle2(string title)
     {
         _internalModel.SetTitle2(title);
+        DispatchUpdateEvent();
     }
 
     public void SetDescription(string description)
     {
         _internalModel.SetDescription(description);
+        DispatchUpdateEvent();
     }
 
     public void SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
     {
         _internalModel.SetTags(tags);
+        DispatchUpdateEvent();
     }
 
     public async Task SetCompletionStateToNotStarted()
     {
         await SaveProgressAsync(-1, 0);
         await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.NotStarted);
+        DispatchUpdateEvent();
     }
 
     public async Task SetCompletionStateToStarted()
     {
         _internalModel.SetAsStarted();
         await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Started);
+        DispatchUpdateEvent();
     }
 
     public async Task SetCompletionStateToAtLeastStarted()
@@ -119,12 +150,14 @@ internal sealed class ComicModel
         if (CompletionState == ComicCompletionStatusEnum.NotStarted)
         {
             await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Started);
+            DispatchUpdateEvent();
         }
     }
 
     public async Task SetCompletionStateToCompleted()
     {
         await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Completed);
+        DispatchUpdateEvent();
     }
 
     public async Task MoveToLocation(string newLocation)
@@ -133,24 +166,28 @@ internal sealed class ComicModel
         bool success = await _internalModel.MoveToLocation(newLocation);
         if (success)
         {
-            _locationPool.Remove(oldLocation);
+            _locationPool.TryRemove(oldLocation, out _);
             _locationPool.GetOrAdd(newLocation, this);
+            DispatchUpdateEvent();
         }
     }
 
-    public Task SaveProgressAsync(int progress, double lastPosition)
+    public async Task SaveProgressAsync(int progress, double lastPosition)
     {
-        return _internalModel.SaveProgressAsync(progress, lastPosition);
+        await _internalModel.SaveProgressAsync(progress, lastPosition);
+        DispatchUpdateEvent();
     }
 
     public void SaveRating(int rating)
     {
         _internalModel.SaveRating(rating);
+        DispatchUpdateEvent();
     }
 
-    public Task SaveHiddenAsync(bool hidden)
+    public async Task SaveHiddenAsync(bool hidden)
     {
-        return _internalModel.SaveHiddenAsync(hidden);
+        await _internalModel.SaveHiddenAsync(hidden);
+        DispatchUpdateEvent();
     }
 
     //
@@ -295,11 +332,12 @@ internal sealed class ComicModel
         return ReplaceWithExisting(comic);
     }
 
-    public static async Task<List<ComicModel>> BatchFromId(IEnumerable<long> ids, string taskName)
+    public static async Task<List<ComicModel>> BatchFromId(string taskName, IEnumerable<long> ids)
     {
         HashSet<long> idsUnique = [.. ids];
         List<ComicModel> results = [];
         List<long> requestingIds = [];
+
         foreach (long id in idsUnique)
         {
             if (TryGetExisting(id, out ComicModel? model))
@@ -311,6 +349,7 @@ internal sealed class ComicModel
                 requestingIds.Add(id);
             }
         }
+
         if (requestingIds.Count > 0)
         {
             List<ComicData> requestResults = await ComicData.BatchFromId(requestingIds, taskName);
@@ -319,6 +358,7 @@ internal sealed class ComicModel
                 results.Add(ReplaceWithExisting(result));
             }
         }
+
         return results;
     }
 
@@ -334,15 +374,20 @@ internal sealed class ComicModel
     public static async Task<List<string>> GetAllTagCategories()
     {
         HashSet<string> tags = [];
-        var command = new SelectCommand(TagCategoryTable.Instance);
+        var command = SelectCommand.Create(TagCategoryTable.Instance);
         IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
         command.Distinct();
-        using SelectCommand.IReader reader = await command.ExecuteAsync(SqlDatabaseManager.MainDatabase);
+        using SelectCommand.IReader reader = await command.ExecuteAsync();
         while (reader.Read())
         {
             string name = nameToken.GetValue();
             tags.Add(name);
         }
         return [.. tags];
+    }
+
+    private static void DispatchUpdateEvent()
+    {
+        GlobalEvent.Instance.ComicUpdated.Emit(0);
     }
 }

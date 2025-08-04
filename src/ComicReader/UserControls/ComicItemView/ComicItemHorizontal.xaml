@@ -16,16 +16,17 @@
 
     <base:BaseUserControl.Resources>
         <ResourceDictionary>
-            <!--  Converters  -->
+            
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
+            
         </ResourceDictionary>
     </base:BaseUserControl.Resources>
 
     <Grid
         x:Name="RootGrid"
         Background="Transparent"
-        DataContextChanged="RootGrid_DataContextChanged">
+        Tapped="RootGrid_Tapped">
         <Grid Margin="10,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -49,21 +50,21 @@
                             FontSize="14"
                             FontWeight="SemiBold"
                             MaxLines="3"
-                            Text="{x:Bind Ctx.Title}"
+                            Text="{x:Bind Item.Title, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="Wrap"
-                            ToolTipService.ToolTip="{x:Bind Ctx.Title}" />
+                            ToolTipService.ToolTip="{x:Bind Item.Title, Mode=OneWay}" />
                         <StackPanel Orientation="Horizontal">
                             <Viewbox
                                 Height="20"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center">
-                                <controls:ReadonlyRatingView PlaceholderValue="{x:Bind Ctx.Rating}" Visibility="{x:Bind Ctx.IsRatingVisible}" />
+                                <controls:ReadonlyRatingView PlaceholderValue="{x:Bind Item.Rating, Mode=OneWay}" Visibility="{x:Bind Item.IsRatingVisible, Mode=OneWay}" />
                             </Viewbox>
                             <TextBlock
                                 FontSize="12"
                                 Opacity="0.6"
-                                Text="{x:Bind Ctx.Progress}" />
+                                Text="{x:Bind Item.Progress, Mode=OneWay}" />
                         </StackPanel>
                     </StackPanel>
                     <TextBlock
@@ -72,7 +73,7 @@
                         FontWeight="SemiLight"
                         MaxLines="2"
                         Opacity="0.6"
-                        Text="{x:Bind Ctx.Detail}"
+                        Text="{x:Bind Item.Detail, Mode=OneWay}"
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="WrapWholeWords" />
                 </Grid>
@@ -81,7 +82,7 @@
                 Grid.Column="1"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
-                Visibility="{x:Bind Ctx.IsFavorite}">
+                Visibility="{x:Bind Item.IsFavorite, Mode=OneWay}">
                 <FontIcon
                     Margin="0,0,10,8"
                     FontSize="14"
@@ -90,4 +91,5 @@
             </Grid>
         </Grid>
     </Grid>
+
 </base:BaseUserControl>

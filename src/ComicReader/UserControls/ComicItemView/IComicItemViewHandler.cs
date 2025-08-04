@@ -1,32 +1,31 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Input;
+using ComicReader.ViewModels;
 
 namespace ComicReader.UserControls.ComicItemView;
 
 internal interface IComicItemViewHandler
 {
-    void OnItemTapped(object sender, TappedRoutedEventArgs e);
+    void OnItemTapped(ComicItemViewModel item);
 
-    void OnOpenInNewTabClicked(object sender, RoutedEventArgs e);
+    void OnOpenInNewTabClicked(ComicItemViewModel item);
 
-    void OnAddToFavoritesClicked(object sender, RoutedEventArgs e);
+    void OnAddToFavoritesClicked(ComicItemViewModel item);
 
-    void OnRemoveFromFavoritesClicked(object sender, RoutedEventArgs e);
+    void OnRemoveFromFavoritesClicked(ComicItemViewModel item);
 
-    void OnHideClicked(object sender, RoutedEventArgs e);
+    void OnHideClicked(ComicItemViewModel item);
 
-    void OnUnhideClicked(object sender, RoutedEventArgs e);
+    void OnUnhideClicked(ComicItemViewModel item);
 
-    void OnMarkAsReadClicked(object sender, RoutedEventArgs e);
+    void OnMarkAsReadClicked(ComicItemViewModel item);
 
-    void OnMarkAsReadingClicked(object sender, RoutedEventArgs e);
+    void OnMarkAsReadingClicked(ComicItemViewModel item);
 
-    void OnMarkAsUnreadClicked(object sender, RoutedEventArgs e);
+    void OnMarkAsUnreadClicked(ComicItemViewModel item);
 
-    void OnEditClick(object sender, RoutedEventArgs e);
+    void OnEditClick(ComicItemViewModel item);
 
-    void OnSelectClicked(object sender, RoutedEventArgs e);
+    void OnSelectClicked(ComicItemViewModel item);
 }

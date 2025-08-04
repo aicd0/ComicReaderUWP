@@ -81,6 +81,29 @@ internal class KVDatabaseMethodLiteDB(string prefix) : KVDatabaseMethod, IDispos
         return null;
     }
 
+    public override void SetDouble(string lib, string key, double value)
+    {
+        string s = value.ToString();
+        SetValue(lib, key, s);
+    }
+
+    public override double? GetDouble(string lib, string key)
+    {
+        string? s = GetValue(lib, key);
+
+        if (s == null)
+        {
+            return null;
+        }
+
+        if (double.TryParse(s, out double result))
+        {
+            return result;
+        }
+
+        return null;
+    }
+
     private LiteDatabase GetDatabase(string lib)
     {
         {
@@ -97,7 +120,7 @@ internal class KVDatabaseMethodLiteDB(string prefix) : KVDatabaseMethod, IDispos
                 return db;
             }
 
-            string databaseFolder = Path.Combine(StorageLocation.GetLocalFolderPath(), "database_kv");
+            string databaseFolder = Path.Combine(StorageLocation.LocalFolderPath, "database_kv");
             string databasePath = Path.Combine(databaseFolder, $"{_prefix}_{lib}.db");
             Directory.CreateDirectory(databaseFolder);
             db = new LiteDatabase(databasePath);

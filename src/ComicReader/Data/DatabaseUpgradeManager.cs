@@ -3,25 +3,61 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 using ComicReader.Data.Legacy;
 using ComicReader.Data.Models;
+using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Storage;
 
 namespace ComicReader.Data;
 
 class DatabaseUpgradeManager
 {
+    private const string TAG = nameof(DatabaseUpgradeManager);
+    private const int VERSION = 1;
+
     public static DatabaseUpgradeManager Instance = new();
+
+    private static string VersionFilePath => Path.Combine(StorageLocation.LocalFolderPath, "version.txt");
 
     private DatabaseUpgradeManager() { }
 
-    public void UpgradeDatabase()
+    public void UpgradeDatabaseBeforeInitialization()
+    {
+        int version = ReadVersion();
+        if (version == VERSION)
+        {
+            return;
+        }
+
+        switch (version)
+        {
+            case 0:
+                {
+                    string oldPath = Path.Combine(StorageLocation.LocalFolderPath, "database.db");
+                    string newPath = Path.Combine(StorageLocation.LocalFolderPath, "database_sql", "main.db");
+                    if (File.Exists(oldPath))
+                    {
+                        MoveFile(oldPath, newPath);
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
+        File.WriteAllText(VersionFilePath, VERSION.ToString());
+    }
+
+    public void UpgradeDatabaseAfterInitialization()
     {
         DatabaseVersionModel.JsonModel databaseVersions = DatabaseVersionModel.Instance.GetModel();
         if (databaseVersions == null)
         {
             return;
         }
+
         List<Func<DatabaseVersionModel.JsonModel, bool>> tasks = [
             UpgradeDatabaseVersions,
             UpgradeComicDatabase,
@@ -29,6 +65,7 @@ class DatabaseUpgradeManager
             UpgradeHistory,
             UpgradeAppSettings,
         ];
+
         foreach (Func<DatabaseVersionModel.JsonModel, bool> task in tasks)
         {
             if (task(databaseVersions))
@@ -141,5 +178,48 @@ class DatabaseUpgradeManager
 
         versions.AppSettingVersion = 1;
         return true;
+    }
+
+    private static int ReadVersion()
+    {
+        string versionFile = VersionFilePath;
+        if (!File.Exists(versionFile))
+        {
+            return 0;
+        }
+
+        string versionContent;
+        try
+        {
+            versionContent = File.ReadAllText(versionFile);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+            return 0;
+        }
+
+        if (int.TryParse(versionContent, out int version))
+        {
+            return version;
+        }
+
+        return 0;
+    }
+
+    private static void MoveFile(string oldPath, string newPath)
+    {
+        if (File.Exists(newPath))
+        {
+            throw new IOException("File already exists at the new path: " + newPath);
+        }
+
+        string? newDir = Path.GetDirectoryName(newPath);
+        if (newDir != null && !Directory.Exists(newDir))
+        {
+            Directory.CreateDirectory(newDir);
+        }
+
+        File.Move(oldPath, newPath);
     }
 }

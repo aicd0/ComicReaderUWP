@@ -1,54 +1,81 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
-using Microsoft.UI.Xaml;
+using ComicReader.Helpers.MenuFlyoutHelpers;
+
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReader.ViewModels;
 
-public class TagViewModel
+internal partial class TagViewModel : INotifyPropertyChanged
 {
-    public string Tag { get; set; } = string.Empty;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    private IItemHandler? _itemHandler;
-    public IItemHandler ItemHandler
+    private string _tag = string.Empty;
+    public string Tag
+    {
+        get => _tag;
+        set
+        {
+            _tag = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Tag)));
+        }
+    }
+
+    private List<BaseMenuFlyoutItemViewModel> _menuFlyoutItems = [];
+    public List<BaseMenuFlyoutItemViewModel> MenuFlyoutItems
+    {
+        get => _menuFlyoutItems;
+        set
+        {
+            _menuFlyoutItems = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MenuFlyoutItems)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ContextFlyout)));
+        }
+    }
+
+    public FlyoutBase? ContextFlyout
     {
         get
         {
-            return _itemHandler ?? EmptyItemHandler.Instance;
-        }
-        set
-        {
-            _itemHandler = value;
-        }
-    }
+            if (MenuFlyoutItems.Count == 0)
+            {
+                return null;
+            }
 
-    public interface IItemHandler
-    {
-        void OnClicked(object sender, RoutedEventArgs e);
-    }
+            var flyout = new MenuFlyout();
+            foreach (BaseMenuFlyoutItemViewModel item in MenuFlyoutItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
 
-    private class EmptyItemHandler : IItemHandler
-    {
-        private EmptyItemHandler() { }
-
-        public static EmptyItemHandler Instance = new();
-
-        public void OnClicked(object sender, RoutedEventArgs e)
-        {
+            return flyout;
         }
     }
+
+    public Action? OnClicked { get; set; }
 };
 
-public class TagCollectionViewModel
+internal partial class TagCollectionViewModel(string name) : INotifyPropertyChanged
 {
-    public TagCollectionViewModel(string name)
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private string _name = name;
+    public string Name
     {
-        Name = name;
-        Tags = new List<TagViewModel>();
+        get => _name;
+        set
+        {
+            _name = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+        }
     }
 
-    public string Name { get; set; }
-    public List<TagViewModel> Tags { get; set; }
+    public ObservableCollection<TagViewModel> Tags { get; } = [];
 };

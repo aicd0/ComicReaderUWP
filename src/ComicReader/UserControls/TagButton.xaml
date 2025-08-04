@@ -16,13 +16,14 @@
         VerticalAlignment="Center"
         Background="{ThemeResource TagButtonBackground}"
         BorderThickness="1.5"
-        Click="{x:Bind ViewModel.ItemHandler.OnClicked}"
+        Click="Button_Click"
+        ContextFlyout="{x:Bind ViewModel.ContextFlyout, Mode=OneWay}"
         CornerRadius="13"
         FontSize="13"
         FontWeight="Bold"
         Style="{StaticResource ButtonRevealStyle}">
         <Button.Content>
-            <TextBlock Text="{x:Bind ViewModel.Tag}" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{x:Bind ViewModel.Tag, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
         </Button.Content>
     </Button>
 

@@ -5,7 +5,7 @@ using Microsoft.Data.Sqlite;
 
 namespace ComicReader.SDK.Data.SqlHelpers;
 
-public class SqlDatabase
+public sealed class SqlDatabase : IDisposable
 {
     private readonly string _filePath;
     private readonly SqliteConnection _connection;
@@ -23,6 +23,12 @@ public class SqlDatabase
         var connection = new SqliteConnection($"Filename={filePath}");
         connection.Open();
         _connection = connection;
+    }
+
+    public void Dispose()
+    {
+        _connection.Close();
+        _connection.Dispose();
     }
 
     public void WithTransaction(Action action)

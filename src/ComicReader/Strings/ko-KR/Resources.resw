@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>취소</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>범주</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>이미지를 찾을 위치를 선택하세요</value>
   </data>
@@ -237,8 +240,8 @@
   <data name="Descending" xml:space="preserve">
     <value>하강</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>설명:</value>
+  <data name="Description" xml:space="preserve">
+    <value>설명</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>만화 리더 UWP [Dev]</value>
@@ -473,7 +476,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>더</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>이름</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -508,6 +511,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>무작위 만화를 엽니다</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>이 작업을 수행하면 기존 항목이 덮어쓰여집니다.</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>페이지 간격</value>
@@ -581,14 +587,14 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>오른쪽에서 왼쪽으로</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>구하다</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>기본 구성으로 저장</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>새 구성으로 저장</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>구하다</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>검색 기록을 기록하세요</value>

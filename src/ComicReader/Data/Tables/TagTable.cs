@@ -15,6 +15,11 @@ internal class TagTable : ITable
 
     private TagTable() { }
 
+    public SqlDatabase GetDatabase()
+    {
+        return SqlDatabaseManager.MainDatabase;
+    }
+
     public string GetTableName()
     {
         return "tags";

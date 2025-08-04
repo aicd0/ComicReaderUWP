@@ -56,28 +56,39 @@ internal abstract class ComicData
     // Static Methods
     //
 
+    public static async Task<T> Enqueue<T>(string taskName, Func<T> op)
+    {
+        var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        ComicPropertyRepository.Instance.GetDatabaseDispatcher().Submit($"{TAG}#Enqueue#{taskName}", delegate
+        {
+            taskResult.SetResult(op());
+        });
+
+        return await taskResult.Task;
+    }
+
     public static async Task<ComicData?> FromId(long id, string taskName)
     {
-        return await Enqueue(delegate
+        return await Enqueue(taskName, delegate
         {
             return FromIdNoLock(id);
-        }, taskName);
+        });
     }
 
     public static async Task<ComicData?> FromLocation(string location, string taskName)
     {
-        return await Enqueue(delegate
+        return await Enqueue(taskName, delegate
         {
             return FromLocationNoLock(location);
-        }, taskName);
+        });
     }
 
     public static async Task<List<ComicData>> BatchFromId(IEnumerable<long> ids, string taskName)
     {
-        return await Enqueue(delegate
+        return await Enqueue(taskName, delegate
         {
             return BatchFromIdNoLock(ids);
-        }, taskName);
+        });
     }
 
     private static ComicData? FromIdNoLock(long id)
@@ -107,8 +118,8 @@ internal abstract class ComicData
 
         Dictionary<long, ComicData> comics = new(ids.Count());
         {
-            SelectCommand command = new SelectCommand(ComicTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), ids.Select(x => ColumnOrValue.FromValue(x))));
+            SelectCommand command = SelectCommand.Create(ComicTable.Instance)
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), ids));
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
             IReaderToken<long> typeToken = command.PutQueryInt64(ComicTable.ColumnType);
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
@@ -123,7 +134,7 @@ internal abstract class ComicData
             IReaderToken<string> descriptionToken = command.PutQueryString(ComicTable.ColumnDescription);
             IReaderToken<int> completionStateToken = command.PutQueryInt32(ComicTable.ColumnCompletionState);
             IReaderToken<string> extToken = command.PutQueryString(ComicTable.ColumnExt);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {
@@ -187,12 +198,12 @@ internal abstract class ComicData
 
         Dictionary<long, TagTempData> tagCategories = new(comics.Count);
         {
-            SelectCommand command = new SelectCommand(TagCategoryTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), comics.Keys.Select(x => ColumnOrValue.FromValue(x))));
+            SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), comics.Keys));
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
             IReaderToken<long> tagCategoryIdToken = command.PutQueryInt64(TagCategoryTable.ColumnId);
             IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {
@@ -212,11 +223,11 @@ internal abstract class ComicData
         }
 
         {
-            SelectCommand command = new SelectCommand(TagTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), tagCategories.Keys.Select(x => ColumnOrValue.FromValue(x))));
+            SelectCommand command = SelectCommand.Create(TagTable.Instance)
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), tagCategories.Keys));
             IReaderToken<long> tagCategoryIdToken = command.PutQueryInt64(TagTable.ColumnTagCategoryId);
             IReaderToken<string> tagToken = command.PutQueryString(TagTable.ColumnContent);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
 
             while (reader.Read())
             {
@@ -258,11 +269,11 @@ internal abstract class ComicData
 
     private static ComicData? FromLocationNoLock(string location)
     {
-        SelectCommand command = new SelectCommand(ComicTable.Instance)
+        SelectCommand command = SelectCommand.Create(ComicTable.Instance)
             .AppendCondition(ComicTable.ColumnLocation, location)
             .Limit(1);
         IReaderToken<long> comicIdToken = command.PutQueryInt64(ComicTable.ColumnId);
-        using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+        using SelectCommand.IReader reader = command.Execute();
 
         if (!reader.Read())
         {
@@ -287,16 +298,6 @@ internal abstract class ComicData
                 Logger.AssertNotReachHere("419CBCB3E803A525");
                 return null;
         }
-    }
-
-    private static async Task<T> Enqueue<T>(Func<T> op, string taskName)
-    {
-        var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        ComicPropertyRepository.Instance.GetDatabaseDispatcher().Submit($"{TAG}#Enqueue#{taskName}", delegate
-        {
-            taskResult.SetResult(op());
-        });
-        return await taskResult.Task;
     }
 
     protected static void Log(string message)
@@ -413,61 +414,61 @@ internal abstract class ComicData
 
     public void FlushExt()
     {
-        _ = Enqueue(() =>
+        _ = Enqueue("FlushExt", () =>
         {
             return SaveNoLock(() =>
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnExt, ValueExt)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "FlushExt");
+        });
     }
 
     public void SetTitle1(string title)
     {
         Title1 = title;
-        _ = Enqueue(() =>
+        _ = Enqueue("SetTitle1", () =>
         {
             return SaveNoLock(() =>
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "SetTitle1");
+        });
     }
 
     public void SetTitle2(string title)
     {
         Title2 = title;
-        _ = Enqueue(() =>
+        _ = Enqueue("SetTitle2", () =>
         {
             return SaveNoLock(() =>
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnTitle2, ValueTitle2)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "SetTitle2");
+        });
     }
 
     public void SetDescription(string description)
     {
         Description = description;
-        _ = Enqueue(() =>
+        _ = Enqueue("SetDescription", () =>
         {
             return SaveNoLock(() =>
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnDescription, ValueDescription)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "SetDescription");
+        });
     }
 
     public void SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
@@ -480,6 +481,7 @@ internal abstract class ComicData
             {
                 continue;
             }
+
             HashSet<string> processedTags = [];
             foreach (string tag in pair.Value)
             {
@@ -488,23 +490,28 @@ internal abstract class ComicData
                 {
                     continue;
                 }
+
                 processedTags.Add(processedTag);
             }
+
             if (processedTags.Count == 0)
             {
                 continue;
             }
+
             TagData tagData = new(name, processedTags);
             newTags.Add(tagData);
         }
+
         Tags = newTags;
-        _ = Enqueue(() =>
+
+        _ = Enqueue("SetTags", () =>
         {
             return SaveNoLock(() =>
             {
                 InternalSaveTagsNoLock();
             });
-        }, "SetTags");
+        });
     }
 
     public async Task<bool> MoveToLocation(string newLocation)
@@ -516,16 +523,17 @@ internal abstract class ComicData
         }
 
         Location = newLocation;
-        _ = Enqueue(() =>
+
+        _ = Enqueue("MoveToLocation", () =>
         {
             return SaveNoLock(() =>
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "MoveToLocation");
+        });
         return true;
     }
 
@@ -546,7 +554,7 @@ internal abstract class ComicData
     {
         SaveNoLock(delegate
         {
-            new UpdateCommand(ComicTable.Instance)
+            UpdateCommand.Create(ComicTable.Instance)
                 .AppendColumn(ComicTable.ColumnType, (long)ValueType)
                 .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
                 .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)
@@ -560,7 +568,7 @@ internal abstract class ComicData
                 .AppendColumn(ComicTable.ColumnDescription, ValueDescription)
                 .AppendColumn(ComicTable.ColumnExt, ValueExt)
                 .AppendCondition(ComicTable.ColumnId, Id)
-                .Execute(SqlDatabaseManager.MainDatabase);
+                .Execute();
             InternalSaveTagsNoLock();
         });
     }
@@ -569,16 +577,16 @@ internal abstract class ComicData
     {
         Hidden = hidden;
 
-        await Enqueue(delegate
+        await Enqueue("SaveHiddenAsync", delegate
         {
             return SaveNoLock(delegate
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnHidden, ValueHidden)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "SaveHiddenAsync");
+        });
     }
 
     public Task SaveCompletionState(ComicCompletionStatusEnum completionState)
@@ -591,16 +599,16 @@ internal abstract class ComicData
     {
         Rating = rating;
 
-        _ = Enqueue(delegate
+        _ = Enqueue("SaveRating", delegate
         {
             return SaveNoLock(delegate
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnRating, ValueRating)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "SaveRating");
+        });
     }
 
     public async Task SaveProgressAsync(int progress, double last_position)
@@ -608,17 +616,17 @@ internal abstract class ComicData
         Progress = progress;
         LastPosition = last_position;
 
-        await Enqueue(delegate
+        await Enqueue("SaveProgress", delegate
         {
             return SaveNoLock(delegate
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
                     .AppendColumn(ComicTable.ColumnLastPosition, ValueLastPosition)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "SaveProgress");
+        });
     }
 
     public void SetAsStarted()
@@ -626,33 +634,33 @@ internal abstract class ComicData
         LastVisit = DateTimeOffset.Now;
         Progress = Math.Max(Progress, 0);
 
-        _ = Enqueue(delegate
+        _ = Enqueue("SetAsRead", delegate
         {
             return SaveNoLock(delegate
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
                     .AppendColumn(ComicTable.ColumnLastVisit, ValueLastVisit)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "SetAsRead");
+        });
     }
 
     public void SetCoverCacheKey(string key)
     {
         CoverCacheKey = key;
 
-        _ = Enqueue(delegate
+        _ = Enqueue("SetCoverCacheKey", delegate
         {
             return SaveNoLock(delegate
             {
-                new UpdateCommand(ComicTable.Instance)
+                UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnCoverCacheKey, ValueCoverCacheKey)
                     .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             });
-        }, "SetCoverCacheKey");
+        });
     }
 
     public void SetAsDefaultInfo()
@@ -742,15 +750,6 @@ internal abstract class ComicData
         return coverCacheKey;
     }
 
-    public static async Task EnqueueCommand(Action op, string taskName)
-    {
-        await Enqueue(delegate
-        {
-            op();
-            return true;
-        }, taskName);
-    }
-
     public static void UpdateAllComics(string reason, bool skipExistingLocation)
     {
         int pendingCount = Interlocked.Increment(ref _pendingUpdateTaskCount);
@@ -818,32 +817,32 @@ internal abstract class ComicData
     {
         if (removeOld)
         {
-            new DeleteCommand(TagCategoryTable.Instance)
+            DeleteCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnComicId, Id)
-                .Execute(SqlDatabaseManager.MainDatabase);
+                .Execute();
         }
 
         foreach (TagData category in Tags)
         {
-            long tagCategoryId = new InsertCommand(TagCategoryTable.Instance)
+            long tagCategoryId = InsertCommand.Create(TagCategoryTable.Instance)
                 .AppendColumn(TagCategoryTable.ColumnName, category.Name)
                 .AppendColumn(TagCategoryTable.ColumnComicId, Id)
-                .Execute(SqlDatabaseManager.MainDatabase);
+                .Execute();
 
             foreach (string tag in category.Tags)
             {
-                new InsertCommand(TagTable.Instance)
+                InsertCommand.Create(TagTable.Instance)
                     .AppendColumn(TagTable.ColumnContent, tag)
                     .AppendColumn(TagTable.ColumnComicId, Id)
                     .AppendColumn(TagTable.ColumnTagCategoryId, tagCategoryId)
-                    .Execute(SqlDatabaseManager.MainDatabase);
+                    .Execute();
             }
         }
     }
 
     private void InternalInsertNoLock()
     {
-        Id = new InsertCommand(ComicTable.Instance)
+        Id = InsertCommand.Create(ComicTable.Instance)
             .AppendColumn(ComicTable.ColumnType, (long)ValueType)
             .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
             .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)
@@ -857,7 +856,7 @@ internal abstract class ComicData
             .AppendColumn(ComicTable.ColumnDescription, Description)
             .AppendColumn(ComicTable.ColumnCompletionState, CompletionState)
             .AppendColumn(ComicTable.ColumnExt, ValueExt)
-            .Execute(SqlDatabaseManager.MainDatabase);
+            .Execute();
 
         InternalSaveTagsNoLock(removeOld: false);
     }
@@ -881,21 +880,21 @@ internal abstract class ComicData
 
     private static async Task TransactionBlock(Func<Task> op, string taskName)
     {
-        await Enqueue(delegate
+        await Enqueue(taskName, delegate
         {
             SqlDatabaseManager.MainDatabase.WithTransaction(() =>
             {
                 op().Wait();
             });
             return true;
-        }, taskName);
+        });
     }
 
     private static void RemoveWithLocationNoLock(string location)
     {
-        new DeleteCommand(ComicTable.Instance)
+        DeleteCommand.Create(ComicTable.Instance)
             .AppendCondition(new LikeCondition(ComicTable.ColumnLocation, location + "%"))
-            .Execute(SqlDatabaseManager.MainDatabase);
+            .Execute();
     }
 
     private static async Task<TaskException> UpdateAllComicsInternal(bool skipExistingLocation)
@@ -904,17 +903,17 @@ internal abstract class ComicData
 
         // Fetch all locations in the database
         var locExist = new List<string>();
-        await Enqueue(delegate
+        await Enqueue("GetLocationsFromDatabase", delegate
         {
-            var command = new SelectCommand(ComicTable.Instance);
+            var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
-            using SelectCommand.IReader reader = command.Execute(SqlDatabaseManager.MainDatabase);
+            using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
                 locExist.Add(locationToken.GetValue());
             }
             return true;
-        }, "GetLocationsFromDatabase");
+        });
 
         // Get all root folders from setting
         List<string> rootFolders = [];

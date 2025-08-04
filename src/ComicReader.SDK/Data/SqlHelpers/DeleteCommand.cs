@@ -12,9 +12,14 @@ public class DeleteCommand
 
     private bool _executed = false;
 
-    public DeleteCommand(ITable table)
+    private DeleteCommand(ITable table)
     {
         _table = table;
+    }
+
+    public static DeleteCommand Create(ITable table)
+    {
+        return new(table);
     }
 
     public DeleteCommand AppendCondition(IColumnTypeless column, object value)
@@ -28,7 +33,7 @@ public class DeleteCommand
         return this;
     }
 
-    public void Execute(SqlDatabase database)
+    public void Execute()
     {
         if (_executed)
         {
@@ -37,10 +42,10 @@ public class DeleteCommand
         _executed = true;
 
         CommandWrapper command = GenerateCommand();
-        command.ExecuteNonQuery(database);
+        command.ExecuteNonQuery(_table.GetDatabase());
     }
 
-    public async Task ExecuteAsync(SqlDatabase database)
+    public async Task ExecuteAsync()
     {
         if (_executed)
         {
@@ -49,7 +54,7 @@ public class DeleteCommand
         _executed = true;
 
         CommandWrapper command = GenerateCommand();
-        await command.ExecuteNonQueryAsync(database);
+        await command.ExecuteNonQueryAsync(_table.GetDatabase());
     }
 
     private CommandWrapper GenerateCommand()

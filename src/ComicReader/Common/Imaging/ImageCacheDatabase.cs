@@ -47,7 +47,7 @@ internal static class ImageCacheDatabase
         {
             if (_databaseFolder == null)
             {
-                string folderPath = StorageLocation.GetLocalCacheFolderPath();
+                string folderPath = StorageLocation.LocalCacheFolderPath;
                 StorageFolder databaseFolder = Storage.TryGetFolder(folderPath).Result;
                 if (databaseFolder == null)
                 {

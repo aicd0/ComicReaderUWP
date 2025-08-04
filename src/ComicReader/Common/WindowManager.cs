@@ -39,6 +39,7 @@ class WindowManager<T> where T : Window
         {
             return wrapper.Window;
         }
+
         return null;
     }
 
@@ -48,6 +49,7 @@ class WindowManager<T> where T : Window
         {
             return wrapper.Window;
         }
+
         Logger.AssertNotReachHere("6046D73C153C55AB");
         return null;
     }

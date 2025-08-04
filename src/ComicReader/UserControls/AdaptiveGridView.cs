@@ -239,7 +239,7 @@ public partial class AdaptiveGridView : GridView
 
     private void RecalculateLayout(double containerWidth)
     {
-        var itemsPanel = ItemsPanelRoot as Panel;
+        Panel itemsPanel = ItemsPanelRoot;
         double panelMargin = itemsPanel != null ?
                           itemsPanel.Margin.Left + itemsPanel.Margin.Right :
                           0;

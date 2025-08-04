@@ -7,7 +7,57 @@ namespace ComicReader.SDK.Common.Algorithm;
 
 public static class DiffUtils
 {
-    public static void UpdateCollection<T>(ObservableCollection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
+    public static void UpdateCollection<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
+    {
+        List<Modification> modifications = CalculateModifications(fromCollection, toCollection, comparer);
+        UpdateCollection(fromCollection, toCollection, modifications);
+    }
+
+    public static void UpdateCollection<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer, Action<T, T> updater)
+    {
+        Collection<bool> fromCollectionFlags = [];
+        for (int i = 0; i < fromCollection.Count; ++i)
+        {
+            fromCollectionFlags.Add(true);
+        }
+
+        Collection<bool> toCollectionFlags = [];
+        for (int i = 0; i < toCollection.Count; ++i)
+        {
+            toCollectionFlags.Add(false);
+        }
+
+        List<Modification> modifications = CalculateModifications(fromCollection, toCollection, comparer);
+        UpdateCollection(fromCollection, toCollection, modifications);
+        UpdateCollection(fromCollectionFlags, toCollectionFlags, modifications);
+        for (int i = 0; i < fromCollection.Count; ++i)
+        {
+            if (fromCollectionFlags[i])
+            {
+                updater(fromCollection[i], toCollection[i]);
+            }
+        }
+    }
+
+    public static void UpdateCollectionUsingME<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
+    {
+        List<Modification> modifications = UpdateCollectionUsingMinimumEditing(fromCollection, toCollection, comparer);
+        UpdateCollection(fromCollection, toCollection, modifications);
+    }
+
+    public static void UpdateCollectionUsingAF<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
+    {
+        List<Modification> modifications = UpdateCollectionUsingAddFirstMatch(fromCollection, toCollection, comparer);
+        UpdateCollection(fromCollection, toCollection, modifications);
+    }
+
+    public static void UpdateCollectionUsingDF<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
+    {
+        List<Modification> modifications = UpdateCollectionUsingDeleteFirstMatch(fromCollection, toCollection, comparer);
+        UpdateCollection(fromCollection, toCollection, modifications);
+    }
+
+    private static List<Modification> CalculateModifications<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
     {
         List<Modification> modifications;
         if (fromCollection.Count * toCollection.Count <= 65536)
@@ -20,28 +70,11 @@ public static class DiffUtils
             List<Modification> addFirstModifications = UpdateCollectionUsingAddFirstMatch(fromCollection, toCollection, comparer);
             modifications = deleteFirstModifications.Count <= addFirstModifications.Count ? deleteFirstModifications : addFirstModifications;
         }
-        UpdateCollection(fromCollection, toCollection, modifications);
+
+        return modifications;
     }
 
-    public static void UpdateCollectionUsingME<T>(ObservableCollection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
-    {
-        List<Modification> modifications = UpdateCollectionUsingMinimumEditing(fromCollection, toCollection, comparer);
-        UpdateCollection(fromCollection, toCollection, modifications);
-    }
-
-    public static void UpdateCollectionUsingAF<T>(ObservableCollection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
-    {
-        List<Modification> modifications = UpdateCollectionUsingAddFirstMatch(fromCollection, toCollection, comparer);
-        UpdateCollection(fromCollection, toCollection, modifications);
-    }
-
-    public static void UpdateCollectionUsingDF<T>(ObservableCollection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
-    {
-        List<Modification> modifications = UpdateCollectionUsingDeleteFirstMatch(fromCollection, toCollection, comparer);
-        UpdateCollection(fromCollection, toCollection, modifications);
-    }
-
-    private static void UpdateCollection<T>(ObservableCollection<T> fromCollection, IReadOnlyList<T> toCollection, List<Modification> modifications)
+    private static void UpdateCollection<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, List<Modification> modifications)
     {
         foreach (Modification modification in modifications)
         {

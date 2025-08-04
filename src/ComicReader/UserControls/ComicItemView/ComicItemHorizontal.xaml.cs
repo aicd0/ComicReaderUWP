@@ -22,7 +22,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
     private readonly CancellationSession _loadImageToken = new();
     private IComicItemViewHandler? _itemHandler;
 
-    public ComicItemViewModel? Ctx => DataContext as ComicItemViewModel;
     public ComicItemViewModel? Item { get; private set; }
 
     public ComicItemHorizontal()
@@ -65,9 +64,13 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         e.Handled = true;
     }
 
-    private void RootGrid_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+    private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        Bindings.Update();
+        ComicItemViewModel? item = Item;
+        if (item != null)
+        {
+            _itemHandler?.OnItemTapped(item);
+        }
     }
 
     public void Bind(ComicItemViewModel item, IComicItemViewHandler handler)
@@ -76,24 +79,20 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         {
             item.Image.ImageRequested = false;
             Item = item;
+            Bindings.Update();
         }
 
-        IComicItemViewHandler? oldHandler = _itemHandler;
-        if (oldHandler != null)
-        {
-            RootGrid.Tapped -= oldHandler.OnItemTapped;
-        }
         _itemHandler = handler;
-        RootGrid.Tapped += handler.OnItemTapped;
 
         BindImage(item);
         RequestImageIfNeeded(item);
 
-        List<MenuFlyoutItemBase> menuItems = ComicItemMenuFlyoutCreator.CreateMenuItems(item, new BaseComicItemMenuFlyoutHandler(item.Comic, handler));
+        List<BaseMenuFlyoutItemViewModel> menuItems = MenuFlyoutItemsCreator.CreateMenuItems(
+            item.Comic, new BaseComicItemMenuFlyoutHandler(item, handler), supportSelection: true);
         MenuFlyout menuFlyout = new();
-        foreach (MenuFlyoutItemBase menuItem in menuItems)
+        foreach (BaseMenuFlyoutItemViewModel menuItem in menuItems)
         {
-            menuFlyout.Items.Add(menuItem);
+            menuFlyout.Items.Add(menuItem.CreateMenuFlyoutItem());
         }
         RootGrid.ContextFlyout = menuFlyout;
     }

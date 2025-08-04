@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>Отмена</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>Категория</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Выберите, где мы ищем изображения</value>
   </data>
@@ -237,8 +240,8 @@
   <data name="Descending" xml:space="preserve">
     <value>По убыванию</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>Описание:</value>
+  <data name="Description" xml:space="preserve">
+    <value>Описание</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Читатель Комиксов UWP [Dev]</value>
@@ -473,7 +476,7 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Более</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>Имя</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -508,6 +511,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Откройте случайный комикс</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>Эта операция перезапишет существующие записи.</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>интервал</value>
@@ -581,14 +587,14 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>Справа налево</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранять</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Сохранить как конфигурации по умолчанию</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Сохранить как новый</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>Сохранять</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Сохранить историю просмотров</value>

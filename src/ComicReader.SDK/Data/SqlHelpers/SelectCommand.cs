@@ -17,9 +17,14 @@ public class SelectCommand
     private int _limit = 0;
     private bool _executed = false;
 
-    public SelectCommand(ITable table)
+    private SelectCommand(ITable table)
     {
         _table = table;
+    }
+
+    public static SelectCommand Create(ITable table)
+    {
+        return new(table);
     }
 
     public SelectCommand Distinct()
@@ -83,7 +88,7 @@ public class SelectCommand
         return this;
     }
 
-    public IReader Execute(SqlDatabase database)
+    public IReader Execute()
     {
         if (_executed)
         {
@@ -98,10 +103,10 @@ public class SelectCommand
 
         var tokens = new List<ITokenInternal>(_tokens.Values);
         CommandWrapper command = GenerateCommand(tokens);
-        return new Reader(command.ExecuteReader(database), tokens);
+        return new Reader(command.ExecuteReader(_table.GetDatabase()), tokens);
     }
 
-    public async Task<IReader> ExecuteAsync(SqlDatabase database)
+    public async Task<IReader> ExecuteAsync()
     {
         if (_executed)
         {
@@ -116,7 +121,7 @@ public class SelectCommand
 
         var tokens = new List<ITokenInternal>(_tokens.Values);
         CommandWrapper command = GenerateCommand(tokens);
-        return new Reader(await command.ExecuteReaderAsync(database), tokens);
+        return new Reader(await command.ExecuteReaderAsync(_table.GetDatabase()), tokens);
     }
 
     public override string ToString()

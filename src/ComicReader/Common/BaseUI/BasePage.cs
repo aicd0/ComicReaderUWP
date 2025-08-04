@@ -100,7 +100,7 @@ internal abstract class BasePage : Page
 
     protected IEventBus GetEventBus()
     {
-        return App.WindowManager.GetEventBus(WindowId)!;
+        return App.WindowManager.GetEventBus(WindowId);
     }
 
     protected bool CanHandleTapped()

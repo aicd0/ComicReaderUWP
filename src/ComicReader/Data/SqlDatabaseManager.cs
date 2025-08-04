@@ -1,7 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.IO;
 
 using ComicReader.Data.Tables;
@@ -17,36 +16,80 @@ public class SqlDatabaseManager
 
     private const string TAG = nameof(SqlDatabaseManager);
 
-    private static string DatabaseFolderPath => StorageLocation.GetLocalFolderPath();
-    private static string DatabaseFileName => "database.db";
-    private static string DatabasePath => Path.Combine(DatabaseFolderPath, DatabaseFileName);
+    private static string DatabaseFolderPath => Path.Combine(StorageLocation.LocalFolderPath, "database_sql");
 
-    private static volatile SqlDatabase? _mainDatabase = null;
+    private static bool _initialized = false;
 
-    public static SqlDatabase MainDatabase
-    {
-        get
-        {
-            return _mainDatabase ?? throw new InvalidOperationException("Main database is not initialized.");
-        }
-    }
+    private static SqlDatabase? _mainDatabase = null;
+    public static SqlDatabase MainDatabase => _mainDatabase!;
+
+    private static SqlDatabase? _tagInfoDatabase = null;
+    public static SqlDatabase TagInfoDatabase => _tagInfoDatabase!;
 
     public static void Initialize()
     {
-        if (_mainDatabase != null)
+        if (_initialized)
         {
             Logger.F(TAG, "Database is already initialized.");
             return;
         }
 
-        _mainDatabase = new SqlDatabase(DatabasePath);
+        string databasePath = DatabaseFolderPath;
+        if (!Directory.Exists(databasePath))
+        {
+            Directory.CreateDirectory(databasePath);
+        }
 
-        // Create tables.
+        InitializeMainDatabase();
+        InitializeTagInfoDatabase();
+        _initialized = true;
+    }
+
+    public static void UpdateDatabase(int databaseVersion)
+    {
+        string comicTable = ComicTable.Instance.GetTableName();
+        switch (databaseVersion)
+        {
+            case -1:
+            case 0:
+            case 1:
+                goto case DATABASE_VERSION;
+            case 2:
+                {
+                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN image_aspect_ratios");
+                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN cover_file_name");
+                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCoverCacheKey.Name} TEXT DEFAULT ''");
+                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnDescription.Name} TEXT DEFAULT ''");
+                }
+                goto case 3;
+            case 3:
+                {
+                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCompletionState.Name} INTEGER NOT NULL DEFAULT 0");
+                }
+                goto case 4;
+            case 4:
+                {
+                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnExt.Name} TEXT DEFAULT ''");
+                }
+                goto case DATABASE_VERSION;
+            case DATABASE_VERSION:
+                break;
+            default:
+                Logger.AssertNotReachHere("A39EA189ED8BB40B");
+                break;
+        }
+    }
+
+    private static void InitializeMainDatabase()
+    {
+        _mainDatabase?.Dispose();
+        _mainDatabase = new SqlDatabase(Path.Combine(DatabaseFolderPath, "main.db"));
+
         string comicTable = ComicTable.Instance.GetTableName();
         string tagCategoryTable = TagCategoryTable.Instance.GetTableName();
         string tagTable = TagTable.Instance.GetTableName();
 
-        ExecuteCommand("CREATE TABLE IF NOT EXISTS " + comicTable + " (" +
+        ExecuteCommand(MainDatabase, "CREATE TABLE IF NOT EXISTS " + comicTable + " (" +
             ComicTable.ColumnId.Name + " INTEGER PRIMARY KEY AUTOINCREMENT" +
             "," + ComicTable.ColumnType.Name + " INTEGER NOT NULL" +
             "," + ComicTable.ColumnLocation.Name + " TEXT NOT NULL" +
@@ -63,57 +106,36 @@ public class SqlDatabaseManager
             "," + ComicTable.ColumnExt.Name + " TEXT" +
             ")");
 
-        ExecuteCommand("CREATE TABLE IF NOT EXISTS " + tagCategoryTable + " (" +
+        ExecuteCommand(MainDatabase, "CREATE TABLE IF NOT EXISTS " + tagCategoryTable + " (" +
             TagCategoryTable.ColumnId.Name + " INTEGER PRIMARY KEY AUTOINCREMENT" +
             "," + TagCategoryTable.ColumnName.Name + " TEXT" +
             "," + TagCategoryTable.ColumnComicId.Name + " INTEGER REFERENCES " + comicTable + "(" + ComicTable.ColumnId.Name + ") ON DELETE CASCADE" +
             ")");
 
-        ExecuteCommand("CREATE TABLE IF NOT EXISTS " + tagTable + " (" +
+        ExecuteCommand(MainDatabase, "CREATE TABLE IF NOT EXISTS " + tagTable + " (" +
             TagTable.ColumnContent.Name + " TEXT" +
             "," + TagTable.ColumnComicId.Name + " INTEGER NOT NULL" +
             "," + TagTable.ColumnTagCategoryId.Name + " INTEGER REFERENCES " + tagCategoryTable + "(" + TagCategoryTable.ColumnId.Name + ") ON DELETE CASCADE" +
             ")");
     }
 
-    public static void UpdateDatabase(int databaseVersion)
+    private static void InitializeTagInfoDatabase()
     {
-        string tableName = ComicTable.Instance.GetTableName();
-        switch (databaseVersion)
-        {
-            case -1:
-            case 0:
-            case 1:
-                goto case DATABASE_VERSION;
-            case 2:
-                {
-                    ExecuteCommand($"ALTER TABLE {tableName} DROP COLUMN image_aspect_ratios");
-                    ExecuteCommand($"ALTER TABLE {tableName} DROP COLUMN cover_file_name");
-                    ExecuteCommand($"ALTER TABLE {tableName} ADD COLUMN {ComicTable.ColumnCoverCacheKey.Name} TEXT DEFAULT ''");
-                    ExecuteCommand($"ALTER TABLE {tableName} ADD COLUMN {ComicTable.ColumnDescription.Name} TEXT DEFAULT ''");
-                }
-                goto case 3;
-            case 3:
-                {
-                    ExecuteCommand($"ALTER TABLE {tableName} ADD COLUMN {ComicTable.ColumnCompletionState.Name} INTEGER NOT NULL DEFAULT 0");
-                }
-                goto case 4;
-            case 4:
-                {
-                    ExecuteCommand($"ALTER TABLE {tableName} ADD COLUMN {ComicTable.ColumnExt.Name} TEXT DEFAULT ''");
-                }
-                goto case DATABASE_VERSION;
-            case DATABASE_VERSION:
-                break;
-            default:
-                Logger.AssertNotReachHere("A39EA189ED8BB40B");
-                break;
-        }
+        _tagInfoDatabase?.Dispose();
+        _tagInfoDatabase = new SqlDatabase(Path.Combine(DatabaseFolderPath, "tag_info.db"));
+
+        string tagInfoTable = TagInfoTable.Instance.GetTableName();
+
+        ExecuteCommand(TagInfoDatabase, "CREATE TABLE IF NOT EXISTS " + tagInfoTable + " (" +
+            TagInfoTable.ColumnTagCategory.Name + " TEXT NOT NULL" +
+            "," + TagInfoTable.ColumnTag.Name + " TEXT NOT NULL" +
+            "," + TagInfoTable.ColumnExt.Name + " TEXT" +
+            ")");
     }
 
-    private static void ExecuteCommand(string commandText)
+    private static void ExecuteCommand(SqlDatabase database, string commandText)
     {
-        UnsafeCommand command = new(commandText);
-        command.Execute(MainDatabase);
+        UnsafeCommand.Create(commandText)
+            .Execute(database);
     }
 }

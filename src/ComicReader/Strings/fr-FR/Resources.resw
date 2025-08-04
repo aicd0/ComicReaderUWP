@@ -183,6 +183,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>Annuler</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>Catégorie</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Choisir où nous recherchons des images</value>
   </data>
@@ -237,8 +240,8 @@
   <data name="Descending" xml:space="preserve">
     <value>Descendant</value>
   </data>
-  <data name="DescriptionColon" xml:space="preserve">
-    <value>Description:</value>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Lecteur de Bandes Dessinées UWP [Dev]</value>
@@ -472,7 +475,7 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Plus</value>
   </data>
-  <data name="NameTextBlock.Text" xml:space="preserve">
+  <data name="Name" xml:space="preserve">
     <value>nom</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
@@ -507,6 +510,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Ouvrir une bande dessinée au hasard</value>
+  </data>
+  <data name="OverwriteExistingEntries" xml:space="preserve">
+    <value>Cette opération écrasera les entrées existantes.</value>
   </data>
   <data name="PageGap" xml:space="preserve">
     <value>Espacement</value>
@@ -580,14 +586,14 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>De droite à gauche</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>Sauvegarder</value>
+  </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Enregistrer comme configurations par défaut</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Enregistrer comme nouveau</value>
-  </data>
-  <data name="SaveButton.Content" xml:space="preserve">
-    <value>Sauvegarder</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Enregistrer l'historique de navigation</value>

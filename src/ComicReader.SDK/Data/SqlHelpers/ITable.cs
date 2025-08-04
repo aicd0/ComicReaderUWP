@@ -5,5 +5,7 @@ namespace ComicReader.SDK.Data.SqlHelpers;
 
 public interface ITable
 {
+    SqlDatabase GetDatabase();
+
     string GetTableName();
 }

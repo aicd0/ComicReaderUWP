@@ -428,7 +428,7 @@ internal static class ImageCacheManager
                 return cache;
             }
 
-            string cacheFolderPath = Path.Combine(StorageLocation.GetLocalCacheFolderPath(), CACHE_FOLDER);
+            string cacheFolderPath = Path.Combine(StorageLocation.LocalCacheFolderPath, CACHE_FOLDER);
             try
             {
                 Directory.CreateDirectory(cacheFolderPath);

@@ -50,19 +50,20 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
 
     public ICondition CreateInCondition(List<VariableOrValue> left, List<VariableOrValue> right)
     {
-        List<ColumnOrValue> rightValueLiterals = [];
+        List<object?> rightValueLiterals = [];
         List<IReadOnlyList<string>> rightPaths = [];
         foreach (VariableOrValue rightItem in right)
         {
             if (rightItem.Path is null)
             {
-                rightValueLiterals.Add(ColumnOrValue.FromValue(rightItem.Value));
+                rightValueLiterals.Add(rightItem.Value);
             }
             else
             {
                 rightPaths.Add(rightItem.Path);
             }
         }
+
         List<ICondition> conditions = [];
         foreach (VariableOrValue leftItem in left)
         {
@@ -72,6 +73,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
                 {
                     conditions.Add(new InCondition(ColumnOrValue.FromValue(leftItem.Value), rightValueLiterals));
                 }
+
                 foreach (IReadOnlyList<string> rightPath in rightPaths)
                 {
                     conditions.Add(CreateCondition(rightPath, (column) => new ComparisonCondition(ColumnOrValue.FromValue(leftItem.Value), ColumnOrValue.FromColumn(column), ToSQLComparisonType(ComparisonTypeEnum.Equal))));
@@ -83,12 +85,14 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
                 {
                     conditions.Add(CreateCondition(leftItem.Path, (column) => new InCondition(ColumnOrValue.FromColumn(column), rightValueLiterals)));
                 }
+
                 foreach (IReadOnlyList<string> rightPath in rightPaths)
                 {
                     conditions.Add(CreateCondition(leftItem.Path, rightPath));
                 }
             }
         }
+
         return new OrCondition(conditions);
     }
 
@@ -204,7 +208,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
 
     private static ICondition CreateTagCondition(ICondition condition)
     {
-        SelectCommand subquery = new(TagTable.Instance);
+        var subquery = SelectCommand.Create(TagTable.Instance);
         subquery.AppendCondition(condition);
         subquery.PutQueryInt64(TagTable.ColumnComicId);
         subquery.Distinct();
@@ -213,7 +217,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
 
     private static ICondition CreateTagCategoryCondition(string category)
     {
-        SelectCommand subquery = new(TagCategoryTable.Instance);
+        var subquery = SelectCommand.Create(TagCategoryTable.Instance);
         subquery.AppendCondition(TagCategoryTable.ColumnName, category);
         subquery.PutQueryInt64(TagCategoryTable.ColumnComicId);
         subquery.Distinct();
@@ -222,11 +226,11 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
 
     private static ICondition CreateTagInTagCategoryCondition(string category, ICondition condition)
     {
-        SelectCommand subquery1 = new(TagCategoryTable.Instance);
+        var subquery1 = SelectCommand.Create(TagCategoryTable.Instance);
         subquery1.AppendCondition(TagCategoryTable.ColumnName, category);
         subquery1.PutQueryInt64(TagCategoryTable.ColumnId);
         subquery1.Distinct();
-        SelectCommand subquery2 = new(TagTable.Instance);
+        var subquery2 = SelectCommand.Create(TagTable.Instance);
         subquery2.AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subquery1));
         subquery2.AppendCondition(condition);
         subquery2.PutQueryInt64(TagTable.ColumnComicId);

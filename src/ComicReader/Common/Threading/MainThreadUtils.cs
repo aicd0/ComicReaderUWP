@@ -4,14 +4,22 @@
 using System;
 using System.Threading.Tasks;
 
+using ComicReader.Common.Test;
+
 using Microsoft.UI.Dispatching;
 
 namespace ComicReader.Common.Threading;
 
-internal class MainThreadUtils
+public static class MainThreadUtils
 {
     public static Task RunInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
+        if (TestSettings.UseCurrentThreadAsMainThread)
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
         DispatcherQueue? dispatcher = GetMainThreadDispatcher();
         if (dispatcher == null)
         {
@@ -32,7 +40,7 @@ internal class MainThreadUtils
         }
 
         var taskCompletionSource = new TaskCompletionSource<object?>();
-        if (!dispatcher.TryEnqueue(priority, delegate
+        bool success = dispatcher.TryEnqueue(priority, delegate
         {
             try
             {
@@ -43,15 +51,23 @@ internal class MainThreadUtils
             {
                 taskCompletionSource.SetException(e);
             }
-        }))
+        });
+
+        if (!success)
         {
             taskCompletionSource.SetException(new InvalidOperationException("Failed to enqueue the operation"));
         }
+
         return taskCompletionSource.Task;
     }
 
     public static Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
+        if (TestSettings.UseCurrentThreadAsMainThread)
+        {
+            return action();
+        }
+
         DispatcherQueue? dispatcher = GetMainThreadDispatcher();
         if (dispatcher == null)
         {
@@ -71,7 +87,7 @@ internal class MainThreadUtils
         }
 
         var taskCompletionSource = new TaskCompletionSource<object?>();
-        if (!dispatcher.TryEnqueue(priority, async delegate
+        bool success = dispatcher.TryEnqueue(priority, async delegate
         {
             try
             {
@@ -82,15 +98,23 @@ internal class MainThreadUtils
             {
                 taskCompletionSource.SetException(e);
             }
-        }))
+        });
+
+        if (!success)
         {
             taskCompletionSource.SetException(new InvalidOperationException("Failed to enqueue the operation"));
         }
+
         return taskCompletionSource.Task;
     }
 
     public static Task PostInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
+        if (TestSettings.UseCurrentThreadAsMainThread)
+        {
+            return action();
+        }
+
         DispatcherQueue? dispatcher = GetMainThreadDispatcher();
         if (dispatcher == null)
         {
@@ -98,7 +122,7 @@ internal class MainThreadUtils
         }
 
         var taskCompletionSource = new TaskCompletionSource<object?>();
-        if (!dispatcher.TryEnqueue(priority, async delegate
+        bool success = dispatcher.TryEnqueue(priority, async delegate
         {
             try
             {
@@ -109,20 +133,29 @@ internal class MainThreadUtils
             {
                 taskCompletionSource.SetException(e);
             }
-        }))
+        });
+
+        if (!success)
         {
             taskCompletionSource.SetException(new InvalidOperationException("Failed to enqueue the operation"));
         }
+
         return taskCompletionSource.Task;
     }
 
     public static bool IsMainThread()
     {
+        if (TestSettings.UseCurrentThreadAsMainThread)
+        {
+            return true;
+        }
+
         DispatcherQueue? queue = GetMainThreadDispatcher();
         if (queue == null)
         {
             return false;
         }
+
         return queue.HasThreadAccess;
     }
 
@@ -133,6 +166,7 @@ internal class MainThreadUtils
         {
             return null;
         }
+
         return window.DispatcherQueue;
     }
 }

@@ -11,14 +11,14 @@ public static class StorageLocation
 {
     private const string DIR_USER = "user";
 
-    private static readonly Lazy<bool> Portable = new(() =>
+    private static readonly Lazy<bool> _portable = new(() =>
     {
         return ServiceManager.GetService<IApplicationService>().IsPortableBuild();
-    }, true);
+    });
 
-    public static string GetLocalFolderPath()
+    private static readonly Lazy<string> _localFolderPath = new(() =>
     {
-        if (Portable.Value)
+        if (_portable.Value)
         {
             return Path.Combine(GetDeploymentPath(), DIR_USER, "local");
         }
@@ -26,11 +26,11 @@ public static class StorageLocation
         {
             return ApplicationData.Current.LocalFolder.Path;
         }
-    }
+    });
 
-    public static string GetLocalCacheFolderPath()
+    private static readonly Lazy<string> _localCacheFolderPath = new(() =>
     {
-        if (Portable.Value)
+        if (_portable.Value)
         {
             return Path.Combine(GetDeploymentPath(), DIR_USER, "local_cache");
         }
@@ -38,11 +38,11 @@ public static class StorageLocation
         {
             return ApplicationData.Current.LocalCacheFolder.Path;
         }
-    }
+    });
 
-    public static string GetTemporaryFolderPath()
+    private static readonly Lazy<string> _temporaryFolderPath = new(() =>
     {
-        if (Portable.Value)
+        if (_portable.Value)
         {
             return Path.Combine(GetDeploymentPath(), DIR_USER, "temporary");
         }
@@ -50,7 +50,11 @@ public static class StorageLocation
         {
             return ApplicationData.Current.TemporaryFolder.Path;
         }
-    }
+    });
+
+    public static string LocalFolderPath => _localFolderPath.Value;
+    public static string LocalCacheFolderPath => _localCacheFolderPath.Value;
+    public static string TemporaryFolderPath => _temporaryFolderPath.Value;
 
     private static string GetDeploymentPath()
     {

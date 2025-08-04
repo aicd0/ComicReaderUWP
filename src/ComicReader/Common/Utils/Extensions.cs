@@ -7,13 +7,14 @@ using System;
 using System.Collections.Generic;
 
 using ComicReader.Common.Legacy;
+using ComicReader.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
 namespace ComicReader.Common.Utils;
 
-internal static class Extensions
+public static class Extensions
 {
     public static bool Successful(this TaskException r)
     {
@@ -52,5 +53,27 @@ internal static class Extensions
         }
 
         return null;
+    }
+
+    public static void Observe<T>(this ILiveData<T> liveData, FrameworkElement owner, Action<T> observer)
+    {
+        var wrapper = new Observer<T>(observer);
+        liveData.Observe(owner, wrapper);
+    }
+
+    public static void ObserveSticky<T>(this ILiveData<T> liveData, FrameworkElement owner, Action<T> observer)
+    {
+        var wrapper = new Observer<T>(observer);
+        liveData.ObserveSticky(owner, wrapper);
+    }
+
+    private class Observer<U>(Action<U> action) : Lifecycle.IObserver<U>
+    {
+        private readonly Action<U> _action = action;
+
+        public void OnChanged(U value)
+        {
+            _action(value);
+        }
     }
 }

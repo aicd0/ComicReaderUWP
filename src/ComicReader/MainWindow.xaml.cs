@@ -16,7 +16,7 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Native;
-using ComicReader.Views.Main;
+using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;

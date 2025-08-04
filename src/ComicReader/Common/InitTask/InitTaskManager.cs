@@ -64,13 +64,14 @@ internal class InitTaskManager(Application application)
         // Initialize logger
         Logger.Initialize();
 
-        // Initialize databases
+        // Initialize database
+        DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
         XmlDatabaseManager.Initialize();
         SqlDatabaseManager.Initialize();
-        DatabaseUpgradeManager.Instance.UpgradeDatabase();
+        DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
 
         // Update comic library
-        ComicModel.UpdateAllComics("DatabaseManager#init");
+        ComicModel.UpdateAllComics("InitOnAppLaunchInternal");
     }
 
     private void InitializeAppTheme()

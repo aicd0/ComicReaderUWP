@@ -1,73 +1,65 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
-
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Input;
+using ComicReader.ViewModels;
 
 namespace ComicReader.UserControls.ComicItemView;
 
-internal class BaseComicItemMenuFlyoutHandler(ComicModel comic, IComicItemViewHandler handler) : IComicItemMenuFlyoutHandler
+internal class BaseComicItemMenuFlyoutHandler(ComicItemViewModel item, IComicItemViewHandler handler) : IComicItemMenuFlyoutHandler
 {
-    void IComicItemMenuFlyoutHandler.OnAddToFavoritesClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnAddToFavoritesClicked()
     {
-        handler.OnAddToFavoritesClicked(sender, e);
+        handler.OnAddToFavoritesClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnEditClick(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnEditClick()
     {
-        handler.OnEditClick(sender, e);
+        handler.OnEditClick(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnHideClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnHideClicked()
     {
-        handler.OnHideClicked(sender, e);
+        handler.OnHideClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnItemTapped(object sender, TappedRoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnMarkAsReadClicked()
     {
-        handler.OnItemTapped(sender, e);
+        handler.OnMarkAsReadClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnMarkAsReadClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnMarkAsReadingClicked()
     {
-        handler.OnMarkAsReadClicked(sender, e);
+        handler.OnMarkAsReadingClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnMarkAsReadingClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnMarkAsUnreadClicked()
     {
-        handler.OnMarkAsReadingClicked(sender, e);
+        handler.OnMarkAsUnreadClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnMarkAsUnreadClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()
     {
-        handler.OnMarkAsUnreadClicked(sender, e);
+        handler.OnOpenInNewTabClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnRemoveFromFavoritesClicked()
     {
-        handler.OnOpenInNewTabClicked(sender, e);
+        handler.OnRemoveFromFavoritesClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnRemoveFromFavoritesClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnSelectClicked()
     {
-        handler.OnRemoveFromFavoritesClicked(sender, e);
+        handler.OnSelectClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnSelectClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnUnhideClicked()
     {
-        handler.OnSelectClicked(sender, e);
+        handler.OnUnhideClicked(item);
     }
 
-    void IComicItemMenuFlyoutHandler.OnUnhideClicked(object sender, RoutedEventArgs e)
+    void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
     {
-        handler.OnUnhideClicked(sender, e);
-    }
-
-    void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked(object sender, RoutedEventArgs e)
-    {
-        comic.ShowInFileExplorer();
+        item.Comic.ShowInFileExplorer();
     }
 }

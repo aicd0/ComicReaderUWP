@@ -179,6 +179,7 @@ public class EnvironmentProvider
         Dictionary<string, string> tags = [];
         tags["version-name"] = GetVersionName();
         tags["portable"] = IsPortable() ? "true" : "false";
+        tags["user-device-id"] = Instance.GetDeviceId();
         return tags;
     }
 
