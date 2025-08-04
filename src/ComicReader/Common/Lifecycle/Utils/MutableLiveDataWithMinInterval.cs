@@ -10,32 +10,32 @@ using Microsoft.UI.Xaml;
 
 namespace ComicReader.Common.Lifecycle.Utils;
 
-internal class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval) : IMutableLiveData<T>
+public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval) : IMutableLiveData<T>
 {
     private readonly IMutableLiveData<T> _liveData = liveData;
     private readonly long _minInterval = minInterval;
 
-    void ILiveDataNoType.Clear()
+    public void Clear()
     {
         _liveData.Clear();
     }
 
-    void IMutableLiveData<T>.Emit(T value)
+    public void Emit(T value)
     {
         _liveData.Emit(value);
     }
 
-    T? ILiveData<T>.GetValue()
+    public T? GetValue()
     {
         return _liveData.GetValue();
     }
 
-    void ILiveData<T>.Observe(FrameworkElement owner, IObserver<T> observer)
+    public void Observe(FrameworkElement owner, IObserver<T> observer)
     {
         _liveData.Observe(owner, new ObserverWrapper<T>(observer, _minInterval));
     }
 
-    void ILiveData<T>.ObserveSticky(FrameworkElement owner, IObserver<T> observer)
+    public void ObserveSticky(FrameworkElement owner, IObserver<T> observer)
     {
         _liveData.ObserveSticky(owner, new ObserverWrapper<T>(observer, _minInterval));
     }

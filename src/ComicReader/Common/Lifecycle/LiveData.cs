@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 
+using ComicReader.Common.Test;
 using ComicReader.Common.Threading;
 using ComicReader.SDK.Common.DebugTools;
 
@@ -53,6 +54,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         {
             wrapper.Remove();
         }
+
         _clearing = false;
     }
 
@@ -66,34 +68,42 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         });
     }
 
-    private void ObserveInternal(FrameworkElement owner, IObserver<T> observer, bool sticky)
+    private void ObserveInternal(FrameworkElement? owner, IObserver<T> observer, bool sticky)
     {
         if (_clearing)
         {
             return;
         }
 
-        if (owner == null || observer == null)
+        if (owner == null && TestSettings.LiveDataAllowObserveForever)
         {
-            Logger.AssertNotReachHere("3CC47B4DD23EFA9E");
-            return;
+            _observers[observer] = new ForeverObserverWrapper(this, observer);
         }
-
-        if (!owner.IsLoaded)
+        else
         {
-            return;
-        }
-
-        if (_observers.TryGetValue(observer, out ObserverWrapper? wrapper))
-        {
-            if (wrapper.IsSameOwner(owner))
+            if (owner == null || observer == null)
             {
-                Logger.AssertNotReachHere("4EC4F8B92CAAE0D0");
+                Logger.AssertNotReachHere("3CC47B4DD23EFA9E");
+                return;
             }
-            return;
-        }
 
-        _observers[observer] = new ObserverWrapper(this, owner, observer);
+            if (!owner.IsLoaded)
+            {
+                return;
+            }
+
+            if (_observers.TryGetValue(observer, out ObserverWrapper? wrapper))
+            {
+                if (wrapper.IsSameOwner(owner))
+                {
+                    Logger.AssertNotReachHere("4EC4F8B92CAAE0D0");
+                }
+
+                return;
+            }
+
+            _observers[observer] = new LifecycleObserverWrapper(this, owner, observer);
+        }
 
         if (sticky && _version > 0)
         {
@@ -138,13 +148,20 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         observer.OnChanged(value);
     }
 
-    private class ObserverWrapper
+    private abstract class ObserverWrapper
+    {
+        public abstract bool IsSameOwner(FrameworkElement owner);
+
+        public abstract void Remove();
+    }
+
+    private class LifecycleObserverWrapper : ObserverWrapper
     {
         private readonly LiveData<T> _liveData;
         private readonly FrameworkElement _owner;
         private readonly IObserver<T> _observer;
 
-        public ObserverWrapper(LiveData<T> liveData, FrameworkElement owner, IObserver<T> observer)
+        public LifecycleObserverWrapper(LiveData<T> liveData, FrameworkElement owner, IObserver<T> observer)
         {
             _liveData = liveData;
             _owner = owner;
@@ -153,12 +170,12 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
             _owner.Unloaded += UnloadedHandler;
         }
 
-        public bool IsSameOwner(FrameworkElement owner)
+        public override bool IsSameOwner(FrameworkElement owner)
         {
             return _owner == owner;
         }
 
-        public void Remove()
+        public override void Remove()
         {
             _liveData._observers.Remove(_observer);
             _owner.Unloaded -= UnloadedHandler;
@@ -172,6 +189,22 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
             }
 
             Remove();
+        }
+    }
+
+    private class ForeverObserverWrapper(LiveData<T> liveData, IObserver<T> observer) : ObserverWrapper
+    {
+        private readonly LiveData<T> _liveData = liveData;
+        private readonly IObserver<T> _observer = observer;
+
+        public override bool IsSameOwner(FrameworkElement owner)
+        {
+            return false;
+        }
+
+        public override void Remove()
+        {
+            _liveData._observers.Remove(_observer);
         }
     }
 }

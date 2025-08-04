@@ -14,7 +14,7 @@ using Microsoft.UI.Xaml.Media;
 
 namespace ComicReader.Common.Utils;
 
-internal static class Extensions
+public static class Extensions
 {
     public static bool Successful(this TaskException r)
     {
