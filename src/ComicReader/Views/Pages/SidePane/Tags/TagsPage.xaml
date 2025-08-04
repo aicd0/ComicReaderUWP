@@ -73,11 +73,10 @@
 
     <Grid>
         <TextBlock
-            x:Name="NoContentTextBlock"
             Margin="0,10"
             HorizontalAlignment="Center"
             FontWeight="SemiBold"
-            Text="{x:Bind StringResource.NoResults}"
+            Text="{x:Bind StringResource.NoTagsHint}"
             Visibility="{x:Bind ViewModel.NoTagsVisible, Mode=OneWay}" />
         <muxc:TreeView
             ItemInvoked="TreeView_ItemInvoked"

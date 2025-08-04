@@ -11,11 +11,14 @@
 
     <Page.Resources>
         <ResourceDictionary>
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/ListViewHeaderItem.xaml" />
                 <ResourceDictionary Source="/Styles/ListViewItem.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
             <CollectionViewSource x:Name="HistorySource" IsSourceGrouped="True" />
+
         </ResourceDictionary>
     </Page.Resources>
 
@@ -95,4 +98,5 @@
             </ListView.GroupStyle>
         </ListView>
     </Grid>
+
 </base:BasePage>

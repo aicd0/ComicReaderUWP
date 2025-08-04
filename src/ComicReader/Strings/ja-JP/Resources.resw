@@ -499,6 +499,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="NoResultsDetail.Text" xml:space="preserve">
     <value>別のキーワードで検索してみてください</value>
   </data>
+  <data name="NoTagsHint" xml:space="preserve">
+    <value>タグはここに表示されます</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>なし</value>
   </data>

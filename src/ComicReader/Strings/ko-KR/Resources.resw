@@ -500,6 +500,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="NoResultsDetail.Text" xml:space="preserve">
     <value>다른 키워드로 검색해보세요</value>
   </data>
+  <data name="NoTagsHint" xml:space="preserve">
+    <value>귀하의 태그가 여기에 표시됩니다</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>없음</value>
   </data>

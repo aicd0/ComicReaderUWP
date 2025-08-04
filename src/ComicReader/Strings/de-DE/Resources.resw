@@ -499,6 +499,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="NoResultsDetail.Text" xml:space="preserve">
     <value>Versuchen Sie die Suche mit anderen Schlüsselwörtern</value>
   </data>
+  <data name="NoTagsHint" xml:space="preserve">
+    <value>Ihre Tags werden hier angezeigt</value>
+  </data>
   <data name="None" xml:space="preserve">
     <value>Keiner</value>
   </data>
