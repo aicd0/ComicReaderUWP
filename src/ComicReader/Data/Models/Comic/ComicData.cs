@@ -34,9 +34,6 @@ internal abstract class ComicData
     // Static Variables
     //
 
-    private static readonly MutableLiveData<bool> _libraryUpdated = new(false);
-    public static LiveData<bool> LibraryUpdated => _libraryUpdated;
-
     private static readonly MutableLiveData<bool> _isScanningLibrary = new(false);
     public static LiveData<bool> IsScanningLibrary => _isScanningLibrary;
 
@@ -772,7 +769,7 @@ internal abstract class ComicData
                 _isScanningLibrary.Emit(false);
             }
 
-            _libraryUpdated.Emit(true);
+            DispatchComicUpdateEvent();
         });
     }
 
@@ -1039,7 +1036,7 @@ internal abstract class ComicData
 
                 if (watch.LapSpan().TotalSeconds > 2)
                 {
-                    _libraryUpdated.Emit(true);
+                    DispatchComicUpdateEvent();
                     watch.Lap();
                 }
             }
@@ -1086,6 +1083,15 @@ internal abstract class ComicData
     private RequestOption CreateRequestOption()
     {
         return new(!IsExternal);
+    }
+
+    //
+    // Utilities
+    //
+
+    private static void DispatchComicUpdateEvent()
+    {
+        GlobalEvent.Instance.ComicUpdated.Emit(0);
     }
 
     //
