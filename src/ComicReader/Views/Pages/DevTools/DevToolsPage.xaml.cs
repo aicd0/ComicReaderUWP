@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
+using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
 using ComicReader.Data.Models.Comic;
@@ -29,6 +30,8 @@ internal sealed partial class DevToolsPage : BasePage
     public DevToolsPage()
     {
         InitializeComponent();
+
+        Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
     //

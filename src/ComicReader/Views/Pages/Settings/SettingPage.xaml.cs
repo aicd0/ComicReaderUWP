@@ -27,6 +27,8 @@ internal sealed partial class SettingPage : BasePage
     public SettingPage()
     {
         InitializeComponent();
+
+        Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
     //
