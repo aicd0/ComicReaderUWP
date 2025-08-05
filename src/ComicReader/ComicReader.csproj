@@ -57,16 +57,16 @@
   </PropertyGroup>
 	
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Debug|true'">
-    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP;$(Platform)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Debug|false'">
-    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE;$(Platform)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Release|true'">
-    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;$(Platform)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Release|false'">
-    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE</DefineConstants>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE;$(Platform)</DefineConstants>
   </PropertyGroup>
 
   <Target Name="CopyNativeMethods" BeforeTargets="BeforeBuild">

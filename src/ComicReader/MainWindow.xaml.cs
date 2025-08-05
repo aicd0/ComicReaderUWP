@@ -176,7 +176,11 @@ public sealed partial class MainWindow : Window
         var wndProcDelegate = new Windows.Win32.UI.WindowsAndMessaging.WNDPROC(MessageLoopProc);
         Members._wndProcDelegate = wndProcDelegate;
         nint wndPrcPointer = Marshal.GetFunctionPointerForDelegate(wndProcDelegate);
+#if x86
+        nint prevWndProc = PInvoke.SetWindowLong(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, (int)wndPrcPointer);
+#elif x64 || ARM64
         nint prevWndProc = PInvoke.SetWindowLongPtr(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, wndPrcPointer);
+#endif
         if (prevWndProc == IntPtr.Zero)
         {
             Logger.AssertNotReachHere("Failed to set window procedure.");
@@ -192,7 +196,11 @@ public sealed partial class MainWindow : Window
         {
             Windows.Win32.Foundation.HWND hwnd = new(WindowHandle.ToInt32());
             nint originProcPtr = Marshal.GetFunctionPointerForDelegate(Members._originProc);
+#if x86
+            PInvoke.SetWindowLong(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, (int)originProcPtr);
+#elif x64 || ARM64
             PInvoke.SetWindowLongPtr(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, originProcPtr);
+#endif
 
             Members._originProc = null;
             Members._wndProcDelegate = null;
