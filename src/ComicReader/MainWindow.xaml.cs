@@ -70,9 +70,7 @@ public sealed partial class MainWindow : Window
         if (DebugUtils.DeveloperMode)
         {
             RegisterMessageLoop();
-
-            Members._hotKeyManager = new(WindowId);
-            Members._hotKeyManager.RegisterHotKeys(WindowHandle);
+            HotKeyManager.Instance.RegisterHotKeys(WindowHandle);
         }
 
         Title = StringResourceProvider.Instance.AppDisplayName;
@@ -140,12 +138,28 @@ public sealed partial class MainWindow : Window
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
     {
+        // Close all tabs and dispatch page stopped event
         Members._mainPage!.CloseAllTabs();
         Members._mainWindowAbility.DispatchPageStoppedEvent();
+
+        // Unsubscribe window events
         UnsubscribeEvents();
+
+        // Unregister hotkeys and message loop
+        HotKeyManager.Instance.UnregisterHotKeys(WindowHandle);
         UnregisterMessageLoop();
+
+        // Unregister window from WindowManager
         App.WindowManager.UnregisterWindow(WindowId);
 
+        // Use another window to register hotkeys again
+        MainWindow? anyWindow = App.WindowManager.GetAnyWindow();
+        if (anyWindow != null)
+        {
+            HotKeyManager.Instance.RegisterHotKeys(anyWindow.WindowHandle);
+        }
+
+        // Dereference all members
         _members = null;
         PageFrame.Content = null;
         PageFrame = null;
@@ -153,7 +167,7 @@ public sealed partial class MainWindow : Window
     }
 
     //
-    // Win32
+    // Win32 Message Loop
     //
 
     private void RegisterMessageLoop()
@@ -193,7 +207,7 @@ public sealed partial class MainWindow : Window
         if (uMsg == WM_HOTKEY)
         {
             int hotkeyId = (int)wParam.Value;
-            if (Members._hotKeyManager != null && Members._hotKeyManager.HandleHotKey(hotkeyId))
+            if (HotKeyManager.Instance.HandleHotKey(hotkeyId))
             {
                 return (Windows.Win32.Foundation.LRESULT)IntPtr.Zero;
             }
@@ -359,7 +373,6 @@ public sealed partial class MainWindow : Window
         public string _url = string.Empty;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _originProc;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _wndProcDelegate;
-        public HotKeyManager? _hotKeyManager;
         public readonly MainWindowAbility _mainWindowAbility = new();
     }
 }

@@ -1,49 +1,93 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReader.Common.Constants;
+using System.Collections.Concurrent;
+using System.Threading;
+
+using ComicReader.Common.Lifecycle;
 using ComicReader.SDK.Common.DebugTools;
 
 using Windows.Win32;
 
 namespace ComicReader.Common;
 
-internal class HotKeyManager(int windowId)
+internal class HotKeyManager
 {
     private const string TAG = nameof(HotKeyManager);
-    private const int HOTKEY_ID_F11 = 1;
+
+    // https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+    private const uint VK_F10 = 0x79;
     private const uint VK_F11 = 0x7A;
 
-    private readonly int _windowId = windowId;
+    private const int HOTKEY_ID_F10 = 1;
+    private const int HOTKEY_ID_F11 = 2;
+
+    public static HotKeyManager Instance { get; } = new();
+
+    private int _isRegistered = 0;
+    private readonly ConcurrentDictionary<int, IMutableLiveData<object>> _hotKeyEvents = [];
+
+    private HotKeyManager() { }
 
     public void RegisterHotKeys(nint windowHandle)
     {
-        Windows.Win32.Foundation.HWND hwnd = new(windowHandle.ToInt32());
-        Windows.Win32.Foundation.BOOL success = PInvoke.RegisterHotKey(hwnd, HOTKEY_ID_F11, 0, VK_F11);
-        if (!success)
+        if (Interlocked.CompareExchange(ref _isRegistered, 1, 0) == 1)
         {
-            Logger.E(TAG, "Failed to register F11 hotkey.");
+            return;
         }
+
+        Windows.Win32.Foundation.HWND hwnd = new(windowHandle.ToInt32());
+        RegisterHotKey(hwnd, HOTKEY_ID_F10, 0, VK_F10, GlobalEvent.Instance.HotKeyF10);
+        RegisterHotKey(hwnd, HOTKEY_ID_F11, 0, VK_F11, GlobalEvent.Instance.HotKeyF11);
+    }
+
+    public void UnregisterHotKeys(nint windowHandle)
+    {
+        if (Interlocked.CompareExchange(ref _isRegistered, 0, 1) == 0)
+        {
+            return;
+        }
+
+        Windows.Win32.Foundation.HWND hwnd = new(windowHandle.ToInt32());
+        UnregisterHotKey(hwnd, HOTKEY_ID_F10);
+        UnregisterHotKey(hwnd, HOTKEY_ID_F11);
     }
 
     public bool HandleHotKey(int hotkeyId)
     {
-        bool handled = true;
-        switch (hotkeyId)
+        if (!_hotKeyEvents.TryGetValue(hotkeyId, out IMutableLiveData<object>? liveData))
         {
-            case HOTKEY_ID_F11:
-                DispatchHotKeyEvent(EventId.HotKeyF11);
-                break;
-            default:
-                handled = false;
-                break;
+            Logger.W(TAG, $"Unknown hotkey ID: {hotkeyId}");
+            return false;
         }
 
-        return handled;
+        liveData.Emit(0);
+        return true;
     }
 
-    private void DispatchHotKeyEvent(string eventName)
+    private void RegisterHotKey(Windows.Win32.Foundation.HWND hwnd, int id, Windows.Win32.UI.Input.KeyboardAndMouse.HOT_KEY_MODIFIERS modifiers, uint vk, IMutableLiveData<object> liveData)
     {
-        App.WindowManager.GetEventBus(_windowId).With(eventName).Emit(0);
+        Windows.Win32.Foundation.BOOL success = PInvoke.RegisterHotKey(hwnd, id, modifiers, vk);
+        if (success)
+        {
+            _hotKeyEvents[id] = liveData;
+        }
+        else
+        {
+            Logger.E(TAG, $"Failed to register hotkey ID {id}.");
+        }
+    }
+
+    private void UnregisterHotKey(Windows.Win32.Foundation.HWND hwnd, int id)
+    {
+        Windows.Win32.Foundation.BOOL success = PInvoke.UnregisterHotKey(hwnd, id);
+        if (success)
+        {
+            _hotKeyEvents.TryRemove(id, out _);
+        }
+        else
+        {
+            Logger.W(TAG, $"Failed to unregister hotkey ID {id}.");
+        }
     }
 }

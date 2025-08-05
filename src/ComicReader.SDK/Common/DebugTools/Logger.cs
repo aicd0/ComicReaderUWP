@@ -21,9 +21,6 @@ public static class Logger
     private const int LOG_INTERVAL = 5000;
 
     private static int sInitialized = 0;
-    private static bool sConsoleEnabled = false;
-    private static LogTag? sConsoleWhitelist = null;
-    private static bool sLogTreeEnabled = false;
     private static string sLogFolderPath = "";
     private static readonly ConcurrentQueue<LogItem> sBuffer = new();
     private static long sLastErrorReportTime = 0;
@@ -68,21 +65,6 @@ public static class Logger
         }
 
         sListeners = sListeners.Remove(listener);
-    }
-
-    public static void SetConsoleEnabled(bool enabled)
-    {
-        sConsoleEnabled = enabled;
-    }
-
-    public static void SetConsoleWhitelist(LogTag? tag)
-    {
-        sConsoleWhitelist = tag;
-    }
-
-    public static void SetLogTreeEnabled(bool enabled)
-    {
-        sLogTreeEnabled = enabled;
     }
 
     public static void Flush()
@@ -291,9 +273,9 @@ public static class Logger
             realMessage += "\n" + exception.ToString();
         }
 
-        if (sConsoleEnabled)
+        if (DebugSwitchModel.Instance.ConsoleEnabled)
         {
-            LogTag? consoleWhitelist = sConsoleWhitelist;
+            LogTag? consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
             if (consoleWhitelist == null || consoleWhitelist.ContainsAny(tag))
             {
                 LogToConsole(realMessage);
@@ -313,7 +295,7 @@ public static class Logger
 
         foreach (ILogListener listener in sListeners)
         {
-            listener.OnLog(realMessage);
+            listener.OnLog(level, tag, realMessage);
         }
     }
 
@@ -345,7 +327,7 @@ public static class Logger
 
         FlushToLogFile(logs);
 
-        if (sLogTreeEnabled)
+        if (DebugSwitchModel.Instance.LogTreeEnabled)
         {
             FlushToLogTree(logs);
         }
@@ -507,6 +489,6 @@ public static class Logger
 
     public interface ILogListener
     {
-        void OnLog(string message);
+        void OnLog(int level, LogTag tag, string message);
     }
 }

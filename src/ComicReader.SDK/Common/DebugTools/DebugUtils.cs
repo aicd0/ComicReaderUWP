@@ -102,14 +102,4 @@ public static class DebugUtils
         SentryManager.CaptureError(e);
         CrashHandler.OnUnhandledException(e);
     }
-
-    public static string GetConfigAsJson()
-    {
-        return DebugSwitchModel.Instance.SerializeToJson();
-    }
-
-    public static void SaveConfigFromJson(string json)
-    {
-        DebugSwitchModel.Instance.SaveConfig(json);
-    }
 }

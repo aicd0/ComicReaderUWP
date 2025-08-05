@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Common.Lifecycle;
@@ -152,6 +153,16 @@ internal sealed partial class MainPage : BasePage
 
     private void ObserveData()
     {
+        GlobalEvent.Instance.HotKeyF10.Observe(this, delegate
+        {
+            ViewModel.StartOrPauseLog();
+        });
+
+        GlobalEvent.Instance.HotKeyF11.Observe(this, delegate
+        {
+            ViewModel.ToggleLogVisibility();
+        });
+
         GetEventBus().With<double>(EventId.RootTabHeightChange).ObserveSticky(this, delegate (double h)
         {
             _rootTabHeight = h;
@@ -175,11 +186,6 @@ internal sealed partial class MainPage : BasePage
         });
 
         GetEventBus().With<int>(EventId.CloseTab).Observe(this, CloseTab);
-
-        GetEventBus().With(EventId.HotKeyF11).Observe(this, delegate
-        {
-            ViewModel.NextLogType();
-        });
     }
 
     //

@@ -204,8 +204,8 @@
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="vm:LogItemViewModel">
-                    <Grid HorizontalAlignment="Left" Background="#50000000">
-                        <TextBlock Foreground="#A0FFFFFF" Text="{x:Bind Text}" />
+                    <Grid HorizontalAlignment="Left" Background="#90000000">
+                        <TextBlock Foreground="#B0FFFFFF" Text="{x:Bind Text}" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

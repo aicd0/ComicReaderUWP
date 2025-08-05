@@ -242,6 +242,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         void UpdateItem(TagNodeViewModel from, TagNodeViewModel to)
         {
             from.Glyph = to.Glyph;
+            from.Description = to.Description;
             from.CanExpand = to.CanExpand;
             from.OnClick = to.OnClick;
             from.MenuFlyoutItems = to.MenuFlyoutItems;

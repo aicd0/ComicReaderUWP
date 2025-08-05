@@ -30,7 +30,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
     }
 
     private readonly LogListener _logListener;
-    private string _logType = string.Empty;
+    private bool _logStarted = false;
 
     public MainPageViewModel()
     {
@@ -39,8 +39,8 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     public void OnStart()
     {
-        string logType = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_TYPE, "");
-        SetLogType(logType);
+        SetLogVisibility(KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, false));
+        SetLogStarted(KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_STARTED, true));
     }
 
     public void OnStop()
@@ -48,44 +48,55 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         Logger.RemoveListener(_logListener);
     }
 
-    public void NextLogType()
+    public void StartOrPauseLog()
     {
-        SetLogType(IsLogVisible ? "" : "default");
+        SetLogStarted(!_logStarted);
     }
 
-    private void SetLogType(string logType)
+    public void ToggleLogVisibility()
     {
-        bool isVisible = logType switch
-        {
-            "default" => true,
-            _ => false,
-        };
+        SetLogVisibility(!_isLogVisible);
+    }
 
-        if (isVisible && !DebugUtils.DeveloperMode)
-        {
-            return;
-        }
-
-        if (_logType == logType)
+    private void SetLogStarted(bool started)
+    {
+        if (started && !DebugUtils.DeveloperMode)
         {
             return;
         }
 
-        if (IsLogVisible != isVisible)
+        if (started == _logStarted)
         {
-            IsLogVisible = isVisible;
-            if (isVisible)
-            {
-                Logger.AddListener(_logListener);
-            }
-            else
-            {
-                Logger.RemoveListener(_logListener);
-            }
+            return;
         }
 
-        _logType = logType;
-        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_TYPE, logType);
+        _logStarted = started;
+        if (started)
+        {
+            Logger.AddListener(_logListener);
+        }
+        else
+        {
+            Logger.RemoveListener(_logListener);
+        }
+
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_STARTED, started);
+    }
+
+    private void SetLogVisibility(bool visible)
+    {
+        if (visible && !DebugUtils.DeveloperMode)
+        {
+            return;
+        }
+
+        if (_isLogVisible == visible)
+        {
+            return;
+        }
+
+        IsLogVisible = visible;
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, visible);
     }
 
     private void AppendLog(string message)
@@ -107,8 +118,17 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     private class LogListener(MainPageViewModel viewModel) : Logger.ILogListener
     {
-        void Logger.ILogListener.OnLog(string message)
+        void Logger.ILogListener.OnLog(int level, LogTag tag, string message)
         {
+            if (level <= 2)
+            {
+                LogTag? consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
+                if (consoleWhitelist != null && !consoleWhitelist.ContainsAny(tag))
+                {
+                    return;
+                }
+            }
+
             viewModel.AppendLog(message);
         }
     }

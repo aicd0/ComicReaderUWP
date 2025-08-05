@@ -81,7 +81,7 @@ internal sealed partial class DevToolsPage : BasePage
         string configs = TbCommonConfigs.Text;
         try
         {
-            DebugUtils.SaveConfigFromJson(configs);
+            DebugSwitchModel.Instance.SaveConfigFromJson(configs);
         }
         catch (Exception ex)
         {
@@ -193,7 +193,7 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void RestoreConfig()
     {
-        TbCommonConfigs.Text = DebugUtils.GetConfigAsJson();
+        TbCommonConfigs.Text = DebugSwitchModel.Instance.GetConfigAsJson();
         DeveloperModeToggleSwitch.IsOn = DebugUtils.DeveloperMode;
         SentryToggleSwitch.IsOn = DebugUtils.SentryEnabled;
     }

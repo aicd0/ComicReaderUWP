@@ -10,5 +10,4 @@ internal class EventId
     public const string TitleBarHeightChange = "TitleBarHeightChange";
     public const string TitleBarOpacity = "TitleBarOpacity";
     public const string CloseTab = "CloseTab";
-    public const string HotKeyF11 = "HotKeyF11";
 }
