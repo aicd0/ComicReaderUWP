@@ -227,7 +227,7 @@
                 Margin="0,0,-2,0"
                 DisplayMode="Overlay"
                 OpenPaneLength="380"
-                PaneBackground="{ThemeResource SidePaneBackground}"
+                PaneBackground="{ThemeResource FlyoutPresenterBackground}"
                 PanePlacement="Right">
                 <SplitView.Pane>
                     <Grid SizeChanged="NavigationPageSidePane_SizeChanged">

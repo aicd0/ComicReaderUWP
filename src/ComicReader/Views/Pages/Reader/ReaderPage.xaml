@@ -75,7 +75,7 @@
                 Padding="20,0,20,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
-                Background="{ThemeResource ReaderBottomTileBackground}"
+                Background="{ThemeResource FlyoutPresenterBackground}"
                 BorderThickness="0"
                 CornerRadius="24"
                 Opacity="0"
@@ -164,7 +164,7 @@
                 Grid.Row="1"
                 Margin="0,0,-2,0"
                 DisplayMode="Overlay"
-                PaneBackground="{ThemeResource SidePaneBackground}"
+                PaneBackground="{ThemeResource FlyoutPresenterBackground}"
                 PanePlacement="Right">
 
                 <!--  Information Pane  -->

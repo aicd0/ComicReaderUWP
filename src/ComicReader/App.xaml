@@ -29,17 +29,6 @@
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#000000" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#60FFFFFF" />
                             <SolidColorBrush x:Key="HomeHeaderBackground" Color="#282828" />
-                            <muxm:AcrylicBrush
-                                x:Key="ReaderBottomTileBackground"
-                                TintColor="MidnightBlue"
-                                TintLuminosityOpacity="0.6"
-                                TintOpacity="0.0" />
-                            <SolidColorBrush x:Key="ReaderBottomTileButtonFillForeground" Color="{ThemeResource SystemAccentColorLight2}" />
-                            <muxm:AcrylicBrush
-                                x:Key="SidePaneBackground"
-                                TintColor="MidnightBlue"
-                                TintLuminosityOpacity="0.85"
-                                TintOpacity="0.0" />
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#000000" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#282828" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#505050" />
@@ -68,17 +57,6 @@
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#30000000" />
                             <SolidColorBrush x:Key="HomeHeaderBackground" Color="#FAF8FC" />
-                            <muxm:AcrylicBrush
-                                x:Key="ReaderBottomTileBackground"
-                                TintColor="#FFFFFF"
-                                TintLuminosityOpacity="0.6"
-                                TintOpacity="0.0" />
-                            <SolidColorBrush x:Key="ReaderBottomTileButtonFillForeground" Color="{ThemeResource SystemAccentColorDark1}" />
-                            <muxm:AcrylicBrush
-                                x:Key="SidePaneBackground"
-                                TintColor="#FFFFFF"
-                                TintLuminosityOpacity="0.85"
-                                TintOpacity="0.0" />
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#DADADA" />
@@ -107,9 +85,6 @@
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#000000" />
                             <SolidColorBrush x:Key="HomeHeaderBackground" Color="#FAF8FC" />
-                            <SolidColorBrush x:Key="ReaderBottomTileBackground" Color="#FFFFFF" />
-                            <SolidColorBrush x:Key="ReaderBottomTileButtonFillForeground" Color="{ThemeResource SystemAccentColorDark1}" />
-                            <SolidColorBrush x:Key="SidePaneBackground" Color="#FFFFFF" />
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#DADADA" />
