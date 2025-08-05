@@ -113,6 +113,11 @@ internal sealed partial class SettingPage : BasePage
         });
     }
 
+    private void BackgroundComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ViewModel.SetBackground(((ComboBox)sender).SelectedIndex);
+    }
+
     private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         ViewModel.SetAppLanguage(((ComboBox)sender).SelectedIndex);

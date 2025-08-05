@@ -151,6 +151,15 @@
                                     <RadioButton x:Uid="ThemeDark" IsChecked="{x:Bind ViewModel.AppearanceDarkChecked, Mode=TwoWay}" />
                                     <RadioButton x:Uid="ThemeUseSystemSetting" IsChecked="{x:Bind ViewModel.AppearanceUseSystemSettingChecked, Mode=TwoWay}" />
                                 </muxc:RadioButtons>
+                                <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind StringResource.Background}" />
+                                    <ComboBox
+                                        Margin="12,0,0,0"
+                                        DisplayMemberPath="Name"
+                                        ItemsSource="{x:Bind ViewModel.Backgrounds, Mode=OneWay}"
+                                        SelectedIndex="{x:Bind ViewModel.BackgroundIndex, Mode=OneWay}"
+                                        SelectionChanged="BackgroundComboBox_SelectionChanged" />
+                                </StackPanel>
                             </StackPanel>
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>

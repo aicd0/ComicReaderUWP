@@ -38,7 +38,6 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     private readonly ReaderWriterLock _lock = new();
     private readonly ITaskDispatcher _dispatcher = TaskDispatcher.DefaultQueue;
     private AppSettingsModel.ExternalModel? _settingsModel;
-    private AppSettingsModel.AppearanceSetting _initialAppearance = AppSettingsModel.AppearanceSetting.None;
     private bool _languageChanged = false;
 
     private List<Tuple<string, int>> _encodings = [];
@@ -77,6 +76,28 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             {
                 AppModel.DefaultArchiveCodePage = Encodings[selectedIndex].Item2;
             }
+        }
+    }
+
+    private List<BackgroundEntry> _backgrounds = [];
+    public List<BackgroundEntry> Backgrounds
+    {
+        get => _backgrounds;
+        set
+        {
+            _backgrounds = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Backgrounds)));
+        }
+    }
+
+    private int _backgroundIndex = 0;
+    public int BackgroundIndex
+    {
+        get => _backgroundIndex;
+        set
+        {
+            _backgroundIndex = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BackgroundIndex)));
         }
     }
 
@@ -158,6 +179,11 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         get => _appearanceLightChecked;
         set
         {
+            if (value == _appearanceLightChecked)
+            {
+                return;
+            }
+
             _appearanceLightChecked = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceLightChecked)));
 
@@ -174,6 +200,11 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         get => _appearanceDarkChecked;
         set
         {
+            if (value == _appearanceDarkChecked)
+            {
+                return;
+            }
+
             _appearanceDarkChecked = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceDarkChecked)));
 
@@ -190,6 +221,11 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         get => _appearanceUseSystemSettingChecked;
         set
         {
+            if (value == _appearanceUseSystemSettingChecked)
+            {
+                return;
+            }
+
             _appearanceUseSystemSettingChecked = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceUseSystemSettingChecked)));
 
@@ -306,18 +342,41 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         AppSettingsModel.Instance.UpdateModel(model);
     }
 
+    public void SetBackground(int index)
+    {
+        if (index == _backgroundIndex)
+        {
+            return;
+        }
+
+        if (index >= _backgrounds.Count)
+        {
+            Logger.F(TAG, "Background index out of bounds.");
+            return;
+        }
+
+        AppearanceChanged = true;
+        BackgroundEntry selectedBackground = _backgrounds[index];
+        _backgroundIndex = index;
+        AppSettingsModel.ExternalModel model = GetSettingsModel();
+        model.Background = selectedBackground.Value;
+        AppSettingsModel.Instance.UpdateModel(model);
+    }
+
     public void SetAppLanguage(int index)
     {
         if (index == _languageIndex)
         {
             return;
         }
-        if (index >= Languages.Count)
+
+        if (index >= _languages.Count)
         {
-            Logger.AssertNotReachHere("B1015E06897635CE");
+            Logger.F(TAG, "Language index out of bounds.");
             return;
         }
-        LanguageEntry selectedLanguage = Languages[index];
+
+        LanguageEntry selectedLanguage = _languages[index];
         _languageIndex = index;
         _languageChanged = true;
         UpdateLanguageDescription(selectedLanguage.Description);
@@ -341,8 +400,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     public void SetAppearance(AppSettingsModel.AppearanceSetting appearance)
     {
-        AppearanceChanged = appearance != _initialAppearance;
-
+        AppearanceChanged = true;
         AppSettingsModel.ExternalModel model = GetSettingsModel();
         model.Theme = appearance;
         AppSettingsModel.Instance.UpdateModel(model);
@@ -374,6 +432,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         UpdateReaderSettings();
         UpdateHistory(model);
         UpdateAppearance(model);
+        UpdateBackground(model);
         UpdateLanguage(model);
         UpdateStatistis();
         UpdateCacheSize();
@@ -431,6 +490,26 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             IsClearHistoryEnabled = hasHistory;
             RemoveUnreachableComics = removeUnreachableComics;
             HistorySaveBrowsingHistory = saveBrowsingHistory;
+        });
+    }
+
+    private void UpdateBackground(AppSettingsModel.ExternalModel model)
+    {
+        AppSettingsModel.AppBackgroundEnum background = model.Background;
+        List<BackgroundEntry> backgrounds = [
+            new(StringResourceProvider.Instance.None, AppSettingsModel.AppBackgroundEnum.None),
+            new(StringResourceProvider.Instance.BackgroundAcrylic, AppSettingsModel.AppBackgroundEnum.Acrylic)
+        ];
+        int backgroundIndex = backgrounds.FindIndex(x => x.Value == background);
+        if (backgroundIndex < 0)
+        {
+            backgroundIndex = 0;
+        }
+
+        MainThreadUtils.RunInMainThread(() =>
+        {
+            Backgrounds = backgrounds;
+            BackgroundIndex = backgroundIndex;
         });
     }
 
@@ -501,10 +580,13 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
         MainThreadUtils.RunInMainThread(() =>
         {
-            _initialAppearance = appearance;
-            AppearanceLightChecked = appearance == AppSettingsModel.AppearanceSetting.Light;
-            AppearanceDarkChecked = appearance == AppSettingsModel.AppearanceSetting.Dark;
-            AppearanceUseSystemSettingChecked = appearance == AppSettingsModel.AppearanceSetting.UseSystemSetting;
+            // Reset first to avoid triggering the change event
+            _appearanceLightChecked = appearance == AppSettingsModel.AppearanceSetting.Light;
+            AppearanceLightChecked = _appearanceLightChecked;
+            _appearanceDarkChecked = appearance == AppSettingsModel.AppearanceSetting.Dark;
+            AppearanceDarkChecked = _appearanceDarkChecked;
+            _appearanceUseSystemSettingChecked = appearance == AppSettingsModel.AppearanceSetting.UseSystemSetting;
+            AppearanceUseSystemSettingChecked = _appearanceUseSystemSettingChecked;
         });
     }
 
@@ -741,6 +823,12 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     //
     // Types
     //
+
+    public class BackgroundEntry(string name, AppSettingsModel.AppBackgroundEnum value)
+    {
+        public string Name { get; set; } = name;
+        public AppSettingsModel.AppBackgroundEnum Value { get; set; } = value;
+    }
 
     public class LanguageEntry(string name, string identifier, string description)
     {
