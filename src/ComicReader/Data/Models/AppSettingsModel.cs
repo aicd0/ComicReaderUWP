@@ -12,6 +12,9 @@ namespace ComicReader.Data.Models;
 
 public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 {
+    private const string APP_BACKGROUND_NONE = "None";
+    private const string APP_BACKGROUND_ACRYLIC = "Acrylic";
+
     public static readonly AppSettingsModel Instance = new();
 
     private AppSettingsModel() : base("settings.json") { }
@@ -94,6 +97,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         [JsonPropertyName("Theme")]
         public int? Theme { get; set; }
 
+        [JsonPropertyName("Background")]
+        public string? Background { get; set; }
+
         [JsonPropertyName("DefaultReaderSetting")]
         public ReaderSettingJsonModel? DefaultReaderSetting { get; set; }
     }
@@ -128,6 +134,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public bool RemoveUnreachableComics { get; set; }
         public string Language { get; set; } = "";
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
+        public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
         public ReaderSettingModel DefaultReaderSetting { get; set; } = new ReaderSettingModel();
 
         public static ExternalModel From(JsonModel model)
@@ -165,6 +172,12 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 externalModel.Theme = AppearanceSetting.UseSystemSetting;
             }
 
+            externalModel.Background = model.Background switch
+            {
+                APP_BACKGROUND_ACRYLIC => AppBackgroundEnum.Acrylic,
+                _ => AppBackgroundEnum.None,
+            };
+
             return externalModel;
         }
 
@@ -175,6 +188,12 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             model.Language = Language;
             model.Theme = (int)Theme;
             model.DefaultReaderSetting = DefaultReaderSetting.To();
+
+            model.Background = Background switch
+            {
+                AppBackgroundEnum.Acrylic => APP_BACKGROUND_ACRYLIC,
+                _ => APP_BACKGROUND_NONE,
+            };
         }
     }
 
@@ -232,5 +251,11 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         Dark,
         UseSystemSetting,
         None
+    }
+
+    public enum AppBackgroundEnum
+    {
+        None,
+        Acrylic,
     }
 }

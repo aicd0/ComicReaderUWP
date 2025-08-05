@@ -27,6 +27,8 @@ internal sealed partial class SettingPage : BasePage
     public SettingPage()
     {
         InitializeComponent();
+
+        Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
     //
@@ -111,6 +113,11 @@ internal sealed partial class SettingPage : BasePage
             var uri = new Uri(@"https://github.com/aicd0/ComicReader/issues/new/choose");
             await Windows.System.Launcher.LaunchUriAsync(uri);
         });
+    }
+
+    private void BackgroundComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ViewModel.SetBackground(((ComboBox)sender).SelectedIndex);
     }
 
     private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

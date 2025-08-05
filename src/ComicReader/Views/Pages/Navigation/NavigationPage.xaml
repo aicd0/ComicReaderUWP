@@ -10,7 +10,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:navigation="using:ComicReader.Views.Pages.Navigation"
     xmlns:reader="using:ComicReader.Views.Pages.Reader"
-    Background="{ThemeResource NavigationPageBackground}"
     mc:Ignorable="d">
 
     <Page.Resources>

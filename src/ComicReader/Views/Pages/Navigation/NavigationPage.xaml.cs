@@ -34,8 +34,11 @@ internal sealed partial class NavigationPage : BasePage
 
     public NavigationPage()
     {
-        InitializeComponent();
         _ability = new(this);
+
+        InitializeComponent();
+
+        Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
     //

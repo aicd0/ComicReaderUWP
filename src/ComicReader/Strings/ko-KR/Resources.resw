@@ -177,6 +177,12 @@
   <data name="Ascending" xml:space="preserve">
     <value>오름차순</value>
   </data>
+  <data name="Background" xml:space="preserve">
+    <value>배경</value>
+  </data>
+  <data name="BackgroundAcrylic" xml:space="preserve">
+    <value>아크릴</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>계산 중...</value>
   </data>

@@ -13,6 +13,7 @@
 
                     <ResourceDictionary.ThemeDictionaries>
                         <ResourceDictionary x:Key="Default">
+                            <SolidColorBrush x:Key="AppBackgroundNone" Color="#282828" />
                             <SolidColorBrush x:Key="ComicInfoSeparatorForeground" Color="#404040" />
                             <SolidColorBrush x:Key="ComicItemBackground" Color="#3A3A3A" />
                             <SolidColorBrush x:Key="ComicItemBackgroundPointerOver" Color="#3D3D3D" />
@@ -25,7 +26,6 @@
                             <SolidColorBrush x:Key="ImagePlaceHolderBackground" Color="#505050" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#505050" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#555555" />
-                            <SolidColorBrush x:Key="NavigationPageBackground" Color="#282828" />
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#000000" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#60FFFFFF" />
                             <SolidColorBrush x:Key="HomeHeaderBackground" Color="#282828" />
@@ -52,6 +52,7 @@
                             <SolidColorBrush x:Key="TipBackground" Color="#373737" />
                         </ResourceDictionary>
                         <ResourceDictionary x:Key="Light">
+                            <SolidColorBrush x:Key="AppBackgroundNone" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="ComicInfoSeparatorForeground" Color="#D0D0D0" />
                             <SolidColorBrush x:Key="ComicItemBackground" Color="#FDFDFD" />
                             <SolidColorBrush x:Key="ComicItemBackgroundPointerOver" Color="#F0F0F0" />
@@ -64,7 +65,6 @@
                             <SolidColorBrush x:Key="ImagePlaceHolderBackground" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#D0D0D0" />
-                            <SolidColorBrush x:Key="NavigationPageBackground" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#30000000" />
                             <SolidColorBrush x:Key="HomeHeaderBackground" Color="#FAF8FC" />
@@ -91,6 +91,7 @@
                             <SolidColorBrush x:Key="TipBackground" Color="#FFFFFF" />
                         </ResourceDictionary>
                         <ResourceDictionary x:Key="HighContrast">
+                            <SolidColorBrush x:Key="AppBackgroundNone" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="ComicInfoSeparatorForeground" Color="#D0D0D0" />
                             <SolidColorBrush x:Key="ComicItemBackground" Color="#FDFDFD" />
                             <SolidColorBrush x:Key="ComicItemBackgroundPointerOver" Color="#F0F0F0" />
@@ -103,7 +104,6 @@
                             <SolidColorBrush x:Key="ImagePlaceHolderBackground" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#505050" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#555555" />
-                            <SolidColorBrush x:Key="NavigationPageBackground" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#000000" />
                             <SolidColorBrush x:Key="HomeHeaderBackground" Color="#FAF8FC" />
