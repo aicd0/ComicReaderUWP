@@ -19,7 +19,6 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Imaging;
-using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
@@ -97,7 +96,6 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.ComicTitle1 = "";
         ViewModel.ComicTitle2 = "";
         ViewModel.ComicDir = "";
-        ViewModel.ComicTags = new ObservableCollection<TagCollectionViewModel>();
         ViewModel.IsEditable = false;
         ViewModel.PreviewDataSource = new ObservableCollection<ReaderImagePreviewViewModel>();
 
@@ -271,6 +269,12 @@ internal sealed partial class ReaderPage : BasePage
             GetMainPageAbility().OpenInNewTab(route);
         });
 
+        ViewModel.EditTagLiveData.Observe(this, pair =>
+        {
+            var dialog = new EditTagDialog(pair.Key, pair.Value);
+            _ = dialog.ShowAsync(XamlRoot);
+        });
+
         IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
         {
             RcRating.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
@@ -346,6 +350,7 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         _comic = comic;
+        ViewModel.SetComic(comic);
         SetAsReadingComic();
         LoadReaderSettings();
         LoadComicInfo();
@@ -544,7 +549,7 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.ComicDir = comic.Location;
             ViewModel.IsEditable = comic.IsEditable;
 
-            LoadComicTag();
+            ViewModel.LoadComicTag();
 
             bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
             SetIsFavorite(isFavorite, false);
@@ -590,67 +595,6 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         return sb.ToString();
-    }
-
-    private void LoadComicTag()
-    {
-        if (_comic == null)
-        {
-            return;
-        }
-
-        var newCollection = new ObservableCollection<TagCollectionViewModel>();
-
-        for (int i = 0; i < _comic.Tags.Count; ++i)
-        {
-            ComicData.TagData tags = _comic.Tags[i];
-            var tagCollectionModel = new TagCollectionViewModel(tags.Name);
-
-            foreach (string tag in tags.Tags)
-            {
-                TagViewModel tagModel = new()
-                {
-                    Tag = tag,
-                    MenuFlyoutItems = CreateTagContextMenuItems(tags.Name, tag),
-                    OnClicked = () =>
-                    {
-                        ViewModel.TagClickLiveData.Emit(tag);
-                    },
-                };
-
-                tagCollectionModel.Tags.Add(tagModel);
-            }
-
-            newCollection.Add(tagCollectionModel);
-        }
-
-        ViewModel.ComicTags = newCollection;
-    }
-
-    private List<BaseMenuFlyoutItemViewModel> CreateTagContextMenuItems(string tagCategory, string tag)
-    {
-        List<BaseMenuFlyoutItemViewModel> items = [];
-
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
-        {
-            OnClick = () =>
-            {
-                var dialog = new EditTagDialog(tagCategory, tag);
-                _ = dialog.ShowAsync(XamlRoot);
-            },
-        });
-
-        items.Add(new MenuFlyoutSeperatorViewModel());
-
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
-        {
-            OnClick = () =>
-            {
-                _ = TagInfoModel.DeleteTag(tagCategory, tag);
-            },
-        });
-
-        return items;
     }
 
     //
@@ -847,21 +791,14 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnEditInfoClick(object sender, RoutedEventArgs e)
     {
-        C0.Run(async delegate
+        ComicModel? comic = _comic;
+        if (comic == null)
         {
-            ComicModel? comic = _comic;
-            if (comic == null)
-            {
-                return;
-            }
+            return;
+        }
 
-            var dialog = new EditComicInfoDialog([comic]);
-            ContentDialogResult result = await dialog.ShowAsync(XamlRoot);
-            if (result == ContentDialogResult.Primary)
-            {
-                LoadComicInfo();
-            }
-        });
+        var dialog = new EditComicInfoDialog([comic]);
+        _ = dialog.ShowAsync(XamlRoot);
     }
 
     private void OnBottomGridPointerEntered(object sender, PointerRoutedEventArgs e)

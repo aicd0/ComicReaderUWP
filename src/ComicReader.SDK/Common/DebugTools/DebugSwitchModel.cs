@@ -9,7 +9,7 @@ using ComicReader.SDK.Data;
 
 namespace ComicReader.SDK.Common.DebugTools;
 
-internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
+public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 {
     public static readonly DebugSwitchModel Instance = new();
 
@@ -21,7 +21,7 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         WriteIndented = true,
     };
 
-    private bool ConsoleEnabled
+    public bool ConsoleEnabled
     {
         get => DebugUtils.DeveloperMode && GetConfig().ConsoleEnabled;
         set
@@ -32,7 +32,7 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         }
     }
 
-    private bool LogTreeEnabled
+    public bool LogTreeEnabled
     {
         get => DebugUtils.DeveloperMode && GetConfig().LogTreeEnabled;
         set
@@ -48,7 +48,7 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         get => DebugUtils.DebugMode && GetConfig().SqliteLogEnabled;
     }
 
-    private LogTag? ConsoleWhitelist
+    public LogTag? ConsoleWhitelist
     {
         get
         {
@@ -57,11 +57,13 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
             {
                 return tag;
             }
+
             JsonObject? jsonObject = GetConfig().ConsoleWhitelist;
             if (jsonObject == null)
             {
                 return null;
             }
+
             tag = LogTag.FromJson(jsonObject);
             _consoleWhitelist = tag;
             return tag;
@@ -75,18 +77,18 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         return new();
     }
 
-    public void Initialize()
+    internal void Initialize()
     {
         JsonModel model = Read((m) => m);
         UpdateConfig(model);
     }
 
-    public string SerializeToJson()
+    public string GetConfigAsJson()
     {
         return JsonSerializer.Serialize(GetConfig(), _serializeOption);
     }
 
-    public void SaveConfig(string json)
+    public void SaveConfigFromJson(string json)
     {
         JsonModel config = JsonSerializer.Deserialize<JsonModel>(json) ?? new();
         UpdateConfig(config);
@@ -100,6 +102,7 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         {
             return config;
         }
+
         config = new();
         UpdateConfig(config);
         return config;
@@ -109,9 +112,6 @@ internal class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
     {
         _config = model;
         InvalidateCache();
-        Logger.SetConsoleEnabled(ConsoleEnabled);
-        Logger.SetConsoleWhitelist(ConsoleWhitelist);
-        Logger.SetLogTreeEnabled(LogTreeEnabled);
     }
 
     private void InvalidateCache()

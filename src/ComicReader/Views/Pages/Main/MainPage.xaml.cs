@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Common.Lifecycle;
@@ -30,6 +31,8 @@ namespace ComicReader.Views.Pages.Main;
 
 internal sealed partial class MainPage : BasePage
 {
+    public MainPageViewModel ViewModel { get; } = new();
+
     //
     // Member variables
     //
@@ -100,6 +103,8 @@ internal sealed partial class MainPage : BasePage
         titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
         titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
 
+        ViewModel.OnStart();
+
         string url = bundle.GetString(RouterConstants.ARG_URL);
         _ = OnFirstStartUp(url);
     }
@@ -108,6 +113,12 @@ internal sealed partial class MainPage : BasePage
     {
         base.OnResume();
         ObserveData();
+    }
+
+    protected override void OnStop()
+    {
+        base.OnStop();
+        ViewModel.OnStop();
     }
 
     private async Task OnFirstStartUp(string url)
@@ -142,6 +153,16 @@ internal sealed partial class MainPage : BasePage
 
     private void ObserveData()
     {
+        GlobalEvent.Instance.HotKeyF10.Observe(this, delegate
+        {
+            ViewModel.StartOrPauseLog();
+        });
+
+        GlobalEvent.Instance.HotKeyF11.Observe(this, delegate
+        {
+            ViewModel.ToggleLogVisibility();
+        });
+
         GetEventBus().With<double>(EventId.RootTabHeightChange).ObserveSticky(this, delegate (double h)
         {
             _rootTabHeight = h;
@@ -206,12 +227,11 @@ internal sealed partial class MainPage : BasePage
     {
         if (tabId < -1)
         {
-            throw new ArgumentException();
+            throw new ArgumentException($"Invalid tab ID {tabId}.");
         }
 
         route.WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-        NavigationBundle bundle = AppRouter.Process(route);
-
+        NavigationBundle? bundle = AppRouter.Process(route)!;
         if (!bundle.PageTrait.SupportMultiInstance())
         {
             foreach (TabInfo tab in _tabs)
@@ -254,7 +274,7 @@ internal sealed partial class MainPage : BasePage
             {
                 Route navigationRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_NAVIGATION)
                     .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-                NavigationBundle navigationPageBundle = AppRouter.Process(navigationRoute);
+                NavigationBundle? navigationPageBundle = AppRouter.Process(navigationRoute)!;
                 RegisterPageAbility(navigationPageBundle.Communicator, tabInfo.Ability);
                 if (!frame.Navigate(navigationPageBundle.PageTrait.GetPageType(), navigationPageBundle))
                 {
@@ -524,6 +544,11 @@ internal sealed partial class MainPage : BasePage
 
         _tabContainerGridOpacityListenerToken = _tabContainerGrid.RegisterPropertyChangedCallback(OpacityProperty, (sender, dp) =>
         {
+            if (!IsStarted)
+            {
+                return;
+            }
+
             GetEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
         });
     }

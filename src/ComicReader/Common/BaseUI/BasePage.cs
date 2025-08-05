@@ -24,9 +24,10 @@ internal abstract class BasePage : Page
     private bool _isStarted = false;
     private bool _isResumed = false;
     private bool _isLoaded = false;
-    private bool _requireStop = false;
 
     private readonly PageStopEventHandler _pageStopHandler;
+
+    public bool IsStarted => _isStarted;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
 
@@ -34,7 +35,7 @@ internal abstract class BasePage : Page
     {
         _pageStopHandler = delegate
         {
-            _requireStop = true;
+            TryPause();
             TryStop();
         };
 
@@ -191,11 +192,6 @@ internal abstract class BasePage : Page
         _isResumed = false;
         LogLifecycleEvent("Pause");
         OnPause();
-
-        if (_requireStop)
-        {
-            TryStop();
-        }
     }
 
     private void TryStop()
