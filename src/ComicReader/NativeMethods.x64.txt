@@ -1,0 +1,4 @@
+CallWindowProc
+RegisterHotKey
+SetWindowLongPtr
+UnregisterHotKey

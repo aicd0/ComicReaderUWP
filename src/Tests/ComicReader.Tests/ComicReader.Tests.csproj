@@ -8,6 +8,7 @@
 	<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <EnableMsixTooling>true</EnableMsixTooling>
     <Platforms>x64;x86;ARM64</Platforms>
   </PropertyGroup>
 
