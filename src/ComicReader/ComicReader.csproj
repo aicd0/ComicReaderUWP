@@ -33,7 +33,6 @@
     <NoWarn>;2008</NoWarn>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <IsPackaged>true</IsPackaged>
   </PropertyGroup>
@@ -58,18 +57,25 @@
   </PropertyGroup>
 	
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Debug|true'">
-    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP;$(Platform)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Debug|false'">
-    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE;$(Platform)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Release|true'">
-    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;$(Platform)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Release|false'">
-    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE</DefineConstants>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE;$(Platform)</DefineConstants>
   </PropertyGroup>
-	
+
+  <Target Name="CopyNativeMethods" BeforeTargets="BeforeBuild">
+    <Copy SourceFiles="NativeMethods.$(Platform).txt" DestinationFiles="NativeMethods.txt" />
+  </Target>
+  <ItemGroup>
+    <AdditionalFiles Include="NativeMethods.txt" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(IsPackaged)' != 'true'">
     <WindowsPackageType>None</WindowsPackageType>
     <Version>2.3.1.0</Version>
