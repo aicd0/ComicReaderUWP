@@ -177,6 +177,12 @@
   <data name="Ascending" xml:space="preserve">
     <value>上昇</value>
   </data>
+  <data name="Background" xml:space="preserve">
+    <value>背景</value>
+  </data>
+  <data name="BackgroundAcrylic" xml:space="preserve">
+    <value>アクリル</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>計算中...</value>
   </data>

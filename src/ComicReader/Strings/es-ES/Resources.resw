@@ -177,6 +177,12 @@
   <data name="Ascending" xml:space="preserve">
     <value>Ascendente</value>
   </data>
+  <data name="Background" xml:space="preserve">
+    <value>Fondo</value>
+  </data>
+  <data name="BackgroundAcrylic" xml:space="preserve">
+    <value>Acrílico</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>Calculador...</value>
   </data>
