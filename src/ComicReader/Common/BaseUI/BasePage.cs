@@ -6,10 +6,8 @@ using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 
-using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 
 namespace ComicReader.Common.BaseUI;
@@ -19,7 +17,6 @@ internal abstract class BasePage : Page
     protected int WindowId { get; private set; } = 0;
 
     private PageCommunicator? _communicator = null;
-    private PointerPoint? _lastPointerPoint = null;
 
     private bool _isStarted = false;
     private bool _isResumed = false;
@@ -41,7 +38,6 @@ internal abstract class BasePage : Page
 
         Loaded += OnLoadedInternal;
         Unloaded += OnUnloadedInternal;
-        AddHandler(PointerPressedEvent, new PointerEventHandler(OnPagePointerPressed), true);
     }
 
     protected sealed override void OnNavigatedTo(NavigationEventArgs e)
@@ -111,21 +107,6 @@ internal abstract class BasePage : Page
         return App.WindowManager.GetEventBus(WindowId);
     }
 
-    protected bool CanHandleTapped()
-    {
-        if (_lastPointerPoint == null)
-        {
-            return true;
-        }
-
-        if (_lastPointerPoint.Properties.IsXButton1Pressed || _lastPointerPoint.Properties.IsXButton2Pressed)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
     private void OnLoadedInternal(object sender, RoutedEventArgs e)
     {
         if (!((Page)sender).IsLoaded)
@@ -146,11 +127,6 @@ internal abstract class BasePage : Page
 
         _isLoaded = false;
         TryPause();
-    }
-
-    private void OnPagePointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        _lastPointerPoint = e.GetCurrentPoint((UIElement)sender);
     }
 
     private void TryStart(object p)
