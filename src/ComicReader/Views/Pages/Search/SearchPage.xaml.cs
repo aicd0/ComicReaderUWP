@@ -14,6 +14,7 @@ using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
+using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Data.SqlHelpers;
@@ -36,7 +37,6 @@ internal sealed partial class SearchPage : BasePage
 {
     private SearchPageViewModel ViewModel { get; set; } = new SearchPageViewModel();
 
-    private readonly IComicItemViewHandler _comicItemHandler;
     private List<Match> _matches = new();
     private int _matchIndex = 0;
     private readonly CancellationLock _searchLock = new();
@@ -45,7 +45,6 @@ internal sealed partial class SearchPage : BasePage
     public SearchPage()
     {
         InitializeComponent();
-        _comicItemHandler = new ComicItemHandler(this);
     }
 
     //
@@ -76,6 +75,27 @@ internal sealed partial class SearchPage : BasePage
 
     private void ObserveData()
     {
+        ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
+        {
+            GetMainPageAbility().OpenInCurrentTab(route);
+        });
+
+        ViewModel.OpenInNewTabLiveData.Observe(this, route =>
+        {
+            GetMainPageAbility().OpenInNewTab(route);
+        });
+
+        ViewModel.EditComicLiveData.Observe(this, comics =>
+        {
+            if (comics.Count == 0)
+            {
+                return;
+            }
+
+            var dialog = new EditComicInfoDialog(comics);
+            _ = dialog.ShowAsync(XamlRoot);
+        });
+
         ViewModel.UpdateSearchResultLiveDate.Observe(this, (p1) =>
         {
             _ = StartSearch();
@@ -90,7 +110,7 @@ internal sealed partial class SearchPage : BasePage
     {
         await _searchLock.LockAsync(async delegate (CancellationLock.Token token)
         {
-            SetSelectMode(false);
+            ViewModel.SetSelectMode(false);
             string keyword = _keyword;
 
             // Extract filters and keywords from string.
@@ -259,32 +279,24 @@ internal sealed partial class SearchPage : BasePage
                 ComicItemViewModel item = new(comic);
                 item.UpdateProgress(false);
                 item.Detail = "#" + comic.Id;
+                item.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(
+                    comic, new SearchPageViewModel.ComicItemHandler(ViewModel, item), supportSelection: true);
+
+                item.OnClick = () =>
+                {
+                    if (!ViewModel.IsSelectMode)
+                    {
+                        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                            .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+                        ViewModel.OpenInCurrentTabLiveData.Emit(route);
+                    }
+                };
+
                 ViewModel.SearchResults.Add(item);
                 ++i;
             }
 
             ViewModel.UpdateUI();
-        });
-    }
-
-    private void OnComicItemTapped(ComicItemViewModel item)
-    {
-        if (!CanHandleTapped())
-        {
-            return;
-        }
-
-        if (ViewModel.IsSelectMode)
-        {
-            return;
-        }
-
-        C0.Run(async delegate
-        {
-            ComicModel comic = await ComicModel.FromId(item.Comic.Id, "SearchOpenLoadComic");
-            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-            GetMainPageAbility().OpenInCurrentTab(route);
         });
     }
 
@@ -299,7 +311,7 @@ internal sealed partial class SearchPage : BasePage
         }
         else
         {
-            viewHolder.Bind(item, _comicItemHandler);
+            viewHolder.Bind(item);
         }
     }
 
@@ -315,41 +327,9 @@ internal sealed partial class SearchPage : BasePage
         });
     }
 
-    private void OnOpenInNewTabClicked(ComicItemViewModel item)
-    {
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_COMIC_ID, item.Comic.Id.ToString());
-        GetMainPageAbility().OpenInNewTab(route);
-    }
-
-    private void OnEditComicInfoClick(ComicItemViewModel item)
-    {
-        List<ComicModel> selection = ViewModel.GetSelection(item).ConvertAll(x => x.Comic);
-        C0.Run(async () =>
-        {
-            var dialog = new EditComicInfoDialog(selection);
-            ContentDialogResult result = await dialog.ShowAsync(XamlRoot);
-            if (result == ContentDialogResult.Primary)
-            {
-                await StartSearch();
-            }
-        });
-    }
-
-    private void SetSelectMode(bool val)
-    {
-        if (val == ViewModel.IsSelectMode)
-        {
-            return;
-        }
-
-        ViewModel.IsSelectMode = val;
-        ViewModel.ComicItemSelectionMode = val ? ListViewSelectionMode.Multiple : ListViewSelectionMode.None;
-    }
-
     private void OnScrollViewerTapped(object sender, TappedRoutedEventArgs e)
     {
-        SetSelectMode(false);
+        ViewModel.SetSelectMode(false);
     }
 
     private void OnGridViewSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -429,69 +409,5 @@ internal sealed partial class SearchPage : BasePage
     private INavigationPageAbility GetNavigationPageAbility()
     {
         return GetAbility<INavigationPageAbility>();
-    }
-
-    //
-    // Types
-    //
-
-    private class ComicItemHandler(SearchPage page) : IComicItemViewHandler
-    {
-        private readonly SearchPage _page = page;
-
-        void IComicItemViewHandler.OnAddToFavoritesClicked(ComicItemViewModel item)
-        {
-            _page.ViewModel.ApplyOperationToComic(ComicOperationType.Favorite, item);
-        }
-
-        void IComicItemViewHandler.OnEditClick(ComicItemViewModel item)
-        {
-            _page.OnEditComicInfoClick(item);
-        }
-
-        void IComicItemViewHandler.OnHideClicked(ComicItemViewModel item)
-        {
-            _page.ViewModel.ApplyOperationToComic(ComicOperationType.Hide, item);
-        }
-
-        void IComicItemViewHandler.OnItemTapped(ComicItemViewModel item)
-        {
-            _page.OnComicItemTapped(item);
-        }
-
-        void IComicItemViewHandler.OnMarkAsReadClicked(ComicItemViewModel item)
-        {
-            _page.ViewModel.ApplyOperationToComic(ComicOperationType.MarkAsRead, item);
-        }
-
-        void IComicItemViewHandler.OnMarkAsReadingClicked(ComicItemViewModel item)
-        {
-            _page.ViewModel.ApplyOperationToComic(ComicOperationType.MarkAsReading, item);
-        }
-
-        void IComicItemViewHandler.OnMarkAsUnreadClicked(ComicItemViewModel item)
-        {
-            _page.ViewModel.ApplyOperationToComic(ComicOperationType.MarkAsUnread, item);
-        }
-
-        void IComicItemViewHandler.OnOpenInNewTabClicked(ComicItemViewModel item)
-        {
-            _page.OnOpenInNewTabClicked(item);
-        }
-
-        void IComicItemViewHandler.OnRemoveFromFavoritesClicked(ComicItemViewModel item)
-        {
-            _page.ViewModel.ApplyOperationToComic(ComicOperationType.Unfavorite, item);
-        }
-
-        void IComicItemViewHandler.OnSelectClicked(ComicItemViewModel item)
-        {
-            _page.SetSelectMode(true);
-        }
-
-        void IComicItemViewHandler.OnUnhideClicked(ComicItemViewModel item)
-        {
-            _page.ViewModel.ApplyOperationToComic(ComicOperationType.Unhide, item);
-        }
     }
 }

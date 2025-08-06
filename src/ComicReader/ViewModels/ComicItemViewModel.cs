@@ -1,11 +1,17 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 using ComicReader.Common;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.MenuFlyoutHelpers;
+
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReader.ViewModels;
 
@@ -129,6 +135,39 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     public bool IsReading => CompletionState == ComicCompletionStatusEnum.Started;
     public bool IsUnread => CompletionState == ComicCompletionStatusEnum.NotStarted;
 
+    private List<BaseMenuFlyoutItemViewModel> _menuFlyoutItems = [];
+    public List<BaseMenuFlyoutItemViewModel> MenuFlyoutItems
+    {
+        get => _menuFlyoutItems;
+        set
+        {
+            _menuFlyoutItems = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MenuFlyoutItems)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ContextFlyout)));
+        }
+    }
+
+    public FlyoutBase? ContextFlyout
+    {
+        get
+        {
+            if (MenuFlyoutItems.Count == 0)
+            {
+                return null;
+            }
+
+            var flyout = new MenuFlyout();
+            foreach (BaseMenuFlyoutItemViewModel item in MenuFlyoutItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
+
+            return flyout;
+        }
+    }
+
+    public Action? OnClick { get; set; }
+
     //
     // Constructors
     //
@@ -152,7 +191,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         var model = new ComicItemViewModel(Comic)
         {
             Detail = Detail,
-            Progress = Progress
+            Progress = Progress,
+            MenuFlyoutItems = MenuFlyoutItems,
         };
 
         model._image.Image = _image.Image;
@@ -169,6 +209,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         IsFavorite = item.IsFavorite;
         IsHide = item.IsHide;
         CompletionState = item.CompletionState;
+        MenuFlyoutItems = item.MenuFlyoutItems;
         _image.Image = item._image.Image;
         _image.ImageRequested = item._image.ImageRequested;
     }

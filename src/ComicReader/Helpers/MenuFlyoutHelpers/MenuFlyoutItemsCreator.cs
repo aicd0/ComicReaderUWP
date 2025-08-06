@@ -7,8 +7,6 @@ using ComicReader.Common;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 
-using Microsoft.UI.Xaml.Controls;
-
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
 internal static class MenuFlyoutItemsCreator
@@ -20,10 +18,7 @@ internal static class MenuFlyoutItemsCreator
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInNewTab)
             {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE8A5"
-                },
+                Glyph = "\uE8A5",
                 OnClick = handler.OnOpenInNewTabClicked,
             };
 
@@ -35,10 +30,7 @@ internal static class MenuFlyoutItemsCreator
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.AddToFavorites)
             {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE734"
-                },
+                Glyph = "\uE734",
                 OnClick = handler.OnAddToFavoritesClicked,
             };
 
@@ -49,10 +41,7 @@ internal static class MenuFlyoutItemsCreator
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.RemoveFromFavorites)
             {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE8D9"
-                },
+                Glyph = "\uE8D9",
                 OnClick = handler.OnRemoveFromFavoritesClicked,
             };
 
@@ -62,10 +51,7 @@ internal static class MenuFlyoutItemsCreator
         {
             MenuFlyoutSubItemViewModel groupItem = new(StringResourceProvider.Instance.SetCompletionState)
             {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE7C1"
-                },
+                Glyph = "\uE7C1",
             };
 
             if (comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.NotStarted)
@@ -103,10 +89,7 @@ internal static class MenuFlyoutItemsCreator
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Hide)
             {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uED1A"
-                },
+                Glyph = "\uED1A",
                 OnClick = handler.OnHideClicked,
             };
 
@@ -117,10 +100,7 @@ internal static class MenuFlyoutItemsCreator
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Unhide)
             {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE7B3"
-                },
+                Glyph = "\uE7B3",
                 OnClick = handler.OnUnhideClicked,
             };
 
@@ -130,10 +110,7 @@ internal static class MenuFlyoutItemsCreator
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Edit)
             {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE70F"
-                },
+                Glyph = "\uE70F",
                 OnClick = handler.OnEditClick,
             };
 
@@ -143,10 +120,7 @@ internal static class MenuFlyoutItemsCreator
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInFileExplorer)
             {
-                Icon = new FontIcon
-                {
-                    Glyph = "\uE838"
-                },
+                Glyph = "\uE838",
                 OnClick = handler.OnOpenInFileExplorerClicked,
             };
 
@@ -160,10 +134,7 @@ internal static class MenuFlyoutItemsCreator
             {
                 MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Select)
                 {
-                    Icon = new FontIcon
-                    {
-                        Glyph = "\uE762"
-                    },
+                    Glyph = "\uE762",
                     OnClick = handler.OnSelectClicked,
                 };
 

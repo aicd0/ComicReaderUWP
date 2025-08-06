@@ -14,6 +14,8 @@ using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.MenuFlyoutHelpers;
+using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
@@ -30,9 +32,12 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public MutableLiveData<FilterModel> FilterLiveData = new();
-    public MutableLiveData<bool> GroupingEnabledLiveData = new();
-    public MutableLiveData<ComicFilterModel.ViewTypeEnum> ViewTypeLiveData = new();
+    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
+    public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
+    public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
+    public readonly MutableLiveData<FilterModel> FilterLiveData = new();
+    public readonly MutableLiveData<bool> GroupingEnabledLiveData = new();
+    public readonly MutableLiveData<ComicFilterModel.ViewTypeEnum> ViewTypeLiveData = new();
 
     public ObservableCollection<ComicItemViewModel> UngroupedComicItems { get; set; } = [];
     public ObservableCollection<ComicGroupViewModel> GroupedComicItems { get; set; } = [];
@@ -586,22 +591,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         UpdateCollapseExpandGroupButtonStates();
     }
 
-    /// <summary>
-    /// Notifies that the specified collection of comic items has changed.
-    /// </summary>
-    /// <remarks>This method submits a notification task to the shared dispatcher, which processes the changes
-    /// asynchronously. Ensure that the <paramref name="items"/> collection is not null before calling this
-    /// method.</remarks>
-    /// <param name="items">The collection of <see cref="ComicItemViewModel"/> instances that have changed.</param>
-    public void NotifyItemsChanged(IEnumerable<ComicItemViewModel> items)
-    {
-        items = [.. items];
-        _sharedDispatcher.Submit("NotifyItemsChanged", delegate
-        {
-            ModifyExistingItems(items, (item) => { });
-        });
-    }
-
     private void OnComicSearchResult(IReadOnlyList<ComicModel> items)
     {
         _sharedDispatcher.Submit("OnComicSearchResult", delegate
@@ -614,6 +603,19 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 {
                     var model = new ComicItemViewModel(item);
                     model.UpdateProgress(true);
+                    model.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(
+                        item, new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
+
+                    model.OnClick = () =>
+                    {
+                        if (!IsSelectMode)
+                        {
+                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                                .WithParam(RouterConstants.ARG_COMIC_ID, item.Id.ToString());
+                            OpenInCurrentTabLiveData.Emit(route);
+                        }
+                    };
+
                     _comicItems.Add(model);
                 }
             }
@@ -638,14 +640,12 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                         Id = x.Comic.Id,
                         Title = x.Comic.Title,
                     }));
-                    ModifyExistingItems(items, (item) => { item.IsFavorite = true; });
                 }
                 break;
             case ComicOperationType.Unfavorite:
                 {
                     List<ComicItemViewModel> items = models.FindAll(x => x.IsFavorite);
                     FavoriteModel.Instance.BatchRemoveWithId(items.ConvertAll(x => x.Comic.Id));
-                    ModifyExistingItems(items, (item) => { item.IsFavorite = false; });
                 }
                 break;
             case ComicOperationType.Hide:
@@ -655,7 +655,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SaveHiddenAsync(true).Wait();
                     }
-                    _searchEngine.Update();
                 }
                 break;
             case ComicOperationType.Unhide:
@@ -665,7 +664,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SaveHiddenAsync(false).Wait();
                     }
-                    _searchEngine.Update();
                 }
                 break;
             case ComicOperationType.MarkAsRead:
@@ -675,12 +673,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToCompleted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.Completed;
-                        item.UpdateProgress(true);
-                    });
-                    ScheduleUpdateComics();
                 }
                 break;
             case ComicOperationType.MarkAsReading:
@@ -690,12 +682,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToStarted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.Started;
-                        item.UpdateProgress(true);
-                    });
-                    ScheduleUpdateComics();
                 }
                 break;
             case ComicOperationType.MarkAsUnread:
@@ -705,73 +691,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToNotStarted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.NotStarted;
-                        item.UpdateProgress(true);
-                    });
-                    ScheduleUpdateComics();
                 }
                 break;
             default:
                 break;
-        }
-    }
-
-    private void ModifyExistingItems(IEnumerable<ComicItemViewModel> items, Action<ComicItemViewModel> action)
-    {
-        Dictionary<ComicModel, ComicItemViewModel> changedItems = [];
-        foreach (ComicItemViewModel item in items)
-        {
-            ComicItemViewModel newItem = item.Clone();
-            action(newItem);
-            changedItems[item.Comic] = newItem;
-        }
-
-        _comicItemsLock.AcquireWriterLock(Timeout.Infinite);
-        try
-        {
-            ModifyExistingList(_comicItems, changedItems);
-        }
-        finally
-        {
-            _comicItemsLock.ReleaseWriterLock();
-        }
-
-        _ = MainThreadUtils.RunInMainThread(delegate
-        {
-            ModifyExistingList(_selectedComicItems, changedItems);
-            bool isGrouped = GroupingEnabledLiveData.GetValue();
-            if (isGrouped)
-            {
-                foreach (ComicGroupViewModel group in GroupedComicItems)
-                {
-                    group.UpdateItems((oldItem) =>
-                    {
-                        if (changedItems.TryGetValue(oldItem.Comic, out ComicItemViewModel? newItem))
-                        {
-                            return newItem;
-                        }
-                        return null;
-                    });
-                }
-            }
-            else
-            {
-                ModifyExistingList(UngroupedComicItems, changedItems);
-            }
-        });
-    }
-
-    private void ModifyExistingList(IList<ComicItemViewModel> list, IReadOnlyDictionary<ComicModel, ComicItemViewModel> changedItems)
-    {
-        for (int i = 0; i < list.Count; i++)
-        {
-            ComicItemViewModel oldItem = list[i];
-            if (changedItems.TryGetValue(oldItem.Comic, out ComicItemViewModel? newItem))
-            {
-                list[i] = newItem;
-            }
         }
     }
 
@@ -1315,5 +1238,66 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         Ascending,
         Descending,
         Function,
+    }
+
+    private class ComicItemMenuFlyoutHandler(HomePageViewModel viewModel, ComicItemViewModel item) : IComicItemMenuFlyoutHandler
+    {
+        void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()
+        {
+            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                .WithParam(RouterConstants.ARG_COMIC_ID, item.Comic.Id.ToString());
+            viewModel.OpenInNewTabLiveData.Emit(route);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnAddToFavoritesClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.Favorite, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnRemoveFromFavoritesClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.Unfavorite, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnHideClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.Hide, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnUnhideClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.Unhide, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnMarkAsReadClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsRead, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnMarkAsReadingClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsReading, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnMarkAsUnreadClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsUnread, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnEditClick()
+        {
+            List<ComicItemViewModel> selection = viewModel.GetSelection(item);
+            viewModel.EditComicLiveData.Emit(selection.ConvertAll(x => x.Comic));
+        }
+
+        void IComicItemMenuFlyoutHandler.OnSelectClicked()
+        {
+            viewModel.SetSelectionMode(true);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
+        {
+            item.Comic.ShowInFileExplorer();
+        }
     }
 }
