@@ -48,7 +48,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private const string TAG = nameof(ReaderPage);
     private const string KEY_TIP_SHOWN = "ReaderTipShown";
-    private const string REGEX_URL = "(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)";
+    private const string REGEX_URL = @"https?:\/\/[a-zA-Z0-9\-._~%]+(?:\.[a-zA-Z0-9\-._~%]+)+(?:\/[^\s]*)?";
 
     //
     // Variables
