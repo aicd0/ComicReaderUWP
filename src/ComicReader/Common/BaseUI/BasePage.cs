@@ -94,6 +94,13 @@ internal abstract class BasePage : Page
     {
     }
 
+    /// <summary>
+    /// Retrieves an ability of the specified type from the communicator. Must be called on the UI thread.
+    /// </summary>
+    /// <remarks>This method delegates the retrieval of the ability to the underlying communicator.  Ensure
+    /// that the communicator is properly initialized and supports the requested ability type.</remarks>
+    /// <typeparam name="T">The type of the ability to retrieve. Must be a reference type.</typeparam>
+    /// <returns>An instance of the specified ability type if available; otherwise, <see langword="null"/>.</returns>
     protected T? GetAbility<T>() where T : class
     {
         return _communicator?.GetAbility<T>();

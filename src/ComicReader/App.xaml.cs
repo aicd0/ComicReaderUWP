@@ -51,8 +51,7 @@ public partial class App : Application
         _initTaskManager.InitOnAppLaunch();
 
         // Initialize MainWindow here
-        var window = new MainWindow("");
-        window.Activate();
+        MainWindow.Open(recoverTabs: true);
 
         mainInstance.Activated += OnActivated;
         OnActivated(null, activatedEventArgs);

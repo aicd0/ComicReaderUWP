@@ -12,8 +12,7 @@ internal class DebugService : IDebugService
     {
         if (command == "dev_tools")
         {
-            var newWindow = new MainWindow(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
-            newWindow.Activate();
+            MainWindow.Open(url: RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
             return true;
         }
 

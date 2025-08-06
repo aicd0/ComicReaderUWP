@@ -39,6 +39,24 @@ public sealed partial class MainWindow : Window
     private const uint WM_HOTKEY = 0x0312;
 
     //
+    // Creators
+    //
+
+    public static void Open(string url = "", bool recoverTabs = false)
+    {
+        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
+            .WithParam(RouterConstants.ARG_RECOVER_TABS, recoverTabs ? "1" : "0");
+
+        if (!string.IsNullOrEmpty(url))
+        {
+            route.WithParam(RouterConstants.ARG_URL, url);
+        }
+
+        MainWindow window = new(route.Url);
+        window.Activate();
+    }
+
+    //
     // Member variables
     //
 
@@ -56,7 +74,7 @@ public sealed partial class MainWindow : Window
     // Constructors
     //
 
-    public MainWindow(string url)
+    private MainWindow(string url)
     {
         WindowMembers members = new();
         _members = members;
@@ -127,9 +145,8 @@ public sealed partial class MainWindow : Window
     {
         TryRecoverWindowStates();
 
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
-            .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString())
-            .WithParam(RouterConstants.ARG_URL, Members._url);
+        Route route = Route.Create(Members._url)
+            .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
         NavigationBundle bundle = AppRouter.Process(route)!;
         bundle.Communicator.RegisterAbility<ICommonPageAbility>(Members._mainWindowAbility);
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);

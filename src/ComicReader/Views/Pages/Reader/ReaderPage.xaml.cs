@@ -149,7 +149,11 @@ internal sealed partial class ReaderPage : BasePage
 
         C0.Run(async delegate
         {
-            long comicId = bundle.GetLong(RouterConstants.ARG_COMIC_ID, -1);
+            if (!long.TryParse(bundle.GetString(RouterConstants.ARG_COMIC_ID, "-1"), out long comicId))
+            {
+                comicId = -1;
+            }
+
             ComicModel? comic = await ComicModel.FromId(comicId, "ReaderGetComic");
             if (comic == null)
             {
@@ -173,11 +177,11 @@ internal sealed partial class ReaderPage : BasePage
     protected override void OnResume()
     {
         base.OnResume();
+
         ObserveData();
         GetNavigationPageAbility().SetGridViewMode(false);
         LoadReaderSettings();
         UpdateReaderUI();
-        SetAsReadingComic();
         LoadComicInfo();
     }
 
@@ -215,14 +219,10 @@ internal sealed partial class ReaderPage : BasePage
             BottomGrid.Opacity = opacity;
         });
 
-        GetMainPageAbility().RegisterTabUnselectedHandler(this, AppModel.UnsetReadingComic);
-
         GetMainPageAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
         {
             ViewModel.IsFullscreen = isFullscreen;
         });
-
-        GetNavigationPageAbility().RegisterLeavingHandler(this, AppModel.UnsetReadingComic);
 
         GetNavigationPageAbility().RegisterGridViewModeChangedHandler(this, delegate (bool enabled)
         {
@@ -351,7 +351,6 @@ internal sealed partial class ReaderPage : BasePage
 
         _comic = comic;
         ViewModel.SetComic(comic);
-        SetAsReadingComic();
         LoadReaderSettings();
         LoadComicInfo();
         IComicConnection? connection = await comic.OpenComicAsync();
@@ -410,15 +409,6 @@ internal sealed partial class ReaderPage : BasePage
     {
         _comicConnection?.Dispose();
         _comicConnection = null;
-    }
-
-    private void SetAsReadingComic()
-    {
-        ComicModel? comic = _comic;
-        if (comic != null && !comic.IsExternal)
-        {
-            AppModel.SetReadingComic(comic.Id);
-        }
     }
 
     //
