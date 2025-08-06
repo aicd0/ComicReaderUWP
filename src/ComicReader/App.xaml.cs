@@ -2,10 +2,15 @@
 // Licensed under the MIT License.
 
 using System;
+using System.IO;
+using System.Runtime.InteropServices;
 
 using ComicReader.Common;
 using ComicReader.Common.InitTask;
+using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Native;
+using ComicReader.SDK.Common.Storage;
 
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
@@ -17,6 +22,7 @@ namespace ComicReader;
 public partial class App : Application
 {
     private const string TAG = nameof(App);
+    private const string COMMAND_LINE_FILE_NAME = "command_line.txt";
 
     internal static readonly WindowManager<MainWindow> WindowManager = new();
 
@@ -42,6 +48,12 @@ public partial class App : Application
         // isn't the "main" instance.
         if (!mainInstance.IsCurrent)
         {
+            // If the app is running in portable mode, store the command line arguments
+            if (EnvironmentProvider.IsPortable())
+            {
+                StoreCommandLine();
+            }
+
             // Redirect the activation (and args) to the "main" instance, and exit.
             await mainInstance.RedirectActivationToAsync(activatedEventArgs);
             System.Diagnostics.Process.GetCurrentProcess().Kill();
@@ -59,17 +71,138 @@ public partial class App : Application
 
     private void OnActivated(object? sender, AppActivationArguments e)
     {
-        if (e.Kind == ExtendedActivationKind.File)
+        switch (e.Kind)
         {
-            MainWindow? window = WindowManager.GetAnyWindow();
-            if (window != null)
+            case ExtendedActivationKind.Launch:
+                if (EnvironmentProvider.IsPortable())
+                {
+                    string? commandLine = TryReadCommandLine();
+                    if (string.IsNullOrEmpty(commandLine))
+                    {
+                        commandLine = Environment.CommandLine;
+                    }
+
+                    Logger.I(TAG, "Received command line: " + commandLine);
+
+                    string[] cmdRaw = SplitCommandLine(commandLine);
+                    string[] cmd;
+                    if (cmdRaw.Length >= 1)
+                    {
+                        cmd = cmdRaw[1..];
+                    }
+                    else
+                    {
+                        cmd = cmdRaw;
+                    }
+
+                    MainWindow? window = WindowManager.GetAnyWindow();
+                    if (window != null)
+                    {
+                        window.OnCommandLine(cmd);
+                    }
+                    else
+                    {
+                        Logger.F(TAG, "Failed to perform file activation, no window is found.");
+                    }
+                }
+                break;
+            case ExtendedActivationKind.File:
+                {
+                    MainWindow? window = WindowManager.GetAnyWindow();
+                    if (window != null)
+                    {
+                        var fileArgs = (FileActivatedEventArgs)e.Data;
+                        string[] cmd = [fileArgs.Files[0].Path];
+                        window.OnCommandLine(cmd);
+                    }
+                    else
+                    {
+                        Logger.F(TAG, "Failed to perform file activation, no window is found.");
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static void StoreCommandLine()
+    {
+        string commandLine = Environment.CommandLine;
+        string temporaryFolderPath = StorageLocation.TemporaryFolderPath;
+        if (!Directory.Exists(temporaryFolderPath))
+        {
+            Directory.CreateDirectory(temporaryFolderPath);
+        }
+
+        string commandLineFile = Path.Combine(temporaryFolderPath, COMMAND_LINE_FILE_NAME);
+        File.WriteAllText(commandLineFile, commandLine);
+    }
+
+    private static string? TryReadCommandLine()
+    {
+        string temporaryFolderPath = StorageLocation.TemporaryFolderPath;
+        if (!Directory.Exists(temporaryFolderPath))
+        {
+            return null;
+        }
+
+        string commandLineFile = Path.Combine(temporaryFolderPath, COMMAND_LINE_FILE_NAME);
+        if (!File.Exists(commandLineFile))
+        {
+            return null;
+        }
+
+        string content;
+        try
+        {
+            content = File.ReadAllText(commandLineFile);
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, nameof(TryReadCommandLine), e);
+            return null;
+        }
+
+        try
+        {
+            File.Delete(commandLineFile);
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, nameof(TryReadCommandLine), e);
+        }
+
+        return content;
+    }
+
+    private static string[] SplitCommandLine(string commandLine)
+    {
+        if (string.IsNullOrEmpty(commandLine))
+        {
+            return [];
+        }
+
+        IntPtr argv = NativeMethods.CommandLineToArgvW(commandLine, out int argc);
+        if (argv == IntPtr.Zero)
+        {
+            return [];
+        }
+
+        try
+        {
+            string[] args = new string[argc];
+            for (int i = 0; i < argc; i++)
             {
-                window.OnFileActivated((FileActivatedEventArgs)e.Data);
+                IntPtr p = Marshal.ReadIntPtr(argv, i * IntPtr.Size);
+                args[i] = Marshal.PtrToStringUni(p)!;
             }
-            else
-            {
-                Logger.F(TAG, "Failed to perform file activation, no window is found.");
-            }
+
+            return args;
+        }
+        finally
+        {
+            NativeMethods.LocalFree(argv);
         }
     }
 }

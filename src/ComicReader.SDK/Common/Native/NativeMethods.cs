@@ -57,4 +57,10 @@ public class NativeMethods
 
     [DllImport("gdi32.dll")]
     public static extern int GetDeviceCaps(nint hdc, int nIndex);
+
+    [DllImport("shell32.dll", SetLastError = true)]
+    public static extern IntPtr CommandLineToArgvW([MarshalAs(UnmanagedType.LPWStr)] string lpCmdLine, out int pNumArgs);
+
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr LocalFree(IntPtr hMem);
 }

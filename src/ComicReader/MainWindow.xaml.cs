@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
+using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
@@ -23,7 +25,6 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
-using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 using Windows.Win32;
 
@@ -99,9 +100,9 @@ public sealed partial class MainWindow : Window
     // Public Methods
     //
 
-    public void OnFileActivated(FileActivatedEventArgs args)
+    public void OnCommandLine(string[] args)
     {
-        _ = OnFileActivatedAsync(args);
+        _ = OnCommandLineAsync(args);
     }
 
     //
@@ -242,7 +243,7 @@ public sealed partial class MainWindow : Window
     // File Activation
     //
 
-    private async Task OnFileActivatedAsync(FileActivatedEventArgs args)
+    private async Task OnCommandLineAsync(string[] args)
     {
         Route? route = await GetFileActivatedComicRoute(args);
         if (route is null)
@@ -259,11 +260,30 @@ public sealed partial class MainWindow : Window
         Members._mainPage.OpenInNewTab(route);
     }
 
-    private static async Task<Route?> GetFileActivatedComicRoute(FileActivatedEventArgs args)
+    private static async Task<Route?> GetFileActivatedComicRoute(string[] args)
     {
-        var targetFile = (StorageFile)args.Files[0];
-        if (!AppInfoProvider.IsSupportedExternalFileExtension(targetFile.FileType))
+        if (args.Length == 0)
         {
+            return null;
+        }
+
+        string targetFilePath = args[0];
+        if (!File.Exists(targetFilePath))
+        {
+            Logger.W("GetFileActivatedComicRoute", "Target file does not exist: " + targetFilePath);
+            return null;
+        }
+
+        string targetFileExtension = Path.GetExtension(targetFilePath);
+        if (!AppInfoProvider.IsSupportedExternalFileExtension(targetFileExtension))
+        {
+            return null;
+        }
+
+        StorageFile? targetFile = await Storage.TryGetFile(targetFilePath);
+        if (targetFile is null)
+        {
+            Logger.W("GetFileActivatedComicRoute", "Failed to get target file: " + targetFilePath);
             return null;
         }
 
