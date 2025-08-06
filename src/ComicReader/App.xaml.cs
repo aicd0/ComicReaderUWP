@@ -61,68 +61,77 @@ public partial class App : Application
         }
 
         _initTaskManager.InitOnAppLaunch();
-
-        // Initialize MainWindow here
-        MainWindow.Open(recoverTabs: true);
-
         mainInstance.Activated += OnActivated;
-        OnActivated(null, activatedEventArgs);
+        OnActivatedInternal(activatedEventArgs, firstLaunch: true);
     }
 
     private void OnActivated(object? sender, AppActivationArguments e)
     {
-        switch (e.Kind)
+        OnActivatedInternal(e, firstLaunch: false);
+    }
+
+    private void OnActivatedInternal(AppActivationArguments e, bool firstLaunch)
+    {
+        string[] cmdArgs;
+        if (EnvironmentProvider.IsPortable())
         {
-            case ExtendedActivationKind.Launch:
-                if (EnvironmentProvider.IsPortable())
+            string? commandLine;
+            if (firstLaunch)
+            {
+                commandLine = Environment.CommandLine;
+            }
+            else
+            {
+                commandLine = TryReadCommandLine();
+                if (string.IsNullOrEmpty(commandLine))
                 {
-                    string? commandLine = TryReadCommandLine();
-                    if (string.IsNullOrEmpty(commandLine))
-                    {
-                        commandLine = Environment.CommandLine;
-                    }
-
-                    Logger.I(TAG, "Received command line: " + commandLine);
-
-                    string[] cmdRaw = SplitCommandLine(commandLine);
-                    string[] cmd;
-                    if (cmdRaw.Length >= 1)
-                    {
-                        cmd = cmdRaw[1..];
-                    }
-                    else
-                    {
-                        cmd = cmdRaw;
-                    }
-
-                    MainWindow? window = WindowManager.GetAnyWindow();
-                    if (window != null)
-                    {
-                        window.OnCommandLine(cmd);
-                    }
-                    else
-                    {
-                        Logger.F(TAG, "Failed to perform file activation, no window is found.");
-                    }
+                    return;
                 }
-                break;
-            case ExtendedActivationKind.File:
-                {
-                    MainWindow? window = WindowManager.GetAnyWindow();
-                    if (window != null)
+            }
+
+            string[] splitedCommandLine = SplitCommandLine(commandLine);
+            if (splitedCommandLine.Length >= 1)
+            {
+                cmdArgs = splitedCommandLine[1..];
+            }
+            else
+            {
+                cmdArgs = splitedCommandLine;
+            }
+        }
+        else
+        {
+            switch (e.Kind)
+            {
+                case ExtendedActivationKind.File:
                     {
                         var fileArgs = (FileActivatedEventArgs)e.Data;
-                        string[] cmd = [fileArgs.Files[0].Path];
-                        window.OnCommandLine(cmd);
+                        cmdArgs = [fileArgs.Files[0].Path];
                     }
-                    else
-                    {
-                        Logger.F(TAG, "Failed to perform file activation, no window is found.");
-                    }
-                }
-                break;
-            default:
-                break;
+                    break;
+                default:
+                    cmdArgs = [];
+                    break;
+            }
+        }
+
+        string cmd = string.Join(' ', cmdArgs);
+        Logger.I(TAG, $"OnActivated: firstLaunch={firstLaunch}, cmd={cmd}");
+
+        if (firstLaunch)
+        {
+            MainWindow.Open(cmdArgs);
+        }
+        else
+        {
+            MainWindow? window = WindowManager.GetAnyWindow();
+            if (window is null)
+            {
+                Logger.F(TAG, "Failed to perform file activation, no window is found.");
+                return;
+            }
+
+            window.OnCommandLine(cmdArgs);
         }
     }
 

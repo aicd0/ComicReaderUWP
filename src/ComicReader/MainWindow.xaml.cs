@@ -40,6 +40,21 @@ public sealed partial class MainWindow : Window
     // Creators
     //
 
+    public static void Open(string[] args)
+    {
+        CoroutineUtils.Start(async () =>
+        {
+            Route? route = await GetFileActivatedComicRoute(args);
+            if (route is null)
+            {
+                Open(recoverTabs: true);
+                return;
+            }
+
+            Open(route.Url, recoverTabs: false);
+        });
+    }
+
     public static void Open(string url = "", bool recoverTabs = false)
     {
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
