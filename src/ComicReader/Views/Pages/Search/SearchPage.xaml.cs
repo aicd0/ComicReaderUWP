@@ -75,6 +75,16 @@ internal sealed partial class SearchPage : BasePage
 
     private void ObserveData()
     {
+        GlobalEvent.Instance.ComicUpdated.Observe(this, (p1) =>
+        {
+            _ = StartSearch();
+        });
+
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, (p1) =>
+        {
+            _ = StartSearch();
+        });
+
         ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
         {
             GetMainPageAbility().OpenInCurrentTab(route);
@@ -94,11 +104,6 @@ internal sealed partial class SearchPage : BasePage
 
             var dialog = new EditComicInfoDialog(comics);
             _ = dialog.ShowAsync(XamlRoot);
-        });
-
-        ViewModel.UpdateSearchResultLiveDate.Observe(this, (p1) =>
-        {
-            _ = StartSearch();
         });
     }
 

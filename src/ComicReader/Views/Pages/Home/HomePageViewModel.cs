@@ -474,10 +474,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit("ApplyOperationToSelection", delegate
         {
             BatchApplyOperation(operationType, selection);
-            MainThreadUtils.RunInMainThread(() =>
-            {
-                UpdateCommandBarButtonStates();
-            });
         });
     }
 
@@ -494,10 +490,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit("ApplyOperationToSelection", delegate
         {
             BatchApplyOperation(operationType, selectedItems);
-            MainThreadUtils.RunInMainThread(() =>
-            {
-                UpdateCommandBarButtonStates();
-            });
         });
     }
 
@@ -950,6 +942,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             }
 
             UpdateCollapseExpandGroupButtonStates();
+            UpdateCommandBarButtonStates();
         });
     }
 

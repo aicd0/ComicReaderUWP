@@ -1,7 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -32,7 +31,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
     public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
     public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
     public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
-    public readonly MutableLiveData<bool> UpdateSearchResultLiveDate = new();
     public bool IsResultEmpty => SearchResults.Count == 0;
 
     public ObservableCollection<ComicItemViewModel> SearchResults = [];
@@ -267,6 +265,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         {
             selection.Add(triggerItem);
         }
+
         return selection;
     }
 
@@ -365,14 +364,12 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                         Id = x.Comic.Id,
                         Title = x.Comic.Title,
                     }));
-                    ModifyExistingItems(items, (item) => { item.IsFavorite = true; });
                 }
                 break;
             case ComicOperationType.Unfavorite:
                 {
                     List<ComicItemViewModel> items = models.FindAll(x => x.IsFavorite);
                     FavoriteModel.Instance.BatchRemoveWithId(items.ConvertAll(x => x.Comic.Id));
-                    ModifyExistingItems(items, (item) => { item.IsFavorite = false; });
                 }
                 break;
             case ComicOperationType.Hide:
@@ -382,7 +379,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SaveHiddenAsync(true).Wait();
                     }
-                    UpdateSearchResultLiveDate.Emit(true);
                 }
                 break;
             case ComicOperationType.Unhide:
@@ -392,7 +388,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SaveHiddenAsync(false).Wait();
                     }
-                    UpdateSearchResultLiveDate.Emit(true);
                 }
                 break;
             case ComicOperationType.MarkAsRead:
@@ -402,11 +397,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToCompleted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.Completed;
-                        item.UpdateProgress(true);
-                    });
                 }
                 break;
             case ComicOperationType.MarkAsReading:
@@ -416,11 +406,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToStarted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.Started;
-                        item.UpdateProgress(true);
-                    });
                 }
                 break;
             case ComicOperationType.MarkAsUnread:
@@ -430,43 +415,10 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToNotStarted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.NotStarted;
-                        item.UpdateProgress(true);
-                    });
                 }
                 break;
             default:
                 break;
-        }
-    }
-
-    private void ModifyExistingItems(IEnumerable<ComicItemViewModel> items, Action<ComicItemViewModel> action)
-    {
-        Dictionary<ComicModel, ComicItemViewModel> changedItems = [];
-        foreach (ComicItemViewModel item in items)
-        {
-            ComicItemViewModel newItem = item.Clone();
-            action(newItem);
-            changedItems[item.Comic] = newItem;
-        }
-        _ = MainThreadUtils.RunInMainThread(delegate
-        {
-            ModifyExistingList(_selectedItems, changedItems);
-            ModifyExistingList(SearchResults, changedItems);
-        });
-    }
-
-    private void ModifyExistingList(IList<ComicItemViewModel> list, IReadOnlyDictionary<ComicModel, ComicItemViewModel> changedItems)
-    {
-        for (int i = 0; i < list.Count; i++)
-        {
-            ComicItemViewModel oldItem = list[i];
-            if (changedItems.TryGetValue(oldItem.Comic, out ComicItemViewModel? newItem))
-            {
-                list[i] = newItem;
-            }
         }
     }
 
