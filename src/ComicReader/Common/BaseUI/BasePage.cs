@@ -169,7 +169,7 @@ internal abstract class BasePage : Page
             _communicator.GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);
             WindowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
             Logger.Assert(WindowId > 0, "16EFCEB1C7797AA2");
-            OnStart(bundle.Bundle);
+            DebugUtils.TrackError(() => OnStart(bundle.Bundle));
         }
         else
         {
@@ -186,7 +186,7 @@ internal abstract class BasePage : Page
 
         _isResumed = true;
         LogLifecycleEvent("Resume");
-        OnResume();
+        DebugUtils.TrackError(OnResume);
     }
 
     private void TryPause()
@@ -198,7 +198,7 @@ internal abstract class BasePage : Page
 
         _isResumed = false;
         LogLifecycleEvent("Pause");
-        OnPause();
+        DebugUtils.TrackError(OnPause);
     }
 
     private void TryStop()
@@ -211,7 +211,7 @@ internal abstract class BasePage : Page
         _isStarted = false;
         _communicator?.GetAbility<ICommonPageAbility>()?.UnregisterPageStopHandler(_pageStopHandler);
         LogLifecycleEvent("Stop");
-        OnStop();
+        DebugUtils.TrackError(OnStop);
     }
 
     private void LogLifecycleEvent(string eventName)

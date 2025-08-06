@@ -23,6 +23,6 @@ internal static class RouterConstants
     public const string ARG_URL = "url";
     public const string ARG_RECOVER_TABS = "recover_tabs";
     public const string ARG_COMIC_ID = "comic_id";
-    public const string ARG_COMIC_TOKEN = "comic_token";
+    public const string ARG_COMIC_LOCATION = "comic_location";
     public const string ARG_KEYWORD = "keyword";
 }

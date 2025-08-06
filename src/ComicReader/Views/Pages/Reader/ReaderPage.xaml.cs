@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -35,6 +36,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 
+using Windows.Storage;
+
 namespace ComicReader.Views.Pages.Reader;
 
 internal sealed partial class ReaderPage : BasePage
@@ -43,6 +46,7 @@ internal sealed partial class ReaderPage : BasePage
     // Constants
     //
 
+    private const string TAG = nameof(ReaderPage);
     private const string KEY_TIP_SHOWN = "ReaderTipShown";
     private const string REGEX_URL = "(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)";
 
@@ -147,28 +151,13 @@ internal sealed partial class ReaderPage : BasePage
             ReaderTip.IsOpen = !tipShown;
         }
 
-        C0.Run(async delegate
+        GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
+        CoroutineUtils.Start(async () =>
         {
-            if (!long.TryParse(bundle.GetString(RouterConstants.ARG_COMIC_ID, "-1"), out long comicId))
-            {
-                comicId = -1;
-            }
-
-            ComicModel? comic = await ComicModel.FromId(comicId, "ReaderGetComic");
-            if (comic == null)
-            {
-                string token = bundle.GetString(RouterConstants.ARG_COMIC_TOKEN, "");
-                comic = AppModel.GetComicData(token);
-            }
-
+            ComicModel? comic = await GetTargetComic(bundle);
             if (comic != null)
             {
                 GetMainPageAbility().SetTitle(comic.Title);
-            }
-            GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
-
-            if (comic != null)
-            {
                 await LoadComic(comic);
             }
         });
@@ -296,6 +285,35 @@ internal sealed partial class ReaderPage : BasePage
             TbReaderStatus.Visibility = readerStatusText.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateReaderUI();
         });
+    }
+
+    private async Task<ComicModel?> GetTargetComic(PageBundle bundle)
+    {
+        if (!long.TryParse(bundle.GetString(RouterConstants.ARG_COMIC_ID, "-1"), out long comicId))
+        {
+            comicId = -1;
+        }
+
+        if (comicId > 0)
+        {
+            ComicModel? comic = await ComicModel.FromId(comicId, "GetTargetComic");
+            if (comic is not null)
+            {
+                return comic;
+            }
+        }
+
+        string location = bundle.GetString(RouterConstants.ARG_COMIC_LOCATION, string.Empty);
+        if (!string.IsNullOrEmpty(location))
+        {
+            ComicModel? comic = await GetComicFromLocation(location);
+            if (comic is not null)
+            {
+                return comic;
+            }
+        }
+
+        return null;
     }
 
     //
@@ -945,6 +963,92 @@ internal sealed partial class ReaderPage : BasePage
                     break;
             }
         }
+    }
+
+    private static async Task<ComicModel?> GetComicFromLocation(string location)
+    {
+        if (File.Exists(location))
+        {
+            string extension = Path.GetExtension(location);
+            if (!AppInfoProvider.IsSupportedExternalFileExtension(extension))
+            {
+                Logger.E(TAG, $"Unsupported file extension: {extension}");
+                return null;
+            }
+
+            StorageFile? file = await Storage.TryGetFile(location);
+            if (file is null)
+            {
+                Logger.E(TAG, $"File not found: {location}");
+                return null;
+            }
+
+            ComicModel? comic = await ComicModel.FromFile(file);
+            if (comic is null)
+            {
+                Logger.E(TAG, $"Failed to create comic from file: {location}");
+                return null;
+            }
+
+            return comic;
+        }
+
+        if (Directory.Exists(location))
+        {
+            ComicModel? comic = await ComicModel.FromLocation(location, "GetComicFromLocation");
+            if (comic is not null)
+            {
+                return comic;
+            }
+
+            string[] filePaths;
+            try
+            {
+                filePaths = Directory.GetFiles(location);
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, $"Failed to list files in directory: {location}.", e);
+                return null;
+            }
+
+            List<StorageFile> files = [];
+            foreach (string path in filePaths)
+            {
+                string extension = Path.GetExtension(path);
+                if (!AppInfoProvider.IsSupportedImageExtension(extension))
+                {
+                    continue;
+                }
+
+                StorageFile? file = await Storage.TryGetFile(path);
+                if (file is null)
+                {
+                    Logger.E(TAG, $"File not found: {path}");
+                    continue;
+                }
+
+                files.Add(file);
+            }
+
+            if (files.Count == 0)
+            {
+                Logger.E(TAG, $"No valid image files found in directory: {location}");
+                return null;
+            }
+
+            comic = ComicModel.FromImageFiles(location, files);
+            if (comic is null)
+            {
+                Logger.E(TAG, $"Failed to create comic from image files in directory: {location}");
+                return null;
+            }
+
+            return comic;
+        }
+
+        Logger.E(TAG, $"Invalid location: {location}");
+        return null;
     }
 
     [GeneratedRegex(REGEX_URL, RegexOptions.None)]

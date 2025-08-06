@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-
 using ComicReader.Common.Services;
 using ComicReader.Data;
 using ComicReader.Data.Legacy;
@@ -23,12 +21,12 @@ internal class InitTaskManager(Application application)
 
     public void InitOnAppCreate()
     {
-        FailFastOnException(InitOnAppCreateInternal);
+        DebugUtils.TrackError(InitOnAppCreateInternal, fastFail: true);
     }
 
     public void InitOnAppLaunch()
     {
-        FailFastOnException(InitOnAppLaunchInternal);
+        DebugUtils.TrackError(InitOnAppLaunchInternal, fastFail: true);
     }
 
     private void InitOnAppCreateInternal()
@@ -36,7 +34,7 @@ internal class InitTaskManager(Application application)
         // Register crash handler
         _application.UnhandledException += (_, e) =>
         {
-            DebugUtils.CaptureFatalError(e.Exception);
+            DebugUtils.CaptureFatalError(e.Message, e.Exception);
         };
 
         // Register services
@@ -101,20 +99,6 @@ internal class InitTaskManager(Application application)
             }
             ApplicationLanguages.PrimaryLanguageOverride = languageTag;
             EnvironmentProvider.Instance.SetCurrentAppLanguage(languageTag);
-        }
-    }
-
-    private void FailFastOnException(Action action)
-    {
-        try
-        {
-            action();
-        }
-        catch (Exception e)
-        {
-            DebugUtils.CaptureFatalError(e);
-            Environment.FailFast("A fatal error occurred during startup.", e);
-            throw;
         }
     }
 }

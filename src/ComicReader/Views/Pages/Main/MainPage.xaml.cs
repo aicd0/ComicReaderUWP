@@ -134,36 +134,6 @@ internal sealed partial class MainPage : BasePage
         ViewModel.OnStop();
     }
 
-    private void LoadInitialTabs(string url, bool recoverTabs)
-    {
-        if (recoverTabs)
-        {
-            TabStatusModel? lastTabStatus = GetLastTabStatus();
-            if (lastTabStatus is not null)
-            {
-                for (int i = 0; i < lastTabStatus.Tabs.Count; ++i)
-                {
-                    TabModel tab = lastTabStatus.Tabs[i];
-                    if (string.IsNullOrEmpty(tab.Url))
-                    {
-                        continue;
-                    }
-
-                    Route route = Route.Create(tab.Url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-                    LoadTabNoLock(-1, route, i == lastTabStatus.SelectedIndex);
-                }
-            }
-        }
-
-        if (!string.IsNullOrEmpty(url))
-        {
-            Route route = Route.Create(url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-            LoadTabNoLock(-1, route, true);
-        }
-
-        EnsureInitialTabNoLock();
-    }
-
     private void ObserveData()
     {
         GlobalEvent.Instance.HotKeyF10.Observe(this, delegate
@@ -199,6 +169,36 @@ internal sealed partial class MainPage : BasePage
         });
 
         GetEventBus().With<int>(EventId.CloseTab).Observe(this, CloseTabNoLock);
+    }
+
+    private void LoadInitialTabs(string url, bool recoverTabs)
+    {
+        if (recoverTabs)
+        {
+            TabStatusModel? lastTabStatus = GetLastTabStatus();
+            if (lastTabStatus is not null)
+            {
+                for (int i = 0; i < lastTabStatus.Tabs.Count; ++i)
+                {
+                    TabModel tab = lastTabStatus.Tabs[i];
+                    if (string.IsNullOrEmpty(tab.Url))
+                    {
+                        continue;
+                    }
+
+                    Route route = Route.Create(tab.Url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
+                    LoadTabNoLock(-1, route, i == lastTabStatus.SelectedIndex);
+                }
+            }
+        }
+
+        if (!string.IsNullOrEmpty(url))
+        {
+            Route route = Route.Create(url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
+            LoadTabNoLock(-1, route, true);
+        }
+
+        EnsureInitialTabNoLock();
     }
 
     //
