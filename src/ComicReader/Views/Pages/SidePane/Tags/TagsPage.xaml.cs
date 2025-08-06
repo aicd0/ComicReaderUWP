@@ -61,20 +61,13 @@ internal sealed partial class TagsPage : BasePage
 
         ViewModel.EditComicLiveData.Observe(this, comics =>
         {
-            CoroutineUtils.Start(async () =>
+            if (comics.Count == 0)
             {
-                if (comics.Count == 0)
-                {
-                    return;
-                }
+                return;
+            }
 
-                var dialog = new EditComicInfoDialog(comics);
-                ContentDialogResult result = await dialog.ShowAsync(XamlRoot);
-                if (result == ContentDialogResult.Primary)
-                {
-                    ViewModel.UpdateTags();
-                }
-            });
+            var dialog = new EditComicInfoDialog(comics);
+            _ = dialog.ShowAsync(XamlRoot);
         });
 
         ViewModel.EditTagCategoryLiveData.Observe(this, tagCategory =>

@@ -97,9 +97,35 @@ public static class DebugUtils
         DebugSwitchModel.Instance.Initialize();
     }
 
-    public static void CaptureFatalError(Exception e)
+    public static void TrackError(Action action, bool fastFail = false)
     {
-        SentryManager.CaptureError(e);
-        CrashHandler.OnUnhandledException(e);
+        try
+        {
+            action();
+        }
+        catch (Exception e)
+        {
+            CaptureFatalErrorInternal(null, e, fastFail);
+            throw;
+        }
     }
+
+    public static void CaptureFatalError(string message, Exception e, bool fastFail = false)
+    {
+        CaptureFatalErrorInternal(message, e, fastFail);
+    }
+
+    private static void CaptureFatalErrorInternal(string? message, Exception e, bool fastFail)
+    {
+        AppUnhandledException appException = new(message, e);
+        SentryManager.CaptureError(appException);
+        CrashHandler.OnUnhandledException(appException);
+
+        if (fastFail)
+        {
+            Environment.FailFast(message, e);
+        }
+    }
+
+    private class AppUnhandledException(string? message, Exception innerException) : Exception(message, innerException) { }
 }

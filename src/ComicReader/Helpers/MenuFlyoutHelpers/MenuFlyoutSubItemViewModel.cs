@@ -10,7 +10,7 @@ namespace ComicReader.Helpers.MenuFlyoutHelpers;
 internal class MenuFlyoutSubItemViewModel(string text) : BaseMenuFlyoutItemViewModel
 {
     public string Text { get; set; } = text;
-    public IconElement? Icon { get; set; }
+    public string? Glyph { get; set; }
     public List<BaseMenuFlyoutItemViewModel> Items { get; set; } = [];
 
     protected override MenuFlyoutItemBase CreateMenuFlyoutItemInternal()
@@ -18,7 +18,10 @@ internal class MenuFlyoutSubItemViewModel(string text) : BaseMenuFlyoutItemViewM
         var item = new MenuFlyoutSubItem
         {
             Text = Text,
-            Icon = Icon,
+            Icon = string.IsNullOrEmpty(Glyph) ? null : new FontIcon
+            {
+                Glyph = Glyph,
+            },
         };
 
         foreach (BaseMenuFlyoutItemViewModel subItem in Items)

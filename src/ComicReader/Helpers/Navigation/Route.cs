@@ -1,12 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 
 using ComicReader.SDK.Common.DebugTools;
 
@@ -14,13 +11,38 @@ namespace ComicReader.Helpers.Navigation;
 
 public class Route
 {
-    private static readonly Regex sSchemeRegex = new("^[a-z0-9]+$", RegexOptions.IgnoreCase);
-    private static readonly Regex sHostRegex = new("^[_a-z0-9\\.]+$", RegexOptions.IgnoreCase);
-    private static readonly Regex sPortRegex = new("^[0-9]*$", RegexOptions.None);
-    private static readonly Regex sPathRegex = new("^[a-z0-9_/]*$", RegexOptions.IgnoreCase);
-    private static readonly Regex sQueryKeyRegex = new("^[a-z0-9_]+$", RegexOptions.IgnoreCase);
-    private static readonly Regex sQueryValueRegex = new("^[a-z0-9%_]+$", RegexOptions.IgnoreCase);
-    private static readonly Regex sFragmentRegex = new("^[a-z0-9]*$", RegexOptions.IgnoreCase);
+    public static Route Create(string url)
+    {
+        Uri uri = new(url);
+        string scheme = uri.Scheme;
+        string host = uri.Host;
+        int port = uri.Port;
+        string path = uri.AbsolutePath;
+        string fragment = uri.Fragment;
+
+        string query = uri.Query;
+        if (query.StartsWith('?'))
+        {
+            query = query[1..];
+        }
+
+        string[] queries = query.Split('&');
+        var queriesDict = new Dictionary<string, string>();
+        foreach (string q in queries)
+        {
+            if (q.Length == 0)
+            {
+                continue;
+            }
+
+            int index = q.IndexOf('=');
+            string key = q[..index];
+            string value = q[(index + 1)..];
+            queriesDict[Uri.UnescapeDataString(key)] = Uri.UnescapeDataString(value);
+        }
+
+        return new Route(scheme, host, port, path, queriesDict, fragment);
+    }
 
     public string Scheme { get; }
     public string Host { get; }
@@ -30,141 +52,7 @@ public class Route
     public string Fragment { get; }
     public string Url { get => EvaluateUrl(); }
 
-    public static Route Create(string url)
-    {
-        // parse scheme
-        int index = url.IndexOf("://");
-        if (index == -1)
-        {
-            ThrowParseException(0, url);
-        }
-
-        string scheme = url.Substring(0, index);
-        string rest = url.Substring(index + 3);
-
-        // parse fragment
-        index = rest.LastIndexOf("#");
-        string fragment;
-        if (index != -1)
-        {
-            fragment = rest.Substring(index + 1);
-            rest = rest.Substring(0, index);
-        }
-        else
-        {
-            fragment = "";
-        }
-
-        // parse query
-        index = rest.LastIndexOf("?");
-        string query;
-        if (index != -1)
-        {
-            query = rest.Substring(index + 1);
-            rest = rest.Substring(0, index);
-        }
-        else
-        {
-            query = "";
-        }
-
-        // parse path
-        index = rest.IndexOf("/");
-        string path;
-        if (index != -1)
-        {
-            path = rest.Substring(index);
-            rest = rest.Substring(0, index);
-        }
-        else
-        {
-            path = "";
-        }
-
-        // parse port
-        index = rest.LastIndexOf(":");
-        string port;
-        if (index != -1)
-        {
-            port = rest.Substring(index + 1);
-            rest = rest.Substring(0, index);
-        }
-        else
-        {
-            port = "";
-        }
-
-        // parse host
-        string host = rest;
-
-        // check validity
-        if (!sSchemeRegex.Match(scheme).Success)
-        {
-            ThrowParseException(1, url);
-        }
-
-        if (!sHostRegex.Match(host).Success)
-        {
-            ThrowParseException(2, url);
-        }
-
-        if (!sPortRegex.Match(port).Success)
-        {
-            ThrowParseException(3, url);
-        }
-
-        int port_num;
-        if (port.Length > 0)
-        {
-            if (!int.TryParse(port, out port_num))
-            {
-                ThrowParseException(4, url);
-            }
-        }
-        else
-        {
-            port_num = -1;
-        }
-
-        if (!sPathRegex.Match(path).Success)
-        {
-            ThrowParseException(5, url);
-        }
-
-        string[] queries = query.Split('&');
-        var queries_dict = new Dictionary<string, string>();
-        foreach (string q in queries)
-        {
-            if (q.Length == 0)
-            {
-                continue;
-            }
-
-            index = q.IndexOf("=");
-            string key = q.Substring(0, index);
-            string value = q.Substring(index + 1);
-            if (!sQueryKeyRegex.Match(key).Success)
-            {
-                ThrowParseException(6, url);
-            }
-
-            if (!sQueryValueRegex.Match(value).Success)
-            {
-                ThrowParseException(7, url);
-            }
-
-            queries_dict[key] = Uri.UnescapeDataString(value);
-        }
-
-        if (!sFragmentRegex.Match(fragment).Success)
-        {
-            ThrowParseException(8, url);
-        }
-
-        return new Route(scheme, host, port_num, path, queries_dict, fragment);
-    }
-
-    private string _url;
+    private string? _url;
 
     private Route(string scheme, string host, int port, string path, Dictionary<string, string> queries, string fragment)
     {
@@ -206,6 +94,7 @@ public class Route
         {
             return _url;
         }
+
         _url = BuildUrl();
         return _url;
     }
@@ -222,7 +111,11 @@ public class Route
             urlBuilder.Append(Port);
         }
 
-        urlBuilder.Append(Uri.EscapeDataString(Path));
+        if (Path != "/")
+        {
+            urlBuilder.Append(Path);
+        }
+
         if (Queries.Count > 0)
         {
             urlBuilder.Append('?');
@@ -241,22 +134,7 @@ public class Route
             }
         }
 
-        if (Fragment.Length > 0)
-        {
-            urlBuilder.Append('#');
-            urlBuilder.Append(Fragment);
-        }
-
+        urlBuilder.Append(Fragment);
         return urlBuilder.ToString();
-    }
-
-    private static string ThrowParseException(int code, string url)
-    {
-        throw new ParseException($"Parse URL error (code: {code}, url: {url})");
-    }
-
-    public class ParseException : Exception
-    {
-        public ParseException(string message) : base(message) { }
     }
 }

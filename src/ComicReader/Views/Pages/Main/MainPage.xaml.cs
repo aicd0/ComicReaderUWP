@@ -3,7 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
@@ -11,10 +12,9 @@ using ComicReader.Common.Constants;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
-using ComicReader.Data.Models;
-using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.KVStorage;
 using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI;
@@ -31,6 +31,8 @@ namespace ComicReader.Views.Pages.Main;
 
 internal sealed partial class MainPage : BasePage
 {
+    private const string TAG = nameof(MainPage);
+
     public MainPageViewModel ViewModel { get; } = new();
 
     //
@@ -71,14 +73,24 @@ internal sealed partial class MainPage : BasePage
 
     public void OpenInNewTab(Route route)
     {
-        LoadTab(-1, route);
+        MainThreadUtils.RunInMainThread(() =>
+        {
+            LoadTabNoLock(-1, route, true);
+        });
     }
 
+    /// <summary>
+    /// Closes all currently open tabs and performs any necessary cleanup. Must be called from the UI thread.
+    /// </summary>
+    /// <remarks>This method ensures that the state of each tab is saved before closing.  Tabs are closed in
+    /// the order they appear, and the operation continues  until all tabs have been closed. This method is not
+    /// thread-safe and  should be called only from the appropriate thread managing the tabs.</remarks>
     public void CloseAllTabs()
     {
+        SaveTabStatus();
         while (_tabs.Count > 0)
         {
-            CloseTab(_tabs[0]);
+            CloseTabInternalNoLock(_tabs[0]);
         }
     }
 
@@ -106,7 +118,8 @@ internal sealed partial class MainPage : BasePage
         ViewModel.OnStart();
 
         string url = bundle.GetString(RouterConstants.ARG_URL);
-        _ = OnFirstStartUp(url);
+        bool recoverTabs = bundle.GetString(RouterConstants.ARG_RECOVER_TABS, "0") == "1";
+        LoadInitialTabs(url, recoverTabs);
     }
 
     protected override void OnResume()
@@ -119,36 +132,6 @@ internal sealed partial class MainPage : BasePage
     {
         base.OnStop();
         ViewModel.OnStop();
-    }
-
-    private async Task OnFirstStartUp(string url)
-    {
-        if (url != null && url.Length > 0)
-        {
-            Route route = Route.Create(url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-            LoadTab(-1, route);
-            return;
-        }
-
-        {
-            long id = AppModel.GetReadingComic();
-            if (id >= 0)
-            {
-                ComicModel? comic = await ComicModel.FromId(id, "FetchLastComic");
-                if (comic != null)
-                {
-                    Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                        .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                    OpenInNewTab(route);
-                    return;
-                }
-            }
-        }
-
-        {
-            var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-            OpenInNewTab(route);
-        }
     }
 
     private void ObserveData()
@@ -185,14 +168,150 @@ internal sealed partial class MainPage : BasePage
             }
         });
 
-        GetEventBus().With<int>(EventId.CloseTab).Observe(this, CloseTab);
+        GetEventBus().With<int>(EventId.CloseTab).Observe(this, CloseTabNoLock);
+    }
+
+    private void LoadInitialTabs(string url, bool recoverTabs)
+    {
+        if (recoverTabs)
+        {
+            TabStatusModel? lastTabStatus = GetLastTabStatus();
+            if (lastTabStatus is not null)
+            {
+                for (int i = 0; i < lastTabStatus.Tabs.Count; ++i)
+                {
+                    TabModel tab = lastTabStatus.Tabs[i];
+                    if (string.IsNullOrEmpty(tab.Url))
+                    {
+                        continue;
+                    }
+
+                    Route route = Route.Create(tab.Url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
+                    LoadTabNoLock(-1, route, i == lastTabStatus.SelectedIndex);
+                }
+            }
+        }
+
+        if (!string.IsNullOrEmpty(url))
+        {
+            Route route = Route.Create(url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
+            LoadTabNoLock(-1, route, true);
+        }
+
+        EnsureInitialTabNoLock();
     }
 
     //
     // Tab Management
     //
 
-    private int AddTab(NavigationBundle bundle)
+    private void EnsureInitialTabNoLock()
+    {
+        if (_tabs.Count == 0)
+        {
+            var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
+            LoadTabNoLock(-1, route, true);
+        }
+    }
+
+    private bool LoadTabNoLock(int tabId, Route route, bool select)
+    {
+        if (tabId < -1)
+        {
+            Logger.F(TAG, $"Invalid tab ID {tabId}.");
+            return false;
+        }
+
+        route.WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
+        NavigationBundle? bundle = AppRouter.Process(route);
+        if (bundle is null)
+        {
+            Logger.F(TAG, $"Failed to process route: {route.Url}");
+            return false;
+        }
+
+        if (!bundle.PageTrait.SupportMultiInstance())
+        {
+            foreach (TabInfo tab in _tabs)
+            {
+                if (tab.CurrentUrl == bundle.Url)
+                {
+                    if (select)
+                    {
+                        RootTabView.SelectedItem = tab.Item;
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        bool newTab = tabId == -1;
+        if (newTab)
+        {
+            tabId = AddTabNoLock(bundle);
+        }
+
+        TabInfo? tabInfo = GetTabInfoNoLock(tabId);
+        if (tabInfo == null)
+        {
+            Logger.F(TAG, $"Failed to find tab info for ID {tabId}.");
+            return false;
+        }
+
+        if (select)
+        {
+            RootTabView.SelectedItem = tabInfo.Item;
+        }
+
+        if (!newTab && tabInfo.CurrentUrl == bundle.Url)
+        {
+            return true;
+        }
+
+        var frame = (Frame)tabInfo.Item.Content;
+        if (bundle.PageTrait.HasNavigationBar())
+        {
+            // Ensure that the frame has a NavigationPage as its content
+            if (frame.Content is null || frame.Content.GetType() != typeof(NavigationPage))
+            {
+                Route navigationRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_NAVIGATION)
+                    .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
+                NavigationBundle? navigationPageBundle = AppRouter.Process(navigationRoute);
+                if (navigationPageBundle is not null)
+                {
+                    RegisterPageAbility(navigationPageBundle.Communicator, tabInfo.Ability);
+                    if (!frame.Navigate(navigationPageBundle.PageTrait.GetPageType(), navigationPageBundle))
+                    {
+                        Logger.F(TAG, $"Failed to navigate to navigation page for tab ID {tabId}.");
+                    }
+                }
+                else
+                {
+                    Logger.F(TAG, $"Failed to process navigation route: {navigationRoute.Url}");
+                }
+            }
+
+            // If the frame's content is a NavigationPage, navigate to the new page
+            if (frame.Content is not null && frame.Content.GetType() == typeof(NavigationPage))
+            {
+                var contentPage = (NavigationPage)frame.Content!;
+                contentPage.Navigate(bundle);
+            }
+            else
+            {
+                Logger.F(TAG, $"Frame content is not a NavigationPage for tab ID {tabId}.");
+            }
+        }
+        else
+        {
+            frame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+        }
+
+        return true;
+    }
+
+    private int AddTabNoLock(NavigationBundle bundle)
     {
         var item = new TabViewItem
         {
@@ -215,85 +334,7 @@ internal sealed partial class MainPage : BasePage
         return tabId;
     }
 
-    private void LoadTab(int tabId, Route route)
-    {
-        _ = MainThreadUtils.RunInMainThread(delegate
-        {
-            LoadTabInternal(tabId, route);
-        });
-    }
-
-    private void LoadTabInternal(int tabId, Route route)
-    {
-        if (tabId < -1)
-        {
-            throw new ArgumentException($"Invalid tab ID {tabId}.");
-        }
-
-        route.WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-        NavigationBundle? bundle = AppRouter.Process(route)!;
-        if (!bundle.PageTrait.SupportMultiInstance())
-        {
-            foreach (TabInfo tab in _tabs)
-            {
-                if (tab.CurrentUrl == bundle.Url)
-                {
-                    RootTabView.SelectedItem = tab.Item;
-                    return;
-                }
-            }
-        }
-
-        bool newTab = tabId == -1;
-
-        if (newTab)
-        {
-            tabId = AddTab(bundle);
-        }
-
-        TabInfo? tabInfo = GetTabInfo(tabId);
-
-        if (tabInfo == null)
-        {
-            Logger.AssertNotReachHere("CF1E732FD7F4EECA");
-            return;
-        }
-
-        RootTabView.SelectedItem = tabInfo.Item;
-
-        if (!newTab && tabInfo.CurrentUrl == bundle.Url)
-        {
-            return;
-        }
-
-        var frame = (Frame)tabInfo.Item.Content;
-
-        if (bundle.PageTrait.HasNavigationBar())
-        {
-            if (frame.Content == null || frame.Content.GetType() != typeof(NavigationPage))
-            {
-                Route navigationRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_NAVIGATION)
-                    .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-                NavigationBundle? navigationPageBundle = AppRouter.Process(navigationRoute)!;
-                RegisterPageAbility(navigationPageBundle.Communicator, tabInfo.Ability);
-                if (!frame.Navigate(navigationPageBundle.PageTrait.GetPageType(), navigationPageBundle))
-                {
-                    return;
-                }
-            }
-
-            var contentPage = (NavigationPage)frame.Content!;
-            contentPage.Navigate(bundle);
-        }
-        else
-        {
-            frame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-        }
-
-        OnPageChanged();
-    }
-
-    private void CloseTab(int tabId)
+    private void CloseTabNoLock(int tabId)
     {
         if (tabId < 0)
         {
@@ -310,27 +351,29 @@ internal sealed partial class MainPage : BasePage
                 break;
             }
         }
+
         if (closingTab == null)
         {
             return;
         }
 
-        CloseTab(closingTab);
+        CloseTabInternalNoLock(closingTab);
+        SaveTabStatus();
 
-        if (RootTabView.TabItems.Count <= 0)
+        if (_tabs.Count <= 0)
         {
-            CurrentWindow?.Close();
+            CurrentWindow!.Close();
         }
     }
 
-    private void CloseTab(TabInfo tabInfo)
+    private void CloseTabInternalNoLock(TabInfo tabInfo)
     {
         tabInfo.Ability.DispatchPageStoppedEvent();
         _tabs.Remove(tabInfo);
         RootTabView.TabItems.Remove(tabInfo.Item);
     }
 
-    private TabInfo? GetTabInfo(int tabId)
+    private TabInfo? GetTabInfoNoLock(int tabId)
     {
         foreach (TabInfo tab in _tabs)
         {
@@ -366,7 +409,7 @@ internal sealed partial class MainPage : BasePage
             }
         }
 
-        CloseTab(closingTabId);
+        CloseTabNoLock(closingTabId);
     }
 
     private void OnTabViewSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -390,14 +433,7 @@ internal sealed partial class MainPage : BasePage
         Logger.Assert(newSelectedTab != null, "59496F61DEF5BD3C");
         _currentTab = newSelectedTab;
 
-        if (lastSelectedTab != null)
-        {
-            DispatchToTab(lastSelectedTab, delegate (MainPageAbility ability)
-            {
-                ability.SendTabUnselectedEvent();
-            });
-        }
-
+        lastSelectedTab?.Ability.SendTabUnselectedEvent();
         OnPageChanged();
     }
 
@@ -431,8 +467,10 @@ internal sealed partial class MainPage : BasePage
                 Logger.AssertNotReachHere("98CC0674EF182B5D");
                 return;
             }
+
             sourceWindowId = (int)id;
         }
+
         int sourceTabId;
         {
             if (!e.DataView.Properties.TryGetValue("tabId", out object id) || id is not int)
@@ -440,8 +478,10 @@ internal sealed partial class MainPage : BasePage
                 Logger.AssertNotReachHere("352E7E7D7070988A");
                 return;
             }
+
             sourceTabId = (int)id;
         }
+
         string url;
         {
             if (!e.DataView.Properties.TryGetValue("url", out object u) || u is not string)
@@ -449,6 +489,7 @@ internal sealed partial class MainPage : BasePage
                 Logger.AssertNotReachHere("E6337F0738EFC223");
                 return;
             }
+
             url = (string)u;
         }
 
@@ -457,8 +498,9 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        LoadTab(-1, Route.Create(url));
         App.WindowManager.GetEventBus(sourceWindowId).With<int>(EventId.CloseTab).Emit(sourceTabId);
+        LoadTabNoLock(-1, Route.Create(url), true);
+        EnsureInitialTabNoLock();
     }
 
     private void OnRootTabViewDragOver(object sender, DragEventArgs e)
@@ -479,6 +521,7 @@ internal sealed partial class MainPage : BasePage
                 removingTab = tabInfo;
             }
         }
+
         if (removingTab == null)
         {
             Logger.AssertNotReachHere("F40D97E40039ADF7");
@@ -492,9 +535,7 @@ internal sealed partial class MainPage : BasePage
 
         _tabs.Remove(removingTab);
         RootTabView.TabItems.Remove(tab);
-
-        var newWindow = new MainWindow(removingTab.CurrentUrl);
-        newWindow.Activate();
+        MainWindow.Open(url: removingTab.CurrentUrl);
     }
 
     private void OnPageChanged()
@@ -695,17 +736,89 @@ internal sealed partial class MainPage : BasePage
     // Utilities
     //
 
-    private void DispatchToTab(TabInfo tab, Action<MainPageAbility> action)
-    {
-        action(tab.Ability);
-    }
-
     private void DispatchToAllTabs(Action<MainPageAbility> action)
     {
-        foreach (TabInfo tab in _tabs)
+        MainThreadUtils.RunInMainThread(() =>
         {
-            DispatchToTab(tab, action);
+            foreach (TabInfo tab in _tabs)
+            {
+                action(tab.Ability);
+            }
+        });
+    }
+
+    private static TabStatusModel? GetLastTabStatus()
+    {
+        string? json = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LAST_TAB_STATUS);
+        if (string.IsNullOrEmpty(json))
+        {
+            return null;
         }
+
+        LastTabStatusJsonModel? jsonModel;
+        try
+        {
+            jsonModel = JsonSerializer.Deserialize<LastTabStatusJsonModel>(json);
+        }
+        catch (JsonException)
+        {
+            Logger.E(TAG, "Failed to deserialize last tab status JSON.");
+            return null;
+        }
+
+        if (jsonModel is null)
+        {
+            return null;
+        }
+
+        TabStatusModel model = new();
+        if (jsonModel.Tabs is not null)
+        {
+            foreach (TabJsonModel? tab in jsonModel.Tabs)
+            {
+                if (tab is null || string.IsNullOrEmpty(tab.Url))
+                {
+                    continue;
+                }
+
+                model.Tabs.Add(new TabModel { Url = tab.Url });
+            }
+        }
+
+        if (model.Tabs.Count == 0)
+        {
+            return null;
+        }
+
+        model.SelectedIndex = Math.Clamp(jsonModel.SelectedIndex ?? -1, 0, model.Tabs.Count - 1);
+        return model;
+    }
+
+    private void SaveTabStatus()
+    {
+        TabStatusModel model = new()
+        {
+            SelectedIndex = RootTabView.SelectedIndex
+        };
+
+        foreach (TabInfo item in _tabs)
+        {
+            model.Tabs.Add(new TabModel { Url = item.CurrentUrl });
+        }
+
+        LastTabStatusJsonModel jsonModel = new()
+        {
+            SelectedIndex = model.SelectedIndex,
+            Tabs = []
+        };
+
+        foreach (TabModel tab in model.Tabs)
+        {
+            jsonModel.Tabs.Add(new TabJsonModel { Url = tab.Url });
+        }
+
+        string json = JsonSerializer.Serialize(jsonModel);
+        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LAST_TAB_STATUS, json);
     }
 
     //
@@ -752,7 +865,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTab(_tabId, route);
+            parent.LoadTabNoLock(_tabId, route, true);
         }
 
         public void OpenInNewTab(Route route)
@@ -814,7 +927,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            TabInfo? tab = parent.GetTabInfo(_tabId);
+            TabInfo? tab = parent.GetTabInfoNoLock(_tabId);
             if (tab == null)
             {
                 return;
@@ -868,7 +981,7 @@ internal sealed partial class MainPage : BasePage
                 return null;
             }
 
-            return parent.GetTabInfo(_tabId);
+            return parent.GetTabInfoNoLock(_tabId);
         }
     }
 
@@ -883,5 +996,31 @@ internal sealed partial class MainPage : BasePage
         public required MainPageAbility Ability { get; set; }
         public required string CurrentUrl { get; set; }
         public required IPageTrait CurrentPageTrait { get; set; }
+    }
+
+    private class LastTabStatusJsonModel
+    {
+        [JsonPropertyName("SelectedIndex")]
+        public int? SelectedIndex { get; set; }
+
+        [JsonPropertyName("Tabs")]
+        public List<TabJsonModel?>? Tabs { get; set; }
+    }
+
+    private class TabJsonModel
+    {
+        [JsonPropertyName("Title")]
+        public string? Url { get; set; }
+    }
+
+    private class TabStatusModel
+    {
+        public int SelectedIndex { get; set; } = -1;
+        public List<TabModel> Tabs { get; set; } = [];
+    }
+
+    private class TabModel
+    {
+        public string Url { get; set; } = string.Empty;
     }
 }

@@ -7,11 +7,9 @@ using ComicReader.Common.BaseUI;
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Imaging;
-using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.ViewModels;
 
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 
@@ -20,7 +18,6 @@ namespace ComicReader.UserControls.ComicItemView;
 internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemView
 {
     private readonly CancellationSession _loadImageToken = new();
-    private IComicItemViewHandler? _itemHandler;
 
     public ComicItemViewModel? Item { get; private set; }
 
@@ -76,14 +73,10 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
 
     private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        ComicItemViewModel? item = Item;
-        if (item != null)
-        {
-            _itemHandler?.OnItemTapped(item);
-        }
+        Item?.OnClick?.Invoke();
     }
 
-    public void Bind(ComicItemViewModel item, IComicItemViewHandler handler)
+    public void Bind(ComicItemViewModel item)
     {
         if (item != Item)
         {
@@ -92,19 +85,8 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
             Bindings.Update();
         }
 
-        _itemHandler = handler;
-
         BindImage(item);
         RequestImageIfNeeded(item);
-
-        List<BaseMenuFlyoutItemViewModel> menuItems = MenuFlyoutItemsCreator.CreateMenuItems(
-            item.Comic, new BaseComicItemMenuFlyoutHandler(item, handler), supportSelection: true);
-        MenuFlyout menuFlyout = new();
-        foreach (BaseMenuFlyoutItemViewModel menuItem in menuItems)
-        {
-            menuFlyout.Items.Add(menuItem.CreateMenuFlyoutItem());
-        }
-        RootGrid.ContextFlyout = menuFlyout;
     }
 
     public void Unbind()

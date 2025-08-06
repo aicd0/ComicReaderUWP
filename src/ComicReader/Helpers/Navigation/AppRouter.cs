@@ -19,7 +19,7 @@ internal static class AppRouter
     {
         foreach (IRouterInterceptor interceptor in sInterceptors)
         {
-            NavigationBundle bundle = interceptor.Intercept(route);
+            NavigationBundle? bundle = interceptor.Intercept(route);
             if (bundle != null)
             {
                 return bundle;

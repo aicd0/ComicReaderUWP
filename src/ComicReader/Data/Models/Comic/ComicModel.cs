@@ -283,11 +283,13 @@ internal sealed class ComicModel
         {
             return model;
         }
+
         ComicData? comicData = await ComicData.FromLocation(location, taskName);
         if (comicData == null)
         {
             return null;
         }
+
         return ReplaceWithExisting(comicData);
     }
 
@@ -314,10 +316,12 @@ internal sealed class ComicModel
             comic = await ComicData.FromLocation(file.Path, "ComicModelFromFileArchive");
             comic ??= await ComicArchiveData.FromExternal(file);
         }
+
         if (comic == null)
         {
             return null;
         }
+
         return ReplaceWithExisting(comic);
     }
 

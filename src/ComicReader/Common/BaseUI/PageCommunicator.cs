@@ -21,6 +21,7 @@ internal class PageCommunicator
         {
             return (T)value;
         }
+
         return null;
     }
 }

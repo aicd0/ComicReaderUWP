@@ -7,7 +7,7 @@ namespace ComicReader.UserControls.ComicItemView;
 
 interface IComicItemView
 {
-    void Bind(ComicItemViewModel item, IComicItemViewHandler handler);
+    void Bind(ComicItemViewModel item);
 
     void Unbind();
 }

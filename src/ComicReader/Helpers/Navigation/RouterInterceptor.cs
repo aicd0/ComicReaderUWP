@@ -7,5 +7,5 @@ namespace ComicReader.Helpers.Navigation;
 
 internal interface IRouterInterceptor
 {
-    NavigationBundle Intercept(Route route);
+    NavigationBundle? Intercept(Route route);
 }

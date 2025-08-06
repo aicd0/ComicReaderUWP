@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
+using System.IO;
 
 using ComicReader.Common.Services;
 using ComicReader.Data;
@@ -11,6 +11,7 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.ServiceManagement;
+using ComicReader.SDK.Common.Storage;
 
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.Globalization;
@@ -21,14 +22,16 @@ internal class InitTaskManager(Application application)
 {
     private readonly Application _application = application;
 
+    private object? _appLock;
+
     public void InitOnAppCreate()
     {
-        FailFastOnException(InitOnAppCreateInternal);
+        DebugUtils.TrackError(InitOnAppCreateInternal, fastFail: true);
     }
 
     public void InitOnAppLaunch()
     {
-        FailFastOnException(InitOnAppLaunchInternal);
+        DebugUtils.TrackError(InitOnAppLaunchInternal, fastFail: true);
     }
 
     private void InitOnAppCreateInternal()
@@ -36,7 +39,7 @@ internal class InitTaskManager(Application application)
         // Register crash handler
         _application.UnhandledException += (_, e) =>
         {
-            DebugUtils.CaptureFatalError(e.Exception);
+            DebugUtils.CaptureFatalError(e.Message, e.Exception);
         };
 
         // Register services
@@ -46,14 +49,18 @@ internal class InitTaskManager(Application application)
         // Initialize environment information
         EnvironmentProvider.Instance.Initialize(Properties.AdditionalDebugInformation);
 
-        // Initialize Sentry
-        SentryManager.Initialize(Properties.SentryDsn, EnvironmentProvider.GetEnvironmentTags());
+        bool isFirstInstance = TryRegisterFirstInstance();
+        if (isFirstInstance)
+        {
+            // Initialize Sentry
+            SentryManager.Initialize(Properties.SentryDsn, EnvironmentProvider.GetEnvironmentTags());
 
-        // Initialize app language
-        InitializeAppLanguage();
+            // Initialize app language
+            InitializeAppLanguage();
 
-        // Initialize app theme
-        InitializeAppTheme();
+            // Initialize app theme
+            InitializeAppTheme();
+        }
     }
 
     private void InitOnAppLaunchInternal()
@@ -104,17 +111,23 @@ internal class InitTaskManager(Application application)
         }
     }
 
-    private void FailFastOnException(Action action)
+    private bool TryRegisterFirstInstance()
     {
+        string lockFilePath = Path.Combine(StorageLocation.LocalFolderPath, "app.lock");
         try
         {
-            action();
+            var fileStream = new FileStream(
+                lockFilePath,
+                FileMode.OpenOrCreate,
+                FileAccess.ReadWrite,
+                FileShare.None);
+            fileStream.Lock(0, 0);
+            _appLock = fileStream;
+            return true;
         }
-        catch (Exception e)
+        catch (IOException)
         {
-            DebugUtils.CaptureFatalError(e);
-            Environment.FailFast("A fatal error occurred during startup.", e);
-            throw;
+            return false;
         }
     }
 }

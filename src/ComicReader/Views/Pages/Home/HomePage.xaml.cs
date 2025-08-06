@@ -39,14 +39,12 @@ internal sealed partial class HomePage : BasePage
 
     private ComicFilterModel.ViewTypeEnum? _viewType = null;
     private bool? _usingGroupSource = null;
-    private readonly IComicItemViewHandler _comicItemHandler;
     private Storyboard? _headerTextBlockAnimation = null;
     private double _lastGridViewVerticalOffset = 0.0;
 
     public HomePage()
     {
         InitializeComponent();
-        _comicItemHandler = new ComicItemHandler(this);
     }
 
     //
@@ -88,6 +86,27 @@ internal sealed partial class HomePage : BasePage
         GetNavigationPageAbility().RegisterRefreshHandler(this, () =>
         {
             ComicModel.UpdateAllComics("HomePage#RefreshPage");
+        });
+
+        ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
+        {
+            GetMainPageAbility().OpenInCurrentTab(route);
+        });
+
+        ViewModel.OpenInNewTabLiveData.Observe(this, route =>
+        {
+            GetMainPageAbility().OpenInNewTab(route);
+        });
+
+        ViewModel.EditComicLiveData.Observe(this, comics =>
+        {
+            if (comics.Count == 0)
+            {
+                return;
+            }
+
+            var dialog = new EditComicInfoDialog(comics);
+            _ = dialog.ShowAsync(XamlRoot);
         });
 
         ViewModel.FilterLiveData.ObserveSticky(this, UpdateFilters);
@@ -237,7 +256,7 @@ internal sealed partial class HomePage : BasePage
         }
         else
         {
-            viewHolder.Bind(item, _comicItemHandler);
+            viewHolder.Bind(item);
         }
     }
 
@@ -458,40 +477,6 @@ internal sealed partial class HomePage : BasePage
     // Comic Item
     //
 
-    private void OnOpenInNewTabClicked(ComicItemViewModel item)
-    {
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_COMIC_ID, item.Comic.Id.ToString());
-        GetMainPageAbility().OpenInNewTab(route);
-    }
-
-    private void OnComicItemTapped(ComicItemViewModel item)
-    {
-        if (!CanHandleTapped() || ViewModel.IsSelectMode)
-        {
-            return;
-        }
-
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_COMIC_ID, item.Comic.Id.ToString());
-        GetMainPageAbility().OpenInCurrentTab(route);
-    }
-
-    private void OnAddToFavoritesClicked(ComicItemViewModel item)
-    {
-        ViewModel.ApplyOperationToComic(ComicOperationType.Favorite, item);
-    }
-
-    private void OnRemoveFromFavoritesClicked(ComicItemViewModel item)
-    {
-        ViewModel.ApplyOperationToComic(ComicOperationType.Unfavorite, item);
-    }
-
-    private void OnHideComicClicked(ComicItemViewModel item)
-    {
-        ViewModel.ApplyOperationToComic(ComicOperationType.Hide, item);
-    }
-
     private void EditFilterButton_Click(object sender, RoutedEventArgs e)
     {
         C0.Run(async delegate
@@ -499,22 +484,6 @@ internal sealed partial class HomePage : BasePage
             var dialog = new EditFilterDialog(await ViewModel.GetFilter());
             _ = await dialog.ShowAsync(XamlRoot);
             ViewModel.UpdateFilters();
-        });
-    }
-
-    private void OnEditComicInfoClick(ComicItemViewModel item)
-    {
-        List<ComicItemViewModel> selection = ViewModel.GetSelection(item);
-        C0.Run(async () =>
-        {
-            var dialog = new EditComicInfoDialog(selection.ConvertAll(x => x.Comic));
-            ContentDialogResult result = await dialog.ShowAsync(XamlRoot);
-            if (result == ContentDialogResult.Primary)
-            {
-                ViewModel.NotifyItemsChanged(selection);
-                ViewModel.UpdateLibrary();
-                ViewModel.UpdateFilters();
-            }
         });
     }
 
@@ -581,74 +550,5 @@ internal sealed partial class HomePage : BasePage
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
             .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
         GetMainPageAbility().OpenInNewTab(route);
-    }
-
-    //
-    // Helper Class
-    //
-
-    private class ComicItemHandler(HomePage page) : IComicItemViewHandler
-    {
-        private readonly WeakReference<HomePage> _pageRef = new(page);
-
-        void IComicItemViewHandler.OnAddToFavoritesClicked(ComicItemViewModel item)
-        {
-            GetPage()?.OnAddToFavoritesClicked(item);
-        }
-
-        void IComicItemViewHandler.OnEditClick(ComicItemViewModel item)
-        {
-            GetPage()?.OnEditComicInfoClick(item);
-        }
-
-        void IComicItemViewHandler.OnHideClicked(ComicItemViewModel item)
-        {
-            GetPage()?.OnHideComicClicked(item);
-        }
-
-        void IComicItemViewHandler.OnItemTapped(ComicItemViewModel item)
-        {
-            GetPage()?.OnComicItemTapped(item);
-        }
-
-        void IComicItemViewHandler.OnMarkAsReadClicked(ComicItemViewModel item)
-        {
-            GetPage()?.ViewModel?.ApplyOperationToComic(ComicOperationType.MarkAsRead, item);
-        }
-
-        void IComicItemViewHandler.OnMarkAsReadingClicked(ComicItemViewModel item)
-        {
-            GetPage()?.ViewModel?.ApplyOperationToComic(ComicOperationType.MarkAsReading, item);
-        }
-
-        void IComicItemViewHandler.OnMarkAsUnreadClicked(ComicItemViewModel item)
-        {
-            GetPage()?.ViewModel?.ApplyOperationToComic(ComicOperationType.MarkAsUnread, item);
-        }
-
-        void IComicItemViewHandler.OnOpenInNewTabClicked(ComicItemViewModel item)
-        {
-            GetPage()?.OnOpenInNewTabClicked(item);
-        }
-
-        void IComicItemViewHandler.OnRemoveFromFavoritesClicked(ComicItemViewModel item)
-        {
-            GetPage()?.OnRemoveFromFavoritesClicked(item);
-        }
-
-        void IComicItemViewHandler.OnSelectClicked(ComicItemViewModel item)
-        {
-            GetPage()?.ViewModel?.SetSelectionMode(true);
-        }
-
-        void IComicItemViewHandler.OnUnhideClicked(ComicItemViewModel item)
-        {
-            GetPage()?.ViewModel?.ApplyOperationToComic(ComicOperationType.Unhide, item);
-        }
-
-        private HomePage? GetPage()
-        {
-            return _pageRef.TryGetTarget(out HomePage? page) ? page : null;
-        }
     }
 }

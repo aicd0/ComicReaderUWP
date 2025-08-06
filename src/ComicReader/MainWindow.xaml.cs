@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Common.Utils;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
@@ -27,7 +25,6 @@ using Microsoft.UI.Xaml.Media;
 
 using Windows.ApplicationModel.Activation;
 using Windows.Storage;
-using Windows.Storage.Search;
 using Windows.Win32;
 
 using WinRT.Interop;
@@ -37,6 +34,24 @@ namespace ComicReader;
 public sealed partial class MainWindow : Window
 {
     private const uint WM_HOTKEY = 0x0312;
+
+    //
+    // Creators
+    //
+
+    public static void Open(string url = "", bool recoverTabs = false)
+    {
+        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
+            .WithParam(RouterConstants.ARG_RECOVER_TABS, recoverTabs ? "1" : "0");
+
+        if (!string.IsNullOrEmpty(url))
+        {
+            route.WithParam(RouterConstants.ARG_URL, url);
+        }
+
+        MainWindow window = new(route.Url);
+        window.Activate();
+    }
 
     //
     // Member variables
@@ -56,7 +71,7 @@ public sealed partial class MainWindow : Window
     // Constructors
     //
 
-    public MainWindow(string url)
+    private MainWindow(string url)
     {
         WindowMembers members = new();
         _members = members;
@@ -127,9 +142,8 @@ public sealed partial class MainWindow : Window
     {
         TryRecoverWindowStates();
 
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
-            .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString())
-            .WithParam(RouterConstants.ARG_URL, Members._url);
+        Route route = Route.Create(Members._url)
+            .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
         NavigationBundle bundle = AppRouter.Process(route)!;
         bundle.Communicator.RegisterAbility<ICommonPageAbility>(Members._mainWindowAbility);
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
@@ -230,17 +244,13 @@ public sealed partial class MainWindow : Window
 
     private async Task OnFileActivatedAsync(FileActivatedEventArgs args)
     {
-        ComicModel? comic = await GetStartupComic(args);
-        if (comic == null)
+        Route? route = await GetFileActivatedComicRoute(args);
+        if (route is null)
         {
             return;
         }
 
-        string token = AppModel.PutComicData(comic);
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_COMIC_TOKEN, token);
-
-        if (Members._mainPage == null)
+        if (Members._mainPage is null)
         {
             Members._url = route.Url;
             return;
@@ -249,60 +259,45 @@ public sealed partial class MainWindow : Window
         Members._mainPage.OpenInNewTab(route);
     }
 
-    private async Task<ComicModel?> GetStartupComic(FileActivatedEventArgs args)
+    private static async Task<Route?> GetFileActivatedComicRoute(FileActivatedEventArgs args)
     {
-        var target_file = (StorageFile)args.Files[0];
-
-        if (!AppInfoProvider.IsSupportedExternalFileExtension(target_file.FileType))
+        var targetFile = (StorageFile)args.Files[0];
+        if (!AppInfoProvider.IsSupportedExternalFileExtension(targetFile.FileType))
         {
             return null;
         }
 
-        ComicModel? comic = await ComicModel.FromFile(target_file);
-
-        if (comic == null && AppInfoProvider.IsSupportedImageExtension(target_file.FileType))
+        ComicModel? comic = await ComicModel.FromFile(targetFile);
+        if (comic is not null)
         {
-            string dir = target_file.Path;
-            dir = StringUtils.ParentLocationFromLocation(dir);
-            comic = await ComicModel.FromLocation(dir, "MainGetStartupComicFromImage");
-
-            if (comic == null)
+            if (comic.IsExternal)
             {
-                var all_files = new List<StorageFile>();
-                var img_files = new List<StorageFile>();
-                StorageFileQueryResult neighboring_file_query =
-                    args.NeighboringFilesQuery;
-
-                if (neighboring_file_query != null)
-                {
-                    IReadOnlyList<StorageFile> files = await args.NeighboringFilesQuery.GetFilesAsync();
-                    all_files = [.. files];
-                }
-
-                if (all_files.Count == 0)
-                {
-                    foreach (IStorageItem item in args.Files)
-                    {
-                        if (item is StorageFile file)
-                        {
-                            all_files.Add(file);
-                        }
-                    }
-                }
-
-                foreach (StorageFile file in all_files)
-                {
-                    if (AppInfoProvider.IsSupportedImageExtension(file.FileType))
-                    {
-                        img_files.Add(file);
-                    }
-                }
-
-                comic = ComicModel.FromImageFiles(dir, img_files);
+                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                    .WithParam(RouterConstants.ARG_COMIC_LOCATION, targetFile.Path);
+            }
+            else
+            {
+                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
             }
         }
 
-        return comic;
+        if (AppInfoProvider.IsSupportedImageExtension(targetFile.FileType))
+        {
+            string parentPath = targetFile.Path;
+            parentPath = StringUtils.ParentLocationFromLocation(parentPath);
+            comic = await ComicModel.FromLocation(parentPath, "GetFileActivatedComicRoute");
+            if (comic is not null && !comic.IsExternal)
+            {
+                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+            }
+
+            return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                .WithParam(RouterConstants.ARG_COMIC_LOCATION, parentPath);
+        }
+
+        return null;
     }
 
     //

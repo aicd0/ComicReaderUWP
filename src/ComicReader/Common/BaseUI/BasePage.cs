@@ -6,10 +6,8 @@ using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 
-using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 
 namespace ComicReader.Common.BaseUI;
@@ -19,7 +17,6 @@ internal abstract class BasePage : Page
     protected int WindowId { get; private set; } = 0;
 
     private PageCommunicator? _communicator = null;
-    private PointerPoint? _lastPointerPoint = null;
 
     private bool _isStarted = false;
     private bool _isResumed = false;
@@ -41,7 +38,6 @@ internal abstract class BasePage : Page
 
         Loaded += OnLoadedInternal;
         Unloaded += OnUnloadedInternal;
-        AddHandler(PointerPressedEvent, new PointerEventHandler(OnPagePointerPressed), true);
     }
 
     protected sealed override void OnNavigatedTo(NavigationEventArgs e)
@@ -94,6 +90,13 @@ internal abstract class BasePage : Page
     {
     }
 
+    /// <summary>
+    /// Retrieves an ability of the specified type from the communicator. Must be called on the UI thread.
+    /// </summary>
+    /// <remarks>This method delegates the retrieval of the ability to the underlying communicator.  Ensure
+    /// that the communicator is properly initialized and supports the requested ability type.</remarks>
+    /// <typeparam name="T">The type of the ability to retrieve. Must be a reference type.</typeparam>
+    /// <returns>An instance of the specified ability type if available; otherwise, <see langword="null"/>.</returns>
     protected T? GetAbility<T>() where T : class
     {
         return _communicator?.GetAbility<T>();
@@ -102,21 +105,6 @@ internal abstract class BasePage : Page
     protected IEventBus GetEventBus()
     {
         return App.WindowManager.GetEventBus(WindowId);
-    }
-
-    protected bool CanHandleTapped()
-    {
-        if (_lastPointerPoint == null)
-        {
-            return true;
-        }
-
-        if (_lastPointerPoint.Properties.IsXButton1Pressed || _lastPointerPoint.Properties.IsXButton2Pressed)
-        {
-            return false;
-        }
-
-        return true;
     }
 
     private void OnLoadedInternal(object sender, RoutedEventArgs e)
@@ -141,11 +129,6 @@ internal abstract class BasePage : Page
         TryPause();
     }
 
-    private void OnPagePointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        _lastPointerPoint = e.GetCurrentPoint((UIElement)sender);
-    }
-
     private void TryStart(object p)
     {
         if (_isStarted)
@@ -162,7 +145,7 @@ internal abstract class BasePage : Page
             _communicator.GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);
             WindowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
             Logger.Assert(WindowId > 0, "16EFCEB1C7797AA2");
-            OnStart(bundle.Bundle);
+            DebugUtils.TrackError(() => OnStart(bundle.Bundle));
         }
         else
         {
@@ -179,7 +162,7 @@ internal abstract class BasePage : Page
 
         _isResumed = true;
         LogLifecycleEvent("Resume");
-        OnResume();
+        DebugUtils.TrackError(OnResume);
     }
 
     private void TryPause()
@@ -191,7 +174,7 @@ internal abstract class BasePage : Page
 
         _isResumed = false;
         LogLifecycleEvent("Pause");
-        OnPause();
+        DebugUtils.TrackError(OnPause);
     }
 
     private void TryStop()
@@ -204,7 +187,7 @@ internal abstract class BasePage : Page
         _isStarted = false;
         _communicator?.GetAbility<ICommonPageAbility>()?.UnregisterPageStopHandler(_pageStopHandler);
         LogLifecycleEvent("Stop");
-        OnStop();
+        DebugUtils.TrackError(OnStop);
     }
 
     private void LogLifecycleEvent(string eventName)

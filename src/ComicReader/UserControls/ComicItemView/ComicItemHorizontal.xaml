@@ -16,16 +16,17 @@
 
     <base:BaseUserControl.Resources>
         <ResourceDictionary>
-            
+
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
-            
+
         </ResourceDictionary>
     </base:BaseUserControl.Resources>
 
     <Grid
         x:Name="RootGrid"
         Background="Transparent"
+        ContextFlyout="{x:Bind Item.ContextFlyout, Mode=OneWay}"
         Tapped="RootGrid_Tapped">
         <Grid Margin="10,8">
             <Grid.ColumnDefinitions>

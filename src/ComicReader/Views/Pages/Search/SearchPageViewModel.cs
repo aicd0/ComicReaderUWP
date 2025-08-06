@@ -1,7 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,6 +9,8 @@ using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.MenuFlyoutHelpers;
+using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
@@ -27,7 +28,9 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
 
     public bool IsLoading;
 
-    public MutableLiveData<bool> UpdateSearchResultLiveDate = new();
+    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
+    public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
+    public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
     public bool IsResultEmpty => SearchResults.Count == 0;
 
     public ObservableCollection<ComicItemViewModel> SearchResults = [];
@@ -217,6 +220,17 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         IsNoResultTextVisible = !IsLoading && IsResultEmpty;
     }
 
+    public void SetSelectMode(bool val)
+    {
+        if (val == IsSelectMode)
+        {
+            return;
+        }
+
+        IsSelectMode = val;
+        ComicItemSelectionMode = val ? ListViewSelectionMode.Multiple : ListViewSelectionMode.None;
+    }
+
     public void SetSelection(IEnumerable<ComicItemViewModel> selectedItems)
     {
         _selectedItems.Clear();
@@ -251,6 +265,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         {
             selection.Add(triggerItem);
         }
+
         return selection;
     }
 
@@ -349,14 +364,12 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                         Id = x.Comic.Id,
                         Title = x.Comic.Title,
                     }));
-                    ModifyExistingItems(items, (item) => { item.IsFavorite = true; });
                 }
                 break;
             case ComicOperationType.Unfavorite:
                 {
                     List<ComicItemViewModel> items = models.FindAll(x => x.IsFavorite);
                     FavoriteModel.Instance.BatchRemoveWithId(items.ConvertAll(x => x.Comic.Id));
-                    ModifyExistingItems(items, (item) => { item.IsFavorite = false; });
                 }
                 break;
             case ComicOperationType.Hide:
@@ -366,7 +379,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SaveHiddenAsync(true).Wait();
                     }
-                    UpdateSearchResultLiveDate.Emit(true);
                 }
                 break;
             case ComicOperationType.Unhide:
@@ -376,7 +388,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SaveHiddenAsync(false).Wait();
                     }
-                    UpdateSearchResultLiveDate.Emit(true);
                 }
                 break;
             case ComicOperationType.MarkAsRead:
@@ -386,11 +397,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToCompleted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.Completed;
-                        item.UpdateProgress(true);
-                    });
                 }
                 break;
             case ComicOperationType.MarkAsReading:
@@ -400,11 +406,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToStarted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.Started;
-                        item.UpdateProgress(true);
-                    });
                 }
                 break;
             case ComicOperationType.MarkAsUnread:
@@ -414,11 +415,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         item.Comic.SetCompletionStateToNotStarted().Wait();
                     }
-                    ModifyExistingItems(items, (item) =>
-                    {
-                        item.CompletionState = ComicCompletionStatusEnum.NotStarted;
-                        item.UpdateProgress(true);
-                    });
                 }
                 break;
             default:
@@ -426,31 +422,64 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private void ModifyExistingItems(IEnumerable<ComicItemViewModel> items, Action<ComicItemViewModel> action)
+    public class ComicItemHandler(SearchPageViewModel viewModel, ComicItemViewModel item) : IComicItemMenuFlyoutHandler
     {
-        Dictionary<ComicModel, ComicItemViewModel> changedItems = [];
-        foreach (ComicItemViewModel item in items)
+        void IComicItemMenuFlyoutHandler.OnAddToFavoritesClicked()
         {
-            ComicItemViewModel newItem = item.Clone();
-            action(newItem);
-            changedItems[item.Comic] = newItem;
+            viewModel.ApplyOperationToComic(ComicOperationType.Favorite, item);
         }
-        _ = MainThreadUtils.RunInMainThread(delegate
-        {
-            ModifyExistingList(_selectedItems, changedItems);
-            ModifyExistingList(SearchResults, changedItems);
-        });
-    }
 
-    private void ModifyExistingList(IList<ComicItemViewModel> list, IReadOnlyDictionary<ComicModel, ComicItemViewModel> changedItems)
-    {
-        for (int i = 0; i < list.Count; i++)
+        void IComicItemMenuFlyoutHandler.OnEditClick()
         {
-            ComicItemViewModel oldItem = list[i];
-            if (changedItems.TryGetValue(oldItem.Comic, out ComicItemViewModel? newItem))
-            {
-                list[i] = newItem;
-            }
+            List<ComicItemViewModel> selection = viewModel.GetSelection(item);
+            viewModel.EditComicLiveData.Emit(selection.ConvertAll(x => x.Comic));
+        }
+
+        void IComicItemMenuFlyoutHandler.OnHideClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.Hide, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnMarkAsReadClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsRead, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnMarkAsReadingClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsReading, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnMarkAsUnreadClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsUnread, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
+        {
+            item.Comic.ShowInFileExplorer();
+        }
+
+        void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()
+        {
+            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                .WithParam(RouterConstants.ARG_COMIC_ID, item.Comic.Id.ToString());
+            viewModel.OpenInNewTabLiveData.Emit(route);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnRemoveFromFavoritesClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.Unfavorite, item);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnSelectClicked()
+        {
+            viewModel.SetSelectMode(true);
+        }
+
+        void IComicItemMenuFlyoutHandler.OnUnhideClicked()
+        {
+            viewModel.ApplyOperationToComic(ComicOperationType.Unhide, item);
         }
     }
 }
