@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -24,6 +22,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
+using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
 
 namespace ComicReader.Common.Imaging;
@@ -34,11 +33,72 @@ internal static class ImageCacheManager
     private const string CACHE_FOLDER = "images";
     private const long MAX_CACHE_SIZE = 1024 * 1024 * 1024;
 
+    private static readonly ImageCacheDatabase sImageCacheDatabase = new();
     private static readonly object sLock = new();
-    private static volatile LRUCache sImageCache;
+    private static volatile LRUCache? sImageCache;
 
     private static int sPostMainThreadTask = 0;
     private static readonly ConcurrentQueue<RenderItem> sRenderQueue = new();
+
+    public static void Clear()
+    {
+        sImageCacheDatabase.Clear();
+        sImageCache?.Clear();
+    }
+
+    public static ImageInfo? GetImageInfo(IImageSource source)
+    {
+        string key = source.GetUri();
+        ImageCacheDatabase.CacheRecord? record = sImageCacheDatabase.GetCacheRecord(source);
+        if (record != null && record.Width > 0 && record.Height > 0)
+        {
+            return new ImageInfo(record.Width, record.Height);
+        }
+
+        IRandomAccessStream? stream = null;
+        try
+        {
+            stream = source.GetImageStream().Result;
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, "GetImageInfo", e);
+        }
+
+        if (stream == null)
+        {
+            return null;
+        }
+
+        int width = 0;
+        int height = 0;
+        using (stream)
+        {
+            try
+            {
+                stream.Seek(0);
+                BitmapDecoder decoder = BitmapDecoder.CreateAsync(stream).AsTask().Result;
+                width = (int)decoder.PixelWidth;
+                height = (int)decoder.PixelHeight;
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, "GetImageInfo", e);
+                return null;
+            }
+        }
+
+        if (width <= 0 || height <= 0)
+        {
+            Logger.AssertNotReachHere("8315BC14B4B0AE5D");
+            return null;
+        }
+
+        int signature = source.GetContentSignature();
+        record = new ImageCacheDatabase.CacheRecord(sImageCacheDatabase, key, signature, width, height);
+        record.Save();
+        return new ImageInfo(width, height);
+    }
 
     public static void LoadImage(CancellationSession.IToken token,
         IImageSource source, double frameWidth, double frameHeight, StretchModeEnum stretchMode,
@@ -61,10 +121,10 @@ internal static class ImageCacheManager
             return;
         }
 
-        LRUCache imageCache = GetImageLRUCache();
-        IRandomAccessStream thumbnailStream = null;
+        LRUCache? imageCache = GetImageLRUCache();
+        IRandomAccessStream? thumbnailStream = null;
         bool requireThumbnail = true;
-        ImageCacheDatabase.CacheRecord cacheRecord = ImageCacheDatabase.GetCacheRecord(source);
+        ImageCacheDatabase.CacheRecord? cacheRecord = sImageCacheDatabase.GetCacheRecord(source);
         if (imageCache != null && cacheRecord != null)
         {
             requireThumbnail = false;
@@ -85,7 +145,7 @@ internal static class ImageCacheManager
             }
         }
 
-        IRandomAccessStream sourceStream = null;
+        IRandomAccessStream? sourceStream = null;
         if (thumbnailStream == null && requireThumbnail)
         {
             sourceStream = TryOpenImageStreamAsync(source).Result;
@@ -134,7 +194,7 @@ internal static class ImageCacheManager
             long startTime = GetCurrentTick();
             Interlocked.Exchange(ref sPostMainThreadTask, 0);
             // Only responsible for rendering tasks that have been queued before this point.
-            while (sRenderQueue.TryDequeue(out RenderItem item))
+            while (sRenderQueue.TryDequeue(out RenderItem? item))
             {
                 await PerformRender(item);
                 if (GetCurrentTick() - startTime > 50)
@@ -152,7 +212,7 @@ internal static class ImageCacheManager
 
     private static async Task PerformRender(RenderItem item)
     {
-        BitmapImage image = null;
+        BitmapImage? image = null;
         try
         {
             if (item.Token.IsCancellationRequested)
@@ -203,17 +263,17 @@ internal static class ImageCacheManager
         item.Handler.OnSuccess(image);
     }
 
-    private static IRandomAccessStream TryCreateThumbnail(ImageCacheDatabase.CacheRecord cacheRecord, IRandomAccessStream sourceStream,
+    private static IRandomAccessStream? TryCreateThumbnail(ImageCacheDatabase.CacheRecord? cacheRecord, IRandomAccessStream sourceStream,
         double frameWidth, double frameHeight, StretchModeEnum stretchMode, string cacheKey, int sourceSignature)
     {
-        LRUCache imageCache = GetImageLRUCache();
+        LRUCache? imageCache = GetImageLRUCache();
         if (imageCache == null)
         {
             return null;
         }
 
         sourceStream.Seek(0);
-        Image image = null;
+        Image? image = null;
         try
         {
             image = Image.Load(sourceStream.AsStream());
@@ -222,6 +282,7 @@ internal static class ImageCacheManager
         {
             Logger.F(TAG, "TryCreateThumbnail", ex);
         }
+
         if (image == null)
         {
             return null;
@@ -233,17 +294,17 @@ internal static class ImageCacheManager
             int sourceHeight = image.Height;
             CalculateDesiredDimension(frameWidth, frameHeight, stretchMode, sourceWidth, sourceHeight, out int desiredWidth, out int desiredHeight);
             IEnumerable<string> cacheEntryKeys = ImageCacheStrategy.CalculateCacheEntryKeys(desiredWidth, desiredHeight, sourceWidth, sourceHeight);
-            string cacheEntryKey = null;
+            string? cacheEntryKey = null;
             foreach (string key in cacheEntryKeys)
             {
                 cacheEntryKey = key;
                 break;
             }
-            MemoryStream cacheStream = CreateImageCacheStream(cacheEntryKey, sourceWidth, sourceHeight, image);
 
+            MemoryStream? cacheStream = CreateImageCacheStream(cacheEntryKey, sourceWidth, sourceHeight, image);
             try
             {
-                string entry = null;
+                string? entry = null;
                 if (cacheStream != null)
                 {
                     try
@@ -261,6 +322,7 @@ internal static class ImageCacheManager
                         {
                             cacheFileStream.WriteAsync(outByteArray.AsBuffer()).Wait();
                         }
+
                         entry = tempEntry;
                     }
                     catch (Exception e)
@@ -275,10 +337,10 @@ internal static class ImageCacheManager
                 }
                 else
                 {
-                    cacheRecord = new ImageCacheDatabase.CacheRecord(cacheKey, sourceSignature, sourceWidth, sourceHeight);
+                    cacheRecord = new ImageCacheDatabase.CacheRecord(sImageCacheDatabase, cacheKey, sourceSignature, sourceWidth, sourceHeight);
                 }
 
-                if (entry != null)
+                if (entry != null && cacheEntryKey != null)
                 {
                     cacheRecord.PutEntry(cacheEntryKey, entry);
                 }
@@ -299,7 +361,7 @@ internal static class ImageCacheManager
         }
     }
 
-    private static MemoryStream CreateImageCacheStream(string cacheEntryKey, int sourceWidth, int sourceHeight, Image image)
+    private static MemoryStream? CreateImageCacheStream(string? cacheEntryKey, int sourceWidth, int sourceHeight, Image image)
     {
         if (cacheEntryKey == null || cacheEntryKey.Length == 0)
         {
@@ -323,11 +385,11 @@ internal static class ImageCacheManager
         int aspectHeight = (int)Math.Floor(sourceHeight * dimensionRatio);
         int aspectWidth = (int)Math.Floor(sourceWidth * dimensionRatio);
 
-        MemoryStream memoryStream = new();
+        MemoryStream? memoryStream = new();
         try
         {
             image.Mutate(x => x.Resize(aspectWidth, aspectHeight));
-            image.Save(memoryStream, image.Metadata.DecodedImageFormat);
+            image.Save(memoryStream, image.Metadata.DecodedImageFormat!);
         }
         catch (Exception e)
         {
@@ -339,7 +401,7 @@ internal static class ImageCacheManager
         return memoryStream;
     }
 
-    private static async Task<IRandomAccessStream> TryOpenImageStreamAsync(IImageSource source)
+    private static async Task<IRandomAccessStream?> TryOpenImageStreamAsync(IImageSource source)
     {
         try
         {
@@ -353,10 +415,9 @@ internal static class ImageCacheManager
         return null;
     }
 
-    private static async Task<BitmapImage> TryLoadImageFromStreamAsync(IRandomAccessStream stream)
+    private static async Task<BitmapImage?> TryLoadImageFromStreamAsync(IRandomAccessStream stream)
     {
-        BitmapImage image = new();
-
+        BitmapImage? image = new();
         try
         {
             stream.Seek(0);
@@ -410,10 +471,10 @@ internal static class ImageCacheManager
         desiredHeight = (int)desiredHeightRaw;
     }
 
-    private static LRUCache GetImageLRUCache()
+    private static LRUCache? GetImageLRUCache()
     {
         {
-            LRUCache cache = sImageCache;
+            LRUCache? cache = sImageCache;
             if (cache != null)
             {
                 return cache;
@@ -422,7 +483,7 @@ internal static class ImageCacheManager
 
         lock (sLock)
         {
-            LRUCache cache = sImageCache;
+            LRUCache? cache = sImageCache;
             if (cache != null)
             {
                 return cache;
@@ -438,12 +499,14 @@ internal static class ImageCacheManager
                 Logger.AssertNotReachHere("266A35BFD509B7A0", e);
                 return null;
             }
+
             cache = new(cacheFolderPath, MAX_CACHE_SIZE);
             sImageCache = cache;
             TaskDispatcher.LongRunningThreadPool.Submit("CleanImageCache", delegate
             {
-                cache.Clean();
+                cache.Cleanup();
             });
+
             return cache;
         }
     }
@@ -455,15 +518,24 @@ internal static class ImageCacheManager
 
     private class RenderItem
     {
-        public CancellationSession.IToken Token;
-        public IImageSource Source;
-        public string Uri;
+        public required CancellationSession.IToken Token;
+        public required IImageSource Source;
+        public required string Uri;
         public double FrameWidth;
         public double FrameHeight;
         public StretchModeEnum StretchMode;
-        public IRandomAccessStream ThumbnailStream;
-        public IRandomAccessStream SourceStream;
-        public IImageResultHandler Handler;
+        public IRandomAccessStream? ThumbnailStream;
+        public IRandomAccessStream? SourceStream;
+        public required IImageResultHandler Handler;
         public long StartTime;
+    }
+
+    public class ImageInfo(int width, int height)
+    {
+        private readonly int _width = width;
+        private readonly int _height = height;
+
+        public int Width => _width;
+        public int Height => _height;
     }
 }

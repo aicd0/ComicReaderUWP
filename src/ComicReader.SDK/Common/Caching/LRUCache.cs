@@ -14,27 +14,25 @@ using Windows.Storage.Streams;
 
 namespace ComicReader.SDK.Common.Caching;
 
-public class LRUCache
+public class LRUCache(string directoryPath, long maxSize)
 {
     private const string TAG = nameof(LRUCache);
     private const string DATABASE_FILE_NAME = "info.db";
     private const int BATCH_SIZE = 1000;
 
-    private readonly string _directoryPath;
+    private readonly string _directoryPath = directoryPath;
     private readonly ConcurrentDictionary<string, CacheEntry> _entries = [];
 
-    private readonly long _maxSize;
-    private readonly LRUCacheDatabase _database;
+    private readonly long _maxSize = maxSize;
+    private readonly LRUCacheDatabase _database = new(Path.Combine(directoryPath, DATABASE_FILE_NAME));
     private readonly ReaderWriterLock _flushLock = new();
     private volatile StorageFolder _folder = null;
     private volatile ConcurrentDictionary<string, long> _pendingFlushKeys = [];
     private int _postFlushTask = 0;
 
-    public LRUCache(string directoryPath, long maxSize)
+    public void Clear()
     {
-        _directoryPath = directoryPath;
-        _maxSize = maxSize;
-        _database = new(Path.Combine(directoryPath, DATABASE_FILE_NAME));
+        _database.Clear();
     }
 
     public ILRUInputStream Put(string key)
@@ -42,12 +40,13 @@ public class LRUCache
         ArgumentNullException.ThrowIfNull(key, nameof(key));
 
         string hashedKey = ToHashedKey(key);
-        CacheEntry entry = _entries.GetOrAdd(hashedKey, (string key) => new CacheEntry(this, key));
+        CacheEntry entry = _entries.GetOrAdd(hashedKey, key => new CacheEntry(this, key));
         ILRUInputStream stream = entry.StartWrite();
         if (stream != null)
         {
             AddPendingFlushKey(key);
         }
+
         return stream;
     }
 
@@ -56,16 +55,17 @@ public class LRUCache
         ArgumentNullException.ThrowIfNull(key, nameof(key));
 
         string hashedKey = ToHashedKey(key);
-        CacheEntry entry = _entries.GetOrAdd(hashedKey, (string key) => new CacheEntry(this, key));
+        CacheEntry entry = _entries.GetOrAdd(hashedKey, key => new CacheEntry(this, key));
         ILRUOutputStream stream = entry.StartRead();
         if (stream != null)
         {
             AddPendingFlushKey(key);
         }
+
         return stream;
     }
 
-    public void Clean()
+    public void Cleanup()
     {
         var directory = new DirectoryInfo(_directoryPath);
         long sizeToRemove = FileUtils.GetApproximateDirectorySize(directory) - _maxSize;
@@ -85,8 +85,7 @@ public class LRUCache
             return;
         }
 
-        List<Tuple<StorageFile, long>> lastUsedTimes = new();
-
+        List<Tuple<StorageFile, long>> lastUsedTimes = [];
         for (int i = 0; i < files.Count;)
         {
             Dictionary<string, StorageFile> batch = [];

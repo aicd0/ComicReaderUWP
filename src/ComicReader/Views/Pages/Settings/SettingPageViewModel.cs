@@ -711,7 +711,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     private static void ClearCacheInternal()
     {
-        ImageCacheDatabase.Clear();
+        ImageCacheManager.Clear();
         DirectoryInfo cacheDir = new(StorageLocation.LocalCacheFolderPath);
         ClearCacheDirectory(cacheDir);
         DirectoryInfo tempDir = new(StorageLocation.TemporaryFolderPath);

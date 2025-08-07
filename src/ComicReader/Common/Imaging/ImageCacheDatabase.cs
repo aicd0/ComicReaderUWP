@@ -19,7 +19,7 @@ using Microsoft.Data.Sqlite;
 
 namespace ComicReader.Common.Imaging;
 
-internal static class ImageCacheDatabase
+internal class ImageCacheDatabase
 {
     public const string TAG = "ImageCacheDatabase";
     public const string CACHE_TABLE = "cache";
@@ -31,15 +31,15 @@ internal static class ImageCacheDatabase
 
     private const string DATABASE_FILE_NAME = "image_cache.db";
 
-    private static readonly object _databaseLock = new();
-    private static SqliteConnection? _connection;
+    private readonly object _databaseLock = new();
+    private SqliteConnection? _connection;
 
-    private static readonly ReaderWriterLock _recordCacheLock = new();
-    private static readonly Dictionary<string, CacheRecord?> _recordCache = [];
+    private readonly ReaderWriterLock _recordCacheLock = new();
+    private readonly Dictionary<string, CacheRecord?> _recordCache = [];
 
-    private static string DatabaseFolderPath => StorageLocation.LocalCacheFolderPath;
+    private string DatabaseFolderPath => StorageLocation.LocalCacheFolderPath;
 
-    public static void Clear()
+    public void Clear()
     {
         lock (_databaseLock)
         {
@@ -63,7 +63,7 @@ internal static class ImageCacheDatabase
         }
     }
 
-    public static CacheRecord? GetCacheRecord(IImageSource source)
+    public CacheRecord? GetCacheRecord(IImageSource source)
     {
         CacheRecord? record = GetCacheRecord(source.GetUri());
         if (record == null)
@@ -80,7 +80,7 @@ internal static class ImageCacheDatabase
         return record;
     }
 
-    private static CacheRecord? GetCacheRecord(string key)
+    private CacheRecord? GetCacheRecord(string key)
     {
         if (key == null || key.Length == 0)
         {
@@ -133,7 +133,7 @@ internal static class ImageCacheDatabase
                     int width = query.GetInt32(1);
                     int height = query.GetInt32(2);
                     string entries = query.GetString(3);
-                    CacheRecord record = new(key, signature, width, height, entries);
+                    CacheRecord record = new(this, key, signature, width, height, entries);
                     records.Add(record);
                 }
             }
@@ -169,7 +169,7 @@ internal static class ImageCacheDatabase
             .Take(16));
     }
 
-    private static SqliteConnection? GetConnectionNoLock()
+    private SqliteConnection? GetConnectionNoLock()
     {
         if (_connection != null)
         {
@@ -200,7 +200,7 @@ internal static class ImageCacheDatabase
         return _connection;
     }
 
-    private static async Task<SqliteConnection?> CreateConnection(bool clear)
+    private async Task<SqliteConnection?> CreateConnection(bool clear)
     {
         string databaseFolderPath = DatabaseFolderPath;
         if (!Directory.Exists(databaseFolderPath))
@@ -248,6 +248,7 @@ internal static class ImageCacheDatabase
 
     public class CacheRecord
     {
+        private readonly ImageCacheDatabase _database;
         private readonly string _key;
         private int _updated;
         private int _signature;
@@ -259,8 +260,9 @@ internal static class ImageCacheDatabase
         public int Width => _width;
         public int Height => _height;
 
-        public CacheRecord(string key, int signature, int width, int height)
+        public CacheRecord(ImageCacheDatabase db, string key, int signature, int width, int height)
         {
+            _database = db;
             _key = key;
             _updated = 1;
             _signature = signature;
@@ -269,8 +271,9 @@ internal static class ImageCacheDatabase
             _entries = [];
         }
 
-        public CacheRecord(string key, int signature, int width, int height, string cacheEntriesJson)
+        public CacheRecord(ImageCacheDatabase db, string key, int signature, int width, int height, string cacheEntriesJson)
         {
+            _database = db;
             _key = key;
             _updated = 0;
             _signature = signature;
@@ -297,9 +300,9 @@ internal static class ImageCacheDatabase
 
             string hashedKey = ToHashedKey(_key);
 
-            lock (_databaseLock)
+            lock (_database._databaseLock)
             {
-                if (_recordCache.TryGetValue(hashedKey, out CacheRecord? record))
+                if (_database._recordCache.TryGetValue(hashedKey, out CacheRecord? record))
                 {
                     if (record != null)
                     {
@@ -310,14 +313,14 @@ internal static class ImageCacheDatabase
                     }
                 }
 
-                _recordCacheLock.AcquireWriterLock(-1);
+                _database._recordCacheLock.AcquireWriterLock(-1);
                 try
                 {
-                    _recordCache[hashedKey] = this;
+                    _database._recordCache[hashedKey] = this;
                 }
                 finally
                 {
-                    _recordCacheLock.ReleaseWriterLock();
+                    _database._recordCacheLock.ReleaseWriterLock();
                 }
 
                 string entries = JsonSerializer.Serialize(_entries);
@@ -325,7 +328,7 @@ internal static class ImageCacheDatabase
                 int width = _width;
                 int height = _height;
 
-                SqliteConnection? connection = GetConnectionNoLock();
+                SqliteConnection? connection = _database.GetConnectionNoLock();
                 if (connection is null)
                 {
                     Logger.F(TAG, $"Failed to save cache {_key}, unable to create database connection.");
