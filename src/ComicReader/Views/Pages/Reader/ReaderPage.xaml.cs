@@ -48,7 +48,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private const string TAG = nameof(ReaderPage);
     private const string KEY_TIP_SHOWN = "ReaderTipShown";
-    private const string REGEX_URL = "(https?:\\/\\/)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)";
+    private const string REGEX_URL = @"https?:\/\/[a-zA-Z0-9\-._~%]+(?:\.[a-zA-Z0-9\-._~%]+)+(?:\/[^\s]*)?";
 
     //
     // Variables
@@ -361,19 +361,27 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
+        _comic = comic;
+        ViewModel.SetComic(comic);
+
         if (!comic.IsExternal)
         {
             await comic.SetCompletionStateToAtLeastStarted();
             HistoryModel.Instance.Add(comic.Id, comic.Title1, true);
         }
 
-        _comic = comic;
-        ViewModel.SetComic(comic);
         LoadReaderSettings();
         LoadComicInfo();
+
+        if (!comic.IsExternal && !await comic.ReloadImageFiles())
+        {
+            Log("Failed to load images of '" + comic.Location + "'. ");
+            ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
+            return;
+        }
+
         IComicConnection? connection = await comic.OpenComicAsync();
         _comicConnection = connection;
-
         if (connection == null)
         {
             ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
@@ -384,14 +392,6 @@ internal sealed partial class ReaderPage : BasePage
 
         if (!comic.IsExternal)
         {
-            TaskException result = await comic.ReloadImageFiles();
-            if (!result.Successful())
-            {
-                Log("Failed to load images of '" + comic.Location + "'. " + result.ToString());
-                ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
-                return;
-            }
-
             MainReaderView.SetInitialPage(comic.LastPosition);
         }
 
@@ -400,11 +400,12 @@ internal sealed partial class ReaderPage : BasePage
         {
             images.Add(new ComicImageSource(comic, connection, i));
         }
+
         MainReaderView.StartLoadingImages(images);
 
-        // Update previews
-        double preview_width = (double)Application.Current.Resources["ReaderPreviewImageWidth"];
-        double preview_height = (double)Application.Current.Resources["ReaderPreviewImageHeight"];
+        // Load preview images
+        double previewWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"];
+        double previewHeight = (double)Application.Current.Resources["ReaderPreviewImageHeight"];
         ViewModel.PreviewDataSource.Clear();
         for (int i = 0; i < connection.GetImageCount(); ++i)
         {
@@ -413,8 +414,8 @@ internal sealed partial class ReaderPage : BasePage
                 Image = new SimpleImageView.Model
                 {
                     Source = new ComicImageSource(comic, connection, i),
-                    Width = preview_width,
-                    Height = preview_height,
+                    Width = previewWidth,
+                    Height = previewHeight,
                     Dispatcher = _loadPreviewDispatcher,
                     DebugDescription = i.ToString()
                 },

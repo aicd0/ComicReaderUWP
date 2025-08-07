@@ -312,7 +312,7 @@ internal partial class ReaderView : UserControl
                 }
 
                 IImageSource image = images[i];
-                ImageInfoManager.ImageInfo imageInfo = ImageInfoManager.GetImageInfo(image);
+                ImageCacheManager.ImageInfo imageInfo = ImageCacheManager.GetImageInfo(image);
                 double aspectRatio = 0.0;
                 if (imageInfo != null && imageInfo.Width > 0 && imageInfo.Height > 0)
                 {

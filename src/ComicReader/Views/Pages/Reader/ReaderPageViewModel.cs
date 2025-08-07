@@ -7,7 +7,6 @@ using System.ComponentModel;
 
 using ComicReader.Common;
 using ComicReader.Common.Lifecycle;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.Algorithm;
@@ -176,7 +175,20 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             OnClick = () =>
             {
-                _ = TagInfoModel.DeleteTag(tagCategory, tag);
+                ComicModel? comic = _comic;
+                if (comic == null)
+                {
+                    return;
+                }
+
+                Dictionary<string, HashSet<string>> tags = comic.TagsCopy;
+                if (tags.TryGetValue(tagCategory, out HashSet<string>? tagSet))
+                {
+                    if (tagSet.Remove(tag))
+                    {
+                        comic.SetTags(tags);
+                    }
+                }
             },
         });
 

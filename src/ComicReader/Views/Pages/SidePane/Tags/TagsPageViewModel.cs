@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
@@ -206,6 +207,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                     MenuFlyoutItems = CreateTagMenuItems(tagCategory, tag),
                 };
 
+                List<TagNodeViewModel> tagChildren = [];
                 foreach (long comicId in tagModel.ComicIds)
                 {
                     if (!comicMap.TryGetValue(comicId, out ComicModel? comic))
@@ -228,7 +230,13 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         },
                     };
 
-                    tagNode.Children.Add(comicNode);
+                    tagChildren.Add(comicNode);
+                }
+
+                IOrderedEnumerable<TagNodeViewModel> tagChildrenSorted = tagChildren.OrderBy(x => StringUtils.SmartFileNameKeySelector(x.Title), StringUtils.SmartFileNameComparer);
+                foreach (TagNodeViewModel child in tagChildrenSorted)
+                {
+                    tagNode.Children.Add(child);
                 }
 
                 tagNode.Description = $"({tagNode.Children.Count})";

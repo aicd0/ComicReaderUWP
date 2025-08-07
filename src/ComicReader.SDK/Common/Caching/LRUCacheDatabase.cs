@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System.Text;
 
 using ComicReader.SDK.Common.DebugTools;
@@ -11,39 +9,47 @@ using Microsoft.Data.Sqlite;
 
 namespace ComicReader.SDK.Common.Caching;
 
-internal class LRUCacheDatabase
+internal class LRUCacheDatabase(string filePath)
 {
     public const string TAG = "LRUCacheDatabase";
     public const string CACHE_TABLE = "cache";
     public const string CACHE_TABLE_FIELD_KEY = "key";
     public const string CACHE_TABLE_FIELD_LAST_USED = "last_used";
 
-    private readonly object _connectionLock = new();
-    private SqliteConnection _connection;
+    private readonly string _filePath = filePath;
+    private readonly object _databaseLock = new();
+    private SqliteConnection? _connection;
 
-    private readonly string _filePath;
-
-    public LRUCacheDatabase(string filePath)
+    public void Clear()
     {
-        _filePath = filePath;
+        lock (_databaseLock)
+        {
+            SqliteConnection? connection = GetConnectionNoLock();
+            if (connection is not null)
+            {
+                using SqliteCommand command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM " + CACHE_TABLE;
+                command.ExecuteNonQuery();
+            }
+        }
     }
 
-    public Dictionary<string, long> BatchQuery(IEnumerable<string> keys)
+    public Dictionary<string, long>? BatchQuery(IEnumerable<string> keys)
     {
-        SqliteConnection connection = GetConnection();
-        if (connection == null)
-        {
-            return null;
-        }
-
         Dictionary<string, long> results = [];
         foreach (string key in keys)
         {
             results[key] = -1;
         }
 
-        lock (_connectionLock)
+        lock (_databaseLock)
         {
+            SqliteConnection? connection = GetConnectionNoLock();
+            if (connection == null)
+            {
+                return null;
+            }
+
             using SqliteCommand command = connection.CreateCommand();
             StringBuilder commandText = new($"SELECT {CACHE_TABLE_FIELD_KEY},{CACHE_TABLE_FIELD_LAST_USED} FROM {CACHE_TABLE} WHERE {CACHE_TABLE_FIELD_KEY} in (");
             int index = 0;
@@ -77,14 +83,14 @@ internal class LRUCacheDatabase
 
     public void BatchUpdate(IDictionary<string, long> request)
     {
-        SqliteConnection connection = GetConnection();
-        if (connection == null)
+        lock (_databaseLock)
         {
-            return;
-        }
+            SqliteConnection? connection = GetConnectionNoLock();
+            if (connection == null)
+            {
+                return;
+            }
 
-        lock (_connectionLock)
-        {
             using SqliteTransaction transaction = connection.BeginTransaction();
             foreach (KeyValuePair<string, long> pair in request)
             {
@@ -94,53 +100,59 @@ internal class LRUCacheDatabase
                 command.Parameters.AddWithValue("@value", pair.Value);
                 command.ExecuteNonQuery();
             }
+
             transaction.Commit();
         }
     }
 
-    private SqliteConnection GetConnection()
+    private SqliteConnection? GetConnectionNoLock()
     {
         if (_connection != null)
         {
             return _connection;
         }
 
-        lock (_connectionLock)
+        try
+        {
+            _connection = CreateConnection(false).Result;
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, "GetConnectionNoLock", ex);
+        }
+
+        if (_connection == null)
         {
             try
             {
-                _connection = CreateConnection(false).Result;
+                _connection = CreateConnection(true).Result;
             }
             catch (Exception ex)
             {
-                Logger.F(TAG, "GetConnection", ex);
-            }
-
-            if (_connection == null)
-            {
-                try
-                {
-                    _connection = CreateConnection(true).Result;
-                }
-                catch (Exception ex)
-                {
-                    Logger.F(TAG, "GetConnection", ex);
-                }
+                Logger.F(TAG, "GetConnectionNoLock", ex);
             }
         }
+
         return _connection;
     }
 
-    private async Task<SqliteConnection> CreateConnection(bool clear)
+    private async Task<SqliteConnection?> CreateConnection(bool clear)
     {
         if (clear || !File.Exists(_filePath))
         {
-            File.Create(_filePath).Dispose();
+            try
+            {
+                File.Create(_filePath).Dispose();
+            }
+            catch (Exception ex)
+            {
+                Logger.F(TAG, "CreateConnection", ex);
+                return null;
+            }
         }
 
         var connection = new SqliteConnection($"Filename={_filePath}");
         connection.Open();
-
         using (SqliteCommand command = connection.CreateCommand())
         {
             command.CommandText = "CREATE TABLE IF NOT EXISTS " + CACHE_TABLE + " (" +

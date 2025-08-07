@@ -1,9 +1,8 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-
 using ComicReader.Common.BaseUI;
+using ComicReader.SDK.Common.DebugTools;
 using ComicReader.Views.Pages.DevTools;
 using ComicReader.Views.Pages.Main;
 using ComicReader.Views.Pages.Navigation;
@@ -15,9 +14,9 @@ namespace ComicReader.Helpers.Navigation;
 
 internal class OpenPageInterceptor : IRouterInterceptor
 {
-    public NavigationBundle Intercept(Route route)
+    public bool Intercept(Route route, out NavigationBundle? navigationBundle)
     {
-        IPageTrait pageTrait = route.Host switch
+        IPageTrait? pageTrait = route.Host switch
         {
             RouterConstants.HOST_MAIN => new DefaultPageTrait(typeof(MainPage)),
             RouterConstants.HOST_READER => ReaderPageTrait.Instance,
@@ -28,9 +27,18 @@ internal class OpenPageInterceptor : IRouterInterceptor
             RouterConstants.HOST_SIDE_PANE_HISTORY => new DefaultPageTrait(typeof(HistoryPage)),
             RouterConstants.HOST_SIDE_PANE_TAGS => new DefaultPageTrait(typeof(TagsPage)),
             RouterConstants.HOST_NAVIGATION => new DefaultPageTrait(typeof(NavigationPage)),
-            RouterConstants.HOST_DEV_TOOLS => new DefaultPageTrait(typeof(DevToolsPage)),
-            _ => throw new ArgumentException("Unknown host " + route.Host),
+            RouterConstants.HOST_DEV_TOOLS => DebugUtils.DeveloperMode ? new DefaultPageTrait(typeof(DevToolsPage)) : null,
+            _ => null,
         };
-        return new NavigationBundle(pageTrait, route.Queries, route.Url);
+
+        if (pageTrait == null)
+        {
+            Logger.F(nameof(OpenPageInterceptor), $"Unknown host {route.Host}");
+            navigationBundle = null;
+            return false;
+        }
+
+        navigationBundle = new NavigationBundle(pageTrait, route.Queries, route.Url);
+        return true;
     }
 }

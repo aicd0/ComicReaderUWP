@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 
 using ComicReader.Common;
+using ComicReader.Common.Imaging;
 using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
@@ -691,11 +692,14 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     private static string GetCacheSize()
     {
-        var d = new DirectoryInfo(StorageLocation.LocalCacheFolderPath);
-        long size = GetCacheSize(d);
+        long size = 0;
+        var localCacheDir = new DirectoryInfo(StorageLocation.LocalCacheFolderPath);
+        size += GetCacheDirectorySize(localCacheDir);
+        var tempDir = new DirectoryInfo(StorageLocation.TemporaryFolderPath);
+        size += GetCacheDirectorySize(tempDir);
+
         string[] sizes = ["B", "KB", "MB", "GB", "TB"];
         int order = 0;
-
         while (size >= 1024 && order < sizes.Length - 1)
         {
             order++;
@@ -705,66 +709,80 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         return string.Format("{0:0.##} {1}", size, sizes[order]);
     }
 
-    public static long GetCacheSize(DirectoryInfo directory)
+    private static void ClearCacheInternal()
+    {
+        ImageCacheManager.Clear();
+        DirectoryInfo cacheDir = new(StorageLocation.LocalCacheFolderPath);
+        ClearCacheDirectory(cacheDir);
+        DirectoryInfo tempDir = new(StorageLocation.TemporaryFolderPath);
+        ClearCacheDirectory(tempDir);
+    }
+
+    private static long GetCacheDirectorySize(DirectoryInfo directory)
     {
         long size = 0;
 
+        FileInfo[] files;
+        try
         {
-            FileInfo[] files;
+            files = directory.GetFiles();
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, "GetCacheSize", e);
+            files = [];
+        }
+
+        foreach (FileInfo file in files)
+        {
             try
             {
-                files = directory.GetFiles();
+                size += file.Length;
             }
             catch (Exception e)
             {
                 Logger.E(TAG, "GetCacheSize", e);
-                files = [];
-            }
-
-            foreach (FileInfo file in files)
-            {
-                try
-                {
-                    size += file.Length;
-                }
-                catch (Exception e)
-                {
-                    Logger.E(TAG, "GetCacheSize", e);
-                }
             }
         }
 
+        DirectoryInfo[] dirs;
+        try
         {
-            DirectoryInfo[] subDirectories;
-            try
+            dirs = directory.GetDirectories();
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, "GetCacheSize", e);
+            dirs = [];
+        }
+
+        foreach (DirectoryInfo dir in dirs)
+        {
+            if (dir.Name == "Local")
             {
-                subDirectories = directory.GetDirectories();
-            }
-            catch (Exception e)
-            {
-                Logger.E(TAG, "GetCacheSize", e);
-                subDirectories = [];
+                continue;
             }
 
-            foreach (DirectoryInfo subDirectory in subDirectories)
-            {
-                if (subDirectory.Name == "Local")
-                {
-                    continue;
-                }
-
-                size += FileUtils.GetDirectorySize(subDirectory, ignoreErrors: true);
-            }
+            size += FileUtils.GetApproximateDirectorySize(dir);
         }
 
         return size;
     }
 
-    private static void ClearCacheInternal()
+    private static void ClearCacheDirectory(DirectoryInfo directory)
     {
-        var cacheDir = new DirectoryInfo(StorageLocation.LocalCacheFolderPath);
+        FileInfo[] files;
+        try
+        {
+            files = directory.GetFiles();
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, "ClearDirectory", e);
+            files = [];
+        }
 
-        foreach (FileInfo file in cacheDir.GetFiles())
+        foreach (FileInfo file in files)
         {
             try
             {
@@ -772,24 +790,30 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             }
             catch (IOException e)
             {
-                Logger.E(TAG, "ClearCache", e);
+                Logger.E(TAG, "ClearDirectory", e);
             }
         }
 
-        foreach (DirectoryInfo dir in cacheDir.GetDirectories())
+        DirectoryInfo[] dirs;
+        try
         {
-            if (dir.Name == "Local")
-            {
-                continue;
-            }
+            dirs = directory.GetDirectories();
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, "ClearDirectory", e);
+            dirs = [];
+        }
 
+        foreach (DirectoryInfo dir in dirs)
+        {
             try
             {
                 dir.Delete(true);
             }
             catch (IOException e)
             {
-                Logger.E(TAG, "ClearCache", e);
+                Logger.E(TAG, "ClearDirectory", e);
             }
         }
     }
