@@ -113,7 +113,7 @@ internal class InitTaskManager(Application application)
 
     private bool TryRegisterFirstInstance()
     {
-        string lockFileDirPath = StorageLocation.LocalFolderPath;
+        string lockFileDirPath = StorageLocation.TemporaryFolderPath;
         if (!Directory.Exists(lockFileDirPath))
         {
             Directory.CreateDirectory(lockFileDirPath);
