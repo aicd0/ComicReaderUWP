@@ -36,7 +36,7 @@ class StringUtils
                     }
                 }
 
-                int ordinal = string.CompareOrdinal(x[i], y[i]);
+                int ordinal = string.Compare(x[i], y[i], ignoreCase: true);
                 if (ordinal != 0)
                 {
                     return ordinal;
@@ -47,37 +47,32 @@ class StringUtils
         }
     }
 
-    public static IComparer<List<string>> SmartFileNameComparer = new SmartFileNameComparerInternal();
+    public static IComparer<List<string>> SmartFileNameComparer { get; } = new SmartFileNameComparerInternal();
 
-    public static Func<string, List<string>> SmartFileNameKeySelector = delegate (string x)
+    public static Func<string, List<string>> SmartFileNameKeySelector { get; } = delegate (string x)
     {
-        var list = new List<string>();
-        bool last_is_number = false;
-        int start_index = 0;
+        List<string> list = [];
+        bool lastIsNumber = false;
+        int startIndex = 0;
         for (int i = 0; i < x.Length; i++)
         {
             char c = x[i];
-            bool is_number = false;
-            if (c >= '0' && c <= '9')
+            bool isNumber = c >= '0' && c <= '9';
+            if (isNumber != lastIsNumber)
             {
-                is_number = true;
-            }
-
-            if (is_number != last_is_number)
-            {
-                if (start_index < i)
+                if (startIndex < i)
                 {
-                    list.Add(x.Substring(start_index, i - start_index));
-                    start_index = i;
+                    list.Add(x[startIndex..i]);
+                    startIndex = i;
                 }
 
-                last_is_number = is_number;
+                lastIsNumber = isNumber;
             }
         }
 
         if (x.Length > 0)
         {
-            list.Add(x[start_index..]);
+            list.Add(x[startIndex..]);
         }
 
         return list;
