@@ -11,72 +11,47 @@ public static class FileUtils
 {
     private const string TAG = nameof(FileUtils);
 
-    public static long GetDirectorySize(DirectoryInfo directory, bool ignoreErrors)
+    public static long GetApproximateDirectorySize(DirectoryInfo directory)
     {
         long size = 0;
 
+        FileInfo[] files;
+        try
         {
-            FileInfo[] files;
+            files = directory.GetFiles();
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, "GetApproximateDirectorySize", e);
+            files = [];
+        }
+
+        foreach (FileInfo file in files)
+        {
             try
             {
-                files = directory.GetFiles();
+                size += file.Length;
             }
             catch (Exception e)
             {
-                if (ignoreErrors)
-                {
-                    Logger.E(TAG, "GetDirectorySize", e);
-                    files = [];
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            foreach (FileInfo file in files)
-            {
-                try
-                {
-                    size += file.Length;
-                }
-                catch (Exception e)
-                {
-                    if (ignoreErrors)
-                    {
-                        Logger.E(TAG, "GetDirectorySize", e);
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                Logger.E(TAG, "GetApproximateDirectorySize", e);
             }
         }
 
+        DirectoryInfo[] dirs;
+        try
         {
-            DirectoryInfo[] subDirectories;
-            try
-            {
-                subDirectories = directory.GetDirectories();
-            }
-            catch (Exception e)
-            {
-                if (ignoreErrors)
-                {
-                    Logger.E(TAG, "GetDirectorySize", e);
-                    subDirectories = [];
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            dirs = directory.GetDirectories();
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, "GetDirectorySize", e);
+            dirs = [];
+        }
 
-            foreach (DirectoryInfo subDirectory in subDirectories)
-            {
-                size += GetDirectorySize(subDirectory, ignoreErrors);
-            }
+        foreach (DirectoryInfo dir in dirs)
+        {
+            size += GetApproximateDirectorySize(dir);
         }
 
         return size;
@@ -88,6 +63,7 @@ public static class FileUtils
         {
             return 0;
         }
+
         try
         {
             var fileInfo = new FileInfo(file.Path);
