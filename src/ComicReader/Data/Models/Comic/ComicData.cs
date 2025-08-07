@@ -696,17 +696,17 @@ internal abstract class ComicData
         Tags = [defaultTag];
     }
 
-    public async Task<TaskException> LoadImageFiles()
+    public async Task<bool> LoadImageFiles()
     {
         if (_imageUpdated)
         {
-            return TaskException.Success;
+            return true;
         }
 
         TaskException result = await ReloadImages();
         if (!result.Successful())
         {
-            return result;
+            return false;
         }
 
         _imageUpdated = true;
@@ -714,17 +714,18 @@ internal abstract class ComicData
         using IComicConnection? connection = await OpenComicAsync();
         if (connection == null)
         {
-            return TaskException.NoPermission;
+            return false;
         }
+
         if (connection.GetImageCount() == 0)
         {
-            return TaskException.EmptySet;
+            return false;
         }
 
-        return TaskException.Success;
+        return true;
     }
 
-    public async Task<TaskException> ReloadImageFiles()
+    public async Task<bool> ReloadImageFiles()
     {
         _imageUpdated = false;
         return await LoadImageFiles();
@@ -738,10 +739,11 @@ internal abstract class ComicData
             return coverCacheKey;
         }
 
-        if (!LoadImageFiles().Result.Successful())
+        if (!LoadImageFiles().Result)
         {
-            return "";
+            return string.Empty;
         }
+
         coverCacheKey = GetImageCacheKey(0);
         SetCoverCacheKey(coverCacheKey);
         return coverCacheKey;

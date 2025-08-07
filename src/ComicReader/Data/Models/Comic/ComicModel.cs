@@ -9,7 +9,6 @@ using System.IO;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
@@ -199,7 +198,7 @@ internal sealed class ComicModel
         return _internalModel.OpenComicAsync();
     }
 
-    public Task<TaskException> ReloadImageFiles()
+    public Task<bool> ReloadImageFiles()
     {
         return _internalModel.ReloadImageFiles();
     }
