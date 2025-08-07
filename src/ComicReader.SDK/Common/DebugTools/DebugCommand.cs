@@ -47,9 +47,10 @@ xp8vQPBayknp/N1WAT768SYpXAT/nta/ddJnCkbMsCd/C1AZhDDwsjk4+Bsmj3DK
             return false;
         }
 
-        // Save developer mode token
+        // Enable developer mode
         _unlockedDeveloperMode = true;
         KVDatabase.Sdk.SetString(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
+        DebugUtils.DeveloperMode = true;
 
         return ProcessCommand(parsedCommand);
     }

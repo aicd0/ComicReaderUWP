@@ -1,36 +1,43 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-
 using ComicReader.Common.BaseUI;
+using ComicReader.SDK.Common.DebugTools;
 
 namespace ComicReader.Helpers.Navigation;
 
 internal class CheckRouteInterceptor : IRouterInterceptor
 {
-    public NavigationBundle? Intercept(Route route)
+    private const string TAG = nameof(CheckRouteInterceptor);
+
+    public bool Intercept(Route route, out NavigationBundle? navigationBundle)
     {
+        navigationBundle = null;
+
         if (route.Scheme != RouterConstants.SCHEME_APP_NO_PREFIX)
         {
-            throw new ArgumentException($"Invalid scheme {route.Scheme}");
+            Logger.F(TAG, $"Invalid scheme {route.Scheme}");
+            return true;
         }
 
         if (route.Port != -1)
         {
-            throw new ArgumentException($"Invalid port {route.Port}");
+            Logger.F(TAG, $"Invalid port {route.Port}");
+            return true;
         }
 
         if (route.Path.Length > 0 && route.Path != "/")
         {
-            throw new ArgumentException($"Invalid path {route.Path}");
+            Logger.F(TAG, $"Invalid path {route.Path}");
+            return true;
         }
 
         if (route.Fragment.Length > 0)
         {
-            throw new ArgumentException($"Invalid fragment {route.Fragment}");
+            Logger.F(TAG, $"Invalid fragment {route.Fragment}");
+            return true;
         }
 
-        return null;
+        return false;
     }
 }
