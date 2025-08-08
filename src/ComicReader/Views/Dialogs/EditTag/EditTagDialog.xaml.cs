@@ -2,9 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.BaseUI;
-using ComicReader.ViewModels;
 
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Views.Dialogs.EditTag;
@@ -57,16 +55,5 @@ internal sealed partial class EditTagDialog : BaseContentDialog
     private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         ViewModel.UpdateDescription(((TextBox)sender).Text ?? "");
-    }
-
-    private void AddLinkButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        ViewModel.AddLink();
-    }
-
-    private void RemoveLinkButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        var item = (LinkItemViewModel)((FrameworkElement)sender).DataContext;
-        ViewModel.RemoveLink(item);
     }
 }

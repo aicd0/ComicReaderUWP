@@ -240,6 +240,7 @@ internal class TagCategoryInfoModel
             if (_cache.TryRemove(oldName, out TagCategoryInfoModel? model))
             {
                 model.Name = newName;
+                _cache.Set(newName, model);
             }
 
             UpdateCommand.Create(TagCategoryInfoTable.Instance)

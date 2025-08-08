@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
@@ -8,6 +9,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Dialogs.EditTagCategory;
 
@@ -71,8 +73,11 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
         }
     }
 
+    public ObservableCollection<LinkItemViewModel> Links { get; } = [];
+
     private string _oldName = string.Empty;
     private bool _isNameValid = false;
+    private TagCategoryInfoModel? _tagCategoryInfoModel;
 
     private bool IsSameCategory =>
         _oldName == _name;
@@ -82,7 +87,15 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
         _oldName = tagCategory;
         Title = tagCategory;
         Name = tagCategory;
-        UpdateUIStates();
+        UpdateSaveButtonStates();
+
+        CoroutineUtils.Start(async () =>
+        {
+            TagCategoryInfoModel tagCategoryInfoModel = await TagCategoryInfoModel.GetOrCreate(tagCategory);
+            _tagCategoryInfoModel = tagCategoryInfoModel;
+
+            UpdateLinks(tagCategoryInfoModel.GetExt(TagCategoryInfoExt.LINKS) ?? string.Empty);
+        });
     }
 
     public void UpdateName(string name)
@@ -94,7 +107,7 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
         }
 
         _name = name;
-        UpdateUIStates();
+        UpdateSaveButtonStates();
     }
 
     public void Save()
@@ -104,13 +117,22 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (!IsSameCategory)
+        CoroutineUtils.Start(async () =>
         {
-            _ = TagCategoryInfoModel.Rename(_oldName, _name);
-        }
+            if (!IsSameCategory)
+            {
+                await TagCategoryInfoModel.Rename(_oldName, _name);
+            }
+
+            if (_tagCategoryInfoModel != null)
+            {
+                _tagCategoryInfoModel.SetExt(TagCategoryInfoExt.LINKS, GetSerializedLinks());
+                _tagCategoryInfoModel.FlushExt();
+            }
+        });
     }
 
-    private void UpdateUIStates()
+    private void UpdateSaveButtonStates()
     {
         _isNameValid = !string.IsNullOrEmpty(_name);
         SaveEnabled = _isNameValid;
@@ -136,5 +158,49 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
 
             return false;
         });
+    }
+
+    private void UpdateLinks(string json)
+    {
+        var model = TagLinkModel.Parse(json);
+        foreach (TagLinkModel.LinkModel link in model.Links)
+        {
+            Links.Add(new()
+            {
+                IsPlaceholder = false,
+                Name = link.Name,
+                Link = link.Link,
+            });
+        }
+
+        Links.Add(new()
+        {
+            IsPlaceholder = true,
+        });
+    }
+
+    private string GetSerializedLinks()
+    {
+        TagLinkModel model = new();
+        foreach (LinkItemViewModel item in Links)
+        {
+            if (item.IsPlaceholder)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrEmpty(item.Name) || string.IsNullOrEmpty(item.Link))
+            {
+                continue;
+            }
+
+            model.Links.Add(new()
+            {
+                Name = item.Name,
+                Link = item.Link,
+            });
+        }
+
+        return model.Serialize();
     }
 }

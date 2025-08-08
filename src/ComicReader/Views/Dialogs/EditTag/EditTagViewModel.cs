@@ -6,7 +6,6 @@ using System.ComponentModel;
 
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.TagInfo;
-using ComicReader.SDK.Common.DebugTools;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Dialogs.EditTag;
@@ -159,28 +158,6 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         _description = description;
     }
 
-    public void AddLink()
-    {
-        if (Links.Count == 0)
-        {
-            Logger.F(TAG, "Cannot add link, collection cannot be empty.");
-            return;
-        }
-
-        Links.Insert(Links.Count - 1, new()
-        {
-            IsPlaceholder = false,
-            Name = string.Empty,
-            Link = string.Empty,
-            Global = false,
-        });
-    }
-
-    public void RemoveLink(LinkItemViewModel item)
-    {
-        Links.Remove(item);
-    }
-
     public void Save()
     {
         if (!_isNameValid)
@@ -198,7 +175,7 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
             if (_tagInfoModel != null)
             {
                 _tagInfoModel.SetExt(TagInfoExt.DESCRIPTION, _description);
-                _tagInfoModel.SetExt(TagInfoExt.LINKS, GetSerializedLinksAndSaveGlobalLinks());
+                _tagInfoModel.SetExt(TagInfoExt.LINKS, GetSerializedLinks());
                 _tagInfoModel.FlushExt();
             }
         });
@@ -225,7 +202,6 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
                 IsPlaceholder = false,
                 Name = link.Name,
                 Link = link.Link,
-                Global = link.Global,
             });
         }
 
@@ -235,7 +211,7 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         });
     }
 
-    private string GetSerializedLinksAndSaveGlobalLinks()
+    private string GetSerializedLinks()
     {
         TagLinkModel model = new();
         foreach (LinkItemViewModel item in Links)
@@ -254,10 +230,9 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
             {
                 Name = item.Name,
                 Link = item.Link,
-                Global = item.Global,
             });
         }
 
-        return model.SerializeAndSaveGlobal();
+        return model.Serialize();
     }
 }

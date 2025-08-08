@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -19,7 +18,6 @@ using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
-using ComicReader.Data.Models.TagInfo;
 using ComicReader.Helpers.Imaging;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
@@ -263,6 +261,11 @@ internal sealed partial class ReaderPage : BasePage
         {
             var dialog = new EditTagDialog(pair.Key, pair.Value);
             _ = dialog.ShowAsync(XamlRoot);
+        });
+
+        ViewModel.ShowDialogLiveData.Observe(this, options =>
+        {
+            _ = DialogUtils.ShowDialogAsync(XamlRoot, options);
         });
 
         IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
@@ -553,13 +556,10 @@ internal sealed partial class ReaderPage : BasePage
             FillRichTextInlines(TbComicDescription.Inlines, comic.Description);
             TbComicDescription.Visibility = TbComicDescription.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-            FillRichTextInlines(TagDescriptionTextBlock.Inlines, await CreateTagDescripionText(comic));
-            TagDescriptionTextBlock.Visibility = TagDescriptionTextBlock.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-
             ViewModel.ComicDir = comic.Location;
             ViewModel.IsEditable = comic.IsEditable;
 
-            ViewModel.LoadComicTag();
+            await ViewModel.LoadComicTag();
 
             bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
             SetIsFavorite(isFavorite, false);
@@ -571,53 +571,6 @@ internal sealed partial class ReaderPage : BasePage
                 ViewModel.Rating = comic.Rating;
             }
         });
-    }
-
-    private async Task<string> CreateTagDescripionText(ComicModel comic)
-    {
-        StringBuilder sb = new();
-        foreach (ComicData.TagData tagData in comic.Tags)
-        {
-            foreach (string tag in tagData.Tags)
-            {
-                TagInfoModel? tagInfoModel = await TagInfoModel.Get(tagData.Name, tag);
-                if (tagInfoModel == null)
-                {
-                    continue;
-                }
-
-                StringBuilder tagSb = new();
-
-                string? description = tagInfoModel.GetExt(TagInfoExt.DESCRIPTION);
-                if (!string.IsNullOrEmpty(description))
-                {
-                    tagSb.Append(description);
-                }
-
-                var linkModel = TagLinkModel.Parse(tagInfoModel.GetExt(TagInfoExt.LINKS) ?? string.Empty);
-                foreach (TagLinkModel.LinkModel link in linkModel.Links)
-                {
-                    if (tagSb.Length > 0)
-                    {
-                        tagSb.Append('\n');
-                    }
-
-                    tagSb.Append(link.Name).Append(": ").Append(link.Link);
-                }
-
-                if (tagSb.Length > 0)
-                {
-                    if (sb.Length > 0)
-                    {
-                        sb.Append('\n');
-                    }
-
-                    sb.Append(tag).Append('\n').Append(tagSb);
-                }
-            }
-        }
-
-        return sb.ToString();
     }
 
     //

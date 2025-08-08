@@ -465,6 +465,12 @@ The evaluation will be performed in the following order:
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>Library</value>
   </data>
+  <data name="LinkErrorContent" xml:space="preserve">
+    <value>Link '$link' seems not to be a valid web link.</value>
+  </data>
+  <data name="LinkErrorTitle" xml:space="preserve">
+    <value>Cannot open link</value>
+  </data>
   <data name="Links" xml:space="preserve">
     <value>Links</value>
   </data>
@@ -521,6 +527,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="None" xml:space="preserve">
     <value>None</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
   </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Open in File Explorer</value>

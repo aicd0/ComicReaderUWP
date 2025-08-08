@@ -75,6 +75,8 @@ public class StringResourceProvider
     public string Hide => GetResourceString("Hide");
     public string History => GetResourceString("History");
     public string LastReadTime => GetResourceString("LastReadTime");
+    public string LinkErrorContent => GetResourceString("LinkErrorContent");
+    public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
     public string Links => GetResourceString("Links");
     public string MarkAsRead => GetResourceString("MarkAsRead");
     public string MarkAsReading => GetResourceString("MarkAsReading");
@@ -86,6 +88,7 @@ public class StringResourceProvider
     public string NoResults => GetResourceString("NoResults");
     public string NoTagsHint => GetResourceString("NoTagsHint");
     public string None => GetResourceString("None");
+    public string OK => GetResourceString("OK");
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenRandomComic => GetResourceString("OpenRandomComic");

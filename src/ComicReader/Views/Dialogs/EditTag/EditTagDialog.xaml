@@ -14,6 +14,16 @@
     Loaded="ContentDialog_Loaded"
     mc:Ignorable="d">
 
+    <base:BaseContentDialog.TitleTemplate>
+        <DataTemplate>
+            <TextBlock
+                MaxWidth="600"
+                Text="{Binding}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap" />
+        </DataTemplate>
+    </base:BaseContentDialog.TitleTemplate>
+
     <base:BaseContentDialog.Resources>
         <ResourceDictionary>
 
@@ -86,69 +96,10 @@
                     HorizontalAlignment="Right"
                     VerticalAlignment="Top"
                     Text="{x:Bind StringResource.Links}" />
-                <ListView
+                <controls:EditLinksView
                     Grid.Row="6"
                     Grid.Column="2"
-                    ItemsSource="{x:Bind ViewModel.Links}"
-                    SelectionMode="None">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="MinHeight" Value="0" />
-                            <Setter Property="Margin" Value="0,0,0,8" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="vm:LinkItemViewModel">
-                            <Grid>
-                                <Grid Visibility="{x:Bind IsPlaceholder, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="3*" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Text="{x:Bind Name, Mode=TwoWay}" />
-                                    <TextBox
-                                        Grid.Column="1"
-                                        Margin="6,0,0,0"
-                                        Text="{x:Bind Link, Mode=TwoWay}" />
-                                    <CheckBox
-                                        Grid.Column="2"
-                                        MinWidth="0"
-                                        Margin="8,0,0,0"
-                                        Content="{x:Bind StringResource.Global}"
-                                        IsChecked="{x:Bind Global, Mode=TwoWay}" />
-                                    <Button
-                                        Grid.Column="3"
-                                        Margin="8,0,0,0"
-                                        Padding="5,5,4,4"
-                                        Click="RemoveLinkButton_Click"
-                                        ToolTipService.ToolTip="{x:Bind StringResource.Remove}">
-                                        <Button.Content>
-                                            <FontIcon FontSize="16" Glyph="&#xE738;" />
-                                        </Button.Content>
-                                    </Button>
-                                </Grid>
-                                <StackPanel
-                                    MinHeight="36"
-                                    Orientation="Horizontal"
-                                    Visibility="{x:Bind IsPlaceholder, Mode=OneWay}">
-                                    <Button
-                                        Padding="5,5,4,4"
-                                        VerticalAlignment="Center"
-                                        Click="AddLinkButton_Click"
-                                        ToolTipService.ToolTip="{x:Bind StringResource.Add}">
-                                        <Button.Content>
-                                            <FontIcon FontSize="16" Glyph="&#xE710;" />
-                                        </Button.Content>
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    Links="{x:Bind ViewModel.Links}" />
             </Grid>
         </ScrollViewer>
         <TextBlock Text="{x:Bind StringResource.OverwriteExistingEntries}" Visibility="{x:Bind ViewModel.OverwriteWarning, Mode=OneWay}" />

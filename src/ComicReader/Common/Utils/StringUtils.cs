@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,7 +13,7 @@ class StringUtils
 {
     public class OrdinalComparer : IComparer<string>
     {
-        public int Compare(string x, string y)
+        public int Compare(string? x, string? y)
         {
             return string.CompareOrdinal(x, y);
         }
@@ -23,8 +21,23 @@ class StringUtils
 
     private class SmartFileNameComparerInternal : IComparer<List<string>>
     {
-        public int Compare(List<string> x, List<string> y)
+        public int Compare(List<string>? x, List<string>? y)
         {
+            if (x == null && y == null)
+            {
+                return 0;
+            }
+
+            if (x == null)
+            {
+                return -1;
+            }
+
+            if (y == null)
+            {
+                return 1;
+            }
+
             for (int i = 0; i < Math.Min(x.Count, y.Count); i++)
             {
                 if (int.TryParse(x[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int xint) &&
@@ -263,24 +276,6 @@ class StringUtils
         return sb.ToString();
     }
 
-    public static string DictionaryToString<K, V>(IDictionary<K, V> dictionary)
-    {
-        var text = new StringBuilder();
-        bool first = true;
-        foreach (K k in dictionary.Keys)
-        {
-            if (!first)
-            {
-                text.Append(",\n");
-            }
-
-            first = false;
-            V v = dictionary[k];
-            text.Append("\"" + k.ToString() + "\": \"" + v.ToString() + "\"");
-        }
-        return text.ToString();
-    }
-
     public static int ParseInt(string text, int defaultValue = 0)
     {
         if (int.TryParse(text, out int result))
@@ -288,5 +283,37 @@ class StringUtils
             return result;
         }
         return defaultValue;
+    }
+
+    public static bool TryNormalizeWebUrl(string url, out Uri? result)
+    {
+        result = null;
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return false;
+        }
+
+        // Try to parse as absolute URI
+        if (Uri.TryCreate(url, UriKind.Absolute, out Uri? absoluteUri) &&
+            (absoluteUri.Scheme == Uri.UriSchemeHttp || absoluteUri.Scheme == Uri.UriSchemeHttps))
+        {
+            result = absoluteUri;
+            return true;
+        }
+
+        // If it looks like a domain or starts with www, prepend https://
+        if (url.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ||
+            (url.Contains('.') && !url.Contains(' ')))
+        {
+            string candidate = "https://" + url.Trim();
+            if (Uri.TryCreate(candidate, UriKind.Absolute, out Uri? webUri))
+            {
+                result = webUri;
+                return true;
+            }
+        }
+
+        // Not a valid web url
+        return false;
     }
 }

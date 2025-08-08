@@ -5,9 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 
 namespace ComicReader.Data.Models.TagInfo;
 
@@ -15,53 +13,47 @@ internal class TagLinkModel
 {
     private const string TAG = nameof(TagLinkModel);
 
-    public static TagLinkModel Parse(string json)
+    public static TagLinkModel Parse(string? json)
     {
         TagLinkModel model = new();
 
-        void Merge(string j, bool global)
+        if (string.IsNullOrEmpty(json))
         {
-            if (string.IsNullOrEmpty(j))
-            {
-                return;
-            }
+            return model;
+        }
 
-            TagLinksJsonModel? jsonModel = null;
-            try
-            {
-                jsonModel = JsonSerializer.Deserialize<TagLinksJsonModel>(j);
-            }
-            catch (JsonException e)
-            {
-                Logger.E(TAG, e);
-            }
+        TagLinksJsonModel? jsonModel = null;
+        try
+        {
+            jsonModel = JsonSerializer.Deserialize<TagLinksJsonModel>(json);
+        }
+        catch (JsonException e)
+        {
+            Logger.E(TAG, e);
+        }
 
-            if (jsonModel is null)
-            {
-                return;
-            }
+        if (jsonModel is null)
+        {
+            return model;
+        }
 
-            if (jsonModel.Links != null)
+        if (jsonModel.Links != null)
+        {
+            foreach (TagLinkJsonModel? link in jsonModel.Links)
             {
-                foreach (TagLinkJsonModel? link in jsonModel.Links)
+                if (link is null)
                 {
-                    if (link is null)
-                    {
-                        continue;
-                    }
-
-                    model.Links.Add(new()
-                    {
-                        Name = link.Name ?? string.Empty,
-                        Link = link.Link ?? string.Empty,
-                        Global = global,
-                    });
+                    continue;
                 }
+
+                model.Links.Add(new()
+                {
+                    Name = link.Name ?? string.Empty,
+                    Link = link.Link ?? string.Empty,
+                });
             }
         }
 
-        Merge(KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_GLOBAL_TAG_LINKS, string.Empty), true);
-        Merge(json, false);
         return model;
     }
 
@@ -71,17 +63,11 @@ internal class TagLinkModel
     {
         public string Name { get; set; } = string.Empty;
         public string Link { get; set; } = string.Empty;
-        public bool Global { get; set; } = false;
     }
 
-    public string SerializeAndSaveGlobal()
+    public string Serialize()
     {
-        TagLinksJsonModel localJsonModel = new()
-        {
-            Links = [],
-        };
-
-        TagLinksJsonModel globalJsonModel = new()
+        TagLinksJsonModel jsonModel = new()
         {
             Links = [],
         };
@@ -94,20 +80,10 @@ internal class TagLinkModel
                 Link = link.Link,
             };
 
-            if (link.Global)
-            {
-                globalJsonModel.Links.Add(linkJsonModel);
-            }
-            else
-            {
-                localJsonModel.Links.Add(linkJsonModel);
-            }
+            jsonModel.Links.Add(linkJsonModel);
         }
 
-        string localJson = JsonSerializer.Serialize(localJsonModel);
-        string globalJson = JsonSerializer.Serialize(globalJsonModel);
-        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_GLOBAL_TAG_LINKS, globalJson);
-        return localJson;
+        return JsonSerializer.Serialize(jsonModel);
     }
 
     private class TagLinksJsonModel

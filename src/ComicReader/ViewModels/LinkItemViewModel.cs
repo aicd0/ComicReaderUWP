@@ -43,15 +43,4 @@ internal partial class LinkItemViewModel : BaseViewModel, INotifyPropertyChanged
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Link)));
         }
     }
-
-    private bool _global = false;
-    public bool Global
-    {
-        get => _global;
-        set
-        {
-            _global = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Global)));
-        }
-    }
 }
