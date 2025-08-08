@@ -7,7 +7,6 @@ using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.AutoProperty;
 using ComicReader.SDK.Common.AutoProperty.Presets;
 using ComicReader.SDK.Common.AutoProperty.Utils;
-using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Data.SqlHelpers;
 
 namespace ComicReader.Data.Models.Comic;
@@ -16,7 +15,6 @@ internal class ComicPropertyRepository
 {
     public static readonly ComicPropertyRepository Instance = new();
 
-    private readonly ITaskDispatcher _databaseDispatcher = TaskDispatcher.Factory.NewQueue("ComicDataQueue");
     private readonly PropertyServer _server = new("ComicPropertyRepository");
 
     private SqlProperty<ComicTable, long, int> CompletionStateSql { get; }
@@ -26,16 +24,11 @@ internal class ComicPropertyRepository
 
     private ComicPropertyRepository()
     {
-        CompletionStateSql = new(_databaseDispatcher, SqlDatabaseManager.MainDatabase, ComicTable.Instance);
+        CompletionStateSql = new(SqlDatabaseManager.MainDatabaseDispatcher, SqlDatabaseManager.MainDatabase, ComicTable.Instance);
         CompletionStateConverter = new(CompletionStateSql, (k) => new(ComicTable.ColumnId, ComicTable.ColumnCompletionState, k.Id, k.Id.ToString()),
             (v) => (int)v, (r) => r.WithValue(ParseCompletionState(r.Value)));
         CompletionStateCache = new(CompletionStateConverter);
         CompletionStateOperator = new(_server, CompletionStateCache, (k) => new(k));
-    }
-
-    public ITaskDispatcher GetDatabaseDispatcher()
-    {
-        return _databaseDispatcher;
     }
 
     public static ComicCompletionStatusEnum ParseCompletionState(int value)

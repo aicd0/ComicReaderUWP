@@ -1,13 +1,17 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Lifecycle;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.TagInfo;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.ViewModels;
@@ -20,6 +24,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     public readonly MutableLiveData<string> TagClickLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
+    public readonly MutableLiveData<DialogUtils.DialogOptions> ShowDialogLiveData = new();
 
     private string _comicTitle1 = "";
     public string ComicTitle1
@@ -113,7 +118,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         _comic = comic;
     }
 
-    public void LoadComicTag()
+    public async Task LoadComicTag()
     {
         ComicModel? comic = _comic;
         if (comic == null)
@@ -132,7 +137,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 TagViewModel tagModel = new()
                 {
                     Tag = tag,
-                    MenuFlyoutItems = CreateTagContextMenuItems(tags.Name, tag),
+                    MenuFlyoutItems = await CreateTagContextMenuItems(tags.Name, tag),
                     OnClicked = () =>
                     {
                         TagClickLiveData.Emit(tag);
@@ -157,9 +162,65 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         IsComicTagsVisible = newCollection.Count > 0;
     }
 
-    private List<BaseMenuFlyoutItemViewModel> CreateTagContextMenuItems(string tagCategory, string tag)
+    private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagContextMenuItems(string tagCategory, string tag)
     {
         List<BaseMenuFlyoutItemViewModel> items = [];
+
+        {
+            TagCategoryInfoModel? tagCategoryInfo = await TagCategoryInfoModel.Get(tagCategory);
+            TagInfoModel? tagInfo = await TagInfoModel.Get(tagCategory, tag);
+            List<TagLinkModel.LinkModel> links = [];
+
+            if (tagCategoryInfo != null)
+            {
+                var linkModel = TagLinkModel.Parse(tagCategoryInfo.GetExt(TagCategoryInfoExt.LINKS));
+                links.AddRange(linkModel.Links);
+            }
+
+            if (tagInfo != null)
+            {
+                var linkModel = TagLinkModel.Parse(tagInfo.GetExt(TagInfoExt.LINKS));
+                links.AddRange(linkModel.Links);
+            }
+
+            foreach (TagLinkModel.LinkModel link in links)
+            {
+                string encodedTag = Uri.EscapeDataString(tag);
+                string encodedTagCategory = Uri.EscapeDataString(tagCategory);
+                link.Link = link.Link
+                    .Replace("{%_tag}", tag)
+                    .Replace("{%_tag_category}", tagCategory)
+                    .Replace("{%_encoded_tag}", encodedTag)
+                    .Replace("{%_encoded_tag_category}", encodedTagCategory);
+            }
+
+            if (links.Count > 0)
+            {
+                foreach (TagLinkModel.LinkModel link in links)
+                {
+                    items.Add(new MenuFlyoutItemViewModel(link.Name)
+                    {
+                        OnClick = () =>
+                        {
+                            if (StringUtils.TryNormalizeWebUrl(link.Link, out Uri? uri))
+                            {
+                                _ = Windows.System.Launcher.LaunchUriAsync(uri);
+                            }
+                            else
+                            {
+                                ShowDialogLiveData.Emit(new DialogUtils.DialogOptions.Builder()
+                                    .SetTitle(StringResourceProvider.Instance.LinkErrorTitle)
+                                    .SetContent(StringResourceProvider.Instance.LinkErrorContent.Replace("$link", link.Link))
+                                    .SetPrimaryButtonText(StringResourceProvider.Instance.OK)
+                                    .Build());
+                            }
+                        }
+                    });
+                }
+
+                items.Add(new MenuFlyoutSeperatorViewModel());
+            }
+        }
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {

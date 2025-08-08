@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -262,6 +261,11 @@ internal sealed partial class ReaderPage : BasePage
         {
             var dialog = new EditTagDialog(pair.Key, pair.Value);
             _ = dialog.ShowAsync(XamlRoot);
+        });
+
+        ViewModel.ShowDialogLiveData.Observe(this, options =>
+        {
+            _ = DialogUtils.ShowDialogAsync(XamlRoot, options);
         });
 
         IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
@@ -552,13 +556,10 @@ internal sealed partial class ReaderPage : BasePage
             FillRichTextInlines(TbComicDescription.Inlines, comic.Description);
             TbComicDescription.Visibility = TbComicDescription.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-            FillRichTextInlines(TagDescriptionTextBlock.Inlines, await CreateTagDescripionText(comic));
-            TagDescriptionTextBlock.Visibility = TagDescriptionTextBlock.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-
             ViewModel.ComicDir = comic.Location;
             ViewModel.IsEditable = comic.IsEditable;
 
-            ViewModel.LoadComicTag();
+            await ViewModel.LoadComicTag();
 
             bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
             SetIsFavorite(isFavorite, false);
@@ -570,40 +571,6 @@ internal sealed partial class ReaderPage : BasePage
                 ViewModel.Rating = comic.Rating;
             }
         });
-    }
-
-    private async Task<string> CreateTagDescripionText(ComicModel comic)
-    {
-        StringBuilder sb = new();
-        bool first = true;
-        foreach (ComicData.TagData tagData in comic.Tags)
-        {
-            foreach (string tag in tagData.Tags)
-            {
-                TagInfoModel? tagInfoModel = await TagInfoModel.Get(tagData.Name, tag);
-                if (tagInfoModel == null)
-                {
-                    continue;
-                }
-
-                string? description = tagInfoModel.GetExt(TagInfoExt.DESCRIPTION);
-                if (string.IsNullOrEmpty(description))
-                {
-                    continue;
-                }
-
-                if (!first)
-                {
-                    sb.Append('\n');
-                }
-
-                first = false;
-                sb.Append(StringResourceProvider.Instance.WithColon(tag));
-                sb.Append(description);
-            }
-        }
-
-        return sb.ToString();
     }
 
     //

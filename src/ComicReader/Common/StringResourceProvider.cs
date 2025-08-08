@@ -14,6 +14,7 @@ public class StringResourceProvider
     //// SECTION MARKER - DO NOT MOVE ////
     public string About => GetResourceString("About");
     public string AboutCopyright => GetResourceString("AboutCopyright");
+    public string Add => GetResourceString("Add");
     public string AddFolder => GetResourceString("AddFolder");
     public string AddToFavorites => GetResourceString("AddToFavorites");
     public string AllComics => GetResourceString("AllComics");
@@ -73,6 +74,9 @@ public class StringResourceProvider
     public string Hide => GetResourceString("Hide");
     public string History => GetResourceString("History");
     public string LastReadTime => GetResourceString("LastReadTime");
+    public string LinkErrorContent => GetResourceString("LinkErrorContent");
+    public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
+    public string Links => GetResourceString("Links");
     public string MarkAsRead => GetResourceString("MarkAsRead");
     public string MarkAsReading => GetResourceString("MarkAsReading");
     public string MarkAsUnread => GetResourceString("MarkAsUnread");
@@ -83,6 +87,7 @@ public class StringResourceProvider
     public string NoResults => GetResourceString("NoResults");
     public string NoTagsHint => GetResourceString("NoTagsHint");
     public string None => GetResourceString("None");
+    public string OK => GetResourceString("OK");
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenRandomComic => GetResourceString("OpenRandomComic");
@@ -100,6 +105,7 @@ public class StringResourceProvider
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");
     public string Reading => GetResourceString("Reading");
     public string Refresh => GetResourceString("Refresh");
+    public string Remove => GetResourceString("Remove");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");

@@ -1,15 +1,19 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 using ComicReader.Common.Utils;
-using ComicReader.Data.Models;
+using ComicReader.Data.Models.TagInfo;
+using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Dialogs.EditTag;
 
 internal partial class EditTagDialogViewModel : INotifyPropertyChanged
 {
+    private const string TAG = nameof(EditTagDialogViewModel);
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private string _title = string.Empty;
@@ -96,6 +100,8 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         }
     }
 
+    public ObservableCollection<LinkItemViewModel> Links { get; } = [];
+
     private string _oldTagCategoryName = string.Empty;
     private string _oldTagName = string.Empty;
     private bool _isNameValid = false;
@@ -111,13 +117,15 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         Title = tag;
         TagCategoryName = tagCategory;
         TagName = tag;
-        UpdateUIStates();
+        UpdateSaveButtonStates();
 
         CoroutineUtils.Start(async () =>
         {
             TagInfoModel tagInfoModel = await TagInfoModel.GetOrCreate(tagCategory, tag);
             _tagInfoModel = tagInfoModel;
+
             Description = tagInfoModel.GetExt(TagInfoExt.DESCRIPTION) ?? string.Empty;
+            UpdateLinks(tagInfoModel.GetExt(TagInfoExt.LINKS) ?? string.Empty);
         });
     }
 
@@ -130,7 +138,7 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         }
 
         _tagCategoryName = name;
-        UpdateUIStates();
+        UpdateSaveButtonStates();
     }
 
     public void UpdateTagName(string name)
@@ -142,7 +150,7 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         }
 
         _tagName = name;
-        UpdateUIStates();
+        UpdateSaveButtonStates();
     }
 
     public void UpdateDescription(string description)
@@ -161,18 +169,19 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         {
             if (!IsSameTag)
             {
-                await TagInfoModel.RenameTag(_oldTagCategoryName, _oldTagName, _tagCategoryName, _tagName);
+                await TagInfoModel.Rename(_oldTagCategoryName, _oldTagName, _tagCategoryName, _tagName);
             }
 
             if (_tagInfoModel != null)
             {
                 _tagInfoModel.SetExt(TagInfoExt.DESCRIPTION, _description);
+                _tagInfoModel.SetExt(TagInfoExt.LINKS, GetSerializedLinks());
                 _tagInfoModel.FlushExt();
             }
         });
     }
 
-    private void UpdateUIStates()
+    private void UpdateSaveButtonStates()
     {
         _isNameValid = !string.IsNullOrEmpty(_tagCategoryName) && !string.IsNullOrEmpty(_tagName);
         SaveEnabled = _isNameValid;
@@ -181,5 +190,49 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         {
             OverwriteWarning = !IsSameTag && await TagInfoModel.Get(_tagCategoryName, _tagName) != null;
         });
+    }
+
+    private void UpdateLinks(string json)
+    {
+        var model = TagLinkModel.Parse(json);
+        foreach (TagLinkModel.LinkModel link in model.Links)
+        {
+            Links.Add(new()
+            {
+                IsPlaceholder = false,
+                Name = link.Name,
+                Link = link.Link,
+            });
+        }
+
+        Links.Add(new()
+        {
+            IsPlaceholder = true,
+        });
+    }
+
+    private string GetSerializedLinks()
+    {
+        TagLinkModel model = new();
+        foreach (LinkItemViewModel item in Links)
+        {
+            if (item.IsPlaceholder)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrEmpty(item.Name) || string.IsNullOrEmpty(item.Link))
+            {
+                continue;
+            }
+
+            model.Links.Add(new()
+            {
+                Name = item.Name,
+                Link = item.Link,
+            });
+        }
+
+        return model.Serialize();
     }
 }

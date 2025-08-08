@@ -5,15 +5,14 @@ using ComicReader.SDK.Data.SqlHelpers;
 
 namespace ComicReader.Data.Tables;
 
-internal class TagInfoTable : ITable
+internal class TagCategoryInfoTable : ITable
 {
-    public static TagInfoTable Instance { get; } = new TagInfoTable();
+    public static TagCategoryInfoTable Instance { get; } = new TagCategoryInfoTable();
 
     public static StringColumn ColumnName { get; } = new("Name");
-    public static StringColumn ColumnTagCategory { get; } = new("TagCategory");
     public static StringColumn ColumnExt { get; } = new("Ext");
 
-    private TagInfoTable() { }
+    private TagCategoryInfoTable() { }
 
     public SqlDatabase GetDatabase()
     {
@@ -22,6 +21,6 @@ internal class TagInfoTable : ITable
 
     public string GetTableName()
     {
-        return "TagInfo";
+        return "TagCategoryInfo";
     }
 }

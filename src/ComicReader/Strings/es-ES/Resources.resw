@@ -123,6 +123,9 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2025 $author. Todos los derechos reservados.</value>
   </data>
+  <data name="Add" xml:space="preserve">
+    <value>Agregar</value>
+  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Agregar una carpeta</value>
   </data>
@@ -457,6 +460,15 @@ La evaluación se realizará en el siguiente orden:
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>Biblioteca</value>
   </data>
+  <data name="LinkErrorContent" xml:space="preserve">
+    <value>'$link' no parece ser un enlace web válido.</value>
+  </data>
+  <data name="LinkErrorTitle" xml:space="preserve">
+    <value>No se puede abrir el enlace</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>Campo de golf</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Marcar como terminado</value>
   </data>
@@ -510,6 +522,9 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="None" xml:space="preserve">
     <value>Ninguno</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>DE ACUERDO</value>
   </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Abrir en el Explorador de archivos</value>
@@ -579,6 +594,9 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Refrescar</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Eliminar</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Eliminar de favoritos</value>

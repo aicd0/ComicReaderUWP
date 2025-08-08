@@ -123,6 +123,9 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2025 $author. Alle Rechte vorbehalten.</value>
   </data>
+  <data name="Add" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Einen Ordner hinzufügen</value>
   </data>
@@ -457,6 +460,15 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>Bibliothek</value>
   </data>
+  <data name="LinkErrorContent" xml:space="preserve">
+    <value>„$link“ scheint kein gültiger Weblink zu sein.</value>
+  </data>
+  <data name="LinkErrorTitle" xml:space="preserve">
+    <value>Link kann nicht geöffnet werden</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>Links</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Als erledigt markieren</value>
   </data>
@@ -510,6 +522,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="None" xml:space="preserve">
     <value>Keiner</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
   </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Im Datei-Explorer öffnen</value>
@@ -579,6 +594,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Aktualisieren</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Entfernen</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Aus Favoriten entfernen</value>

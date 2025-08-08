@@ -6,11 +6,12 @@ using System.IO;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
+using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Data.SqlHelpers;
 
 namespace ComicReader.Data;
 
-public class SqlDatabaseManager
+public static class SqlDatabaseManager
 {
     public const int DATABASE_VERSION = 5;
 
@@ -23,8 +24,14 @@ public class SqlDatabaseManager
     private static SqlDatabase? _mainDatabase = null;
     public static SqlDatabase MainDatabase => _mainDatabase!;
 
+    private static readonly ITaskDispatcher _mainDbDispatcher = TaskDispatcher.Factory.NewQueue("MainDatabaseQueue");
+    public static ITaskDispatcher MainDatabaseDispatcher => _mainDbDispatcher;
+
     private static SqlDatabase? _tagInfoDatabase = null;
     public static SqlDatabase TagInfoDatabase => _tagInfoDatabase!;
+
+    private static readonly ITaskDispatcher _tabInfoDbDispatcher = TaskDispatcher.Factory.NewQueue("TagInfoDatabaseQueue");
+    public static ITaskDispatcher TagInfoDatabaseDispatcher => _tabInfoDbDispatcher;
 
     public static void Initialize()
     {
@@ -124,11 +131,17 @@ public class SqlDatabaseManager
         _tagInfoDatabase?.Dispose();
         _tagInfoDatabase = new SqlDatabase(Path.Combine(DatabaseFolderPath, "tag_info.db"));
 
+        string tagCategoryInfoTable = TagCategoryInfoTable.Instance.GetTableName();
         string tagInfoTable = TagInfoTable.Instance.GetTableName();
 
+        ExecuteCommand(TagInfoDatabase, "CREATE TABLE IF NOT EXISTS " + tagCategoryInfoTable + " (" +
+            TagCategoryInfoTable.ColumnName.Name + " TEXT NOT NULL PRIMARY KEY" +
+            "," + TagCategoryInfoTable.ColumnExt.Name + " TEXT" +
+            ")");
+
         ExecuteCommand(TagInfoDatabase, "CREATE TABLE IF NOT EXISTS " + tagInfoTable + " (" +
-            TagInfoTable.ColumnTagCategory.Name + " TEXT NOT NULL" +
-            "," + TagInfoTable.ColumnTag.Name + " TEXT NOT NULL" +
+            TagInfoTable.ColumnName.Name + " TEXT NOT NULL" +
+            "," + TagInfoTable.ColumnTagCategory.Name + " TEXT NOT NULL REFERENCES " + tagCategoryInfoTable + "(" + TagCategoryInfoTable.ColumnName.Name + ") ON DELETE CASCADE ON UPDATE CASCADE" +
             "," + TagInfoTable.ColumnExt.Name + " TEXT" +
             ")");
     }

@@ -14,6 +14,7 @@
 
     <base:BaseContentDialog.Resources>
         <ResourceDictionary>
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/ListViewItem.xaml" />
             </ResourceDictionary.MergedDictionaries>
@@ -60,6 +61,7 @@
                 x:Key="FolderItemTemplateSelector"
                 AddNewTemplate="{StaticResource AddNewTemplate}"
                 NormalTemplate="{StaticResource NormalTemplate}" />
+
         </ResourceDictionary>
     </base:BaseContentDialog.Resources>
 
