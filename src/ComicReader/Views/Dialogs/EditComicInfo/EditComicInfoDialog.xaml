@@ -62,7 +62,6 @@
             <TextBox
                 x:Name="TagTextBox"
                 Width="500"
-                MinHeight="120"
                 Margin="0,6,0,0"
                 AcceptsReturn="True"
                 TextChanged="TagTextBox_TextChanged"

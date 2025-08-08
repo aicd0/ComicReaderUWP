@@ -200,6 +200,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 {
                     items.Add(new MenuFlyoutItemViewModel(link.Name)
                     {
+                        Glyph = "\uE71B",
                         OnClick = () =>
                         {
                             if (StringUtils.TryNormalizeWebUrl(link.Link, out Uri? uri))
@@ -224,6 +225,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
+            Glyph = "\uE70F",
             OnClick = () =>
             {
                 EditTagLiveData.Emit(new(tagCategory, tag));
@@ -234,6 +236,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
+            Glyph = "\uE74D",
             OnClick = () =>
             {
                 ComicModel? comic = _comic;

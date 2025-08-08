@@ -371,7 +371,7 @@
                 <ColumnDefinition
                     Width="10000*"
                     MinWidth="120"
-                    MaxWidth="180" />
+                    MaxWidth="160" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="30" />

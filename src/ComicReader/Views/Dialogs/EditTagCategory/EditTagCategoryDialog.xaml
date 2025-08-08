@@ -24,42 +24,44 @@
     </base:BaseContentDialog.TitleTemplate>
 
     <StackPanel Width="600" Orientation="Vertical">
-        <Grid Margin="0,10,0,15">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="10" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="8" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <TextBlock
-                Grid.Row="0"
-                Grid.Column="0"
-                Margin="0,7,0,0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Text="{x:Bind StringResource.Name}" />
-            <TextBox
-                Grid.Row="0"
-                Grid.Column="2"
-                Text="{x:Bind ViewModel.Name, Mode=OneWay}"
-                TextChanged="NameTextBox_TextChanged"
-                TextWrapping="Wrap" />
-            <TextBlock
-                Grid.Row="2"
-                Grid.Column="0"
-                Margin="0,7,0,0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Text="{x:Bind StringResource.Links}" />
-            <controls:EditLinksView
-                Grid.Row="2"
-                Grid.Column="2"
-                Links="{x:Bind ViewModel.Links}" />
-        </Grid>
+        <ScrollViewer MaxHeight="600" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="0,10,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="8" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="0,7,0,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Text="{x:Bind StringResource.Name}" />
+                <TextBox
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Text="{x:Bind ViewModel.Name, Mode=OneWay}"
+                    TextChanged="NameTextBox_TextChanged"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Margin="0,7,0,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Text="{x:Bind StringResource.Links}" />
+                <controls:EditLinksView
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    Links="{x:Bind ViewModel.Links}" />
+            </Grid>
+        </ScrollViewer>
         <TextBlock Text="{x:Bind StringResource.OverwriteExistingEntries}" Visibility="{x:Bind ViewModel.OverwriteWarning, Mode=OneWay}" />
         <Grid Margin="0,15,0,0" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
