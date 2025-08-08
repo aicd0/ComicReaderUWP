@@ -672,6 +672,16 @@ Category1: Tag1/Tag2/Tag3
 Category2: Tag4/Tag5
 ...</value>
   </data>
+  <data name="TagLinkTip" xml:space="preserve">
+    <value>(This document may be machine translated)
+
+Special variables:
+
+{%tag}                   - Replaced with tag name
+{%tag_category}          - Replaced with tag category
+{%tag_escaped}           - Replaced with escaped tag name
+{%tag_category_escaped}  - Replaced with escaped tag category</value>
+  </data>
   <data name="Tags" xml:space="preserve">
     <value>Tags</value>
   </data>

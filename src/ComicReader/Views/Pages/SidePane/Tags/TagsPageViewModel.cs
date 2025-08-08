@@ -135,22 +135,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             return tagModel;
         }
 
-        await TagInfoDatabase.Enqueue("UpdateTags", () =>
-        {
-            var command = SelectCommand.Create(TagInfoTable.Instance);
-            IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnName);
-            IReaderToken<string> tagCategoryToken = command.PutQueryString(TagInfoTable.ColumnTagCategory);
-            using SelectCommand.IReader reader = command.Execute();
-            while (reader.Read())
-            {
-                string tag = tagToken.GetValue();
-                string tagCategory = tagCategoryToken.GetValue();
-                PutTag(tagCategory, tag);
-            }
-
-            return true;
-        });
-
         HashSet<long> requestingComicIds = [];
         foreach (TagCateogryModel tagCategoryModel in tagCategoryMapper.Values)
         {
@@ -267,6 +251,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
+            Glyph = "\uE70F",
             OnClick = () =>
             {
                 EditTagCategoryLiveData.Emit(tagCategory);
@@ -277,6 +262,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
+            Glyph = "\uE74D",
             OnClick = () =>
             {
                 _ = TagCategoryInfoModel.Delete(tagCategory);
@@ -292,6 +278,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
+            Glyph = "\uE70F",
             OnClick = () =>
             {
                 EditTagLiveData.Emit(new(tagCategory, tag));
@@ -302,6 +289,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
+            Glyph = "\uE74D",
             OnClick = () =>
             {
                 _ = TagInfoModel.Delete(tagCategory, tag);
