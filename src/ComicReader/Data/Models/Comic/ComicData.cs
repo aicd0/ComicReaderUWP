@@ -56,7 +56,7 @@ internal abstract class ComicData
     public static async Task<T> Enqueue<T>(string taskName, Func<T> op)
     {
         var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        ComicPropertyRepository.Instance.GetDatabaseDispatcher().Submit($"{TAG}#Enqueue#{taskName}", delegate
+        SqlDatabaseManager.MainDatabaseDispatcher.Submit($"{TAG}#Enqueue#{taskName}", delegate
         {
             taskResult.SetResult(op());
         });

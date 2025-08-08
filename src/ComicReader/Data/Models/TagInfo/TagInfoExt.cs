@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-namespace ComicReader.Data.Models.Tags;
+namespace ComicReader.Data.Models.TagInfo;
 
 internal static class TagInfoExt
 {

@@ -12,7 +12,7 @@ using ComicReader.Common;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
-using ComicReader.Data.Models.Tags;
+using ComicReader.Data.Models.TagInfo;
 using ComicReader.Data.Tables;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
@@ -135,10 +135,10 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             return tagModel;
         }
 
-        await TagInfoModel.Enqueue("UpdateTags", () =>
+        await TagInfoDatabase.Enqueue("UpdateTags", () =>
         {
             var command = SelectCommand.Create(TagInfoTable.Instance);
-            IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnTag);
+            IReaderToken<string> tagToken = command.PutQueryString(TagInfoTable.ColumnName);
             IReaderToken<string> tagCategoryToken = command.PutQueryString(TagInfoTable.ColumnTagCategory);
             using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
@@ -279,7 +279,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         {
             OnClick = () =>
             {
-                _ = TagInfoModel.DeleteTagCategory(tagCategory);
+                _ = TagCategoryInfoModel.Delete(tagCategory);
             },
         });
 
@@ -304,7 +304,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         {
             OnClick = () =>
             {
-                _ = TagInfoModel.DeleteTag(tagCategory, tag);
+                _ = TagInfoModel.Delete(tagCategory, tag);
             },
         });
 

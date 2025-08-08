@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Utils;
-using ComicReader.Data.Models.Tags;
+using ComicReader.Data.Models.TagInfo;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Data.SqlHelpers;
 
@@ -106,7 +106,7 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
 
         if (!IsSameCategory)
         {
-            _ = TagInfoModel.RenameTagCategory(_oldName, _name);
+            _ = TagCategoryInfoModel.Rename(_oldName, _name);
         }
     }
 
@@ -123,11 +123,11 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
 
     private async Task<bool> MayOverwriteExistingEntries(string tagCategory)
     {
-        return await TagInfoModel.Enqueue("MayOverwriteExistingEntries", () =>
+        return await TagInfoDatabase.Enqueue("MayOverwriteExistingEntries", () =>
         {
             SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
                 .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory);
-            command.PutQueryString(TagInfoTable.ColumnTagCategory);
+            command.PutQueryString(TagInfoTable.ColumnName);
             using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {

@@ -9,7 +9,7 @@ using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 
-namespace ComicReader.Data.Models.Tags;
+namespace ComicReader.Data.Models.TagInfo;
 
 internal class TagLinkModel
 {

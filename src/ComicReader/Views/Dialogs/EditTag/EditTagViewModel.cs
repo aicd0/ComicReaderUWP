@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 using ComicReader.Common.Utils;
-using ComicReader.Data.Models.Tags;
+using ComicReader.Data.Models.TagInfo;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.ViewModels;
 
@@ -192,7 +192,7 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         {
             if (!IsSameTag)
             {
-                await TagInfoModel.RenameTag(_oldTagCategoryName, _oldTagName, _tagCategoryName, _tagName);
+                await TagInfoModel.Rename(_oldTagCategoryName, _oldTagName, _tagCategoryName, _tagName);
             }
 
             if (_tagInfoModel != null)

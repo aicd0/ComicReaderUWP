@@ -19,7 +19,7 @@ using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
-using ComicReader.Data.Models.Tags;
+using ComicReader.Data.Models.TagInfo;
 using ComicReader.Helpers.Imaging;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
@@ -576,7 +576,6 @@ internal sealed partial class ReaderPage : BasePage
     private async Task<string> CreateTagDescripionText(ComicModel comic)
     {
         StringBuilder sb = new();
-        bool first = true;
         foreach (ComicData.TagData tagData in comic.Tags)
         {
             foreach (string tag in tagData.Tags)
@@ -587,20 +586,34 @@ internal sealed partial class ReaderPage : BasePage
                     continue;
                 }
 
+                StringBuilder tagSb = new();
+
                 string? description = tagInfoModel.GetExt(TagInfoExt.DESCRIPTION);
-                if (string.IsNullOrEmpty(description))
+                if (!string.IsNullOrEmpty(description))
                 {
-                    continue;
+                    tagSb.Append(description);
                 }
 
-                if (!first)
+                var linkModel = TagLinkModel.Parse(tagInfoModel.GetExt(TagInfoExt.LINKS) ?? string.Empty);
+                foreach (TagLinkModel.LinkModel link in linkModel.Links)
                 {
-                    sb.Append('\n');
+                    if (tagSb.Length > 0)
+                    {
+                        tagSb.Append('\n');
+                    }
+
+                    tagSb.Append(link.Name).Append(": ").Append(link.Link);
                 }
 
-                first = false;
-                sb.Append(StringResourceProvider.Instance.WithColon(tag));
-                sb.Append(description);
+                if (tagSb.Length > 0)
+                {
+                    if (sb.Length > 0)
+                    {
+                        sb.Append('\n');
+                    }
+
+                    sb.Append(tag).Append('\n').Append(tagSb);
+                }
             }
         }
 
