@@ -670,6 +670,16 @@ Catégorie 1 : Étiquette 1/Étiquette 2/Étiquette 3
 Catégorie 2 : Étiquette 4/Étiquette 5
 …</value>
   </data>
+  <data name="TagLinkTip" xml:space="preserve">
+    <value>(Ce document peut être traduit automatiquement.)
+
+Variables spéciales :
+
+{%tag}                  - Remplacé par le nom de la balise
+{%tag_category}         - Remplacé par la catégorie de la balise
+{%tag_escaped}          - Remplacé par le nom de la balise échappée
+{%tag_category_escaped} - Remplacé par la catégorie de la balise échappée</value>
+  </data>
   <data name="Tags" xml:space="preserve">
     <value>Étiquette</value>
   </data>

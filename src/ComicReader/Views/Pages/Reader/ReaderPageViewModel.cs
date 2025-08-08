@@ -185,17 +185,19 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
             foreach (TagLinkModel.LinkModel link in links)
             {
-                string encodedTag = Uri.EscapeDataString(tag);
-                string encodedTagCategory = Uri.EscapeDataString(tagCategory);
+                string tagEscaped = Uri.EscapeDataString(tag);
+                string tagCategoryEscaped = Uri.EscapeDataString(tagCategory);
                 link.Link = link.Link
-                    .Replace("{%_tag}", tag)
-                    .Replace("{%_tag_category}", tagCategory)
-                    .Replace("{%_encoded_tag}", encodedTag)
-                    .Replace("{%_encoded_tag_category}", encodedTagCategory);
+                    .Replace("{%tag}", tag)
+                    .Replace("{%tag_category}", tagCategory)
+                    .Replace("{%tag_escaped}", tagEscaped)
+                    .Replace("{%tag_category_escaped}", tagCategoryEscaped);
             }
 
             if (links.Count > 0)
             {
+                links.Sort((a, b) => a.Name.CompareTo(b.Name));
+
                 foreach (TagLinkModel.LinkModel link in links)
                 {
                     items.Add(new MenuFlyoutItemViewModel(link.Name)

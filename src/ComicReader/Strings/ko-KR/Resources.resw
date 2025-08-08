@@ -671,6 +671,16 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
 카테고리2: 태그4/태그5
 ...</value>
   </data>
+  <data name="TagLinkTip" xml:space="preserve">
+    <value>(이 문서는 기계 번역될 수 있습니다.)
+
+특수 변수:
+
+{%tag}                    - 태그 이름으로 대체됨
+{%tag_category}           - 태그 범주로 대체됨
+{%tag_escaped}            - 이스케이프된 태그 이름으로 대체됨
+{%tag_category_escaped}   - 이스케이프된 태그 범주로 대체됨</value>
+  </data>
   <data name="Tags" xml:space="preserve">
     <value>태그</value>
   </data>

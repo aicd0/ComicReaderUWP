@@ -119,6 +119,7 @@ public class StringResourceProvider
     public string SortingFunction => GetResourceString("SortingFunction");
     public string Statistics => GetResourceString("Statistics");
     public string Tag => GetResourceString("Tag");
+    public string TagLinkTip => GetResourceString("TagLinkTip");
     public string Tags => GetResourceString("Tags");
     public string TagsColon => GetResourceString("TagsColon");
     public string TextWithColon => GetResourceString("TextWithColon");
