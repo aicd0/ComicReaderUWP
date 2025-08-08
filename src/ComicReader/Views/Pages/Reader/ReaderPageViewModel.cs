@@ -183,6 +183,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 links.AddRange(linkModel.Links);
             }
 
+            foreach (TagLinkModel.LinkModel link in links)
+            {
+                string encodedTag = Uri.EscapeDataString(tag);
+                string encodedTagCategory = Uri.EscapeDataString(tagCategory);
+                link.Link = link.Link
+                    .Replace("{%_tag}", tag)
+                    .Replace("{%_tag_category}", tagCategory)
+                    .Replace("{%_encoded_tag}", encodedTag)
+                    .Replace("{%_encoded_tag_category}", encodedTagCategory);
+            }
+
             if (links.Count > 0)
             {
                 foreach (TagLinkModel.LinkModel link in links)

@@ -123,6 +123,9 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2025 $author. 無断複写・転載を禁じます。</value>
   </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>フォルダを追加する</value>
   </data>
@@ -457,6 +460,15 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>図書館</value>
   </data>
+  <data name="LinkErrorContent" xml:space="preserve">
+    <value>「$link」は有効な Web リンクではないようです。</value>
+  </data>
+  <data name="LinkErrorTitle" xml:space="preserve">
+    <value>リンクを開けません</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>リンク</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>完了としてマーク</value>
   </data>
@@ -510,6 +522,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="None" xml:space="preserve">
     <value>なし</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>わかりました</value>
   </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>エクスプローラーで開く</value>
@@ -579,6 +594,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>リフレッシュ</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>取り除く</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>お気に入りから削除</value>

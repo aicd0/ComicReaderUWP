@@ -123,6 +123,9 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2025 $author. 모든 권리 보유.</value>
   </data>
+  <data name="Add" xml:space="preserve">
+    <value>추가하다</value>
+  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>폴더 추가</value>
   </data>
@@ -458,6 +461,15 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>도서관</value>
   </data>
+  <data name="LinkErrorContent" xml:space="preserve">
+    <value>'$link'는 유효한 웹 링크가 아닌 것 같습니다.</value>
+  </data>
+  <data name="LinkErrorTitle" xml:space="preserve">
+    <value>링크를 열 수 없습니다</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>모래밭</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>완료로 표시</value>
   </data>
@@ -511,6 +523,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="None" xml:space="preserve">
     <value>없음</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>좋아요</value>
   </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>파일 탐색기에서 열기</value>
@@ -580,6 +595,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>새로 고치다</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>제거하다</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>즐겨찾기에서 제거</value>

@@ -123,6 +123,9 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2025 $author。保留所有權利。</value>
   </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>新增資料夾</value>
   </data>
@@ -457,6 +460,15 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>庫</value>
   </data>
+  <data name="LinkErrorContent" xml:space="preserve">
+    <value>'$link' 似乎不是一個有效的網頁連結。</value>
+  </data>
+  <data name="LinkErrorTitle" xml:space="preserve">
+    <value>無法開啟連結</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>連結</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>標記為完成</value>
   </data>
@@ -510,6 +522,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="None" xml:space="preserve">
     <value>無</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>好的</value>
   </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>在資源管理器中開啟</value>
@@ -579,6 +594,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>重新整理</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>移除</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>取消收藏</value>

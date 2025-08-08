@@ -387,9 +387,6 @@ The evaluation will be performed in the following order:
   <data name="FunctionSum" xml:space="preserve">
     <value>Sum</value>
   </data>
-  <data name="Global" xml:space="preserve">
-    <value>Global</value>
-  </data>
   <data name="GoBack" xml:space="preserve">
     <value>Go back</value>
   </data>
@@ -466,7 +463,7 @@ The evaluation will be performed in the following order:
     <value>Library</value>
   </data>
   <data name="LinkErrorContent" xml:space="preserve">
-    <value>Link '$link' seems not to be a valid web link.</value>
+    <value>'$link' does not appear to be a valid web link.</value>
   </data>
   <data name="LinkErrorTitle" xml:space="preserve">
     <value>Cannot open link</value>

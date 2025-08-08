@@ -123,6 +123,9 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2025 $author. Все права защищены.</value>
   </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавлять</value>
+  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Добавить папку</value>
   </data>
@@ -458,6 +461,15 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>Библиотека</value>
   </data>
+  <data name="LinkErrorContent" xml:space="preserve">
+    <value>«$link» не является допустимой веб-ссылкой.</value>
+  </data>
+  <data name="LinkErrorTitle" xml:space="preserve">
+    <value>Невозможно открыть ссылку</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>Ссылки</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Отметить как завершенное</value>
   </data>
@@ -511,6 +523,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="None" xml:space="preserve">
     <value>Никто</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>ХОРОШО</value>
   </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Открыть в проводнике</value>
@@ -580,6 +595,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Обновить</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Удалять</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Удалить из избранного</value>

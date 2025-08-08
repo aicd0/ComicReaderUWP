@@ -67,7 +67,6 @@ public class StringResourceProvider
     public string FunctionMax => GetResourceString("FunctionMax");
     public string FunctionMin => GetResourceString("FunctionMin");
     public string FunctionSum => GetResourceString("FunctionSum");
-    public string Global => GetResourceString("Global");
     public string GoBack => GetResourceString("GoBack");
     public string GoForward => GetResourceString("GoForward");
     public string Group => GetResourceString("Group");
