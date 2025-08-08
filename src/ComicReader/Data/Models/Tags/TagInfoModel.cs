@@ -15,7 +15,7 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Data.SqlHelpers;
 
-namespace ComicReader.Data.Models;
+namespace ComicReader.Data.Models.Tags;
 
 internal class TagInfoModel
 {
