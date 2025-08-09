@@ -13,74 +13,39 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.Storage;
 
 using Microsoft.Data.Sqlite;
 
 namespace ComicReader.Common.Imaging;
 
-internal class ImageCacheDatabase
+internal class ImageCacheDatabase(string databaseFilePath)
 {
-    public const string TAG = "ImageCacheDatabase";
-    public const string CACHE_TABLE = "cache";
-    public const string CACHE_TABLE_FIELD_KEY = "key";
-    public const string CACHE_TABLE_FIELD_SIGNATURE = "signature";
-    public const string CACHE_TABLE_FIELD_WIDTH = "width";
-    public const string CACHE_TABLE_FIELD_HEIGHT = "height";
-    public const string CACHE_TABLE_FIELD_ENTRIES = "entries";
-
-    private const string DATABASE_FILE_NAME = "image_cache.db";
+    private const string TAG = nameof(ImageCacheDatabase);
+    private const string MAIN_TABLE = "Main";
+    private const string MAIN_TABLE_FIELD_KEY = "Key";
+    private const string MAIN_TABLE_FIELD_EXT = "Ext";
 
     private readonly object _databaseLock = new();
     private SqliteConnection? _connection;
-
-    private readonly ReaderWriterLock _recordCacheLock = new();
-    private readonly Dictionary<string, CacheRecord?> _recordCache = [];
-
-    private string DatabaseFolderPath => StorageLocation.LocalCacheFolderPath;
+    private readonly ConcurrentDictionary<string, CacheRecord> _recordCache = [];
 
     public void Clear()
     {
         lock (_databaseLock)
         {
-            _recordCacheLock.AcquireWriterLock(-1);
-            try
-            {
-                _recordCache.Clear();
-            }
-            finally
-            {
-                _recordCacheLock.ReleaseWriterLock();
-            }
+            _recordCache.Clear();
 
             SqliteConnection? connection = GetConnectionNoLock();
             if (connection is not null)
             {
                 using SqliteCommand command = connection.CreateCommand();
-                command.CommandText = "DELETE FROM " + CACHE_TABLE;
+                command.CommandText = "DELETE FROM " + MAIN_TABLE;
                 command.ExecuteNonQuery();
             }
         }
     }
 
-    public CacheRecord? GetCacheRecord(IImageSource source)
-    {
-        CacheRecord? record = GetCacheRecord(source.GetUri());
-        if (record == null)
-        {
-            return null;
-        }
-
-        int sourceSignature = source.GetContentSignature();
-        if (sourceSignature != 0 && record.Signature != sourceSignature)
-        {
-            return null;
-        }
-
-        return record;
-    }
-
-    private CacheRecord? GetCacheRecord(string key)
+    public CacheRecord? GetOrCreate(string key)
     {
         if (key == null || key.Length == 0)
         {
@@ -88,25 +53,27 @@ internal class ImageCacheDatabase
         }
 
         string hashedKey = ToHashedKey(key);
+        CacheRecord? record = Get(hashedKey, key);
+        record ??= CacheRecord.CreateNew(this, key);
+        return _recordCache.GetOrAdd(hashedKey, record);
+    }
 
-        _recordCacheLock.AcquireReaderLock(-1);
-        try
+    private CacheRecord? Get(string hashedKey, string key)
+    {
         {
             if (_recordCache.TryGetValue(hashedKey, out CacheRecord? record))
             {
                 return record;
             }
         }
-        finally
-        {
-            _recordCacheLock.ReleaseReaderLock();
-        }
 
         lock (_databaseLock)
         {
-            if (_recordCache.TryGetValue(hashedKey, out CacheRecord? targetRecord))
             {
-                return targetRecord;
+                if (_recordCache.TryGetValue(hashedKey, out CacheRecord? record))
+                {
+                    return record;
+                }
             }
 
             SqliteConnection? connection = GetConnectionNoLock();
@@ -119,21 +86,25 @@ internal class ImageCacheDatabase
             using (SqliteCommand command = connection.CreateCommand())
             {
                 command.CommandText = $"SELECT " +
-                    $"{CACHE_TABLE_FIELD_SIGNATURE}" +
-                    $",{CACHE_TABLE_FIELD_WIDTH}" +
-                    $",{CACHE_TABLE_FIELD_HEIGHT}" +
-                    $",{CACHE_TABLE_FIELD_ENTRIES}" +
-                    $" FROM {CACHE_TABLE} WHERE {CACHE_TABLE_FIELD_KEY}=@key";
+                    $"{MAIN_TABLE_FIELD_EXT}" +
+                    $" FROM {MAIN_TABLE} WHERE {MAIN_TABLE_FIELD_KEY}=@key";
                 command.Parameters.AddWithValue("@key", hashedKey);
-
                 using SqliteDataReader query = command.ExecuteReader();
                 while (query.Read())
                 {
-                    int signature = query.GetInt32(0);
-                    int width = query.GetInt32(1);
-                    int height = query.GetInt32(2);
-                    string entries = query.GetString(3);
-                    CacheRecord record = new(this, key, signature, width, height, entries);
+                    string extJson = query.GetString(0);
+                    Dictionary<string, string> ext = [];
+                    try
+                    {
+                        ext = new(JsonSerializer.Deserialize<Dictionary<string, string>>(extJson) ?? []);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.E(TAG, "CacheRecord", e);
+                        ext = [];
+                    }
+
+                    var record = CacheRecord.FromDatabase(this, key, ext);
                     records.Add(record);
                 }
             }
@@ -141,24 +112,10 @@ internal class ImageCacheDatabase
             Logger.Assert(records.Count <= 1, "9C0107871C1B6CB1");
             if (records.Count == 0)
             {
-                targetRecord = null;
-            }
-            else
-            {
-                targetRecord = records[0];
+                return null;
             }
 
-            _recordCacheLock.AcquireWriterLock(-1);
-            try
-            {
-                _recordCache[hashedKey] = targetRecord;
-            }
-            finally
-            {
-                _recordCacheLock.ReleaseWriterLock();
-            }
-
-            return targetRecord;
+            return records[0];
         }
     }
 
@@ -202,7 +159,13 @@ internal class ImageCacheDatabase
 
     private async Task<SqliteConnection?> CreateConnection(bool clear)
     {
-        string databaseFolderPath = DatabaseFolderPath;
+        string? databaseFolderPath = Path.GetDirectoryName(databaseFilePath);
+        if (string.IsNullOrEmpty(databaseFolderPath))
+        {
+            Logger.F(TAG, "Database folder path is null or empty.");
+            return null;
+        }
+
         if (!Directory.Exists(databaseFolderPath))
         {
             try
@@ -216,7 +179,6 @@ internal class ImageCacheDatabase
             }
         }
 
-        string databaseFilePath = Path.Combine(databaseFolderPath, DATABASE_FILE_NAME);
         if (clear || !File.Exists(databaseFilePath))
         {
             try
@@ -234,12 +196,9 @@ internal class ImageCacheDatabase
         connection.Open();
         using (SqliteCommand command = connection.CreateCommand())
         {
-            command.CommandText = "CREATE TABLE IF NOT EXISTS " + CACHE_TABLE + " (" +
-                CACHE_TABLE_FIELD_KEY + " TEXT PRIMARY KEY," +
-                CACHE_TABLE_FIELD_SIGNATURE + " INTEGER NOT NULL," +
-                CACHE_TABLE_FIELD_WIDTH + " INTEGER NOT NULL," +
-                CACHE_TABLE_FIELD_HEIGHT + " INTEGER NOT NULL," +
-                CACHE_TABLE_FIELD_ENTRIES + " TEXT)";
+            command.CommandText = "CREATE TABLE IF NOT EXISTS " + MAIN_TABLE + " (" +
+                MAIN_TABLE_FIELD_KEY + " TEXT PRIMARY KEY," +
+                MAIN_TABLE_FIELD_EXT + " TEXT)";
             await command.ExecuteNonQueryAsync();
         }
 
@@ -248,52 +207,76 @@ internal class ImageCacheDatabase
 
     public class CacheRecord
     {
-        private readonly ImageCacheDatabase _database;
-        private readonly string _key;
-        private int _updated;
-        private int _signature;
-        private int _width;
-        private int _height;
-        private readonly ConcurrentDictionary<string, string> _entries;
+        private const string INTERNAL_EXT_PREFIX = "_";
+        private const string CACHE_ENTRY_PREFIX = "_CacheEntry_";
+        public const string IMAGE_CACHE_FINGERPRINT = "_ImageCacheFingerprint";
 
-        public int Signature => _signature;
-        public int Width => _width;
-        public int Height => _height;
-
-        public CacheRecord(ImageCacheDatabase db, string key, int signature, int width, int height)
+        public static CacheRecord FromDatabase(ImageCacheDatabase db, string key, IReadOnlyDictionary<string, string> ext)
         {
-            _database = db;
-            _key = key;
-            _updated = 1;
-            _signature = signature;
-            _width = width;
-            _height = height;
-            _entries = [];
+            CacheRecord record = new(db, key)
+            {
+                _updated = false,
+            };
+
+            foreach (KeyValuePair<string, string> entry in ext)
+            {
+                if (entry.Key.StartsWith(CACHE_ENTRY_PREFIX))
+                {
+                    string cacheKey = entry.Key[CACHE_ENTRY_PREFIX.Length..];
+                    record._cacheEntries[cacheKey] = entry.Value;
+                }
+                else if (entry.Key == IMAGE_CACHE_FINGERPRINT)
+                {
+                    record._imageCacheFingerprint = entry.Value;
+                }
+                else
+                {
+                    record._ext[entry.Key] = entry.Value;
+                }
+            }
+
+            return record;
         }
 
-        public CacheRecord(ImageCacheDatabase db, string key, int signature, int width, int height, string cacheEntriesJson)
+        public static CacheRecord CreateNew(ImageCacheDatabase db, string key)
+        {
+            return new(db, key)
+            {
+                _updated = true,
+            };
+        }
+
+        private readonly ImageCacheDatabase _database;
+        private readonly string _key;
+        private bool _updated;
+        private string _imageCacheFingerprint = string.Empty;
+        private readonly Dictionary<string, string> _cacheEntries = [];
+        private readonly Dictionary<string, string> _ext = [];
+
+        public ReaderWriterLock Lock { get; } = new();
+
+        public string ImageCacheFingerprint
+        {
+            get => _imageCacheFingerprint;
+            set
+            {
+                if (_imageCacheFingerprint != value)
+                {
+                    _imageCacheFingerprint = value;
+                    _updated = true;
+                }
+            }
+        }
+
+        private CacheRecord(ImageCacheDatabase db, string key)
         {
             _database = db;
             _key = key;
-            _updated = 0;
-            _signature = signature;
-            _width = width;
-            _height = height;
-
-            try
-            {
-                _entries = new(JsonSerializer.Deserialize<Dictionary<string, string>>(cacheEntriesJson) ?? []);
-            }
-            catch (Exception e)
-            {
-                Logger.E(TAG, "CacheRecord", e);
-                _entries = [];
-            }
         }
 
         public void Save()
         {
-            if (Interlocked.CompareExchange(ref _updated, 0, 1) == 0)
+            if (!_updated)
             {
                 return;
             }
@@ -302,98 +285,83 @@ internal class ImageCacheDatabase
 
             lock (_database._databaseLock)
             {
-                if (_database._recordCache.TryGetValue(hashedKey, out CacheRecord? record))
+                if (!_updated)
                 {
-                    if (record != null)
-                    {
-                        foreach (KeyValuePair<string, string> entry in record._entries)
-                        {
-                            _entries.TryAdd(entry.Key, entry.Value);
-                        }
-                    }
+                    return;
                 }
 
-                _database._recordCacheLock.AcquireWriterLock(-1);
-                try
+                _updated = false;
+
+                // Write to database
+                Dictionary<string, string> ext = new(_ext)
                 {
-                    _database._recordCache[hashedKey] = this;
-                }
-                finally
+                    [IMAGE_CACHE_FINGERPRINT] = _imageCacheFingerprint,
+                };
+
+                foreach (KeyValuePair<string, string> entry in _cacheEntries)
                 {
-                    _database._recordCacheLock.ReleaseWriterLock();
+                    ext[CACHE_ENTRY_PREFIX + entry.Key] = entry.Value;
                 }
 
-                string entries = JsonSerializer.Serialize(_entries);
-                int signature = _signature;
-                int width = _width;
-                int height = _height;
+                string extJson = JsonSerializer.Serialize(ext);
 
                 SqliteConnection? connection = _database.GetConnectionNoLock();
                 if (connection is null)
                 {
                     Logger.F(TAG, $"Failed to save cache {_key}, unable to create database connection.");
-                    Interlocked.Exchange(ref _updated, 1);
                     return;
                 }
 
                 using SqliteCommand command = connection.CreateCommand();
-                command.CommandText = $"INSERT OR REPLACE INTO {CACHE_TABLE}({CACHE_TABLE_FIELD_KEY}" +
-                    $",{CACHE_TABLE_FIELD_SIGNATURE}" +
-                    $",{CACHE_TABLE_FIELD_WIDTH}" +
-                    $",{CACHE_TABLE_FIELD_HEIGHT}" +
-                    $",{CACHE_TABLE_FIELD_ENTRIES}" +
-                    $") VALUES(@key,@signature,@width,@height,@entries)";
+                command.CommandText = $"INSERT OR REPLACE INTO {MAIN_TABLE}({MAIN_TABLE_FIELD_KEY}" +
+                    $",{MAIN_TABLE_FIELD_EXT}" +
+                    $") VALUES(@key,@ext)";
                 command.Parameters.AddWithValue("@key", hashedKey);
-                command.Parameters.AddWithValue("@signature", signature);
-                command.Parameters.AddWithValue("@width", width);
-                command.Parameters.AddWithValue("@height", height);
-                command.Parameters.AddWithValue("@entries", entries);
+                command.Parameters.AddWithValue("@ext", extJson);
                 command.ExecuteNonQuery();
             }
         }
 
-        public string GetEntry(string key)
+        public string? GetCacheEntry(string key)
         {
-            if (_entries.TryGetValue(key, out string? entry))
+            if (_cacheEntries.TryGetValue(key, out string? value))
             {
-                return entry;
+                return value;
             }
 
-            return string.Empty;
+            return null;
         }
 
-        public void PutEntry(string key, string entry)
+        public void PutCacheEntry(string key, string entry)
         {
-            _entries[key] = entry;
-            Interlocked.Exchange(ref _updated, 1);
+            _cacheEntries[key] = entry;
+            _updated = true;
         }
 
-        public void UpdateMeta(int signature, int width, int height)
+        public string? GetExt(string key)
         {
-            bool updated = false;
-
-            if (signature != 0 && signature != _signature)
+            if (key.StartsWith(INTERNAL_EXT_PREFIX))
             {
-                _signature = signature;
-                updated = true;
+                throw new ArgumentException($"Key '{key}' cannot start with an underscore.", nameof(key));
             }
 
-            if (width != _width)
+            if (_ext.TryGetValue(key, out string? value))
             {
-                _width = width;
-                updated = true;
+                return value;
             }
 
-            if (height != _height)
+            return null;
+        }
+
+        public void PutExt(string key, string entry)
+        {
+            if (key.StartsWith(INTERNAL_EXT_PREFIX))
             {
-                _height = height;
-                updated = true;
+                throw new ArgumentException($"Key '{key}' cannot start with an underscore.", nameof(key));
             }
 
-            if (updated)
-            {
-                Interlocked.Exchange(ref _updated, 1);
-            }
+            _ext[key] = entry;
+            _updated = true;
         }
     }
 }

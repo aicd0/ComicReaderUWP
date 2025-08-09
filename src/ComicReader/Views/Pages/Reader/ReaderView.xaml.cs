@@ -312,11 +312,11 @@ internal partial class ReaderView : UserControl
                 }
 
                 IImageSource image = images[i];
-                ImageCacheManager.ImageInfo imageInfo = ImageCacheManager.GetImageInfo(image);
+                ImageCacheManager.ImageMeta imageMeta = ImageCacheManager.GetImageMeta(image);
                 double aspectRatio = 0.0;
-                if (imageInfo != null && imageInfo.Width > 0 && imageInfo.Height > 0)
+                if (imageMeta != null && imageMeta.Width > 0 && imageMeta.Height > 0)
                 {
-                    aspectRatio = (double)imageInfo.Width / imageInfo.Height;
+                    aspectRatio = (double)imageMeta.Width / imageMeta.Height;
                 }
 
                 pendingList.Add(new Tuple<int, double, IImageSource>(i, aspectRatio, image));
