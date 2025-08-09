@@ -29,6 +29,7 @@ internal abstract class ComicData
     //
 
     private const string TAG = "ComicData";
+    private const int COVER_INDEX = 0;
 
     //
     // Static Variables
@@ -728,13 +729,24 @@ internal abstract class ComicData
     public async Task<bool> ReloadImageFiles()
     {
         _imageUpdated = false;
-        return await LoadImageFiles();
+        bool success = await LoadImageFiles();
+        if (success)
+        {
+            // Refresh cover cache key
+            string newCoverCacheKey = GetImageCacheKey(COVER_INDEX);
+            if (!string.IsNullOrEmpty(newCoverCacheKey) && CoverCacheKey != newCoverCacheKey)
+            {
+                SetCoverCacheKey(newCoverCacheKey);
+            }
+        }
+
+        return success;
     }
 
     public string GetCoverImageCacheKey()
     {
         string coverCacheKey = CoverCacheKey;
-        if (coverCacheKey != null && coverCacheKey.Length > 0)
+        if (!string.IsNullOrEmpty(coverCacheKey))
         {
             return coverCacheKey;
         }
@@ -744,7 +756,7 @@ internal abstract class ComicData
             return string.Empty;
         }
 
-        coverCacheKey = GetImageCacheKey(0);
+        coverCacheKey = GetImageCacheKey(COVER_INDEX);
         SetCoverCacheKey(coverCacheKey);
         return coverCacheKey;
     }
