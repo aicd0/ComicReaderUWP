@@ -30,8 +30,8 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
         return _comic.CoverImageCacheKey;
     }
 
-    public int GetContentSignature()
+    public string GetContentFingerprint()
     {
-        return 0;
+        return string.Empty;
     }
 }

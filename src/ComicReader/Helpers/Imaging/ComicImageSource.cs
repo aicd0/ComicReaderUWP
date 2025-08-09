@@ -10,18 +10,11 @@ using Windows.Storage.Streams;
 
 namespace ComicReader.Helpers.Imaging;
 
-internal class ComicImageSource : IImageSource
+internal class ComicImageSource(ComicModel comic, IComicConnection connection, int index) : IImageSource
 {
-    private readonly ComicModel _comic;
-    private readonly IComicConnection _connection;
-    private readonly int _index;
-
-    public ComicImageSource(ComicModel comic, IComicConnection connection, int index)
-    {
-        _comic = comic;
-        _connection = connection;
-        _index = index;
-    }
+    private readonly ComicModel _comic = comic;
+    private readonly IComicConnection _connection = connection;
+    private readonly int _index = index;
 
     public async Task<IRandomAccessStream?> GetImageStream()
     {
@@ -33,8 +26,14 @@ internal class ComicImageSource : IImageSource
         return _comic.GetImageCacheKey(_index);
     }
 
-    int IImageSource.GetContentSignature()
+    public string GetContentFingerprint()
     {
-        return _comic.GetImageSignature(_index);
+        int fingerprint = _comic.GetImageSignature(_index);
+        if (fingerprint == 0)
+        {
+            return string.Empty;
+        }
+
+        return fingerprint.ToString();
     }
 }

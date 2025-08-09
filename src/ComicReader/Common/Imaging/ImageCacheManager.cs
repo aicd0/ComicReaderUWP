@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,74 +31,147 @@ namespace ComicReader.Common.Imaging;
 internal static class ImageCacheManager
 {
     private const string TAG = "ImageCacheManager";
-    private const string CACHE_FOLDER = "images";
+    private const int VERSION = 1;
+    private const string IMAGES_FOLDER_NAME = "images";
+    private const string MAIN_DATABASE_FILE_NAME = "db_main.db";
     private const long MAX_CACHE_SIZE = 1024 * 1024 * 1024;
 
-    private static readonly ImageCacheDatabase sImageCacheDatabase = new();
+    private static string _cacheDirectoryPath = string.Empty;
+    private static ImageCacheDatabase? sImageCacheDatabase;
     private static readonly object sLock = new();
     private static volatile LRUCache? sImageCache;
 
     private static int sPostMainThreadTask = 0;
     private static readonly ConcurrentQueue<RenderItem> sRenderQueue = new();
 
+    private static ImageCacheDatabase ImageCacheDatabase => sImageCacheDatabase ?? throw new InvalidOperationException("ImageCacheManager not initialized");
+
+    public static void Initialize(string cacheDirectoryPath, bool clear)
+    {
+        _cacheDirectoryPath = cacheDirectoryPath;
+
+        string versionFilePath = Path.Combine(_cacheDirectoryPath, "version.txt");
+        int version = clear ? 0 : ReadVersion(versionFilePath);
+        if (version != VERSION)
+        {
+            switch (version)
+            {
+                case 0:
+                    DeleteDirectory(Path.Combine(StorageLocation.LocalCacheFolderPath, "images"), throwOnError: false);
+                    DeleteDirectory(_cacheDirectoryPath);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (!Directory.Exists(_cacheDirectoryPath))
+        {
+            Directory.CreateDirectory(_cacheDirectoryPath);
+        }
+
+        if (version != VERSION)
+        {
+            File.WriteAllText(versionFilePath, VERSION.ToString());
+        }
+
+        string databaseFilePath = Path.Combine(_cacheDirectoryPath, MAIN_DATABASE_FILE_NAME);
+        sImageCacheDatabase = new(databaseFilePath);
+    }
+
     public static void Clear()
     {
-        sImageCacheDatabase.Clear();
+        ImageCacheDatabase.Clear();
         sImageCache?.Clear();
     }
 
-    public static ImageInfo? GetImageInfo(IImageSource source)
+    public static ImageMeta? GetImageMeta(IImageSource source)
     {
-        string key = source.GetUri();
-        ImageCacheDatabase.CacheRecord? record = sImageCacheDatabase.GetCacheRecord(source);
-        if (record != null && record.Width > 0 && record.Height > 0)
+        ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(source.GetUri());
+        if (record is null)
         {
-            return new ImageInfo(record.Width, record.Height);
+            Logger.F(TAG, "Cache record is null");
+            return null;
         }
 
-        IRandomAccessStream? stream = null;
+        record.Lock.AcquireReaderLock(Timeout.Infinite);
         try
         {
-            stream = source.GetImageStream().Result;
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, "GetImageInfo", e);
-        }
+            // If image meta is already cached, return it directly
+            string sourceFingerprint = source.GetContentFingerprint();
+            ImageMeta? meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+            if (meta is not null)
+            {
+                return meta;
+            }
 
-        if (stream == null)
-        {
-            return null;
-        }
-
-        int width = 0;
-        int height = 0;
-        using (stream)
-        {
+            LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
             try
             {
-                stream.Seek(0);
-                BitmapDecoder decoder = BitmapDecoder.CreateAsync(stream).AsTask().Result;
-                width = (int)decoder.PixelWidth;
-                height = (int)decoder.PixelHeight;
+                // Double check
+                meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+                if (meta is not null)
+                {
+                    return meta;
+                }
+
+                // Open image stream to get image meta
+                IRandomAccessStream? stream = null;
+                try
+                {
+                    stream = source.GetImageStream().Result;
+                }
+                catch (Exception e)
+                {
+                    Logger.E(TAG, "GetImageMeta", e);
+                }
+
+                if (stream is null)
+                {
+                    return null;
+                }
+
+                int width = 0;
+                int height = 0;
+                using (stream)
+                {
+                    try
+                    {
+                        stream.Seek(0);
+                        BitmapDecoder decoder = BitmapDecoder.CreateAsync(stream).AsTask().Result;
+                        width = (int)decoder.PixelWidth;
+                        height = (int)decoder.PixelHeight;
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.E(TAG, "GetImageInfo", e);
+                        return null;
+                    }
+                }
+
+                // Check if meta is valid
+                if (width <= 0 || height <= 0)
+                {
+                    Logger.AssertNotReachHere("8315BC14B4B0AE5D");
+                    return null;
+                }
+
+                // Update cache record
+                record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
+                record.PutExt(ImageCacheExt.IMAGE_WIDTH, width.ToString());
+                record.PutExt(ImageCacheExt.IMAGE_HEIGHT, height.ToString());
+                record.Save();
+                return new ImageMeta(width, height);
             }
-            catch (Exception e)
+            finally
             {
-                Logger.E(TAG, "GetImageInfo", e);
-                return null;
+                record.Lock.DowngradeFromWriterLock(ref lockCookie);
             }
         }
-
-        if (width <= 0 || height <= 0)
+        finally
         {
-            Logger.AssertNotReachHere("8315BC14B4B0AE5D");
-            return null;
+            record.Lock.ReleaseReaderLock();
         }
-
-        int signature = source.GetContentSignature();
-        record = new ImageCacheDatabase.CacheRecord(sImageCacheDatabase, key, signature, width, height);
-        record.Save();
-        return new ImageInfo(width, height);
     }
 
     public static void LoadImage(CancellationSession.IToken token,
@@ -113,73 +187,82 @@ internal static class ImageCacheManager
 
         long startTime = GetCurrentTick();
         string uri = source.GetUri();
-        int sourceSignature = source.GetContentSignature();
-
-        if (uri == null || uri.Length == 0)
+        if (string.IsNullOrEmpty(uri))
         {
             Logger.AssertNotReachHere("0DA4B46E1643F4BF");
             return;
         }
 
         LRUCache? imageCache = GetImageLRUCache();
+        if (imageCache is null)
+        {
+            Logger.F(TAG, "Image cache is null");
+            return;
+        }
+
+        ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(source.GetUri());
+        if (record is null)
+        {
+            Logger.F(TAG, "Cache record is null");
+            return;
+        }
+
+        RenderItem renderItem;
         IRandomAccessStream? thumbnailStream = null;
-        bool requireThumbnail = true;
-        ImageCacheDatabase.CacheRecord? cacheRecord = sImageCacheDatabase.GetCacheRecord(source);
-        if (imageCache != null && cacheRecord != null)
-        {
-            requireThumbnail = false;
-            CalculateDesiredDimension(frameWidth, frameHeight, stretchMode, cacheRecord.Width, cacheRecord.Height, out int desiredWidth, out int desiredHeight);
-            IEnumerable<string> cacheEntryKeys = ImageCacheStrategy.CalculateCacheEntryKeys(desiredWidth, desiredHeight, cacheRecord.Width, cacheRecord.Height);
-            foreach (string cacheEntryKey in cacheEntryKeys)
-            {
-                requireThumbnail = true;
-                string entry = cacheRecord.GetEntry(cacheEntryKey);
-                if (entry.Length > 0)
-                {
-                    thumbnailStream = imageCache.Get(entry);
-                }
-                if (thumbnailStream != null)
-                {
-                    break;
-                }
-            }
-        }
-
         IRandomAccessStream? sourceStream = null;
-        if (thumbnailStream == null && requireThumbnail)
+        record.Lock.AcquireReaderLock(Timeout.Infinite);
+        try
         {
-            sourceStream = TryOpenImageStreamAsync(source).Result;
-            if (sourceStream == null)
+            string sourceFingerprint = source.GetContentFingerprint();
+            thumbnailStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, sourceFingerprint, frameWidth, frameHeight, stretchMode, out bool requireThumbnail);
+            if (thumbnailStream is null && requireThumbnail)
             {
-                Logger.E(TAG, "sourceStream is null");
-                return;
+                sourceStream = TryOpenImageStreamAsync(source).Result;
+                if (sourceStream is null)
+                {
+                    Logger.E(TAG, "sourceStream is null");
+                    return;
+                }
+
+                LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
+                try
+                {
+                    thumbnailStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, sourceFingerprint, frameWidth, frameHeight, stretchMode, out bool _);
+                    thumbnailStream ??= TryCreateThumbnail(imageCache, record, sourceStream, frameWidth, frameHeight, stretchMode, uri, sourceFingerprint);
+                }
+                finally
+                {
+                    record.Lock.DowngradeFromWriterLock(ref lockCookie);
+                }
             }
 
-            try
+            renderItem = new RenderItem
             {
-                thumbnailStream = TryCreateThumbnail(cacheRecord, sourceStream, frameWidth, frameHeight, stretchMode, uri, sourceSignature);
-            }
-            catch (Exception)
-            {
-                sourceStream.Dispose();
-                throw;
-            }
+                Token = token,
+                Source = source,
+                Uri = uri,
+                FrameWidth = frameWidth,
+                FrameHeight = frameHeight,
+                StretchMode = stretchMode,
+                ThumbnailStream = thumbnailStream,
+                SourceStream = sourceStream,
+                Handler = handler,
+                StartTime = startTime,
+            };
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, "LoadImage", e);
+            thumbnailStream?.Dispose();
+            sourceStream?.Dispose();
+            throw;
+        }
+        finally
+        {
+            record.Lock.ReleaseReaderLock();
         }
 
-        var item = new RenderItem
-        {
-            Token = token,
-            Source = source,
-            Uri = uri,
-            FrameWidth = frameWidth,
-            FrameHeight = frameHeight,
-            StretchMode = stretchMode,
-            ThumbnailStream = thumbnailStream,
-            SourceStream = sourceStream,
-            Handler = handler,
-            StartTime = startTime,
-        };
-        sRenderQueue.Enqueue(item);
+        sRenderQueue.Enqueue(renderItem);
         ScheduleRender();
     }
 
@@ -193,7 +276,7 @@ internal static class ImageCacheManager
         {
             long startTime = GetCurrentTick();
             Interlocked.Exchange(ref sPostMainThreadTask, 0);
-            // Only responsible for rendering tasks that have been queued before this point.
+            // Only responsible for rendering tasks that have been queued before this point
             while (sRenderQueue.TryDequeue(out RenderItem? item))
             {
                 await PerformRender(item);
@@ -263,15 +346,46 @@ internal static class ImageCacheManager
         item.Handler.OnSuccess(image);
     }
 
-    private static IRandomAccessStream? TryCreateThumbnail(ImageCacheDatabase.CacheRecord? cacheRecord, IRandomAccessStream sourceStream,
-        double frameWidth, double frameHeight, StretchModeEnum stretchMode, string cacheKey, int sourceSignature)
+    private static IRandomAccessStream? OpenThumbnailStreamFromCacheRecord(LRUCache imageCache,
+        ImageCacheDatabase.CacheRecord record, string sourceFingerprint, double frameWidth,
+        double frameHeight, StretchModeEnum stretchMode, out bool requireThumbnail)
     {
-        LRUCache? imageCache = GetImageLRUCache();
-        if (imageCache == null)
+        requireThumbnail = true;
+        if (!string.IsNullOrEmpty(sourceFingerprint) && record.ImageCacheFingerprint != sourceFingerprint)
         {
             return null;
         }
 
+        ImageMeta? meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+        if (meta is null)
+        {
+            return null;
+        }
+
+        requireThumbnail = false;
+        IEnumerable<string> cacheEntryKeys = CalculateCacheEntryKeys(frameWidth, frameHeight, stretchMode, meta.Width, meta.Height);
+        foreach (string cacheEntryKey in cacheEntryKeys)
+        {
+            requireThumbnail = true;
+            string? entry = record.GetCacheEntry(cacheEntryKey);
+            if (!string.IsNullOrEmpty(entry))
+            {
+                IRandomAccessStream? thumbnailStream = imageCache.Get(entry);
+                if (thumbnailStream != null)
+                {
+                    return thumbnailStream;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static IRandomAccessStream? TryCreateThumbnail(LRUCache imageCache,
+        ImageCacheDatabase.CacheRecord record, IRandomAccessStream sourceStream,
+        double frameWidth, double frameHeight, StretchModeEnum stretchMode,
+        string cacheKey, string sourceFingerprint)
+    {
         sourceStream.Seek(0);
         Image? image = null;
         try
@@ -283,7 +397,7 @@ internal static class ImageCacheManager
             Logger.F(TAG, "TryCreateThumbnail", ex);
         }
 
-        if (image == null)
+        if (image is null)
         {
             return null;
         }
@@ -292,20 +406,20 @@ internal static class ImageCacheManager
         {
             int sourceWidth = image.Width;
             int sourceHeight = image.Height;
-            CalculateDesiredDimension(frameWidth, frameHeight, stretchMode, sourceWidth, sourceHeight, out int desiredWidth, out int desiredHeight);
-            IEnumerable<string> cacheEntryKeys = ImageCacheStrategy.CalculateCacheEntryKeys(desiredWidth, desiredHeight, sourceWidth, sourceHeight);
-            string? cacheEntryKey = null;
-            foreach (string key in cacheEntryKeys)
+            IEnumerable<string> cacheEntryKeys = CalculateCacheEntryKeys(frameWidth, frameHeight, stretchMode, sourceWidth, sourceHeight);
+            string? cacheEntryKey = cacheEntryKeys.FirstOrDefault();
+
+            MemoryStream? cacheStream = null;
+            if (!string.IsNullOrEmpty(cacheEntryKey))
             {
-                cacheEntryKey = key;
-                break;
+                cacheStream = CreateImageCacheStream(cacheEntryKey, sourceWidth, sourceHeight, image);
             }
 
-            MemoryStream? cacheStream = CreateImageCacheStream(cacheEntryKey, sourceWidth, sourceHeight, image);
             try
             {
+                // Save thumbnail to file if possible
                 string? entry = null;
-                if (cacheStream != null)
+                if (cacheStream is not null)
                 {
                     try
                     {
@@ -331,21 +445,17 @@ internal static class ImageCacheManager
                     }
                 }
 
-                if (cacheRecord != null)
+                record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
+                record.PutExt(ImageCacheExt.IMAGE_WIDTH, sourceWidth.ToString());
+                record.PutExt(ImageCacheExt.IMAGE_HEIGHT, sourceHeight.ToString());
+
+                if (!string.IsNullOrEmpty(cacheEntryKey) && !string.IsNullOrEmpty(entry))
                 {
-                    cacheRecord.UpdateMeta(sourceSignature, sourceWidth, sourceHeight);
-                }
-                else
-                {
-                    cacheRecord = new ImageCacheDatabase.CacheRecord(sImageCacheDatabase, cacheKey, sourceSignature, sourceWidth, sourceHeight);
+                    record.ImageCacheFingerprint = sourceFingerprint;
+                    record.PutCacheEntry(cacheEntryKey, entry);
                 }
 
-                if (entry != null && cacheEntryKey != null)
-                {
-                    cacheRecord.PutEntry(cacheEntryKey, entry);
-                }
-
-                cacheRecord.Save();
+                record.Save();
             }
             catch (Exception)
             {
@@ -361,13 +471,14 @@ internal static class ImageCacheManager
         }
     }
 
-    private static MemoryStream? CreateImageCacheStream(string? cacheEntryKey, int sourceWidth, int sourceHeight, Image image)
+    private static IEnumerable<string> CalculateCacheEntryKeys(double frameWidth, double frameHeight, StretchModeEnum stretchMode, int originWidth, int originHeight)
     {
-        if (cacheEntryKey == null || cacheEntryKey.Length == 0)
-        {
-            return null;
-        }
+        CalculateDesiredDimension(frameWidth, frameHeight, stretchMode, originWidth, originHeight, out int desiredWidth, out int desiredHeight);
+        return ImageCacheStrategy.CalculateCacheEntryKeys(desiredWidth, desiredHeight, originWidth, originHeight);
+    }
 
+    private static MemoryStream? CreateImageCacheStream(string cacheEntryKey, int sourceWidth, int sourceHeight, Image image)
+    {
         int cacheResolution = ImageCacheStrategy.GetCacheResolution(cacheEntryKey);
         if (cacheResolution <= 0)
         {
@@ -432,6 +543,23 @@ internal static class ImageCacheManager
         return image;
     }
 
+    private static ImageMeta? GetImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint)
+    {
+        string metaFingerprint = record.GetExt(ImageCacheExt.IMAGE_META_FINGERPRINT) ?? string.Empty;
+        if (string.IsNullOrEmpty(sourceFingerprint) || metaFingerprint == sourceFingerprint)
+        {
+            string widthStr = record.GetExt(ImageCacheExt.IMAGE_WIDTH) ?? string.Empty;
+            string heightStr = record.GetExt(ImageCacheExt.IMAGE_HEIGHT) ?? string.Empty;
+            if (!string.IsNullOrEmpty(widthStr) && !string.IsNullOrEmpty(widthStr) &&
+                int.TryParse(widthStr, out int width) && int.TryParse(heightStr, out int height) && width > 0 && height > 0)
+            {
+                return new ImageMeta(width, height);
+            }
+        }
+
+        return null;
+    }
+
     private static void CalculateDesiredDimension(double frameWidth, double frameHeight,
         StretchModeEnum stretchMode, int originWidth, int originHeight, out int desiredWidth, out int desiredHeight)
     {
@@ -489,10 +617,10 @@ internal static class ImageCacheManager
                 return cache;
             }
 
-            string cacheFolderPath = Path.Combine(StorageLocation.LocalCacheFolderPath, CACHE_FOLDER);
+            string folderPath = Path.Combine(_cacheDirectoryPath, IMAGES_FOLDER_NAME);
             try
             {
-                Directory.CreateDirectory(cacheFolderPath);
+                Directory.CreateDirectory(folderPath);
             }
             catch (Exception e)
             {
@@ -500,7 +628,7 @@ internal static class ImageCacheManager
                 return null;
             }
 
-            cache = new(cacheFolderPath, MAX_CACHE_SIZE);
+            cache = new(folderPath, MAX_CACHE_SIZE);
             sImageCache = cache;
             TaskDispatcher.LongRunningThreadPool.Submit("CleanImageCache", delegate
             {
@@ -508,6 +636,54 @@ internal static class ImageCacheManager
             });
 
             return cache;
+        }
+    }
+
+    private static int ReadVersion(string versionFilePath)
+    {
+        if (!File.Exists(versionFilePath))
+        {
+            return 0;
+        }
+
+        string versionContent;
+        try
+        {
+            versionContent = File.ReadAllText(versionFilePath);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+            return 0;
+        }
+
+        if (int.TryParse(versionContent, out int version))
+        {
+            return version;
+        }
+
+        return 0;
+    }
+
+    private static void DeleteDirectory(string path, bool throwOnError = true)
+    {
+        if (!Directory.Exists(path))
+        {
+            return;
+        }
+
+        try
+        {
+            Directory.Delete(path, true);
+        }
+        catch (Exception e)
+        {
+            if (throwOnError)
+            {
+                throw;
+            }
+
+            Logger.E(TAG, $"Failed to delete directory: {path}", e);
         }
     }
 
@@ -530,7 +706,7 @@ internal static class ImageCacheManager
         public long StartTime;
     }
 
-    public class ImageInfo(int width, int height)
+    public class ImageMeta(int width, int height)
     {
         private readonly int _width = width;
         private readonly int _height = height;

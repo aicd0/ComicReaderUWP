@@ -39,7 +39,7 @@ internal static class ImageCacheStrategy
 
     public static int GetCacheResolution(string cacheEntryKey)
     {
-        if (cacheEntryKey == null || cacheEntryKey.Length == 0)
+        if (string.IsNullOrEmpty(cacheEntryKey))
         {
             return 0;
         }

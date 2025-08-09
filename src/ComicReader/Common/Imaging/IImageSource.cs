@@ -13,5 +13,5 @@ internal interface IImageSource
 
     string GetUri();
 
-    int GetContentSignature();
+    string GetContentFingerprint();
 }
