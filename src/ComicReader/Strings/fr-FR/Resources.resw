@@ -362,7 +362,7 @@ L'évaluation sera effectuée dans l'ordre suivant :
     <value>$count filtre(s) appliqué(s)</value>
   </data>
   <data name="FinishPercentage" xml:space="preserve">
-    <value>$pourcentage% Terminé</value>
+    <value>$percentage% Terminé</value>
   </data>
   <data name="Finished" xml:space="preserve">
     <value>Fini</value>

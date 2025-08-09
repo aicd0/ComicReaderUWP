@@ -363,7 +363,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Применено $count фильтров</value>
   </data>
   <data name="FinishPercentage" xml:space="preserve">
-    <value>$процент% Завершено</value>
+    <value>$percentage% Завершено</value>
   </data>
   <data name="Finished" xml:space="preserve">
     <value>Законченный</value>

@@ -1446,7 +1446,7 @@ internal partial class ReaderView : UserControl
                 return ScrollResult.Failed;
             }
 
-            if (Math.Abs(offsets.Item1 - SCParallelOffsetFinal) < 1.0)
+            if (Math.Abs(offsets.Item1 - SCParallelOffsetFinal) < 5.0)
             {
                 // Ignore the request if target offset is really close to the current offset,
                 // otherwise we might trigger a dead loop
