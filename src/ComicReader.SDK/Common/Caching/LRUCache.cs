@@ -89,7 +89,6 @@ public class LRUCache(string directoryPath, long maxSize)
         for (int i = 0; i < files.Count;)
         {
             Dictionary<string, StorageFile> batch = [];
-
             for (; i < files.Count && batch.Count < BATCH_SIZE; i++)
             {
                 StorageFile file = files[i];
@@ -100,12 +99,13 @@ public class LRUCache(string directoryPath, long maxSize)
                     continue;
                 }
 
-                string key = "";
+                string key = string.Empty;
                 if (fileName.StartsWith("1."))
                 {
                     key = fileName[2..];
                 }
-                if (key.Length == 0)
+
+                if (string.IsNullOrEmpty(key))
                 {
                     try
                     {
@@ -117,6 +117,7 @@ public class LRUCache(string directoryPath, long maxSize)
                     {
                         Logger.F(TAG, "Clean", ex);
                     }
+
                     continue;
                 }
 
@@ -124,7 +125,6 @@ public class LRUCache(string directoryPath, long maxSize)
             }
 
             Dictionary<string, long> result = _database.BatchQuery(batch.Keys);
-
             foreach (KeyValuePair<string, long> pair in result)
             {
                 if (pair.Value < 0)
@@ -140,7 +140,6 @@ public class LRUCache(string directoryPath, long maxSize)
 
         lastUsedTimes.Sort(new Comparison<Tuple<StorageFile, long>>(
             delegate (Tuple<StorageFile, long> x, Tuple<StorageFile, long> y) { return x.Item2.CompareTo(y.Item2); }));
-
         foreach (Tuple<StorageFile, long> item in lastUsedTimes)
         {
             if (sizeToRemove <= 0)
@@ -196,7 +195,6 @@ public class LRUCache(string directoryPath, long maxSize)
         Task.Delay(1000).ContinueWith(delegate
         {
             IDictionary<string, long> pendingFlushKeys;
-
             _flushLock.AcquireWriterLock(-1);
             try
             {
