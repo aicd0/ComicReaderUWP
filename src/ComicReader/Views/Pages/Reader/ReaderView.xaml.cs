@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -85,7 +83,7 @@ internal partial class ReaderView : UserControl
     private double _initialPage = 0.0;
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
-    private List<IImageSource> _originalDataModel;
+    private List<IImageSource> _originalDataModel = [];
     private readonly ITaskDispatcher _loadInfoDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadInfoQueue");
     private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private readonly ReaderFrameManager _frameManager = new();
@@ -119,13 +117,13 @@ internal partial class ReaderView : UserControl
     //
 
     public delegate void ReaderEventTappedEventHandler(ReaderView sender);
-    public event ReaderEventTappedEventHandler ReaderEventTapped;
+    public event ReaderEventTappedEventHandler? ReaderEventTapped;
 
     public delegate void ReaderEventPageChangedEventHandler(ReaderView sender, bool isIntermediate);
-    public event ReaderEventPageChangedEventHandler ReaderEventPageChanged;
+    public event ReaderEventPageChangedEventHandler? ReaderEventPageChanged;
 
     public delegate void ReaderEventReaderStateChangeHandler(ReaderView sender, ReaderState state);
-    public event ReaderEventReaderStateChangeHandler ReaderEventReaderStateChanged;
+    public event ReaderEventReaderStateChangeHandler? ReaderEventReaderStateChanged;
 
     public int PageCount { get; private set; } = 0;
     public double CurrentPage { get; private set; } = 0.0;
@@ -239,6 +237,11 @@ internal partial class ReaderView : UserControl
 
     private void Reload(List<IImageSource> images)
     {
+        if (images.Count == 0)
+        {
+            return;
+        }
+
         // Refresh token
         _dataModelSession.Next();
         CancellationSession.IToken token = _dataModelSession.Token;
@@ -332,7 +335,7 @@ internal partial class ReaderView : UserControl
                 }
 
                 IImageSource image = images[i];
-                ImageCacheManager.ImageMeta imageMeta = ImageCacheManager.GetImageMeta(image);
+                ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(image);
                 int width = 0;
                 int height = 0;
                 if (imageMeta is not null)
@@ -537,7 +540,6 @@ internal partial class ReaderView : UserControl
     private void SetImageData(int index, int originalWidth, int originalHeight, IImageSource source)
     {
         Logger.Assert(index >= 0, "E55E628AD1456D37");
-        Logger.Assert(source != null, "E25F726E34076E52");
 
         var model = new ImageDataModel
         {
@@ -555,7 +557,7 @@ internal partial class ReaderView : UserControl
         int page = index + 1;
         bool dual = neighbor != -1;
 
-        ImageDataModel neighborModel = null;
+        ImageDataModel? neighborModel = null;
         if (dual)
         {
             int neighborIndex = neighbor - 1;
@@ -673,7 +675,11 @@ internal partial class ReaderView : UserControl
 
         if (item.PageL != -1)
         {
-            item.LeftImageSource = _dataModel.GetValueOrDefault(item.PageL - 1, null)?.ImageSource;
+            if (_dataModel.TryGetValue(item.PageL - 1, out ImageDataModel? imageModel))
+            {
+                item.LeftImageSource = imageModel.ImageSource;
+            }
+
             Logger.Assert(item.LeftImageSource != null, "A02FF8F8CDE1D47D");
         }
         else
@@ -683,7 +689,11 @@ internal partial class ReaderView : UserControl
 
         if (item.PageR != -1)
         {
-            item.RightImageSource = _dataModel.GetValueOrDefault(item.PageR - 1, null)?.ImageSource;
+            if (_dataModel.TryGetValue(item.PageR - 1, out ImageDataModel? imageModel))
+            {
+                item.RightImageSource = imageModel.ImageSource;
+            }
+
             Logger.Assert(item.RightImageSource != null, "FAFB72226C3D1969");
         }
         else
@@ -698,7 +708,7 @@ internal partial class ReaderView : UserControl
 
     private void UpdateMinMaxZoomFactor(int frameIndex)
     {
-        ZoomCoefficient zoomCoefficient = CalculateZoomCoefficient(frameIndex);
+        ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameIndex);
         if (zoomCoefficient is null)
         {
             return;
@@ -734,12 +744,12 @@ internal partial class ReaderView : UserControl
         // Locate current frame using binary search
         int begin = 0;
         int end = FrameDataSource.Count - 1;
-        FrameOffsetData frameOffsets = null;
+        FrameOffsetData? frameOffsets = null;
 
         while (true)
         {
             int i = (begin + end + 1) / 2;
-            FrameOffsetData offsets = FrameOffset(i);
+            FrameOffsetData? offsets = FrameOffset(i);
 
             if (offsets == null)
             {
@@ -1135,7 +1145,7 @@ internal partial class ReaderView : UserControl
     {
         PointerPoint pointer_point = e.GetCurrentPoint(_gestureReference);
         _gestureRecognizer.ProcessUpEvent(pointer_point);
-        (sender as UIElement).ReleasePointerCapture(e.Pointer);
+        ((UIElement)sender).ReleasePointerCapture(e.Pointer);
 
         if (!_gestureRecognizer.AutoProcessInertia)
         {
@@ -1150,7 +1160,7 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        (sender as UIElement).CapturePointer(e.Pointer);
+        ((UIElement)sender).CapturePointer(e.Pointer);
         PointerPoint pointer_point = e.GetCurrentPoint(_gestureReference);
         _gestureRecognizer.ProcessDownEvent(pointer_point);
     }
@@ -1159,7 +1169,7 @@ internal partial class ReaderView : UserControl
     {
         PointerPoint pointer_point = e.GetCurrentPoint(_gestureReference);
         _gestureRecognizer.ProcessUpEvent(pointer_point);
-        (sender as UIElement).ReleasePointerCapture(e.Pointer);
+        ((UIElement)sender).ReleasePointerCapture(e.Pointer);
 
         if (!_gestureRecognizer.AutoProcessInertia)
         {
@@ -1520,8 +1530,7 @@ internal partial class ReaderView : UserControl
 
         if (page.HasValue)
         {
-            Tuple<double, double> offsets = PageOffset(page.Value);
-
+            Tuple<double, double>? offsets = PageOffset(page.Value);
             if (offsets == null)
             {
                 Log("Jump", $"Failed (offsets is null, p={page.Value})");
@@ -1648,14 +1657,14 @@ internal partial class ReaderView : UserControl
             SCCurrentPageFinal = ToDiscretePage(request.pageToApplyZoom.Value);
         }
 
-        _zoom = context.ZoomPercentage.Value;
+        _zoom = context.ZoomPercentage!.Value;
         return ScrollResult.Success;
     }
 
     private void SetScrollViewerZoom(ScrollRequest request, ScrollContext context)
     {
         // Calculate zoom coefficient for new frame
-        ZoomCoefficient zoomCoefficientNew;
+        ZoomCoefficient? zoomCoefficientNew;
         int frameNew;
         {
             int pageNew = request.pageToApplyZoom.HasValue ? (int)request.pageToApplyZoom.Value : SCCurrentPageFinal;
@@ -1699,7 +1708,7 @@ internal partial class ReaderView : UserControl
             ZoomCoefficient zoomCoefficient = zoomCoefficientNew;
             if (frame != frameNew)
             {
-                ZoomCoefficient zoomCoefficientTest = CalculateZoomCoefficient(frame);
+                ZoomCoefficient? zoomCoefficientTest = CalculateZoomCoefficient(frame);
                 if (zoomCoefficientTest != null)
                 {
                     zoomCoefficient = zoomCoefficientTest;
@@ -1900,12 +1909,13 @@ internal partial class ReaderView : UserControl
             {
                 break;
             }
-            ZoomCoefficient zoomCoefficient = CalculateZoomCoefficient(frameIdx);
+            ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameIdx);
             if (zoomCoefficient == null)
             {
                 break;
             }
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
+            zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
             paddingStart = (innerLength - FrameParallelLength(frameIdx)) / 2;
             paddingStart = Math.Max(0.0, paddingStart);
@@ -1919,14 +1929,15 @@ internal partial class ReaderView : UserControl
             {
                 break;
             }
-            ZoomCoefficient zoomCoefficient = CalculateZoomCoefficient(frameIdx);
+            ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameIdx);
             if (zoomCoefficient == null)
             {
                 break;
             }
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
-            double inner_length = ViewportParallelLength / zoomFactor;
-            paddingEnd = (inner_length - FrameParallelLength(frameIdx)) / 2;
+            zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
+            double innerLength = ViewportParallelLength / zoomFactor;
+            paddingEnd = (innerLength - FrameParallelLength(frameIdx)) / 2;
             paddingEnd = Math.Max(0.0, paddingEnd);
         } while (false);
 
@@ -1942,7 +1953,7 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    private Tuple<double, double> PageOffset(double page)
+    private Tuple<double, double>? PageOffset(double page)
     {
         Logger.Assert(double.IsFinite(page), "251D69B9AD4BFDDA");
 
@@ -1953,8 +1964,7 @@ internal partial class ReaderView : UserControl
         pageInt = Math.Max(pageInt, 1);
 
         int frame = PageToFrame(pageInt, out _, out int neighbor);
-        FrameOffsetData offsets = FrameOffset(frame);
-
+        FrameOffsetData? offsets = FrameOffset(frame);
         if (offsets == null)
         {
             return null;
@@ -2002,7 +2012,7 @@ internal partial class ReaderView : UserControl
         return result;
     }
 
-    private FrameOffsetData FrameOffset(int frame)
+    private FrameOffsetData? FrameOffset(int frame)
     {
         FrameworkElement container = _frameManager.GetContainer(frame);
         if (container == null)
@@ -2050,7 +2060,7 @@ internal partial class ReaderView : UserControl
         return result;
     }
 
-    private ZoomCoefficient CalculateZoomCoefficient(int frameIndex)
+    private ZoomCoefficient? CalculateZoomCoefficient(int frameIndex)
     {
         if (FrameDataSource.Count == 0)
         {
@@ -2232,7 +2242,7 @@ internal partial class ReaderView : UserControl
 
         protected override ScrollResult CommitImpl()
         {
-            if (!mReader.TryGetTarget(out ReaderView reader))
+            if (!mReader.TryGetTarget(out ReaderView? reader))
             {
                 return ScrollResult.Failed;
             }
@@ -2335,9 +2345,9 @@ internal partial class ReaderView : UserControl
 
     private class ImageDataModel
     {
-        public IImageSource ImageSource { get; set; }
-        public int OriginalWidth { get; set; }
-        public int OriginalHeight { get; set; }
+        public required IImageSource ImageSource { get; set; }
+        public required int OriginalWidth { get; set; }
+        public required int OriginalHeight { get; set; }
         public double AspectRatio
         {
             get
@@ -2424,9 +2434,9 @@ internal partial class ReaderView : UserControl
 
     private class PengingImageItem
     {
-        public int Index;
-        public int OriginalWidth;
-        public int OriginalHeight;
-        public IImageSource Source;
+        public required int Index;
+        public required int OriginalWidth;
+        public required int OriginalHeight;
+        public required IImageSource Source;
     }
 }
