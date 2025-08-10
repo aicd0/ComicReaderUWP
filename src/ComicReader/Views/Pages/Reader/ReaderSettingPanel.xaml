@@ -341,7 +341,7 @@
                     Click="AbbContinuous_Click"
                     Style="{StaticResource AppBarButtonCompactStyle}">
                     <Grid>
-                        <FontIcon Glyph="&#xE89A;" />
+                        <FontIcon Glyph="&#xE724;" />
                     </Grid>
                 </AppBarButton>
                 <AppBarButton
@@ -350,7 +350,7 @@
                     Click="AbbSeperate_Click"
                     Style="{StaticResource AppBarButtonCompactStyle}">
                     <Grid>
-                        <FontIcon Glyph="&#xE7C3;" />
+                        <FontIcon Glyph="&#xE725;" />
                     </Grid>
                 </AppBarButton>
 
