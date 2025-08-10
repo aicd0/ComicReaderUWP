@@ -84,6 +84,8 @@ internal partial class ReaderView : UserControl
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
     private double _initialPage = 0.0;
+    private double _minZoomFactor = double.MaxValue;
+    private double _maxZoomFactor = double.MinValue;
     private List<IImageSource> _originalDataModel;
     private readonly ITaskDispatcher _loadInfoDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadInfoQueue");
     private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
@@ -227,7 +229,7 @@ internal partial class ReaderView : UserControl
     public void StartLoadingImages(List<IImageSource> images)
     {
         _originalDataModel = [.. images];
-        Reload(_originalDataModel, true);
+        Reload(_originalDataModel);
     }
 
     //
@@ -236,13 +238,15 @@ internal partial class ReaderView : UserControl
 
     private double InitialPage => Math.Min(_initialPage, PageCount);
 
-    private void Reload(List<IImageSource> images, bool clear)
+    private void Reload(List<IImageSource> images)
     {
         // Refresh token
         _dataModelSession.Next();
         CancellationSession.IToken token = _dataModelSession.Token;
 
         // Update internal states
+        _minZoomFactor = double.MaxValue;
+        _maxZoomFactor = double.MinValue;
         _dataModel.Clear();
         PageCount = images.Count;
 
@@ -301,7 +305,7 @@ internal partial class ReaderView : UserControl
                     return;
                 }
 
-                List<PengingImageItem> pendingListCopy = new(pendingList);
+                List<PengingImageItem> pendingListCopy = [.. pendingList];
                 pendingList.Clear();
                 _ = MainThreadUtils.RunInMainThread(delegate
                 {
@@ -531,7 +535,7 @@ internal partial class ReaderView : UserControl
                 _initialPage = CurrentPage;
             }
 
-            Reload(_originalDataModel, false);
+            Reload(_originalDataModel);
         }
     }
 
@@ -692,8 +696,23 @@ internal partial class ReaderView : UserControl
             item.RightImageSource = null;
         }
 
+        UpdateMinMaxZoomFactor(frameIndex);
         item.RebindEntireViewModel();
         _frameManager.MarkModelContentUpdateToDate(frameIndex, "ViewBindByProperty");
+    }
+
+    private void UpdateMinMaxZoomFactor(int frameIndex)
+    {
+        ZoomCoefficient zoomCoefficient = CalculateZoomCoefficient(frameIndex);
+        if (zoomCoefficient is null)
+        {
+            return;
+        }
+
+        double maxZoomFactor = MAX_ZOOM * zoomCoefficient.Max();
+        double minZoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
+        _maxZoomFactor = Math.Max(_maxZoomFactor, maxZoomFactor);
+        _minZoomFactor = Math.Min(_minZoomFactor, minZoomFactor);
     }
 
     private bool UpdatePage()
@@ -1664,8 +1683,8 @@ internal partial class ReaderView : UserControl
         }
 
         // Calculate zoom factor
-        double zoom;
         double centerCropMultipier = zoomCoefficientNew.Max() / zoomCoefficientNew.Min();
+        double zoom;
         if (request.zoom.HasValue)
         {
             zoom = request.zoom.Value;
@@ -1681,6 +1700,7 @@ internal partial class ReaderView : UserControl
             {
                 frame = 0;
             }
+
             ZoomCoefficient zoomCoefficient = zoomCoefficientNew;
             if (frame != frameNew)
             {
@@ -1690,25 +1710,31 @@ internal partial class ReaderView : UserControl
                     zoomCoefficient = zoomCoefficientTest;
                 }
             }
-            zoom = (float)(SCZoomFactorFinal / zoomCoefficient.Min());
+
+            zoom = (double)SCZoomFactorFinal / zoomCoefficient.Min();
         }
-        zoom = Math.Min(zoom, MAX_ZOOM * centerCropMultipier);
-        zoom = Math.Max(zoom, Math.Min(MIN_ZOOM_CENTER_INSIDE, MIN_ZOOM_CENTER_CROP * centerCropMultipier));
+
+        double zoomFactorNew = zoom * zoomCoefficientNew.Min();
+        double maxZoomFactor = Math.Max(_maxZoomFactor, MAX_ZOOM * zoomCoefficientNew.Max());
+        double minZoomFactor = Math.Min(_minZoomFactor, Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficientNew.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficientNew.Max()));
+        zoomFactorNew = Math.Min(zoomFactorNew, maxZoomFactor);
+        zoomFactorNew = Math.Max(zoomFactorNew, minZoomFactor);
+        zoom = zoomFactorNew / zoomCoefficientNew.Min();
         context.ZoomPercentage = (float)zoom;
 
         // Ignore vary less than 1%
-        float zoomFactorNew = (float)(zoom * zoomCoefficientNew.Min());
         if (Math.Abs(zoomFactorNew / SCZoomFactorFinal - 1.0f) <= 0.01f)
         {
             context.ZoomFactor = null;
             return;
         }
-        context.ZoomFactor = zoomFactorNew;
+
+        context.ZoomFactor = (float)zoomFactorNew;
 
         // Apply zooming
-        float zoomFactorBefore = SCZoomFactorFinal;
-        float zoomFactorAfter = (float)context.ZoomFactor;
-        float zoomChangeRatio = zoomFactorAfter / zoomFactorBefore;
+        double zoomFactorBefore = SCZoomFactorFinal;
+        double zoomFactorAfter = (float)context.ZoomFactor;
+        double zoomChangeRatio = zoomFactorAfter / zoomFactorBefore;
         double extraPaddingBefore = CalculateExtraPerpendicularPadding(zoomFactorBefore);
         double extraPaddingAfter = CalculateExtraPerpendicularPadding(zoomFactorAfter);
         double halfViewportWidth = ThisScrollViewer.ViewportWidth * 0.5;
