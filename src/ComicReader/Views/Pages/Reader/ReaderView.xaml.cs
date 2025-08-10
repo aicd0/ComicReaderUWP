@@ -40,8 +40,7 @@ internal partial class ReaderView : UserControl
     private const float MIN_ZOOM_CENTER_INSIDE = 50F;
     private const float MIN_ZOOM_CENTER_CROP = 20F;
     private const double DEFAULT_VERTICAL_PAGE_SPACING = 10.0;
-    private const double DEFAULT_HORIZONTAL_PAGE_SPACING_SEPERATE = 100.0;
-    private const double DEFAULT_HORIZONTAL_PAGE_SPACING_CONTINUOUS = 10.0;
+    private const double DEFAULT_HORIZONTAL_PAGE_SPACING = 100.0;
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 105F;
     private const int PRELOAD_FRAMES_BEFORE = 10;
     private const int PRELOAD_FRAMES_AFTER = 10;
@@ -504,10 +503,6 @@ internal partial class ReaderView : UserControl
         {
             _uiStateUpdatedContinuous = false;
             _gestureRecognizer.AutoProcessInertia = _isContinuous;
-            if (!_isVertical)
-            {
-                needReload = true;
-            }
         }
 
         if (_uiStateUpdatedPageArrangement)
@@ -572,7 +567,7 @@ internal partial class ReaderView : UserControl
         }
 
         double verticalPadding = DEFAULT_VERTICAL_PAGE_SPACING;
-        double horizontalPadding = _isContinuous ? DEFAULT_HORIZONTAL_PAGE_SPACING_CONTINUOUS : DEFAULT_HORIZONTAL_PAGE_SPACING_SEPERATE;
+        double horizontalPadding = DEFAULT_HORIZONTAL_PAGE_SPACING;
         verticalPadding = _isVertical ? verticalPadding : 0;
         horizontalPadding = _isVertical ? 0 : horizontalPadding;
         verticalPadding *= _pageGap / 100.0;
