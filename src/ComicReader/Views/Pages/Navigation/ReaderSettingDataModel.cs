@@ -7,6 +7,7 @@ namespace ComicReader.Views.Pages.Navigation;
 
 internal class ReaderSettingDataModel
 {
+    public bool OriginalSize { get; set; } = false;
     public bool UseDefault { get; set; } = true;
     public bool IsVertical { get; set; } = true;
     public bool IsLeftToRight { get; set; } = false;
@@ -47,6 +48,7 @@ internal class ReaderSettingDataModel
     {
         var clone = new ReaderSettingDataModel
         {
+            OriginalSize = OriginalSize,
             UseDefault = UseDefault,
             IsVertical = IsVertical,
             IsLeftToRight = IsLeftToRight,

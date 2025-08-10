@@ -535,6 +535,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Öffne einen zufälligen Comic</value>
   </data>
+  <data name="OriginalSize" xml:space="preserve">
+    <value>Originalgröße</value>
+  </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Dieser Vorgang überschreibt vorhandene Einträge.</value>
   </data>
@@ -617,7 +620,7 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
     <value>Speichern</value>
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
-    <value>Als Standardkonfigurationen speichern</value>
+    <value>Als Standardkonfiguration speichern</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Als neu speichern</value>

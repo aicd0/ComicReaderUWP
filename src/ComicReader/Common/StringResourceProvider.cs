@@ -91,6 +91,7 @@ public class StringResourceProvider
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenRandomComic => GetResourceString("OpenRandomComic");
+    public string OriginalSize => GetResourceString("OriginalSize");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
     public string PageGap => GetResourceString("PageGap");
     public string PageLayoutDualNoCover => GetResourceString("PageLayoutDualNoCover");

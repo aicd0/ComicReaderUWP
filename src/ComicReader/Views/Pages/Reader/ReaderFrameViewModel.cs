@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.ComponentModel;
 
 using ComicReader.Common.Imaging;
@@ -15,28 +16,6 @@ namespace ComicReader.Views.Pages.Reader;
 internal class ReaderFrameViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
-
-    private double _frameWidth = 0.0;
-    public double FrameWidth
-    {
-        get => _frameWidth;
-        set
-        {
-            _frameWidth = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FrameWidth)));
-        }
-    }
-
-    private double _frameHeight = 0.0;
-    public double FrameHeight
-    {
-        get => _frameHeight;
-        set
-        {
-            _frameHeight = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FrameHeight)));
-        }
-    }
 
     private Thickness _frameMargin = new(0.0, 0.0, 0.0, 0.0);
     public Thickness FrameMargin
@@ -63,6 +42,28 @@ internal class ReaderFrameViewModel : INotifyPropertyChanged
         }
     }
 
+    private double _leftImageWidth = 0.0;
+    public double LeftImageWidth
+    {
+        get => _leftImageWidth;
+        set
+        {
+            _leftImageWidth = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftImageWidth)));
+        }
+    }
+
+    private double _leftImageHeight = 0.0;
+    public double LeftImageHeight
+    {
+        get => _leftImageHeight;
+        set
+        {
+            _leftImageHeight = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftImageHeight)));
+        }
+    }
+
     public IImageSource RightImageSource { get; set; }
     public ImageHolder RightImageHolder { get; }
 
@@ -76,6 +77,31 @@ internal class ReaderFrameViewModel : INotifyPropertyChanged
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageRight)));
         }
     }
+
+    private double _rightImageWidth = 0.0;
+    public double RightImageWidth
+    {
+        get => _rightImageWidth;
+        set
+        {
+            _rightImageWidth = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightImageWidth)));
+        }
+    }
+
+    private double _rightImageHeight = 0.0;
+    public double RightImageHeight
+    {
+        get => _rightImageHeight;
+        set
+        {
+            _rightImageHeight = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightImageHeight)));
+        }
+    }
+
+    public double FrameWidth => LeftImageWidth + RightImageWidth;
+    public double FrameHeight => Math.Max(LeftImageHeight, RightImageHeight);
 
     public int PageL { get; set; } = -1;
     public int PageR { get; set; } = -1;

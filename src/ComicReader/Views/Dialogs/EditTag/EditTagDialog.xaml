@@ -89,13 +89,31 @@
                     Text="{x:Bind ViewModel.Description, Mode=OneWay}"
                     TextChanged="DescriptionTextBox_TextChanged"
                     TextWrapping="Wrap" />
-                <TextBlock
+                <StackPanel
                     Grid.Row="6"
                     Grid.Column="0"
-                    Margin="0,7,0,0"
                     HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Text="{x:Bind StringResource.Links}" />
+                    Orientation="Horizontal">
+                    <TextBlock
+                        Margin="0,7,0,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Text="{x:Bind StringResource.Links}" />
+                    <Button
+                        Grid.Row="4"
+                        Grid.Column="0"
+                        Margin="6,12.5,0,0"
+                        Padding="0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="LinksTipButton_Click">
+                        <Button.Content>
+                            <FontIcon FontSize="12" Glyph="&#xE946;" />
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
                 <controls:EditLinksView
                     Grid.Row="6"
                     Grid.Column="2"

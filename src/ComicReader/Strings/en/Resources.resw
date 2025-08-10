@@ -537,6 +537,9 @@ The evaluation will be performed in the following order:
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Open a random comic</value>
   </data>
+  <data name="OriginalSize" xml:space="preserve">
+    <value>Original size</value>
+  </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>This operation will overwrite existing entries.</value>
   </data>
@@ -619,7 +622,7 @@ The evaluation will be performed in the following order:
     <value>Save</value>
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
-    <value>Save as default configurations</value>
+    <value>Save as default configuration</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Save as new</value>

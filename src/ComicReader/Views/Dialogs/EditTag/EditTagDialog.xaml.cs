@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Views.Dialogs.EditFilter;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -55,5 +56,10 @@ internal sealed partial class EditTagDialog : BaseContentDialog
     private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         ViewModel.UpdateDescription(((TextBox)sender).Text ?? "");
+    }
+
+    private void LinksTipButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        ThirdPartyLauncher.StartTemporaryTextFile("tag_link_reference.txt", StringResource.TagLinkTip);
     }
 }

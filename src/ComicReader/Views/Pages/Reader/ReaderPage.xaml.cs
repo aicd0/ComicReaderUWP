@@ -230,6 +230,7 @@ internal sealed partial class ReaderPage : BasePage
             ComicModel? comic = _comic;
             if (comic != null && !comic.IsExternal)
             {
+                comic.SetExt(ComicExt.ORIGINAL_SIZE, setting.OriginalSize ? "1" : "0");
                 comic.SetExt(ComicExt.USE_DEFAULT_READER_SETTINGS, setting.UseDefault ? "1" : "0");
                 comic.SetExt(ComicExt.VERTICAL_READING, setting.IsVertical ? "1" : "0");
                 comic.SetExt(ComicExt.LEFT_TO_RIGHT, setting.IsLeftToRight ? "1" : "0");
@@ -457,6 +458,7 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetIsContinuous(readerSettingModel.IsContinuous);
         reader.SetPageArrangement(readerSettingModel.PageArrangement);
         reader.SetFlowDirection(readerSettingModel.IsLeftToRight);
+        reader.SetUseOriginalSize(readerSettingModel.OriginalSize);
         reader.SetPageGap(readerSettingModel.PageGap);
     }
 
@@ -468,15 +470,18 @@ internal sealed partial class ReaderPage : BasePage
             {
                 return null;
             }
+
             if (Enum.TryParse(value, out PageArrangementEnum arrangement))
             {
                 return arrangement;
             }
+
             return null;
         }
 
         AppSettingsModel.ReaderSettingModel readerSettings = AppSettingsModel.Instance.GetModel().DefaultReaderSetting;
         bool useDefault = comic.GetExt(ComicExt.USE_DEFAULT_READER_SETTINGS)?.Equals("1") ?? true;
+        bool originalSize;
         bool verticalReading;
         bool leftToRight;
         bool verticalContinuous;
@@ -487,6 +492,7 @@ internal sealed partial class ReaderPage : BasePage
 
         if (useDefault)
         {
+            originalSize = readerSettings.OriginalSize;
             verticalReading = readerSettings.VerticalReading;
             leftToRight = readerSettings.LeftToRight;
             verticalContinuous = readerSettings.VerticalContinuous;
@@ -497,6 +503,7 @@ internal sealed partial class ReaderPage : BasePage
         }
         else
         {
+            originalSize = comic.GetExt(ComicExt.ORIGINAL_SIZE)?.Equals("1") ?? readerSettings.OriginalSize;
             verticalReading = comic.GetExt(ComicExt.VERTICAL_READING)?.Equals("1") ?? readerSettings.VerticalReading;
             leftToRight = comic.GetExt(ComicExt.LEFT_TO_RIGHT)?.Equals("1") ?? readerSettings.LeftToRight;
             verticalContinuous = comic.GetExt(ComicExt.VERTICAL_CONTINUOUS)?.Equals("1") ?? readerSettings.VerticalContinuous;
@@ -516,6 +523,7 @@ internal sealed partial class ReaderPage : BasePage
 
         return new ReaderSettingDataModel
         {
+            OriginalSize = originalSize,
             UseDefault = useDefault,
             IsVertical = verticalReading,
             IsLeftToRight = leftToRight,
