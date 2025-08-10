@@ -57,7 +57,7 @@ public abstract class TaskDispatcher : ITaskDispatcher
             }
             catch (Exception e)
             {
-                Logger.F(_endTag, $"Task '{taskName}' failed with an exception.", e);
+                DebugUtils.CaptureFatalError($"Task '{taskName}' throwed an exception.", e);
             }
             finally
             {

@@ -432,14 +432,7 @@ public static class Logger
 
         if (DebugUtils.DebugMode)
         {
-            if (DebugUtils.DeveloperMode && System.Diagnostics.Debugger.IsAttached)
-            {
-                System.Diagnostics.Debugger.Break();
-            }
-
             CrashHandler.OnUnhandledException(exception);
-            Environment.FailFast("The application encountered an assertion failure.", exception);
-            throw exception;
         }
     }
 

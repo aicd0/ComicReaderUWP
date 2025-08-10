@@ -59,6 +59,11 @@ internal static class CrashHandler
         {
             System.Diagnostics.Debugger.Break();
         }
+
+        if (DebugUtils.DebugMode)
+        {
+            Environment.FailFast("The application hit a fatal error.", e);
+        }
     }
 
     private static string RandomString(int length)
