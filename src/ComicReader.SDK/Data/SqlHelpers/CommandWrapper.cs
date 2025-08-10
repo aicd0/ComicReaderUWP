@@ -90,11 +90,6 @@ public sealed class CommandWrapper : ICommandContext
 
     private void LogCommand()
     {
-        if (!DebugSwitchModel.Instance.SqliteLogEnabled)
-        {
-            return;
-        }
-
         Logger.I("SQLCommand", ToString());
     }
 

@@ -43,11 +43,6 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         }
     }
 
-    public bool SqliteLogEnabled
-    {
-        get => DebugUtils.DebugMode && GetConfig().SqliteLogEnabled;
-    }
-
     public LogTag? ConsoleWhitelist
     {
         get
@@ -135,8 +130,5 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 
         [JsonPropertyName("LogTreeEnabled")]
         public bool LogTreeEnabled { get; set; }
-
-        [JsonPropertyName("SqliteLogEnabled")]
-        public bool SqliteLogEnabled { get; set; }
     }
 }
