@@ -535,6 +535,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Abre un cómic al azar</value>
   </data>
+  <data name="OriginalSize" xml:space="preserve">
+    <value>Tamaño original</value>
+  </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Esta operación sobrescribirá las entradas existentes.</value>
   </data>

@@ -136,6 +136,12 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         DispatchDataChangeEvent();
     }
 
+    private void OriginalSizeToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        _model.OriginalSize = OriginalSizeToggleSwitch.IsOn;
+        DispatchDataChangeEvent();
+    }
+
     private void SaveAsDefaultToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
         _model.UseDefault = SaveAsDefaultToggleSwitch.IsOn;
@@ -148,6 +154,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         {
             return;
         }
+
         _updatingUI = true;
         try
         {
@@ -196,6 +203,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         AbbContinuous.Visibility = _model.IsContinuous ? Visibility.Visible : Visibility.Collapsed;
         AbbSeperate.Visibility = _model.IsContinuous ? Visibility.Collapsed : Visibility.Visible;
 
+        OriginalSizeToggleSwitch.IsOn = _model.OriginalSize;
         SaveAsDefaultToggleSwitch.IsOn = _model.UseDefault;
         PageGapSlider.Value = Math.Clamp(_model.PageGap, 0, 200);
     }
@@ -206,6 +214,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         {
             return;
         }
+
         DataChanged?.Invoke(_model);
     }
 }

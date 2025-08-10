@@ -535,6 +535,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Ouvrir une bande dessinée au hasard</value>
   </data>
+  <data name="OriginalSize" xml:space="preserve">
+    <value>Taille originale</value>
+  </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Cette opération écrasera les entrées existantes.</value>
   </data>

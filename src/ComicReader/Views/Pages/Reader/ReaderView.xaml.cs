@@ -39,6 +39,9 @@ internal partial class ReaderView : UserControl
     private const float MAX_ZOOM = 250F;
     private const float MIN_ZOOM_CENTER_INSIDE = 50F;
     private const float MIN_ZOOM_CENTER_CROP = 20F;
+    private const double DEFAULT_VERTICAL_PAGE_SPACING = 10.0;
+    private const double DEFAULT_HORIZONTAL_PAGE_SPACING_SEPERATE = 100.0;
+    private const double DEFAULT_HORIZONTAL_PAGE_SPACING_CONTINUOUS = 10.0;
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 105F;
     private const int PRELOAD_FRAMES_BEFORE = 10;
     private const int PRELOAD_FRAMES_AFTER = 10;
@@ -54,12 +57,14 @@ internal partial class ReaderView : UserControl
     private bool _isVisible = true;
     private bool _isLeftToRight = true;
     private PageArrangementEnum _pageArrangement = PageArrangementEnum.Single;
+    private bool _useOriginalSize = false;
     private int _pageGap = 100;
     private bool _uiStateUpdatedVisibility = true;
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
     private bool _uiStateUpdatedPageArrangement = true;
+    private bool _uiStateUpdatedUseOriginalSize = true;
     private bool _uiStateUpdatedPageGap = true;
     private bool _postUiStateUpdated = false;
 
@@ -189,6 +194,18 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
+    public void SetUseOriginalSize(bool useOriginalSize)
+    {
+        if (useOriginalSize == _useOriginalSize)
+        {
+            return;
+        }
+
+        _uiStateUpdatedUseOriginalSize = true;
+        _useOriginalSize = useOriginalSize;
+        UpdateUI();
+    }
+
     public void SetPageGap(int pageGap)
     {
         if (pageGap == _pageGap)
@@ -277,13 +294,14 @@ internal partial class ReaderView : UserControl
 
         _loadInfoDispatcher.Submit("ReaderLoadImageInfo", delegate
         {
-            void dispatchToMainThread(List<Tuple<int, double, IImageSource>> pendingList)
+            void dispatchToMainThread(List<PengingImageItem> pendingList)
             {
                 if (pendingList.Count == 0)
                 {
                     return;
                 }
-                List<Tuple<int, double, IImageSource>> pendingListCopy = new(pendingList);
+
+                List<PengingImageItem> pendingListCopy = new(pendingList);
                 pendingList.Clear();
                 _ = MainThreadUtils.RunInMainThread(delegate
                 {
@@ -292,17 +310,16 @@ internal partial class ReaderView : UserControl
                         return;
                     }
 
-                    foreach (Tuple<int, double, IImageSource> item in pendingListCopy)
+                    foreach (PengingImageItem item in pendingListCopy)
                     {
-                        int index = item.Item1;
-                        SetImageData(index, item.Item2, item.Item3);
+                        SetImageData(item.Index, item.OriginalWidth, item.OriginalHeight, item.Source);
                     }
                 });
             }
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            List<Tuple<int, double, IImageSource>> pendingList = new();
+            List<PengingImageItem> pendingList = new();
 
             for (int i = 0; i < images.Count; i++)
             {
@@ -313,13 +330,21 @@ internal partial class ReaderView : UserControl
 
                 IImageSource image = images[i];
                 ImageCacheManager.ImageMeta imageMeta = ImageCacheManager.GetImageMeta(image);
-                double aspectRatio = 0.0;
-                if (imageMeta != null && imageMeta.Width > 0 && imageMeta.Height > 0)
+                int width = 0;
+                int height = 0;
+                if (imageMeta is not null)
                 {
-                    aspectRatio = (double)imageMeta.Width / imageMeta.Height;
+                    width = imageMeta.Width;
+                    height = imageMeta.Height;
                 }
 
-                pendingList.Add(new Tuple<int, double, IImageSource>(i, aspectRatio, image));
+                pendingList.Add(new()
+                {
+                    Index = i,
+                    OriginalWidth = width,
+                    OriginalHeight = height,
+                    Source = image,
+                });
 
                 if (stopwatch.LapSpan().TotalMilliseconds > 500)
                 {
@@ -487,6 +512,12 @@ internal partial class ReaderView : UserControl
             needReload = true;
         }
 
+        if (_uiStateUpdatedUseOriginalSize)
+        {
+            _uiStateUpdatedUseOriginalSize = false;
+            needReload = true;
+        }
+
         if (_uiStateUpdatedPageGap)
         {
             _uiStateUpdatedPageGap = false;
@@ -499,20 +530,21 @@ internal partial class ReaderView : UserControl
             {
                 _initialPage = CurrentPage;
             }
+
             Reload(_originalDataModel, false);
         }
     }
 
-    private void SetImageData(int index, double aspectRatio, IImageSource source)
+    private void SetImageData(int index, int originalWidth, int originalHeight, IImageSource source)
     {
         Logger.Assert(index >= 0, "E55E628AD1456D37");
-        Logger.Assert(double.IsFinite(aspectRatio), "175D4517329AFDDB");
         Logger.Assert(source != null, "E25F726E34076E52");
 
         var model = new ImageDataModel
         {
-            AspectRatio = aspectRatio,
             ImageSource = source,
+            OriginalWidth = originalWidth,
+            OriginalHeight = originalHeight,
         };
         _dataModel[index] = model;
 
@@ -524,50 +556,84 @@ internal partial class ReaderView : UserControl
         int page = index + 1;
         bool dual = neighbor != -1;
 
-        if (neighbor != -1)
+        ImageDataModel neighborModel = null;
+        if (dual)
         {
             int neighborIndex = neighbor - 1;
-            if (_dataModel.TryGetValue(neighborIndex, out ImageDataModel neighborModel))
+            if (!_dataModel.TryGetValue(neighborIndex, out neighborModel))
             {
-                aspectRatio += neighborModel.AspectRatio;
-            }
-            else
-            {
+                // Neighbor page not loaded yet, wait for next update
                 return;
             }
         }
 
-        double frameWidth;
-        double frameHeight;
-        double verticalPadding;
-        double horizontalPadding;
-        if (aspectRatio < 1e-3)
+        double verticalPadding = DEFAULT_VERTICAL_PAGE_SPACING;
+        double horizontalPadding = _isContinuous ? DEFAULT_HORIZONTAL_PAGE_SPACING_CONTINUOUS : DEFAULT_HORIZONTAL_PAGE_SPACING_SEPERATE;
+        verticalPadding = _isVertical ? verticalPadding : 0;
+        horizontalPadding = _isVertical ? 0 : horizontalPadding;
+        verticalPadding *= _pageGap / 100.0;
+        horizontalPadding *= _pageGap / 100.0;
+
+        double imageWidth = 0;
+        double imageHeight = 0;
+        double neighborImageWidth = 0;
+        double neighborImageHeight = 0;
+        if (_useOriginalSize)
         {
-            frameWidth = 0;
-            frameHeight = 0;
-            verticalPadding = 0;
-            horizontalPadding = 0;
+            double totalWidth = originalWidth;
+            double maxHeight = originalHeight;
+            if (neighborModel is not null)
+            {
+                totalWidth += neighborModel.OriginalWidth;
+                maxHeight = Math.Max(maxHeight, neighborModel.OriginalHeight);
+            }
+
+            if (totalWidth < 1 || maxHeight < 1)
+            {
+                verticalPadding = 0;
+                horizontalPadding = 0;
+            }
+            else
+            {
+                imageWidth = originalWidth;
+                imageHeight = originalHeight;
+                if (neighborModel is not null)
+                {
+                    neighborImageWidth = neighborModel.OriginalWidth;
+                    neighborImageHeight = neighborModel.OriginalHeight;
+                }
+            }
         }
         else
         {
-            double defaultWidth = 500.0;
-            double defaultHeight = 300.0;
-            double defaultVerticalPadding = 10.0;
-            double defaultHorizontalPadding = 100.0;
-            if (dual)
+            double aspectRatio = model.AspectRatio;
+            if (neighborModel is not null)
             {
-                defaultWidth *= 2;
+                aspectRatio += neighborModel.AspectRatio;
             }
-            if (_isContinuous)
+
+            if (aspectRatio < 1e-3)
             {
-                defaultHorizontalPadding = 10.0;
+                verticalPadding = 0;
+                horizontalPadding = 0;
             }
-            defaultVerticalPadding *= _pageGap / 100.0;
-            defaultHorizontalPadding *= _pageGap / 100.0;
-            frameWidth = _isVertical ? defaultWidth : defaultHeight * aspectRatio;
-            frameHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
-            verticalPadding = _isVertical ? defaultVerticalPadding : 0;
-            horizontalPadding = _isVertical ? 0 : defaultHorizontalPadding;
+            else
+            {
+                double defaultWidth = 500.0;
+                double defaultHeight = 300.0;
+                if (dual)
+                {
+                    defaultWidth *= 2;
+                }
+
+                imageHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
+                imageWidth = imageHeight * model.AspectRatio;
+                if (neighborModel is not null)
+                {
+                    neighborImageHeight = imageHeight;
+                    neighborImageWidth = imageHeight * neighborModel.AspectRatio;
+                }
+            }
         }
 
         while (frameIndex >= FrameDataSource.Count)
@@ -575,24 +641,33 @@ internal partial class ReaderView : UserControl
             _frameManager.MarkModelInstanceOutOfDate(frameIndex, "DataAppended");
             FrameDataSource.Add(new ReaderFrameViewModel(_imagePool));
         }
+
         ReaderFrameViewModel item = FrameDataSource[frameIndex];
 
-        Logger.Assert(double.IsFinite(frameWidth), "EB5231296B9CFB11");
-        Logger.Assert(double.IsFinite(frameHeight), "23E0AC630045CA33");
+        Logger.Assert(double.IsFinite(imageWidth), $"Invalid image width {imageWidth}");
+        Logger.Assert(double.IsFinite(imageHeight), $"Invalid image height {imageHeight}");
+        Logger.Assert(double.IsFinite(neighborImageWidth), $"Invalid neighbor image width {neighborImageWidth}");
+        Logger.Assert(double.IsFinite(neighborImageHeight), $"Invalid neighbor image height {neighborImageHeight}");
         Logger.Assert(double.IsFinite(horizontalPadding), "B742A59FA82023CD");
         Logger.Assert(double.IsFinite(verticalPadding), "37E400F20758C487");
 
-        item.FrameWidth = frameWidth;
-        item.FrameHeight = frameHeight;
         item.FrameMargin = new Thickness(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
 
         if (leftSide)
         {
+            item.LeftImageWidth = imageWidth;
+            item.LeftImageHeight = imageHeight;
+            item.RightImageWidth = neighborImageWidth;
+            item.RightImageHeight = neighborImageHeight;
             item.PageL = page;
             item.PageR = neighbor;
         }
         else
         {
+            item.LeftImageWidth = neighborImageWidth;
+            item.LeftImageHeight = neighborImageHeight;
+            item.RightImageWidth = imageWidth;
+            item.RightImageHeight = imageHeight;
             item.PageR = page;
             item.PageL = neighbor;
         }
@@ -1643,7 +1718,6 @@ internal partial class ReaderView : UserControl
         float zoomChangeRatio = zoomFactorAfter / zoomFactorBefore;
         double extraPaddingBefore = CalculateExtraPerpendicularPadding(zoomFactorBefore);
         double extraPaddingAfter = CalculateExtraPerpendicularPadding(zoomFactorAfter);
-        double extraPaddingDiff = extraPaddingAfter - extraPaddingBefore;
         double halfViewportWidth = ThisScrollViewer.ViewportWidth * 0.5;
         double halfViewportHeight = ThisScrollViewer.ViewportHeight * 0.5;
         context.HorizontalOffset ??= SCHorizontalOffsetFinal;
@@ -1660,9 +1734,9 @@ internal partial class ReaderView : UserControl
             + $",VO={context.VerticalOffset}");
         if (IsVertical)
         {
-            context.HorizontalOffset += halfViewportWidth + extraPaddingDiff;
+            context.HorizontalOffset += halfViewportWidth - extraPaddingBefore;
             context.HorizontalOffset *= zoomChangeRatio;
-            context.HorizontalOffset -= halfViewportWidth;
+            context.HorizontalOffset -= halfViewportWidth - extraPaddingAfter;
             context.VerticalOffset += halfViewportHeight;
             context.VerticalOffset *= zoomChangeRatio;
             context.VerticalOffset -= halfViewportHeight;
@@ -1672,9 +1746,9 @@ internal partial class ReaderView : UserControl
             context.HorizontalOffset += halfViewportWidth;
             context.HorizontalOffset *= zoomChangeRatio;
             context.HorizontalOffset -= halfViewportWidth;
-            context.VerticalOffset += halfViewportHeight + extraPaddingDiff;
+            context.VerticalOffset += halfViewportHeight - extraPaddingBefore;
             context.VerticalOffset *= zoomChangeRatio;
-            context.VerticalOffset -= halfViewportHeight;
+            context.VerticalOffset -= halfViewportHeight - extraPaddingAfter;
         }
         context.HorizontalOffset = Math.Max(0.0, context.HorizontalOffset.Value);
         context.VerticalOffset = Math.Max(0.0, context.VerticalOffset.Value);
@@ -1873,10 +1947,12 @@ internal partial class ReaderView : UserControl
         }
 
         double perpendicularOffset = offsets.PerpendicularCenter * SCZoomFactorFinal - ViewportPerpendicularLength * 0.5;
+        // Negative offset indicates that the scrollable content is smaller
+        // than the visible area of the ScrollViewer. In that case offset is 0.
+        perpendicularOffset = Math.Max(perpendicularOffset, 0.0);
 
         int pageMin;
         int pageMax;
-
         if (neighbor == -1)
         {
             pageMin = pageMax = pageInt;
@@ -1888,20 +1964,19 @@ internal partial class ReaderView : UserControl
         }
 
         double parallelOffset;
-
         if (pageMin <= page && page <= pageMax)
         {
             parallelOffset = offsets.ParallelCenter;
         }
         else if (page < pageMin)
         {
-            double page_frac = (0.5 - pageMin + page) * 2.0;
-            parallelOffset = offsets.ParallelBegin + page_frac * (offsets.ParallelCenter - offsets.ParallelBegin);
+            double pageFrac = (0.5 - pageMin + page) * 2.0;
+            parallelOffset = offsets.ParallelBegin + pageFrac * (offsets.ParallelCenter - offsets.ParallelBegin);
         }
         else
         {
-            double page_frac = (page - pageMax) * 2.0;
-            parallelOffset = offsets.ParallelCenter + page_frac * (offsets.ParallelEnd - offsets.ParallelCenter);
+            double pageFrac = (page - pageMax) * 2.0;
+            parallelOffset = offsets.ParallelCenter + pageFrac * (offsets.ParallelEnd - offsets.ParallelCenter);
         }
 
         parallelOffset = parallelOffset * SCZoomFactorFinal - ViewportParallelLength * 0.5;
@@ -2246,8 +2321,21 @@ internal partial class ReaderView : UserControl
 
     private class ImageDataModel
     {
-        public double AspectRatio { get; set; }
         public IImageSource ImageSource { get; set; }
+        public int OriginalWidth { get; set; }
+        public int OriginalHeight { get; set; }
+        public double AspectRatio
+        {
+            get
+            {
+                if (OriginalWidth > 0 && OriginalHeight > 0)
+                {
+                    return (double)OriginalWidth / OriginalHeight;
+                }
+
+                return 0;
+            }
+        }
     }
 
     private class GestureHandler(ReaderView view) : ReaderGestureRecognizer.IHandler
@@ -2318,5 +2406,13 @@ internal partial class ReaderView : UserControl
         public double? HorizontalOffset = null;
         public double? VerticalOffset = null;
         public bool DisableAnimation = false;
+    }
+
+    private class PengingImageItem
+    {
+        public int Index;
+        public int OriginalWidth;
+        public int OriginalHeight;
+        public IImageSource Source;
     }
 }

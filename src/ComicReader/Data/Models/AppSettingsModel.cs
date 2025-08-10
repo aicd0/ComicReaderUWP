@@ -106,6 +106,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
     public class ReaderSettingJsonModel
     {
+        [JsonPropertyName("OriginalSize")]
+        public bool? OriginalSize { get; set; }
+
         [JsonPropertyName("VerticalReading")]
         public bool? VerticalReading { get; set; }
 
@@ -199,6 +202,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
     public class ReaderSettingModel
     {
+        public bool OriginalSize { get; set; }
         public bool VerticalReading { get; set; }
         public bool LeftToRight { get; set; }
         public bool VerticalContinuous { get; set; }
@@ -211,6 +215,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         {
             return new ReaderSettingModel
             {
+                OriginalSize = model?.OriginalSize ?? false,
                 VerticalReading = model?.VerticalReading ?? true,
                 LeftToRight = model?.LeftToRight ?? false,
                 VerticalContinuous = model?.VerticalContinuous ?? true,
@@ -225,6 +230,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         {
             return new()
             {
+                OriginalSize = OriginalSize,
                 VerticalReading = VerticalReading,
                 LeftToRight = LeftToRight,
                 VerticalContinuous = VerticalContinuous,

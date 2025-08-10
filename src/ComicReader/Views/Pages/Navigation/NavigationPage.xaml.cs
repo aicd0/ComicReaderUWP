@@ -286,6 +286,7 @@ internal sealed partial class NavigationPage : BasePage
         {
             AppSettingsModel.ExternalModel settingsModel = AppSettingsModel.Instance.GetModel();
             AppSettingsModel.ReaderSettingModel readerSettings = settingsModel.DefaultReaderSetting;
+            readerSettings.OriginalSize = data.OriginalSize;
             readerSettings.VerticalReading = data.IsVertical;
             readerSettings.LeftToRight = data.IsLeftToRight;
             readerSettings.VerticalContinuous = data.IsVerticalContinuous;

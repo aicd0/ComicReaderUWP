@@ -535,6 +535,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Öffne einen zufälligen Comic</value>
   </data>
+  <data name="OriginalSize" xml:space="preserve">
+    <value>Originalgröße</value>
+  </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Dieser Vorgang überschreibt vorhandene Einträge.</value>
   </data>
