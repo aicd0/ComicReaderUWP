@@ -331,6 +331,7 @@ internal sealed partial class MainPage : BasePage
         RegisterPageAbility(bundle.Communicator, ability);
         _tabs.Add(tabInfo);
         RootTabView.TabItems.Add(item);
+        SaveTabStatus();
         return tabId;
     }
 
@@ -540,6 +541,7 @@ internal sealed partial class MainPage : BasePage
 
     private void OnPageChanged()
     {
+        SaveTabStatus();
         UpdateTopPadding();
 
         TabInfo? currentTab = _currentTab;

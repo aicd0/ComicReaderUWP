@@ -764,16 +764,14 @@ internal partial class ReaderView : UserControl
         }
 
         ReaderFrameViewModel frame = FrameDataSource[begin];
-
-        int pageMin;
-        int pageMax;
-
         if (frame.PageL == -1 && frame.PageR == -1)
         {
             Logger.AssertNotReachHere("E06181918CA281F4");
             return false;
         }
 
+        int pageMin;
+        int pageMax;
         if (frame.PageL == -1)
         {
             pageMin = pageMax = frame.PageR;
@@ -789,7 +787,6 @@ internal partial class ReaderView : UserControl
         }
 
         double page;
-
         if (offset < frameOffsets.ParallelCenter)
         {
             double pageFrac = (offset - frameOffsets.ParallelBegin) / (frameOffsets.ParallelCenter - frameOffsets.ParallelBegin);
@@ -801,11 +798,7 @@ internal partial class ReaderView : UserControl
             page = pageMax + pageFrac * 0.5;
         }
 
-        if (page - PageCount >= 0.5)
-        {
-            Logger.AssertNotReachHere("3BDCDB690350FE36", $"page={page},PageCount={PageCount}");
-        }
-        CurrentPage = page;
+        CurrentPage = Math.Min(page, PageCount);
 
         Log("PageUpdated",
             $"P={CurrentPage}," +
