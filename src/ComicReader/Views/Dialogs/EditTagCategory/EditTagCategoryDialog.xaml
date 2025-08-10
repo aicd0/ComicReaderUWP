@@ -52,6 +52,7 @@
                 <StackPanel
                     Grid.Row="2"
                     Grid.Column="0"
+                    HorizontalAlignment="Right"
                     Orientation="Horizontal">
                     <TextBlock
                         Margin="0,7,0,0"

@@ -618,7 +618,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Сохранять</value>
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
-    <value>Сохранить как конфигурации по умолчанию</value>
+    <value>Сохранить как конфигурацию по умолчанию</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Сохранить как новый</value>

@@ -617,7 +617,7 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
     <value>Speichern</value>
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
-    <value>Als Standardkonfigurationen speichern</value>
+    <value>Als Standardkonfiguration speichern</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Als neu speichern</value>

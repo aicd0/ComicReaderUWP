@@ -617,7 +617,7 @@ La evaluación se realizará en el siguiente orden:
     <value>Ahorrar</value>
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
-    <value>Guardar como configuraciones predeterminadas</value>
+    <value>Guardar como configuración predeterminada</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Guardar como nuevo</value>

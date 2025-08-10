@@ -619,7 +619,7 @@ The evaluation will be performed in the following order:
     <value>Save</value>
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
-    <value>Save as default configurations</value>
+    <value>Save as default configuration</value>
   </data>
   <data name="SaveAsNewButton.Content" xml:space="preserve">
     <value>Save as new</value>
