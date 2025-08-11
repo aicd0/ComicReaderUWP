@@ -560,6 +560,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="PageLayoutSingle" xml:space="preserve">
     <value>Одна страница</value>
   </data>
+  <data name="PageN" xml:space="preserve">
+    <value>Страница $page</value>
+  </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>политика конфиденциальности</value>
   </data>
