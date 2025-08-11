@@ -559,6 +559,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="PageLayoutSingle" xml:space="preserve">
     <value>Página única</value>
   </data>
+  <data name="PageN" xml:space="preserve">
+    <value>Página $page</value>
+  </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>política de privacidad</value>
   </data>
