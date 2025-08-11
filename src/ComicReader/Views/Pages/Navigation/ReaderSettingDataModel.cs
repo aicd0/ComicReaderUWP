@@ -1,7 +1,10 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+
 using ComicReader.Data.Models;
+using ComicReader.Data.Models.Comic;
 
 namespace ComicReader.Views.Pages.Navigation;
 
@@ -59,5 +62,103 @@ internal class ReaderSettingDataModel
             PageGap = PageGap,
         };
         return clone;
+    }
+
+    public void To(AppSettingsModel.ReaderSettingModel model)
+    {
+        model.OriginalSize = OriginalSize;
+        model.VerticalReading = IsVertical;
+        model.LeftToRight = IsLeftToRight;
+        model.VerticalContinuous = IsVerticalContinuous;
+        model.HorizontalContinuous = IsHorizontalContinuous;
+        model.VerticalPageArrangement = VerticalPageArrangement;
+        model.HorizontalPageArrangement = HorizontalPageArrangement;
+        model.PageGap = PageGap;
+    }
+
+    public void To(ComicModel comic)
+    {
+        comic.SetExt(ComicExt.ORIGINAL_SIZE, OriginalSize ? "1" : "0");
+        comic.SetExt(ComicExt.USE_DEFAULT_READER_SETTINGS, UseDefault ? "1" : "0");
+        comic.SetExt(ComicExt.VERTICAL_READING, IsVertical ? "1" : "0");
+        comic.SetExt(ComicExt.LEFT_TO_RIGHT, IsLeftToRight ? "1" : "0");
+        comic.SetExt(ComicExt.VERTICAL_CONTINUOUS, IsVerticalContinuous ? "1" : "0");
+        comic.SetExt(ComicExt.HORIZONTAL_CONTINUOUS, IsHorizontalContinuous ? "1" : "0");
+        comic.SetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT, VerticalPageArrangement.ToString());
+        comic.SetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT, HorizontalPageArrangement.ToString());
+        comic.SetExt(ComicExt.PAGE_GAP, PageGap.ToString());
+        comic.FlushExt();
+    }
+
+    public static ReaderSettingDataModel From(AppSettingsModel.ReaderSettingModel model, ComicModel comic)
+    {
+        PageArrangementEnum? ParsePageArrangement(string? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (Enum.TryParse(value, out PageArrangementEnum arrangement))
+            {
+                return arrangement;
+            }
+
+            return null;
+        }
+
+        bool useDefault = comic.GetExt(ComicExt.USE_DEFAULT_READER_SETTINGS)?.Equals("1") ?? true;
+        bool originalSize;
+        bool verticalReading;
+        bool leftToRight;
+        bool verticalContinuous;
+        bool horizontalContinuous;
+        PageArrangementEnum verticalPageArrangement;
+        PageArrangementEnum horizontalPageArrangement;
+        int pageGap;
+
+        if (useDefault)
+        {
+            originalSize = model.OriginalSize;
+            verticalReading = model.VerticalReading;
+            leftToRight = model.LeftToRight;
+            verticalContinuous = model.VerticalContinuous;
+            horizontalContinuous = model.HorizontalContinuous;
+            verticalPageArrangement = model.VerticalPageArrangement;
+            horizontalPageArrangement = model.HorizontalPageArrangement;
+            pageGap = model.PageGap;
+        }
+        else
+        {
+            originalSize = comic.GetExt(ComicExt.ORIGINAL_SIZE)?.Equals("1") ?? model.OriginalSize;
+            verticalReading = comic.GetExt(ComicExt.VERTICAL_READING)?.Equals("1") ?? model.VerticalReading;
+            leftToRight = comic.GetExt(ComicExt.LEFT_TO_RIGHT)?.Equals("1") ?? model.LeftToRight;
+            verticalContinuous = comic.GetExt(ComicExt.VERTICAL_CONTINUOUS)?.Equals("1") ?? model.VerticalContinuous;
+            horizontalContinuous = comic.GetExt(ComicExt.HORIZONTAL_CONTINUOUS)?.Equals("1") ?? model.HorizontalContinuous;
+            verticalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT)) ?? model.VerticalPageArrangement;
+            horizontalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT)) ?? model.HorizontalPageArrangement;
+
+            pageGap = model.PageGap;
+            {
+                string? pageGapString = comic.GetExt(ComicExt.PAGE_GAP);
+                if (!string.IsNullOrEmpty(pageGapString) && int.TryParse(pageGapString, out int parsedPageGap))
+                {
+                    pageGap = parsedPageGap;
+                }
+            }
+        }
+
+        return new ReaderSettingDataModel
+        {
+            OriginalSize = originalSize,
+            UseDefault = useDefault,
+            IsVertical = verticalReading,
+            IsLeftToRight = leftToRight,
+            IsVerticalContinuous = verticalContinuous,
+            IsHorizontalContinuous = horizontalContinuous,
+            VerticalPageArrangement = verticalPageArrangement,
+            HorizontalPageArrangement = horizontalPageArrangement,
+            PageGap = pageGap,
+        };
     }
 }
