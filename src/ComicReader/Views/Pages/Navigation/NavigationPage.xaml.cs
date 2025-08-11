@@ -254,6 +254,11 @@ internal sealed partial class NavigationPage : BasePage
         SetIsFavorite(!_isFavorite);
     }
 
+    private void OnComicInfoClick(object sender, RoutedEventArgs e)
+    {
+        _ability.SendExpandInfoPaneEvent();
+    }
+
     private void SetIsFavorite(bool isFavorite)
     {
         _isFavorite = isFavorite;
@@ -273,16 +278,6 @@ internal sealed partial class NavigationPage : BasePage
     private void AbtbPreviewButton_Unchecked(object sender, RoutedEventArgs e)
     {
         _ability.SendGridViewModeChangedEvent(false);
-    }
-
-    private void ComicInfoButton_Checked(object sender, RoutedEventArgs e)
-    {
-        _ability.SendInfoPaneToggledEvent(true);
-    }
-
-    private void ComicInfoButton_Unchecked(object sender, RoutedEventArgs e)
-    {
-        _ability.SendInfoPaneToggledEvent(false);
     }
 
     private void RspReaderSetting_DataChanged(ReaderSettingDataModel data)
@@ -385,7 +380,7 @@ internal sealed partial class NavigationPage : BasePage
     {
         private const string EVENT_LEAVING = "Leaving";
         private const string EVENT_REFRESH = "Refresh";
-        private const string EVENT_INFO_PANE_TOGGLED = "InfoPaneToggled";
+        private const string EVENT_EXPAND_INFO_PANE = "ExpandInfoPane";
         private const string EVENT_FAVORITE_CHANGED = "FavoriteChanged";
         private const string EVENT_GRID_VIEW_MODE_CHANGED = "GridViewModeChanged";
         private const string EVENT_READER_SETTINGS_CHANGED = "ReaderSettingsChanged";
@@ -444,16 +439,6 @@ internal sealed partial class NavigationPage : BasePage
             parent.SetGridViewModeEnabled(enabled);
         }
 
-        public void SetInfoPaneOpened(bool isOpened)
-        {
-            if (!_parent.TryGetTarget(out NavigationPage? parent))
-            {
-                return;
-            }
-
-            parent.ComicInfoButton.IsChecked = isOpened;
-        }
-
         public void SetIsSidePaneOpen(bool isOpen)
         {
             if (!_parent.TryGetTarget(out NavigationPage? parent))
@@ -510,17 +495,17 @@ internal sealed partial class NavigationPage : BasePage
             _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
         }
 
-        public void RegisterInfoPaneToggledHandler(Page owner, INavigationPageAbility.InfoPaneToggledEventHandler handler)
+        public void RegisterExpandInfoPaneHandler(Page owner, INavigationPageAbility.CommonEventHandler handler)
         {
-            _eventBus.With<bool>(EVENT_INFO_PANE_TOGGLED).Observe(owner, toggled =>
+            _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Observe(owner, delegate
             {
-                handler(toggled);
+                handler();
             });
         }
 
-        public void SendInfoPaneToggledEvent(bool toggled)
+        public void SendExpandInfoPaneEvent()
         {
-            _eventBus.With<bool>(EVENT_INFO_PANE_TOGGLED).Emit(toggled);
+            _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Emit(true);
         }
 
         public void RegisterFavoriteChangedEventHandler(Page owner, INavigationPageAbility.FavoriteChangedEventHandler handler)

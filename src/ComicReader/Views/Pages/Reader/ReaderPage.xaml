@@ -164,7 +164,7 @@
                 x:Name="InfoPane"
                 Grid.Row="1"
                 Margin="0,0,-2,0"
-                DisplayMode="Inline"
+                DisplayMode="Overlay"
                 PaneBackground="{ThemeResource FlyoutPresenterBackground}"
                 PanePlacement="Right">
 
