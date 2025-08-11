@@ -217,11 +217,11 @@ internal sealed partial class ReaderPage : BasePage
             GridViewModeEnabled = enabled;
         });
 
-        GetNavigationPageAbility().RegisterExpandInfoPaneHandler(this, delegate
+        GetNavigationPageAbility().RegisterInfoPaneToggledHandler(this, toggled =>
         {
             if (InfoPane != null)
             {
-                InfoPane.IsPaneOpen = true;
+                InfoPane.IsPaneOpen = toggled;
             }
         });
 

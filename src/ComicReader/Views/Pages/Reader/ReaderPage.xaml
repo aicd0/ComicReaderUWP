@@ -163,7 +163,7 @@
                 x:Name="InfoPane"
                 Grid.Row="1"
                 Margin="0,0,-2,0"
-                DisplayMode="Overlay"
+                DisplayMode="Inline"
                 PaneBackground="{ThemeResource FlyoutPresenterBackground}"
                 PanePlacement="Right">
 
@@ -176,7 +176,10 @@
                         </Grid.RowDefinitions>
 
                         <!--  Information  -->
-                        <ScrollViewer Grid.Row="0" Padding="15,0,15,0">
+                        <ScrollViewer
+                            Grid.Row="0"
+                            Padding="15,0,15,0"
+                            VerticalScrollBarVisibility="Auto">
                             <StackPanel Orientation="Vertical">
                                 <Grid Height="34" />
 

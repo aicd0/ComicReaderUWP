@@ -254,11 +254,6 @@ internal sealed partial class NavigationPage : BasePage
         SetIsFavorite(!_isFavorite);
     }
 
-    private void OnComicInfoClick(object sender, RoutedEventArgs e)
-    {
-        _ability.SendExpandInfoPaneEvent();
-    }
-
     private void SetIsFavorite(bool isFavorite)
     {
         _isFavorite = isFavorite;
@@ -278,6 +273,16 @@ internal sealed partial class NavigationPage : BasePage
     private void AbtbPreviewButton_Unchecked(object sender, RoutedEventArgs e)
     {
         _ability.SendGridViewModeChangedEvent(false);
+    }
+
+    private void ComicInfoButton_Checked(object sender, RoutedEventArgs e)
+    {
+        _ability.SendInfoPaneToggledEvent(true);
+    }
+
+    private void ComicInfoButton_Unchecked(object sender, RoutedEventArgs e)
+    {
+        _ability.SendInfoPaneToggledEvent(false);
     }
 
     private void RspReaderSetting_DataChanged(ReaderSettingDataModel data)
@@ -380,7 +385,7 @@ internal sealed partial class NavigationPage : BasePage
     {
         private const string EVENT_LEAVING = "Leaving";
         private const string EVENT_REFRESH = "Refresh";
-        private const string EVENT_EXPAND_INFO_PANE = "ExpandInfoPane";
+        private const string EVENT_INFO_PANE_TOGGLED = "InfoPaneToggled";
         private const string EVENT_FAVORITE_CHANGED = "FavoriteChanged";
         private const string EVENT_GRID_VIEW_MODE_CHANGED = "GridViewModeChanged";
         private const string EVENT_READER_SETTINGS_CHANGED = "ReaderSettingsChanged";
@@ -495,17 +500,17 @@ internal sealed partial class NavigationPage : BasePage
             _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
         }
 
-        public void RegisterExpandInfoPaneHandler(Page owner, INavigationPageAbility.CommonEventHandler handler)
+        public void RegisterInfoPaneToggledHandler(Page owner, INavigationPageAbility.InfoPaneToggledEventHandler handler)
         {
-            _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Observe(owner, delegate
+            _eventBus.With<bool>(EVENT_INFO_PANE_TOGGLED).Observe(owner, toggled =>
             {
-                handler();
+                handler(toggled);
             });
         }
 
-        public void SendExpandInfoPaneEvent()
+        public void SendInfoPaneToggledEvent(bool toggled)
         {
-            _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Emit(true);
+            _eventBus.With<bool>(EVENT_INFO_PANE_TOGGLED).Emit(toggled);
         }
 
         public void RegisterFavoriteChangedEventHandler(Page owner, INavigationPageAbility.FavoriteChangedEventHandler handler)
