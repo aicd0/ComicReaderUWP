@@ -561,6 +561,9 @@ The evaluation will be performed in the following order:
   <data name="PageLayoutSingle" xml:space="preserve">
     <value>Single</value>
   </data>
+  <data name="PageN" xml:space="preserve">
+    <value>Page $page</value>
+  </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>Privacy Policy</value>
   </data>

@@ -444,6 +444,16 @@ internal sealed partial class NavigationPage : BasePage
             parent.SetGridViewModeEnabled(enabled);
         }
 
+        public void SetInfoPaneOpened(bool isOpened)
+        {
+            if (!_parent.TryGetTarget(out NavigationPage? parent))
+            {
+                return;
+            }
+
+            parent.ComicInfoButton.IsChecked = isOpened;
+        }
+
         public void SetIsSidePaneOpen(bool isOpen)
         {
             if (!_parent.TryGetTarget(out NavigationPage? parent))

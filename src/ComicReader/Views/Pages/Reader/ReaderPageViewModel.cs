@@ -5,15 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Imaging;
 using ComicReader.Common.Lifecycle;
+using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
+using ComicReader.Helpers.Imaging;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.Algorithm;
+using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Pages.Reader;
@@ -21,6 +26,10 @@ namespace ComicReader.Views.Pages.Reader;
 internal partial class ReaderPageViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private ComicModel? _comic;
+    private IComicConnection? _comicConnection;
+    private int _pageIndex = -1;
 
     public readonly MutableLiveData<string> TagClickLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
@@ -95,6 +104,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _imageDescription = string.Empty;
+    public string ImageDescription
+    {
+        get => _imageDescription;
+        set
+        {
+            _imageDescription = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageDescription)));
+        }
+    }
+
     private bool _isFullscreen = false;
     public bool IsFullscreen
     {
@@ -109,13 +129,47 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
     public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];
 
-    private ComicModel? _comic;
+    public IComicConnection? ComicConnection => _comicConnection;
 
     public ReaderPageViewModel() { }
 
     public void SetComic(ComicModel comic)
     {
         _comic = comic;
+    }
+
+    public async Task OpenComicConnection()
+    {
+        ComicModel? comic = _comic;
+        if (comic is null)
+        {
+            return;
+        }
+
+        CloseComicConnection();
+        _comicConnection = await comic.OpenComicAsync();
+    }
+
+    public void CloseComicConnection()
+    {
+        _comicConnection?.Dispose();
+        _comicConnection = null;
+    }
+
+    public void SetPageIndex(int pageIndex)
+    {
+        if (pageIndex < 0)
+        {
+            pageIndex = -1;
+        }
+
+        if (pageIndex == _pageIndex)
+        {
+            return;
+        }
+
+        _pageIndex = pageIndex;
+        UpdateImageDescription();
     }
 
     public async Task LoadComicTag()
@@ -259,5 +313,87 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         });
 
         return items;
+    }
+
+    private void UpdateImageDescription()
+    {
+        ComicModel? comic = _comic;
+        IComicConnection? comicConnection = _comicConnection;
+        int pageIndex = _pageIndex;
+        if (comic is null || pageIndex < 0 || comicConnection is null)
+        {
+            ImageDescription = string.Empty;
+            return;
+        }
+
+        int imageCount = comicConnection.GetImageCount();
+        if (pageIndex >= imageCount)
+        {
+            ImageDescription = string.Empty;
+            return;
+        }
+
+        string imageName = comicConnection.GetImageName(pageIndex);
+        var imageSource = new ComicImageSource(comic, comicConnection, pageIndex);
+        TaskDispatcher.DefaultQueue.Submit("LoadImageMeta", () =>
+        {
+            ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(imageSource);
+            StringBuilder imageDescriptionSb = new();
+
+            if (!string.IsNullOrEmpty(imageName))
+            {
+                imageDescriptionSb.Append(imageName);
+            }
+
+            if (imageMeta is not null)
+            {
+                if (imageDescriptionSb.Length > 0)
+                {
+                    imageDescriptionSb.Append('\n');
+                }
+
+                imageDescriptionSb.Append(imageMeta.Format);
+                imageDescriptionSb.Append(' ').Append(imageMeta.Width).Append(" x ").Append(imageMeta.Height);
+                imageDescriptionSb.Append(' ').Append(FormatBytes(imageMeta.Size));
+
+                if (imageMeta.DpiX > 0 && imageMeta.DpiY > 0)
+                {
+                    imageDescriptionSb.Append(' ').Append(FormatDpi(imageMeta.DpiX, imageMeta.DpiY));
+                }
+
+                imageDescriptionSb.Append(' ').Append(imageMeta.BitsPerPixel).Append(" bits");
+            }
+
+            string imageDescription = imageDescriptionSb.ToString();
+            MainThreadUtils.RunInMainThread(() =>
+            {
+                ImageDescription = imageDescription;
+            });
+        });
+    }
+
+    private static string FormatDpi(int dpiX, int dpiY)
+    {
+        if (dpiX == dpiY)
+        {
+            return $"{dpiX} dpi";
+        }
+        else
+        {
+            return $"{dpiX} x {dpiY} dpi";
+        }
+    }
+
+    private static string FormatBytes(long byteCount)
+    {
+        string[] units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"];
+        if (byteCount < 1024)
+        {
+            return $"{byteCount} B";
+        }
+
+        int unitIndex = (int)Math.Floor(Math.Log(byteCount, 1024));
+        double adjustedSize = byteCount / Math.Pow(1024, unitIndex);
+        return $"{adjustedSize:0.#} {units[unitIndex]}";
     }
 }

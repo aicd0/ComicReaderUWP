@@ -56,12 +56,6 @@ internal partial class ComicFolderData : ComicData
         return FileUtils.GetFileHashCode(_imageFiles[index]);
     }
 
-    public override async Task<IComicConnection?> OpenComicAsync()
-    {
-        await LoadImageFiles();
-        return new FolderComicConnection(_imageFiles);
-    }
-
     protected override Task<bool> MoveToLocationInternal(string newLocation)
     {
         return CoroutineUtils.CreateTask("MoveToLocationInternal", TaskDispatcher.LongRunningThreadPool, () =>
@@ -109,6 +103,12 @@ internal partial class ComicFolderData : ComicData
 
             return true;
         });
+    }
+
+    protected override async Task<IComicConnection?> OpenComicConnection()
+    {
+        await LoadImageFiles();
+        return new FolderComicConnection(_imageFiles);
     }
 
     protected override async Task<TaskException> ReloadImages()
@@ -204,7 +204,7 @@ internal partial class ComicFolderData : ComicData
         {
             if (index < 0 || index >= _imageFiles.Count)
             {
-                Logger.F(TAG, "InternalGetImageStream");
+                Logger.F(TAG, "GetImageStream");
                 return null;
             }
 
@@ -223,6 +223,18 @@ internal partial class ComicFolderData : ComicData
                 Logger.F(TAG, $"Cannot open '{imageFile.Path}'.", e);
                 return null;
             }
+        }
+
+        public string GetImageName(int index)
+        {
+            if (index < 0 || index >= _imageFiles.Count)
+            {
+                Logger.F(TAG, "GetImageName");
+                return string.Empty;
+            }
+
+            StorageFile imageFile = _imageFiles[index];
+            return imageFile.Name;
         }
     }
 }

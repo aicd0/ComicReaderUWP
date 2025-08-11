@@ -203,6 +203,7 @@
 
                     <!--  Comic info  -->
                     <AppBarToggleButton
+                        x:Name="ComicInfoButton"
                         Checked="ComicInfoButton_Checked"
                         Style="{StaticResource NavigationPageTopTileAppBarToggleButton}"
                         ToolTipService.ToolTip="{x:Bind StringResource.ComicInfo}"

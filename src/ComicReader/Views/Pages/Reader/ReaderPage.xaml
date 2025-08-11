@@ -28,6 +28,7 @@
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToDoubleConverter x:Key="BooleanToDoubleConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
 
             <cwm:AttachedCardShadow
                 x:Key="CommonShadow"
@@ -241,6 +242,16 @@
                                         </InlineUIContainer>
                                     </Paragraph>
                                 </RichTextBlock>
+
+                                <!--  Image Description  -->
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    FontSize="13"
+                                    FontWeight="SemiLight"
+                                    IsTextSelectionEnabled="True"
+                                    Text="{x:Bind ViewModel.ImageDescription, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{x:Bind ViewModel.ImageDescription, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
 
                                 <!--  Tags  -->
                                 <Rectangle

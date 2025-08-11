@@ -536,6 +536,21 @@ internal abstract class ComicData
     }
 
     //
+    // Comic Connection
+    //
+
+    public async Task<IComicConnection?> OpenComicAsync()
+    {
+        IComicConnection? connection = await OpenComicConnection();
+        if (connection is null)
+        {
+            return null;
+        }
+
+        return new ComicConnectionWrapper(connection);
+    }
+
+    //
     // Virtual Methods
     //
 
@@ -543,6 +558,12 @@ internal abstract class ComicData
     {
         return Task.FromResult(false);
     }
+
+    //
+    // Abstract Methods
+    //
+
+    protected abstract Task<IComicConnection?> OpenComicConnection();
 
     //
     // Unsorted
@@ -790,8 +811,6 @@ internal abstract class ComicData
     public abstract string GetImageCacheKey(int index);
 
     public abstract int GetImageSignature(int index);
-
-    public abstract Task<IComicConnection?> OpenComicAsync();
 
     protected abstract Task<TaskException> ReloadImages();
 
@@ -1100,7 +1119,7 @@ internal abstract class ComicData
     }
 
     //
-    // Utilities
+    // Helper Methods
     //
 
     private static void DispatchComicUpdateEvent()

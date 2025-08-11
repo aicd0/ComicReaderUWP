@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 
+using ComicReader.Common;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
@@ -101,7 +102,7 @@ internal class ComicPdfData : ComicData
         return FileUtils.GetFileHashCode(_pdfFile);
     }
 
-    public override async Task<IComicConnection?> OpenComicAsync()
+    protected override async Task<IComicConnection?> OpenComicConnection()
     {
         StorageFile? file = await GetFile();
         if (file is null)
@@ -135,6 +136,11 @@ internal class ComicPdfData : ComicData
         public int GetImageCount()
         {
             return _connection.GetPageCount();
+        }
+
+        public string GetImageName(int index)
+        {
+            return StringResourceProvider.Instance.PageN.Replace("$page", (index + 1).ToString());
         }
 
         public async Task<IRandomAccessStream?> GetImageStream(int index)

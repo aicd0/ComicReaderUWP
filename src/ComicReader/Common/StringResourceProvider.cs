@@ -99,6 +99,7 @@ public class StringResourceProvider
     public string PageLayoutDualWithCover => GetResourceString("PageLayoutDualWithCover");
     public string PageLayoutDualWithCoverMirrored => GetResourceString("PageLayoutDualWithCoverMirrored");
     public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
+    public string PageN => GetResourceString("PageN");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
     public string Rating => GetResourceString("Rating");

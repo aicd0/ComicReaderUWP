@@ -57,7 +57,6 @@ internal sealed partial class ReaderPage : BasePage
     private ComicModel? _pendingComic;
     private bool _isLoading = false;
 
-    private IComicConnection? _comicConnection;
     private volatile bool _updatingProgress = false;
     private bool? _isFavorite = null;
     private ComicCompletionStatusEnum? _completionState = null;
@@ -111,6 +110,7 @@ internal sealed partial class ReaderPage : BasePage
 
         reader.ReaderEventPageChanged += delegate (ReaderView sender, bool isIntermediate)
         {
+            ViewModel.SetPageIndex(MainReaderView.CurrentPageDisplay - 1);
             UpdatePage();
             UpdateProgress(sender, save: !isIntermediate);
             BottomTileSetHold(false);
@@ -168,6 +168,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ObserveData();
         GetNavigationPageAbility().SetGridViewMode(false);
+        GetNavigationPageAbility().SetInfoPaneOpened(false);
         LoadReaderSettings();
         UpdateReaderUI();
         LoadComicInfo();
@@ -176,7 +177,7 @@ internal sealed partial class ReaderPage : BasePage
     protected override void OnStop()
     {
         base.OnStop();
-        ReleaseComicConnection();
+        ViewModel.CloseComicConnection();
     }
 
     private void ObserveData()
@@ -348,7 +349,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        ReleaseComicConnection();
+        ViewModel.CloseComicConnection();
         _comic = null;
 
         if (comic == null)
@@ -376,9 +377,9 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        IComicConnection? connection = await comic.OpenComicAsync();
-        _comicConnection = connection;
-        if (connection == null)
+        await ViewModel.OpenComicConnection();
+        IComicConnection? connection = ViewModel.ComicConnection;
+        if (connection is null)
         {
             ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
             return;
@@ -418,12 +419,6 @@ internal sealed partial class ReaderPage : BasePage
                 Page = i + 1,
             });
         }
-    }
-
-    private void ReleaseComicConnection()
-    {
-        _comicConnection?.Dispose();
-        _comicConnection = null;
     }
 
     //
