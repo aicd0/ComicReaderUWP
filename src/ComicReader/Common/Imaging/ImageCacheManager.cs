@@ -23,7 +23,6 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
-using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
 
 namespace ComicReader.Common.Imaging;
@@ -32,6 +31,7 @@ internal static class ImageCacheManager
 {
     private const string TAG = "ImageCacheManager";
     private const int VERSION = 1;
+    private const int IMAGE_META_VERSION = 1;
     private const string IMAGES_FOLDER_NAME = "images";
     private const string MAIN_DATABASE_FILE_NAME = "db_main.db";
     private const long MAX_CACHE_SIZE = 1024 * 1024 * 1024;
@@ -87,6 +87,12 @@ internal static class ImageCacheManager
 
     public static ImageMeta? GetImageMeta(IImageSource source)
     {
+        if (MainThreadUtils.IsMainThread())
+        {
+            Logger.F(TAG, "GetImageMeta cannot be called on main thread.");
+            return null;
+        }
+
         ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(source.GetUri());
         if (record is null)
         {
@@ -131,37 +137,36 @@ internal static class ImageCacheManager
                     return null;
                 }
 
-                int width = 0;
-                int height = 0;
                 using (stream)
                 {
+                    stream.Seek(0);
+                    Image? image = null;
                     try
                     {
-                        stream.Seek(0);
-                        BitmapDecoder decoder = BitmapDecoder.CreateAsync(stream).AsTask().Result;
-                        width = (int)decoder.PixelWidth;
-                        height = (int)decoder.PixelHeight;
+                        image = Image.Load(stream.AsStream());
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Logger.E(TAG, "GetImageInfo", e);
+                        Logger.F(TAG, "GetImageMeta", ex);
+                    }
+
+                    if (image is null)
+                    {
                         return null;
                     }
+
+                    PutImageMetaToCacheRecord(record, sourceFingerprint, stream.Size, image);
                 }
 
-                // Check if meta is valid
-                if (width <= 0 || height <= 0)
+                ImageMeta? imageMeta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+                if (imageMeta is null)
                 {
-                    Logger.AssertNotReachHere("8315BC14B4B0AE5D");
+                    Logger.F(TAG, "Failed to get image meta from cache record after saving");
                     return null;
                 }
 
-                // Update cache record
-                record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
-                record.PutExt(ImageCacheExt.IMAGE_WIDTH, width.ToString());
-                record.PutExt(ImageCacheExt.IMAGE_HEIGHT, height.ToString());
                 record.Save();
-                return new ImageMeta(width, height);
+                return imageMeta;
             }
             finally
             {
@@ -178,7 +183,11 @@ internal static class ImageCacheManager
         IImageSource source, double frameWidth, double frameHeight, StretchModeEnum stretchMode,
         IImageResultHandler handler)
     {
-        Logger.Assert(!MainThreadUtils.IsMainThread(), "AD0290621DDD0E4F");
+        if (MainThreadUtils.IsMainThread())
+        {
+            Logger.F(TAG, "LoadImage cannot be called on main thread.");
+            return;
+        }
 
         if (token.IsCancellationRequested)
         {
@@ -272,6 +281,7 @@ internal static class ImageCacheManager
         {
             return;
         }
+
         _ = MainThreadUtils.PostInMainThreadAsync(async delegate
         {
             long startTime = GetCurrentTick();
@@ -404,6 +414,8 @@ internal static class ImageCacheManager
 
         try
         {
+            PutImageMetaToCacheRecord(record, sourceFingerprint, sourceStream.Size, image);
+
             int sourceWidth = image.Width;
             int sourceHeight = image.Height;
             IEnumerable<string> cacheEntryKeys = CalculateCacheEntryKeys(frameWidth, frameHeight, stretchMode, sourceWidth, sourceHeight);
@@ -444,10 +456,6 @@ internal static class ImageCacheManager
                         Logger.F(TAG, "TryCreateImageCache", e);
                     }
                 }
-
-                record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
-                record.PutExt(ImageCacheExt.IMAGE_WIDTH, sourceWidth.ToString());
-                record.PutExt(ImageCacheExt.IMAGE_HEIGHT, sourceHeight.ToString());
 
                 if (!string.IsNullOrEmpty(cacheEntryKey) && !string.IsNullOrEmpty(entry))
                 {
@@ -545,19 +553,85 @@ internal static class ImageCacheManager
 
     private static ImageMeta? GetImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint)
     {
-        string metaFingerprint = record.GetExt(ImageCacheExt.IMAGE_META_FINGERPRINT) ?? string.Empty;
-        if (string.IsNullOrEmpty(sourceFingerprint) || metaFingerprint == sourceFingerprint)
+        string metaVersion = record.GetExt(ImageCacheExt.IMAGE_META_VERSION) ?? string.Empty;
+        if (metaVersion != IMAGE_META_VERSION.ToString())
         {
-            string widthStr = record.GetExt(ImageCacheExt.IMAGE_WIDTH) ?? string.Empty;
-            string heightStr = record.GetExt(ImageCacheExt.IMAGE_HEIGHT) ?? string.Empty;
-            if (!string.IsNullOrEmpty(widthStr) && !string.IsNullOrEmpty(widthStr) &&
-                int.TryParse(widthStr, out int width) && int.TryParse(heightStr, out int height) && width > 0 && height > 0)
-            {
-                return new ImageMeta(width, height);
-            }
+            return null;
         }
 
-        return null;
+        string metaFingerprint = record.GetExt(ImageCacheExt.IMAGE_META_FINGERPRINT) ?? string.Empty;
+        if (!string.IsNullOrEmpty(sourceFingerprint) && metaFingerprint != sourceFingerprint)
+        {
+            return null;
+        }
+
+        int ReadExtInterger(string key, int defaultValue)
+        {
+            string? value = record.GetExt(key);
+            if (!string.IsNullOrEmpty(value) && int.TryParse(value, out int result))
+            {
+                return result;
+            }
+
+            return defaultValue;
+        }
+
+        long ReadExtLong(string key, long defaultValue)
+        {
+            string? value = record.GetExt(key);
+            if (!string.IsNullOrEmpty(value) && long.TryParse(value, out long result))
+            {
+                return result;
+            }
+
+            return defaultValue;
+        }
+
+        int width = ReadExtInterger(ImageCacheExt.IMAGE_META_WIDTH, 0);
+        int height = ReadExtInterger(ImageCacheExt.IMAGE_META_HEIGHT, 0);
+        int dpiX = ReadExtInterger(ImageCacheExt.IMAGE_META_DPI_X, 0);
+        int dpiY = ReadExtInterger(ImageCacheExt.IMAGE_META_DPI_Y, 0);
+        int bitsPerPixel = ReadExtInterger(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, 0);
+        long size = ReadExtLong(ImageCacheExt.IMAGE_META_SIZE, 0);
+        string decoderName = record.GetExt(ImageCacheExt.IMAGE_META_DECODER_NAME) ?? string.Empty;
+
+        return new(width, height, dpiX, dpiY, decoderName, bitsPerPixel, size);
+    }
+
+    private static void PutImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, ulong size, Image image)
+    {
+        SixLabors.ImageSharp.Metadata.ImageMetadata? metadata = image.Metadata;
+        if (metadata == null)
+        {
+            Logger.F(TAG, "Image metadata is null");
+            return;
+        }
+
+        SixLabors.ImageSharp.Formats.PixelTypeInfo pixelType = image.PixelType;
+        if (pixelType == null)
+        {
+            Logger.F(TAG, "Image pixel type is null");
+            return;
+        }
+
+        int width = image.Width;
+        int height = image.Height;
+        if (width <= 0 || height <= 0)
+        {
+            Logger.F(TAG, $"Invalid image dimensions: width={width}, height={height}");
+            return;
+        }
+
+        metadata.ResolutionUnits = SixLabors.ImageSharp.Metadata.PixelResolutionUnit.PixelsPerInch;
+        record.PutExt(ImageCacheExt.IMAGE_META_VERSION, IMAGE_META_VERSION.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
+        record.PutExt(ImageCacheExt.IMAGE_META_WIDTH, width.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_HEIGHT, height.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DPI_X, metadata.HorizontalResolution.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DPI_Y, metadata.VerticalResolution.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, pixelType.BitsPerPixel.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DECODER_NAME, metadata.DecodedImageFormat?.Name ?? string.Empty);
+        record.PutExt(ImageCacheExt.IMAGE_META_SIZE, size.ToString());
     }
 
     private static void CalculateDesiredDimension(double frameWidth, double frameHeight,
@@ -706,12 +780,14 @@ internal static class ImageCacheManager
         public long StartTime;
     }
 
-    public class ImageMeta(int width, int height)
+    public class ImageMeta(int width, int height, int dpiX, int dpiY, string format, int bitsPerPixel, long size)
     {
-        private readonly int _width = width;
-        private readonly int _height = height;
-
-        public int Width => _width;
-        public int Height => _height;
+        public int Width => width;
+        public int Height => height;
+        public int DpiX => dpiX;
+        public int DpiY => dpiY;
+        public string Format => format;
+        public int BitsPerPixel => bitsPerPixel;
+        public long Size => size;
     }
 }

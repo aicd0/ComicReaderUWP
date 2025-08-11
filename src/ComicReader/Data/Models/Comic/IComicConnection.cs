@@ -13,4 +13,6 @@ internal interface IComicConnection : IDisposable
     public int GetImageCount();
 
     public Task<IRandomAccessStream?> GetImageStream(int index);
+
+    public string GetImageName(int index);
 }

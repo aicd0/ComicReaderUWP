@@ -24,6 +24,8 @@ internal interface INavigationPageAbility : IPageAbility
 
     void SetGridViewMode(bool enabled);
 
+    void SetInfoPaneOpened(bool isOpened);
+
     bool GetIsSidePaneOpen();
 
     void SetIsSidePaneOpen(bool isOpen);

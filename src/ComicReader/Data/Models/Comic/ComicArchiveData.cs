@@ -172,7 +172,7 @@ internal partial class ComicArchiveData : ComicData
         return FileUtils.GetFileHashCode(_archive);
     }
 
-    public override async Task<IComicConnection?> OpenComicAsync()
+    protected override async Task<IComicConnection?> OpenComicConnection()
     {
         await LoadImageFiles();
 
@@ -205,12 +205,12 @@ internal partial class ComicArchiveData : ComicData
         {
             if (index < 0 || index >= _entries.Count)
             {
-                Logger.F(TAG, "InternalGetImageStream");
+                Logger.F(TAG, "GetImageStream");
                 return null;
             }
 
-            string sub_path = _entries[index];
-            Stream stream = await ArchiveAccess.TryGetFileStream(_archiveFile, sub_path);
+            string path = _entries[index];
+            Stream stream = await ArchiveAccess.TryGetFileStream(_archiveFile, path);
             if (stream == null)
             {
                 Log("Failed to access entry '" + _entries[index] + "'");
@@ -219,6 +219,17 @@ internal partial class ComicArchiveData : ComicData
 
             IRandomAccessStream winStream = stream.AsRandomAccessStream();
             return winStream;
+        }
+
+        public string GetImageName(int index)
+        {
+            if (index < 0 || index >= _entries.Count)
+            {
+                Logger.F(TAG, "GetImageName");
+                return string.Empty;
+            }
+
+            return _entries[index];
         }
     }
 }
