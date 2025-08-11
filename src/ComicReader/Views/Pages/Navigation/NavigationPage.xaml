@@ -202,16 +202,14 @@
                     </AppBarButton>
 
                     <!--  Comic info  -->
-                    <AppBarToggleButton
-                        x:Name="ComicInfoButton"
-                        Checked="ComicInfoButton_Checked"
-                        Style="{StaticResource NavigationPageTopTileAppBarToggleButton}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.ComicInfo}"
-                        Unchecked="ComicInfoButton_Unchecked">
-                        <AppBarToggleButton.Content>
+                    <AppBarButton
+                        Click="OnComicInfoClick"
+                        Style="{StaticResource NavigationPageTopTileAppBarButton}"
+                        ToolTipService.ToolTip="{x:Bind StringResource.ComicInfo}">
+                        <AppBarButton.Content>
                             <FontIcon Glyph="&#xE946;" />
-                        </AppBarToggleButton.Content>
-                    </AppBarToggleButton>
+                        </AppBarButton.Content>
+                    </AppBarButton>
 
                 </StackPanel>
 

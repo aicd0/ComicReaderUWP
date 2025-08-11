@@ -168,7 +168,6 @@ internal sealed partial class ReaderPage : BasePage
 
         ObserveData();
         GetNavigationPageAbility().SetGridViewMode(false);
-        GetNavigationPageAbility().SetInfoPaneOpened(false);
         LoadReaderSettings();
         UpdateReaderUI();
         LoadComicInfo();
@@ -218,11 +217,11 @@ internal sealed partial class ReaderPage : BasePage
             GridViewModeEnabled = enabled;
         });
 
-        GetNavigationPageAbility().RegisterInfoPaneToggledHandler(this, toggled =>
+        GetNavigationPageAbility().RegisterExpandInfoPaneHandler(this, delegate
         {
             if (InfoPane != null)
             {
-                InfoPane.IsPaneOpen = toggled;
+                InfoPane.IsPaneOpen = true;
             }
         });
 

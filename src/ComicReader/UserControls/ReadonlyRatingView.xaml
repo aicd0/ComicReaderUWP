@@ -10,6 +10,7 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/RatingControl.xaml" />
             </ResourceDictionary.MergedDictionaries>
@@ -85,6 +86,7 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
         </ResourceDictionary>
     </UserControl.Resources>
 
