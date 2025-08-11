@@ -10,6 +10,7 @@ namespace ComicReader.Views.Pages.Navigation;
 internal interface INavigationPageAbility : IPageAbility
 {
     public delegate void CommonEventHandler();
+    public delegate void InfoPaneToggledEventHandler(bool toggled);
     public delegate void GridViewModeChangedEventHandler(bool enabled);
     public delegate void FavoriteChangedEventHandler(bool isFavorite);
     public delegate void ReaderSettingsChangedEventHandler(ReaderSettingDataModel settings);
@@ -33,7 +34,7 @@ internal interface INavigationPageAbility : IPageAbility
 
     void RegisterRefreshHandler(Page owner, CommonEventHandler handler);
 
-    void RegisterExpandInfoPaneHandler(Page owner, CommonEventHandler handler);
+    void RegisterInfoPaneToggledHandler(Page owner, InfoPaneToggledEventHandler handler);
 
     void RegisterGridViewModeChangedHandler(Page owner, GridViewModeChangedEventHandler handler);
 
