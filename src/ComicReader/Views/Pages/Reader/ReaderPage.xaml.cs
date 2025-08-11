@@ -230,16 +230,7 @@ internal sealed partial class ReaderPage : BasePage
             ComicModel? comic = _comic;
             if (comic != null && !comic.IsExternal)
             {
-                comic.SetExt(ComicExt.ORIGINAL_SIZE, setting.OriginalSize ? "1" : "0");
-                comic.SetExt(ComicExt.USE_DEFAULT_READER_SETTINGS, setting.UseDefault ? "1" : "0");
-                comic.SetExt(ComicExt.VERTICAL_READING, setting.IsVertical ? "1" : "0");
-                comic.SetExt(ComicExt.LEFT_TO_RIGHT, setting.IsLeftToRight ? "1" : "0");
-                comic.SetExt(ComicExt.VERTICAL_CONTINUOUS, setting.IsVerticalContinuous ? "1" : "0");
-                comic.SetExt(ComicExt.HORIZONTAL_CONTINUOUS, setting.IsHorizontalContinuous ? "1" : "0");
-                comic.SetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT, setting.VerticalPageArrangement.ToString());
-                comic.SetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT, setting.HorizontalPageArrangement.ToString());
-                comic.SetExt(ComicExt.PAGE_GAP, setting.PageGap.ToString());
-                comic.FlushExt();
+                setting.To(comic);
             }
 
             ApplyReaderSettings(setting);
@@ -446,7 +437,9 @@ internal sealed partial class ReaderPage : BasePage
         {
             return;
         }
-        ReaderSettingDataModel readerSettingModel = GetReaderSettingModel(comic);
+
+        AppSettingsModel.ReaderSettingModel readerSettings = AppSettingsModel.Instance.GetModel().DefaultReaderSetting;
+        var readerSettingModel = ReaderSettingDataModel.From(readerSettings, comic);
         GetNavigationPageAbility().SetReaderSettings(readerSettingModel);
         ApplyReaderSettings(readerSettingModel);
     }
@@ -460,79 +453,6 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetFlowDirection(readerSettingModel.IsLeftToRight);
         reader.SetUseOriginalSize(readerSettingModel.OriginalSize);
         reader.SetPageGap(readerSettingModel.PageGap);
-    }
-
-    private ReaderSettingDataModel GetReaderSettingModel(ComicModel comic)
-    {
-        PageArrangementEnum? ParsePageArrangement(string? value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-
-            if (Enum.TryParse(value, out PageArrangementEnum arrangement))
-            {
-                return arrangement;
-            }
-
-            return null;
-        }
-
-        AppSettingsModel.ReaderSettingModel readerSettings = AppSettingsModel.Instance.GetModel().DefaultReaderSetting;
-        bool useDefault = comic.GetExt(ComicExt.USE_DEFAULT_READER_SETTINGS)?.Equals("1") ?? true;
-        bool originalSize;
-        bool verticalReading;
-        bool leftToRight;
-        bool verticalContinuous;
-        bool horizontalContinuous;
-        PageArrangementEnum verticalPageArrangement;
-        PageArrangementEnum horizontalPageArrangement;
-        int pageGap;
-
-        if (useDefault)
-        {
-            originalSize = readerSettings.OriginalSize;
-            verticalReading = readerSettings.VerticalReading;
-            leftToRight = readerSettings.LeftToRight;
-            verticalContinuous = readerSettings.VerticalContinuous;
-            horizontalContinuous = readerSettings.HorizontalContinuous;
-            verticalPageArrangement = readerSettings.VerticalPageArrangement;
-            horizontalPageArrangement = readerSettings.HorizontalPageArrangement;
-            pageGap = readerSettings.PageGap;
-        }
-        else
-        {
-            originalSize = comic.GetExt(ComicExt.ORIGINAL_SIZE)?.Equals("1") ?? readerSettings.OriginalSize;
-            verticalReading = comic.GetExt(ComicExt.VERTICAL_READING)?.Equals("1") ?? readerSettings.VerticalReading;
-            leftToRight = comic.GetExt(ComicExt.LEFT_TO_RIGHT)?.Equals("1") ?? readerSettings.LeftToRight;
-            verticalContinuous = comic.GetExt(ComicExt.VERTICAL_CONTINUOUS)?.Equals("1") ?? readerSettings.VerticalContinuous;
-            horizontalContinuous = comic.GetExt(ComicExt.HORIZONTAL_CONTINUOUS)?.Equals("1") ?? readerSettings.HorizontalContinuous;
-            verticalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT)) ?? readerSettings.VerticalPageArrangement;
-            horizontalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT)) ?? readerSettings.HorizontalPageArrangement;
-
-            pageGap = readerSettings.PageGap;
-            {
-                string? pageGapString = comic.GetExt(ComicExt.PAGE_GAP);
-                if (!string.IsNullOrEmpty(pageGapString) && int.TryParse(pageGapString, out int parsedPageGap))
-                {
-                    pageGap = parsedPageGap;
-                }
-            }
-        }
-
-        return new ReaderSettingDataModel
-        {
-            OriginalSize = originalSize,
-            UseDefault = useDefault,
-            IsVertical = verticalReading,
-            IsLeftToRight = leftToRight,
-            IsVerticalContinuous = verticalContinuous,
-            IsHorizontalContinuous = horizontalContinuous,
-            VerticalPageArrangement = verticalPageArrangement,
-            HorizontalPageArrangement = horizontalPageArrangement,
-            PageGap = pageGap,
-        };
     }
 
     //
