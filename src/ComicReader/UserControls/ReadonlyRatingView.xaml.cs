@@ -35,6 +35,7 @@ public partial class ReadonlyRatingView : UserControl
     private void OnRatingStackPanelLoaded(object sender, RoutedEventArgs e)
     {
         (sender as StackPanel).Spacing = -6;
+        (sender as StackPanel).Height = 30;
     }
 
     private void UpdateUI()

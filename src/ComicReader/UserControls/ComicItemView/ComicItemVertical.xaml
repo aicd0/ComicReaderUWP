@@ -70,14 +70,16 @@
                         TextWrapping="Wrap"
                         ToolTipService.ToolTip="{x:Bind Item.Title, Mode=OneWay}" />
 
-                    <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                    <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
                         <Viewbox
                             Height="20"
+                            Margin="0,2,0,0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center">
                             <controls:ReadonlyRatingView PlaceholderValue="{x:Bind Item.Rating, Mode=OneWay}" Visibility="{x:Bind Item.IsRatingVisible, Mode=OneWay}" />
                         </Viewbox>
                         <TextBlock
+                            VerticalAlignment="Top"
                             FontSize="12"
                             Opacity="0.6"
                             Text="{x:Bind Item.Progress, Mode=OneWay}" />
