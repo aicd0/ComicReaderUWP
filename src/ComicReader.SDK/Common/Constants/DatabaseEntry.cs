@@ -12,4 +12,5 @@ internal static class DatabaseEntry
     public const string KV_KEY_MAIN_DEVELOPER_MODE = "DeveloperMode";
     public const string KV_KEY_MAIN_DEVELOPER_MODE_TOKEN = "DeveloperModeToken";
     public const string KV_KEY_MAIN_SENTRY_ENABLED = "SentryEnabled";
+    public const string KV_KEY_MAIN_CRASH_REPORT = "CrashReport";
 }

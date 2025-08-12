@@ -228,6 +228,9 @@
   <data name="ContributionRunBeforeLink" xml:space="preserve">
     <value>$appnameはオープンソースプロジェクトです。このアプリへの貢献方法については、</value>
   </data>
+  <data name="Copy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>デバッグ情報</value>
   </data>
@@ -730,6 +733,14 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Ungrouped" xml:space="preserve">
     <value>グループ化なし</value>
+  </data>
+  <data name="UnhandledExceptionContent" xml:space="preserve">
+    <value>以下の情報は、開発者がエラーの原因を特定するのに役立ちます。
+===============================
+$info</value>
+  </data>
+  <data name="UnhandledExceptionTitle" xml:space="preserve">
+    <value>このアプリケーションはクラッシュした可能性があります</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>非表示解除</value>

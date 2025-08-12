@@ -228,6 +228,9 @@
   <data name="ContributionRunBeforeLink" xml:space="preserve">
     <value>$appname is an open source project. Check out on </value>
   </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>Debug information</value>
   </data>
@@ -732,6 +735,14 @@ Special variables:
   </data>
   <data name="Ungrouped" xml:space="preserve">
     <value>Ungrouped</value>
+  </data>
+  <data name="UnhandledExceptionContent" xml:space="preserve">
+    <value>The following information will help developers locate the cause of the error.
+==============================
+$info</value>
+  </data>
+  <data name="UnhandledExceptionTitle" xml:space="preserve">
+    <value>This application may have crashed</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Unhide</value>

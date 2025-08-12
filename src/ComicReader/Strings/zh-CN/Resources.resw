@@ -228,6 +228,9 @@
   <data name="ContributionRunBeforeLink" xml:space="preserve">
     <value>$appname是一个开源项目。在</value>
   </data>
+  <data name="Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>调试信息</value>
   </data>
@@ -730,6 +733,14 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="Ungrouped" xml:space="preserve">
     <value>无分组</value>
+  </data>
+  <data name="UnhandledExceptionContent" xml:space="preserve">
+    <value>以下信息将有助于开发者定位错误原因。
+===============================
+$info</value>
+  </data>
+  <data name="UnhandledExceptionTitle" xml:space="preserve">
+    <value>此应用程序可能发生了一次崩溃</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>取消隐藏</value>

@@ -97,6 +97,11 @@ public static class DebugUtils
         DebugSwitchModel.Instance.Initialize();
     }
 
+    public static void ReportLastCrash()
+    {
+        CrashHandler.ReportLastCrash();
+    }
+
     public static void TrackError(Action action, bool fastFail = false)
     {
         try

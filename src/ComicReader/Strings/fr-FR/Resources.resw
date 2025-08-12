@@ -228,6 +228,9 @@
   <data name="ContributionRunBeforeLink" xml:space="preserve">
     <value>$appname est un projet open source. Consultez </value>
   </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copie</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>Informations de débogage</value>
   </data>
@@ -730,6 +733,14 @@ Variables spéciales :
   </data>
   <data name="Ungrouped" xml:space="preserve">
     <value>Pas de regroupement</value>
+  </data>
+  <data name="UnhandledExceptionContent" xml:space="preserve">
+    <value>Les informations suivantes aideront les développeurs à identifier la cause de l'erreur.
+==============================
+$info</value>
+  </data>
+  <data name="UnhandledExceptionTitle" xml:space="preserve">
+    <value>Cette application a peut-être planté</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Afficher</value>

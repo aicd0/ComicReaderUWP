@@ -53,7 +53,6 @@ public class EnvironmentProvider
         sb.SafeAppend("Current system language", GetCurrentSystemLanguage);
         sb.SafeAppend("Current app language", GetCurrentAppLanguage);
         sb.SafeAppend("Device ID", GetDeviceId);
-        sb.SafeAppend("Machine name", () => Environment.MachineName);
         sb.SafeAppend("Device model", DeviceInformationHelper.Instance.GetDeviceModel);
         sb.SafeAppend("OEM name", DeviceInformationHelper.Instance.GetDeviceOemName);
         sb.SafeAppend("Processor count", () => Environment.ProcessorCount);
@@ -62,7 +61,7 @@ public class EnvironmentProvider
         sb.SafeAppend("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
         sb.SafeAppend("Portable", () => IsPortable());
         sb.SafeAppend("Process architecture", () => RuntimeInformation.ProcessArchitecture);
-        sb.SafeAppend("Launch time", () => GetLaunchTime());
+        sb.SafeAppend("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
         sb.SafeAppend("Awake time", () => GetAwakeTime());
 
         if (_additionalDebugInformation.Length > 0)

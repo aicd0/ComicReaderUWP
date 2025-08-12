@@ -3,6 +3,8 @@
 
 using System.Text;
 
+using ComicReader.SDK.Common.Constants;
+using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Storage;
 
@@ -12,43 +14,40 @@ internal static class CrashHandler
 {
     public static void OnUnhandledException(Exception e)
     {
+        StringBuilder sb = new();
+
+        sb.Append("Message:\n");
+        sb.Append(e.Message);
+
+        sb.Append("\n\n");
+        sb.Append("Exception stack trace:\n");
+        sb.Append(e.ToString());
+
+        sb.Append("\n\n");
+        sb.Append("Caller stack trace:\n");
+        sb.Append(new System.Diagnostics.StackTrace(true).ToString());
+
+        sb.Append('\n');
+        sb.Append("Environment information:\n");
+        sb.Append("Crash time: ");
+        sb.Append(DateTimeOffset.Now.ToString("yyyy/M/d HH:mm:ss.fff"));
+        IApplicationService? appService = ServiceManager.GetServiceNullable<IApplicationService>();
+        if (appService is not null)
+        {
+            sb.Append('\n');
+            sb.Append(appService.GetEnvironmentDebugInfo());
+        }
+
+        string crashReport = sb.ToString();
+
         try
         {
-            StringBuilder sb = new();
-
-            sb.Append("Message:\n");
-            sb.Append(e.Message);
-            sb.Append("\n\n");
-
-            sb.Append("Stack trace:\n");
-            sb.Append(e.ToString());
-            sb.Append("\n\n");
-
-            sb.Append("Crash time: ");
-            sb.Append(DateTimeOffset.Now);
-            sb.Append('\n');
-
-            {
-                IApplicationService? service = ServiceManager.GetServiceNullable<IApplicationService>();
-                if (service != null)
-                {
-                    sb.Append(service.GetEnvironmentDebugInfo());
-                }
-            }
-
             string fileName = $"crash_report_{DateTimeOffset.Now:yyyyMMddHHmmss}_{RandomString(4)}.txt";
             string filePath = StorageLocation.LocalCacheFolderPath + "\\" + fileName;
             using StreamWriter writer = new(filePath, true, Encoding.UTF8);
-            writer.Write(sb.ToString());
-        }
-        catch (Exception ex)
-        {
-            Console(ex.ToString());
-        }
-
-        try
-        {
+            writer.Write(crashReport);
             Logger.Flush();
+            KVDatabase.Sdk.SetString(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT, crashReport);
         }
         catch (Exception ex)
         {
@@ -62,8 +61,20 @@ internal static class CrashHandler
 
         if (DebugUtils.DebugMode)
         {
-            Environment.FailFast("The application hit a fatal error.", e);
+            ServiceManager.GetService<IDebugService>().OnCrashReport(crashReport);
         }
+    }
+
+    public static void ReportLastCrash()
+    {
+        string? crashReport = KVDatabase.Sdk.With(DatabaseEntry.KV_LIB_MAIN).GetString(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT);
+        if (string.IsNullOrEmpty(crashReport))
+        {
+            return;
+        }
+
+        KVDatabase.Sdk.With(DatabaseEntry.KV_LIB_MAIN).SetString(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT, string.Empty);
+        ServiceManager.GetService<IDebugService>().OnCrashReport(crashReport);
     }
 
     private static string RandomString(int length)

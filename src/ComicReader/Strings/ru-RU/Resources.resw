@@ -228,6 +228,9 @@
   <data name="ContributionRunBeforeLink" xml:space="preserve">
     <value>$appname — проект с открытым исходным кодом. Посетите </value>
   </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>Отладочная информация</value>
   </data>
@@ -731,6 +734,14 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Ungrouped" xml:space="preserve">
     <value>Нет группировки</value>
+  </data>
+  <data name="UnhandledExceptionContent" xml:space="preserve">
+    <value>Следующая информация поможет разработчикам определить причину ошибки.
+==============================
+$info</value>
+  </data>
+  <data name="UnhandledExceptionTitle" xml:space="preserve">
+    <value>Это приложение могло выйти из строя</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Показать</value>

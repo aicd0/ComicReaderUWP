@@ -7,6 +7,11 @@ namespace ComicReader.SDK.Tests.Common;
 
 internal class DebugService : IDebugService
 {
+    public void OnCrashReport(string info)
+    {
+        Assert.Fail(info);
+    }
+
     public bool HandleDebugCommand(string command)
     {
         return false;
