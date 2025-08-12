@@ -55,31 +55,32 @@ xp8vQPBayknp/N1WAT768SYpXAT/nta/ddJnCkbMsCd/C1AZhDDwsjk4+Bsmj3DK
         return ProcessCommand(parsedCommand);
     }
 
-    private static string? ParseCommand(string command)
+    private static string? ParseCommand(string signedCommand)
     {
-        command = command.Trim();
-        byte[]? signatureAndPayloadBytes = DecodeWithBase64(command);
-        if (signatureAndPayloadBytes == null || signatureAndPayloadBytes.Length < SIGNATURE_LENGTH)
+        signedCommand = signedCommand.Trim();
+        byte[]? signatureAndCommandBytes = DecodeWithBase64(signedCommand);
+        if (signatureAndCommandBytes == null || signatureAndCommandBytes.Length < SIGNATURE_LENGTH)
         {
             return null;
         }
 
         byte[] signatureBytes = new byte[SIGNATURE_LENGTH];
-        Array.Copy(signatureAndPayloadBytes, 0, signatureBytes, 0, SIGNATURE_LENGTH);
+        Array.Copy(signatureAndCommandBytes, 0, signatureBytes, 0, SIGNATURE_LENGTH);
 
+        byte[] commandBytes = new byte[signatureAndCommandBytes.Length - SIGNATURE_LENGTH];
+        Array.Copy(signatureAndCommandBytes, SIGNATURE_LENGTH, commandBytes, 0, signatureAndCommandBytes.Length - SIGNATURE_LENGTH);
+        string command = System.Text.Encoding.UTF8.GetString(commandBytes);
+
+        string versionName = EnvironmentProvider.GetVersionName();
         string deviceId = EnvironmentProvider.Instance.GetDeviceId();
-        byte[] deviceIdBytes = System.Text.Encoding.UTF8.GetBytes(deviceId);
-        byte[] payloadBytes = new byte[signatureAndPayloadBytes.Length - SIGNATURE_LENGTH + deviceIdBytes.Length];
-        Array.Copy(deviceIdBytes, 0, payloadBytes, 0, deviceIdBytes.Length);
-        Array.Copy(signatureAndPayloadBytes, SIGNATURE_LENGTH, payloadBytes, deviceIdBytes.Length, signatureAndPayloadBytes.Length - SIGNATURE_LENGTH);
+
+        byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes($"{versionName}+{deviceId}+{command}");
         if (!VerifySignature(payloadBytes, signatureBytes, PUBLIC_KEY_PEM))
         {
             return null;
         }
 
-        byte[] commandBytes = new byte[signatureAndPayloadBytes.Length - SIGNATURE_LENGTH];
-        Array.Copy(signatureAndPayloadBytes, SIGNATURE_LENGTH, commandBytes, 0, signatureAndPayloadBytes.Length - SIGNATURE_LENGTH);
-        return System.Text.Encoding.UTF8.GetString(commandBytes);
+        return command;
     }
 
     private static bool VerifySignature(byte[] payloadBytes, byte[] signatureBytes, string publicKeyPem)

@@ -193,6 +193,7 @@ public class EnvironmentProvider
             {
                 return "0.0.0.0";
             }
+
             return $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
         }
         else
