@@ -228,6 +228,9 @@
   <data name="ContributionRunBeforeLink" xml:space="preserve">
     <value>$appname是一個開源專案。在</value>
   </data>
+  <data name="Copy" xml:space="preserve">
+    <value>複製</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>偵錯資訊</value>
   </data>
@@ -730,6 +733,14 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="Ungrouped" xml:space="preserve">
     <value>無分組</value>
+  </data>
+  <data name="UnhandledExceptionContent" xml:space="preserve">
+    <value>以下資訊將有助於開發者定位錯誤原因。
+=================================
+$info</value>
+  </data>
+  <data name="UnhandledExceptionTitle" xml:space="preserve">
+    <value>此應用程式可能發生了一次崩潰</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>取消隱藏</value>

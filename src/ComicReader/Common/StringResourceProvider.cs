@@ -38,6 +38,7 @@ public class StringResourceProvider
     public string CompletionState => GetResourceString("CompletionState");
     public string ContributionRunAfterLink => GetResourceString("ContributionRunAfterLink");
     public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
+    public string Copy => GetResourceString("Copy");
     public string DebugModeWarning => GetResourceString("DebugModeWarning");
     public string Default => GetResourceString("Default");
     public string DefaultTags => GetResourceString("DefaultTags");
@@ -133,6 +134,8 @@ public class StringResourceProvider
     public string TotalComics => GetResourceString("TotalComics");
     public string Unfavorite => GetResourceString("Unfavorite");
     public string Ungrouped => GetResourceString("Ungrouped");
+    public string UnhandledExceptionContent => GetResourceString("UnhandledExceptionContent");
+    public string UnhandledExceptionTitle => GetResourceString("UnhandledExceptionTitle");
     public string Unhide => GetResourceString("Unhide");
     public string Unread => GetResourceString("Unread");
     public string Untitled => GetResourceString("Untitled");

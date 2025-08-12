@@ -5,5 +5,7 @@ namespace ComicReader.SDK.Common.ServiceManagement;
 
 public interface IDebugService : IService
 {
+    void OnCrashReport(string info);
+
     bool HandleDebugCommand(string command);
 }

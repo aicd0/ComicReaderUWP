@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.IO;
 
 using ComicReader.Common.Imaging;
@@ -24,6 +25,8 @@ internal class InitTaskManager(Application application)
     private readonly Application _application = application;
 
     private object? _appLock;
+
+    public bool ExitedNormallyLastTime { get; private set; } = true;
 
     public void InitOnAppCreate()
     {
@@ -53,6 +56,9 @@ internal class InitTaskManager(Application application)
         bool isFirstInstance = TryRegisterFirstInstance();
         if (isFirstInstance)
         {
+            // Register exit handler
+            RegisterExitHandler();
+
             // Initialize Sentry
             SentryManager.Initialize(Properties.SentryDsn, EnvironmentProvider.GetEnvironmentTags());
 
@@ -124,6 +130,11 @@ internal class InitTaskManager(Application application)
         }
 
         string lockFilePath = Path.Combine(lockFileDirPath, "app.lock");
+        if (File.Exists(lockFilePath))
+        {
+            ExitedNormallyLastTime = false;
+        }
+
         try
         {
             var fileStream = new FileStream(
@@ -139,5 +150,25 @@ internal class InitTaskManager(Application application)
         {
             return false;
         }
+    }
+
+    private void RegisterExitHandler()
+    {
+        AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+        {
+            if (_appLock is FileStream fileStream)
+            {
+                try
+                {
+                    fileStream.Unlock(0, 0);
+                    fileStream.Dispose();
+                    File.Delete(fileStream.Name);
+                    _appLock = null;
+                }
+                catch (Exception)
+                {
+                }
+            }
+        };
     }
 }

@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
@@ -16,6 +18,7 @@ using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.Views.Pages.Main;
 
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 using Windows.Storage;
@@ -161,6 +164,23 @@ internal sealed partial class DevToolsPage : BasePage
                 }
 
                 await comic.MoveToLocation(newPath);
+            }
+        });
+    }
+
+    private void OnShowDialogOnActiveWindowClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        CoroutineUtils.Start(async () =>
+        {
+            await Task.Delay(3000);
+            MainWindow? activeWindow = App.WindowManager.GetActiveWindow();
+            if (activeWindow is not null)
+            {
+                XamlRoot? xamlRoot = (activeWindow.Content as FrameworkElement)?.XamlRoot;
+                if (xamlRoot is not null)
+                {
+                    _ = DialogUtils.ShowDialogAsync(xamlRoot, new DialogUtils.DialogOptions.Builder().SetContent("This is a test dialog").Build());
+                }
             }
         });
     }

@@ -13,12 +13,25 @@ internal class DialogUtils
 {
     public static async Task<ContentDialogResult> ShowDialogAsync(XamlRoot xamlRoot, DialogOptions options)
     {
+        var scrollableContent = new ScrollViewer
+        {
+            Content = new TextBlock
+            {
+                Text = options.Content,
+                TextWrapping = TextWrapping.Wrap,
+                IsTextSelectionEnabled = true,
+            },
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            MaxHeight = 400,
+        };
+
         var dialog = new ContentDialog
         {
             Title = options.Title,
-            Content = options.Content,
+            Content = scrollableContent,
             PrimaryButtonText = options.PrimaryButtonText,
-            XamlRoot = xamlRoot
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = xamlRoot,
         };
 
         if (!string.IsNullOrEmpty(options.SecondaryButtonText))
@@ -26,9 +39,20 @@ internal class DialogUtils
             dialog.SecondaryButtonText = options.SecondaryButtonText;
         }
 
-        if (!string.IsNullOrEmpty(options.CloseButtonText))
+        if (options.PrimaryButtonClick != null)
         {
-            dialog.CloseButtonText = options.CloseButtonText;
+            dialog.PrimaryButtonClick += (s, e) =>
+            {
+                options.PrimaryButtonClick.Invoke(e);
+            };
+        }
+
+        if (options.SecondaryButtonClick != null)
+        {
+            dialog.SecondaryButtonClick += (s, e) =>
+            {
+                options.SecondaryButtonClick.Invoke(e);
+            };
         }
 
         return await dialog.ShowAsync();
@@ -38,9 +62,11 @@ internal class DialogUtils
     {
         public string Title { get; private set; } = string.Empty;
         public string Content { get; private set; } = string.Empty;
-        public string PrimaryButtonText { get; private set; } = string.Empty;
+        public string PrimaryButtonText { get; private set; } = StringResourceProvider.Instance.OK;
         public string? SecondaryButtonText { get; private set; }
-        public string? CloseButtonText { get; private set; }
+
+        public Action<ContentDialogButtonClickEventArgs>? PrimaryButtonClick { get; private set; }
+        public Action<ContentDialogButtonClickEventArgs>? SecondaryButtonClick { get; private set; }
 
         private DialogOptions() { }
 
@@ -72,9 +98,15 @@ internal class DialogUtils
                 return this;
             }
 
-            public Builder SetCloseButtonText(string? text)
+            public Builder OnPrimaryButtonClick(Action<ContentDialogButtonClickEventArgs> handler)
             {
-                _options.CloseButtonText = text;
+                _options.PrimaryButtonClick = handler;
+                return this;
+            }
+
+            public Builder OnSecondaryButtonClick(Action<ContentDialogButtonClickEventArgs> handler)
+            {
+                _options.SecondaryButtonClick = handler;
                 return this;
             }
 

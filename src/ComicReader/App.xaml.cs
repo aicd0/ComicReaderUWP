@@ -24,14 +24,16 @@ public partial class App : Application
     private const string TAG = nameof(App);
     private const string COMMAND_LINE_FILE_NAME = "command_line.txt";
 
-    internal static readonly WindowManager<MainWindow> WindowManager = new();
-
     private readonly InitTaskManager _initTaskManager;
+
+    internal static readonly WindowManager WindowManager = new();
+    internal static bool ExitedNormallyLastTime { get; private set; } = true;
 
     public App()
     {
         _initTaskManager = new(this);
         _initTaskManager.InitOnAppCreate();
+        ExitedNormallyLastTime = _initTaskManager.ExitedNormallyLastTime;
         InitializeComponent();
     }
 

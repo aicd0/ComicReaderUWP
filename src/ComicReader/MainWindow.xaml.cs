@@ -115,6 +115,8 @@ public sealed partial class MainWindow : Window
     // Public Methods
     //
 
+    public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32());
+
     public void OnCommandLine(string[] args)
     {
         _ = OnCommandLineAsync(args);
@@ -164,6 +166,15 @@ public sealed partial class MainWindow : Window
         bundle.Communicator.RegisterAbility<ICommonPageAbility>(Members._mainWindowAbility);
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
         Members._mainPage = (MainPage)PageFrame.Content;
+
+        if (WindowMembers.sCanReportCrash)
+        {
+            WindowMembers.sCanReportCrash = false;
+            if (!App.ExitedNormallyLastTime && DebugUtils.DebugMode)
+            {
+                DebugUtils.ReportLastCrash();
+            }
+        }
     }
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
@@ -407,6 +418,8 @@ public sealed partial class MainWindow : Window
 
     private class WindowMembers
     {
+        public static bool sCanReportCrash = true;
+
         public MainPage? _mainPage;
         public string _url = string.Empty;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _originProc;

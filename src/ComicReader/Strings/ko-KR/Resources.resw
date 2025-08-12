@@ -228,6 +228,9 @@
   <data name="ContributionRunBeforeLink" xml:space="preserve">
     <value>$appname은 오픈 소스 프로젝트입니다. </value>
   </data>
+  <data name="Copy" xml:space="preserve">
+    <value>복사</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>디버그 정보</value>
   </data>
@@ -731,6 +734,14 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Ungrouped" xml:space="preserve">
     <value>그룹화 없음</value>
+  </data>
+  <data name="UnhandledExceptionContent" xml:space="preserve">
+    <value>다음 정보는 개발자가 오류의 원인을 찾는 데 도움이 됩니다.
+=============================
+$info</value>
+  </data>
+  <data name="UnhandledExceptionTitle" xml:space="preserve">
+    <value>이 애플리케이션이 충돌했을 수 있습니다.</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>숨기기 해제</value>

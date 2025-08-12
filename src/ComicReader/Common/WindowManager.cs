@@ -7,18 +7,16 @@ using System.Threading;
 using ComicReader.Common.Lifecycle;
 using ComicReader.SDK.Common.DebugTools;
 
-using Microsoft.UI.Xaml;
-
 namespace ComicReader.Common;
 
-class WindowManager<T> where T : Window
+class WindowManager
 {
-    private const string TAG = nameof(WindowManager<T>);
+    private const string TAG = nameof(WindowManager);
 
     private int _nextWindowId = 0;
     private readonly ConcurrentDictionary<int, WindowWrapper> _windows = [];
 
-    public int RegisterWindow(T window)
+    public int RegisterWindow(MainWindow window)
     {
         int windowId = Interlocked.Increment(ref _nextWindowId);
         WindowWrapper wrapper = new(window);
@@ -33,7 +31,7 @@ class WindowManager<T> where T : Window
         Logger.Assert(success, "1A3BA06AD5A4351E");
     }
 
-    public T? GetAnyWindow()
+    public MainWindow? GetAnyWindow()
     {
         foreach (WindowWrapper wrapper in _windows.Values)
         {
@@ -43,7 +41,20 @@ class WindowManager<T> where T : Window
         return null;
     }
 
-    public T? GetWindow(int windowId)
+    public MainWindow? GetActiveWindow()
+    {
+        foreach (WindowWrapper wrapper in _windows.Values)
+        {
+            if (wrapper.Window.IsActive)
+            {
+                return wrapper.Window;
+            }
+        }
+
+        return null;
+    }
+
+    public MainWindow? GetWindow(int windowId)
     {
         if (_windows.TryGetValue(windowId, out WindowWrapper? wrapper))
         {
@@ -65,14 +76,9 @@ class WindowManager<T> where T : Window
         return EmptyEventBus.Instance;
     }
 
-    private class WindowWrapper
+    private class WindowWrapper(MainWindow window)
     {
-        public T Window { get; set; }
+        public MainWindow Window { get; set; } = window;
         public EventBus EventBus { get; } = new();
-
-        public WindowWrapper(T window)
-        {
-            Window = window;
-        }
     }
 }
