@@ -1,4 +1,5 @@
 CallWindowProc
+GetActiveWindow
 RegisterHotKey
 SetWindowLongPtr
 UnregisterHotKey

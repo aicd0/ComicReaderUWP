@@ -115,6 +115,8 @@ public sealed partial class MainWindow : Window
     // Public Methods
     //
 
+    public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32());
+
     public void OnCommandLine(string[] args)
     {
         _ = OnCommandLineAsync(args);

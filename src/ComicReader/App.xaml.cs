@@ -24,7 +24,7 @@ public partial class App : Application
     private const string TAG = nameof(App);
     private const string COMMAND_LINE_FILE_NAME = "command_line.txt";
 
-    internal static readonly WindowManager<MainWindow> WindowManager = new();
+    internal static readonly WindowManager WindowManager = new();
 
     private readonly InitTaskManager _initTaskManager;
 

@@ -38,7 +38,7 @@ internal class DialogUtils
     {
         public string Title { get; private set; } = string.Empty;
         public string Content { get; private set; } = string.Empty;
-        public string PrimaryButtonText { get; private set; } = string.Empty;
+        public string PrimaryButtonText { get; private set; } = StringResourceProvider.Instance.OK;
         public string? SecondaryButtonText { get; private set; }
         public string? CloseButtonText { get; private set; }
 
