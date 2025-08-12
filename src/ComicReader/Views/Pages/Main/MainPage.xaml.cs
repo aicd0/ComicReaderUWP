@@ -511,8 +511,11 @@ internal sealed partial class MainPage : BasePage
 
     private void OnRootTabViewTabDroppedOutside(TabView sender, TabViewTabDroppedOutsideEventArgs args)
     {
-        TabViewItem tab = args.Tab;
-        Logger.Assert(tab != null, "556A8735ED29D6B5");
+        TabViewItem? tab = args.Tab;
+        if (tab is null)
+        {
+            return;
+        }
 
         TabInfo? removingTab = null;
         foreach (TabInfo tabInfo in _tabs)
