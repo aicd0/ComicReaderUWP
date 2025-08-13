@@ -405,7 +405,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Скрывать</value>
   </data>
   <data name="HideCursorAutomatically" xml:space="preserve">
-    <value>Скрыть курсор автоматически</value>
+    <value>Скрыть курсор автоматически (экспериментальный)</value>
   </data>
   <data name="History" xml:space="preserve">
     <value>История</value>
