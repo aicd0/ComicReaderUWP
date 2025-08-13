@@ -470,8 +470,6 @@ internal partial class ReaderView : UserControl
         {
             _uiStateUpdatedOrientation = false;
             bool isVertical = _isVertical;
-            SvReader.VerticalScrollBarVisibility = isVertical ? ScrollBarVisibility.Visible : ScrollBarVisibility.Hidden;
-            SvReader.HorizontalScrollBarVisibility = isVertical ? ScrollBarVisibility.Hidden : ScrollBarVisibility.Visible;
             SvReader.VerticalScrollMode = isVertical ? ScrollMode.Enabled : ScrollMode.Disabled;
             GReader.VerticalAlignment = isVertical ? VerticalAlignment.Top : VerticalAlignment.Center;
             GReader.HorizontalAlignment = isVertical ? HorizontalAlignment.Center : HorizontalAlignment.Center;
