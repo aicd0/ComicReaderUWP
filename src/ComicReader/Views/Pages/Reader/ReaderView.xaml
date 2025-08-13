@@ -287,13 +287,14 @@
 
     <ScrollViewer
         x:Name="SvReader"
-        HorizontalScrollBarVisibility="Auto"
+        HorizontalScrollBarVisibility="Hidden"
         HorizontalScrollMode="Enabled"
         Loaded="OnReaderScrollViewerLoadedOrUnloaded"
         MaxZoomFactor="100000"
         SizeChanged="OnReaderScrollViewerSizeChanged"
         Style="{StaticResource ReaderScrollViewerStyle}"
         Unloaded="OnReaderScrollViewerLoadedOrUnloaded"
+        VerticalScrollBarVisibility="Hidden"
         ViewChanged="OnReaderScrollViewerViewChanged"
         ZoomMode="Enabled">
         <Grid
