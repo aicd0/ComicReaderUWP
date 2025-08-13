@@ -34,6 +34,7 @@ namespace ComicReader;
 
 public sealed partial class MainWindow : Window
 {
+    private const uint WM_MOVE = 0x0003;
     private const uint WM_HOTKEY = 0x0312;
 
     //
@@ -82,6 +83,7 @@ public sealed partial class MainWindow : Window
 
     public int WindowId { get; }
     public IntPtr WindowHandle { get; private set; }
+    public bool Alive { get; private set; } = false;
 
     //
     // Constructors
@@ -89,8 +91,7 @@ public sealed partial class MainWindow : Window
 
     private MainWindow(string url)
     {
-        WindowMembers members = new();
-        _members = members;
+        _members = new();
         Members._url = url;
 
         InitializeComponent();
@@ -145,21 +146,12 @@ public sealed partial class MainWindow : Window
 
     private void OnWindowSizeChanged(object sender, WindowSizeChangedEventArgs args)
     {
-        if (Members._mainPage == null)
-        {
-            return;
-        }
-
-        var placement = new NativeModels.WindowPlacement();
-        NativeMethods.GetWindowPlacement(WindowHandle, out placement);
-        string serialized = JsonSerializer.Serialize(placement);
-        KVDatabase.Default.With(DatabaseEntry.KV_LIB_APP).SetString(DatabaseEntry.KV_KEY_APP_WINDOW_STATES, serialized);
+        ScheduleSavingWindowPlacement();
     }
 
     private void OnPageFrameLoaded(object sender, RoutedEventArgs e)
     {
-        TryRecoverWindowStates();
-
+        // Load the main page
         Route route = Route.Create(Members._url)
             .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
         NavigationBundle bundle = AppRouter.Process(route)!;
@@ -167,6 +159,13 @@ public sealed partial class MainWindow : Window
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
         Members._mainPage = (MainPage)PageFrame.Content;
 
+        // Mark the beginning of the window lifecycle
+        Alive = true;
+
+        // Restore window placement
+        TryRestoreWindowPlacement();
+
+        // Show last crash report if applicable
         if (WindowMembers.sCanReportCrash)
         {
             WindowMembers.sCanReportCrash = false;
@@ -179,6 +178,9 @@ public sealed partial class MainWindow : Window
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
     {
+        // Mark the end of the window lifecycle
+        Alive = false;
+
         // Close all tabs and dispatch page stopped event
         Members._mainPage!.CloseAllTabs();
         Members._mainWindowAbility.DispatchPageStoppedEvent();
@@ -253,13 +255,22 @@ public sealed partial class MainWindow : Window
         Windows.Win32.Foundation.WPARAM wParam,
         Windows.Win32.Foundation.LPARAM lParam)
     {
-        if (uMsg == WM_HOTKEY)
+        switch (uMsg)
         {
-            int hotkeyId = (int)wParam.Value;
-            if (HotKeyManager.Instance.HandleHotKey(hotkeyId))
-            {
-                return (Windows.Win32.Foundation.LRESULT)IntPtr.Zero;
-            }
+            case WM_MOVE:
+                ScheduleSavingWindowPlacement();
+                break;
+            case WM_HOTKEY:
+                {
+                    int hotkeyId = (int)wParam.Value;
+                    if (HotKeyManager.Instance.HandleHotKey(hotkeyId))
+                    {
+                        return (Windows.Win32.Foundation.LRESULT)IntPtr.Zero;
+                    }
+                }
+                break;
+            default:
+                break;
         }
 
         return PInvoke.CallWindowProc(Members._originProc, hwnd, uMsg, wParam, lParam);
@@ -284,6 +295,11 @@ public sealed partial class MainWindow : Window
         }
 
         Members._mainPage.OpenInNewTab(route);
+
+        if (WindowHandle != IntPtr.Zero)
+        {
+            PInvoke.SetForegroundWindow(new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32()));
+        }
     }
 
     private static async Task<Route?> GetFileActivatedComicRoute(string[] args)
@@ -347,6 +363,32 @@ public sealed partial class MainWindow : Window
     }
 
     //
+    // Window Placement
+    //
+
+    private void ScheduleSavingWindowPlacement()
+    {
+        if (!Alive || Members._saveWindowPlacementScheduled)
+        {
+            return;
+        }
+
+        Members._saveWindowPlacementScheduled = true;
+        Task.Delay(500).ContinueWith(delegate
+        {
+            if (!Alive)
+            {
+                return;
+            }
+
+            Members._saveWindowPlacementScheduled = false;
+            NativeMethods.GetWindowPlacement(WindowHandle, out NativeModels.WindowPlacement placement);
+            string serialized = JsonSerializer.Serialize(placement);
+            KVDatabase.Default.With(DatabaseEntry.KV_LIB_APP).SetString(DatabaseEntry.KV_KEY_APP_WINDOW_STATES, serialized);
+        });
+    }
+
+    //
     // Helpers
     //
 
@@ -359,8 +401,13 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void TryRecoverWindowStates()
+    private void TryRestoreWindowPlacement()
     {
+        if (!Alive)
+        {
+            return;
+        }
+
         string? windowStates = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_WINDOW_STATES);
         if (string.IsNullOrEmpty(windowStates))
         {
@@ -425,5 +472,6 @@ public sealed partial class MainWindow : Window
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _originProc;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _wndProcDelegate;
         public readonly MainWindowAbility _mainWindowAbility = new();
+        public bool _saveWindowPlacementScheduled = false;
     }
 }

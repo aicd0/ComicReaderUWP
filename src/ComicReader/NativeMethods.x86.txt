@@ -1,5 +1,6 @@
 CallWindowProc
 GetActiveWindow
 RegisterHotKey
+SetForegroundWindow
 SetWindowLong
 UnregisterHotKey
