@@ -403,6 +403,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Hide" xml:space="preserve">
     <value>Verstecken</value>
   </data>
+  <data name="HideCursorAutomatically" xml:space="preserve">
+    <value>Cursor automatisch ausblenden</value>
+  </data>
   <data name="History" xml:space="preserve">
     <value>Geschichte</value>
   </data>

@@ -14,4 +14,9 @@ internal static class DatabaseEntry
     public const string KV_KEY_APP_LOG_VISIBLE = "LogVisible";
     public const string KV_KEY_APP_LOG_STARTED = "LogStarted";
     public const string KV_KEY_APP_LAST_TAB_STATUS = "LastTabStatus";
+    public const string KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE = "default_archive_code_page";
+    public const string KV_KEY_APP_ANTI_ALIASING_ENABLED = "anti_aliasing_enabled";
+    public const string KV_KEY_APP_SAVE_BROWSING_HISTORY = "save_browsing_history";
+    public const string KV_KEY_APP_TRANSITION_ANIMATION = "transition_animation";
+    public const string KV_KEY_APP_AUTO_HIDE_CURSOR = "AutoHideCursor";
 }

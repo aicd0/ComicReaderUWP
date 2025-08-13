@@ -108,6 +108,9 @@
                                 <TextBlock x:Uid="TransitionAnimation" Style="{StaticResource SettingsPageBodyTextBlock}" />
                                 <ToggleSwitch IsOn="{x:Bind ViewModel.TransitionAnimation, Mode=TwoWay}" />
                                 <Grid Height="12" />
+                                <TextBlock Style="{StaticResource SettingsPageBodyTextBlock}" Text="{x:Bind StringResource.HideCursorAutomatically}" />
+                                <ToggleSwitch IsOn="{x:Bind ViewModel.AutomaticallyHideCursor, Mode=TwoWay}" />
+                                <Grid Height="12" />
                                 <TextBlock x:Uid="AntiAliasingFilter" Style="{StaticResource SettingsPageBodyTextBlock}" />
                                 <ToggleSwitch IsOn="{x:Bind ViewModel.AntiAliasingEnabled, Mode=TwoWay}" />
                             </StackPanel>

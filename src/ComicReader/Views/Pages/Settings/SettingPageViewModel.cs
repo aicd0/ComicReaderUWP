@@ -137,6 +137,19 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _automaticallyHideCursor = true;
+    public bool AutomaticallyHideCursor
+    {
+        get => _automaticallyHideCursor;
+        set
+        {
+            _automaticallyHideCursor = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutomaticallyHideCursor)));
+
+            AppModel.AutomaticallyHideCursor = value;
+        }
+    }
+
     private bool _antiAliasingEnabled = true;
     public bool AntiAliasingEnabled
     {
@@ -477,6 +490,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         {
             TransitionAnimation = AppModel.TransitionAnimation;
             AntiAliasingEnabled = AppModel.AntiAliasingEnabled;
+            AutomaticallyHideCursor = AppModel.AutomaticallyHideCursor;
         });
     }
 
