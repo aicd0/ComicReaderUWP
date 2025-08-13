@@ -404,7 +404,7 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
     <value>Verstecken</value>
   </data>
   <data name="HideCursorAutomatically" xml:space="preserve">
-    <value>Cursor automatisch ausblenden</value>
+    <value>Cursor automatisch ausblenden (experimentell)</value>
   </data>
   <data name="History" xml:space="preserve">
     <value>Geschichte</value>

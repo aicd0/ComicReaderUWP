@@ -404,7 +404,7 @@ L'évaluation sera effectuée dans l'ordre suivant :
     <value>Cacher</value>
   </data>
   <data name="HideCursorAutomatically" xml:space="preserve">
-    <value>Masquer le curseur automatiquement</value>
+    <value>Masquer le curseur automatiquement (expérimental)</value>
   </data>
   <data name="History" xml:space="preserve">
     <value>Histoire</value>

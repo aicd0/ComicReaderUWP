@@ -404,7 +404,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
     <value>隠れる</value>
   </data>
   <data name="HideCursorAutomatically" xml:space="preserve">
-    <value>カーソルを自動的に非表示にする</value>
+    <value>カーソルを自動的に非表示にする（実験的）</value>
   </data>
   <data name="History" xml:space="preserve">
     <value>歴史</value>

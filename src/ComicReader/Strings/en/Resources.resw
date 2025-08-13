@@ -406,7 +406,7 @@ The evaluation will be performed in the following order:
     <value>Hide</value>
   </data>
   <data name="HideCursorAutomatically" xml:space="preserve">
-    <value>Hide cursor automatically</value>
+    <value>Hide cursor automatically (experimental)</value>
   </data>
   <data name="History" xml:space="preserve">
     <value>History</value>

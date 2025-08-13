@@ -1158,13 +1158,10 @@ internal partial class ReaderView : UserControl
     {
         _gestureRecognizer.ProcessMoveEvents(e.GetIntermediatePoints(_gestureReference));
 
-        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse)
+        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppModel.AutomaticallyHideCursor)
         {
             ShowCursor();
-            if (AppModel.AutomaticallyHideCursor)
-            {
-                HideCursorDelayed(3000);
-            }
+            HideCursorDelayed(3000);
         }
     }
 
@@ -1415,13 +1412,9 @@ internal partial class ReaderView : UserControl
         }
 
         _cursorDisposed = true;
-        if (cursor is null)
-        {
-            cursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
-            ProtectedCursor = cursor;
-        }
-
+        cursor ??= InputSystemCursor.Create(InputSystemCursorShape.Arrow);
         cursor.Dispose();
+        ProtectedCursor = cursor;
         Log("Cursor", "Cursor hidden");
     }
 

@@ -60,7 +60,7 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, true);
+            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
         }
         set
         {
