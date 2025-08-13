@@ -34,6 +34,7 @@ namespace ComicReader;
 
 public sealed partial class MainWindow : Window
 {
+    private const string TAG = nameof(MainWindow);
     private const uint WM_MOVE = 0x0003;
     private const uint WM_HOTKEY = 0x0312;
 
@@ -120,7 +121,29 @@ public sealed partial class MainWindow : Window
 
     public void OnCommandLine(string[] args)
     {
-        _ = OnCommandLineAsync(args);
+        CoroutineUtils.Start(async () =>
+        {
+            Route? route = await GetFileActivatedComicRoute(args);
+            if (!Alive)
+            {
+                Logger.E(TAG, "Unable to process command line because window is not alive.");
+                return;
+            }
+
+            if (route is not null)
+            {
+                if (Members._mainPage is null)
+                {
+                    Members._url = route.Url;
+                }
+                else
+                {
+                    Members._mainPage.OpenInNewTab(route);
+                }
+            }
+
+            PInvoke.SetForegroundWindow(new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32()));
+        });
     }
 
     //
@@ -279,28 +302,6 @@ public sealed partial class MainWindow : Window
     //
     // File Activation
     //
-
-    private async Task OnCommandLineAsync(string[] args)
-    {
-        Route? route = await GetFileActivatedComicRoute(args);
-        if (route is null)
-        {
-            return;
-        }
-
-        if (Members._mainPage is null)
-        {
-            Members._url = route.Url;
-            return;
-        }
-
-        Members._mainPage.OpenInNewTab(route);
-
-        if (WindowHandle != IntPtr.Zero)
-        {
-            PInvoke.SetForegroundWindow(new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32()));
-        }
-    }
 
     private static async Task<Route?> GetFileActivatedComicRoute(string[] args)
     {
