@@ -123,23 +123,13 @@
                         </AppBarButton>
 
                         <!--  More button  -->
-                        <AppBarButton x:Uid="MoreButton" Style="{StaticResource NavigationPageTopTileAppBarButton}">
+                        <AppBarButton
+                            x:Uid="MoreButton"
+                            Flyout="{x:Bind ViewModel.MoreButtonFlyout, Mode=OneWay}"
+                            Style="{StaticResource NavigationPageTopTileAppBarButton}">
                             <AppBarButton.Content>
                                 <FontIcon Glyph="&#xE712;" />
                             </AppBarButton.Content>
-                            <AppBarButton.Flyout>
-                                <MenuFlyout Placement="BottomEdgeAlignedRight">
-                                    <MenuFlyoutItem
-                                        Click="OnMoreSettingsClick"
-                                        Icon="Setting"
-                                        Text="{x:Bind StringResource.Settings}" />
-                                    <MenuFlyoutItem
-                                        Click="OnDevToolsClick"
-                                        Icon="Repair"
-                                        Text="Dev tools"
-                                        Visibility="{x:Bind ViewModel.DevToolsVisible, Mode=OneWay}" />
-                                </MenuFlyout>
-                            </AppBarButton.Flyout>
                         </AppBarButton>
 
                     </StackPanel>

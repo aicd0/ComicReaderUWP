@@ -405,6 +405,9 @@ The evaluation will be performed in the following order:
   <data name="Hide" xml:space="preserve">
     <value>Hide</value>
   </data>
+  <data name="HideCursorAutomatically" xml:space="preserve">
+    <value>Hide cursor automatically</value>
+  </data>
   <data name="History" xml:space="preserve">
     <value>History</value>
   </data>
@@ -506,6 +509,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="NewTab" xml:space="preserve">
     <value>New tab</value>
+  </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>New window</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Your favorites appears here</value>

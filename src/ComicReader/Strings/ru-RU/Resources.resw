@@ -404,6 +404,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Hide" xml:space="preserve">
     <value>Скрывать</value>
   </data>
+  <data name="HideCursorAutomatically" xml:space="preserve">
+    <value>Скрыть курсор автоматически</value>
+  </data>
   <data name="History" xml:space="preserve">
     <value>История</value>
   </data>
@@ -505,6 +508,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="NewTab" xml:space="preserve">
     <value>Новая вкладка</value>
+  </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>Новое окно</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Ваши избранные отображаются здесь</value>

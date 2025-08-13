@@ -22,6 +22,8 @@ namespace ComicReader.SDK.Common.AppEnvironment;
 
 public class EnvironmentProvider
 {
+    private const string TAG = nameof(EnvironmentProvider);
+
     public static EnvironmentProvider Instance { get; } = new();
 
     private readonly object _lock = new();
@@ -158,7 +160,7 @@ public class EnvironmentProvider
         }
         catch (CultureNotFoundException)
         {
-            Logger.AssertNotReachHere("92052DFC4960E58D", languageTag);
+            Logger.F(TAG, $"Culture '{languageTag}' not found.");
             return CultureInfo.CurrentUICulture;
         }
     }
@@ -191,6 +193,7 @@ public class EnvironmentProvider
             {
                 return "0.0.0.0";
             }
+
             return $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
         }
         else

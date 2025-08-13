@@ -403,6 +403,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Hide" xml:space="preserve">
     <value>隐藏</value>
   </data>
+  <data name="HideCursorAutomatically" xml:space="preserve">
+    <value>自动隐藏光标</value>
+  </data>
   <data name="History" xml:space="preserve">
     <value>历史记录</value>
   </data>
@@ -504,6 +507,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="NewTab" xml:space="preserve">
     <value>新标签页</value>
+  </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>新窗口</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>您的收藏会显示在此处</value>

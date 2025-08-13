@@ -66,11 +66,21 @@ internal sealed partial class NavigationPage : BasePage
             TopTile.Opacity = opacity;
             TopTile.IsHitTestVisible = opacity > 0.5;
         });
+
+        ViewModel.OpenInNewWindowLiveData.Observe(this, route =>
+        {
+            MainWindow.Open(route.Url);
+        });
+
+        ViewModel.OpenInNewTabLiveData.Observe(this, route =>
+        {
+            GetMainPageAbility().OpenInNewTab(route);
+        });
     }
 
     private void UpdateUI()
     {
-        ViewModel.DevToolsVisible = DebugUtils.DeveloperMode;
+        ViewModel.UpdateMoreMenuItems();
         NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
 
         string lastSidePaneItem = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
@@ -208,12 +218,6 @@ internal sealed partial class NavigationPage : BasePage
     // Buttons
     //
 
-    private void OnDevToolsClick(object sender, RoutedEventArgs e)
-    {
-        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
-        GetMainPageAbility().OpenInNewTab(route);
-    }
-
     private void OnGoBackClick(object sender, RoutedEventArgs e)
     {
         _ = GoBack();
@@ -241,12 +245,6 @@ internal sealed partial class NavigationPage : BasePage
         {
             NavigationPageSidePane.IsPaneOpen = !NavigationPageSidePane.IsPaneOpen;
         }
-    }
-
-    private void OnMoreSettingsClick(object sender, RoutedEventArgs e)
-    {
-        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SETTING);
-        GetMainPageAbility().OpenInNewTab(route);
     }
 
     private void OnAddToFavoritesClick(object sender, RoutedEventArgs e)

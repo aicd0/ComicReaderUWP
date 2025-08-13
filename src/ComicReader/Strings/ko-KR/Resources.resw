@@ -404,6 +404,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Hide" xml:space="preserve">
     <value>숨다</value>
   </data>
+  <data name="HideCursorAutomatically" xml:space="preserve">
+    <value>커서를 자동으로 숨기기</value>
+  </data>
   <data name="History" xml:space="preserve">
     <value>역사</value>
   </data>
@@ -505,6 +508,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="NewTab" xml:space="preserve">
     <value>새 탭</value>
+  </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>새 창</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>즐겨찾기가 여기에 표시됩니다</value>

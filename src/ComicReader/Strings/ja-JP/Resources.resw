@@ -403,6 +403,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Hide" xml:space="preserve">
     <value>隠れる</value>
   </data>
+  <data name="HideCursorAutomatically" xml:space="preserve">
+    <value>カーソルを自動的に非表示にする</value>
+  </data>
   <data name="History" xml:space="preserve">
     <value>歴史</value>
   </data>
@@ -504,6 +507,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="NewTab" xml:space="preserve">
     <value>新しいタブページ</value>
+  </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>新しいウィンドウ</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>お気に入りはここに表示されます</value>

@@ -403,6 +403,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Hide" xml:space="preserve">
     <value>Verstecken</value>
   </data>
+  <data name="HideCursorAutomatically" xml:space="preserve">
+    <value>Cursor automatisch ausblenden</value>
+  </data>
   <data name="History" xml:space="preserve">
     <value>Geschichte</value>
   </data>
@@ -504,6 +507,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="NewTab" xml:space="preserve">
     <value>Neue Registerkarte</value>
+  </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>Neues Fenster</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Ihre Favoriten erscheinen hier</value>

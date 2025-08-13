@@ -73,6 +73,7 @@ public class StringResourceProvider
     public string Group => GetResourceString("Group");
     public string Help => GetResourceString("Help");
     public string Hide => GetResourceString("Hide");
+    public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
     public string LastReadTime => GetResourceString("LastReadTime");
     public string LinkErrorContent => GetResourceString("LinkErrorContent");
@@ -84,6 +85,7 @@ public class StringResourceProvider
     public string Name => GetResourceString("Name");
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
+    public string NewWindow => GetResourceString("NewWindow");
     public string NoRating => GetResourceString("NoRating");
     public string NoResults => GetResourceString("NoResults");
     public string NoTagsHint => GetResourceString("NoTagsHint");

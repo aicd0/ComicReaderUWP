@@ -194,11 +194,6 @@ public static class Logger
         AssertNotReachHereInternal(eventName, null, null);
     }
 
-    public static void AssertNotReachHere(string? eventName, string? message)
-    {
-        AssertNotReachHereInternal(eventName, message, null);
-    }
-
     public static void AssertNotReachHere(string? eventName, Exception? exception)
     {
         AssertNotReachHereInternal(eventName, null, exception);

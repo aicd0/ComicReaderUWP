@@ -33,7 +33,7 @@ internal class OpenPageInterceptor : IRouterInterceptor
 
         if (pageTrait == null)
         {
-            Logger.F(nameof(OpenPageInterceptor), $"Unknown host {route.Host}");
+            Logger.F(nameof(OpenPageInterceptor), $"Unknown host '{route.Host}'.");
             navigationBundle = null;
             return false;
         }
