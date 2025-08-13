@@ -965,6 +965,7 @@ internal partial class ReaderView : UserControl
         {
             _dataModelSession.Next();
             _imagePool.Cancel();
+            DisposeCursor();
         }
     }
 
@@ -1156,6 +1157,12 @@ internal partial class ReaderView : UserControl
     private void OnReaderPointerMoved(object sender, PointerRoutedEventArgs e)
     {
         _gestureRecognizer.ProcessMoveEvents(e.GetIntermediatePoints(_gestureReference));
+
+        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse)
+        {
+            ShowCursor();
+            HideCursorDelayed(3000);
+        }
     }
 
     private void OnReaderPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -1329,6 +1336,106 @@ internal partial class ReaderView : UserControl
                     .Commit();
             }
         }
+    }
+
+    //
+    // Cursor
+    //
+
+    private bool _cursorDisposed = true;
+    private long _hideCursorTime = -1;
+    private bool _postHideCursor = false;
+
+    private void HideCursorDelayed(int delayMilliseconds)
+    {
+        if (delayMilliseconds <= 0)
+        {
+            HideCursor();
+            return;
+        }
+
+        long targetTime = GetTick() + delayMilliseconds;
+        if (_postHideCursor && targetTime >= _hideCursorTime)
+        {
+            _hideCursorTime = targetTime;
+            return;
+        }
+
+        _hideCursorTime = targetTime;
+
+        void HideCursorIfNeeded()
+        {
+            if (_hideCursorTime == -1)
+            {
+                return;
+            }
+
+            long currentTime = GetTick();
+            if (currentTime >= _hideCursorTime)
+            {
+                HideCursor();
+            }
+            else
+            {
+                _postHideCursor = true;
+                PostToCurrentThread(delegate
+                {
+                    _postHideCursor = false;
+                    HideCursorIfNeeded();
+                }, (int)(_hideCursorTime - currentTime));
+                Log("Cursor", "Post cursor hide");
+            }
+        }
+
+        _postHideCursor = true;
+        PostToCurrentThread(delegate
+        {
+            _postHideCursor = false;
+            HideCursorIfNeeded();
+        }, delayMilliseconds);
+        Log("Cursor", "Post cursor hide");
+    }
+
+    private void ShowCursor()
+    {
+        DisposeCursor();
+    }
+
+    private void HideCursor()
+    {
+        _hideCursorTime = -1;
+
+        InputCursor? cursor = ProtectedCursor;
+        if (_cursorDisposed && cursor is not null)
+        {
+            return;
+        }
+
+        _cursorDisposed = true;
+        if (cursor is null)
+        {
+            cursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
+            ProtectedCursor = cursor;
+        }
+
+        cursor.Dispose();
+        Log("Cursor", "Cursor hidden");
+    }
+
+    private void DisposeCursor()
+    {
+        _hideCursorTime = -1;
+
+        InputCursor? cursor = ProtectedCursor;
+        if (_cursorDisposed && cursor is null)
+        {
+            return;
+        }
+
+        _cursorDisposed = true;
+        cursor?.Dispose();
+        ProtectedCursor = null;
+        Log("Cursor", "Cursor shown");
     }
 
     //
@@ -2207,10 +2314,15 @@ internal partial class ReaderView : UserControl
         Logger.I(LogTag.N(TAG, tag), message);
     }
 
-    private static void PostToCurrentThread(Action<Task> action)
+    private static void PostToCurrentThread(Action<Task> action, int delayMilliseconds = 0)
     {
         var context = TaskScheduler.FromCurrentSynchronizationContext();
-        _ = Task.Delay(1).ContinueWith(action, context);
+        _ = Task.Delay(delayMilliseconds + 1).ContinueWith(action, context);
+    }
+
+    private static long GetTick()
+    {
+        return Environment.TickCount64;
     }
 
     //
