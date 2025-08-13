@@ -505,6 +505,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="NewTab" xml:space="preserve">
     <value>Nouvel onglet</value>
   </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>Nouvelle fenêtre</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Vos favoris apparaîtront ici</value>
   </data>

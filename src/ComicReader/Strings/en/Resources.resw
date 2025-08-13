@@ -507,6 +507,9 @@ The evaluation will be performed in the following order:
   <data name="NewTab" xml:space="preserve">
     <value>New tab</value>
   </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>New window</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Your favorites appears here</value>
   </data>

@@ -505,6 +505,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="NewTab" xml:space="preserve">
     <value>Neue Registerkarte</value>
   </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>Neues Fenster</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Ihre Favoriten erscheinen hier</value>
   </data>

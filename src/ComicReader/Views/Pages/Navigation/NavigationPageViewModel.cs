@@ -1,24 +1,106 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
+using System.Collections.Generic;
 using System.ComponentModel;
+
+using ComicReader.Common;
+using ComicReader.Common.Lifecycle;
+using ComicReader.Helpers.MenuFlyoutHelpers;
+using ComicReader.Helpers.Navigation;
+using ComicReader.SDK.Common.DebugTools;
+
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReader.Views.Pages.Navigation;
 
-public class NavigationPageViewModel : INotifyPropertyChanged
+internal partial class NavigationPageViewModel : INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool _devToolsVisible;
-    public bool DevToolsVisible
+    public readonly MutableLiveData<Route> OpenInNewWindowLiveData = new();
+    public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
+
+    private List<BaseMenuFlyoutItemViewModel> _moreButtonFlyoutItems = [];
+    public List<BaseMenuFlyoutItemViewModel> MoreButtonFlyoutItems
     {
-        get => _devToolsVisible;
+        get => _moreButtonFlyoutItems;
         set
         {
-            _devToolsVisible = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DevToolsVisible)));
+            _moreButtonFlyoutItems = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MoreButtonFlyout)));
         }
+    }
+
+    public FlyoutBase? MoreButtonFlyout
+    {
+        get
+        {
+            if (MoreButtonFlyoutItems.Count == 0)
+            {
+                return null;
+            }
+
+            var flyout = new MenuFlyout()
+            {
+                Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
+            };
+
+            foreach (BaseMenuFlyoutItemViewModel item in MoreButtonFlyoutItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
+
+            return flyout;
+        }
+    }
+
+    public void UpdateMoreMenuItems()
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewTab)
+        {
+            Glyph = "\uE8A5",
+            OnClick = () =>
+            {
+                OpenInNewTabLiveData.Emit(Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME));
+            },
+        });
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewWindow)
+        {
+            Glyph = "\uE78B",
+            OnClick = () =>
+            {
+                OpenInNewWindowLiveData.Emit(Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME));
+            },
+        });
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Settings)
+        {
+            Glyph = "\uE713",
+            OnClick = () =>
+            {
+                OpenInNewTabLiveData.Emit(Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SETTING));
+            },
+        });
+
+        if (DebugUtils.DeveloperMode)
+        {
+            items.Add(new MenuFlyoutItemViewModel("Developer tools")
+            {
+                Glyph = "\uE90F",
+                OnClick = () =>
+                {
+                    OpenInNewWindowLiveData.Emit(Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS));
+                },
+            });
+        }
+
+        MoreButtonFlyoutItems = items;
     }
 }

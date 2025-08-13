@@ -505,6 +505,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="NewTab" xml:space="preserve">
     <value>新标签页</value>
   </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>新窗口</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>您的收藏会显示在此处</value>
   </data>

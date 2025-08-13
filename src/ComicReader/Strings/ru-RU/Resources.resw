@@ -506,6 +506,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="NewTab" xml:space="preserve">
     <value>Новая вкладка</value>
   </data>
+  <data name="NewWindow" xml:space="preserve">
+    <value>Новое окно</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Ваши избранные отображаются здесь</value>
   </data>

@@ -84,6 +84,7 @@ public class StringResourceProvider
     public string Name => GetResourceString("Name");
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
+    public string NewWindow => GetResourceString("NewWindow");
     public string NoRating => GetResourceString("NoRating");
     public string NoResults => GetResourceString("NoResults");
     public string NoTagsHint => GetResourceString("NoTagsHint");
