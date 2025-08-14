@@ -413,7 +413,7 @@ internal partial class ReaderView : UserControl
 
             PostToCurrentThread(delegate
             {
-                ScrollResult scrollResult = SetScrollViewer2(_zoom, InitialPage, true, "JumpToInitialPage");
+                ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", zoom: _zoom, page: InitialPage, disableAnimation: true);
                 _isInitialFrameJumped = true;
                 Log("Load", $"InitialFrameScroll (result={scrollResult})");
                 if (scrollResult == ScrollResult.TooClose)
@@ -1005,10 +1005,24 @@ internal partial class ReaderView : UserControl
             // Notify the scroll viewer to update its inner states.
             SetScrollViewer1(null, null, false, "AdjustInnerStateAfterViewChanged");
 
-            if (!_isContinuous && _zoom < FORCE_CONTINUOUS_ZOOM_THRESHOLD)
+            if (_zoom < FORCE_CONTINUOUS_ZOOM_THRESHOLD)
             {
-                // Stick our view to the center of two pages.
-                MoveFrameInternal(0, false, "StickToCenter");
+                int frame = PageToFrame(SCCurrentPageFinal, out _, out _);
+                frame = Math.Max(0, Math.Min(FrameDataSource.Count - 1, frame));
+                if (frame < FrameDataSource.Count)
+                {
+                    double page = FrameDataSource[frame].Page;
+                    if (_isContinuous)
+                    {
+                        // Stick to the vertical center of current frame.
+                        SetScrollViewer2("StickToVericalCenter", page: page, applyParallelOffset: false, disableAnimation: false);
+                    }
+                    else
+                    {
+                        // Stick to the center of current frame.
+                        SetScrollViewer2("StickToFrameCenter", page: page, disableAnimation: false);
+                    }
+                }
             }
 
             UpdateImages("ViewChanged");
@@ -1555,7 +1569,8 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    private double SCParallelOffsetFinal => IsVertical ? SCVerticalOffsetFinal : SCHorizontalOffsetFinal;
+    private double SCParallelOffsetFinal => _isVertical ? SCVerticalOffsetFinal : SCHorizontalOffsetFinal;
+    private double SCPerpendicularOffsetFinal => _isVertical ? SCHorizontalOffsetFinal : SCVerticalOffsetFinal;
 
     private void SCSyncFinalVal()
     {
@@ -1592,7 +1607,7 @@ internal partial class ReaderView : UserControl
         return true;
     }
 
-    private void MoveFrameInternal(int increment, bool disable_animation, string reason)
+    private void MoveFrameInternal(int increment, bool disableAnimation, string reason)
     {
         if (FrameDataSource.Count == 0)
         {
@@ -1606,25 +1621,25 @@ internal partial class ReaderView : UserControl
 
         double page = FrameDataSource[frame].Page;
         float? zoom = _zoom > 101f ? 100f : null;
-
-        SetScrollViewer2(zoom, page, disable_animation, reason);
+        SetScrollViewer2(reason, zoom: zoom, page: page, disableAnimation: disableAnimation);
     }
 
-    private ScrollResult SetScrollViewer1(float? zoom, double? parallel_offset, bool disable_animation, string reason)
+    private ScrollResult SetScrollViewer1(float? zoom, double? parallelOffset, bool disableAnimation, string reason)
     {
-        double? horizontal_offset = _isVertical ? null : parallel_offset;
-        double? vertical_offset = _isVertical ? parallel_offset : null;
+        double? horizontalOffset = _isVertical ? null : parallelOffset;
+        double? verticalOffset = _isVertical ? parallelOffset : null;
 
         return SetScrollViewerInternal(new ScrollRequest
         {
             zoom = zoom,
-            horizontalOffset = horizontal_offset,
-            verticalOffset = vertical_offset,
-            disableAnimation = disable_animation,
+            horizontalOffset = horizontalOffset,
+            verticalOffset = verticalOffset,
+            disableAnimation = disableAnimation,
         }, reason);
     }
 
-    private ScrollResult SetScrollViewer2(float? zoom, double? page, bool disableAnimation, string reason)
+    private ScrollResult SetScrollViewer2(string reason, float? zoom = null, double? page = null,
+        bool applyParallelOffset = true, bool disableAnimation = false)
     {
         double? horizontalOffset = null;
         double? verticalOffset = null;
@@ -1632,21 +1647,25 @@ internal partial class ReaderView : UserControl
         if (page.HasValue)
         {
             Tuple<double, double>? offsets = PageOffset(page.Value);
-            if (offsets == null)
+            if (offsets is null)
             {
                 Log("Jump", $"Failed (offsets is null, p={page.Value})");
                 return ScrollResult.Failed;
             }
 
-            if (Math.Abs(offsets.Item1 - SCParallelOffsetFinal) < 5.0)
+            double parallelOffset = offsets.Item1;
+            double perpendicularOffset = offsets.Item2;
+            bool parallelOffsetClose = applyParallelOffset && Math.Abs(parallelOffset - SCParallelOffsetFinal) < 5.0;
+            bool perpendicularClose = Math.Abs(perpendicularOffset - SCPerpendicularOffsetFinal) < 5.0;
+            if (parallelOffsetClose && perpendicularClose)
             {
                 // Ignore the request if target offset is really close to the current offset,
                 // otherwise we might trigger a dead loop
-                Log("Jump", "Failed (too close)");
+                Log("Jump", "Cancelled (too close)");
                 return ScrollResult.TooClose;
             }
 
-            ConvertOffset(ref horizontalOffset, ref verticalOffset, offsets.Item1, offsets.Item2);
+            ConvertOffset(ref horizontalOffset, ref verticalOffset, applyParallelOffset ? parallelOffset : null, perpendicularOffset);
         }
 
         return SetScrollViewerInternal(new ScrollRequest
@@ -1662,19 +1681,18 @@ internal partial class ReaderView : UserControl
     private ScrollResult SetScrollViewer3(
         float? zoom,
         ZoomType zoomType,
-        double? horizontal_offset,
-        double? vertical_offset,
-        bool disable_animation,
-        string reason
-    )
+        double? horizontalOffset,
+        double? verticalOffset,
+        bool disableAnimation,
+        string reason)
     {
         return SetScrollViewerInternal(new ScrollRequest
         {
             zoom = zoom,
             zoomType = zoomType,
-            horizontalOffset = horizontal_offset,
-            verticalOffset = vertical_offset,
-            disableAnimation = disable_animation,
+            horizontalOffset = horizontalOffset,
+            verticalOffset = verticalOffset,
+            disableAnimation = disableAnimation,
         }, reason);
     }
 
@@ -2325,20 +2343,20 @@ internal partial class ReaderView : UserControl
 
     internal sealed class ScrollManager : BaseTransaction<ScrollResult>
     {
-        private readonly WeakReference<ReaderView> mReader;
-        private float? mZoom = null;
-        private ZoomType mZoomType = ZoomType.CenterInside;
-        private double? mParallelOffset = null;
-        private double? mHorizontalOffset = null;
-        private double? mVerticalOffset = null;
-        private double? mPage = null;
-        private bool mDisableAnimation = true;
-        private readonly string mReason;
+        private readonly WeakReference<ReaderView> _reader;
+        private readonly string _reason;
+        private float? _zoom = null;
+        private ZoomType _zoomType = ZoomType.CenterInside;
+        private double? _parallelOffset = null;
+        private double? _horizontalOffset = null;
+        private double? _verticalOffset = null;
+        private double? _page = null;
+        private bool _disableAnimation = true;
 
         private ScrollManager(ReaderView reader, string reason)
         {
-            mReader = new WeakReference<ReaderView>(reader);
-            mReason = reason;
+            _reader = new WeakReference<ReaderView>(reader);
+            _reason = reason;
         }
 
         public static ScrollManager BeginTransaction(ReaderView reader, string reason)
@@ -2348,7 +2366,7 @@ internal partial class ReaderView : UserControl
 
         protected override ScrollResult CommitImpl()
         {
-            if (!mReader.TryGetTarget(out ReaderView? reader))
+            if (!_reader.TryGetTarget(out ReaderView? reader))
             {
                 return ScrollResult.Failed;
             }
@@ -2359,17 +2377,17 @@ internal partial class ReaderView : UserControl
             }
 
             ScrollResult result;
-            if (mParallelOffset.HasValue)
+            if (_parallelOffset.HasValue)
             {
-                result = reader.SetScrollViewer1(mZoom, mParallelOffset, mDisableAnimation, mReason);
+                result = reader.SetScrollViewer1(_zoom, _parallelOffset, _disableAnimation, _reason);
             }
-            else if (mPage.HasValue)
+            else if (_page.HasValue)
             {
-                result = reader.SetScrollViewer2(mZoom, mPage, mDisableAnimation, mReason);
+                result = reader.SetScrollViewer2(_reason, zoom: _zoom, page: _page, disableAnimation: _disableAnimation);
             }
             else
             {
-                result = reader.SetScrollViewer3(mZoom, mZoomType, mHorizontalOffset, mVerticalOffset, mDisableAnimation, mReason);
+                result = reader.SetScrollViewer3(_zoom, _zoomType, _horizontalOffset, _verticalOffset, _disableAnimation, _reason);
             }
 
             return result;
@@ -2377,49 +2395,49 @@ internal partial class ReaderView : UserControl
 
         public ScrollManager CopyFrom(ReaderView view)
         {
-            mPage = view.CurrentPage;
+            _page = view.CurrentPage;
             OnSetOffset();
             return this;
         }
 
         public ScrollManager Zoom(float? zoom, ZoomType zoomType = ZoomType.CenterInside)
         {
-            mZoom = zoom;
-            mZoomType = zoomType;
+            _zoom = zoom;
+            _zoomType = zoomType;
             return this;
         }
 
         public ScrollManager ParallelOffset(double? parallel_offset)
         {
-            mParallelOffset = parallel_offset;
+            _parallelOffset = parallel_offset;
             OnSetOffset();
             return this;
         }
 
         public ScrollManager HorizontalOffset(double? horizontal_offset)
         {
-            mHorizontalOffset = horizontal_offset;
+            _horizontalOffset = horizontal_offset;
             OnSetOffset();
             return this;
         }
 
         public ScrollManager VerticalOffset(double? vertical_offset)
         {
-            mVerticalOffset = vertical_offset;
+            _verticalOffset = vertical_offset;
             OnSetOffset();
             return this;
         }
 
         public ScrollManager Page(double? page)
         {
-            mPage = page;
+            _page = page;
             OnSetOffset();
             return this;
         }
 
         public ScrollManager EnableAnimation()
         {
-            mDisableAnimation = false;
+            _disableAnimation = false;
             return this;
         }
 
@@ -2427,17 +2445,17 @@ internal partial class ReaderView : UserControl
         {
             int checksum = 0;
 
-            if (mPage.HasValue)
+            if (_page.HasValue)
             {
                 checksum++;
             }
 
-            if (mParallelOffset.HasValue)
+            if (_parallelOffset.HasValue)
             {
                 checksum++;
             }
 
-            if (mHorizontalOffset.HasValue || mVerticalOffset.HasValue)
+            if (_horizontalOffset.HasValue || _verticalOffset.HasValue)
             {
                 checksum++;
             }
