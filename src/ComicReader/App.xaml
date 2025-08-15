@@ -32,6 +32,7 @@
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#000000" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#282828" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#505050" />
+                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#000000" />
                             <muxm:AcrylicBrush
                                 x:Key="TitleBarBackground"
                                 FallbackColor="#202020"
@@ -60,6 +61,7 @@
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#DADADA" />
+                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#FFFFFF" />
                             <muxm:AcrylicBrush
                                 x:Key="TitleBarBackground"
                                 FallbackColor="#FFFFFF"
@@ -88,6 +90,7 @@
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#DADADA" />
+                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#FFFFFF" />
                             <SolidColorBrush x:Key="TitleBarBackground" Color="#FFFFFF" />
                             <SolidColorBrush x:Key="TipBackground" Color="#DADADA" />
                         </ResourceDictionary>
