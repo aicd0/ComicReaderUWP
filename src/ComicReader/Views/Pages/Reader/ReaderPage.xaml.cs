@@ -205,6 +205,7 @@ internal sealed partial class ReaderPage : BasePage
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
             BottomGrid.Opacity = opacity;
+            FullscreenButtonGrid.Opacity = opacity;
         });
 
         GetMainPageAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
@@ -699,17 +700,7 @@ internal sealed partial class ReaderPage : BasePage
         _ = dialog.ShowAsync(XamlRoot);
     }
 
-    private void OnBottomGridPointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        OnReaderPointerExited();
-    }
-
-    private void OnInfoPanePointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        OnReaderPointerExited();
-    }
-
-    private void OnTitleBarAreaPointerEntered(object sender, PointerRoutedEventArgs e)
+    private void OnNonReaderUIPointerEntered(object sender, PointerRoutedEventArgs e)
     {
         OnReaderPointerExited();
     }
