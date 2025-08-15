@@ -1738,6 +1738,7 @@ internal partial class ReaderView : UserControl
         {
             context.HorizontalOffset = Math.Max(0, context.HorizontalOffset.Value);
         }
+
         if (context.VerticalOffset.HasValue)
         {
             context.VerticalOffset = Math.Max(0, context.VerticalOffset.Value);
@@ -1776,7 +1777,11 @@ internal partial class ReaderView : UserControl
             SCCurrentPageFinal = ToDiscretePage(request.pageToApplyZoom.Value);
         }
 
-        _zoom = context.ZoomPercentage!.Value;
+        if (context.ZoomPercentage.HasValue)
+        {
+            _zoom = context.ZoomPercentage.Value;
+        }
+
         return ScrollResult.Success;
     }
 
@@ -1843,16 +1848,17 @@ internal partial class ReaderView : UserControl
         zoomFactorNew = Math.Min(zoomFactorNew, maxZoomFactor);
         zoomFactorNew = Math.Max(zoomFactorNew, minZoomFactor);
         zoom = zoomFactorNew / zoomCoefficientNew.Min();
-        context.ZoomPercentage = (float)zoom;
 
         // Ignore vary less than 1%
-        if (Math.Abs(zoomFactorNew / SCZoomFactorFinal - 1.0f) <= 0.01f)
-        {
-            context.ZoomFactor = null;
-            return;
-        }
+        // Commented out because it causes calculation error when dimensions of adjacent frames are close but not equal.
+        //if (Math.Abs(zoomFactorNew / SCZoomFactorFinal - 1.0f) <= 0.01f)
+        //{
+        //    context.ZoomFactor = null;
+        //    return;
+        //}
 
         context.ZoomFactor = (float)zoomFactorNew;
+        context.ZoomPercentage = (float)zoom;
 
         // Apply zooming
         double zoomFactorBefore = SCZoomFactorFinal;
