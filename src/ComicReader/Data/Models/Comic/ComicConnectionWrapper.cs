@@ -4,16 +4,12 @@
 using System;
 using System.Threading.Tasks;
 
-using ComicReader.SDK.Common.DebugTools;
-
 using Windows.Storage.Streams;
 
 namespace ComicReader.Data.Models.Comic;
 
 internal sealed partial class ComicConnectionWrapper(IComicConnection connection) : IComicConnection
 {
-    private const string TAG = nameof(ComicConnectionWrapper);
-
     private bool _disposed = false;
     private readonly IComicConnection _connection = connection;
 
@@ -21,7 +17,6 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
     {
         if (_disposed)
         {
-            Logger.F(TAG, "The connection is already disposed.");
             return;
         }
 
@@ -33,7 +28,6 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
     {
         if (_disposed)
         {
-            Logger.F(TAG, "The connection is already disposed.");
             return 0;
         }
 
@@ -44,7 +38,6 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
     {
         if (_disposed)
         {
-            Logger.F(TAG, "The connection is already disposed.");
             return Task.FromResult<IRandomAccessStream?>(null);
         }
 
@@ -55,7 +48,6 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
     {
         if (_disposed)
         {
-            Logger.F(TAG, "The connection is already disposed.");
             return string.Empty;
         }
 

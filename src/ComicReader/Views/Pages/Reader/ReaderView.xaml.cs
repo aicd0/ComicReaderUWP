@@ -1015,7 +1015,7 @@ internal partial class ReaderView : UserControl
                     if (_isContinuous)
                     {
                         // Stick to the vertical center of current frame.
-                        SetScrollViewer2("StickToVericalCenter", page: page, applyParallelOffset: false, disableAnimation: false);
+                        SetScrollViewer2("StickToVerticalCenter", page: page, applyParallelOffset: false, disableAnimation: false);
                     }
                     else
                     {
@@ -1655,7 +1655,7 @@ internal partial class ReaderView : UserControl
 
             double parallelOffset = offsets.Item1;
             double perpendicularOffset = offsets.Item2;
-            bool parallelOffsetClose = applyParallelOffset && Math.Abs(parallelOffset - SCParallelOffsetFinal) < 5.0;
+            bool parallelOffsetClose = !applyParallelOffset || Math.Abs(parallelOffset - SCParallelOffsetFinal) < 5.0;
             bool perpendicularClose = Math.Abs(perpendicularOffset - SCPerpendicularOffsetFinal) < 5.0;
             if (parallelOffsetClose && perpendicularClose)
             {
@@ -1738,6 +1738,7 @@ internal partial class ReaderView : UserControl
         {
             context.HorizontalOffset = Math.Max(0, context.HorizontalOffset.Value);
         }
+
         if (context.VerticalOffset.HasValue)
         {
             context.VerticalOffset = Math.Max(0, context.VerticalOffset.Value);
@@ -1776,7 +1777,11 @@ internal partial class ReaderView : UserControl
             SCCurrentPageFinal = ToDiscretePage(request.pageToApplyZoom.Value);
         }
 
-        _zoom = context.ZoomPercentage!.Value;
+        if (context.ZoomPercentage.HasValue)
+        {
+            _zoom = context.ZoomPercentage.Value;
+        }
+
         return ScrollResult.Success;
     }
 
@@ -1843,16 +1848,17 @@ internal partial class ReaderView : UserControl
         zoomFactorNew = Math.Min(zoomFactorNew, maxZoomFactor);
         zoomFactorNew = Math.Max(zoomFactorNew, minZoomFactor);
         zoom = zoomFactorNew / zoomCoefficientNew.Min();
-        context.ZoomPercentage = (float)zoom;
 
         // Ignore vary less than 1%
-        if (Math.Abs(zoomFactorNew / SCZoomFactorFinal - 1.0f) <= 0.01f)
-        {
-            context.ZoomFactor = null;
-            return;
-        }
+        // Commented out because it causes calculation error when dimensions of adjacent frames are close but not equal.
+        //if (Math.Abs(zoomFactorNew / SCZoomFactorFinal - 1.0f) <= 0.01f)
+        //{
+        //    context.ZoomFactor = null;
+        //    return;
+        //}
 
         context.ZoomFactor = (float)zoomFactorNew;
+        context.ZoomPercentage = (float)zoom;
 
         // Apply zooming
         double zoomFactorBefore = SCZoomFactorFinal;
