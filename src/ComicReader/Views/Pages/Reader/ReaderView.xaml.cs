@@ -1015,7 +1015,7 @@ internal partial class ReaderView : UserControl
                     if (_isContinuous)
                     {
                         // Stick to the vertical center of current frame.
-                        SetScrollViewer2("StickToVericalCenter", page: page, applyParallelOffset: false, disableAnimation: false);
+                        SetScrollViewer2("StickToVerticalCenter", page: page, applyParallelOffset: false, disableAnimation: false);
                     }
                     else
                     {
@@ -1655,7 +1655,7 @@ internal partial class ReaderView : UserControl
 
             double parallelOffset = offsets.Item1;
             double perpendicularOffset = offsets.Item2;
-            bool parallelOffsetClose = applyParallelOffset && Math.Abs(parallelOffset - SCParallelOffsetFinal) < 5.0;
+            bool parallelOffsetClose = !applyParallelOffset || Math.Abs(parallelOffset - SCParallelOffsetFinal) < 5.0;
             bool perpendicularClose = Math.Abs(perpendicularOffset - SCPerpendicularOffsetFinal) < 5.0;
             if (parallelOffsetClose && perpendicularClose)
             {
