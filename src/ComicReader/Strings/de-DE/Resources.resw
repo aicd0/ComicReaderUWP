@@ -430,6 +430,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="HotkeyPreviousPage.Header" xml:space="preserve">
     <value>Zur vorherigen Seite</value>
   </data>
+  <data name="HotkeyRandomPage.Header" xml:space="preserve">
+    <value>Gehen Sie zu einer zufälligen Seite</value>
+  </data>
   <data name="ImageLocationExpander.Detail" xml:space="preserve">
     <value>Wählen Sie aus, wo wir nach Bildern suchen</value>
   </data>

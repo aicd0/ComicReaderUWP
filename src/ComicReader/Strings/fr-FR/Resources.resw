@@ -430,6 +430,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="HotkeyPreviousPage.Header" xml:space="preserve">
     <value>Aller à la page précédente</value>
   </data>
+  <data name="HotkeyRandomPage.Header" xml:space="preserve">
+    <value>Accéder à une page aléatoire</value>
+  </data>
   <data name="ImageLocationExpander.Detail" xml:space="preserve">
     <value>Choisir où nous recherchons des images</value>
   </data>
