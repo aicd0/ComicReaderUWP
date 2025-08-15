@@ -430,6 +430,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="HotkeyPreviousPage.Header" xml:space="preserve">
     <value>跳到上一頁</value>
   </data>
+  <data name="HotkeyRandomPage.Header" xml:space="preserve">
+    <value>跳到隨機頁面</value>
+  </data>
   <data name="ImageLocationExpander.Detail" xml:space="preserve">
     <value>新增或修改圖片位置</value>
   </data>

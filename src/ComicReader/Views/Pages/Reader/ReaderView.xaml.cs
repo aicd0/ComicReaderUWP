@@ -1139,6 +1139,12 @@ internal partial class ReaderView : UserControl
                 MoveFrame(1, "JumpToNextPageUsingSpaceKey");
                 break;
 
+            case VirtualKey.R:
+                ScrollManager.BeginTransaction(this, "JumpToRandomPageUsingRKey")
+                    .Page(Random.Shared.Next(Math.Max(1, PageCount)) + 1)
+                    .Commit();
+                break;
+
             default:
                 handled = false;
                 break;
