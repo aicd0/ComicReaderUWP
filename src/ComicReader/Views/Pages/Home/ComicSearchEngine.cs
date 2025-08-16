@@ -30,9 +30,20 @@ internal class ComicSearchEngine
 
     private Action<IReadOnlyList<ComicModel>>? _callback = null;
     private readonly List<ComicModel> _comicItems = [];
-    private volatile string _searchText = "";
-    private long _lastSearchTime = 0;
-    private volatile string _expression = "";
+
+    private volatile string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set => _searchText = value;
+    }
+
+    private volatile string _expression = string.Empty;
+    public string Expression
+    {
+        get => _expression;
+        set => _expression = value;
+    }
 
     public void SetResultCallback(Action<IReadOnlyList<ComicModel>>? callback)
     {
@@ -44,48 +55,13 @@ internal class ComicSearchEngine
         ScheduleUpdate();
     }
 
-    public void SetFilterExpresssion(string expression)
-    {
-        if (expression == _expression)
-        {
-            return;
-        }
-        _expression = expression;
-        ScheduleUpdate();
-    }
-
-    public void SetSearchText(string searchText)
-    {
-        searchText = searchText.Trim();
-        if (searchText == _searchText)
-        {
-            return;
-        }
-        _searchText = searchText;
-
-        long tick = GetTick();
-        int timeRemain = 200 - (int)(tick - _lastSearchTime);
-        if (timeRemain <= 0)
-        {
-            _lastSearchTime = tick;
-            ScheduleUpdate();
-        }
-        else
-        {
-            _ = Task.Delay(timeRemain).ContinueWith((_) =>
-            {
-                _lastSearchTime = GetTick();
-                ScheduleUpdate();
-            });
-        }
-    }
-
     private void ScheduleUpdate()
     {
         if (Interlocked.CompareExchange(ref _updateSubmitted, 1, 0) == 1)
         {
             return;
         }
+
         _dispatcher.Submit("UpdateLibrary", delegate
         {
             Interlocked.Exchange(ref _updateSubmitted, 0);
@@ -277,11 +253,6 @@ internal class ComicSearchEngine
             ids.Add(match.Id);
         }
         return ids;
-    }
-
-    private static long GetTick()
-    {
-        return Environment.TickCount64;
     }
 
     private class Match

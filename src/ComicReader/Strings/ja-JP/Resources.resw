@@ -276,6 +276,9 @@
   <data name="EnterFullscreen" xml:space="preserve">
     <value>全画面表示</value>
   </data>
+  <data name="Exit" xml:space="preserve">
+    <value>終了</value>
+  </data>
   <data name="ExitFullscreen" xml:space="preserve">
     <value>全画面表示を終了</value>
   </data>

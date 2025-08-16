@@ -253,7 +253,6 @@ internal partial class ReaderView : UserControl
         PageCount = images.Count;
 
         int lastFrameIndex = PageToFrame(PageCount, out bool _, out int _);
-
         for (int i = FrameDataSource.Count - 1; i > lastFrameIndex; --i)
         {
             FrameDataSource.RemoveAt(i);
@@ -280,24 +279,27 @@ internal partial class ReaderView : UserControl
             {
                 return;
             }
+
             if (index == 0)
             {
                 _isFirstFrameLoaded = true;
             }
+
             if (index == initialFrameIndex)
             {
                 _isInitialFrameLoaded = true;
             }
+
             if (index == lastFrameIndex)
             {
                 _isLastFrameLoaded = true;
             }
+
             UpdateLoader($"FrameReady,i={index}");
         });
 
-        // Dispatch event
+        // Start loading images
         DispatchReaderStateChangeEvent(ReaderState.Loading);
-
         _loadInfoDispatcher.Submit("ReaderLoadImageInfo", delegate
         {
             void dispatchToMainThread(List<PengingImageItem> pendingList)
@@ -325,8 +327,7 @@ internal partial class ReaderView : UserControl
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            List<PengingImageItem> pendingList = new();
-
+            List<PengingImageItem> pendingList = [];
             for (int i = 0; i < images.Count; i++)
             {
                 if (token.IsCancellationRequested)
@@ -2236,8 +2237,8 @@ internal partial class ReaderView : UserControl
         {
             return;
         }
-        _state = state;
 
+        _state = state;
         ReaderEventReaderStateChanged?.Invoke(this, state);
     }
 

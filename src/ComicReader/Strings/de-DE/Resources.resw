@@ -276,6 +276,9 @@
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Vollbildmodus aktivieren</value>
   </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Beenden</value>
+  </data>
   <data name="ExitFullscreen" xml:space="preserve">
     <value>Vollbildmodus beenden</value>
   </data>

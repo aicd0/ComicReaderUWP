@@ -10,6 +10,7 @@ using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
@@ -129,15 +130,21 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
 
         if (DebugUtils.DeveloperMode)
         {
-            items.Add(new MenuFlyoutItemViewModel("Developer tools")
+            items.Add(new MenuFlyoutItemViewModel("Dev tools")
             {
-                Glyph = "\uE90F",
+                Glyph = "\uEC7A",
                 OnClick = () =>
                 {
                     OpenInNewWindowLiveData.Emit(Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS));
                 },
             });
         }
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Exit)
+        {
+            Glyph = "\uF78A",
+            OnClick = Application.Current.Exit,
+        });
 
         MoreButtonFlyoutItems = items;
     }
