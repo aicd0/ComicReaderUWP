@@ -156,6 +156,7 @@ internal class InitTaskManager(Application application)
     {
         AppDomain.CurrentDomain.ProcessExit += (s, e) =>
         {
+            Logger.Flush();
             if (_appLock is FileStream fileStream)
             {
                 try

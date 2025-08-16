@@ -353,7 +353,6 @@ internal sealed partial class MainPage : BasePage
         RegisterPageAbility(bundle.Communicator, ability);
         _tabs.Add(tabInfo);
         RootTabView.TabItems.Add(item);
-        SaveTabStatus();
         return tabId;
     }
 
@@ -381,7 +380,6 @@ internal sealed partial class MainPage : BasePage
         }
 
         CloseTabInternalNoLock(closingTab);
-        SaveTabStatus();
 
         if (_tabs.Count <= 0)
         {
@@ -566,7 +564,6 @@ internal sealed partial class MainPage : BasePage
 
     private void OnPageChanged()
     {
-        SaveTabStatus();
         UpdateTopPadding();
 
         TabInfo? currentTab = _currentTab;
@@ -870,6 +867,7 @@ internal sealed partial class MainPage : BasePage
 
         string json = JsonSerializer.Serialize(jsonModel);
         KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LAST_TAB_STATUS, json);
+        Logger.I(TAG, $"Saved tab status: {json}");
     }
 
     //
@@ -1074,7 +1072,7 @@ internal sealed partial class MainPage : BasePage
 
     private class TabJsonModel
     {
-        [JsonPropertyName("Title")]
+        [JsonPropertyName("Url")]
         public string? Url { get; set; }
     }
 
