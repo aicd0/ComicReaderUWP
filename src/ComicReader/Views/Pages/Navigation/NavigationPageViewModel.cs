@@ -129,9 +129,9 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
 
         if (DebugUtils.DeveloperMode)
         {
-            items.Add(new MenuFlyoutItemViewModel("Developer tools")
+            items.Add(new MenuFlyoutItemViewModel("Dev tools")
             {
-                Glyph = "\uE90F",
+                Glyph = "\uEC7A",
                 OnClick = () =>
                 {
                     OpenInNewWindowLiveData.Emit(Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS));

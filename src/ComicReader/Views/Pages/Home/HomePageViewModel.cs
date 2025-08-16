@@ -194,6 +194,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
     private bool _filterUpdated = false;
+    private bool _comicUpdated = false;
     private int _updateFilterSubmitted = 0;
     private int _updateComicSubmitted = 0;
 
@@ -610,6 +611,67 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         UpdateCollapseExpandGroupButtonStates();
     }
 
+    //
+    // Task Scheduler
+    //
+
+    private void ScheduleUpdateFilters(bool reloadFromDatabase)
+    {
+        if (Interlocked.CompareExchange(ref _updateFilterSubmitted, 1, 0) == 1)
+        {
+            return;
+        }
+
+        _filterUpdated = true;
+        _sharedDispatcher.Submit("ScheduleUpdateFilters", delegate
+        {
+            Interlocked.Exchange(ref _updateFilterSubmitted, 0);
+            UpdateFiltersNoLock(reloadFromDatabase).Wait();
+        });
+    }
+
+    private void ScheduleUpdateComics()
+    {
+        if (!_filterUpdated)
+        {
+            ScheduleUpdateFilters(true);
+            return;
+        }
+
+        _comicUpdated = true;
+        _searchEngine.Update();
+    }
+
+    private void ScheduleDisplayComics()
+    {
+        if (!_filterUpdated)
+        {
+            ScheduleUpdateFilters(true);
+            return;
+        }
+
+        if (!_comicUpdated)
+        {
+            ScheduleUpdateComics();
+            return;
+        }
+
+        if (Interlocked.CompareExchange(ref _updateComicSubmitted, 1, 0) == 1)
+        {
+            return;
+        }
+
+        _sharedDispatcher.Submit("ScheduleDisplayComics", delegate
+        {
+            Interlocked.Exchange(ref _updateComicSubmitted, 0);
+            DisplayComicsNoLock().Wait();
+        });
+    }
+
+    //
+    // Unsorted
+    //
+
     private void OnComicSearchResult(IReadOnlyList<ComicModel> items)
     {
         _sharedDispatcher.Submit("OnComicSearchResult", delegate
@@ -790,52 +852,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         bool groupingEnabled = GroupingEnabledLiveData.GetValue();
         IsCollapseAllEnabled = groupingEnabled && GroupedComicItems.Count > 0 && GroupedComicItems.Any(x => !x.Collapsed);
         IsExpandAllEnabled = groupingEnabled && GroupedComicItems.Count > 0 && GroupedComicItems.Any(x => x.Collapsed);
-    }
-
-    private void ScheduleUpdateFilters(bool reloadFromDatabase)
-    {
-        if (Interlocked.CompareExchange(ref _updateFilterSubmitted, 1, 0) == 1)
-        {
-            return;
-        }
-
-        _filterUpdated = true;
-        _sharedDispatcher.Submit("ScheduleUpdateFilters", delegate
-        {
-            Interlocked.Exchange(ref _updateFilterSubmitted, 0);
-            UpdateFiltersNoLock(reloadFromDatabase).Wait();
-        });
-    }
-
-    private void ScheduleUpdateComics()
-    {
-        if (!_filterUpdated)
-        {
-            ScheduleUpdateFilters(true);
-            return;
-        }
-
-        _searchEngine.Update();
-    }
-
-    private void ScheduleDisplayComics()
-    {
-        if (!_filterUpdated)
-        {
-            ScheduleUpdateFilters(true);
-            return;
-        }
-
-        if (Interlocked.CompareExchange(ref _updateComicSubmitted, 1, 0) == 1)
-        {
-            return;
-        }
-
-        _sharedDispatcher.Submit("ScheduleDisplayComics", delegate
-        {
-            Interlocked.Exchange(ref _updateComicSubmitted, 0);
-            DisplayComicsNoLock().Wait();
-        });
     }
 
     private async Task UpdateFiltersNoLock(bool reloadFromDatabase)
