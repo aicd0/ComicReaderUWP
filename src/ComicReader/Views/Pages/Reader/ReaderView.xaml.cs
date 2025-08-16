@@ -978,7 +978,20 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
     {
-        OnViewChanged(!e.IsIntermediate);
+        if (_isCommitting)
+        {
+            return;
+        }
+
+        bool final = !e.IsIntermediate;
+        if (final)
+        {
+            Log("ViewChanged", $"Z={ZoomFactor}"
+                + $",H={HorizontalOffset}"
+                + $",V={VerticalOffset}");
+        }
+
+        OnViewChanged(final);
     }
 
     private void OnViewChanged(bool final)
@@ -995,11 +1008,6 @@ internal partial class ReaderView : UserControl
 
         if (final)
         {
-            Log("ViewChanged", $"Z={ZoomFactor}"
-                + $",H={HorizontalOffset}"
-                + $",V={VerticalOffset}"
-                + $",P={CurrentPage}");
-
             SCClearFinalVal("ViewChanged");
 
             // Notify the scroll viewer to update its inner states.
