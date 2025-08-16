@@ -612,8 +612,14 @@ internal sealed partial class MainPage : BasePage
     private void ShowOrHideTitleBar(bool show, bool transitionAnimation)
     {
         UIElement? targetElement = _tabContainerGrid;
-        if (_currentTab == null || !_currentTab.CurrentPageTrait.ImmersiveMode() || show == _titleBarVisible || targetElement == null)
+        if (_currentTab == null || show == _titleBarVisible || targetElement == null)
         {
+            return;
+        }
+
+        if (!show && !_currentTab.CurrentPageTrait.ImmersiveMode())
+        {
+            // Only hide the title bar when the current page supports immersive mode.
             return;
         }
 
