@@ -67,6 +67,11 @@ internal sealed partial class NavigationPage : BasePage
             TopTile.IsHitTestVisible = opacity > 0.5;
         });
 
+        GetMainPageAbility().RegisterFullscreenChangedHandler(this, isFullscreen =>
+        {
+            ViewModel.IsFullscreen = isFullscreen;
+        });
+
         ViewModel.OpenInNewWindowLiveData.Observe(this, route =>
         {
             MainWindow.Open(route.Url);
@@ -75,6 +80,18 @@ internal sealed partial class NavigationPage : BasePage
         ViewModel.OpenInNewTabLiveData.Observe(this, route =>
         {
             GetMainPageAbility().OpenInNewTab(route);
+        });
+
+        ViewModel.FullscreenLiveData.Observe(this, isFullscreen =>
+        {
+            if (isFullscreen)
+            {
+                GetMainPageAbility().EnterFullscreen();
+            }
+            else
+            {
+                GetMainPageAbility().ExitFullscreen();
+            }
         });
     }
 

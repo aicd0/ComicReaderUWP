@@ -273,6 +273,12 @@
   <data name="Edit" xml:space="preserve">
     <value>編集</value>
   </data>
+  <data name="EnterFullscreen" xml:space="preserve">
+    <value>全画面表示</value>
+  </data>
+  <data name="ExitFullscreen" xml:space="preserve">
+    <value>全画面表示を終了</value>
+  </data>
   <data name="ExpandAll" xml:space="preserve">
     <value>すべて展開</value>
   </data>

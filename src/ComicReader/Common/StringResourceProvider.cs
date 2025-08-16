@@ -49,6 +49,8 @@ public class StringResourceProvider
     public string DiffMode => GetResourceString("DiffMode");
     public string Done => GetResourceString("Done");
     public string Edit => GetResourceString("Edit");
+    public string EnterFullscreen => GetResourceString("EnterFullscreen");
+    public string ExitFullscreen => GetResourceString("ExitFullscreen");
     public string ExpandAll => GetResourceString("ExpandAll");
     public string ExpressionAnd => GetResourceString("ExpressionAnd");
     public string ExpressionIn => GetResourceString("ExpressionIn");

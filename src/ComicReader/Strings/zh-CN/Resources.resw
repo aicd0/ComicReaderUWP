@@ -273,6 +273,12 @@
   <data name="Edit" xml:space="preserve">
     <value>编辑</value>
   </data>
+  <data name="EnterFullscreen" xml:space="preserve">
+    <value>进入全屏</value>
+  </data>
+  <data name="ExitFullscreen" xml:space="preserve">
+    <value>退出全屏</value>
+  </data>
   <data name="ExpandAll" xml:space="preserve">
     <value>展开全部</value>
   </data>

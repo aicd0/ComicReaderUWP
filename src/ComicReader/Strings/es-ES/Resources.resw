@@ -273,6 +273,12 @@
   <data name="Edit" xml:space="preserve">
     <value>Editar</value>
   </data>
+  <data name="EnterFullscreen" xml:space="preserve">
+    <value>Entrar en pantalla completa</value>
+  </data>
+  <data name="ExitFullscreen" xml:space="preserve">
+    <value>Salir de pantalla completa</value>
+  </data>
   <data name="ExpandAll" xml:space="preserve">
     <value>Expandir todo</value>
   </data>

@@ -273,6 +273,12 @@
   <data name="Edit" xml:space="preserve">
     <value>Редактировать</value>
   </data>
+  <data name="EnterFullscreen" xml:space="preserve">
+    <value>Перейти в полноэкранный режим</value>
+  </data>
+  <data name="ExitFullscreen" xml:space="preserve">
+    <value>Выйти из полноэкранного режима</value>
+  </data>
   <data name="ExpandAll" xml:space="preserve">
     <value>Развернуть все</value>
   </data>

@@ -21,6 +21,19 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
 
     public readonly MutableLiveData<Route> OpenInNewWindowLiveData = new();
     public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
+    public readonly MutableLiveData<bool> FullscreenLiveData = new();
+
+    private bool _isFullscreen = false;
+    public bool IsFullscreen
+    {
+        get => _isFullscreen;
+        set
+        {
+            _isFullscreen = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFullscreen)));
+            UpdateMoreMenuItems();
+        }
+    }
 
     private List<BaseMenuFlyoutItemViewModel> _moreButtonFlyoutItems = [];
     public List<BaseMenuFlyoutItemViewModel> MoreButtonFlyoutItems
@@ -77,6 +90,31 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
                 OpenInNewWindowLiveData.Emit(Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME));
             },
         });
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
+
+        if (_isFullscreen)
+        {
+            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.ExitFullscreen)
+            {
+                Glyph = "\uE73F",
+                OnClick = () =>
+                {
+                    FullscreenLiveData.Emit(false);
+                },
+            });
+        }
+        else
+        {
+            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.EnterFullscreen)
+            {
+                Glyph = "\uE740",
+                OnClick = () =>
+                {
+                    FullscreenLiveData.Emit(true);
+                },
+            });
+        }
 
         items.Add(new MenuFlyoutSeperatorViewModel());
 
