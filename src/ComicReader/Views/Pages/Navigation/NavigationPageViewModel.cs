@@ -142,7 +142,7 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Exit)
         {
-            Glyph = "\uE711",
+            Glyph = "\uF78A",
             OnClick = Application.Current.Exit,
         });
 
