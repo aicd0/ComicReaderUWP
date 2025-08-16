@@ -120,6 +120,12 @@ internal sealed partial class MainPage : BasePage
         string url = bundle.GetString(RouterConstants.ARG_URL);
         bool recoverTabs = bundle.GetString(RouterConstants.ARG_RECOVER_TABS, "0") == "1";
         LoadInitialTabs(url, recoverTabs);
+
+        if (recoverTabs)
+        {
+            bool isFullscreen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, false);
+            EnterOrExitFullscreen(isFullscreen);
+        }
     }
 
     protected override void OnResume()
@@ -670,36 +676,25 @@ internal sealed partial class MainPage : BasePage
 
     private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)
     {
-        EnterFullscreen();
+        EnterOrExitFullscreen(true);
     }
 
     private void OnBackToWindowBtClicked(object sender, RoutedEventArgs e)
     {
-        ExitFullscreen();
+        EnterOrExitFullscreen(false);
     }
 
-    private void EnterFullscreen()
+    private void EnterOrExitFullscreen(bool isFullscreen)
     {
         Window? window = CurrentWindow;
-        if (window == null || IsFullScreen(window))
+        if (window == null || IsFullScreen(window) == isFullscreen)
         {
             return;
         }
 
-        window.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
-        DispatchFullscreenChangeEvent(true);
-    }
-
-    private void ExitFullscreen()
-    {
-        Window? window = CurrentWindow;
-        if (window == null || !IsFullScreen(window))
-        {
-            return;
-        }
-
-        window.AppWindow.SetPresenter(AppWindowPresenterKind.Default);
-        DispatchFullscreenChangeEvent(false);
+        window.AppWindow.SetPresenter(isFullscreen ? AppWindowPresenterKind.FullScreen : AppWindowPresenterKind.Default);
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, isFullscreen);
+        DispatchFullscreenChangeEvent(isFullscreen);
     }
 
     private void DispatchFullscreenChangeEvent(bool isFullscreen)
@@ -750,7 +745,7 @@ internal sealed partial class MainPage : BasePage
         switch (e.Key)
         {
             case Windows.System.VirtualKey.Escape:
-                ExitFullscreen();
+                EnterOrExitFullscreen(false);
                 handled = true;
                 break;
             default:
@@ -918,7 +913,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.EnterFullscreen();
+            parent.EnterOrExitFullscreen(true);
         }
 
         public void ExitFullscreen()
@@ -928,7 +923,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.ExitFullscreen();
+            parent.EnterOrExitFullscreen(false);
         }
 
         public void SetTitle(string title)
