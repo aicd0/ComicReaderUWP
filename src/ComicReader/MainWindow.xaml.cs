@@ -142,7 +142,9 @@ public sealed partial class MainWindow : Window
                 }
             }
 
-            PInvoke.SetForegroundWindow(new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32()));
+            var hWnd = new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32());
+            PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
+            PInvoke.SetForegroundWindow(hWnd);
         });
     }
 

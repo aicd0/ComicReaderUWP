@@ -3,4 +3,5 @@ GetActiveWindow
 RegisterHotKey
 SetForegroundWindow
 SetWindowLongPtr
+ShowWindow
 UnregisterHotKey
