@@ -477,7 +477,6 @@ internal partial class ReaderView : UserControl
             LvReader.VerticalAlignment = isVertical ? VerticalAlignment.Top : VerticalAlignment.Center;
             LvReader.HorizontalAlignment = isVertical ? HorizontalAlignment.Center : HorizontalAlignment.Center;
             LvReader.ItemContainerStyle = (Style)Resources[isVertical ? "VerticalReaderListViewItemStyle" : "HorizontalReaderListViewItemStyle"];
-            LvReader.ItemTemplate = (DataTemplate)Resources[isVertical ? "VerticalReaderListViewItemTemplate" : "HorizontalReaderListViewItemTemplate"];
             LvReader.ItemsPanel = (ItemsPanelTemplate)Resources[isVertical ? "VerticalReaderListViewItemPanelTemplate" : "HorizontalReaderListViewItemPanelTemplate"];
 
             for (int i = 0; i < FrameDataSource.Count; ++i)
@@ -1453,6 +1452,7 @@ internal partial class ReaderView : UserControl
     // Scroll Controller
     //
 
+    private bool _isCommitting = false;
     private float _zoom = 100f;
     private bool _finalValueSynced = false;
 
@@ -1707,6 +1707,12 @@ internal partial class ReaderView : UserControl
             return ScrollResult.Failed;
         }
 
+        if (_isCommitting)
+        {
+            Log("Jump", "Failed (is committing)");
+            return ScrollResult.Failed;
+        }
+
         Logger.Assert(float.IsFinite(request.zoom ?? 0), "5D42C4251571A722");
         Logger.Assert(!float.IsNegative(request.zoom ?? 0), "65075662668EE56D");
         Logger.Assert(double.IsFinite(request.horizontalOffset ?? 0), "4FD89F79946B8D03");
@@ -1770,11 +1776,6 @@ internal partial class ReaderView : UserControl
             + $",V={context.VerticalOffset}"
             + $",D={context.DisableAnimation}");
 
-        if (context.HorizontalOffset != null || context.VerticalOffset != null || context.ZoomFactor != null)
-        {
-            ChangeView(context.ZoomFactor, context.HorizontalOffset, context.VerticalOffset, context.DisableAnimation);
-        }
-
         if (request.pageToApplyZoom.HasValue)
         {
             SCCurrentPageFinal = ToDiscretePage(request.pageToApplyZoom.Value);
@@ -1785,6 +1786,12 @@ internal partial class ReaderView : UserControl
             _zoom = context.ZoomPercentage.Value;
         }
 
+        if (context.HorizontalOffset == null && context.VerticalOffset == null && context.ZoomFactor == null)
+        {
+            return ScrollResult.Success;
+        }
+
+        ChangeView(context.ZoomFactor, context.HorizontalOffset, context.VerticalOffset, context.DisableAnimation);
         return ScrollResult.Success;
     }
 
@@ -1905,35 +1912,52 @@ internal partial class ReaderView : UserControl
         context.VerticalOffset = Math.Max(0.0, context.VerticalOffset.Value);
     }
 
-    private void ChangeView(float? zoom_factor, double? horizontal_offset, double? vertical_offset, bool disable_animation)
+    private bool ChangeView(float? zoomFactor, double? horizontalOffset, double? verticalOffset, bool disableAnimation)
     {
-        if (horizontal_offset != null)
+        if (horizontalOffset != null)
         {
-            SCHorizontalOffsetFinal = horizontal_offset.Value;
+            SCHorizontalOffsetFinal = horizontalOffset.Value;
         }
 
-        if (vertical_offset != null)
+        if (verticalOffset != null)
         {
-            SCVerticalOffsetFinal = vertical_offset.Value;
+            SCVerticalOffsetFinal = verticalOffset.Value;
         }
 
-        if (zoom_factor != null)
+        if (zoomFactor != null)
         {
-            SCZoomFactorFinal = zoom_factor.Value;
+            SCZoomFactorFinal = zoomFactor.Value;
         }
 
-        if (disable_animation)
+        if (disableAnimation)
         {
             SCDisableAnimationFinal = true;
         }
 
-        Log("Jump", "Commit:"
-            + " Z=" + SCZoomFactorFinal.ToString()
-            + ",H=" + SCHorizontalOffsetFinal.ToString()
-            + ",V=" + SCVerticalOffsetFinal.ToString()
-            + ",D=" + SCDisableAnimationFinal.ToString());
+        double commitHorizontalOffset = SCHorizontalOffsetFinal;
+        double commitVerticalOffset = SCVerticalOffsetFinal;
+        float commitZoomFactor = SCZoomFactorFinal;
+        bool commitDisableAnimation = SCDisableAnimationFinal;
 
-        ThisScrollViewer.ChangeView(SCHorizontalOffsetFinal, SCVerticalOffsetFinal, SCZoomFactorFinal, SCDisableAnimationFinal);
+        bool sucess;
+        _isCommitting = true;
+        try
+        {
+            sucess = ThisScrollViewer.ChangeView(commitHorizontalOffset, commitVerticalOffset, commitZoomFactor, commitDisableAnimation);
+        }
+        finally
+        {
+            _isCommitting = false;
+        }
+
+        Log("Jump", "Commit:"
+        + " Success=" + sucess.ToString()
+        + ",Z=" + commitZoomFactor.ToString()
+        + ",H=" + commitHorizontalOffset.ToString()
+        + ",V=" + commitVerticalOffset.ToString()
+        + ",D=" + commitDisableAnimation.ToString());
+
+        return sucess;
     }
 
     private void AdjustParallelOffset(ScrollContext context)
