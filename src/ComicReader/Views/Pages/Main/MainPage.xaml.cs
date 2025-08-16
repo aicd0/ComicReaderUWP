@@ -56,7 +56,19 @@ internal sealed partial class MainPage : BasePage
     // Properties
     //
 
-    private Window? CurrentWindow => App.WindowManager.GetWindow(WindowId);
+    private Window? CurrentWindow
+    {
+        get
+        {
+            Window? window = App.WindowManager.GetWindow(WindowId);
+            if (window is null)
+            {
+                Logger.F(TAG, $"Failed to get current window with ID {WindowId}.");
+            }
+
+            return window;
+        }
+    }
 
     //
     // Constructors
@@ -102,18 +114,21 @@ internal sealed partial class MainPage : BasePage
     {
         base.OnStart(bundle);
 
-        Window window = CurrentWindow!;
-        window.SetTitleBar(MainTitleBar);
+        Window? window = CurrentWindow;
+        if (window is not null)
+        {
+            window.SetTitleBar(MainTitleBar);
 
-        AppWindowTitleBar titleBar = window.AppWindow.TitleBar;
-        titleBar.ButtonBackgroundColor = MainTitleBar.ButtonBackground?.Color;
-        titleBar.ButtonForegroundColor = MainTitleBar.ButtonForeground?.Color;
-        titleBar.ButtonInactiveBackgroundColor = MainTitleBar.ButtonInactiveBackground?.Color;
-        titleBar.ButtonInactiveForegroundColor = MainTitleBar.ButtonInactiveForeground?.Color;
-        titleBar.ButtonHoverBackgroundColor = MainTitleBar.ButtonHoverBackground?.Color;
-        titleBar.ButtonHoverForegroundColor = MainTitleBar.ButtonHoverForeground?.Color;
-        titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
-        titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
+            AppWindowTitleBar titleBar = window.AppWindow.TitleBar;
+            titleBar.ButtonBackgroundColor = MainTitleBar.ButtonBackground?.Color;
+            titleBar.ButtonForegroundColor = MainTitleBar.ButtonForeground?.Color;
+            titleBar.ButtonInactiveBackgroundColor = MainTitleBar.ButtonInactiveBackground?.Color;
+            titleBar.ButtonInactiveForegroundColor = MainTitleBar.ButtonInactiveForeground?.Color;
+            titleBar.ButtonHoverBackgroundColor = MainTitleBar.ButtonHoverBackground?.Color;
+            titleBar.ButtonHoverForegroundColor = MainTitleBar.ButtonHoverForeground?.Color;
+            titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
+            titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
+        }
 
         ViewModel.OnStart();
 
@@ -370,7 +385,7 @@ internal sealed partial class MainPage : BasePage
 
         if (_tabs.Count <= 0)
         {
-            CurrentWindow!.Close();
+            CurrentWindow?.Close();
         }
     }
 

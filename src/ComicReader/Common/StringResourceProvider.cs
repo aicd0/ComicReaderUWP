@@ -50,6 +50,7 @@ public class StringResourceProvider
     public string Done => GetResourceString("Done");
     public string Edit => GetResourceString("Edit");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
+    public string Exit => GetResourceString("Exit");
     public string ExitFullscreen => GetResourceString("ExitFullscreen");
     public string ExpandAll => GetResourceString("ExpandAll");
     public string ExpressionAnd => GetResourceString("ExpressionAnd");

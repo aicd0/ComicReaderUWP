@@ -10,6 +10,7 @@ using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
@@ -138,6 +139,12 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
                 },
             });
         }
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Exit)
+        {
+            Glyph = "\uE711",
+            OnClick = Application.Current.Exit,
+        });
 
         MoreButtonFlyoutItems = items;
     }

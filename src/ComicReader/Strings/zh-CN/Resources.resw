@@ -276,6 +276,9 @@
   <data name="EnterFullscreen" xml:space="preserve">
     <value>进入全屏</value>
   </data>
+  <data name="Exit" xml:space="preserve">
+    <value>退出</value>
+  </data>
   <data name="ExitFullscreen" xml:space="preserve">
     <value>退出全屏</value>
   </data>
