@@ -268,14 +268,6 @@
                 <Setter Property="MinWidth" Value="0" />
             </Style>
 
-            <DataTemplate x:Key="VerticalReaderListViewItemTemplate" x:DataType="reader:ReaderFrameViewModel">
-                <reader:ReaderFrame />
-            </DataTemplate>
-
-            <DataTemplate x:Key="HorizontalReaderListViewItemTemplate" x:DataType="reader:ReaderFrameViewModel">
-                <reader:ReaderFrame FlowDirection="LeftToRight" />
-            </DataTemplate>
-
             <ItemsPanelTemplate x:Key="VerticalReaderListViewItemPanelTemplate">
                 <ItemsStackPanel Orientation="Vertical" />
             </ItemsPanelTemplate>
@@ -314,7 +306,13 @@
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
                 SelectionMode="None"
-                Unloaded="OnReaderListViewLoadedOrUnloaded" />
+                Unloaded="OnReaderListViewLoadedOrUnloaded">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="reader:ReaderFrameViewModel">
+                        <reader:ReaderFrame FlowDirection="LeftToRight" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </Grid>
     </ScrollViewer>
 
