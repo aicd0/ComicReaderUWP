@@ -19,4 +19,5 @@ internal static class DatabaseEntry
     public const string KV_KEY_APP_SAVE_BROWSING_HISTORY = "save_browsing_history";
     public const string KV_KEY_APP_TRANSITION_ANIMATION = "transition_animation";
     public const string KV_KEY_APP_AUTO_HIDE_CURSOR = "AutoHideCursor";
+    public const string KV_KEY_APP_FULLSCREEN = "Fullscreen";
 }

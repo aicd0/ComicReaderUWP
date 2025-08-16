@@ -47,8 +47,8 @@ internal sealed partial class MainPage : BasePage
     private readonly List<TabInfo> _tabs = [];
     private TabInfo? _currentTab;
     private int _nextTabId = 0;
-    private bool _isFullscreen = false;
 
+    private bool _titleBarVisible = true;
     private double _rootTabHeight = 0;
     private double _navigationBarHeight = 0;
 
@@ -120,6 +120,12 @@ internal sealed partial class MainPage : BasePage
         string url = bundle.GetString(RouterConstants.ARG_URL);
         bool recoverTabs = bundle.GetString(RouterConstants.ARG_RECOVER_TABS, "0") == "1";
         LoadInitialTabs(url, recoverTabs);
+
+        if (recoverTabs)
+        {
+            bool isFullscreen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, false);
+            EnterOrExitFullscreen(isFullscreen);
+        }
     }
 
     protected override void OnResume()
@@ -164,6 +170,7 @@ internal sealed partial class MainPage : BasePage
             if (_tabContainerGrid != null)
             {
                 _tabContainerGrid.Opacity = opacity;
+                FullscreenButtonGrid.Opacity = opacity;
                 _tabContainerGrid.IsHitTestVisible = opacity > 0.5;
             }
         });
@@ -554,13 +561,7 @@ internal sealed partial class MainPage : BasePage
 
             if (!pageTrait.ImmersiveMode())
             {
-                _titleBarAnimation?.Stop();
-                GetEventBus().With<double>(EventId.TitleBarOpacity).Emit(1.0);
-            }
-
-            if (!pageTrait.SupportFullscreen())
-            {
-                ExitFullscreen();
+                ShowOrHideTitleBar(true, transitionAnimation: false);
             }
         }
     }
@@ -614,18 +615,22 @@ internal sealed partial class MainPage : BasePage
     // Title Bar Animation
     //
 
-    private void ShowOrHideTitleBar(bool show)
+    private void ShowOrHideTitleBar(bool show, bool transitionAnimation)
     {
-        if (_currentTab == null || !_currentTab.CurrentPageTrait.ImmersiveMode())
+        UIElement? targetElement = _tabContainerGrid;
+        if (_currentTab == null || show == _titleBarVisible || targetElement == null)
         {
             return;
         }
 
-        UIElement? targetElement = _tabContainerGrid;
-        if (targetElement == null)
+        if (!show && !_currentTab.CurrentPageTrait.ImmersiveMode())
         {
+            // Only hide the title bar when the current page supports immersive mode.
             return;
         }
+
+        _titleBarVisible = show;
+        double targetOpacity = show ? 1.0 : 0.0;
 
         if (_titleBarAnimation != null)
         {
@@ -633,56 +638,73 @@ internal sealed partial class MainPage : BasePage
             _titleBarAnimation = null;
         }
 
-        DoubleAnimation animation = new()
+        if (transitionAnimation)
         {
-            From = targetElement.Opacity,
-            To = show ? 1.0 : 0.0,
-            Duration = TimeSpan.FromSeconds(0.2),
-        };
+            DoubleAnimation animation = new()
+            {
+                From = targetElement.Opacity,
+                To = targetOpacity,
+                Duration = TimeSpan.FromSeconds(0.2),
+            };
 
-        Storyboard.SetTarget(animation, targetElement);
-        Storyboard.SetTargetProperty(animation, "Opacity");
-        Storyboard storyboard = new();
-        storyboard.Children.Add(animation);
-        storyboard.Begin();
-        _titleBarAnimation = storyboard;
+            Storyboard.SetTarget(animation, targetElement);
+            Storyboard.SetTargetProperty(animation, "Opacity");
+            Storyboard storyboard = new();
+            storyboard.Children.Add(animation);
+            storyboard.Begin();
+            _titleBarAnimation = storyboard;
+        }
+        else
+        {
+            targetElement.Opacity = targetOpacity;
+        }
+
+        DispatchToAllTabs(delegate (MainPageAbility ability)
+        {
+            ability.SendTitleBarVisibilityChangedEvent(show);
+        });
     }
 
     //
     // Fullscreen
     //
 
-    private void EnterFullscreen()
+    private void FullscreenButtonGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        Window? window = CurrentWindow;
-        if (window == null || IsFullScreen(window))
-        {
-            return;
-        }
-
-        window.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
-        DispatchFullscreenChangeEvent(true);
+        ShowOrHideTitleBar(true, transitionAnimation: true);
     }
 
-    private void ExitFullscreen()
+    private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)
+    {
+        EnterOrExitFullscreen(true);
+    }
+
+    private void OnBackToWindowBtClicked(object sender, RoutedEventArgs e)
+    {
+        EnterOrExitFullscreen(false);
+    }
+
+    private void EnterOrExitFullscreen(bool isFullscreen)
     {
         Window? window = CurrentWindow;
-        if (window == null || !IsFullScreen(window))
+        if (window == null || IsFullScreen(window) == isFullscreen)
         {
             return;
         }
 
-        window.AppWindow.SetPresenter(AppWindowPresenterKind.Default);
-        DispatchFullscreenChangeEvent(false);
+        window.AppWindow.SetPresenter(isFullscreen ? AppWindowPresenterKind.FullScreen : AppWindowPresenterKind.Default);
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, isFullscreen);
+        DispatchFullscreenChangeEvent(isFullscreen);
     }
 
     private void DispatchFullscreenChangeEvent(bool isFullscreen)
     {
-        if (_isFullscreen == isFullscreen)
+        if (ViewModel.IsFullscreen == isFullscreen)
         {
             return;
         }
-        _isFullscreen = isFullscreen;
+
+        ViewModel.IsFullscreen = isFullscreen;
 
         DispatchToAllTabs(delegate (MainPageAbility ability)
         {
@@ -723,7 +745,7 @@ internal sealed partial class MainPage : BasePage
         switch (e.Key)
         {
             case Windows.System.VirtualKey.Escape:
-                ExitFullscreen();
+                EnterOrExitFullscreen(false);
                 handled = true;
                 break;
             default:
@@ -839,10 +861,11 @@ internal sealed partial class MainPage : BasePage
     private class MainPageAbility(MainPage parent, int tabId) : ICommonPageAbility, IMainPageAbility
     {
         private const string EVENT_TAB_UNSELECTED = "TabUnselected";
-        private const string EVENT_FULLSCREEN_CHANGED = "FullscreenChanged";
 
         private readonly WeakReference<MainPage> _parent = new(parent);
         private readonly EventBus _eventBus = new();
+        private readonly MutableLiveData<bool> _fullscreenChangeLiveData = new(parent.ViewModel.IsFullscreen);
+        private readonly MutableLiveData<bool> _titleBarVisibilityChangeLiveData = new(parent._titleBarVisible);
         private readonly int _tabId = tabId;
 
         private PageStopEventHandler? _pageStopped;
@@ -890,7 +913,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.EnterFullscreen();
+            parent.EnterOrExitFullscreen(true);
         }
 
         public void ExitFullscreen()
@@ -900,7 +923,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.ExitFullscreen();
+            parent.EnterOrExitFullscreen(false);
         }
 
         public void SetTitle(string title)
@@ -958,9 +981,17 @@ internal sealed partial class MainPage : BasePage
 
         public void RegisterFullscreenChangedHandler(Page owner, IMainPageAbility.FullscreenChangedEventHandler handler)
         {
-            _eventBus.With<bool>(EVENT_FULLSCREEN_CHANGED).ObserveSticky(owner, delegate (bool isFullscreen)
+            _fullscreenChangeLiveData.ObserveSticky(owner, delegate (bool isFullscreen)
             {
                 handler(isFullscreen);
+            });
+        }
+
+        public void RegisterTitleBarVisibilityChangedHandler(Page owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)
+        {
+            _titleBarVisibilityChangeLiveData.ObserveSticky(owner, delegate (bool visible)
+            {
+                handler(visible);
             });
         }
 
@@ -971,12 +1002,17 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.ShowOrHideTitleBar(show);
+            parent.ShowOrHideTitleBar(show, transitionAnimation: true);
         }
 
         public void SendFullscreenChangedEvent(bool isFullscreen)
         {
-            _eventBus.With<bool>(EVENT_FULLSCREEN_CHANGED).Emit(isFullscreen);
+            _fullscreenChangeLiveData.Emit(isFullscreen);
+        }
+
+        public void SendTitleBarVisibilityChangedEvent(bool visible)
+        {
+            _titleBarVisibilityChangeLiveData.Emit(visible);
         }
 
         private TabInfo? GetTab()

@@ -1401,7 +1401,6 @@ internal partial class ReaderView : UserControl
                     _postHideCursor = false;
                     HideCursorIfNeeded();
                 }, (int)(_hideCursorTime - currentTime));
-                Log("Cursor", "Post cursor hide");
             }
         }
 
@@ -1411,7 +1410,6 @@ internal partial class ReaderView : UserControl
             _postHideCursor = false;
             HideCursorIfNeeded();
         }, delayMilliseconds);
-        Log("Cursor", "Post cursor hide");
     }
 
     private void ShowCursor()
@@ -1433,7 +1431,6 @@ internal partial class ReaderView : UserControl
         cursor ??= InputSystemCursor.Create(InputSystemCursorShape.Arrow);
         cursor.Dispose();
         ProtectedCursor = cursor;
-        Log("Cursor", "Cursor hidden");
     }
 
     private void DisposeCursor()
@@ -1449,7 +1446,6 @@ internal partial class ReaderView : UserControl
         _cursorDisposed = true;
         cursor?.Dispose();
         ProtectedCursor = null;
-        Log("Cursor", "Cursor shown");
     }
 
     //

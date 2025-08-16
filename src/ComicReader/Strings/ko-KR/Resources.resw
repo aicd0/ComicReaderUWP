@@ -273,6 +273,12 @@
   <data name="Edit" xml:space="preserve">
     <value>편집하다</value>
   </data>
+  <data name="EnterFullscreen" xml:space="preserve">
+    <value>전체 화면으로 전환</value>
+  </data>
+  <data name="ExitFullscreen" xml:space="preserve">
+    <value>전체 화면 종료</value>
+  </data>
   <data name="ExpandAll" xml:space="preserve">
     <value>모두 확장</value>
   </data>
