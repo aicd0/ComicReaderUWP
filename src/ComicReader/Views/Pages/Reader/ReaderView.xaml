@@ -12,6 +12,7 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
+
             <!--  Overwrite the scroll viewer style to enable Pointer events.  -->
             <Style x:Key="ReaderScrollViewerStyle" TargetType="ScrollViewer">
                 <Setter Property="Template">
@@ -282,6 +283,7 @@
             <ItemsPanelTemplate x:Key="HorizontalReaderListViewItemPanelTemplate">
                 <ItemsStackPanel Orientation="Horizontal" />
             </ItemsPanelTemplate>
+
         </ResourceDictionary>
     </UserControl.Resources>
 
