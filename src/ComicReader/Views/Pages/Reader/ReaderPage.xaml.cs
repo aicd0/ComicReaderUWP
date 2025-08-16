@@ -203,6 +203,7 @@ internal sealed partial class ReaderPage : BasePage
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
             BottomGrid.Opacity = opacity;
+            FullscreenButtonGrid.Opacity = opacity;
         });
 
         GetMainPageAbility().RegisterTitleBarVisibilityChangedHandler(this, delegate (bool visible)
@@ -738,6 +739,16 @@ internal sealed partial class ReaderPage : BasePage
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
     {
         KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_TIPS, KEY_TIP_SHOWN, true);
+    }
+
+    private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)
+    {
+        GetMainPageAbility().EnterFullscreen();
+    }
+
+    private void OnBackToWindowBtClicked(object sender, RoutedEventArgs e)
+    {
+        GetMainPageAbility().ExitFullscreen();
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
