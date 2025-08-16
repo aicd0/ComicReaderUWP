@@ -18,6 +18,17 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     public ObservableCollection<LogItemViewModel> LogItems { get; } = [];
 
+    private bool _isFullscreen = false;
+    public bool IsFullscreen
+    {
+        get => _isFullscreen;
+        set
+        {
+            _isFullscreen = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFullscreen)));
+        }
+    }
+
     private bool _isLogVisible = false;
     public bool IsLogVisible
     {

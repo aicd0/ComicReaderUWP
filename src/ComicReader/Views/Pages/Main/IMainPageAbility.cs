@@ -12,6 +12,7 @@ internal interface IMainPageAbility : IPageAbility
 {
     public delegate void TabUnselectedEventHandler();
     public delegate void FullscreenChangedEventHandler(bool isFullscreen);
+    public delegate void TitleBarVisibilityChangedEventHandler(bool visible);
 
     void OpenInCurrentTab(Route route);
 
@@ -30,6 +31,8 @@ internal interface IMainPageAbility : IPageAbility
     void RegisterTabUnselectedHandler(Page owner, TabUnselectedEventHandler handler);
 
     void RegisterFullscreenChangedHandler(Page owner, FullscreenChangedEventHandler handler);
+
+    void RegisterTitleBarVisibilityChangedHandler(Page owner, TitleBarVisibilityChangedEventHandler handler);
 
     void ShowOrHideTitleBar(bool show);
 }

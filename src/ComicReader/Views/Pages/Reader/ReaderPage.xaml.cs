@@ -14,7 +14,6 @@ using ComicReader.Common.Constants;
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Lifecycle;
-using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
@@ -61,10 +60,9 @@ internal sealed partial class ReaderPage : BasePage
     private bool? _isFavorite = null;
     private ComicCompletionStatusEnum? _completionState = null;
 
-    private bool _buttomTileShowed = false;
-    private bool _buttomTileHold = false;
-    private bool _buttomTilePointerIn = false;
-    private DateTimeOffset _buttomTileHideRequestTime = DateTimeOffset.Now;
+    private bool _bottomTileShowed = false;
+    private bool _bottomTileHold = false;
+    private long _bottomTileTargetHideTime = -1;
 
     private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
 
@@ -105,7 +103,7 @@ internal sealed partial class ReaderPage : BasePage
 
         reader.ReaderEventTapped += delegate (ReaderView sender)
         {
-            BottomTileSetHold(!_buttomTileShowed);
+            BottomTileSetHold(!_bottomTileShowed);
         };
 
         reader.ReaderEventPageChanged += delegate (ReaderView sender, bool isIntermediate)
@@ -123,8 +121,8 @@ internal sealed partial class ReaderPage : BasePage
                 case ReaderView.ReaderState.Ready:
                     ReaderStatusLiveData.Emit(ReaderStatusEnum.Working);
                     UpdatePage();
-                    BottomTileShow();
-                    BottomTileHide(5000);
+                    ShowBottomTile();
+                    HideBottomTileDelayed(5000);
                     break;
                 case ReaderView.ReaderState.Loading:
                     ReaderStatusLiveData.Emit(ReaderStatusEnum.Loading);
@@ -205,7 +203,18 @@ internal sealed partial class ReaderPage : BasePage
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
             BottomGrid.Opacity = opacity;
-            FullscreenButtonGrid.Opacity = opacity;
+        });
+
+        GetMainPageAbility().RegisterTitleBarVisibilityChangedHandler(this, delegate (bool visible)
+        {
+            if (visible)
+            {
+                ShowBottomTile();
+            }
+            else
+            {
+                HideBottomTile();
+            }
         });
 
         GetMainPageAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
@@ -243,7 +252,7 @@ internal sealed partial class ReaderPage : BasePage
             SetIsFavorite(isFavorite, true);
         });
 
-        ViewModel.TagClickLiveData.Observe(this, (string tag) =>
+        ViewModel.TagClickLiveData.Observe(this, tag =>
         {
             Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
                 .WithParam(RouterConstants.ARG_KEYWORD, "<tag: " + tag + ">");
@@ -567,80 +576,91 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderPointerExited()
     {
-        _buttomTilePointerIn = true;
-        BottomTileShow();
+        ShowBottomTile();
     }
 
-    public void BottomTileShow()
+    private void HideBottomTileDelayed(int delayMilliseconds)
     {
-        if (_buttomTileShowed)
+        if (!_bottomTileShowed)
         {
             return;
         }
 
-        GetMainPageAbility().ShowOrHideTitleBar(true);
-        _buttomTileShowed = true;
-    }
-
-    public void BottomTileHide(int timeout)
-    {
-        _buttomTileHideRequestTime = DateTimeOffset.Now;
-
-        if (timeout > 0)
+        if (delayMilliseconds > 0)
         {
-            _ = Task.Run(() =>
+            void PostHideTask(int delay)
             {
-                Task.Delay(timeout + 1).Wait();
-
-                if ((DateTimeOffset.Now - _buttomTileHideRequestTime).TotalMilliseconds < timeout)
+                CoroutineUtils.Start(async () =>
                 {
-                    return;
-                }
+                    await Task.Delay(delayMilliseconds + 1);
 
-                _ = MainThreadUtils.RunInMainThread(delegate
-                {
-                    BottomTileHide(0);
+                    if (_bottomTileTargetHideTime == -1)
+                    {
+                        return;
+                    }
+
+                    long currentTick = GetTick();
+                    if (currentTick <= _bottomTileTargetHideTime)
+                    {
+                        PostHideTask((int)(_bottomTileTargetHideTime - currentTick));
+                        return;
+                    }
+
+                    HideBottomTileDelayed(0);
                 });
-            });
+            }
+
+            _bottomTileTargetHideTime = GetTick() + delayMilliseconds;
+            PostHideTask(delayMilliseconds);
             return;
         }
 
-        if (!_buttomTileShowed || _buttomTileHold || _buttomTilePointerIn || InfoPane.IsPaneOpen)
+        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || GetNavigationPageAbility().GetIsSidePaneOpen())
         {
             return;
         }
 
-        if (GridViewModeEnabled)
-        {
-            return;
-        }
-
-        if (GetNavigationPageAbility().GetIsSidePaneOpen())
-        {
-            return;
-        }
-
-        BottomGridForceHide();
+        HideBottomTile();
     }
 
-    private void BottomGridForceHide()
+    private void ShowBottomTile()
     {
+        _bottomTileTargetHideTime = -1;
+
+        if (_bottomTileShowed)
+        {
+            return;
+        }
+
+        _bottomTileShowed = true;
+        GetMainPageAbility().ShowOrHideTitleBar(true);
+    }
+
+    private void HideBottomTile()
+    {
+        _bottomTileTargetHideTime = -1;
+
+        if (!_bottomTileShowed)
+        {
+            return;
+        }
+
+        _bottomTileShowed = false;
+        _bottomTileHold = false;
         GetMainPageAbility().ShowOrHideTitleBar(false);
-        _buttomTileShowed = false;
-        _buttomTileHold = false;
     }
 
-    private void BottomTileSetHold(bool val)
+    private void BottomTileSetHold(bool hold)
     {
-        _buttomTileHold = val;
+        _bottomTileHold = hold;
 
-        if (_buttomTileHold)
+        if (hold)
         {
-            BottomTileShow();
+            ShowBottomTile();
         }
         else
         {
-            BottomTileHide(0);
+            HideBottomTileDelayed(0);
         }
     }
 
@@ -707,36 +727,17 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        _buttomTilePointerIn = false;
-
-        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse || _bottomTileHold)
         {
             return;
         }
 
-        if (!_buttomTileShowed || _buttomTileHold)
-        {
-            return;
-        }
-
-        BottomTileHide(3000);
+        HideBottomTileDelayed(3000);
     }
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
     {
         KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_TIPS, KEY_TIP_SHOWN, true);
-    }
-
-    private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)
-    {
-        GetMainPageAbility().EnterFullscreen();
-        ViewModel.IsFullscreen = true;
-    }
-
-    private void OnBackToWindowBtClicked(object sender, RoutedEventArgs e)
-    {
-        GetMainPageAbility().ExitFullscreen();
-        ViewModel.IsFullscreen = false;
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
@@ -1000,9 +1001,14 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    public void Log(string message)
+    private static void Log(string message)
     {
         Logger.I("ReaderPage", message);
+    }
+
+    private static long GetTick()
+    {
+        return Environment.TickCount;
     }
 
     //

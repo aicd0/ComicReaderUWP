@@ -13,7 +13,5 @@ internal interface IPageTrait
 
     bool ImmersiveMode();
 
-    bool SupportFullscreen();
-
     bool SupportMultiInstance();
 }
