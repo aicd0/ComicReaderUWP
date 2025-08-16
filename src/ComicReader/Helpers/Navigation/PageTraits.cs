@@ -37,6 +37,11 @@ internal class DefaultPageTrait : IPageTrait
         return false;
     }
 
+    public bool HideFullscreenButton()
+    {
+        return false;
+    }
+
     public bool SupportMultiInstance()
     {
         return true;
@@ -58,6 +63,11 @@ internal class HomePageTrait : IPageTrait
     }
 
     public bool ImmersiveMode()
+    {
+        return false;
+    }
+
+    public bool HideFullscreenButton()
     {
         return false;
     }
@@ -97,6 +107,11 @@ internal class SearchPageTrait : IPageTrait
         return false;
     }
 
+    public bool HideFullscreenButton()
+    {
+        return false;
+    }
+
     public bool SupportMultiInstance()
     {
         return true;
@@ -132,6 +147,11 @@ internal class ReaderPageTrait : IPageTrait
         return true;
     }
 
+    public bool HideFullscreenButton()
+    {
+        return true;
+    }
+
     public bool SupportMultiInstance()
     {
         return true;
@@ -163,6 +183,11 @@ internal class SettingPageTrait : IPageTrait
     }
 
     public bool ImmersiveMode()
+    {
+        return false;
+    }
+
+    public bool HideFullscreenButton()
     {
         return false;
     }

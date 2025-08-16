@@ -563,6 +563,15 @@ internal sealed partial class MainPage : BasePage
             {
                 ShowOrHideTitleBar(true, transitionAnimation: false);
             }
+
+            if (pageTrait.HideFullscreenButton())
+            {
+                FullscreenButtonGrid.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                FullscreenButtonGrid.Visibility = Visibility.Visible;
+            }
         }
     }
 

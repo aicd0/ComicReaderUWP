@@ -97,6 +97,29 @@
                     Text="- / -" />
             </Grid>
 
+            <!--  Fullscreen button  -->
+            <Grid
+                x:Name="FullscreenButtonGrid"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                PointerEntered="OnNonReaderUIPointerEntered">
+                <Button
+                    Click="OnFullscreenBtClicked"
+                    Style="{StaticResource ReaderFullscreenButtonStyle}"
+                    Visibility="{x:Bind ViewModel.IsFullscreen, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}">
+                    <Button.Content>
+                        <FontIcon Glyph="&#xE740;" />
+                    </Button.Content>
+                </Button>
+                <Button
+                    Click="OnBackToWindowBtClicked"
+                    Style="{StaticResource ReaderFullscreenButtonStyle}"
+                    Visibility="{x:Bind ViewModel.IsFullscreen, Mode=OneWay}">
+                    <Button.Content>
+                        <FontIcon Glyph="&#xE73F;" />
+                    </Button.Content>
+                </Button>
+            </Grid>
         </Grid>
 
         <!--  Grid Preview Section  -->
