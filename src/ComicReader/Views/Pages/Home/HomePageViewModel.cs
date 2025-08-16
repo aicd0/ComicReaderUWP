@@ -190,8 +190,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     private readonly ReaderWriterLock _comicItemsLock = new();
     private readonly List<ComicItemViewModel> _comicItems = [];
     private readonly List<ComicItemViewModel> _selectedComicItems = [];
+    private long _lastSearchTime = 0;
 
     private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
+    private bool _filterUpdated = false;
     private int _updateFilterSubmitted = 0;
     private int _updateComicSubmitted = 0;
 
@@ -209,8 +211,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     public void Initialize()
     {
         _searchEngine.SetResultCallback(OnComicSearchResult);
-        _searchEngine.Update();
-        ScheduleUpdateFilters(true);
     }
 
     /// <summary>
@@ -222,6 +222,48 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     public void UpdateFilters()
     {
         ScheduleUpdateFilters(true);
+    }
+
+    /// <summary>
+    /// Updates the comic library and refreshes the displayed items.
+    /// </summary>
+    /// <remarks>
+    /// Must be called on the UI thread.
+    /// </remarks>
+    public void UpdateLibrary()
+    {
+        ScheduleUpdateComics();
+    }
+
+    /// <summary>
+    /// Search the comics by keywords.
+    /// </summary>
+    /// <param name="searchText">The search text.</param>
+    public void SetSearchText(string searchText)
+    {
+        searchText = searchText.Trim();
+        if (searchText == _searchEngine.SearchText)
+        {
+            return;
+        }
+
+        _searchEngine.SearchText = searchText;
+
+        long tick = GetTick();
+        int timeRemain = 200 - (int)(tick - _lastSearchTime);
+        if (timeRemain <= 0)
+        {
+            _lastSearchTime = tick;
+            ScheduleUpdateComics();
+        }
+        else
+        {
+            _ = Task.Delay(timeRemain).ContinueWith((_) =>
+            {
+                _lastSearchTime = GetTick();
+                ScheduleUpdateComics();
+            });
+        }
     }
 
     /// <summary>
@@ -257,10 +299,12 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 modified = true;
                 lastFilter.ViewType = viewType;
             }
+
             if (modified)
             {
                 _filterModel.LastFilterModified = true;
             }
+
             ScheduleUpdateFilters(false);
         });
     }
@@ -356,10 +400,12 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                         break;
                 }
             }
+
             if (modified)
             {
                 _filterModel.LastFilterModified = true;
             }
+
             ScheduleUpdateFilters(false);
         });
     }
@@ -381,6 +427,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 return;
             }
+
             _filterModel.LastFilter = filter.Clone();
             _filterModel.LastFilterModified = false;
             ScheduleUpdateFilters(false);
@@ -494,26 +541,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Search the comics by keywords.
-    /// </summary>
-    /// <param name="searchText">The search text.</param>
-    public void SetSearchText(string searchText)
-    {
-        _searchEngine.SetSearchText(searchText);
-    }
-
-    /// <summary>
-    /// Updates the comic library and refreshes the displayed items.
-    /// </summary>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
-    public void UpdateLibrary()
-    {
-        _searchEngine.Update();
-    }
-
-    /// <summary>
     /// Retrieves a random comic from the collection.
     /// </summary>
     /// <remarks>If the collection is empty, the method returns <see langword="null"/>. This method is
@@ -616,7 +643,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 _comicItemsLock.ReleaseWriterLock();
             }
 
-            ScheduleUpdateComics();
+            ScheduleDisplayComics();
         });
     }
 
@@ -771,7 +798,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             return;
         }
-        _sharedDispatcher.Submit("UpdateFilters", delegate
+
+        _filterUpdated = true;
+        _sharedDispatcher.Submit("ScheduleUpdateFilters", delegate
         {
             Interlocked.Exchange(ref _updateFilterSubmitted, 0);
             UpdateFiltersNoLock(reloadFromDatabase).Wait();
@@ -780,14 +809,32 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     private void ScheduleUpdateComics()
     {
+        if (!_filterUpdated)
+        {
+            ScheduleUpdateFilters(true);
+            return;
+        }
+
+        _searchEngine.Update();
+    }
+
+    private void ScheduleDisplayComics()
+    {
+        if (!_filterUpdated)
+        {
+            ScheduleUpdateFilters(true);
+            return;
+        }
+
         if (Interlocked.CompareExchange(ref _updateComicSubmitted, 1, 0) == 1)
         {
             return;
         }
-        _sharedDispatcher.Submit("UpdateComics", delegate
+
+        _sharedDispatcher.Submit("ScheduleDisplayComics", delegate
         {
             Interlocked.Exchange(ref _updateComicSubmitted, 0);
-            UpdateComicsNoLock().Wait();
+            DisplayComicsNoLock().Wait();
         });
     }
 
@@ -817,9 +864,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         ComicPropertyModel? groupBy = lastFilter.GroupBy;
         ComicFilterModel.Instance.UpdateModel(_filterModel);
-
-        // Update expression
-        _searchEngine.SetFilterExpresssion(lastFilter.Expression);
 
         // Update UI
         var viewTypeDropDown = new DropDownButtonModel<ComicFilterModel.ViewTypeEnum>
@@ -865,12 +909,21 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         FilterLiveData.Emit(uiModel);
         ViewTypeLiveData.Emit(lastFilter.ViewType);
 
-        ScheduleUpdateComics();
+        // Update comics
+        if (_searchEngine.Expression == lastFilter.Expression)
+        {
+            ScheduleDisplayComics();
+        }
+        else
+        {
+            _searchEngine.Expression = lastFilter.Expression;
+            ScheduleUpdateComics();
+        }
     }
 
-    private async Task UpdateComicsNoLock()
+    private async Task DisplayComicsNoLock()
     {
-        Logger.I(TAG, "UpdateComicsNoLock");
+        Logger.I(TAG, "DisplayComicsNoLock");
 
         IReadOnlyList<ComicItemViewModel> comicItems;
         _comicItemsLock.AcquireReaderLock(Timeout.Infinite);
@@ -1182,6 +1235,11 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             ComicFilterModel.ViewTypeEnum.Medium => StringResourceProvider.Instance.ViewTypeMedium,
             _ => "Unknown"
         };
+    }
+
+    private static long GetTick()
+    {
+        return Environment.TickCount64;
     }
 
     public class FilterModel
