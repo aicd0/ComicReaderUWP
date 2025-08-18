@@ -27,19 +27,24 @@ namespace ComicReader.Views.Pages.SidePane.Favorite;
 
 internal sealed partial class FavoritePage : BasePage
 {
-    private ObservableCollection<FavoriteItemViewModel> DataSource { get; set; }
+    private ObservableCollection<FavoriteItemViewModel> DataSource { get; set; } = [];
 
     public FavoritePage()
     {
-        DataSource = new ObservableCollection<FavoriteItemViewModel>();
-
         InitializeComponent();
+    }
+
+    protected override void OnStart(PageBundle bundle)
+    {
+        base.OnStart(bundle);
+
+        ObserveData();
     }
 
     protected override void OnResume()
     {
         base.OnResume();
-        ObserveData();
+
         Update();
     }
 

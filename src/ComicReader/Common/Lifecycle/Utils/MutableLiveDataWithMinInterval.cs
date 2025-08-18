@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 using ComicReader.Common.Utils;
 
-using Microsoft.UI.Xaml;
-
 namespace ComicReader.Common.Lifecycle.Utils;
 
 public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval) : IMutableLiveData<T>
@@ -30,17 +28,17 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
         return _liveData.GetValue();
     }
 
-    public void Observe(FrameworkElement owner, IObserver<T> observer)
+    public void Observe(ILifecycleOwner owner, IObserver<T> observer)
     {
-        _liveData.Observe(owner, new ObserverWrapper<T>(observer, _minInterval));
+        _liveData.Observe(owner, new ObserverWrapper<T>(owner, observer, _minInterval));
     }
 
-    public void ObserveSticky(FrameworkElement owner, IObserver<T> observer)
+    public void ObserveSticky(ILifecycleOwner owner, IObserver<T> observer)
     {
-        _liveData.ObserveSticky(owner, new ObserverWrapper<T>(observer, _minInterval));
+        _liveData.ObserveSticky(owner, new ObserverWrapper<T>(owner, observer, _minInterval));
     }
 
-    private class ObserverWrapper<U>(IObserver<U> observer, long minInterval) : IObserver<U>
+    private class ObserverWrapper<U>(ILifecycleOwner owner, IObserver<U> observer, long minInterval) : IObserver<U>
     {
         private long _lastChangedTime = 0L;
         private U? _lastValue = default;
@@ -63,12 +61,22 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
                 return;
             }
 
+            if (owner.GetLifecycle().GetState().IsStarted())
+            {
+                return;
+            }
+
             _notifyScheduled = true;
             CoroutineUtils.Start(async () =>
             {
                 try
                 {
                     await Task.Delay((int)(minInterval - timeElapsed));
+                    if (owner.GetLifecycle().GetState().IsStarted())
+                    {
+                        return;
+                    }
+
                     _lastChangedTime = GetTick();
                     observer.OnChanged(_lastValue);
                 }

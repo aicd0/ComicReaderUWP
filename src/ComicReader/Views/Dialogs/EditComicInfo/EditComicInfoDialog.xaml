@@ -8,7 +8,6 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     Title="{x:Bind StringResource.ComicInfo}"
     DefaultButton="Primary"
-    Loaded="OnLoaded"
     PrimaryButtonClick="ContentDialogPrimaryButtonClick"
     PrimaryButtonText="{x:Bind StringResource.Done}"
     SecondaryButtonClick="ContentDialogSecondaryButtonClick"

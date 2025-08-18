@@ -58,14 +58,8 @@ internal sealed partial class HomePage : BasePage
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
 
-        ViewModel.Initialize();
-    }
-
-    protected override void OnResume()
-    {
-        base.OnResume();
-
         ObserveData();
+        ViewModel.Initialize();
         ViewModel.UpdateLibrary();
     }
 

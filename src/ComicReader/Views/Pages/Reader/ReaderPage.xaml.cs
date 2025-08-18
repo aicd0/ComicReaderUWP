@@ -158,13 +158,14 @@ internal sealed partial class ReaderPage : BasePage
                 await LoadComic(comic);
             }
         });
+
+        ObserveData();
     }
 
     protected override void OnResume()
     {
         base.OnResume();
 
-        ObserveData();
         GetNavigationPageAbility().SetGridViewMode(false);
         LoadReaderSettings();
         UpdateReaderUI();

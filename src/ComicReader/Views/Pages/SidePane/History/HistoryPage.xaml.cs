@@ -30,10 +30,17 @@ internal sealed partial class HistoryPage : BasePage
         InitializeComponent();
     }
 
+    protected override void OnStart(PageBundle bundle)
+    {
+        base.OnStart(bundle);
+
+        ObserveData();
+    }
+
     protected override void OnResume()
     {
         base.OnResume();
-        ObserveData();
+
         Update();
     }
 

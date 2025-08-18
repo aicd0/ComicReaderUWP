@@ -45,11 +45,17 @@ internal sealed partial class NavigationPage : BasePage
     // Lifecycle
     //
 
+    protected override void OnStart(PageBundle bundle)
+    {
+        base.OnStart(bundle);
+
+        ObserveData();
+    }
+
     protected override void OnResume()
     {
         base.OnResume();
 
-        ObserveData();
         UpdateUI();
     }
 
@@ -484,7 +490,7 @@ internal sealed partial class NavigationPage : BasePage
             parent.SetSearchBox(text);
         }
 
-        public void RegisterLeavingHandler(Page owner, INavigationPageAbility.CommonEventHandler handler)
+        public void RegisterLeavingHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
         {
             _eventBus.With<bool>(EVENT_LEAVING).Observe(owner, delegate
             {
@@ -497,7 +503,7 @@ internal sealed partial class NavigationPage : BasePage
             _eventBus.With<bool>(EVENT_LEAVING).Emit(true);
         }
 
-        public void RegisterRefreshHandler(Page owner, INavigationPageAbility.CommonEventHandler handler)
+        public void RegisterRefreshHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
         {
             _eventBus.With<bool>(EVENT_REFRESH).Observe(owner, delegate
             {
@@ -510,7 +516,7 @@ internal sealed partial class NavigationPage : BasePage
             _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
         }
 
-        public void RegisterExpandInfoPaneHandler(Page owner, INavigationPageAbility.CommonEventHandler handler)
+        public void RegisterExpandInfoPaneHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
         {
             _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Observe(owner, delegate
             {
@@ -523,7 +529,7 @@ internal sealed partial class NavigationPage : BasePage
             _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Emit(true);
         }
 
-        public void RegisterFavoriteChangedEventHandler(Page owner, INavigationPageAbility.FavoriteChangedEventHandler handler)
+        public void RegisterFavoriteChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.FavoriteChangedEventHandler handler)
         {
             _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Observe(owner, delegate (bool isFavorite)
             {
@@ -536,7 +542,7 @@ internal sealed partial class NavigationPage : BasePage
             _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Emit(isFavorite);
         }
 
-        public void RegisterGridViewModeChangedHandler(Page owner, INavigationPageAbility.GridViewModeChangedEventHandler handler)
+        public void RegisterGridViewModeChangedHandler(ILifecycleOwner owner, INavigationPageAbility.GridViewModeChangedEventHandler handler)
         {
             _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Observe(owner, delegate (bool isGridViewMode)
             {
@@ -549,7 +555,7 @@ internal sealed partial class NavigationPage : BasePage
             _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Emit(isGridViewMode);
         }
 
-        public void RegisterReaderSettingsChangedEventHandler(Page owner, INavigationPageAbility.ReaderSettingsChangedEventHandler handler)
+        public void RegisterReaderSettingsChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.ReaderSettingsChangedEventHandler handler)
         {
             _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Observe(owner, delegate (ReaderSettingDataModel settings)
             {
@@ -562,7 +568,7 @@ internal sealed partial class NavigationPage : BasePage
             _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Emit(settings.Clone());
         }
 
-        public void RegisterSearchTextChangeHandler(Page owner, INavigationPageAbility.SearchTextChangeEventHandler handler)
+        public void RegisterSearchTextChangeHandler(ILifecycleOwner owner, INavigationPageAbility.SearchTextChangeEventHandler handler)
         {
             _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Observe(owner, delegate (string text)
             {

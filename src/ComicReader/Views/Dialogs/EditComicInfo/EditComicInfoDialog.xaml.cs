@@ -19,6 +19,7 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
     public EditComicInfoDialog(IEnumerable<ComicModel> comics)
     {
         InitializeComponent();
+
         ViewModel.Initialize(comics);
     }
 
@@ -26,8 +27,10 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
     // Lifecycle
     //
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    protected override void OnStart()
     {
+        base.OnStart();
+
         ObserveData();
     }
 

@@ -22,8 +22,10 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
         ViewModel.Initialize(filter);
     }
 
-    private void ContentDialog_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    protected override void OnStart()
     {
+        base.OnStart();
+
         ObserveData();
     }
 

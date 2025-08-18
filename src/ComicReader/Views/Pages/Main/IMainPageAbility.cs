@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Lifecycle;
 using ComicReader.Helpers.Navigation;
 
 using Microsoft.UI.Xaml.Controls;
@@ -28,11 +29,11 @@ internal interface IMainPageAbility : IPageAbility
 
     void SetCurrentPageInfo(string url, IPageTrait pageTrait);
 
-    void RegisterTabUnselectedHandler(Page owner, TabUnselectedEventHandler handler);
+    void RegisterTabUnselectedHandler(ILifecycleOwner owner, TabUnselectedEventHandler handler);
 
-    void RegisterFullscreenChangedHandler(Page owner, FullscreenChangedEventHandler handler);
+    void RegisterFullscreenChangedHandler(ILifecycleOwner owner, FullscreenChangedEventHandler handler);
 
-    void RegisterTitleBarVisibilityChangedHandler(Page owner, TitleBarVisibilityChangedEventHandler handler);
+    void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);
 
     void ShowOrHideTitleBar(bool show);
 }

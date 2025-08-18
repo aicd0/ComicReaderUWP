@@ -41,16 +41,10 @@ internal sealed partial class SettingPage : BasePage
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.Settings);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Setting });
 
-        ViewModel.Initialize();
+        ViewModel.Initialize(this);
         UpdateFeedback();
         UpdateAbout();
         UpdateDebugInformation();
-    }
-
-    protected override void OnResume()
-    {
-        base.OnResume();
-        ViewModel.OnPageResume(this);
     }
 
     //
