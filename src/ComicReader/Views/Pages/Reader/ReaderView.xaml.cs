@@ -1493,8 +1493,10 @@ internal partial class ReaderView : UserControl
     private double HorizontalOffset => ThisScrollViewer.HorizontalOffset;
     private double VerticalOffset => ThisScrollViewer.VerticalOffset;
     private double ParallelOffset => IsVertical ? VerticalOffset : HorizontalOffset;
-    private double ViewportParallelLength => IsVertical ? ThisScrollViewer.ViewportHeight : ThisScrollViewer.ViewportWidth;
-    private double ViewportPerpendicularLength => IsVertical ? ThisScrollViewer.ViewportWidth : ThisScrollViewer.ViewportHeight;
+    private double ViewportWidth => ThisScrollViewer.ViewportWidth;
+    private double ViewportHeight => ThisScrollViewer.ViewportHeight;
+    private double ViewportParallelLength => IsVertical ? ViewportHeight : ViewportWidth;
+    private double ViewportPerpendicularLength => IsVertical ? ViewportWidth : ViewportHeight;
     private double ContentPerpendicularLength => IsVertical ? ThisListView.ActualWidth : ThisListView.ActualHeight;
     private double ExtentParallelLength => IsVertical ? ThisScrollViewer.ExtentHeight : ThisScrollViewer.ExtentWidth;
 
@@ -1608,12 +1610,7 @@ internal partial class ReaderView : UserControl
 
     private void SCSyncFinalVal()
     {
-        if (!_isLoaded)
-        {
-            return;
-        }
-
-        if (_finalValueSynced)
+        if (!_isLoaded || _finalValueSynced)
         {
             return;
         }
@@ -1848,7 +1845,7 @@ internal partial class ReaderView : UserControl
         ZoomCoefficient? zoomCoefficientNew;
         int frameNew;
         {
-            int pageNew = request.pageToApplyZoom.HasValue ? (int)request.pageToApplyZoom.Value : SCCurrentPageFinal;
+            int pageNew = request.pageToApplyZoom.HasValue ? (int)Math.Round(request.pageToApplyZoom.Value) : SCCurrentPageFinal;
             frameNew = PageToFrame(pageNew, out _, out _);
             if (frameNew < 0 || frameNew >= FrameDataSource.Count)
             {
@@ -1923,20 +1920,22 @@ internal partial class ReaderView : UserControl
         double zoomChangeRatio = zoomFactorAfter / zoomFactorBefore;
         double extraPaddingBefore = CalculateExtraPerpendicularPadding(zoomFactorBefore);
         double extraPaddingAfter = CalculateExtraPerpendicularPadding(zoomFactorAfter);
-        double halfViewportWidth = ThisScrollViewer.ViewportWidth * 0.5;
-        double halfViewportHeight = ThisScrollViewer.ViewportHeight * 0.5;
+        double halfViewportWidth = ViewportWidth * 0.5;
+        double halfViewportHeight = ViewportHeight * 0.5;
         context.HorizontalOffset ??= SCHorizontalOffsetFinal;
         context.VerticalOffset ??= SCVerticalOffsetFinal;
-        Log("Jump", "Zoom#2:"
-            + $" Z1={zoomFactorBefore}"
-            + $",Z2={zoomFactorAfter}"
-            + $",ZR={zoomChangeRatio}"
-            + $",P1={extraPaddingBefore}"
-            + $",P2={extraPaddingAfter}"
-            + $",VW={halfViewportWidth}"
-            + $",VH={halfViewportHeight}"
-            + $",HO={context.HorizontalOffset}"
-            + $",VO={context.VerticalOffset}");
+
+        Log("Jump", "Zoom#2: ",
+            $"ZF1={zoomFactorBefore}",
+            $"ZF2={zoomFactorAfter}",
+            $"Ratio={zoomChangeRatio}",
+            $"Pd1={extraPaddingBefore}",
+            $"Pd2={extraPaddingAfter}",
+            $"VW={halfViewportWidth}",
+            $"VH={halfViewportHeight}",
+            $"HO={context.HorizontalOffset}",
+            $"VO={context.VerticalOffset}");
+
         if (IsVertical)
         {
             context.HorizontalOffset += halfViewportWidth - extraPaddingBefore;
@@ -2272,14 +2271,14 @@ internal partial class ReaderView : UserControl
             return null;
         }
 
-        double viewport_width = ThisScrollViewer.ViewportWidth;
-        double viewport_height = ThisScrollViewer.ViewportHeight;
-        double frame_width = FrameDataSource[frameIndex].FrameWidth;
-        double frame_height = FrameDataSource[frameIndex].FrameHeight;
+        double viewportWidth = ViewportWidth;
+        double viewportHeight = ViewportHeight;
+        double frameWidth = FrameDataSource[frameIndex].FrameWidth;
+        double frameHeight = FrameDataSource[frameIndex].FrameHeight;
 
-        double minValue = Math.Min(viewport_width, viewport_height);
-        minValue = Math.Min(minValue, frame_width);
-        minValue = Math.Min(minValue, frame_height);
+        double minValue = Math.Min(viewportWidth, viewportHeight);
+        minValue = Math.Min(minValue, frameWidth);
+        minValue = Math.Min(minValue, frameHeight);
         if (minValue < 0.1)
         {
             return null;
@@ -2287,8 +2286,8 @@ internal partial class ReaderView : UserControl
 
         return new ZoomCoefficient
         {
-            FitWidth = 0.01 * viewport_width / frame_width,
-            FitHeight = 0.01 * viewport_height / frame_height
+            FitWidth = 0.01 * viewportWidth / frameWidth,
+            FitHeight = 0.01 * viewportHeight / frameHeight
         };
     }
 
