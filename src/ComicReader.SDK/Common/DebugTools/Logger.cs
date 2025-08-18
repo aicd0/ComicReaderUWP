@@ -270,8 +270,8 @@ public static class Logger
 
         if (DebugSwitchModel.Instance.ConsoleEnabled)
         {
-            LogTag? consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
-            if (consoleWhitelist == null || consoleWhitelist.ContainsAny(tag))
+            List<LogTag?> consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
+            if (consoleWhitelist.Any(t => t is null || t.ContainsAny(tag)))
             {
                 LogToConsole(realMessage);
             }

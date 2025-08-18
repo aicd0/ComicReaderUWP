@@ -1,8 +1,10 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 
 using ComicReader.Common.Constants;
 using ComicReader.Common.Threading;
@@ -133,8 +135,8 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         {
             if (level <= 2)
             {
-                LogTag? consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
-                if (consoleWhitelist != null && !consoleWhitelist.ContainsAny(tag))
+                List<LogTag?> consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
+                if (!consoleWhitelist.Any(t => t is null || t.ContainsAny(tag)))
                 {
                     return;
                 }

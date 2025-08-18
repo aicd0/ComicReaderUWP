@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 using ComicReader.SDK.Data;
@@ -14,7 +13,7 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
     public static readonly DebugSwitchModel Instance = new();
 
     private JsonModel? _config;
-    private LogTag? _consoleWhitelist;
+    private List<LogTag?>? _consoleWhitelist;
 
     private readonly JsonSerializerOptions _serializeOption = new()
     {
@@ -43,25 +42,26 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         }
     }
 
-    public LogTag? ConsoleWhitelist
+    public List<LogTag?> ConsoleWhitelist
     {
         get
         {
-            LogTag? tag = _consoleWhitelist;
-            if (tag != null)
+            List<LogTag?>? tags = _consoleWhitelist;
+            if (tags is not null)
             {
-                return tag;
+                return tags;
             }
 
-            JsonObject? jsonObject = GetConfig().ConsoleWhitelist;
-            if (jsonObject == null)
+            List<string?> tagsJson = GetConfig().ConsoleWhitelist ?? [null];
+            tags = new(tagsJson.Count);
+            foreach (string? tagJson in tagsJson)
             {
-                return null;
+                var tag = LogTag.FromString(tagJson ?? string.Empty);
+                tags.Add(tag);
             }
 
-            tag = LogTag.FromJson(jsonObject);
-            _consoleWhitelist = tag;
-            return tag;
+            _consoleWhitelist = tags;
+            return tags;
         }
     }
 
@@ -126,7 +126,7 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         public bool ConsoleEnabled { get; set; }
 
         [JsonPropertyName("ConsoleWhitelist")]
-        public JsonObject? ConsoleWhitelist { get; set; }
+        public List<string?>? ConsoleWhitelist { get; set; }
 
         [JsonPropertyName("LogTreeEnabled")]
         public bool LogTreeEnabled { get; set; }
