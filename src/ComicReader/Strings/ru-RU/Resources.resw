@@ -518,6 +518,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Name" xml:space="preserve">
     <value>Имя</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>Новый</value>
+  </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Новая папка</value>
   </data>
@@ -646,9 +649,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Сохранить как конфигурацию по умолчанию</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>Сохранить как новый</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Сохранить историю просмотров</value>

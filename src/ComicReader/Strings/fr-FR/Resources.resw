@@ -517,6 +517,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="Name" xml:space="preserve">
     <value>nom</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>Nouveau</value>
+  </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Nouveau dossier</value>
   </data>
@@ -645,9 +648,6 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Enregistrer comme configuration par défaut</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>Enregistrer comme nouveau</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Enregistrer l'historique de navigation</value>

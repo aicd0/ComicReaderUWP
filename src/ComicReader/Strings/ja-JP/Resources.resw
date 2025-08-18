@@ -517,6 +517,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Name" xml:space="preserve">
     <value>名前</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>新しい</value>
+  </data>
   <data name="NewFolder" xml:space="preserve">
     <value>新しいフォルダ</value>
   </data>
@@ -645,9 +648,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>デフォルト設定として保存</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>新しい構成として保存</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>閲覧履歴を記録する</value>

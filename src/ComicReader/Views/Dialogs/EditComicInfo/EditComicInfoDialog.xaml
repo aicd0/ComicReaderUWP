@@ -72,6 +72,7 @@
                     IsChecked="True" />
                 <CheckBox
                     x:Name="TagIdCheckBox"
+                    Margin="12,0,0,0"
                     Click="TagIdCheckBox_Click"
                     Content="{x:Bind StringResource.ShowTagId}"
                     IsChecked="False" />

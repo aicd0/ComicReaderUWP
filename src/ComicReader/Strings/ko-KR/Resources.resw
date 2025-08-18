@@ -518,6 +518,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Name" xml:space="preserve">
     <value>이름</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>새로운</value>
+  </data>
   <data name="NewFolder" xml:space="preserve">
     <value>새 폴더</value>
   </data>
@@ -646,9 +649,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>기본 구성으로 저장</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>새 구성으로 저장</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>검색 기록을 기록하세요</value>

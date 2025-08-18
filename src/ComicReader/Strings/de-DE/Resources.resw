@@ -517,6 +517,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>Neu</value>
+  </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Neuer Ordner</value>
   </data>
@@ -645,9 +648,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Als Standardkonfiguration speichern</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>Als neu speichern</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Browserverlauf speichern</value>

@@ -87,6 +87,7 @@ public class StringResourceProvider
     public string MarkAsReading => GetResourceString("MarkAsReading");
     public string MarkAsUnread => GetResourceString("MarkAsUnread");
     public string Name => GetResourceString("Name");
+    public string New => GetResourceString("New");
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
     public string NewWindow => GetResourceString("NewWindow");

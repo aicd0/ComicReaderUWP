@@ -517,6 +517,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Name" xml:space="preserve">
     <value>名称</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>新建</value>
+  </data>
   <data name="NewFolder" xml:space="preserve">
     <value>新文件夹</value>
   </data>
@@ -645,9 +648,6 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>保存为默认配置</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>保存为新配置</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>记录您的浏览历史</value>

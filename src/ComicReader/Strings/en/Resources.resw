@@ -519,6 +519,9 @@ The evaluation will be performed in the following order:
   <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>New</value>
+  </data>
   <data name="NewFolder" xml:space="preserve">
     <value>New folder</value>
   </data>
@@ -647,9 +650,6 @@ The evaluation will be performed in the following order:
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Save as default configuration</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>Save as new</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Save browsing history</value>
