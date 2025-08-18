@@ -973,14 +973,25 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)
     {
+        if (!_isLoaded)
+        {
+            return;
+        }
+
+        float zoom = _zoom;
+        double page = CurrentPage;
+
         Log("SizeChanged",
-            $"OS={e.PreviousSize}",
-            $"NS={e.NewSize}",
-            $"Z={ZoomFactor}",
+            $"OS=({e.PreviousSize})",
+            $"NS=({e.NewSize})",
+            $"Z={zoom}",
+            $"P={page}",
+            $"ZF={ZoomFactor}",
             $"H={HorizontalOffset}",
             $"V={VerticalOffset}");
 
         AdjustPadding();
+        SetScrollViewer2("SizeChanged", zoom: zoom, page: page, disableAnimation: true, fixForPaddingDelay: true);
     }
 
     //
@@ -1608,7 +1619,6 @@ internal partial class ReaderView : UserControl
         }
 
         _finalValueSynced = true;
-
         _SCCurrentPageFinal = CurrentPageInt;
         _SCPaddingStartFinal = IsVertical ? ThisListView.Padding.Top : ThisListView.Padding.Left;
         _SCPaddingEndFinal = IsVertical ? ThisListView.Padding.Bottom : ThisListView.Padding.Right;
@@ -1662,7 +1672,7 @@ internal partial class ReaderView : UserControl
     }
 
     private ScrollResult SetScrollViewer2(string reason, float? zoom = null, double? page = null,
-        bool applyParallelOffset = true, bool disableAnimation = false)
+        bool applyParallelOffset = true, bool disableAnimation = false, bool fixForPaddingDelay = false)
     {
         double? horizontalOffset = null;
         double? verticalOffset = null;
@@ -1678,6 +1688,23 @@ internal partial class ReaderView : UserControl
 
             double parallelOffset = offsets.Item1;
             double perpendicularOffset = offsets.Item2;
+
+            if (fixForPaddingDelay)
+            {
+                FrameOffsetData? firstFrameOffset = FrameOffset(0);
+                if (firstFrameOffset is not null)
+                {
+                    double desiredPaddingStart = SCPaddingStartFinal;
+                    double actualPaddingStart = firstFrameOffset.ParallelBegin;
+                    if (Math.Abs(desiredPaddingStart - actualPaddingStart) > 1.0)
+                    {
+                        double fixingForPaddingDelay = (desiredPaddingStart - actualPaddingStart) * SCZoomFactorFinal;
+                        Log("Jump", $"FixingForPaddingDelay={fixingForPaddingDelay}");
+                        parallelOffset += fixingForPaddingDelay;
+                    }
+                }
+            }
+
             bool parallelOffsetClose = !applyParallelOffset || Math.Abs(parallelOffset - SCParallelOffsetFinal) < 5.0;
             bool perpendicularClose = Math.Abs(perpendicularOffset - SCPerpendicularOffsetFinal) < 5.0;
             if (parallelOffsetClose && perpendicularClose)
