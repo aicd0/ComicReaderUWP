@@ -488,6 +488,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Links" xml:space="preserve">
     <value>Ссылки</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>Сохранять относительный размер</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Отметить как завершенное</value>
   </data>
@@ -556,9 +559,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Откройте случайный комикс</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>Оригинальный размер</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Эта операция перезапишет существующие записи.</value>

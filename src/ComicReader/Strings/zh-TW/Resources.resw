@@ -487,6 +487,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Links" xml:space="preserve">
     <value>連結</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>保持相對大小</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>標記為完成</value>
   </data>
@@ -555,9 +558,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>開啟隨機漫畫</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>原始尺寸</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>此操作將覆蓋現有條目。</value>

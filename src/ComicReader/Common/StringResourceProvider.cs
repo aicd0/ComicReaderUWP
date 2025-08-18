@@ -82,6 +82,7 @@ public class StringResourceProvider
     public string LinkErrorContent => GetResourceString("LinkErrorContent");
     public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
     public string Links => GetResourceString("Links");
+    public string MaintainRelativeSize => GetResourceString("MaintainRelativeSize");
     public string MarkAsRead => GetResourceString("MarkAsRead");
     public string MarkAsReading => GetResourceString("MarkAsReading");
     public string MarkAsUnread => GetResourceString("MarkAsUnread");
@@ -97,7 +98,6 @@ public class StringResourceProvider
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenRandomComic => GetResourceString("OpenRandomComic");
-    public string OriginalSize => GetResourceString("OriginalSize");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
     public string PageGap => GetResourceString("PageGap");
     public string PageLayoutDualNoCover => GetResourceString("PageLayoutDualNoCover");

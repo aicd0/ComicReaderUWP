@@ -487,6 +487,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="Links" xml:space="preserve">
     <value>Campo de golf</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>Mantener el tamaño relativo</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Marcar como terminado</value>
   </data>
@@ -555,9 +558,6 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Abre un cómic al azar</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>Tamaño original</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Esta operación sobrescribirá las entradas existentes.</value>

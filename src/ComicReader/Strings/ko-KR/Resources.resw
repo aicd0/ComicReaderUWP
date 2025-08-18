@@ -488,6 +488,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Links" xml:space="preserve">
     <value>모래밭</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>상대적 크기 유지</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>완료로 표시</value>
   </data>
@@ -556,9 +559,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>무작위 만화를 엽니다</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>원본 크기</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>이 작업을 수행하면 기존 항목이 덮어쓰여집니다.</value>

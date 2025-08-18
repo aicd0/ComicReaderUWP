@@ -487,6 +487,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="Links" xml:space="preserve">
     <value>Links</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>Maintenir la taille relative</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Marquer comme terminé</value>
   </data>
@@ -555,9 +558,6 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Ouvrir une bande dessinée au hasard</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>Taille originale</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Cette opération écrasera les entrées existantes.</value>

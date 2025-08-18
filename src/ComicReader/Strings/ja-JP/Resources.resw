@@ -487,6 +487,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Links" xml:space="preserve">
     <value>リンク</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>相対的なサイズを維持する</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>完了としてマーク</value>
   </data>
@@ -555,9 +558,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>ランダムにコミックを開く</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>オリジナルサイズ</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>この操作により既存のエントリが上書きされます。</value>
