@@ -24,9 +24,9 @@ internal sealed partial class TagsPage : BasePage
         InitializeComponent();
     }
 
-    protected override void OnResume()
+    protected override void OnStart(PageBundle bundle)
     {
-        base.OnResume();
+        base.OnStart(bundle);
 
         ObserveData();
         ViewModel.UpdateTags();

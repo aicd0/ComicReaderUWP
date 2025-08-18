@@ -10,7 +10,6 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:vm="using:ComicReader.ViewModels"
     Title="{x:Bind StringResource.FilterSettings}"
-    Loaded="ContentDialog_Loaded"
     mc:Ignorable="d">
 
     <StackPanel Width="600" Orientation="Vertical">

@@ -12,6 +12,7 @@ using System.Threading;
 
 using ComicReader.Common;
 using ComicReader.Common.Imaging;
+using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
@@ -23,8 +24,6 @@ using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Data.SqlHelpers;
-
-using Microsoft.UI.Xaml;
 
 using Windows.Globalization;
 
@@ -327,13 +326,10 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public void Initialize()
+    public void Initialize(ILifecycleOwner owner)
     {
         _dispatcher.Submit($"{TAG}#Initialize", InitializeInternal);
-    }
 
-    public void OnPageResume(FrameworkElement owner)
-    {
         GlobalEvent.Instance.ComicUpdated.Observe(owner, (_) =>
         {
             _dispatcher.Submit($"{TAG}#UpdateStatistis", () =>

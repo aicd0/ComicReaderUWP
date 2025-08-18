@@ -2,8 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.BaseUI;
-
-using Microsoft.UI.Xaml.Controls;
+using ComicReader.Common.Lifecycle;
 
 namespace ComicReader.Views.Pages.Navigation;
 
@@ -29,17 +28,17 @@ internal interface INavigationPageAbility : IPageAbility
 
     void SetSearchBox(string text);
 
-    void RegisterLeavingHandler(Page owner, CommonEventHandler handler);
+    void RegisterLeavingHandler(ILifecycleOwner owner, CommonEventHandler handler);
 
-    void RegisterRefreshHandler(Page owner, CommonEventHandler handler);
+    void RegisterRefreshHandler(ILifecycleOwner owner, CommonEventHandler handler);
 
-    void RegisterExpandInfoPaneHandler(Page owner, CommonEventHandler handler);
+    void RegisterExpandInfoPaneHandler(ILifecycleOwner owner, CommonEventHandler handler);
 
-    void RegisterGridViewModeChangedHandler(Page owner, GridViewModeChangedEventHandler handler);
+    void RegisterGridViewModeChangedHandler(ILifecycleOwner owner, GridViewModeChangedEventHandler handler);
 
-    void RegisterReaderSettingsChangedEventHandler(Page owner, ReaderSettingsChangedEventHandler handler);
+    void RegisterReaderSettingsChangedEventHandler(ILifecycleOwner owner, ReaderSettingsChangedEventHandler handler);
 
-    void RegisterFavoriteChangedEventHandler(Page owner, FavoriteChangedEventHandler handler);
+    void RegisterFavoriteChangedEventHandler(ILifecycleOwner owner, FavoriteChangedEventHandler handler);
 
-    void RegisterSearchTextChangeHandler(Page owner, SearchTextChangeEventHandler handler);
+    void RegisterSearchTextChangeHandler(ILifecycleOwner owner, SearchTextChangeEventHandler handler);
 }

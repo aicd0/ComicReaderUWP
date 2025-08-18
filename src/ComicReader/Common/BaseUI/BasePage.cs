@@ -12,18 +12,19 @@ using Microsoft.UI.Xaml.Navigation;
 
 namespace ComicReader.Common.BaseUI;
 
-internal abstract class BasePage : Page
+internal abstract class BasePage : Page, ILifecycleOwner
 {
-    protected int WindowId { get; private set; } = 0;
+    private const string TAG = nameof(BasePage);
 
     private PageCommunicator? _communicator = null;
+    private readonly PageStopEventHandler _pageStopHandler;
+    private readonly SimpleLifecycle _lifecycle = new();
 
     private bool _isStarted = false;
     private bool _isResumed = false;
     private bool _isLoaded = false;
 
-    private readonly PageStopEventHandler _pageStopHandler;
-
+    protected int WindowId { get; private set; } = 0;
     public bool IsStarted => _isStarted;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
@@ -38,6 +39,11 @@ internal abstract class BasePage : Page
 
         Loaded += OnLoadedInternal;
         Unloaded += OnUnloadedInternal;
+    }
+
+    public ILifecycle GetLifecycle()
+    {
+        return _lifecycle;
     }
 
     protected sealed override void OnNavigatedTo(NavigationEventArgs e)
@@ -138,18 +144,23 @@ internal abstract class BasePage : Page
 
         _isStarted = true;
         LogLifecycleEvent("Start");
+        _lifecycle.SetState(ILifecycle.State.Started);
 
         if (p is NavigationBundle bundle)
         {
+            WindowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
+            if (WindowId <= 0)
+            {
+                Logger.F(TAG, "Invalid window ID in navigation parameters: " + WindowId);
+            }
+
             _communicator = bundle.Communicator;
             _communicator.GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);
-            WindowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
-            Logger.Assert(WindowId > 0, "16EFCEB1C7797AA2");
             DebugUtils.TrackError(() => OnStart(bundle.Bundle));
         }
         else
         {
-            Logger.AssertNotReachHere("4E6487BEA8B0B06F");
+            Logger.F(TAG, "Invalid navigation parameter type: " + (p?.GetType().FullName ?? "null"));
         }
     }
 
@@ -162,6 +173,7 @@ internal abstract class BasePage : Page
 
         _isResumed = true;
         LogLifecycleEvent("Resume");
+        _lifecycle.SetState(ILifecycle.State.Resumed);
         DebugUtils.TrackError(OnResume);
     }
 
@@ -174,6 +186,7 @@ internal abstract class BasePage : Page
 
         _isResumed = false;
         LogLifecycleEvent("Pause");
+        _lifecycle.SetState(ILifecycle.State.Started);
         DebugUtils.TrackError(OnPause);
     }
 
@@ -187,6 +200,7 @@ internal abstract class BasePage : Page
         _isStarted = false;
         _communicator?.GetAbility<ICommonPageAbility>()?.UnregisterPageStopHandler(_pageStopHandler);
         LogLifecycleEvent("Stop");
+        _lifecycle.SetState(ILifecycle.State.Stopped);
         DebugUtils.TrackError(OnStop);
     }
 

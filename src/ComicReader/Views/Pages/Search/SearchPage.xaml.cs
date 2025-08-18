@@ -54,6 +54,7 @@ internal sealed partial class SearchPage : BasePage
     protected override void OnStart(PageBundle bundle)
     {
         base.OnStart(bundle);
+
         _keyword = bundle.GetString(RouterConstants.ARG_KEYWORD, "");
         ViewModel.IsSelectMode = false;
         ViewModel.ComicItemSelectionMode = ListViewSelectionMode.None;
@@ -62,15 +63,18 @@ internal sealed partial class SearchPage : BasePage
         {
             await StartSearch();
         });
+
+        ObserveData();
     }
 
     protected override void OnResume()
     {
         base.OnResume();
+
         GetNavigationPageAbility().SetSearchBox(_keyword);
+
         ScrollViewer scrollViewer = SearchResultGridView.ChildrenBreadthFirst().OfType<ScrollViewer>().First();
         scrollViewer.ViewChanged += OnScrollViewerViewChanged;
-        ObserveData();
     }
 
     private void ObserveData()

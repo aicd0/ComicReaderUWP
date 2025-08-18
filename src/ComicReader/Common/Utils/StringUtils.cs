@@ -282,6 +282,7 @@ class StringUtils
         {
             return result;
         }
+
         return defaultValue;
     }
 

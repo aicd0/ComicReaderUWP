@@ -27,6 +27,7 @@ public sealed partial class ChooseLocationsDialog : BaseContentDialog
     public ChooseLocationsDialog(int windowId)
     {
         InitializeComponent();
+
         FolderItemDataSource = [];
         WindowId = windowId;
     }

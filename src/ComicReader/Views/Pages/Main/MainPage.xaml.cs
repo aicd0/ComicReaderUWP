@@ -141,11 +141,7 @@ internal sealed partial class MainPage : BasePage
             bool isFullscreen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, false);
             EnterOrExitFullscreen(isFullscreen);
         }
-    }
 
-    protected override void OnResume()
-    {
-        base.OnResume();
         ObserveData();
     }
 
@@ -988,7 +984,7 @@ internal sealed partial class MainPage : BasePage
             parent.OnPageChanged();
         }
 
-        public void RegisterTabUnselectedHandler(Page owner, IMainPageAbility.TabUnselectedEventHandler handler)
+        public void RegisterTabUnselectedHandler(ILifecycleOwner owner, IMainPageAbility.TabUnselectedEventHandler handler)
         {
             _eventBus.With<bool>(EVENT_TAB_UNSELECTED).Observe(owner, delegate
             {
@@ -1001,7 +997,7 @@ internal sealed partial class MainPage : BasePage
             _eventBus.With<bool>(EVENT_TAB_UNSELECTED).Emit(true);
         }
 
-        public void RegisterFullscreenChangedHandler(Page owner, IMainPageAbility.FullscreenChangedEventHandler handler)
+        public void RegisterFullscreenChangedHandler(ILifecycleOwner owner, IMainPageAbility.FullscreenChangedEventHandler handler)
         {
             _fullscreenChangeLiveData.ObserveSticky(owner, delegate (bool isFullscreen)
             {
@@ -1009,7 +1005,7 @@ internal sealed partial class MainPage : BasePage
             });
         }
 
-        public void RegisterTitleBarVisibilityChangedHandler(Page owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)
+        public void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)
         {
             _titleBarVisibilityChangeLiveData.ObserveSticky(owner, delegate (bool visible)
             {

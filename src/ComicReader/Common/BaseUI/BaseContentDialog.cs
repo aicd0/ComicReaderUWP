@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
+using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.SDK.Common.DebugTools;
 
@@ -12,11 +13,23 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Common.BaseUI;
 
-public partial class BaseContentDialog : ContentDialog
+public partial class BaseContentDialog : ContentDialog, ILifecycleOwner
 {
+    private readonly SimpleLifecycle _lifecycle = new();
     private static bool _dialogShowing = false;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
+
+    public BaseContentDialog()
+    {
+        Loaded += OnLoadedInternal;
+        Unloaded += OnUnloadedInternal;
+    }
+
+    public ILifecycle GetLifecycle()
+    {
+        return _lifecycle;
+    }
 
     public Task<ContentDialogResult> ShowAsync(XamlRoot root)
     {
@@ -32,6 +45,31 @@ public partial class BaseContentDialog : ContentDialog
         // https://github.com/microsoft/microsoft-ui-xaml/issues/4167
         XamlRoot = root;
         return ShowAsync(placement);
+    }
+
+    protected virtual void OnStart()
+    {
+    }
+
+    private void OnLoadedInternal(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded)
+        {
+            return;
+        }
+
+        _lifecycle.SetState(ILifecycle.State.Resumed);
+        OnStart();
+    }
+
+    private void OnUnloadedInternal(object sender, RoutedEventArgs e)
+    {
+        if (IsLoaded)
+        {
+            return;
+        }
+
+        _lifecycle.SetState(ILifecycle.State.Stopped);
     }
 
     private new async Task<ContentDialogResult> ShowAsync()

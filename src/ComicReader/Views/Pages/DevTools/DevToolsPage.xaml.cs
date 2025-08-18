@@ -38,7 +38,7 @@ internal sealed partial class DevToolsPage : BasePage
     }
 
     //
-    // Page Lifecycle
+    // Lifecycle
     //
 
     protected override void OnStart(PageBundle bundle)

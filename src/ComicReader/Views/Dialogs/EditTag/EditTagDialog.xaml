@@ -11,7 +11,6 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:vm="using:ComicReader.ViewModels"
     Title="{x:Bind ViewModel.Title, Mode=OneWay}"
-    Loaded="ContentDialog_Loaded"
     mc:Ignorable="d">
 
     <base:BaseContentDialog.TitleTemplate>

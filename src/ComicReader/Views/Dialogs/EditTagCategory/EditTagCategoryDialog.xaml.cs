@@ -19,15 +19,6 @@ internal sealed partial class EditTagCateogoryDialog : BaseContentDialog
         ViewModel.Initialize(tagCategory);
     }
 
-    private void ContentDialog_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        ObserveData();
-    }
-
-    private void ObserveData()
-    {
-    }
-
     //
     // Events
     //

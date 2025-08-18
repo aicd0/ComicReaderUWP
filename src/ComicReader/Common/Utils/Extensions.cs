@@ -55,13 +55,18 @@ public static class Extensions
         return null;
     }
 
-    public static void Observe<T>(this ILiveData<T> liveData, FrameworkElement owner, Action<T> observer)
+    public static bool IsStarted(this ILifecycle.State state)
+    {
+        return state == ILifecycle.State.Started || state == ILifecycle.State.Resumed;
+    }
+
+    public static void Observe<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer)
     {
         var wrapper = new Observer<T>(observer);
         liveData.Observe(owner, wrapper);
     }
 
-    public static void ObserveSticky<T>(this ILiveData<T> liveData, FrameworkElement owner, Action<T> observer)
+    public static void ObserveSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer)
     {
         var wrapper = new Observer<T>(observer);
         liveData.ObserveSticky(owner, wrapper);
