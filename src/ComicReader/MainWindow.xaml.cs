@@ -117,7 +117,7 @@ public sealed partial class MainWindow : Window
     // Public Methods
     //
 
-    public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32());
+    public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle);
 
     public void OnCommandLine(string[] args)
     {
@@ -142,7 +142,7 @@ public sealed partial class MainWindow : Window
                 }
             }
 
-            var hWnd = new Windows.Win32.Foundation.HWND(WindowHandle.ToInt32());
+            var hWnd = new Windows.Win32.Foundation.HWND(WindowHandle);
             PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
             PInvoke.SetForegroundWindow(hWnd);
         });
@@ -240,7 +240,7 @@ public sealed partial class MainWindow : Window
 
     private void RegisterMessageLoop()
     {
-        Windows.Win32.Foundation.HWND hwnd = new(WindowHandle.ToInt32());
+        Windows.Win32.Foundation.HWND hwnd = new(WindowHandle);
         var wndProcDelegate = new Windows.Win32.UI.WindowsAndMessaging.WNDPROC(MessageLoopProc);
         Members._wndProcDelegate = wndProcDelegate;
         nint wndPrcPointer = Marshal.GetFunctionPointerForDelegate(wndProcDelegate);
@@ -262,7 +262,7 @@ public sealed partial class MainWindow : Window
     {
         if (Members._originProc != null && Members._wndProcDelegate != null && WindowHandle != IntPtr.Zero)
         {
-            Windows.Win32.Foundation.HWND hwnd = new(WindowHandle.ToInt32());
+            Windows.Win32.Foundation.HWND hwnd = new(WindowHandle);
             nint originProcPtr = Marshal.GetFunctionPointerForDelegate(Members._originProc);
 #if x86
             PInvoke.SetWindowLong(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, (int)originProcPtr);
