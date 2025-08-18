@@ -1718,7 +1718,7 @@ internal partial class ReaderView : UserControl
         return SetScrollViewerInternal(new ScrollRequest
         {
             zoom = zoom,
-            pageToApplyZoom = page,
+            page = page,
             horizontalOffset = horizontalOffset,
             verticalOffset = verticalOffset,
             disableAnimation = disableAnimation,
@@ -1764,7 +1764,7 @@ internal partial class ReaderView : UserControl
 
         Log("Jump", "Request:"
             + $" Reason={reason}"
-            + $",P={request.pageToApplyZoom}"
+            + $",P={request.page}"
             + $",Z={request.zoom}"
             + $",H={request.horizontalOffset}"
             + $",V={request.verticalOffset}"
@@ -1820,9 +1820,9 @@ internal partial class ReaderView : UserControl
             + $",V={context.VerticalOffset}"
             + $",D={context.DisableAnimation}");
 
-        if (request.pageToApplyZoom.HasValue)
+        if (request.page.HasValue)
         {
-            SCCurrentPageFinal = ToDiscretePage(request.pageToApplyZoom.Value);
+            SCCurrentPageFinal = ToDiscretePage(request.page.Value);
         }
 
         if (context.ZoomPercentage.HasValue)
@@ -1845,7 +1845,7 @@ internal partial class ReaderView : UserControl
         ZoomCoefficient? zoomCoefficientNew;
         int frameNew;
         {
-            int pageNew = request.pageToApplyZoom.HasValue ? (int)Math.Round(request.pageToApplyZoom.Value) : SCCurrentPageFinal;
+            int pageNew = request.page.HasValue ? (int)Math.Round(request.page.Value) : SCCurrentPageFinal;
             frameNew = PageToFrame(pageNew, out _, out _);
             if (frameNew < 0 || frameNew >= FrameDataSource.Count)
             {
@@ -2155,7 +2155,7 @@ internal partial class ReaderView : UserControl
     {
         Logger.Assert(double.IsFinite(page), "251D69B9AD4BFDDA");
 
-        int pageInt = (int)page;
+        int pageInt = (int)Math.Round(page);
         page = Math.Min(page, PageCount);
         pageInt = Math.Min(pageInt, PageCount);
         page = Math.Max(page, 1);
@@ -2606,7 +2606,7 @@ internal partial class ReaderView : UserControl
         // Zoom
         public float? zoom = null;
         public ZoomType zoomType = ZoomType.CenterInside;
-        public double? pageToApplyZoom = null;
+        public double? page = null;
 
         // Offset
         public double? horizontalOffset = null;
