@@ -24,31 +24,31 @@ internal class HotKeyManager
 
     public static HotKeyManager Instance { get; } = new();
 
-    private int _isRegistered = 0;
+    private long _registeredWindowHandle = 0L;
     private readonly ConcurrentDictionary<int, IMutableLiveData<object>> _hotKeyEvents = [];
 
     private HotKeyManager() { }
 
     public void RegisterHotKeys(nint windowHandle)
     {
-        if (Interlocked.CompareExchange(ref _isRegistered, 1, 0) == 1)
+        if (Interlocked.CompareExchange(ref _registeredWindowHandle, windowHandle.ToInt64(), 0L) != 0L)
         {
             return;
         }
 
-        Windows.Win32.Foundation.HWND hwnd = new(windowHandle.ToInt32());
+        Windows.Win32.Foundation.HWND hwnd = new(windowHandle);
         RegisterHotKey(hwnd, HOTKEY_ID_F10, 0, VK_F10, GlobalEvent.Instance.HotKeyF10);
         RegisterHotKey(hwnd, HOTKEY_ID_F11, 0, VK_F11, GlobalEvent.Instance.HotKeyF11);
     }
 
     public void UnregisterHotKeys(nint windowHandle)
     {
-        if (Interlocked.CompareExchange(ref _isRegistered, 0, 1) == 0)
+        if (Interlocked.CompareExchange(ref _registeredWindowHandle, 0L, windowHandle.ToInt64()) != windowHandle.ToInt64())
         {
             return;
         }
 
-        Windows.Win32.Foundation.HWND hwnd = new(windowHandle.ToInt32());
+        Windows.Win32.Foundation.HWND hwnd = new(windowHandle);
         UnregisterHotKey(hwnd, HOTKEY_ID_F10);
         UnregisterHotKey(hwnd, HOTKEY_ID_F11);
     }
