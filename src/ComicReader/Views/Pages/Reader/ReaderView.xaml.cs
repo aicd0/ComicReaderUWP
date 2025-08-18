@@ -223,7 +223,7 @@ internal partial class ReaderView : UserControl
         _initialPage = page;
     }
 
-    public void StartLoadingImages(List<IImageSource> images)
+    public void StartLoadingImages(IEnumerable<IImageSource> images)
     {
         _originalDataModel = [.. images];
         Reload(_originalDataModel);
