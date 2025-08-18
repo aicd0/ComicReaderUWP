@@ -973,8 +973,19 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)
     {
+        Log("SizeChanged",
+            $"OS={e.PreviousSize}",
+            $"NS={e.NewSize}",
+            $"Z={ZoomFactor}",
+            $"H={HorizontalOffset}",
+            $"V={VerticalOffset}");
+
         AdjustPadding();
     }
+
+    //
+    // Scroll Event Handlers
+    //
 
     private void OnReaderScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
     {
@@ -986,9 +997,10 @@ internal partial class ReaderView : UserControl
         bool final = !e.IsIntermediate;
         if (final)
         {
-            Log("ViewChanged", $"Z={ZoomFactor}"
-                + $",H={HorizontalOffset}"
-                + $",V={VerticalOffset}");
+            Log("ViewChanged",
+                $"Z={ZoomFactor}",
+                $"H={HorizontalOffset}",
+                $"V={VerticalOffset}");
         }
 
         OnViewChanged(final);
@@ -2352,19 +2364,9 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    private double? HorizontalVal(double? parallelVal, double? perpendicularVal)
+    private static void Log(string tag, params object?[] values)
     {
-        return IsVertical ? perpendicularVal : parallelVal;
-    }
-
-    private double? VerticalVal(double? parallelVal, double? perpendicularVal)
-    {
-        return IsVertical ? parallelVal : perpendicularVal;
-    }
-
-    private void Log(string tag, string message)
-    {
-        Logger.I(LogTag.N(TAG, tag), message);
+        Logger.I(LogTag.N(TAG, tag), string.Join(',', values));
     }
 
     private static void PostToCurrentThread(Action<Task> action, int delayMilliseconds = 0)

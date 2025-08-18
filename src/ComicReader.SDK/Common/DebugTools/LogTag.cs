@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System.Text;
-using System.Text.Json.Nodes;
 
 namespace ComicReader.SDK.Common.DebugTools;
 
@@ -10,7 +9,7 @@ public class LogTag
 {
     private const string EMPTY_TAG = "Empty";
 
-    public static readonly LogTag Empty = new("Empty");
+    public static readonly LogTag Empty = new(EMPTY_TAG);
 
     private readonly TagTree _root;
 
@@ -42,21 +41,29 @@ public class LogTag
         return _root.ContainsAny(tag._root);
     }
 
-    public static LogTag FromJson(JsonObject jsonObject)
+    public static LogTag? FromString(string value)
     {
         var tag = new LogTag();
-        foreach (KeyValuePair<string, JsonNode?> node in jsonObject)
+        string[] pieces = value.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (pieces.Length == 0)
         {
-            if (node.Value == null)
+            return null;
+        }
+
+        TagTree current = tag._root;
+        for (int i = 0; i < pieces.Length; i++)
+        {
+            string piece = pieces[i];
+            if (i == pieces.Length - 1)
             {
-                tag._root.Add(node.Key);
+                current.Add(piece);
             }
-            else if (node.Value is JsonObject subJsonObject)
+            else
             {
-                LogTag subTag = FromJson(subJsonObject);
-                tag._root.With(node.Key).Combine(subTag._root);
+                current = current.With(piece);
             }
         }
+
         return tag;
     }
 
