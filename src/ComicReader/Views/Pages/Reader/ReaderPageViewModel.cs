@@ -13,27 +13,49 @@ using ComicReader.Common.Imaging;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
+using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.Helpers.Imaging;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.Algorithm;
+using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
+using ComicReader.Views.Pages.Navigation;
+
+using Microsoft.UI.Xaml;
+
+using static ComicReader.Views.Pages.Reader.ReaderPage;
 
 namespace ComicReader.Views.Pages.Reader;
 
 internal partial class ReaderPageViewModel : INotifyPropertyChanged
 {
+    private const string TAG = nameof(ReaderPageViewModel);
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private ComicModel? _comic;
+    private ComicModel? _pendingComic;
+    private bool _isLoading = false;
     private IComicConnection? _comicConnection;
     private int _pageIndex = -1;
+    private bool? _isFavorite = null;
+    private ComicCompletionStatusEnum? _completionState = null;
+
+    private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
 
     public readonly MutableLiveData<string> TagClickLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
     public readonly MutableLiveData<DialogUtils.DialogOptions> ShowDialogLiveData = new();
+    public readonly MutableLiveData<ReaderStatusEnum> ReaderStatusLiveData = new(ReaderStatusEnum.Loading);
+    public readonly MutableLiveData<ReaderSettingDataModel> ReaderSettingLiveData = new();
+    public readonly MutableLiveData<bool> IsExternalComicLiveData = new(true);
+    public readonly MutableLiveData<string> ComicDescriptionLiveData = new();
+    public readonly MutableLiveData<bool> IsFavoriteLiveData = new();
+    public readonly MutableLiveData<ComicCompletionStatusEnum> CompletionStateLiveData = new();
+    public readonly MutableLiveData<ReaderLoadingInfo> ReaderLoadingInfoLiveData = new();
 
     private string _comicTitle1 = "";
     public string ComicTitle1
@@ -126,34 +148,71 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    public ComicModel? Comic => _comic;
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
     public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];
-
-    public IComicConnection? ComicConnection => _comicConnection;
+    public bool IsFavorite => _isFavorite ?? false;
 
     public ReaderPageViewModel() { }
-
-    public void SetComic(ComicModel comic)
-    {
-        _comic = comic;
-    }
-
-    public async Task OpenComicConnection()
-    {
-        ComicModel? comic = _comic;
-        if (comic is null)
-        {
-            return;
-        }
-
-        CloseComicConnection();
-        _comicConnection = await comic.OpenComicAsync();
-    }
 
     public void CloseComicConnection()
     {
         _comicConnection?.Dispose();
         _comicConnection = null;
+    }
+
+    public void SetIsFavorite(bool isFavorite, bool writeDatabase)
+    {
+        if (_isFavorite == isFavorite)
+        {
+            return;
+        }
+
+        _isFavorite = isFavorite;
+        IsFavoriteLiveData.Emit(isFavorite);
+
+        ComicModel? comic = _comic;
+        if (writeDatabase && comic != null && !comic.IsExternal)
+        {
+            if (isFavorite)
+            {
+                FavoriteModel.Instance.Add(comic.Id, comic.Title1, true);
+            }
+            else
+            {
+                FavoriteModel.Instance.RemoveWithId(comic.Id, true);
+            }
+        }
+    }
+
+    public void SetCompletionState(ComicCompletionStatusEnum completionState, bool writeDatabase)
+    {
+        if (_completionState == completionState)
+        {
+            return;
+        }
+
+        _completionState = completionState;
+        CompletionStateLiveData.Emit(completionState);
+
+        ComicModel? comic = _comic;
+        if (writeDatabase && comic != null && !comic.IsExternal)
+        {
+            switch (completionState)
+            {
+                case ComicCompletionStatusEnum.NotStarted:
+                    _ = comic.SetCompletionStateToNotStarted();
+                    break;
+                case ComicCompletionStatusEnum.Started:
+                    _ = comic.SetCompletionStateToStarted();
+                    break;
+                case ComicCompletionStatusEnum.Completed:
+                    _ = comic.SetCompletionStateToCompleted();
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     public void SetPageIndex(int pageIndex)
@@ -172,7 +231,170 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         UpdateImageDescription();
     }
 
-    public async Task LoadComicTag()
+    public async Task LoadComic(ComicModel comic)
+    {
+        if (_isLoading)
+        {
+            _pendingComic = comic;
+            return;
+        }
+
+        _isLoading = true;
+        try
+        {
+            ComicModel? loadingComic = comic;
+            while (loadingComic != null)
+            {
+                await LoadComicInternal(loadingComic);
+                loadingComic = _pendingComic;
+                _pendingComic = null;
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    public void ReloadComicInfo()
+    {
+        LoadComicInfo();
+    }
+
+    public void ReloadReaderSettings()
+    {
+        LoadReaderSettings();
+    }
+
+    private async Task LoadComicInternal(ComicModel comic)
+    {
+        if (comic == _comic)
+        {
+            return;
+        }
+
+        CloseComicConnection();
+        _comic = null;
+
+        if (comic == null)
+        {
+            ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
+            return;
+        }
+
+        _comic = comic;
+
+        if (!comic.IsExternal)
+        {
+            await comic.SetCompletionStateToAtLeastStarted();
+            HistoryModel.Instance.Add(comic.Id, comic.Title1, true);
+        }
+
+        LoadReaderSettings();
+        LoadComicInfo();
+
+        if (!comic.IsExternal && !await comic.ReloadImageFiles())
+        {
+            Logger.I(TAG, "Failed to load images of '" + comic.Location + "'. ");
+            ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
+            return;
+        }
+
+        CloseComicConnection();
+        IComicConnection? connection = await comic.OpenComicAsync();
+        if (connection is null)
+        {
+            ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
+            return;
+        }
+
+        _comicConnection = connection;
+        ReaderStatusLiveData.Emit(ReaderStatusEnum.Loading);
+
+        var images = new List<IImageSource>();
+        for (int i = 0; i < connection.GetImageCount(); ++i)
+        {
+            images.Add(new ComicImageSource(comic, connection, i));
+        }
+
+        ReaderLoadingInfoLiveData.Emit(new(images, comic.IsExternal ? 0.0 : comic.LastPosition));
+
+        // Load preview images
+        double previewWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"];
+        double previewHeight = (double)Application.Current.Resources["ReaderPreviewImageHeight"];
+        PreviewDataSource.Clear();
+        for (int i = 0; i < connection.GetImageCount(); ++i)
+        {
+            PreviewDataSource.Add(new ReaderImagePreviewViewModel
+            {
+                Image = new SimpleImageView.Model
+                {
+                    Source = new ComicImageSource(comic, connection, i),
+                    Width = previewWidth,
+                    Height = previewHeight,
+                    Dispatcher = _loadPreviewDispatcher,
+                    DebugDescription = i.ToString()
+                },
+                Page = i + 1,
+            });
+        }
+    }
+
+    private void LoadReaderSettings()
+    {
+        ComicModel? comic = _comic;
+        if (comic == null)
+        {
+            return;
+        }
+
+        AppSettingsModel.ReaderSettingModel readerSettings = AppSettingsModel.Instance.GetModel().DefaultReaderSetting;
+        var readerSettingModel = ReaderSettingDataModel.From(readerSettings, comic);
+        ReaderSettingLiveData.Emit(readerSettingModel);
+    }
+
+    private void LoadComicInfo()
+    {
+        ComicModel? comic = _comic;
+        if (comic == null)
+        {
+            return;
+        }
+
+        CoroutineUtils.Start(async () =>
+        {
+            IsExternalComicLiveData.Emit(comic.IsExternal);
+
+            if (comic.Title1.Length == 0)
+            {
+                ComicTitle1 = comic.Title;
+            }
+            else
+            {
+                ComicTitle1 = comic.Title1;
+                ComicTitle2 = comic.Title2;
+            }
+
+            ComicDescriptionLiveData.Emit(comic.Description);
+
+            ComicDir = comic.Location;
+            IsEditable = comic.IsEditable;
+
+            await LoadComicTag();
+
+            bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
+            SetIsFavorite(isFavorite, false);
+
+            SetCompletionState(comic.CompletionState, false);
+
+            if (!comic.IsExternal)
+            {
+                Rating = comic.Rating;
+            }
+        });
+    }
+
+    private async Task LoadComicTag()
     {
         ComicModel? comic = _comic;
         if (comic == null)
@@ -395,5 +617,15 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         int unitIndex = (int)Math.Floor(Math.Log(byteCount, 1024));
         double adjustedSize = byteCount / Math.Pow(1024, unitIndex);
         return $"{adjustedSize:0.#} {units[unitIndex]}";
+    }
+
+    //
+    // Types
+    //
+
+    public class ReaderLoadingInfo(IEnumerable<IImageSource> images, double initialPage)
+    {
+        public readonly IEnumerable<IImageSource> Images = images;
+        public readonly double InitialPage = initialPage;
     }
 }
