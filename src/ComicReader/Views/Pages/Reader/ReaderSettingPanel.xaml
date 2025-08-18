@@ -411,7 +411,7 @@
                 Grid.Column="0"
                 Margin="0,0,0,2"
                 VerticalAlignment="Center"
-                Text="{x:Bind StringResource.OriginalSize}" />
+                Text="{x:Bind StringResource.MaintainRelativeSize}" />
             <ToggleSwitch
                 x:Name="OriginalSizeToggleSwitch"
                 Grid.Row="0"

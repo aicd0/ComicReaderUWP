@@ -67,11 +67,14 @@
                 TextWrapping="Wrap" />
             <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
                 <CheckBox
+                    MinWidth="0"
                     Click="TagDiffModeCheckBox_Click"
                     Content="{x:Bind StringResource.DiffMode}"
                     IsChecked="True" />
                 <CheckBox
                     x:Name="TagIdCheckBox"
+                    MinWidth="0"
+                    Margin="12,0,0,0"
                     Click="TagIdCheckBox_Click"
                     Content="{x:Bind StringResource.ShowTagId}"
                     IsChecked="False" />

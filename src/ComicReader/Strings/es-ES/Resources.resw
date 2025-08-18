@@ -487,6 +487,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="Links" xml:space="preserve">
     <value>Campo de golf</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>Mantener el tamaño relativo</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Marcar como terminado</value>
   </data>
@@ -513,6 +516,9 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="Name" xml:space="preserve">
     <value>Nombre</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Nuevo</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Nueva carpeta</value>
@@ -555,9 +561,6 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Abre un cómic al azar</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>Tamaño original</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Esta operación sobrescribirá las entradas existentes.</value>
@@ -645,9 +648,6 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Guardar como configuración predeterminada</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>Guardar como nuevo</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Guardar el historial de navegación</value>

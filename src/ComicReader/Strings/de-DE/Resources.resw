@@ -487,6 +487,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Links" xml:space="preserve">
     <value>Links</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>Relative Größe beibehalten</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Als erledigt markieren</value>
   </data>
@@ -513,6 +516,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Name" xml:space="preserve">
     <value>Name</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Neu</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Neuer Ordner</value>
@@ -555,9 +561,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Öffne einen zufälligen Comic</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>Originalgröße</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Dieser Vorgang überschreibt vorhandene Einträge.</value>
@@ -645,9 +648,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Als Standardkonfiguration speichern</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>Als neu speichern</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Browserverlauf speichern</value>

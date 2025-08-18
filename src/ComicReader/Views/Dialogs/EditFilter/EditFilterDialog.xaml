@@ -106,10 +106,10 @@
                 Content="{x:Bind StringResource.Save}" />
             <Button
                 x:Name="SaveAsNewButton"
-                x:Uid="SaveAsNewButton"
                 Grid.Column="2"
                 HorizontalAlignment="Stretch"
-                Click="SaveAsNewButton_Click" />
+                Click="SaveAsNewButton_Click"
+                Content="{x:Bind StringResource.New}" />
             <Button
                 x:Name="DeleteButton"
                 Grid.Column="4"

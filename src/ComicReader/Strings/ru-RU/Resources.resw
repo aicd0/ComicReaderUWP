@@ -488,6 +488,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Links" xml:space="preserve">
     <value>Ссылки</value>
   </data>
+  <data name="MaintainRelativeSize" xml:space="preserve">
+    <value>Сохранять относительный размер</value>
+  </data>
   <data name="MarkAsRead" xml:space="preserve">
     <value>Отметить как завершенное</value>
   </data>
@@ -514,6 +517,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Name" xml:space="preserve">
     <value>Имя</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Новый</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Новая папка</value>
@@ -556,9 +562,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Откройте случайный комикс</value>
-  </data>
-  <data name="OriginalSize" xml:space="preserve">
-    <value>Оригинальный размер</value>
   </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Эта операция перезапишет существующие записи.</value>
@@ -646,9 +649,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Сохранить как конфигурацию по умолчанию</value>
-  </data>
-  <data name="SaveAsNewButton.Content" xml:space="preserve">
-    <value>Сохранить как новый</value>
   </data>
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Сохранить историю просмотров</value>
