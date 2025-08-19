@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
+using ComicReader.Common;
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Threading;
@@ -122,7 +123,7 @@ internal partial class ReaderView : UserControl
     public delegate void ReaderEventPageChangedEventHandler(ReaderView sender, bool isIntermediate);
     public event ReaderEventPageChangedEventHandler? ReaderEventPageChanged;
 
-    public delegate void ReaderEventReaderStateChangeHandler(ReaderView sender, ReaderState state);
+    public delegate void ReaderEventReaderStateChangeHandler(ReaderView sender, ReaderState state, string description);
     public event ReaderEventReaderStateChangeHandler? ReaderEventReaderStateChanged;
 
     public int PageCount { get; private set; } = 0;
@@ -296,10 +297,13 @@ internal partial class ReaderView : UserControl
             }
 
             UpdateLoader($"FrameReady,i={index}");
+
+            int progress = Math.Min(99, (int)((index + 1) * 100.0 / (initialFrameIndex + 1)));
+            DispatchReaderStateChangeEvent(_state, $"{StringResourceProvider.Instance.ReaderStatusLoading} ({progress}%)");
         });
 
         // Start loading images
-        DispatchReaderStateChangeEvent(ReaderState.Loading);
+        DispatchReaderStateChangeEvent(ReaderState.Loading, StringResourceProvider.Instance.ReaderStatusLoading);
         _loadInfoDispatcher.Submit("ReaderLoadImageInfo", delegate
         {
             void dispatchToMainThread(List<PengingImageItem> pendingList)
@@ -2301,15 +2305,20 @@ internal partial class ReaderView : UserControl
     // Utilities
     //
 
-    private void DispatchReaderStateChangeEvent(ReaderState state)
+    private void DispatchReaderStateChangeEvent(ReaderState state, string stateDescription = "")
     {
-        if (state == _state)
+        if (state == _state && state == ReaderState.Ready)
         {
             return;
         }
 
+        if (state == ReaderState.Ready)
+        {
+            stateDescription = string.Empty;
+        }
+
         _state = state;
-        ReaderEventReaderStateChanged?.Invoke(this, state);
+        ReaderEventReaderStateChanged?.Invoke(this, state, stateDescription);
     }
 
     private double FrameParallelLength(int i)

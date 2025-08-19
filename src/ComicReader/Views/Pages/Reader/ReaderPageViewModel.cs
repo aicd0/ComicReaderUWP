@@ -49,7 +49,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public readonly MutableLiveData<string> TagClickLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
     public readonly MutableLiveData<DialogUtils.DialogOptions> ShowDialogLiveData = new();
-    public readonly MutableLiveData<ReaderStatusEnum> ReaderStatusLiveData = new(ReaderStatusEnum.Loading);
+    public readonly MutableLiveData<ReaderStatusInfo> ReaderStatusLiveData = new(new(ReaderStatusEnum.Loading));
     public readonly MutableLiveData<ReaderSettingDataModel> ReaderSettingLiveData = new();
     public readonly MutableLiveData<bool> IsExternalComicLiveData = new(true);
     public readonly MutableLiveData<string> ComicDescriptionLiveData = new();
@@ -278,7 +278,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         if (comic == null)
         {
-            ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
+            ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
             return;
         }
 
@@ -296,7 +296,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         if (!comic.IsExternal && !await comic.ReloadImageFiles())
         {
             Logger.I(TAG, "Failed to load images of '" + comic.Location + "'. ");
-            ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
+            ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
             return;
         }
 
@@ -304,12 +304,12 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         IComicConnection? connection = await comic.OpenComicAsync();
         if (connection is null)
         {
-            ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
+            ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
             return;
         }
 
         _comicConnection = connection;
-        ReaderStatusLiveData.Emit(ReaderStatusEnum.Loading);
+        ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Loading));
 
         var images = new List<IImageSource>();
         for (int i = 0; i < connection.GetImageCount(); ++i)

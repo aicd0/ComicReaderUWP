@@ -96,21 +96,21 @@ internal sealed partial class ReaderPage : BasePage
             BottomTileSetHold(false);
         };
 
-        reader.ReaderEventReaderStateChanged += delegate (ReaderView sender, ReaderView.ReaderState state)
+        reader.ReaderEventReaderStateChanged += delegate (ReaderView sender, ReaderView.ReaderState state, string description)
         {
             switch (state)
             {
                 case ReaderView.ReaderState.Ready:
-                    ViewModel.ReaderStatusLiveData.Emit(ReaderStatusEnum.Working);
+                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Working, description));
                     UpdatePage();
                     ShowBottomTile();
                     HideBottomTileDelayed(5000);
                     break;
                 case ReaderView.ReaderState.Loading:
-                    ViewModel.ReaderStatusLiveData.Emit(ReaderStatusEnum.Loading);
+                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Loading, description));
                     break;
                 case ReaderView.ReaderState.Error:
-                    ViewModel.ReaderStatusLiveData.Emit(ReaderStatusEnum.Error);
+                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error, description));
                     break;
             }
         };
@@ -262,15 +262,18 @@ internal sealed partial class ReaderPage : BasePage
             GetNavigationPageAbility().SetExternalComic(isExternal);
         });
 
-        ViewModel.ReaderStatusLiveData.Observe(this, delegate (ReaderStatusEnum status)
+        ViewModel.ReaderStatusLiveData.Observe(this, delegate (ReaderStatusInfo info)
         {
-            string readerStatusText = "";
-            readerStatusText = status switch
+            string readerStatusText = info.Description;
+            if (string.IsNullOrEmpty(readerStatusText))
             {
-                ReaderStatusEnum.Loading => StringResourceProvider.Instance.ReaderStatusLoading,
-                ReaderStatusEnum.Error => StringResourceProvider.Instance.ReaderStatusError,
-                _ => "",
-            };
+                readerStatusText = info.Status switch
+                {
+                    ReaderStatusEnum.Loading => StringResourceProvider.Instance.ReaderStatusLoading,
+                    ReaderStatusEnum.Error => StringResourceProvider.Instance.ReaderStatusError,
+                    _ => string.Empty,
+                };
+            }
             TbReaderStatus.Text = readerStatusText;
             TbReaderStatus.Visibility = readerStatusText.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateReaderUI();
@@ -387,7 +390,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void UpdateReaderUI()
     {
-        bool isWorking = ViewModel.ReaderStatusLiveData.GetValue() == ReaderStatusEnum.Working;
+        bool isWorking = ViewModel.ReaderStatusLiveData.GetValue()?.Status == ReaderStatusEnum.Working;
         bool previewVisible = isWorking && _gridViewModeEnabled;
         bool readerVisible = isWorking && !previewVisible;
 
@@ -801,11 +804,6 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    private static void Log(string message)
-    {
-        Logger.I("ReaderPage", message);
-    }
-
     private static long GetTick()
     {
         return Environment.TickCount;
@@ -820,5 +818,11 @@ internal sealed partial class ReaderPage : BasePage
         Loading,
         Error,
         Working,
+    }
+
+    public class ReaderStatusInfo(ReaderStatusEnum status, string description = "")
+    {
+        public ReaderStatusEnum Status { get; } = status;
+        public string Description { get; } = description;
     }
 }
