@@ -56,11 +56,11 @@ internal sealed partial class MainPage : BasePage
     // Properties
     //
 
-    private Window? CurrentWindow
+    private MainWindow? CurrentWindow
     {
         get
         {
-            Window? window = App.WindowManager.GetWindow(WindowId);
+            MainWindow? window = App.WindowManager.GetWindow(WindowId);
             if (window is null)
             {
                 Logger.F(TAG, $"Failed to get current window with ID {WindowId}.");
@@ -477,47 +477,38 @@ internal sealed partial class MainPage : BasePage
 
     private void OnRootTabViewDrop(object sender, DragEventArgs e)
     {
-        int sourceWindowId;
+        // Handle tab drag-drop
+        if (e.DataView.Properties.TryGetValue("windowId", out object windowIdObj) && windowIdObj is int sourceWindowId &&
+            e.DataView.Properties.TryGetValue("tabId", out object tabIdObj) && tabIdObj is int sourceTabId &&
+            e.DataView.Properties.TryGetValue("url", out object urlObj) && urlObj is string url)
         {
-            if (!e.DataView.Properties.TryGetValue("windowId", out object id) || id is not int)
+            if (sourceWindowId != WindowId)
             {
-                Logger.AssertNotReachHere("98CC0674EF182B5D");
-                return;
+                App.WindowManager.GetEventBus(sourceWindowId).With<int>(EventId.CloseTab).Emit(sourceTabId);
+                LoadTabNoLock(-1, Route.Create(url), true);
+                EnsureInitialTabNoLock();
             }
 
-            sourceWindowId = (int)id;
-        }
-
-        int sourceTabId;
-        {
-            if (!e.DataView.Properties.TryGetValue("tabId", out object id) || id is not int)
-            {
-                Logger.AssertNotReachHere("352E7E7D7070988A");
-                return;
-            }
-
-            sourceTabId = (int)id;
-        }
-
-        string url;
-        {
-            if (!e.DataView.Properties.TryGetValue("url", out object u) || u is not string)
-            {
-                Logger.AssertNotReachHere("E6337F0738EFC223");
-                return;
-            }
-
-            url = (string)u;
-        }
-
-        if (sourceWindowId == WindowId)
-        {
             return;
         }
 
-        App.WindowManager.GetEventBus(sourceWindowId).With<int>(EventId.CloseTab).Emit(sourceTabId);
-        LoadTabNoLock(-1, Route.Create(url), true);
-        EnsureInitialTabNoLock();
+        // Handle file drop
+        if (e.DataView.Contains(StandardDataFormats.StorageItems))
+        {
+            CoroutineUtils.Start(async () =>
+            {
+                IReadOnlyList<Windows.Storage.IStorageItem> items = await e.DataView.GetStorageItemsAsync();
+                foreach (Windows.Storage.IStorageItem? item in items)
+                {
+                    if (item is Windows.Storage.StorageFile file)
+                    {
+                        CurrentWindow?.OnCommandLine([item.Path]);
+                    }
+                }
+            });
+
+            return;
+        }
     }
 
     private void OnRootTabViewDragOver(object sender, DragEventArgs e)
