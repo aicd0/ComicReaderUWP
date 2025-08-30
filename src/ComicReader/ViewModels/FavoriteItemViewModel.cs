@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -16,9 +14,9 @@ public enum FavoriteNodeType
     Filter
 };
 
-public class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChanged
+public partial class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public FavoriteItemViewModel(string name, FavoriteNodeType type, FavoriteItemViewModel parent)
     {
@@ -26,9 +24,9 @@ public class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChanged
         EditingName = name;
         Parent = parent;
         Type = type;
-        Children = new ObservableCollection<FavoriteItemViewModel>();
+        Children = [];
         IsRenaming = false;
-        m_Expanded = false;
+        _expanded = false;
     }
 
     public string Name { get; set; }
@@ -36,13 +34,13 @@ public class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChanged
     public long Id { get; set; }
     public bool IsRenaming { get; set; }
 
-    private bool m_Expanded;
+    private bool _expanded;
     public bool Expanded
     {
-        get => m_Expanded;
+        get => _expanded;
         set
         {
-            m_Expanded = value;
+            _expanded = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Expanded"));
         }
     }
@@ -50,11 +48,13 @@ public class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChanged
     public ObservableCollection<FavoriteItemViewModel> Children { get; set; }
     public FavoriteItemViewModel Parent { get; set; }
     public FavoriteNodeType Type { get; set; }
+
     public bool AllowDrop
     {
         get => Type == FavoriteNodeType.Filter;
         set { Type = value ? FavoriteNodeType.Filter : FavoriteNodeType.Item; }
     }
+
     public bool IsItem
     {
         get => Type == FavoriteNodeType.Item;
