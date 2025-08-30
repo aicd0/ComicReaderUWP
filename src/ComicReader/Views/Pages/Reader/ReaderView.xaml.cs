@@ -84,6 +84,7 @@ internal partial class ReaderView : UserControl
     private double _initialPage = 0.0;
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
+    private bool _isViewChanging = false;
     private List<IImageSource> _originalDataModel = [];
     private readonly ITaskDispatcher _loadInfoDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadInfoQueue");
     private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
@@ -1018,7 +1019,15 @@ internal partial class ReaderView : UserControl
                 $"V={VerticalOffset}");
         }
 
-        OnViewChanged(final);
+        _isViewChanging = true;
+        try
+        {
+            OnViewChanged(final);
+        }
+        finally
+        {
+            _isViewChanging = false;
+        }
     }
 
     private void OnViewChanged(bool final)
@@ -1669,6 +1678,7 @@ internal partial class ReaderView : UserControl
             horizontalOffset = horizontalOffset,
             verticalOffset = verticalOffset,
             disableAnimation = disableAnimation,
+            ignoreTooClose = _isViewChanging,
         }, reason);
     }
 
@@ -1706,16 +1716,6 @@ internal partial class ReaderView : UserControl
                 }
             }
 
-            bool parallelOffsetClose = !applyParallelOffset || Math.Abs(parallelOffset - SCParallelOffsetFinal) < 5.0;
-            bool perpendicularClose = Math.Abs(perpendicularOffset - SCPerpendicularOffsetFinal) < 5.0;
-            if (parallelOffsetClose && perpendicularClose)
-            {
-                // Ignore the request if target offset is really close to the current offset,
-                // otherwise we might trigger a dead loop
-                Log("Jump", "Cancelled (too close)");
-                return ScrollResult.TooClose;
-            }
-
             ConvertOffset(ref horizontalOffset, ref verticalOffset, applyParallelOffset ? parallelOffset : null, perpendicularOffset);
         }
 
@@ -1726,6 +1726,7 @@ internal partial class ReaderView : UserControl
             horizontalOffset = horizontalOffset,
             verticalOffset = verticalOffset,
             disableAnimation = disableAnimation,
+            ignoreTooClose = _isViewChanging,
         }, reason);
     }
 
@@ -1744,6 +1745,7 @@ internal partial class ReaderView : UserControl
             horizontalOffset = horizontalOffset,
             verticalOffset = verticalOffset,
             disableAnimation = disableAnimation,
+            ignoreTooClose = _isViewChanging,
         }, reason);
     }
 
@@ -1837,6 +1839,20 @@ internal partial class ReaderView : UserControl
         if (context.HorizontalOffset == null && context.VerticalOffset == null && context.ZoomFactor == null)
         {
             return ScrollResult.Success;
+        }
+
+        if (request.ignoreTooClose)
+        {
+            double verticalOffsetDiff = context.VerticalOffset.HasValue ? SCVerticalOffsetFinal - context.VerticalOffset.Value : 0.0;
+            double horizontalOffsetDiff = context.HorizontalOffset.HasValue ? SCHorizontalOffsetFinal - context.HorizontalOffset.Value : 0.0;
+            double zoomFactorDiff = context.ZoomFactor.HasValue ? context.ZoomFactor.Value / Math.Max(SCZoomFactorFinal, 1E-5) : 1.0;
+            if (Math.Abs(verticalOffsetDiff) <= 5.0 && Math.Abs(horizontalOffsetDiff) <= 5.0 && Math.Abs(zoomFactorDiff - 1.0) <= 0.01)
+            {
+                // Ignore the request if target offset is really close to the current offset,
+                // otherwise we might trigger a dead loop
+                Log("Jump", "Cancelled (too close)");
+                return ScrollResult.TooClose;
+            }
         }
 
         ChangeView(context.ZoomFactor, context.HorizontalOffset, context.VerticalOffset, context.DisableAnimation);
@@ -2623,6 +2639,9 @@ internal partial class ReaderView : UserControl
 
         // Animation
         public bool disableAnimation = false;
+
+        // Options
+        public bool ignoreTooClose = false;
     }
 
     private class ScrollContext
