@@ -241,7 +241,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void SortFavorites(ObservableCollection<FavoriteItemViewModel> source)
     {
-        var ordered = source.OrderBy(x => x.Name, new StringUtils.OrdinalComparer()).ToList();
+        var ordered = source.OrderBy(x => StringUtils.SmartFileNameKeySelector(x.Name), StringUtils.SmartFileNameComparer).ToList();
 
         for (int i = 0; i < ordered.Count; ++i)
         {
@@ -427,7 +427,8 @@ internal sealed partial class FavoritePage : BasePage
     private void SortByNameClick(object sender, RoutedEventArgs e)
     {
         var item = (FavoriteItemViewModel)((MenuFlyoutItem)sender).DataContext;
-        ObservableCollection<FavoriteItemViewModel> parent = item.Parent != null ? item.Parent.Children : DataSource;
+        ObservableCollection<FavoriteItemViewModel> parent = item.Type == FavoriteNodeType.Filter ? item.Children :
+            (item.Parent != null ? item.Parent.Children : DataSource);
         SortFavorites(parent);
     }
 
