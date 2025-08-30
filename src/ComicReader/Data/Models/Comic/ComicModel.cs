@@ -16,8 +16,6 @@ using ComicReader.SDK.Data.SqlHelpers;
 
 using Windows.Storage;
 
-using static ComicReader.Data.Models.Comic.ComicData;
-
 namespace ComicReader.Data.Models.Comic;
 
 internal sealed class ComicModel
@@ -46,7 +44,7 @@ internal sealed class ComicModel
     public int Progress => _internalModel.Progress;
     public DateTimeOffset LastVisit => _internalModel.LastVisit;
     public int Rating => _internalModel.Rating;
-    public IReadOnlyList<TagData> Tags => _internalModel.Tags;
+    public IReadOnlyList<ComicData.TagData> Tags => _internalModel.Tags;
     public string Title => _internalModel.Title;
     public string Title1 => _internalModel.Title1;
     public string Title2 => _internalModel.Title2;
@@ -57,7 +55,7 @@ internal sealed class ComicModel
         get
         {
             Dictionary<string, HashSet<string>> tagsCopy = [];
-            foreach (TagData tagData in _internalModel.Tags)
+            foreach (ComicData.TagData tagData in _internalModel.Tags)
             {
                 if (!tagsCopy.TryGetValue(tagData.Name, out HashSet<string>? tagSet))
                 {
@@ -374,19 +372,22 @@ internal sealed class ComicModel
         ComicData.UpdateAllComics(reason, skipExistingLocation);
     }
 
-    public static async Task<List<string>> GetAllTagCategories()
+    public static Task<List<string>> GetAllTagCategories()
     {
-        HashSet<string> tags = [];
-        var command = SelectCommand.Create(TagCategoryTable.Instance);
-        IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
-        command.Distinct();
-        using SelectCommand.IReader reader = await command.ExecuteAsync();
-        while (reader.Read())
+        return ComicData.Enqueue<List<string>>("GetAllTagCategories", () =>
         {
-            string name = nameToken.GetValue();
-            tags.Add(name);
-        }
-        return [.. tags];
+            HashSet<string> tags = [];
+            var command = SelectCommand.Create(TagCategoryTable.Instance);
+            IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
+            command.Distinct();
+            using SelectCommand.IReader reader = command.Execute();
+            while (reader.Read())
+            {
+                string name = nameToken.GetValue();
+                tags.Add(name);
+            }
+            return [.. tags];
+        });
     }
 
     private static void DispatchUpdateEvent()

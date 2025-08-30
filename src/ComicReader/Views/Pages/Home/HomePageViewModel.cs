@@ -193,8 +193,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     private long _lastSearchTime = 0;
 
     private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
-    private bool _filterUpdated = false;
-    private bool _comicUpdated = false;
+    private bool _filterInvalidated = true;
+    private bool _comicInvalidated = true;
     private int _updateFilterSubmitted = 0;
     private int _updateComicSubmitted = 0;
 
@@ -220,20 +220,29 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     /// <remarks>
     /// Must be called on the UI thread.
     /// </remarks>
-    public void UpdateFilters()
+    public void Refresh(bool filters = false, bool library = false)
     {
-        ScheduleUpdateFilters(true);
-    }
+        if (filters)
+        {
+            _filterInvalidated = true;
+        }
 
-    /// <summary>
-    /// Updates the comic library and refreshes the displayed items.
-    /// </summary>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
-    public void UpdateLibrary()
-    {
-        ScheduleUpdateComics();
+        if (library)
+        {
+            _comicInvalidated = true;
+        }
+
+        if (filters)
+        {
+            ScheduleUpdateFilters(true);
+            return;
+        }
+
+        if (library)
+        {
+            ScheduleUpdateComics();
+            return;
+        }
     }
 
     /// <summary>
@@ -622,7 +631,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             return;
         }
 
-        _filterUpdated = true;
+        _filterInvalidated = false;
         _sharedDispatcher.Submit("ScheduleUpdateFilters", delegate
         {
             Interlocked.Exchange(ref _updateFilterSubmitted, 0);
@@ -632,25 +641,25 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     private void ScheduleUpdateComics()
     {
-        if (!_filterUpdated)
+        if (_filterInvalidated)
         {
             ScheduleUpdateFilters(true);
             return;
         }
 
-        _comicUpdated = true;
+        _comicInvalidated = false;
         _searchEngine.Update();
     }
 
     private void ScheduleDisplayComics()
     {
-        if (!_filterUpdated)
+        if (_filterInvalidated)
         {
             ScheduleUpdateFilters(true);
             return;
         }
 
-        if (!_comicUpdated)
+        if (_comicInvalidated)
         {
             ScheduleUpdateComics();
             return;
