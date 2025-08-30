@@ -277,6 +277,11 @@ internal sealed partial class ReaderPage : BasePage
             TbReaderStatus.Text = readerStatusText;
             TbReaderStatus.Visibility = readerStatusText.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateReaderUI();
+
+            if (info.Status == ReaderStatusEnum.Error)
+            {
+                ShowBottomTile();
+            }
         });
 
         ViewModel.ReaderSettingLiveData.Observe(this, setting =>
@@ -494,7 +499,9 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || GetNavigationPageAbility().GetIsSidePaneOpen())
+        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled ||
+            GetNavigationPageAbility().GetIsSidePaneOpen() ||
+            ViewModel.ReaderStatusLiveData.GetValue()?.Status != ReaderStatusEnum.Working)
         {
             return;
         }

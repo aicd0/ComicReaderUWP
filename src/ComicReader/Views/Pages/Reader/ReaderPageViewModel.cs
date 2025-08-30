@@ -273,9 +273,12 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
+        // Close previous comic
         CloseComicConnection();
         _comic = null;
+        PreviewDataSource.Clear();
 
+        // Load new comic
         if (comic == null)
         {
             ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
@@ -303,7 +306,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        CloseComicConnection();
         IComicConnection? connection = await comic.OpenComicAsync();
         if (connection is null)
         {
@@ -320,12 +322,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             images.Add(new ComicImageSource(comic, connection, i));
         }
 
+        if (images.Count == 0)
+        {
+            ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
+            return;
+        }
+
         ReaderLoadingInfoLiveData.Emit(new(images, comic.IsExternal ? 0.0 : comic.LastPosition));
 
         // Load preview images
         double previewWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"];
         double previewHeight = (double)Application.Current.Resources["ReaderPreviewImageHeight"];
-        PreviewDataSource.Clear();
         for (int i = 0; i < connection.GetImageCount(); ++i)
         {
             PreviewDataSource.Add(new ReaderImagePreviewViewModel
