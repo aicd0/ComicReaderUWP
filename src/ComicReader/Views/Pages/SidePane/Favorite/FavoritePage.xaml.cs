@@ -15,6 +15,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
+using ComicReader.SDK.Common.Algorithm;
 using ComicReader.ViewModels;
 using ComicReader.Views.Pages.Main;
 using ComicReader.Views.Pages.Navigation;
@@ -69,7 +70,13 @@ internal sealed partial class FavoritePage : BasePage
     // utilities
     private void Update()
     {
-        void helper(List<FavoriteModel.ExternalNodeModel> it, ObservableCollection<FavoriteItemViewModel> et, FavoriteItemViewModel parent)
+        FavoriteModel.ExternalModel model = FavoriteModel.Instance.GetModel();
+        if (model == null)
+        {
+            return;
+        }
+
+        static void fillNode(List<FavoriteModel.ExternalNodeModel> it, ObservableCollection<FavoriteItemViewModel> et, FavoriteItemViewModel parent)
         {
             foreach (FavoriteModel.ExternalNodeModel inode in it)
             {
@@ -78,7 +85,7 @@ internal sealed partial class FavoritePage : BasePage
 
                 if (type == FavoriteNodeType.Filter)
                 {
-                    helper(inode.Children, enode.Children, enode);
+                    fillNode(inode.Children, enode.Children, enode);
                 }
                 else
                 {
@@ -89,14 +96,17 @@ internal sealed partial class FavoritePage : BasePage
             }
         }
 
-        FavoriteModel.ExternalModel model = FavoriteModel.Instance.GetModel();
-        if (model == null)
+        ObservableCollection<FavoriteItemViewModel> items = [];
+        fillNode(model.Children, items, null);
+
+        static bool comparer(FavoriteItemViewModel x, FavoriteItemViewModel y) => x.Type == y.Type && x.Id == y.Id;
+        static void updater(FavoriteItemViewModel x, FavoriteItemViewModel y)
         {
-            return;
+            x.Name = y.Name;
+            DiffUtils.UpdateCollection(x.Children, y.Children, comparer, updater);
         }
 
-        DataSource.Clear();
-        helper(model.Children, DataSource, null);
+        DiffUtils.UpdateCollection(DataSource, items, comparer, updater);
         UpdateView();
     }
 
