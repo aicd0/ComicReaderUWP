@@ -8,10 +8,9 @@ using ComicReader.Common.Utils;
 
 namespace ComicReader.Common.Lifecycle.Utils;
 
-public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval) : IMutableLiveData<T>
+public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval, int delay = 0) : IMutableLiveData<T>
 {
     private readonly IMutableLiveData<T> _liveData = liveData;
-    private readonly long _minInterval = minInterval;
 
     public void Clear()
     {
@@ -30,15 +29,15 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
 
     public void Observe(ILifecycleOwner owner, IObserver<T> observer)
     {
-        _liveData.Observe(owner, new ObserverWrapper<T>(owner, observer, _minInterval));
+        _liveData.Observe(owner, new ObserverWrapper<T>(owner, observer, minInterval, delay));
     }
 
     public void ObserveSticky(ILifecycleOwner owner, IObserver<T> observer)
     {
-        _liveData.ObserveSticky(owner, new ObserverWrapper<T>(owner, observer, _minInterval));
+        _liveData.ObserveSticky(owner, new ObserverWrapper<T>(owner, observer, minInterval, delay));
     }
 
-    private class ObserverWrapper<U>(ILifecycleOwner owner, IObserver<U> observer, long minInterval) : IObserver<U>
+    private class ObserverWrapper<U>(ILifecycleOwner owner, IObserver<U> observer, long minInterval, int delay) : IObserver<U>
     {
         private long _lastChangedTime = 0L;
         private U? _lastValue = default;
@@ -54,15 +53,11 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
 
             long currentTime = GetTick();
             long timeElapsed = currentTime - _lastChangedTime;
-            if (timeElapsed >= minInterval)
+            int timeRemaining = Math.Max((int)(minInterval - timeElapsed), delay);
+            if (timeRemaining <= 0)
             {
                 _lastChangedTime = currentTime;
                 observer.OnChanged(value);
-                return;
-            }
-
-            if (owner.GetLifecycle().GetState().IsStarted())
-            {
                 return;
             }
 
@@ -71,8 +66,8 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
             {
                 try
                 {
-                    await Task.Delay((int)(minInterval - timeElapsed));
-                    if (owner.GetLifecycle().GetState().IsStarted())
+                    await Task.Delay(timeRemaining);
+                    if (owner is not null && !owner.GetLifecycle().GetState().IsStarted())
                     {
                         return;
                     }
