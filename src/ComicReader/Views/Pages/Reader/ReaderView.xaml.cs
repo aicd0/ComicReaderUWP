@@ -236,6 +236,7 @@ internal partial class ReaderView : UserControl
     //
 
     private double InitialPage => Math.Min(_initialPage, PageCount);
+    private bool ComicLoaded => _isLoaded && PageCount > 0;
 
     private void Reload(List<IImageSource> images)
     {
@@ -978,7 +979,7 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (!_isLoaded)
+        if (!ComicLoaded)
         {
             return;
         }
