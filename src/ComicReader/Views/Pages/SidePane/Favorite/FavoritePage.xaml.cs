@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -59,12 +57,12 @@ internal sealed partial class FavoritePage : BasePage
 
     private IMainPageAbility GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>();
+        return GetAbility<IMainPageAbility>()!;
     }
 
     private INavigationPageAbility GetNavigationPageAbility()
     {
-        return GetAbility<INavigationPageAbility>();
+        return GetAbility<INavigationPageAbility>()!;
     }
 
     // utilities
@@ -76,12 +74,12 @@ internal sealed partial class FavoritePage : BasePage
             return;
         }
 
-        static void fillNode(List<FavoriteModel.ExternalNodeModel> it, ObservableCollection<FavoriteItemViewModel> et, FavoriteItemViewModel parent)
+        static void fillNode(List<FavoriteModel.ExternalNodeModel> it, ObservableCollection<FavoriteItemViewModel> et, FavoriteItemViewModel? parent)
         {
             foreach (FavoriteModel.ExternalNodeModel inode in it)
             {
                 FavoriteNodeType type = inode.Type == "i" ? FavoriteNodeType.Item : FavoriteNodeType.Filter;
-                var enode = new FavoriteItemViewModel(inode.Name, type, parent);
+                var enode = new FavoriteItemViewModel(inode.Name, type);
 
                 if (type == FavoriteNodeType.Filter)
                 {
@@ -107,6 +105,11 @@ internal sealed partial class FavoritePage : BasePage
         }
 
         DiffUtils.UpdateCollection(DataSource, items, comparer, updater);
+        foreach (FavoriteItemViewModel item in DataSource)
+        {
+            item.FixParent();
+        }
+
         UpdateView();
     }
 
@@ -197,7 +200,7 @@ internal sealed partial class FavoritePage : BasePage
         UpdateView();
     }
 
-    private void CreateNewFolder(ObservableCollection<FavoriteItemViewModel> folder, FavoriteItemViewModel parent)
+    private void CreateNewFolder(ObservableCollection<FavoriteItemViewModel> folder, FavoriteItemViewModel? parent)
     {
         string folderName;
         string new_folder_string = StringResourceProvider.Instance.NewFolder;
@@ -226,7 +229,7 @@ internal sealed partial class FavoritePage : BasePage
 
             if (!isDuplicated)
             {
-                var newFolder = new FavoriteItemViewModel(folderName, FavoriteNodeType.Filter, parent)
+                var newFolder = new FavoriteItemViewModel(folderName, FavoriteNodeType.Filter)
                 {
                     IsRenaming = true
                 };
@@ -236,6 +239,7 @@ internal sealed partial class FavoritePage : BasePage
             }
         }
 
+        parent?.FixParent();
         UpdateView();
     }
 
@@ -302,8 +306,7 @@ internal sealed partial class FavoritePage : BasePage
 
             if (item.Type == FavoriteNodeType.Item)
             {
-                ComicModel comic = await ComicModel.FromId(item.Id, "FavoriteLoadComic");
-
+                ComicModel? comic = await ComicModel.FromId(item.Id, "FavoriteLoadComic");
                 if (comic == null)
                 {
                     DeleteItem(item);
@@ -399,11 +402,9 @@ internal sealed partial class FavoritePage : BasePage
         Save();
     }
 
-    private void MainTreeViewDragItemsCompleted(Microsoft.UI.Xaml.Controls.TreeView sender,
-        Microsoft.UI.Xaml.Controls.TreeViewDragItemsCompletedEventArgs args)
+    private void MainTreeViewDragItemsCompleted(TreeView sender, TreeViewDragItemsCompletedEventArgs args)
     {
         var parent = (FavoriteItemViewModel)args.NewParentItem;
-
         foreach (FavoriteItemViewModel item in args.Items.Cast<FavoriteItemViewModel>())
         {
             item.Parent = parent;
@@ -417,10 +418,17 @@ internal sealed partial class FavoritePage : BasePage
         C0.Run(async delegate
         {
             var item = (FavoriteItemViewModel)((MenuFlyoutItem)sender).DataContext;
-            ComicModel comic = await ComicModel.FromId(item.Id, "FavoriteOpenInNewTabLoadComic");
-            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-            GetMainPageAbility().OpenInNewTab(route);
+            ComicModel? comic = await ComicModel.FromId(item.Id, "FavoriteOpenInNewTabLoadComic");
+            if (comic is null)
+            {
+                DeleteItem(item);
+            }
+            else
+            {
+                Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+                GetMainPageAbility().OpenInNewTab(route);
+            }
         });
     }
 
