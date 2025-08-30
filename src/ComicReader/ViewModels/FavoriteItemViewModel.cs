@@ -18,11 +18,10 @@ public partial class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChang
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public FavoriteItemViewModel(string name, FavoriteNodeType type, FavoriteItemViewModel parent)
+    public FavoriteItemViewModel(string name, FavoriteNodeType type)
     {
         Name = name;
         EditingName = name;
-        Parent = parent;
         Type = type;
         Children = [];
         IsRenaming = false;
@@ -46,7 +45,7 @@ public partial class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChang
     }
 
     public ObservableCollection<FavoriteItemViewModel> Children { get; set; }
-    public FavoriteItemViewModel Parent { get; set; }
+    public FavoriteItemViewModel? Parent { get; set; }
     public FavoriteNodeType Type { get; set; }
 
     public bool AllowDrop
@@ -59,5 +58,14 @@ public partial class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChang
     {
         get => Type == FavoriteNodeType.Item;
         set { Type = value ? FavoriteNodeType.Item : FavoriteNodeType.Filter; }
+    }
+
+    public void FixParent()
+    {
+        foreach (FavoriteItemViewModel child in Children)
+        {
+            child.Parent = this;
+            child.FixParent();
+        }
     }
 };
