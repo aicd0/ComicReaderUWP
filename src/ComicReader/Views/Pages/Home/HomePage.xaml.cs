@@ -60,19 +60,19 @@ internal sealed partial class HomePage : BasePage
 
         ObserveData();
         ViewModel.Initialize();
-        ViewModel.UpdateLibrary();
+        ViewModel.Refresh(filters: true, library: true);
     }
 
     private void ObserveData()
     {
         GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
         {
-            ViewModel.UpdateLibrary();
+            ViewModel.Refresh(filters: true, library: true);
         });
 
         GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
         {
-            ViewModel.UpdateLibrary();
+            ViewModel.Refresh(library: true);
         });
 
         GetNavigationPageAbility().RegisterSearchTextChangeHandler(this, ViewModel.SetSearchText);
@@ -477,7 +477,7 @@ internal sealed partial class HomePage : BasePage
         {
             var dialog = new EditFilterDialog(await ViewModel.GetFilter());
             _ = await dialog.ShowAsync(XamlRoot);
-            ViewModel.UpdateFilters();
+            ViewModel.Refresh(filters: true);
         });
     }
 
