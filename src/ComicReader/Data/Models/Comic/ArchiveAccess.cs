@@ -8,62 +8,18 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Legacy;
-using ComicReader.Data.Models;
+using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 
 using Windows.Storage;
 
-namespace ComicReader.Common.Utils;
+namespace ComicReader.Data.Models.Comic;
 
 #nullable disable
 
-public abstract class ArchiveEntry
-{
-    public abstract string FullName { get; }
-    public abstract bool IsDirectory { get; }
-
-    public abstract Stream Open();
-}
-
-public class ReaderArchiveEntry : ArchiveEntry
-{
-    public ReaderArchiveEntry(SharpCompress.Readers.IReader reader)
-    {
-        _reader = reader;
-    }
-
-    private readonly SharpCompress.Readers.IReader _reader;
-
-    public override string FullName => _reader.Entry.Key;
-    public override bool IsDirectory => _reader.Entry.IsDirectory;
-
-    public override Stream Open()
-    {
-        return _reader.OpenEntryStream();
-    }
-}
-
-public class SevenZipArchiveEntry : ArchiveEntry
-{
-    public SevenZipArchiveEntry(SharpCompress.Archives.SevenZip.SevenZipArchiveEntry entry)
-    {
-        _entry = entry;
-    }
-
-    private readonly SharpCompress.Archives.SevenZip.SevenZipArchiveEntry _entry;
-
-    public override string FullName => _entry.Key;
-    public override bool IsDirectory => _entry.IsDirectory;
-
-    public override Stream Open()
-    {
-        return _entry.OpenEntryStream();
-    }
-}
-
 public class ArchiveAccess
 {
-    private const string TAG = "ArchiveAccess";
+    private const string TAG = nameof(ArchiveAccess);
     public const string FileSeperator = "\\\\";
 
     public static bool IsArchivePath(string path)
@@ -214,18 +170,18 @@ public class ArchiveAccess
         public string Extension;
     }
 
-    private static async Task<TaskException> TryAccessDeepestArchive(StorageFile base_file, string sub_path,
+    private static async Task<TaskException> TryAccessDeepestArchive(StorageFile baseFile, string subPath,
         Func<Stream, ArchiveAccessContext, Task<TaskException>> func)
     {
-        string sub_base_path = GetBasePath(sub_path, reverse: true);
-        string entry = GetSubPath(sub_path, reverse: true);
-        string extension = StringUtils.ExtensionFromFilename(sub_base_path);
+        string subBasePath = GetBasePath(subPath, reverse: true);
+        string entry = GetSubPath(subPath, reverse: true);
+        string extension = StringUtils.ExtensionFromFilename(subBasePath);
 
         if (entry.Length == 0)
         {
-            entry = sub_base_path;
-            sub_base_path = "";
-            extension = base_file.FileType;
+            entry = subBasePath;
+            subBasePath = "";
+            extension = baseFile.FileType;
         }
 
         var ctx = new ArchiveAccessContext
@@ -234,18 +190,18 @@ public class ArchiveAccess
             Extension = extension,
         };
 
-        return await TryAccessArchiveStream(base_file, sub_base_path,
+        return await TryAccessArchiveStream(baseFile, subBasePath,
             async (stream) => await func(stream, ctx));
     }
 
-    public static async Task<TaskException> TryReadEntries(Stream stream, string extension, Func<ArchiveEntry, Task<TaskException>> callback)
+    public static async Task<TaskException> TryReadEntries(Stream stream, string extension, Func<IArchiveEntry, Task<TaskException>> callback)
     {
         if (stream == null || !stream.CanRead)
         {
             return TaskException.InvalidParameters;
         }
 
-        // Reader options.
+        // Reader options
         var opts = new SharpCompress.Readers.ReaderOptions();
         int default_code_page = AppModel.DefaultArchiveCodePage;
 
@@ -266,7 +222,7 @@ public class ArchiveAccess
             }
         }
 
-        // Iterate entries.
+        // Iterate entries
         switch (extension.ToLower())
         {
             case ".7z":
@@ -379,12 +335,12 @@ public class ArchiveAccess
             return await callback(stream);
         }
 
-        string main_entry_name = GetBasePath(sub_path, false).Replace('/', '\\');
-        string sub_entry_name = GetSubPath(sub_path, false);
-        string filename = StringUtils.ItemNameFromPath(main_entry_name);
-        string sub_extension = StringUtils.ExtensionFromFilename(filename);
+        string mainEntryName = GetBasePath(sub_path, false).Replace('/', '\\');
+        string subEntryName = GetSubPath(sub_path, false);
+        string filename = StringUtils.ItemNameFromPath(mainEntryName);
+        string subExtension = StringUtils.ExtensionFromFilename(filename);
         TaskException result = TaskException.Unknown;
-        bool entry_exist = false;
+        bool entryExist = false;
 
         await TryReadEntries(stream, extension, async (entry) =>
         {
@@ -395,25 +351,22 @@ public class ArchiveAccess
                     break;
                 }
 
-                string entry_name = entry.FullName.Replace('/', '\\');
-
-                if (!entry_name.Equals(main_entry_name))
+                string entryName = entry.FullName.Replace('/', '\\');
+                if (!entryName.Equals(mainEntryName))
                 {
                     break;
                 }
 
-                using (Stream sub_stream = entry.Open())
-                {
-                    entry_exist = true;
-                    result = await TryAccessArchiveStreamInternal(sub_stream, sub_extension, sub_entry_name, callback);
-                    return TaskException.StopIteration;
-                }
+                using Stream subStream = entry.Open();
+                entryExist = true;
+                result = await TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
+                return TaskException.StopIteration;
             } while (false);
 
             return TaskException.Success;
         });
 
-        if (!entry_exist)
+        if (!entryExist)
         {
             result = TaskException.FileNotFound;
         }
@@ -421,12 +374,12 @@ public class ArchiveAccess
         return result;
     }
 
-    private static async Task<TaskException> TryGetFileEntries(Stream stream, string extension, string base_entry_name, List<string> output)
+    private static async Task<TaskException> TryGetFileEntries(Stream stream, string extension, string baseEntryName, List<string> output)
     {
-        base_entry_name = base_entry_name.Replace('/', '\\');
-        if (base_entry_name.Length > 0 && base_entry_name[base_entry_name.Length - 1] != '\\')
+        baseEntryName = baseEntryName.Replace('/', '\\');
+        if (baseEntryName.Length > 0 && baseEntryName[^1] != '\\')
         {
-            base_entry_name += '\\';
+            baseEntryName += '\\';
         }
 
         return await TryReadEntries(stream, extension, (entry) =>
@@ -438,13 +391,13 @@ public class ArchiveAccess
                     break;
                 }
 
-                string entry_name = entry.FullName.Replace('/', '\\');
-                if (!StringUtils.IsBeginWith(entry_name, base_entry_name))
+                string entryName = entry.FullName.Replace('/', '\\');
+                if (!StringUtils.IsBeginWith(entryName, baseEntryName))
                 {
                     break;
                 }
 
-                string subpath = entry_name.Substring(base_entry_name.Length);
+                string subpath = entryName[baseEntryName.Length..];
                 if (subpath.Length == 0)
                 {
                     break;
@@ -455,5 +408,39 @@ public class ArchiveAccess
 
             return Task.FromResult(TaskException.Success);
         });
+    }
+
+    public interface IArchiveEntry
+    {
+        string FullName { get; }
+        bool IsDirectory { get; }
+
+        Stream Open();
+    }
+
+    private class ReaderArchiveEntry(SharpCompress.Readers.IReader reader) : IArchiveEntry
+    {
+        private readonly SharpCompress.Readers.IReader _reader = reader;
+
+        public string FullName => _reader.Entry.Key;
+        public bool IsDirectory => _reader.Entry.IsDirectory;
+
+        public Stream Open()
+        {
+            return _reader.OpenEntryStream();
+        }
+    }
+
+    private class SevenZipArchiveEntry(SharpCompress.Archives.SevenZip.SevenZipArchiveEntry entry) : IArchiveEntry
+    {
+        private readonly SharpCompress.Archives.SevenZip.SevenZipArchiveEntry _entry = entry;
+
+        public string FullName => _entry.Key;
+        public bool IsDirectory => _entry.IsDirectory;
+
+        public Stream Open()
+        {
+            return _entry.OpenEntryStream();
+        }
     }
 }

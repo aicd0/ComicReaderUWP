@@ -210,14 +210,14 @@ public class SearchContext
         public bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems)
         {
             using Stream stream = ArchiveAccess.TryGetFileStream(_path).Result;
-            var sub_folders = new HashSet<string>();
+            var subFolders = new HashSet<string>();
 
             ArchiveAccess.TryReadEntries(stream, _extension, (entry) =>
             {
                 string path = entry.FullName.Replace('/', '\\');
                 if (entry.IsDirectory)
                 {
-                    sub_folders.Add(path[..^1]);
+                    subFolders.Add(path[..^1]);
                 }
                 else
                 {
@@ -225,14 +225,14 @@ public class SearchContext
 
                     for (int i = 0; (i = path.IndexOf('\\', i)) >= 0; ++i)
                     {
-                        sub_folders.Add(path.Substring(0, i));
+                        subFolders.Add(path.Substring(0, i));
                     }
                 }
 
                 return Task.FromResult(TaskException.Success);
             }).Wait();
 
-            foreach (string subFolder in sub_folders)
+            foreach (string subFolder in subFolders)
             {
                 folders.Add(_path + ArchiveAccess.FileSeperator + subFolder);
             }
