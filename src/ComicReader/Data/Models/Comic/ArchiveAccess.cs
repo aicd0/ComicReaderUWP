@@ -15,8 +15,6 @@ using Windows.Storage;
 
 namespace ComicReader.Data.Models.Comic;
 
-#nullable disable
-
 public class ArchiveAccess
 {
     private const string TAG = nameof(ArchiveAccess);
@@ -30,7 +28,6 @@ public class ArchiveAccess
     public static string GetBasePath(string location, bool reverse)
     {
         int i = GetFileSeperatorIndex(location, reverse);
-
         if (i <= -1)
         {
             return location;
@@ -42,7 +39,6 @@ public class ArchiveAccess
     public static string GetSubPath(string location, bool reverse)
     {
         int i = GetFileSeperatorIndex(location, reverse);
-
         if (i <= -1)
         {
             return "";
@@ -51,51 +47,49 @@ public class ArchiveAccess
         return location[(i + FileSeperator.Length)..];
     }
 
-    public static async Task<Stream> TryGetFileStream(string location)
+    public static async Task<Stream?> TryGetFileStream(string location)
     {
         string base_path = GetBasePath(location, false);
         string sub_path = GetSubPath(location, false);
-        StorageFile base_file = await Storage.TryGetFile(base_path);
-
-        if (base_file == null)
+        StorageFile? baseFile = await Storage.TryGetFile(base_path);
+        if (baseFile == null)
         {
             return null;
         }
 
-        return await TryGetFileStream(base_file, sub_path);
+        return await TryGetFileStream(baseFile, sub_path);
     }
 
-    public static async Task<Stream> TryGetFileStream(StorageFile base_file, string sub_path)
+    public static async Task<Stream?> TryGetFileStream(StorageFile baseFile, string subPath)
     {
-        if (sub_path.Length == 0)
+        if (subPath.Length == 0)
         {
             try
             {
-                return await base_file.OpenStreamForReadAsync();
+                return await baseFile.OpenStreamForReadAsync();
             }
             catch (Exception e)
             {
-                Log("Failed to access '" + base_file.Path + FileSeperator + sub_path + "'. " + e.ToString());
+                Logger.F(TAG, e);
                 return null;
             }
         }
 
-        var mem_stream = new MemoryStream();
-
-        TaskException result = await TryAccessArchiveStream(base_file, sub_path, async (stream) =>
+        var memStream = new MemoryStream();
+        TaskException result = await TryAccessArchiveStream(baseFile, subPath, async (stream) =>
         {
-            await stream.CopyToAsync(mem_stream);
-            mem_stream.Position = 0;
+            await stream.CopyToAsync(memStream);
+            memStream.Position = 0;
             return TaskException.Success;
         });
 
         if (!result.Successful())
         {
-            mem_stream.Dispose();
+            memStream.Dispose();
             return null;
         }
 
-        return mem_stream;
+        return memStream;
     }
 
     public static async Task<TaskException> TryAccessArchiveStream(StorageFile base_file, string sub_path, Func<Stream, Task<TaskException>> func)
@@ -112,18 +106,13 @@ public class ArchiveAccess
         }
         catch (Exception e)
         {
-            Log("Failed to access '" + base_file.Path + FileSeperator + sub_path + "'. " + e.ToString());
+            Logger.F(TAG, e);
             return TaskException.Failure;
         }
 
         TaskException result = await TryAccessArchiveStream(stream, base_file.FileType, sub_path, func);
         stream.Dispose();
         return result;
-    }
-
-    private static void Log(string message)
-    {
-        Logger.I("ArchiveAccess", message);
     }
 
     public static async Task<TaskException> TryGetSubFiles(StorageFile base_file, string sub_path, List<string> output)
@@ -166,8 +155,8 @@ public class ArchiveAccess
 
     private class ArchiveAccessContext
     {
-        public string Entry;
-        public string Extension;
+        public required string Entry;
+        public required string Extension;
     }
 
     private static async Task<TaskException> TryAccessDeepestArchive(StorageFile baseFile, string subPath,
@@ -203,14 +192,15 @@ public class ArchiveAccess
 
         // Reader options
         var opts = new SharpCompress.Readers.ReaderOptions();
-        int default_code_page = AppModel.DefaultArchiveCodePage;
+        int defaultCodePage = AppModel.DefaultArchiveCodePage;
 
-        if (default_code_page > 0)
+        if (defaultCodePage > 0)
         {
             try
             {
-                var encoding = Encoding.GetEncoding(default_code_page,
-                    Encoding.Default.GetEncoder().Fallback, Encoding.Default.GetDecoder().Fallback);
+                EncoderFallback encoderFallback = Encoding.Default.GetEncoder().Fallback ?? EncoderFallback.ReplacementFallback;
+                DecoderFallback decoderFallback = Encoding.Default.GetDecoder().Fallback ?? DecoderFallback.ReplacementFallback;
+                var encoding = Encoding.GetEncoding(defaultCodePage, encoderFallback, decoderFallback);
                 opts.ArchiveEncoding = new SharpCompress.Common.ArchiveEncoding
                 {
                     CustomDecoder = (data, x, y) => encoding.GetString(data)
@@ -218,7 +208,7 @@ public class ArchiveAccess
             }
             catch (Exception e)
             {
-                Log("Failed to set up decoder. " + e.ToString());
+                Logger.F(TAG, "Failed to set up decoder.", e);
             }
         }
 
@@ -227,32 +217,32 @@ public class ArchiveAccess
         {
             case ".7z":
             case ".cb7":
-                SharpCompress.Archives.SevenZip.SevenZipArchive archive;
-                try
                 {
-                    archive = SharpCompress.Archives.SevenZip.SevenZipArchive.Open(stream, opts);
-                }
-                catch (Exception e)
-                {
-                    Log("Failed to open 7z archive. " + e.ToString());
-                    return TaskException.FileCorrupted;
-                }
-
-                using (archive)
-                {
-                    foreach (SharpCompress.Archives.SevenZip.SevenZipArchiveEntry raw_entry in archive.Entries)
+                    SharpCompress.Archives.SevenZip.SevenZipArchive archive;
+                    try
                     {
-                        var entry = new SevenZipArchiveEntry(raw_entry);
-                        TaskException result = await callback(entry);
-                        if (result == TaskException.StopIteration)
+                        archive = SharpCompress.Archives.SevenZip.SevenZipArchive.Open(stream, opts);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.F(TAG, "Failed to open 7z archive.", e);
+                        return TaskException.FileCorrupted;
+                    }
+
+                    using (archive)
+                    {
+                        foreach (SharpCompress.Archives.SevenZip.SevenZipArchiveEntry rawEntry in archive.Entries)
                         {
-                            break;
+                            var entry = new SevenZipArchiveEntry(rawEntry);
+                            TaskException result = await callback(entry);
+                            if (result == TaskException.StopIteration)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
-
                 break;
-
             case ".bz2":
             case ".cbr":
             case ".cbt":
@@ -262,53 +252,53 @@ public class ArchiveAccess
             case ".tar":
             case ".xz":
             case ".zip":
-                SharpCompress.Readers.IReader reader;
-                try
                 {
-                    reader = SharpCompress.Readers.ReaderFactory.Open(stream, opts);
-                }
-                catch (Exception e)
-                {
-                    Log("Failed to open archive. " + e.ToString());
-                    return TaskException.FileCorrupted;
-                }
-
-                using (reader)
-                {
-                    while (true)
+                    SharpCompress.Readers.IReader reader;
+                    try
                     {
-                        bool hasNext;
-                        try
-                        {
-                            hasNext = reader.MoveToNextEntry();
-                        }
-                        catch (EndOfStreamException e)
-                        {
-                            Logger.E(TAG, "Unable to read next archive entry: unexpected end of the stream.", e);
-                            break;
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.F(TAG, "ArchiveReaderMoveNext", e);
-                            break;
-                        }
+                        reader = SharpCompress.Readers.ReaderFactory.Open(stream, opts);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.F(TAG, "Failed to open archive.", e);
+                        return TaskException.FileCorrupted;
+                    }
 
-                        if (!hasNext)
+                    using (reader)
+                    {
+                        while (true)
                         {
-                            break;
-                        }
+                            bool hasNext;
+                            try
+                            {
+                                hasNext = reader.MoveToNextEntry();
+                            }
+                            catch (EndOfStreamException e)
+                            {
+                                Logger.E(TAG, "Unable to read next archive entry: unexpected end of the stream.", e);
+                                break;
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.F(TAG, "ArchiveReaderMoveNext", e);
+                                break;
+                            }
 
-                        var entry = new ReaderArchiveEntry(reader);
-                        TaskException result = await callback(entry);
-                        if (result == TaskException.StopIteration)
-                        {
-                            break;
+                            if (!hasNext)
+                            {
+                                break;
+                            }
+
+                            var entry = new ReaderArchiveEntry(reader);
+                            TaskException result = await callback(entry);
+                            if (result == TaskException.StopIteration)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
-
                 break;
-
             default:
                 return TaskException.UnknownEnum;
         }
@@ -422,7 +412,7 @@ public class ArchiveAccess
     {
         private readonly SharpCompress.Readers.IReader _reader = reader;
 
-        public string FullName => _reader.Entry.Key;
+        public string FullName => _reader.Entry.Key ?? string.Empty;
         public bool IsDirectory => _reader.Entry.IsDirectory;
 
         public Stream Open()
@@ -435,7 +425,7 @@ public class ArchiveAccess
     {
         private readonly SharpCompress.Archives.SevenZip.SevenZipArchiveEntry _entry = entry;
 
-        public string FullName => _entry.Key;
+        public string FullName => _entry.Key ?? string.Empty;
         public bool IsDirectory => _entry.IsDirectory;
 
         public Stream Open()
