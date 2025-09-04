@@ -209,9 +209,8 @@ public class SearchContext
 
         public bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems)
         {
-            using Stream stream = ArchiveAccess.TryGetFileStream(_path).Result;
+            using Stream? stream = ArchiveAccess.TryGetFileStream(_path).Result;
             var subFolders = new HashSet<string>();
-
             ArchiveAccess.TryReadEntries(stream, _extension, (entry) =>
             {
                 string path = entry.FullName.Replace('/', '\\');
@@ -222,14 +221,13 @@ public class SearchContext
                 else
                 {
                     files.Add(_path + ArchiveAccess.FileSeperator + path);
-
                     for (int i = 0; (i = path.IndexOf('\\', i)) >= 0; ++i)
                     {
-                        subFolders.Add(path.Substring(0, i));
+                        subFolders.Add(path[..i]);
                     }
                 }
 
-                return Task.FromResult(TaskException.Success);
+                return Task.FromResult(ArchiveAccess.ICallbackResult.Continue);
             }).Wait();
 
             foreach (string subFolder in subFolders)

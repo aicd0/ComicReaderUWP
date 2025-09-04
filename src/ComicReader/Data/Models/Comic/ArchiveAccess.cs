@@ -76,51 +76,62 @@ public class ArchiveAccess
         }
 
         var memStream = new MemoryStream();
-        TaskException result = await TryAccessArchiveStream(baseFile, subPath, async (stream) =>
+        bool successful = false;
+        try
         {
-            await stream.CopyToAsync(memStream);
-            memStream.Position = 0;
-            return TaskException.Success;
-        });
-
-        if (!result.Successful())
+            await TryAccessArchiveStream(baseFile, subPath, async (stream) =>
+            {
+                await stream.CopyToAsync(memStream);
+                memStream.Position = 0;
+                successful = true;
+            });
+        }
+        finally
         {
-            memStream.Dispose();
-            return null;
+            if (!successful)
+            {
+                memStream.Dispose();
+                memStream = null;
+            }
         }
 
         return memStream;
     }
 
-    public static async Task<TaskException> TryAccessArchiveStream(StorageFile base_file, string sub_path, Func<Stream, Task<TaskException>> func)
+    public static async Task TryAccessArchiveStream(StorageFile baseFile, string subPath, Func<Stream, Task> func)
     {
-        if (base_file == null)
+        if (baseFile is null)
         {
-            return TaskException.InvalidParameters;
+            return;
         }
 
         Stream stream;
         try
         {
-            stream = await base_file.OpenStreamForReadAsync();
+            stream = await baseFile.OpenStreamForReadAsync();
         }
         catch (Exception e)
         {
             Logger.F(TAG, e);
-            return TaskException.Failure;
+            return;
         }
 
-        TaskException result = await TryAccessArchiveStream(stream, base_file.FileType, sub_path, func);
-        stream.Dispose();
-        return result;
+        try
+        {
+            await TryAccessArchiveStream(stream, baseFile.FileType, subPath, func);
+        }
+        finally
+        {
+            stream.Dispose();
+        }
     }
 
-    public static async Task<TaskException> TryGetSubFiles(StorageFile base_file, string sub_path, List<string> output)
+    public static async Task TryGetSubFiles(StorageFile baseFile, string subPath, List<string> output)
     {
-        return await TryAccessDeepestArchive(base_file, sub_path,
+        await TryAccessDeepestArchive(baseFile, subPath,
             async (stream, ctx) =>
             {
-                return await Task.Run(() =>
+                await Task.Run(() =>
                 {
                     return TryGetFileEntries(stream, ctx.Extension, ctx.Entry, output);
                 });
@@ -159,8 +170,8 @@ public class ArchiveAccess
         public required string Extension;
     }
 
-    private static async Task<TaskException> TryAccessDeepestArchive(StorageFile baseFile, string subPath,
-        Func<Stream, ArchiveAccessContext, Task<TaskException>> func)
+    private static async Task TryAccessDeepestArchive(StorageFile baseFile, string subPath,
+        Func<Stream, ArchiveAccessContext, Task> func)
     {
         string subBasePath = GetBasePath(subPath, reverse: true);
         string entry = GetSubPath(subPath, reverse: true);
@@ -179,21 +190,21 @@ public class ArchiveAccess
             Extension = extension,
         };
 
-        return await TryAccessArchiveStream(baseFile, subBasePath,
+        await TryAccessArchiveStream(baseFile, subBasePath,
             async (stream) => await func(stream, ctx));
     }
 
-    public static async Task<TaskException> TryReadEntries(Stream stream, string extension, Func<IArchiveEntry, Task<TaskException>> callback)
+    public static async Task TryReadEntries(Stream? stream, string extension, Func<IArchiveEntry, Task<ICallbackResult>> callback)
     {
-        if (stream == null || !stream.CanRead)
+        if (stream is null || !stream.CanRead)
         {
-            return TaskException.InvalidParameters;
+            Logger.F(TAG, "Stream is null or not readable.");
+            return;
         }
 
         // Reader options
         var opts = new SharpCompress.Readers.ReaderOptions();
         int defaultCodePage = AppModel.DefaultArchiveCodePage;
-
         if (defaultCodePage > 0)
         {
             try
@@ -226,7 +237,7 @@ public class ArchiveAccess
                     catch (Exception e)
                     {
                         Logger.F(TAG, "Failed to open 7z archive.", e);
-                        return TaskException.FileCorrupted;
+                        return;
                     }
 
                     using (archive)
@@ -234,8 +245,8 @@ public class ArchiveAccess
                         foreach (SharpCompress.Archives.SevenZip.SevenZipArchiveEntry rawEntry in archive.Entries)
                         {
                             var entry = new SevenZipArchiveEntry(rawEntry);
-                            TaskException result = await callback(entry);
-                            if (result == TaskException.StopIteration)
+                            ICallbackResult result = await callback(entry);
+                            if (result == ICallbackResult.StopIteration)
                             {
                                 break;
                             }
@@ -261,7 +272,7 @@ public class ArchiveAccess
                     catch (Exception e)
                     {
                         Logger.F(TAG, "Failed to open archive.", e);
-                        return TaskException.FileCorrupted;
+                        return;
                     }
 
                     using (reader)
@@ -290,8 +301,8 @@ public class ArchiveAccess
                             }
 
                             var entry = new ReaderArchiveEntry(reader);
-                            TaskException result = await callback(entry);
-                            if (result == TaskException.StopIteration)
+                            ICallbackResult result = await callback(entry);
+                            if (result == ICallbackResult.StopIteration)
                             {
                                 break;
                             }
@@ -300,38 +311,35 @@ public class ArchiveAccess
                 }
                 break;
             default:
-                return TaskException.UnknownEnum;
+                Logger.F(TAG, "Unsupported archive format: " + extension);
+                return;
         }
-
-        return TaskException.Success;
     }
 
-    private static async Task<TaskException> TryAccessArchiveStream(Stream stream, string extension, string sub_path, Func<Stream, Task<TaskException>> func)
+    private static async Task TryAccessArchiveStream(Stream stream, string extension, string subPath, Func<Stream, Task> func)
     {
         if (stream == null)
         {
             Logger.AssertNotReachHere("F1487557CF9CC3A7");
-            return TaskException.InvalidParameters;
+            return;
         }
 
-        return await TryAccessArchiveStreamInternal(stream, extension.ToLower(), sub_path, func);
+        await TryAccessArchiveStreamInternal(stream, extension.ToLower(), subPath, func);
     }
 
-    private static async Task<TaskException> TryAccessArchiveStreamInternal(Stream stream,
-        string extension, string sub_path, Func<Stream, Task<TaskException>> callback)
+    private static async Task TryAccessArchiveStreamInternal(Stream stream,
+        string extension, string subPath, Func<Stream, Task> callback)
     {
-        if (sub_path.Length == 0)
+        if (subPath.Length == 0)
         {
-            return await callback(stream);
+            await callback(stream);
+            return;
         }
 
-        string mainEntryName = GetBasePath(sub_path, false).Replace('/', '\\');
-        string subEntryName = GetSubPath(sub_path, false);
+        string mainEntryName = GetBasePath(subPath, false).Replace('/', '\\');
+        string subEntryName = GetSubPath(subPath, false);
         string filename = StringUtils.ItemNameFromPath(mainEntryName);
         string subExtension = StringUtils.ExtensionFromFilename(filename);
-        TaskException result = TaskException.Unknown;
-        bool entryExist = false;
-
         await TryReadEntries(stream, extension, async (entry) =>
         {
             do
@@ -348,23 +356,15 @@ public class ArchiveAccess
                 }
 
                 using Stream subStream = entry.Open();
-                entryExist = true;
-                result = await TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
-                return TaskException.StopIteration;
+                await TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
+                return ICallbackResult.StopIteration;
             } while (false);
 
-            return TaskException.Success;
+            return ICallbackResult.Continue;
         });
-
-        if (!entryExist)
-        {
-            result = TaskException.FileNotFound;
-        }
-
-        return result;
     }
 
-    private static async Task<TaskException> TryGetFileEntries(Stream stream, string extension, string baseEntryName, List<string> output)
+    private static async Task TryGetFileEntries(Stream stream, string extension, string baseEntryName, List<string> output)
     {
         baseEntryName = baseEntryName.Replace('/', '\\');
         if (baseEntryName.Length > 0 && baseEntryName[^1] != '\\')
@@ -372,7 +372,7 @@ public class ArchiveAccess
             baseEntryName += '\\';
         }
 
-        return await TryReadEntries(stream, extension, (entry) =>
+        await TryReadEntries(stream, extension, (entry) =>
         {
             do
             {
@@ -396,7 +396,7 @@ public class ArchiveAccess
                 output.Add(subpath);
             } while (false);
 
-            return Task.FromResult(TaskException.Success);
+            return Task.FromResult(ICallbackResult.Continue);
         });
     }
 
@@ -432,5 +432,11 @@ public class ArchiveAccess
         {
             return _entry.OpenEntryStream();
         }
+    }
+
+    public enum ICallbackResult
+    {
+        Continue,
+        StopIteration,
     }
 }
