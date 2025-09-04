@@ -125,16 +125,15 @@ internal partial class ComicArchiveData : ComicData
         {
             string subPath = ArchiveAccess.GetSubPath(Location, false);
             var subfiles = new List<string>();
-            TaskException result = await ArchiveAccess.TryGetSubFiles(archive, subPath, subfiles);
-            if (!result.Successful())
+            await ArchiveAccess.TryGetSubFiles(archive, subPath, subfiles);
+            if (subfiles.Count == 0)
             {
-                return result;
+                return TaskException.Failure;
             }
 
             foreach (string subfile in subfiles)
             {
                 string extension = StringUtils.ExtensionFromFilename(subfile);
-
                 if (!AppInfoProvider.IsSupportedImageExtension(extension))
                 {
                     continue;
@@ -210,7 +209,7 @@ internal partial class ComicArchiveData : ComicData
             }
 
             string path = _entries[index];
-            Stream stream = await ArchiveAccess.TryGetFileStream(_archiveFile, path);
+            Stream? stream = await ArchiveAccess.TryGetFileStream(_archiveFile, path);
             if (stream == null)
             {
                 Log("Failed to access entry '" + _entries[index] + "'");

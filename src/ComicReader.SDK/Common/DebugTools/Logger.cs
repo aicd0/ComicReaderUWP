@@ -428,6 +428,7 @@ public static class Logger
         if (DebugUtils.DebugMode)
         {
             CrashHandler.OnUnhandledException(exception);
+            Environment.FailFast("The application hit an assertion failure.", exception);
         }
     }
 
