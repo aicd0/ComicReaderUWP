@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
+using ComicReader.Common;
+using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 
-namespace ComicReader.Common.Legacy;
+namespace ComicReader.Data.Models.Comic;
 
 public enum PathType
 {
@@ -19,39 +21,12 @@ public enum PathType
 
 public class SearchContext
 {
+    private const string TAG = nameof(SearchContext);
+
     public List<string> Folders { get; private set; } = [];
     public List<string> Files { get; private set; } = [];
     public List<string> NoAccessItems { get; private set; } = [];
     public int ItemFound => Folders.Count + Files.Count;
-
-    private class PathInfo
-    {
-        public readonly PathType Type;
-        public readonly string Path;
-        public readonly IStorageItemSearchContext Ctx;
-        public readonly List<PathInfo> SubItems = [];
-
-        public PathInfo(PathType pathType, string path)
-        {
-            Type = pathType;
-            Path = path;
-
-            Ctx = pathType switch
-            {
-                PathType.Folder => new FolderSearchContext(path),
-                PathType.File => new ArchiveSearchContext(path),
-                _ => throw new ArgumentException(null, nameof(pathType)),
-            };
-        }
-    }
-
-    private class Node
-    {
-        public required List<PathInfo> Paths;
-        public int Index = 0;
-
-        public PathInfo CurrentPath => Paths[Index];
-    }
 
     private bool _initialSearch = true;
     private readonly List<Node> _stack = [];
@@ -113,7 +88,17 @@ public class SearchContext
                 folders.Clear();
                 files.Clear();
                 noAccessItems.Clear();
-                notFinish = pathInfo.Ctx.Search(folders, files, noAccessItems, minItems - ItemFound);
+
+                try
+                {
+                    notFinish = pathInfo.Ctx.Search(folders, files, noAccessItems, minItems - ItemFound);
+                }
+                catch (Exception e)
+                {
+                    Logger.F(TAG, e);
+                    notFinish = false;
+                }
+
                 Folders.AddRange(folders);
                 Files.AddRange(files);
                 NoAccessItems.AddRange(noAccessItems);
@@ -122,7 +107,6 @@ public class SearchContext
                 {
                     string filename = StringUtils.ItemNameFromPath(file);
                     string extension = StringUtils.ExtensionFromFilename(filename);
-
                     if (AppInfoProvider.IsSupportedArchiveExtension(extension))
                     {
                         pathInfo.SubItems.Add(new PathInfo(PathType.File, file));
@@ -169,62 +153,91 @@ public class SearchContext
         _stack.RemoveAt(_stack.Count - 1);
         return false;
     }
-}
 
-public interface IStorageItemSearchContext
-{
-    bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems);
-}
-
-public class FolderSearchContext(string path) : IStorageItemSearchContext
-{
-    readonly Win32IO.SubItemDeepContext _ctx = new(path);
-
-    public bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems)
+    private class PathInfo
     {
-        bool notFinish = _ctx.Search((uint)minItems);
-        folders.AddRange(_ctx.Folders);
-        files.AddRange(_ctx.Files);
-        noAccessItems.AddRange(_ctx.NoAccessFolders);
-        return notFinish;
-    }
-}
+        public readonly PathType Type;
+        public readonly string Path;
+        public readonly IStorageItemSearchContext Ctx;
+        public readonly List<PathInfo> SubItems = [];
 
-public class ArchiveSearchContext(string path) : IStorageItemSearchContext
-{
-    private readonly string _path = path;
-    private readonly string _extension = StringUtils.ExtensionFromFilename(path);
-
-    public bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems)
-    {
-        using Stream stream = ArchiveAccess.TryGetFileStream(_path).Result;
-        var sub_folders = new HashSet<string>();
-
-        ArchiveAccess.TryReadEntries(stream, _extension, (entry) =>
+        public PathInfo(PathType pathType, string path)
         {
-            string path = entry.FullName.Replace('/', '\\');
-            if (entry.IsDirectory)
+            Type = pathType;
+            Path = path;
+
+            Ctx = pathType switch
             {
-                sub_folders.Add(path[..^1]);
-            }
-            else
-            {
-                files.Add(_path + ArchiveAccess.FileSeperator + path);
-
-                for (int i = 0; (i = path.IndexOf('\\', i)) >= 0; ++i)
-                {
-                    sub_folders.Add(path.Substring(0, i));
-                }
-            }
-
-            return Task.FromResult(TaskException.Success);
-        }).Wait();
-
-        foreach (string subFolder in sub_folders)
-        {
-            folders.Add(_path + ArchiveAccess.FileSeperator + subFolder);
+                PathType.Folder => new FolderSearchContext(path),
+                PathType.File => new ArchiveSearchContext(path),
+                _ => throw new ArgumentException(null, nameof(pathType)),
+            };
         }
+    }
 
-        return false;
+    private class Node
+    {
+        public required List<PathInfo> Paths;
+        public int Index = 0;
+
+        public PathInfo CurrentPath => Paths[Index];
+    }
+
+    private interface IStorageItemSearchContext
+    {
+        bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems);
+    }
+
+    private class FolderSearchContext(string path) : IStorageItemSearchContext
+    {
+        readonly Win32IO.SubItemDeepContext _ctx = new(path);
+
+        public bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems)
+        {
+            bool notFinish = _ctx.Search((uint)minItems);
+            folders.AddRange(_ctx.Folders);
+            files.AddRange(_ctx.Files);
+            noAccessItems.AddRange(_ctx.NoAccessFolders);
+            return notFinish;
+        }
+    }
+
+    private class ArchiveSearchContext(string path) : IStorageItemSearchContext
+    {
+        private readonly string _path = path;
+        private readonly string _extension = StringUtils.ExtensionFromFilename(path);
+
+        public bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems)
+        {
+            using Stream stream = ArchiveAccess.TryGetFileStream(_path).Result;
+            var sub_folders = new HashSet<string>();
+
+            ArchiveAccess.TryReadEntries(stream, _extension, (entry) =>
+            {
+                string path = entry.FullName.Replace('/', '\\');
+                if (entry.IsDirectory)
+                {
+                    sub_folders.Add(path[..^1]);
+                }
+                else
+                {
+                    files.Add(_path + ArchiveAccess.FileSeperator + path);
+
+                    for (int i = 0; (i = path.IndexOf('\\', i)) >= 0; ++i)
+                    {
+                        sub_folders.Add(path.Substring(0, i));
+                    }
+                }
+
+                return Task.FromResult(TaskException.Success);
+            }).Wait();
+
+            foreach (string subFolder in sub_folders)
+            {
+                folders.Add(_path + ArchiveAccess.FileSeperator + subFolder);
+            }
+
+            return false;
+        }
     }
 }
