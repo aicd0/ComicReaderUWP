@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-using ComicReader.Common;
-using ComicReader.Common.Actions;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
@@ -25,7 +23,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
     private readonly List<ComicItemViewModel> _selectedItems = [];
 
@@ -214,11 +211,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
             _isCommandBarMarkAsUnreadEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarMarkAsUnreadEnabled)));
         }
-    }
-
-    public void Initialize(ActionHandler actionHandler)
-    {
-        _actionHandler = actionHandler;
     }
 
     public void UpdateUI()
@@ -461,13 +453,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         void IComicItemMenuFlyoutHandler.OnMarkAsUnreadClicked()
         {
             viewModel.ApplyOperationToComic(ComicOperationType.MarkAsUnread, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
-        {
-            var eventRecorder = EventRecorder.Create("OnOpenInFileExplorerClicked");
-            item.Comic.ShowInFileExplorer(eventRecorder);
-            eventRecorder.DisplayErrorMessage(viewModel._actionHandler);
         }
 
         void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()

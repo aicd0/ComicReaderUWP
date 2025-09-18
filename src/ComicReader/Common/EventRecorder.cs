@@ -18,7 +18,7 @@ internal class EventRecorder
         return new(tag);
     }
 
-    public bool Successful { get; private set; } = false;
+    public bool Successful { get; private set; } = true;
     public string ErrorMessage { get; private set; } = string.Empty;
     public bool LastChildSuccessful => _children.Count == 0 || _children[^1].Successful;
 
@@ -88,31 +88,34 @@ internal class EventRecorder
         return child;
     }
 
-    public void SetSuccess()
-    {
-        Successful = true;
-        ErrorMessage = string.Empty;
-    }
-
-    public void SetError(string message, Exception? exception = null)
+    public void SetError(string message, Exception? exception = null, bool fatal = false)
     {
         Successful = false;
         ErrorMessage = message;
-        Logger.E(_tag, message, exception);
+
+        if (fatal)
+        {
+            Logger.F(_tag, message, exception);
+        }
+        else
+        {
+            Logger.E(_tag, message, exception);
+        }
     }
 
-    public void SetFatalError(string message, Exception? exception = null)
-    {
-        Successful = false;
-        ErrorMessage = message;
-        Logger.F(_tag, message, exception);
-    }
-
-    public void SetFatalError(Exception exception)
+    public void SetError(Exception exception, bool fatal = false)
     {
         Successful = false;
         ErrorMessage = exception.Message;
-        Logger.F(_tag, exception);
+
+        if (fatal)
+        {
+            Logger.F(_tag, exception);
+        }
+        else
+        {
+            Logger.E(_tag, exception);
+        }
     }
 
     public void DisplayErrorMessage(ActionHandler actionHandler)
@@ -123,9 +126,10 @@ internal class EventRecorder
         }
 
         string detailedMessage = DetailedErrorMessage;
-        ActionBuilder actionBuilder = ActionBuilder.Create(MessageDialogProvider.NAME)
+        ActionModel actionModel = ActionModel.Builder.Create(MessageDialogProvider.NAME)
             .AddParameter(MessageDialogProvider.PARAM_TITLE, "Error")
-            .AddParameter(MessageDialogProvider.PARAM_MESSAGE, detailedMessage);
-        actionHandler.Handle(actionBuilder.Build());
+            .AddParameter(MessageDialogProvider.PARAM_MESSAGE, detailedMessage)
+            .Build();
+        actionHandler.Handle(actionModel);
     }
 }

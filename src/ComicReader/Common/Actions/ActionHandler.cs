@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Specialized;
-using System.Web;
 
 using ComicReader.SDK.Common.DebugTools;
 
@@ -58,36 +57,19 @@ internal class ActionHandler
         }
     }
 
-    public void Handle(string action, IActionCallback? callback = null)
+    public void Handle(ActionModel action, IActionCallback? callback = null)
     {
         callback ??= DefaultCallback;
         ArgumentNullException.ThrowIfNull(action, nameof(action));
-        Uri uri;
-        try
-        {
-            uri = new Uri(action);
-        }
-        catch (UriFormatException)
-        {
-            callback.OnError($"Invalid action format '{action}'.");
-            return;
-        }
 
-        string scheme = uri.Scheme;
-        if (scheme != ACTION_SCHEME)
-        {
-            callback.OnError($"Unknown action scheme '{scheme}'.");
-            return;
-        }
-
-        string host = uri.Host;
+        string host = action.Name;
         if (!_providers.TryGetValue(host, out IActionProvider? provider))
         {
             callback.OnError($"No provider found for action '{host}'.");
             return;
         }
 
-        NameValueCollection queires = HttpUtility.ParseQueryString(uri.Query);
+        NameValueCollection queires = action.Parameters;
         ActionProviderContext providerContext = new(this);
         provider.Handle(providerContext, queires);
         if (providerContext.Successful)

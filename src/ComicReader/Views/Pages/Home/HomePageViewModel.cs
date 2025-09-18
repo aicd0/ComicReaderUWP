@@ -696,8 +696,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 {
                     var model = new ComicItemViewModel(item);
                     model.UpdateProgress(true);
-                    model.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(
-                        item, new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
+                    model.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
+                        new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
 
                     model.OnClick = () =>
                     {
@@ -1372,13 +1372,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         void IComicItemMenuFlyoutHandler.OnSelectClicked()
         {
             viewModel.SetSelectionMode(true);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
-        {
-            var eventRecorder = EventRecorder.Create("OnOpenInFileExplorerClicked");
-            item.Comic.ShowInFileExplorer(eventRecorder);
-            eventRecorder.DisplayErrorMessage(viewModel._actionHandler);
         }
     }
 }

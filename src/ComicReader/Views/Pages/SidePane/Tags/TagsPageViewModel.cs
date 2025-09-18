@@ -211,8 +211,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         Glyph = "\uE8B9",
                         Title = comic.Title,
                         CanExpand = false,
-                        MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(
-                            comic, new ComicItemMenuFlyoutHandler(this, comic)),
+                        MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler, new ComicItemMenuFlyoutHandler(this, comic)),
                         OnClick = () =>
                         {
                             Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
@@ -318,7 +317,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         public HashSet<long> ComicIds { get; } = [];
     }
 
-    private class ComicItemMenuFlyoutHandler(TagsPageViewModel viewModel, ComicModel comic) : SimpleComicItemMenuFlyoutHandler(comic, viewModel._actionHandler)
+    private class ComicItemMenuFlyoutHandler(TagsPageViewModel viewModel, ComicModel comic) : SimpleComicItemMenuFlyoutHandler(comic)
     {
         private readonly ComicModel _comic = comic;
 

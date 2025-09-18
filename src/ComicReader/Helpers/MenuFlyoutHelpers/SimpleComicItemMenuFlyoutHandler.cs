@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReader.Common;
-using ComicReader.Common.Actions;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
@@ -10,7 +8,7 @@ using ComicReader.Helpers.Navigation;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
-internal abstract class SimpleComicItemMenuFlyoutHandler(ComicModel comic, ActionHandler actionHandler) : IComicItemMenuFlyoutHandler
+internal abstract class SimpleComicItemMenuFlyoutHandler(ComicModel comic) : IComicItemMenuFlyoutHandler
 {
     void IComicItemMenuFlyoutHandler.OnAddToFavoritesClicked()
     {
@@ -47,13 +45,6 @@ internal abstract class SimpleComicItemMenuFlyoutHandler(ComicModel comic, Actio
         {
             await comic.SetCompletionStateToNotStarted();
         });
-    }
-
-    void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
-    {
-        var eventRecorder = EventRecorder.Create("OnOpenInFileExplorerClicked");
-        comic.ShowInFileExplorer(eventRecorder);
-        eventRecorder.DisplayErrorMessage(actionHandler);
     }
 
     void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()

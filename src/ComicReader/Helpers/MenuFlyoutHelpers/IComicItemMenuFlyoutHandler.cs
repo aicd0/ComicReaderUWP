@@ -24,6 +24,4 @@ internal interface IComicItemMenuFlyoutHandler
     void OnEditClick();
 
     void OnSelectClicked();
-
-    void OnOpenInFileExplorerClicked();
 }

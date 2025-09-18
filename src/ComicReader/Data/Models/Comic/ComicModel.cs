@@ -202,43 +202,42 @@ internal sealed class ComicModel
         return _internalModel.ReloadImageFiles();
     }
 
-    public void ShowInFileExplorer(EventRecorder eventRecorder)
+    public void ShowInFileExplorer(EventRecorder er)
     {
         string fileExplorerPath = _internalModel.FileExplorerPath;
         if (string.IsNullOrEmpty(fileExplorerPath))
         {
-            eventRecorder.SetFatalError("ShowInFileExplorer: FileExplorerPath is null or empty.");
+            er.SetError("ShowInFileExplorer: FileExplorerPath is null or empty.", fatal: true);
             return;
         }
 
         if (File.Exists(fileExplorerPath))
         {
-            StartProcess(eventRecorder, "explorer.exe", $"/select,\"{fileExplorerPath}\"");
+            StartProcess(er, "explorer.exe", $"/select,\"{fileExplorerPath}\"");
         }
         else if (Directory.Exists(fileExplorerPath))
         {
-            StartProcess(eventRecorder, "explorer.exe", $"\"{fileExplorerPath}\"");
+            StartProcess(er, "explorer.exe", $"\"{fileExplorerPath}\"");
         }
         else
         {
-            eventRecorder.SetError($"Path does not exist: {fileExplorerPath}");
+            er.SetError($"Path does not exist: {fileExplorerPath}");
         }
     }
 
-    private static void StartProcess(EventRecorder eventRecorder, string fileName, string arguments)
+    private static void StartProcess(EventRecorder er, string fileName, string arguments)
     {
         try
         {
             Process.Start(fileName, arguments);
-            eventRecorder.SetSuccess();
         }
         catch (Win32Exception ex)
         {
-            eventRecorder.SetError(ex.Message);
+            er.SetError(ex.Message);
         }
         catch (Exception ex)
         {
-            eventRecorder.SetFatalError(ex);
+            er.SetError(ex, fatal: true);
         }
     }
 
