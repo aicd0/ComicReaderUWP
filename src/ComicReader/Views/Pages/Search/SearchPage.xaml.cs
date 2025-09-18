@@ -288,8 +288,7 @@ internal sealed partial class SearchPage : BasePage
                 ComicItemViewModel item = new(comic);
                 item.UpdateProgress(false);
                 item.Detail = "#" + comic.Id;
-                item.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(
-                    comic, new SearchPageViewModel.ComicItemHandler(ViewModel, item), supportSelection: true);
+                item.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler, new SearchPageViewModel.ComicItemHandler(ViewModel, item), supportSelection: true);
 
                 item.OnClick = () =>
                 {

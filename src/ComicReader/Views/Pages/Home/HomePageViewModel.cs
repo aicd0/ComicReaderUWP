@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Actions;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
@@ -185,6 +186,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
     }
 
+    private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ComicSearchEngine _searchEngine = new();
     private ComicFilterModel.ExternalModel _filterModel = new();
     private readonly ReaderWriterLock _comicItemsLock = new();
@@ -209,8 +211,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     /// <remarks>
     /// Must be called on the UI thread.
     /// </remarks>
-    public void Initialize()
+    public void Initialize(ActionHandler actionHandler)
     {
+        _actionHandler = actionHandler;
         _searchEngine.SetResultCallback(OnComicSearchResult);
     }
 
@@ -693,8 +696,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 {
                     var model = new ComicItemViewModel(item);
                     model.UpdateProgress(true);
-                    model.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(
-                        item, new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
+                    model.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
+                        new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
 
                     model.OnClick = () =>
                     {
@@ -1369,11 +1372,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         void IComicItemMenuFlyoutHandler.OnSelectClicked()
         {
             viewModel.SetSelectionMode(true);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
-        {
-            item.Comic.ShowInFileExplorer();
         }
     }
 }

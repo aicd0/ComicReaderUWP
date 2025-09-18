@@ -47,11 +47,6 @@ internal abstract class SimpleComicItemMenuFlyoutHandler(ComicModel comic) : ICo
         });
     }
 
-    void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
-    {
-        comic.ShowInFileExplorer();
-    }
-
     void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()
     {
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)

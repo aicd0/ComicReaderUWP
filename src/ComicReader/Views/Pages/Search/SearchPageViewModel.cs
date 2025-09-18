@@ -455,11 +455,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
             viewModel.ApplyOperationToComic(ComicOperationType.MarkAsUnread, item);
         }
 
-        void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
-        {
-            item.Comic.ShowInFileExplorer();
-        }
-
         void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()
         {
             Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)

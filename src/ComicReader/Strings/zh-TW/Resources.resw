@@ -276,6 +276,12 @@
   <data name="EnterFullscreen" xml:space="preserve">
     <value>進入全螢幕</value>
   </data>
+  <data name="Error" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="ErrorCommonDescription" xml:space="preserve">
+    <value>由於以下原因，操作失敗：</value>
+  </data>
   <data name="Exit" xml:space="preserve">
     <value>退出</value>
   </data>

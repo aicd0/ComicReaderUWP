@@ -19,7 +19,7 @@ internal class DialogUtils
             {
                 Text = options.Content,
                 TextWrapping = TextWrapping.Wrap,
-                IsTextSelectionEnabled = true,
+                IsTextSelectionEnabled = options.ContentSelectable,
             },
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             MaxHeight = 400,
@@ -64,6 +64,7 @@ internal class DialogUtils
         public string Content { get; private set; } = string.Empty;
         public string PrimaryButtonText { get; private set; } = StringResourceProvider.Instance.OK;
         public string? SecondaryButtonText { get; private set; }
+        public bool ContentSelectable { get; private set; } = false;
 
         public Action<ContentDialogButtonClickEventArgs>? PrimaryButtonClick { get; private set; }
         public Action<ContentDialogButtonClickEventArgs>? SecondaryButtonClick { get; private set; }
@@ -80,9 +81,10 @@ internal class DialogUtils
                 return this;
             }
 
-            public Builder SetContent(string content)
+            public Builder SetContent(string content, bool selectable = false)
             {
                 _options.Content = content;
+                _options.ContentSelectable = selectable;
                 return this;
             }
 

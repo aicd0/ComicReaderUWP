@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Actions;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
@@ -24,6 +25,7 @@ namespace ComicReader.Views.Pages.SidePane.Tags;
 
 internal partial class TagsPageViewModel : INotifyPropertyChanged
 {
+    private ActionHandler _actionHandler = ActionHandler.Dummy;
     private bool _updatingTags = false;
     private bool _updatingTagsInvalidated = false;
 
@@ -49,6 +51,11 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NoTagsVisible)));
             }
         }
+    }
+
+    public void Initialize(ActionHandler actionHandler)
+    {
+        _actionHandler = actionHandler;
     }
 
     public void UpdateTags()
@@ -204,8 +211,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         Glyph = "\uE8B9",
                         Title = comic.Title,
                         CanExpand = false,
-                        MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(
-                            comic, new ComicItemMenuFlyoutHandler(this, comic)),
+                        MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler, new ComicItemMenuFlyoutHandler(this, comic)),
                         OnClick = () =>
                         {
                             Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)

@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 
 using ComicReader.Common;
+using ComicReader.Common.Actions;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 
@@ -11,8 +12,11 @@ namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
 internal static class MenuFlyoutItemsCreator
 {
-    public static List<BaseMenuFlyoutItemViewModel> CreateMenuItems(ComicModel comic,
-        IComicItemMenuFlyoutHandler handler, bool supportSelection = false)
+    public static List<BaseMenuFlyoutItemViewModel> CreateMenuItems(
+        ComicModel comic,
+        ActionHandler actionHandler,
+        IComicItemMenuFlyoutHandler handler,
+        bool supportSelection = false)
     {
         List<BaseMenuFlyoutItemViewModel> result = [];
         {
@@ -121,7 +125,12 @@ internal static class MenuFlyoutItemsCreator
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInFileExplorer)
             {
                 Glyph = "\uE838",
-                OnClick = handler.OnOpenInFileExplorerClicked,
+                OnClick = () =>
+                {
+                    var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
+                    comic.ShowInFileExplorer(er);
+                    er.DisplayErrorMessage(actionHandler);
+                },
             };
 
             result.Add(item);
