@@ -127,8 +127,8 @@ internal class EventRecorder
 
         string detailedMessage = DetailedErrorMessage;
         ActionModel actionModel = ActionModel.Builder.Create(MessageDialogProvider.NAME)
-            .AddParameter(MessageDialogProvider.PARAM_TITLE, "Error")
-            .AddParameter(MessageDialogProvider.PARAM_MESSAGE, detailedMessage)
+            .AddParameter(MessageDialogProvider.PARAM_TITLE, StringResourceProvider.Instance.Error)
+            .AddParameter(MessageDialogProvider.PARAM_MESSAGE, StringResourceProvider.Instance.ErrorCommonDescription + "\n" + detailedMessage)
             .Build();
         actionHandler.Handle(actionModel);
     }

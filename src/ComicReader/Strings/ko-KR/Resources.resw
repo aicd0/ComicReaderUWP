@@ -276,6 +276,12 @@
   <data name="EnterFullscreen" xml:space="preserve">
     <value>전체 화면으로 전환</value>
   </data>
+  <data name="Error" xml:space="preserve">
+    <value>오류</value>
+  </data>
+  <data name="ErrorCommonDescription" xml:space="preserve">
+    <value>다음과 같은 이유로 작업이 실패했습니다.</value>
+  </data>
   <data name="Exit" xml:space="preserve">
     <value>종료</value>
   </data>

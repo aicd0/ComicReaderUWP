@@ -34,7 +34,10 @@ internal class MessageDialogProvider : IActionProvider
 
         string title = parameters[PARAM_TITLE] ?? "Title";
         string message = parameters[PARAM_MESSAGE] ?? "Message";
-        DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder().SetTitle(title).SetContent(message).Build();
+        DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+            .SetTitle(title)
+            .SetContent(message)
+            .Build();
         _ = DialogUtils.ShowDialogAsync(xamlRoot, options);
     }
 }

@@ -21,7 +21,7 @@ internal class DebugService : IDebugService
             {
                 DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
                     .SetTitle(StringResourceProvider.Instance.UnhandledExceptionTitle)
-                    .SetContent(StringResourceProvider.Instance.UnhandledExceptionContent.Replace("$info", info))
+                    .SetContent(StringResourceProvider.Instance.UnhandledExceptionContent.Replace("$info", info), selectable: true)
                     .SetPrimaryButtonText(StringResourceProvider.Instance.OK)
                     .SetSecondaryButtonText(StringResourceProvider.Instance.Copy)
                     .OnSecondaryButtonClick((e) =>
