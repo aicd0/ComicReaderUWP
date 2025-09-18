@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Specialized;
-using System.Web;
 
 namespace ComicReader.Common.Actions;
 
@@ -18,21 +17,10 @@ internal class ActionModel
         Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
     }
 
-    public override string ToString()
-    {
-        var uriBuilder = new UriBuilder
-        {
-            Scheme = ActionHandler.ACTION_SCHEME,
-            Host = Name,
-            Query = Parameters.ToString(),
-        };
-        return uriBuilder.ToString();
-    }
-
     public class Builder
     {
         private string Host { get; }
-        private NameValueCollection Query { get; } = HttpUtility.ParseQueryString(string.Empty);
+        private NameValueCollection Query { get; } = [];
 
         private Builder(string host)
         {

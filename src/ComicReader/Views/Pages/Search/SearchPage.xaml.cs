@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
@@ -35,9 +36,11 @@ namespace ComicReader.Views.Pages.Search;
 
 internal sealed partial class SearchPage : BasePage
 {
+    private const string TAG = nameof(SearchPage);
+
     private SearchPageViewModel ViewModel { get; set; } = new SearchPageViewModel();
 
-    private List<Match> _matches = new();
+    private List<Match> _matches = [];
     private int _matchIndex = 0;
     private readonly CancellationLock _searchLock = new();
     private string _keyword = "";
@@ -54,6 +57,8 @@ internal sealed partial class SearchPage : BasePage
     protected override void OnStart(PageBundle bundle)
     {
         base.OnStart(bundle);
+
+        PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(this)));
 
         _keyword = bundle.GetString(RouterConstants.ARG_KEYWORD, "");
         ViewModel.IsSelectMode = false;
@@ -417,5 +422,42 @@ internal sealed partial class SearchPage : BasePage
     private INavigationPageAbility GetNavigationPageAbility()
     {
         return GetAbility<INavigationPageAbility>();
+    }
+
+    //
+    // Types
+    //
+
+    private class CustomActionHandler(SearchPage page) : CustomActionProvider.IHandler
+    {
+        private readonly WeakReference<SearchPage> _pageRef = new(page);
+        private readonly SearchPageViewModel _viewModel = page.ViewModel;
+
+        public void Handle(string source, string name, IReadOnlyList<string> args)
+        {
+            bool handled = true;
+            switch (source)
+            {
+                case MenuFlyoutItemsCreator.CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU:
+                    switch (name)
+                    {
+                        case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
+                            _viewModel.SetSelectMode(true);
+                            break;
+                        default:
+                            handled = false;
+                            break;
+                    }
+                    break;
+                default:
+                    handled = false;
+                    break;
+            }
+
+            if (!handled)
+            {
+                Logger.F(TAG, $"Unknown action '{source}.{name}'");
+            }
+        }
     }
 }

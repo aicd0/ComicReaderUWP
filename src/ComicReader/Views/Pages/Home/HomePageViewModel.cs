@@ -1368,10 +1368,5 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             List<ComicItemViewModel> selection = viewModel.GetSelection(item);
             viewModel.EditComicLiveData.Emit(selection.ConvertAll(x => x.Comic));
         }
-
-        void IComicItemMenuFlyoutHandler.OnSelectClicked()
-        {
-            viewModel.SetSelectionMode(true);
-        }
     }
 }

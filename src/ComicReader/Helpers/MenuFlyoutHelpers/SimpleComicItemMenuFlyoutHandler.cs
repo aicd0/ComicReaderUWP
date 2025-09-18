@@ -67,8 +67,6 @@ internal abstract class SimpleComicItemMenuFlyoutHandler(ComicModel comic) : ICo
         });
     }
 
-    public virtual void OnSelectClicked() { }
-
     public abstract void OnEditClick();
 
     protected abstract void OpenInNewTab(Route route);

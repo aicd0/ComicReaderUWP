@@ -22,6 +22,4 @@ internal interface IComicItemMenuFlyoutHandler
     void OnMarkAsUnreadClicked();
 
     void OnEditClick();
-
-    void OnSelectClicked();
 }

@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ComicReader.Common;
+using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.UserControls.ComicItemView;
@@ -33,6 +35,8 @@ namespace ComicReader.Views.Pages.Home;
 
 internal sealed partial class HomePage : BasePage
 {
+    private const string TAG = nameof(HomePage);
+
     private readonly HomePageViewModel ViewModel = new();
 
     private ScrollViewer? _comicGridScrollViewer;
@@ -57,6 +61,8 @@ internal sealed partial class HomePage : BasePage
 
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
+
+        PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(this)));
 
         ObserveData();
         ViewModel.Initialize(PageActionHandler);
@@ -544,5 +550,42 @@ internal sealed partial class HomePage : BasePage
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
             .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
         GetMainPageAbility().OpenInNewTab(route);
+    }
+
+    //
+    // Types
+    //
+
+    private class CustomActionHandler(HomePage page) : CustomActionProvider.IHandler
+    {
+        private readonly WeakReference<HomePage> _pageRef = new(page);
+        private readonly HomePageViewModel _viewModel = page.ViewModel;
+
+        public void Handle(string source, string name, IReadOnlyList<string> args)
+        {
+            bool handled = true;
+            switch (source)
+            {
+                case MenuFlyoutItemsCreator.CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU:
+                    switch (name)
+                    {
+                        case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
+                            _viewModel.SetSelectionMode(true);
+                            break;
+                        default:
+                            handled = false;
+                            break;
+                    }
+                    break;
+                default:
+                    handled = false;
+                    break;
+            }
+
+            if (!handled)
+            {
+                Logger.F(TAG, $"Unknown action '{source}.{name}'");
+            }
+        }
     }
 }
