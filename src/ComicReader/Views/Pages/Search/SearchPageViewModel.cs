@@ -467,11 +467,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
             viewModel.ApplyOperationToComic(ComicOperationType.Unfavorite, item);
         }
 
-        void IComicItemMenuFlyoutHandler.OnSelectClicked()
-        {
-            viewModel.SetSelectMode(true);
-        }
-
         void IComicItemMenuFlyoutHandler.OnUnhideClicked()
         {
             viewModel.ApplyOperationToComic(ComicOperationType.Unhide, item);

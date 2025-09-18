@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 using ComicReader.Common;
 using ComicReader.Common.Actions;
+using ComicReader.Common.Actions.Providers;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 
@@ -12,6 +13,9 @@ namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
 internal static class MenuFlyoutItemsCreator
 {
+    public const string CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU = "ComicItemMenu";
+    public const string CUSTOM_ACTION_NAME_SELECT = "Select";
+
     public static List<BaseMenuFlyoutItemViewModel> CreateMenuItems(
         ComicModel comic,
         ActionHandler actionHandler,
@@ -76,6 +80,7 @@ internal static class MenuFlyoutItemsCreator
 
                 groupItem.Items.Add(item);
             }
+
             if (comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Completed)
             {
                 MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsRead)
@@ -144,7 +149,14 @@ internal static class MenuFlyoutItemsCreator
                 MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Select)
                 {
                     Glyph = "\uE762",
-                    OnClick = handler.OnSelectClicked,
+                    OnClick = () =>
+                    {
+                        ActionModel actionModel = ActionModel.Builder.Create(CustomActionProvider.NAME)
+                            .AddParameter(CustomActionProvider.PARAM_SOURCE, CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU)
+                            .AddParameter(CustomActionProvider.PARAM_NAME, CUSTOM_ACTION_NAME_SELECT)
+                            .Build();
+                        actionHandler.Handle(actionModel);
+                    },
                 };
 
                 result.Add(item);

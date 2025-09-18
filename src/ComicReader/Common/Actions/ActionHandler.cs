@@ -11,7 +11,6 @@ namespace ComicReader.Common.Actions;
 
 internal class ActionHandler
 {
-    public const string ACTION_SCHEME = "commonaction";
     private const string TAG = nameof(ActionHandler);
 
     public static ActionHandler Dummy { get; } = new();
