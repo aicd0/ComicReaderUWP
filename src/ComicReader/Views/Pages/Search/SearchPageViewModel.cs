@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
+using ComicReader.Common;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
@@ -457,7 +458,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
 
         void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
         {
-            item.Comic.ShowInFileExplorer();
+            item.Comic.ShowInFileExplorer(EventRecorder.Dummy);
         }
 
         void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()

@@ -1373,7 +1373,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
         {
-            item.Comic.ShowInFileExplorer();
+            item.Comic.ShowInFileExplorer(EventRecorder.Dummy);
         }
     }
 }

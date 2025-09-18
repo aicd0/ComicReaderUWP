@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -201,26 +202,43 @@ internal sealed class ComicModel
         return _internalModel.ReloadImageFiles();
     }
 
-    public void ShowInFileExplorer()
+    public void ShowInFileExplorer(EventRecorder eventRecorder)
     {
         string fileExplorerPath = _internalModel.FileExplorerPath;
         if (string.IsNullOrEmpty(fileExplorerPath))
         {
-            Logger.F(TAG, "ShowInFileExplorer: FileExplorerPath is null or empty.");
+            eventRecorder.SetFatalError("ShowInFileExplorer: FileExplorerPath is null or empty.");
             return;
         }
 
         if (File.Exists(fileExplorerPath))
         {
-            Process.Start("explorer.exe", $"/select,\"{fileExplorerPath}\"");
+            StartProcess(eventRecorder, "explorer.exe", $"/select,\"{fileExplorerPath}\"");
         }
         else if (Directory.Exists(fileExplorerPath))
         {
-            Process.Start("explorer.exe", $"\"{fileExplorerPath}\"");
+            StartProcess(eventRecorder, "explorer.exe", $"\"{fileExplorerPath}\"");
         }
         else
         {
-            Logger.F(TAG, "ShowInFileExplorer: File or folder does not exist at path: " + fileExplorerPath);
+            eventRecorder.SetFatalError("ShowInFileExplorer: File or folder does not exist at path: " + fileExplorerPath);
+        }
+    }
+
+    private static void StartProcess(EventRecorder eventRecorder, string fileName, string arguments)
+    {
+        try
+        {
+            Process.Start(fileName, arguments);
+            eventRecorder.SetSuccess();
+        }
+        catch (Win32Exception ex)
+        {
+            eventRecorder.SetError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            eventRecorder.SetFatalError(ex);
         }
     }
 

@@ -1,6 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReader.Common.Actions;
+using ComicReader.Common.Actions.Components;
+using ComicReader.Common.Actions.Utils;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
@@ -28,6 +31,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
     public bool IsStarted => _isStarted;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
+    public ActionHandler PageActionHandler { get; } = new();
 
     public BasePage()
     {
@@ -146,22 +150,26 @@ internal abstract class BasePage : Page, ILifecycleOwner
         LogLifecycleEvent("Start");
         _lifecycle.SetState(ILifecycle.State.Started);
 
-        if (p is NavigationBundle bundle)
-        {
-            WindowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
-            if (WindowId <= 0)
-            {
-                Logger.F(TAG, "Invalid window ID in navigation parameters: " + WindowId);
-            }
-
-            _communicator = bundle.Communicator;
-            _communicator.GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);
-            DebugUtils.TrackError(() => OnStart(bundle.Bundle));
-        }
-        else
+        if (p is not NavigationBundle bundle)
         {
             Logger.F(TAG, "Invalid navigation parameter type: " + (p?.GetType().FullName ?? "null"));
+            return;
         }
+
+        WindowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
+        if (WindowId <= 0)
+        {
+            Logger.F(TAG, "Invalid window ID in navigation parameters: " + WindowId);
+            return;
+        }
+
+        PageActionHandler.RegisterComponent<IXamlRootProvider>(new WeakXamlRootProvider(this));
+        ActionHandlerUtility.RegisterCommonProviders(PageActionHandler);
+
+        _communicator = bundle.Communicator;
+        _communicator.GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);
+
+        DebugUtils.TrackError(() => OnStart(bundle.Bundle));
     }
 
     private void TryResume()

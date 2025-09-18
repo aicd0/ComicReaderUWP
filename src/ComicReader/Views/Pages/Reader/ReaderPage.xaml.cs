@@ -591,7 +591,9 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnDirectoryTapped(object sender, TappedRoutedEventArgs e)
     {
-        ViewModel.Comic?.ShowInFileExplorer();
+        var eventRecorder = EventRecorder.Create("OnDirectoryTapped");
+        ViewModel.Comic?.ShowInFileExplorer(eventRecorder);
+        eventRecorder.DisplayErrorMessage(PageActionHandler);
     }
 
     private void OnEditInfoClick(object sender, RoutedEventArgs e)

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReader.Common;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
@@ -49,7 +50,7 @@ internal abstract class SimpleComicItemMenuFlyoutHandler(ComicModel comic) : ICo
 
     void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
     {
-        comic.ShowInFileExplorer();
+        comic.ShowInFileExplorer(EventRecorder.Dummy);
     }
 
     void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()
