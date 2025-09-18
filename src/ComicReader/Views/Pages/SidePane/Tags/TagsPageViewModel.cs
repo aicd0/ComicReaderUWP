@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Actions;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
@@ -24,6 +25,7 @@ namespace ComicReader.Views.Pages.SidePane.Tags;
 
 internal partial class TagsPageViewModel : INotifyPropertyChanged
 {
+    private ActionHandler _actionHandler = ActionHandler.Dummy;
     private bool _updatingTags = false;
     private bool _updatingTagsInvalidated = false;
 
@@ -49,6 +51,11 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NoTagsVisible)));
             }
         }
+    }
+
+    public void Initialize(ActionHandler actionHandler)
+    {
+        _actionHandler = actionHandler;
     }
 
     public void UpdateTags()
@@ -311,7 +318,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         public HashSet<long> ComicIds { get; } = [];
     }
 
-    private class ComicItemMenuFlyoutHandler(TagsPageViewModel viewModel, ComicModel comic) : SimpleComicItemMenuFlyoutHandler(comic)
+    private class ComicItemMenuFlyoutHandler(TagsPageViewModel viewModel, ComicModel comic) : SimpleComicItemMenuFlyoutHandler(comic, viewModel._actionHandler)
     {
         private readonly ComicModel _comic = comic;
 

@@ -15,6 +15,8 @@ internal class ActionHandler
     public const string ACTION_SCHEME = "commonaction";
     private const string TAG = nameof(ActionHandler);
 
+    public static ActionHandler Dummy { get; } = new();
+
     public IActionCallback DefaultCallback { get; set; } = new DefaultActionCallback();
 
     private readonly ConcurrentDictionary<Type, IActionComponent> _components = [];

@@ -28,6 +28,7 @@ internal sealed partial class TagsPage : BasePage
     {
         base.OnStart(bundle);
 
+        ViewModel.Initialize(PageActionHandler);
         ObserveData();
         ViewModel.UpdateTags();
     }

@@ -56,6 +56,7 @@ internal sealed partial class SearchPage : BasePage
         base.OnStart(bundle);
 
         _keyword = bundle.GetString(RouterConstants.ARG_KEYWORD, "");
+        ViewModel.Initialize(PageActionHandler);
         ViewModel.IsSelectMode = false;
         ViewModel.ComicItemSelectionMode = ListViewSelectionMode.None;
 

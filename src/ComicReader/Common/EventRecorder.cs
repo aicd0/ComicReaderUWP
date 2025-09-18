@@ -13,8 +13,6 @@ namespace ComicReader.Common;
 
 internal class EventRecorder
 {
-    public static EventRecorder Dummy => new("Dummy");
-
     public static EventRecorder Create(string tag)
     {
         return new(tag);

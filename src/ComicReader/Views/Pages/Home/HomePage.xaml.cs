@@ -59,7 +59,7 @@ internal sealed partial class HomePage : BasePage
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
 
         ObserveData();
-        ViewModel.Initialize();
+        ViewModel.Initialize(PageActionHandler);
         ViewModel.Refresh(filters: true, library: true);
     }
 

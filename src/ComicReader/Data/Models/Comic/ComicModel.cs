@@ -221,7 +221,7 @@ internal sealed class ComicModel
         }
         else
         {
-            eventRecorder.SetFatalError("ShowInFileExplorer: File or folder does not exist at path: " + fileExplorerPath);
+            eventRecorder.SetError($"Path does not exist: {fileExplorerPath}");
         }
     }
 

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Actions;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
@@ -185,6 +186,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
     }
 
+    private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ComicSearchEngine _searchEngine = new();
     private ComicFilterModel.ExternalModel _filterModel = new();
     private readonly ReaderWriterLock _comicItemsLock = new();
@@ -209,8 +211,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     /// <remarks>
     /// Must be called on the UI thread.
     /// </remarks>
-    public void Initialize()
+    public void Initialize(ActionHandler actionHandler)
     {
+        _actionHandler = actionHandler;
         _searchEngine.SetResultCallback(OnComicSearchResult);
     }
 
@@ -1373,7 +1376,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         void IComicItemMenuFlyoutHandler.OnOpenInFileExplorerClicked()
         {
-            item.Comic.ShowInFileExplorer(EventRecorder.Dummy);
+            var eventRecorder = EventRecorder.Create("OnOpenInFileExplorerClicked");
+            item.Comic.ShowInFileExplorer(eventRecorder);
+            eventRecorder.DisplayErrorMessage(viewModel._actionHandler);
         }
     }
 }
