@@ -124,6 +124,8 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnStart(bundle);
 
+        ViewModel.Initialize(PageActionHandler);
+
         bool tipShown = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_TIPS, KEY_TIP_SHOWN, false);
         if (!tipShown)
         {
