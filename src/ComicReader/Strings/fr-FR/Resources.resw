@@ -219,6 +219,15 @@
   <data name="CompletionState" xml:space="preserve">
     <value>État d'achèvement</value>
   </data>
+  <data name="CompletionStatusFinished" xml:space="preserve">
+    <value>Fini</value>
+  </data>
+  <data name="CompletionStatusReading" xml:space="preserve">
+    <value>En lisant</value>
+  </data>
+  <data name="CompletionStatusUnread" xml:space="preserve">
+    <value>Pas lu</value>
+  </data>
   <data name="ContinuousButton.Label" xml:space="preserve">
     <value>Continu</value>
   </data>
@@ -382,9 +391,6 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Terminé</value>
   </data>
-  <data name="Finished" xml:space="preserve">
-    <value>Fini</value>
-  </data>
   <data name="FoldersHeader.Text" xml:space="preserve">
     <value>Dossiers</value>
   </data>
@@ -495,15 +501,6 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="MaintainRelativeSize" xml:space="preserve">
     <value>Maintenir la taille relative</value>
-  </data>
-  <data name="MarkAsRead" xml:space="preserve">
-    <value>Marquer comme terminé</value>
-  </data>
-  <data name="MarkAsReading" xml:space="preserve">
-    <value>Marquer comme lecture</value>
-  </data>
-  <data name="MarkAsUnread" xml:space="preserve">
-    <value>Marquer comme non lu</value>
   </data>
   <data name="MenuFlyoutCreateNewFolder.Text" xml:space="preserve">
     <value>Créer un nouveau dossier</value>
@@ -624,9 +621,6 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="ReaderTip.Title" xml:space="preserve">
     <value>Conseil</value>
-  </data>
-  <data name="Reading" xml:space="preserve">
-    <value>En lisant</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Rafraîchir</value>
@@ -768,9 +762,6 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Afficher</value>
-  </data>
-  <data name="Unread" xml:space="preserve">
-    <value>Pas lu</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>Anonyme</value>

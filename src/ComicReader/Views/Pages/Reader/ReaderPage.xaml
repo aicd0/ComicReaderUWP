@@ -349,18 +349,18 @@
                                 Style="{StaticResource InfoPanelAppBarButtonStyle}">
                                 <AppBarButton.Flyout>
                                     <MenuFlyout>
-                                        <MenuFlyoutItem
+                                        <ToggleMenuFlyoutItem
                                             x:Name="MarkAsUnreadButton"
                                             Click="MarkAsUnreadButton_Click"
-                                            Text="{x:Bind StringResource.MarkAsUnread}" />
-                                        <MenuFlyoutItem
+                                            Text="{x:Bind StringResource.CompletionStatusUnread}" />
+                                        <ToggleMenuFlyoutItem
                                             x:Name="MarkAsReadingButton"
                                             Click="MarkAsReadingButton_Click"
-                                            Text="{x:Bind StringResource.MarkAsReading}" />
-                                        <MenuFlyoutItem
+                                            Text="{x:Bind StringResource.CompletionStatusReading}" />
+                                        <ToggleMenuFlyoutItem
                                             x:Name="MarkAsFinishedButton"
                                             Click="MarkAsFinishedButton_Click"
-                                            Text="{x:Bind StringResource.MarkAsRead}" />
+                                            Text="{x:Bind StringResource.CompletionStatusFinished}" />
                                     </MenuFlyout>
                                 </AppBarButton.Flyout>
                             </AppBarButton>

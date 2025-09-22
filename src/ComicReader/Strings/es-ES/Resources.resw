@@ -219,6 +219,15 @@
   <data name="CompletionState" xml:space="preserve">
     <value>Estado de finalización</value>
   </data>
+  <data name="CompletionStatusFinished" xml:space="preserve">
+    <value>Finalizado</value>
+  </data>
+  <data name="CompletionStatusReading" xml:space="preserve">
+    <value>Lectura</value>
+  </data>
+  <data name="CompletionStatusUnread" xml:space="preserve">
+    <value>No leído</value>
+  </data>
   <data name="ContinuousButton.Label" xml:space="preserve">
     <value>Continuo</value>
   </data>
@@ -382,9 +391,6 @@ La evaluación se realizará en el siguiente orden:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Completado</value>
   </data>
-  <data name="Finished" xml:space="preserve">
-    <value>Finalizado</value>
-  </data>
   <data name="FoldersHeader.Text" xml:space="preserve">
     <value>Carpetas</value>
   </data>
@@ -495,15 +501,6 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="MaintainRelativeSize" xml:space="preserve">
     <value>Mantener el tamaño relativo</value>
-  </data>
-  <data name="MarkAsRead" xml:space="preserve">
-    <value>Marcar como terminado</value>
-  </data>
-  <data name="MarkAsReading" xml:space="preserve">
-    <value>Marcar como leído</value>
-  </data>
-  <data name="MarkAsUnread" xml:space="preserve">
-    <value>Marcar como no leído</value>
   </data>
   <data name="MenuFlyoutCreateNewFolder.Text" xml:space="preserve">
     <value>Crear nueva carpeta</value>
@@ -624,9 +621,6 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="ReaderTip.Title" xml:space="preserve">
     <value>Consejo</value>
-  </data>
-  <data name="Reading" xml:space="preserve">
-    <value>Lectura</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Refrescar</value>
@@ -768,9 +762,6 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Mostrar</value>
-  </data>
-  <data name="Unread" xml:space="preserve">
-    <value>No leído</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>Intitulado</value>

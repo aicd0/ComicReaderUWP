@@ -87,12 +87,12 @@ internal partial class ComicArchiveData : ComicData
         }
     }
 
-    protected override async Task<TaskException> ReloadImages()
+    protected override async Task<bool> ReloadImages()
     {
         StorageFile? archive = await GetArchive();
         if (archive is null)
         {
-            return TaskException.Failure;
+            return false;
         }
 
         // Load entries.
@@ -128,7 +128,7 @@ internal partial class ComicArchiveData : ComicData
             await ArchiveAccess.TryGetSubFiles(archive, subPath, subfiles);
             if (subfiles.Count == 0)
             {
-                return TaskException.Failure;
+                return false;
             }
 
             foreach (string subfile in subfiles)
@@ -144,7 +144,7 @@ internal partial class ComicArchiveData : ComicData
         }
 
         _entries = [.. entries.OrderBy(x => StringUtils.SmartFileNameKeySelector(x), StringUtils.SmartFileNameComparer)];
-        return TaskException.Success;
+        return true;
     }
 
     public override string GetImageCacheKey(int index)

@@ -75,15 +75,15 @@ internal class ComicPdfData : ComicData
         return file;
     }
 
-    protected override async Task<TaskException> ReloadImages()
+    protected override async Task<bool> ReloadImages()
     {
         StorageFile? file = await GetFile();
         if (file is null)
         {
-            return TaskException.Failure;
+            return false;
         }
 
-        return TaskException.Success;
+        return true;
     }
 
     public override string GetImageCacheKey(int index)

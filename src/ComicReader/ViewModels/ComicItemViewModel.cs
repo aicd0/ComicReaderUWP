@@ -218,11 +218,11 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     {
         if (Comic.CompletionState == ComicCompletionStatusEnum.NotStarted)
         {
-            Progress = StringResourceProvider.Instance.Unread;
+            Progress = StringResourceProvider.Instance.CompletionStatusUnread;
         }
         else if (Comic.CompletionState == ComicCompletionStatusEnum.Completed)
         {
-            Progress = StringResourceProvider.Instance.Finished;
+            Progress = StringResourceProvider.Instance.CompletionStatusFinished;
         }
         else
         {

@@ -219,6 +219,15 @@
   <data name="CompletionState" xml:space="preserve">
     <value>완료 상태</value>
   </data>
+  <data name="CompletionStatusFinished" xml:space="preserve">
+    <value>완성된</value>
+  </data>
+  <data name="CompletionStatusReading" xml:space="preserve">
+    <value>독서</value>
+  </data>
+  <data name="CompletionStatusUnread" xml:space="preserve">
+    <value>읽지 않음</value>
+  </data>
   <data name="ContinuousButton.Label" xml:space="preserve">
     <value>마디 없는</value>
   </data>
@@ -383,9 +392,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% 완료됨</value>
   </data>
-  <data name="Finished" xml:space="preserve">
-    <value>완성된</value>
-  </data>
   <data name="FoldersHeader.Text" xml:space="preserve">
     <value>폴더</value>
   </data>
@@ -496,15 +502,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="MaintainRelativeSize" xml:space="preserve">
     <value>상대적 크기 유지</value>
-  </data>
-  <data name="MarkAsRead" xml:space="preserve">
-    <value>완료로 표시</value>
-  </data>
-  <data name="MarkAsReading" xml:space="preserve">
-    <value>읽음으로 표시</value>
-  </data>
-  <data name="MarkAsUnread" xml:space="preserve">
-    <value>읽지 않음으로 표시</value>
   </data>
   <data name="MenuFlyoutCreateNewFolder.Text" xml:space="preserve">
     <value>새 폴더 만들기</value>
@@ -625,9 +622,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="ReaderTip.Title" xml:space="preserve">
     <value>힌트</value>
-  </data>
-  <data name="Reading" xml:space="preserve">
-    <value>독서</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>새로 고치다</value>
@@ -769,9 +763,6 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>숨기기 해제</value>
-  </data>
-  <data name="Unread" xml:space="preserve">
-    <value>읽지 않음</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>이름 없음</value>

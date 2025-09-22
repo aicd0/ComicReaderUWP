@@ -195,7 +195,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                     Title = tag,
                     CanExpand = true,
                     Expanded = false,
-                    MenuFlyoutItems = CreateTagMenuItems(tagCategory, tag),
+                    MenuFlyoutItems = await CreateTagMenuItems(tagCategory, tag),
                 };
 
                 List<TagNodeViewModel> tagChildren = [];
@@ -278,9 +278,17 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         return items;
     }
 
-    private List<BaseMenuFlyoutItemViewModel> CreateTagMenuItems(string tagCategory, string tag)
+    private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagMenuItems(string tagCategory, string tag)
     {
         List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Links)
+        {
+            Glyph = "\uE71B",
+            Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(tagCategory, tag, _actionHandler),
+        });
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {

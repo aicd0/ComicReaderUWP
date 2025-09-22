@@ -111,17 +111,17 @@ internal partial class ComicFolderData : ComicData
         return new FolderComicConnection(_imageFiles);
     }
 
-    protected override async Task<TaskException> ReloadImages()
+    protected override async Task<bool> ReloadImages()
     {
         if (IsExternal)
         {
-            return TaskException.Success;
+            return true;
         }
 
         StorageFolder? folder = await GetFolder();
         if (folder is null)
         {
-            return TaskException.Failure;
+            return false;
         }
 
         Logger.I(TAG, $"Retrieving images in '{Location}'...");
@@ -142,7 +142,7 @@ internal partial class ComicFolderData : ComicData
         // Sort by display name
         _imageFiles = [.. imageFiles.OrderBy(x => StringUtils.SmartFileNameKeySelector(x.DisplayName), StringUtils.SmartFileNameComparer)];
         Logger.I(TAG, $"{imageFiles.Count} images added.");
-        return TaskException.Success;
+        return true;
     }
 
     private async Task<StorageFolder?> GetFolder()

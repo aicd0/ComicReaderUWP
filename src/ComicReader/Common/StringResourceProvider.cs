@@ -36,6 +36,9 @@ public class StringResourceProvider
     public string CollapseAll => GetResourceString("CollapseAll");
     public string ComicInfo => GetResourceString("ComicInfo");
     public string CompletionState => GetResourceString("CompletionState");
+    public string CompletionStatusFinished => GetResourceString("CompletionStatusFinished");
+    public string CompletionStatusReading => GetResourceString("CompletionStatusReading");
+    public string CompletionStatusUnread => GetResourceString("CompletionStatusUnread");
     public string ContributionRunAfterLink => GetResourceString("ContributionRunAfterLink");
     public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
     public string Copy => GetResourceString("Copy");
@@ -67,7 +70,6 @@ public class StringResourceProvider
     public string FilterSettings => GetResourceString("FilterSettings");
     public string FilteredBy => GetResourceString("FilteredBy");
     public string FinishPercentage => GetResourceString("FinishPercentage");
-    public string Finished => GetResourceString("Finished");
     public string FunctionAverage => GetResourceString("FunctionAverage");
     public string FunctionItemCount => GetResourceString("FunctionItemCount");
     public string FunctionMax => GetResourceString("FunctionMax");
@@ -85,9 +87,6 @@ public class StringResourceProvider
     public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
     public string Links => GetResourceString("Links");
     public string MaintainRelativeSize => GetResourceString("MaintainRelativeSize");
-    public string MarkAsRead => GetResourceString("MarkAsRead");
-    public string MarkAsReading => GetResourceString("MarkAsReading");
-    public string MarkAsUnread => GetResourceString("MarkAsUnread");
     public string Name => GetResourceString("Name");
     public string New => GetResourceString("New");
     public string NewFolder => GetResourceString("NewFolder");
@@ -114,7 +113,6 @@ public class StringResourceProvider
     public string Rating => GetResourceString("Rating");
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");
-    public string Reading => GetResourceString("Reading");
     public string Refresh => GetResourceString("Refresh");
     public string Remove => GetResourceString("Remove");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
@@ -145,7 +143,6 @@ public class StringResourceProvider
     public string UnhandledExceptionContent => GetResourceString("UnhandledExceptionContent");
     public string UnhandledExceptionTitle => GetResourceString("UnhandledExceptionTitle");
     public string Unhide => GetResourceString("Unhide");
-    public string Unread => GetResourceString("Unread");
     public string Untitled => GetResourceString("Untitled");
     public string UseSystemLanguage => GetResourceString("UseSystemLanguage");
     public string ViewType => GetResourceString("ViewType");

@@ -210,9 +210,9 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionIn, OnClicked = () => OnClickButton("in ()", -2) });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, OnClicked = () => OnClickButton("%title") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Rating, OnClicked = () => OnClickButton("%rating") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Unread, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.NotStarted}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Reading, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.Started}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Finished, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.Completed}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusUnread, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.NotStarted}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusReading, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.Started}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusFinished, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.Completed}") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Progress, OnClicked = () => OnClickButton("%progress") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Title1, OnClicked = () => OnClickButton("%title1") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, OnClicked = () => OnClickButton("%title2") });

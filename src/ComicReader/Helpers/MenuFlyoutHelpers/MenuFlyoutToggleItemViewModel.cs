@@ -7,26 +7,21 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
-internal class MenuFlyoutItemViewModel(string text) : BaseMenuFlyoutItemViewModel
+internal class MenuFlyoutToggleItemViewModel(string text) : BaseMenuFlyoutItemViewModel
 {
     public string Text { get; set; } = text;
-    public string? Glyph { get; set; }
-    public bool IsEnabled { get; set; } = true;
+    public bool IsChecked { get; set; } = false;
     public Action? OnClick { get; set; }
 
     protected override MenuFlyoutItemBase CreateMenuFlyoutItemInternal()
     {
-        var item = new MenuFlyoutItem
+        var item = new ToggleMenuFlyoutItem
         {
             Text = Text,
-            Icon = string.IsNullOrEmpty(Glyph) ? null : new FontIcon
-            {
-                Glyph = Glyph,
-            },
-            IsEnabled = IsEnabled,
+            IsChecked = IsChecked,
         };
 
-        if (OnClick != null)
+        if (OnClick is not null)
         {
             item.Click += (sender, args) => OnClick.Invoke();
         }

@@ -219,6 +219,15 @@
   <data name="CompletionState" xml:space="preserve">
     <value>Состояние завершения</value>
   </data>
+  <data name="CompletionStatusFinished" xml:space="preserve">
+    <value>Законченный</value>
+  </data>
+  <data name="CompletionStatusReading" xml:space="preserve">
+    <value>Чтение</value>
+  </data>
+  <data name="CompletionStatusUnread" xml:space="preserve">
+    <value>Не прочитано</value>
+  </data>
   <data name="ContinuousButton.Label" xml:space="preserve">
     <value>Непрерывный</value>
   </data>
@@ -383,9 +392,6 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Завершено</value>
   </data>
-  <data name="Finished" xml:space="preserve">
-    <value>Законченный</value>
-  </data>
   <data name="FoldersHeader.Text" xml:space="preserve">
     <value>Папки</value>
   </data>
@@ -496,15 +502,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="MaintainRelativeSize" xml:space="preserve">
     <value>Сохранять относительный размер</value>
-  </data>
-  <data name="MarkAsRead" xml:space="preserve">
-    <value>Отметить как завершенное</value>
-  </data>
-  <data name="MarkAsReading" xml:space="preserve">
-    <value>Отметить как чтение</value>
-  </data>
-  <data name="MarkAsUnread" xml:space="preserve">
-    <value>Отметить как непрочитанное</value>
   </data>
   <data name="MenuFlyoutCreateNewFolder.Text" xml:space="preserve">
     <value>Создать новую папку</value>
@@ -625,9 +622,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="ReaderTip.Title" xml:space="preserve">
     <value>Кончик</value>
-  </data>
-  <data name="Reading" xml:space="preserve">
-    <value>Чтение</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Обновить</value>
@@ -769,9 +763,6 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Показать</value>
-  </data>
-  <data name="Unread" xml:space="preserve">
-    <value>Не прочитано</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>Безымянный</value>
