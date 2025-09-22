@@ -219,6 +219,15 @@
   <data name="CompletionState" xml:space="preserve">
     <value>完了ステータス</value>
   </data>
+  <data name="CompletionStatusFinished" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="CompletionStatusReading" xml:space="preserve">
+    <value>読む</value>
+  </data>
+  <data name="CompletionStatusUnread" xml:space="preserve">
+    <value>未読</value>
+  </data>
   <data name="ContinuousButton.Label" xml:space="preserve">
     <value>連続</value>
   </data>
@@ -382,9 +391,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>読み取り $percentage%</value>
   </data>
-  <data name="Finished" xml:space="preserve">
-    <value>完了</value>
-  </data>
   <data name="FoldersHeader.Text" xml:space="preserve">
     <value>フォルダ</value>
   </data>
@@ -495,15 +501,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="MaintainRelativeSize" xml:space="preserve">
     <value>相対的なサイズを維持する</value>
-  </data>
-  <data name="MarkAsRead" xml:space="preserve">
-    <value>完了としてマーク</value>
-  </data>
-  <data name="MarkAsReading" xml:space="preserve">
-    <value>既読としてマーク</value>
-  </data>
-  <data name="MarkAsUnread" xml:space="preserve">
-    <value>未読としてマーク</value>
   </data>
   <data name="MenuFlyoutCreateNewFolder.Text" xml:space="preserve">
     <value>新しいフォルダを作成する</value>
@@ -624,9 +621,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="ReaderTip.Title" xml:space="preserve">
     <value>ヒント</value>
-  </data>
-  <data name="Reading" xml:space="preserve">
-    <value>読む</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>リフレッシュ</value>
@@ -768,9 +762,6 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>非表示解除</value>
-  </data>
-  <data name="Unread" xml:space="preserve">
-    <value>未読</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>名前なし</value>

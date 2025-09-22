@@ -126,7 +126,7 @@
                 <AppBarButton
                     Click="CommandBarMarkAsUnreadClicked"
                     IsEnabled="{x:Bind ViewModel.IsCommandBarMarkAsUnreadEnabled, Mode=OneWay}"
-                    Label="{x:Bind StringResource.Unread}">
+                    Label="{x:Bind StringResource.CompletionStatusUnread}">
                     <AppBarButton.Icon>
                         <FontIcon Glyph="&#xEA3A;" />
                     </AppBarButton.Icon>
@@ -134,7 +134,7 @@
                 <AppBarButton
                     Click="CommandBarMarkAsReadingClicked"
                     IsEnabled="{x:Bind ViewModel.IsCommandBarMarkAsReadingEnabled, Mode=OneWay}"
-                    Label="{x:Bind StringResource.Reading}">
+                    Label="{x:Bind StringResource.CompletionStatusReading}">
                     <AppBarButton.Icon>
                         <FontIcon Glyph="&#xED5A;" />
                     </AppBarButton.Icon>
@@ -142,7 +142,7 @@
                 <AppBarButton
                     Click="CommandBarMarkAsReadClicked"
                     IsEnabled="{x:Bind ViewModel.IsCommandBarMarkAsReadEnabled, Mode=OneWay}"
-                    Label="{x:Bind StringResource.Finished}">
+                    Label="{x:Bind StringResource.CompletionStatusFinished}">
                     <AppBarButton.Icon>
                         <FontIcon Glyph="&#xE8FB;" />
                     </AppBarButton.Icon>

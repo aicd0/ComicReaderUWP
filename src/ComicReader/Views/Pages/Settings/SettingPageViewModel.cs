@@ -634,11 +634,11 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         StringBuilder sb = new();
         sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.TotalComics)).Append(comicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         sb.Append('\n');
-        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.Unread)).Append(unreadComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
+        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusUnread)).Append(unreadComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         sb.Append('\n');
-        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.Reading)).Append(readingComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
+        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusReading)).Append(readingComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         sb.Append('\n');
-        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.Finished)).Append(finishedComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
+        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusFinished)).Append(finishedComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         string statisticText = sb.ToString();
 
         MainThreadUtils.RunInMainThread(() =>

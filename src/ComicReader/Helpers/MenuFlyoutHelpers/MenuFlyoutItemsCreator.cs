@@ -23,15 +23,33 @@ internal static class MenuFlyoutItemsCreator
         bool supportSelection = false)
     {
         List<BaseMenuFlyoutItemViewModel> result = [];
+
         {
             MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInNewTab)
             {
                 Glyph = "\uE8A5",
                 OnClick = handler.OnOpenInNewTabClicked,
             };
-
             result.Add(item);
         }
+
+        result.Add(new MenuFlyoutSeperatorViewModel());
+
+        {
+            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInFileExplorer)
+            {
+                Glyph = "\uE838",
+                OnClick = () =>
+                {
+                    var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
+                    comic.ShowInFileExplorer(er);
+                    er.DisplayErrorMessage(actionHandler);
+                },
+            };
+            result.Add(item);
+        }
+
+        result.Add(new MenuFlyoutSeperatorViewModel());
 
         bool isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
         if (!isFavorite)
@@ -41,7 +59,6 @@ internal static class MenuFlyoutItemsCreator
                 Glyph = "\uE734",
                 OnClick = handler.OnAddToFavoritesClicked,
             };
-
             result.Add(item);
         }
 
@@ -52,7 +69,6 @@ internal static class MenuFlyoutItemsCreator
                 Glyph = "\uE8D9",
                 OnClick = handler.OnRemoveFromFavoritesClicked,
             };
-
             result.Add(item);
         }
 
@@ -62,32 +78,30 @@ internal static class MenuFlyoutItemsCreator
                 Glyph = "\uE7C1",
             };
 
-            if (comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.NotStarted)
             {
-                MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsUnread)
+                MenuFlyoutToggleItemViewModel item = new(StringResourceProvider.Instance.CompletionStatusUnread)
                 {
+                    IsChecked = comic.CompletionState == ComicCompletionStatusEnum.NotStarted,
                     OnClick = handler.OnMarkAsUnreadClicked,
                 };
                 groupItem.Items.Add(item);
             }
 
-            if (comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Started)
             {
-                MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsReading)
+                MenuFlyoutToggleItemViewModel item = new(StringResourceProvider.Instance.CompletionStatusReading)
                 {
+                    IsChecked = comic.CompletionState == ComicCompletionStatusEnum.Started,
                     OnClick = handler.OnMarkAsReadingClicked,
                 };
-
                 groupItem.Items.Add(item);
             }
 
-            if (comic.CompletionState != Data.Models.Comic.ComicCompletionStatusEnum.Completed)
             {
-                MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.MarkAsRead)
+                MenuFlyoutToggleItemViewModel item = new(StringResourceProvider.Instance.CompletionStatusFinished)
                 {
+                    IsChecked = comic.CompletionState == ComicCompletionStatusEnum.Completed,
                     OnClick = handler.OnMarkAsReadClicked,
                 };
-
                 groupItem.Items.Add(item);
             }
 
@@ -101,7 +115,6 @@ internal static class MenuFlyoutItemsCreator
                 Glyph = "\uED1A",
                 OnClick = handler.OnHideClicked,
             };
-
             result.Add(item);
         }
 
@@ -112,7 +125,6 @@ internal static class MenuFlyoutItemsCreator
                 Glyph = "\uE7B3",
                 OnClick = handler.OnUnhideClicked,
             };
-
             result.Add(item);
         }
 
@@ -122,22 +134,6 @@ internal static class MenuFlyoutItemsCreator
                 Glyph = "\uE70F",
                 OnClick = handler.OnEditClick,
             };
-
-            result.Add(item);
-        }
-
-        {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInFileExplorer)
-            {
-                Glyph = "\uE838",
-                OnClick = () =>
-                {
-                    var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
-                    comic.ShowInFileExplorer(er);
-                    er.DisplayErrorMessage(actionHandler);
-                },
-            };
-
             result.Add(item);
         }
 
@@ -158,7 +154,6 @@ internal static class MenuFlyoutItemsCreator
                         actionHandler.Handle(actionModel);
                     },
                 };
-
                 result.Add(item);
             }
         }

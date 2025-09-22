@@ -313,29 +313,29 @@ internal sealed partial class ReaderPage : BasePage
                     {
                         Glyph = "\uEA3A"
                     };
-                    SetCompletionStateButton.Label = StringResource.Unread;
+                    SetCompletionStateButton.Label = StringResource.CompletionStatusUnread;
                     break;
                 case ComicCompletionStatusEnum.Started:
                     SetCompletionStateButton.Icon = new FontIcon
                     {
                         Glyph = "\uED5A"
                     };
-                    SetCompletionStateButton.Label = StringResource.Reading;
+                    SetCompletionStateButton.Label = StringResource.CompletionStatusReading;
                     break;
                 case ComicCompletionStatusEnum.Completed:
                     SetCompletionStateButton.Icon = new FontIcon
                     {
                         Glyph = "\uE8FB"
                     };
-                    SetCompletionStateButton.Label = StringResource.Finished;
+                    SetCompletionStateButton.Label = StringResource.CompletionStatusFinished;
                     break;
                 default:
                     break;
             }
 
-            MarkAsUnreadButton.Visibility = completionStatus == ComicCompletionStatusEnum.NotStarted ? Visibility.Collapsed : Visibility.Visible;
-            MarkAsReadingButton.Visibility = completionStatus == ComicCompletionStatusEnum.Started ? Visibility.Collapsed : Visibility.Visible;
-            MarkAsFinishedButton.Visibility = completionStatus == ComicCompletionStatusEnum.Completed ? Visibility.Collapsed : Visibility.Visible;
+            MarkAsUnreadButton.IsChecked = completionStatus == ComicCompletionStatusEnum.NotStarted;
+            MarkAsReadingButton.IsChecked = completionStatus == ComicCompletionStatusEnum.Started;
+            MarkAsFinishedButton.IsChecked = completionStatus == ComicCompletionStatusEnum.Completed;
         });
 
         ViewModel.ReaderLoadingInfoLiveData.Observe(this, info =>

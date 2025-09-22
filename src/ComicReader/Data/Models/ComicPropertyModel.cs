@@ -192,9 +192,9 @@ internal class ComicPropertyModel
         {
             return comic.CompletionState switch
             {
-                ComicCompletionStatusEnum.Completed => StringResourceProvider.Instance.Finished,
-                ComicCompletionStatusEnum.Started => StringResourceProvider.Instance.Reading,
-                ComicCompletionStatusEnum.NotStarted => StringResourceProvider.Instance.Unread,
+                ComicCompletionStatusEnum.Completed => StringResourceProvider.Instance.CompletionStatusFinished,
+                ComicCompletionStatusEnum.Started => StringResourceProvider.Instance.CompletionStatusReading,
+                ComicCompletionStatusEnum.NotStarted => StringResourceProvider.Instance.CompletionStatusUnread,
                 _ => StringResourceProvider.Instance.Ungrouped,
             };
         }

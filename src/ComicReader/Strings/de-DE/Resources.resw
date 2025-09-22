@@ -219,6 +219,15 @@
   <data name="CompletionState" xml:space="preserve">
     <value>Abschlussstatus</value>
   </data>
+  <data name="CompletionStatusFinished" xml:space="preserve">
+    <value>Fertig</value>
+  </data>
+  <data name="CompletionStatusReading" xml:space="preserve">
+    <value>Lektüre</value>
+  </data>
+  <data name="CompletionStatusUnread" xml:space="preserve">
+    <value>Nicht gelesen</value>
+  </data>
   <data name="ContinuousButton.Label" xml:space="preserve">
     <value>Kontinuierlich</value>
   </data>
@@ -382,9 +391,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Abgeschlossen</value>
   </data>
-  <data name="Finished" xml:space="preserve">
-    <value>Fertig</value>
-  </data>
   <data name="FoldersHeader.Text" xml:space="preserve">
     <value>Ordner</value>
   </data>
@@ -495,15 +501,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="MaintainRelativeSize" xml:space="preserve">
     <value>Relative Größe beibehalten</value>
-  </data>
-  <data name="MarkAsRead" xml:space="preserve">
-    <value>Als erledigt markieren</value>
-  </data>
-  <data name="MarkAsReading" xml:space="preserve">
-    <value>Als gelesen markieren</value>
-  </data>
-  <data name="MarkAsUnread" xml:space="preserve">
-    <value>Als ungelesen markieren</value>
   </data>
   <data name="MenuFlyoutCreateNewFolder.Text" xml:space="preserve">
     <value>Neuen Ordner erstellen</value>
@@ -624,9 +621,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="ReaderTip.Title" xml:space="preserve">
     <value>Tipp</value>
-  </data>
-  <data name="Reading" xml:space="preserve">
-    <value>Lektüre</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Aktualisieren</value>
@@ -768,9 +762,6 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Einblenden</value>
-  </data>
-  <data name="Unread" xml:space="preserve">
-    <value>Nicht gelesen</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>Unbenannt</value>
