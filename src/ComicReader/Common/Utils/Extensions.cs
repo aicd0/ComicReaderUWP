@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
@@ -16,11 +15,6 @@ namespace ComicReader.Common.Utils;
 
 public static class Extensions
 {
-    public static bool Successful(this TaskException r)
-    {
-        return r == TaskException.Success;
-    }
-
     public static IEnumerable<DependencyObject> ChildrenBreadthFirst(this DependencyObject obj, bool includeSelf = false)
     {
         if (includeSelf)

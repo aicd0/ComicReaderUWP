@@ -414,13 +414,14 @@ internal abstract class ComicData
     {
         _ = Enqueue("FlushExt", () =>
         {
-            return SaveNoLock(() =>
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnExt, ValueExt)
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -429,13 +430,14 @@ internal abstract class ComicData
         Title1 = title;
         _ = Enqueue("SetTitle1", () =>
         {
-            return SaveNoLock(() =>
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -444,13 +446,14 @@ internal abstract class ComicData
         Title2 = title;
         _ = Enqueue("SetTitle2", () =>
         {
-            return SaveNoLock(() =>
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnTitle2, ValueTitle2)
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -459,13 +462,14 @@ internal abstract class ComicData
         Description = description;
         _ = Enqueue("SetDescription", () =>
         {
-            return SaveNoLock(() =>
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnDescription, ValueDescription)
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -505,10 +509,11 @@ internal abstract class ComicData
 
         _ = Enqueue("SetTags", () =>
         {
-            return SaveNoLock(() =>
+            SaveNoLock(() =>
             {
                 InternalSaveTagsNoLock();
             });
+            return true;
         });
     }
 
@@ -524,13 +529,14 @@ internal abstract class ComicData
 
         _ = Enqueue("MoveToLocation", () =>
         {
-            return SaveNoLock(() =>
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
         return true;
     }
@@ -598,13 +604,14 @@ internal abstract class ComicData
 
         await Enqueue("SaveHiddenAsync", delegate
         {
-            return SaveNoLock(delegate
+            SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnHidden, ValueHidden)
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -620,13 +627,14 @@ internal abstract class ComicData
 
         _ = Enqueue("SaveRating", delegate
         {
-            return SaveNoLock(delegate
+            SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnRating, ValueRating)
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -637,7 +645,7 @@ internal abstract class ComicData
 
         await Enqueue("SaveProgress", delegate
         {
-            return SaveNoLock(delegate
+            SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
@@ -645,6 +653,7 @@ internal abstract class ComicData
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -655,7 +664,7 @@ internal abstract class ComicData
 
         _ = Enqueue("SetAsRead", delegate
         {
-            return SaveNoLock(delegate
+            SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
@@ -663,6 +672,7 @@ internal abstract class ComicData
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -672,13 +682,14 @@ internal abstract class ComicData
 
         _ = Enqueue("SetCoverCacheKey", delegate
         {
-            return SaveNoLock(delegate
+            SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnCoverCacheKey, ValueCoverCacheKey)
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
+            return true;
         });
     }
 
@@ -725,8 +736,7 @@ internal abstract class ComicData
             return true;
         }
 
-        TaskException result = await ReloadImages();
-        if (!result.Successful())
+        if (!await ReloadImages())
         {
             return false;
         }
@@ -812,7 +822,7 @@ internal abstract class ComicData
 
     public abstract int GetImageSignature(int index);
 
-    protected abstract Task<TaskException> ReloadImages();
+    protected abstract Task<bool> ReloadImages();
 
     private static void UpdateComicNoLock(string location, ComicType type, bool is_exist)
     {
@@ -891,21 +901,20 @@ internal abstract class ComicData
         InternalSaveTagsNoLock(removeOld: false);
     }
 
-    private TaskException SaveNoLock(Action action)
+    private void SaveNoLock(Action action)
     {
         if (IsExternal)
         {
-            return TaskException.Success;
+            return;
         }
 
         if (Id < 0)
         {
             InternalInsertNoLock();
-            return TaskException.Success;
+            return;
         }
 
         action();
-        return TaskException.Success;
     }
 
     private static async Task TransactionBlock(Func<Task> op, string taskName)
@@ -927,7 +936,7 @@ internal abstract class ComicData
             .Execute();
     }
 
-    private static async Task<TaskException> UpdateAllComicsInternal(bool skipExistingLocation)
+    private static async Task UpdateAllComicsInternal(bool skipExistingLocation)
     {
         AppSettingsModel.ExternalModel appSettings = AppSettingsModel.Instance.GetModel();
 
@@ -975,7 +984,7 @@ internal abstract class ComicData
                 // Cancel this task if more requests have come in
                 if (_pendingUpdateTaskCount > 0)
                 {
-                    return TaskException.Cancellation;
+                    return;
                 }
 
                 Log("Scanning " + ctx.ItemFound.ToString() + " items.");
@@ -1109,8 +1118,6 @@ internal abstract class ComicData
                 return Task.CompletedTask;
             }, "RemoveLocationsFromDatabase");
         }
-
-        return TaskException.Success;
     }
 
     private RequestOption CreateRequestOption()
