@@ -1095,16 +1095,19 @@ internal abstract class ComicData
                 }
             }
 
-            await TransactionBlock(delegate
+            if (locationRemoved.Count > 0)
             {
-                foreach (string location in locationRemoved)
+                await TransactionBlock(delegate
                 {
-                    Logger.I(TAG, $"Removing: {location}");
-                    RemoveWithLocationNoLock(location);
-                }
+                    foreach (string location in locationRemoved)
+                    {
+                        Logger.I(TAG, $"Removing: {location}");
+                        RemoveWithLocationNoLock(location);
+                    }
 
-                return Task.CompletedTask;
-            }, "RemoveLocationsFromDatabase");
+                    return Task.CompletedTask;
+                }, "RemoveLocationsFromDatabase");
+            }
         }
     }
 
