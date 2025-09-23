@@ -10,9 +10,11 @@ using System.Threading.Tasks;
 using ComicReader.Common;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
+using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Data.SqlHelpers;
 
 using Windows.Storage;
 using Windows.Storage.Search;
@@ -72,10 +74,27 @@ internal partial class ComicFolderData : ComicData
                 return false;
             }
 
-            if (Directory.Exists(targetDir))
+            if (Directory.Exists(targetDir) || File.Exists(targetDir))
             {
                 return false;
             }
+
+            List<long> affectingComicIds = [];
+            Enqueue("MoveLocation", () =>
+            {
+                SelectCommand command = SelectCommand.Create(ComicTable.Instance)
+                    .AppendCondition(new LikeCondition(ComicTable.ColumnLocation, sourceDir + "%"));
+                IReaderToken<long> comicIdToken = command.PutQueryInt64(ComicTable.ColumnId);
+                using SelectCommand.IReader reader = command.Execute();
+                while (reader.Read())
+                {
+                    affectingComicIds.Add(comicIdToken.GetValue());
+                }
+
+                return true;
+            }).Wait();
+
+            List<ComicModel> affectingComics = ComicModel.BatchFromId("MoveLocation", affectingComicIds).Result;
 
             string? targetParent = Path.GetDirectoryName(targetDir);
             if (!string.IsNullOrEmpty(targetParent) && !Directory.Exists(targetParent))
@@ -99,6 +118,24 @@ internal partial class ComicFolderData : ComicData
             {
                 Logger.E($"Unable to move directory.", e);
                 return false;
+            }
+
+            foreach (ComicModel comic in affectingComics)
+            {
+                string comicFolder = comic.Location;
+                if (string.IsNullOrWhiteSpace(comicFolder))
+                {
+                    continue;
+                }
+
+                if (!StringUtils.FolderContain(sourceDir, comic.Location))
+                {
+                    continue;
+                }
+
+                string relativePath = Path.GetRelativePath(sourceDir, comic.Location);
+                string newComicPath = relativePath == "." ? targetDir : Path.Combine(targetDir, relativePath);
+                comic.SetLocation(newComicPath);
             }
 
             return true;

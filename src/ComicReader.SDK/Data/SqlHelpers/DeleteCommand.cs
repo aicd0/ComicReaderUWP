@@ -33,7 +33,7 @@ public class DeleteCommand
         return this;
     }
 
-    public void Execute()
+    public int Execute()
     {
         if (_executed)
         {
@@ -42,7 +42,7 @@ public class DeleteCommand
         _executed = true;
 
         CommandWrapper command = GenerateCommand();
-        command.ExecuteNonQuery(_table.GetDatabase());
+        return command.ExecuteNonQuery(_table.GetDatabase());
     }
 
     public async Task ExecuteAsync()
