@@ -931,9 +931,13 @@ internal abstract class ComicData
 
     private static void RemoveWithLocationNoLock(string location)
     {
-        DeleteCommand.Create(ComicTable.Instance)
-            .AppendCondition(new LikeCondition(ComicTable.ColumnLocation, location + "%"))
+        int count = DeleteCommand.Create(ComicTable.Instance)
+            .AppendCondition(ComicTable.ColumnLocation, location)
             .Execute();
+        if (count != 1)
+        {
+            Logger.F(TAG, $"RemoveWithLocationNoLock: Deleted {count} rows for location '{location}'");
+        }
     }
 
     private static async Task UpdateAllComicsInternal(bool skipExistingLocation)
@@ -941,7 +945,7 @@ internal abstract class ComicData
         AppSettingsModel.ExternalModel appSettings = AppSettingsModel.Instance.GetModel();
 
         // Fetch all locations in the database
-        var locExist = new List<string>();
+        var oldLocations = new List<string>();
         await Enqueue("GetLocationsFromDatabase", delegate
         {
             var command = SelectCommand.Create(ComicTable.Instance);
@@ -949,8 +953,9 @@ internal abstract class ComicData
             using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
-                locExist.Add(locationToken.GetValue());
+                oldLocations.Add(locationToken.GetValue());
             }
+
             return true;
         });
 
@@ -961,48 +966,41 @@ internal abstract class ComicData
             rootFolders.Add(path);
         }
 
-        // Get all subfolders in root folders
-        var locInLib = new List<string>();
-        var locIgnore = new List<string>();
+        // Scan all root folders
+        var newLocations = new List<string>();
+        var noAccessLocations = new List<string>();
         var watch = new Stopwatch();
         watch.Start();
-
         foreach (string folderPath in rootFolders)
         {
-            Log("Scanning folder '" + folderPath + "'");
-
-            // Skip unreachable folders from database
+            Logger.I(TAG, $"Scanning: {folderPath}");
             if (!Directory.Exists(folderPath))
             {
-                Log("Failed to reach folder '" + folderPath + "', skipped");
+                Logger.I(TAG, $"Folder not exists, skipped: {folderPath}");
                 continue;
             }
 
             var ctx = new SearchContext(folderPath, PathType.Folder);
             while (await ctx.Search(1024))
             {
-                // Cancel this task if more requests have come in
                 if (_pendingUpdateTaskCount > 0)
                 {
                     return;
                 }
 
-                Log("Scanning " + ctx.ItemFound.ToString() + " items.");
-                var locScannedDict = new Dictionary<string, ComicType>();
-
-                foreach (string file_path in ctx.Files)
+                Logger.I(TAG, $"Scanning {ctx.ItemFound} files/folders...");
+                var scanResult = new Dictionary<string, ComicType>();
+                foreach (string filePath in ctx.Files)
                 {
-                    string filename = StringUtils.ItemNameFromPath(file_path);
+                    string filename = StringUtils.ItemNameFromPath(filePath);
                     string extension = StringUtils.ExtensionFromFilename(filename).ToLower();
-
                     if (AppInfoProvider.IsSupportedImageExtension(extension))
                     {
-                        string loc = StringUtils.ParentLocationFromLocation(file_path);
-
-                        if (!locScannedDict.ContainsKey(loc))
+                        string parentPath = StringUtils.ParentLocationFromLocation(filePath);
+                        if (!scanResult.ContainsKey(parentPath))
                         {
-                            locScannedDict[loc] =
-                                ArchiveAccess.IsArchivePath(file_path) ?
+                            scanResult[parentPath] =
+                                ArchiveAccess.IsArchivePath(filePath) ?
                                 ComicType.Archive : ComicType.Folder;
                         }
                     }
@@ -1011,7 +1009,7 @@ internal abstract class ComicData
                         switch (extension)
                         {
                             case ".pdf":
-                                locScannedDict[file_path] = ComicType.PDF;
+                                scanResult[filePath] = ComicType.PDF;
                                 break;
                             default:
                                 break;
@@ -1019,49 +1017,40 @@ internal abstract class ComicData
                     }
                 }
 
-                var locScanned = new List<string>();
-                foreach (KeyValuePair<string, ComicType> item in locScannedDict)
-                {
-                    locScanned.Add(item.Key);
-                }
-                locInLib.AddRange(locScanned);
-                foreach (string dir in ctx.NoAccessItems)
-                {
-                    locIgnore.Add(dir);
-                }
+                List<string> incrementNewLocations = [];
+                incrementNewLocations.AddRange(scanResult.Keys);
+                newLocations.AddRange(incrementNewLocations);
+                noAccessLocations.AddRange(ctx.NoAccessItems);
 
-                // Generate a task queue for updating
+                // Update comics
                 var queue = new List<UpdateItemInfo>();
 
-                // Get folders added
-                var locAdded = C3<string, string, string>.Except(
-                    locScanned, locExist,
+                var locationAdded = C3<string, string, string>.Except(
+                    incrementNewLocations, oldLocations,
                     StringUtils.UniquePath, StringUtils.UniquePath,
                     new C1<string>.DefaultEqualityComparer()).ToList();
-
-                foreach (string loc in locAdded)
+                foreach (string location in locationAdded)
                 {
                     queue.Add(new UpdateItemInfo
                     {
-                        Location = loc,
-                        ItemType = locScannedDict[loc],
+                        Location = location,
+                        ItemType = scanResult[location],
                         IsExist = false,
                     });
                 }
 
                 if (!skipExistingLocation)
                 {
-                    var locKept = C3<string, string, string>.Intersect(
-                        locScanned, locExist,
+                    var locationKept = C3<string, string, string>.Intersect(
+                        incrementNewLocations, oldLocations,
                         StringUtils.UniquePath, StringUtils.UniquePath,
                         new C1<string>.DefaultEqualityComparer()).ToList();
-
-                    foreach (string loc in locKept)
+                    foreach (string location in locationKept)
                     {
                         queue.Add(new UpdateItemInfo
                         {
-                            Location = loc,
-                            ItemType = locScannedDict[loc],
+                            Location = location,
+                            ItemType = scanResult[location],
                             IsExist = true,
                         });
                     }
@@ -1074,7 +1063,7 @@ internal abstract class ComicData
                         UpdateComicNoLock(info.Location, info.ItemType, info.IsExist);
                     }
                     await Task.CompletedTask;
-                }, "Update comic");
+                }, "UpdateComic");
 
                 if (watch.LapSpan().TotalSeconds > 2)
                 {
@@ -1086,35 +1075,33 @@ internal abstract class ComicData
 
         if (appSettings.RemoveUnreachableComics)
         {
-            // Get removed folders
-            var locRemoved = C3<string, string, string>.Except(locExist, locInLib,
+            var locationRemoved = C3<string, string, string>.Except(
+                oldLocations, newLocations,
                 StringUtils.UniquePath, StringUtils.UniquePath,
                 new C1<string>.DefaultEqualityComparer()).ToList();
 
+            // Skip no access directories
+            for (int i = locationRemoved.Count - 1; i >= 0; i--)
+            {
+                string location = locationRemoved[i];
+                foreach (string noAccessLocation in noAccessLocations)
+                {
+                    if (StringUtils.FolderContain(noAccessLocation, location))
+                    {
+                        locationRemoved.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
             await TransactionBlock(delegate
             {
-                // Remove folders from database
-                foreach (string loc in locRemoved)
+                foreach (string location in locationRemoved)
                 {
-                    // Skip directories in ignoring list
-                    bool ignore = false;
-                    foreach (string base_loc in locIgnore)
-                    {
-                        if (StringUtils.FolderContain(base_loc, loc))
-                        {
-                            ignore = true;
-                            break;
-                        }
-                    }
-                    if (ignore)
-                    {
-                        continue;
-                    }
-
-                    // Remove.
-                    Log("Removing item '" + loc + "'");
-                    RemoveWithLocationNoLock(loc);
+                    Logger.I(TAG, $"Removing: {location}");
+                    RemoveWithLocationNoLock(location);
                 }
+
                 return Task.CompletedTask;
             }, "RemoveLocationsFromDatabase");
         }
