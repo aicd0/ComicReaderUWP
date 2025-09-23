@@ -517,17 +517,10 @@ internal abstract class ComicData
         });
     }
 
-    public async Task<bool> MoveToLocation(string newLocation)
+    public void SetLocation(string location)
     {
-        bool success = await MoveToLocationInternal(newLocation);
-        if (!success)
-        {
-            return false;
-        }
-
-        Location = newLocation;
-
-        _ = Enqueue("MoveToLocation", () =>
+        Location = location;
+        _ = Enqueue("SetLocation", () =>
         {
             SaveNoLock(() =>
             {
@@ -538,7 +531,6 @@ internal abstract class ComicData
             });
             return true;
         });
-        return true;
     }
 
     //
@@ -554,6 +546,15 @@ internal abstract class ComicData
         }
 
         return new ComicConnectionWrapper(connection);
+    }
+
+    //
+    // Utilities
+    //
+
+    public async Task<bool> MoveToLocation(string newLocation)
+    {
+        return await MoveToLocationInternal(newLocation);
     }
 
     //

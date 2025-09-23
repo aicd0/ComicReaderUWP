@@ -158,18 +158,6 @@ internal sealed class ComicModel
         DispatchUpdateEvent();
     }
 
-    public async Task MoveToLocation(string newLocation)
-    {
-        string oldLocation = Location;
-        bool success = await _internalModel.MoveToLocation(newLocation);
-        if (success)
-        {
-            _locationPool.TryRemove(oldLocation, out _);
-            _locationPool.GetOrAdd(newLocation, this);
-            DispatchUpdateEvent();
-        }
-    }
-
     public async Task SaveProgressAsync(int progress, double lastPosition)
     {
         await _internalModel.SaveProgressAsync(progress, lastPosition);
@@ -188,6 +176,11 @@ internal sealed class ComicModel
         DispatchUpdateEvent();
     }
 
+    public void SetLocation(string location)
+    {
+        _internalModel.SetLocation(location);
+    }
+
     //
     // Utilities
     //
@@ -200,6 +193,18 @@ internal sealed class ComicModel
     public Task<bool> ReloadImageFiles()
     {
         return _internalModel.ReloadImageFiles();
+    }
+
+    public async Task MoveToLocation(string newLocation)
+    {
+        string oldLocation = Location;
+        bool success = await _internalModel.MoveToLocation(newLocation);
+        if (success)
+        {
+            _locationPool.TryRemove(oldLocation, out _);
+            _locationPool.GetOrAdd(newLocation, this);
+            DispatchUpdateEvent();
+        }
     }
 
     public void ShowInFileExplorer(EventRecorder er)
