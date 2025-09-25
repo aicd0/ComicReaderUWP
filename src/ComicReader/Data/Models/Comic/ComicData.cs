@@ -115,9 +115,10 @@ internal abstract class ComicData
         }
 
         Dictionary<long, ComicData> comics = new(ids.Count());
+        foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
         {
             SelectCommand command = SelectCommand.Create(ComicTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), ids));
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), idChunk));
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
             IReaderToken<long> typeToken = command.PutQueryInt64(ComicTable.ColumnType);
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
@@ -195,9 +196,10 @@ internal abstract class ComicData
         }
 
         Dictionary<long, TagTempData> tagCategories = new(comics.Count);
+        foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(comics.Keys))
         {
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), comics.Keys));
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), idChunk));
             IReaderToken<long> comicIdToken = command.PutQueryInt64(TagCategoryTable.ColumnComicId);
             IReaderToken<long> tagCategoryIdToken = command.PutQueryInt64(TagCategoryTable.ColumnId);
             IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
@@ -206,7 +208,7 @@ internal abstract class ComicData
             while (reader.Read())
             {
                 long comicId = comicIdToken.GetValue();
-                if (comics.TryGetValue(comicId, out ComicData? comic))
+                if (comics.ContainsKey(comicId))
                 {
                     long tagCategoryId = tagCategoryIdToken.GetValue();
                     string name = nameToken.GetValue();
@@ -220,9 +222,10 @@ internal abstract class ComicData
             }
         }
 
+        foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(tagCategories.Keys))
         {
             SelectCommand command = SelectCommand.Create(TagTable.Instance)
-                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), tagCategories.Keys));
+                .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), idChunk));
             IReaderToken<long> tagCategoryIdToken = command.PutQueryInt64(TagTable.ColumnTagCategoryId);
             IReaderToken<string> tagToken = command.PutQueryString(TagTable.ColumnContent);
             using SelectCommand.IReader reader = command.Execute();
