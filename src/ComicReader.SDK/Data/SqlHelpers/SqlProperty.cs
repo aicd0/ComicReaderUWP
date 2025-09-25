@@ -148,20 +148,24 @@ public sealed class SqlProperty<T, K, V>(ITaskDispatcher dispatcher, SqlDatabase
 
         public void Perform(SqlProperty<T, K, V> property, Dictionary<long, PropertyResponseContent<V>> responses)
         {
-            var command = SelectCommand.Create(property._table);
-            command.AppendCondition(new InCondition(ColumnOrValue.FromColumn(KeyColumn), Keys.Keys));
-            IReaderToken<K> keyToken = KeyColumn.PutQuery(command);
-            IReaderToken<V> valueToken = ValueColumn.PutQuery(command);
-            using SelectCommand.IReader reader = command.Execute();
-            while (reader.Read())
+            foreach (IEnumerable<K> keyChunk in SqlUtils.ChunkBy(Keys.Keys))
             {
-                K key = keyToken.GetValue();
-                V value = valueToken.GetValue();
-                if (Keys.Remove(key, out long requestId))
+                var command = SelectCommand.Create(property._table);
+                command.AppendCondition(new InCondition(ColumnOrValue.FromColumn(KeyColumn), keyChunk));
+                IReaderToken<K> keyToken = KeyColumn.PutQuery(command);
+                IReaderToken<V> valueToken = ValueColumn.PutQuery(command);
+                using SelectCommand.IReader reader = command.Execute();
+                while (reader.Read())
                 {
-                    responses[requestId] = PropertyResponseContent<V>.NewSuccessfulResponse(value);
+                    K key = keyToken.GetValue();
+                    V value = valueToken.GetValue();
+                    if (Keys.Remove(key, out long requestId))
+                    {
+                        responses[requestId] = PropertyResponseContent<V>.NewSuccessfulResponse(value);
+                    }
                 }
             }
+
             foreach (KeyValuePair<K, long> kvp in Keys)
             {
                 responses[kvp.Value] = PropertyResponseContent<V>.NewFailedResponse();
