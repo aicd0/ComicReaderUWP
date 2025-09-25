@@ -82,6 +82,7 @@ internal partial class ReaderView : UserControl
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
     private double _initialPage = 0.0;
+    private ReaderConfigDatabaseWrapper? _configDatabase = null;
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
     private bool _isViewChanging = false;
@@ -233,6 +234,11 @@ internal partial class ReaderView : UserControl
         {
             _initialPage = page;
         }
+    }
+
+    public void SetConfigurationDatabase(IConfigurationDatabase? configDatabase)
+    {
+        _configDatabase = configDatabase is null ? null : new(configDatabase);
     }
 
     public void StartLoadingImages(IEnumerable<IImageSource> images)
@@ -430,7 +436,23 @@ internal partial class ReaderView : UserControl
 
             PostToCurrentThread(delegate
             {
-                ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", zoom: _zoom, page: InitialPage, disableAnimation: true);
+                double? savedZoom = LoadZoomingConfig();
+                float zoom;
+                ZoomType zoomType;
+                if (savedZoom.HasValue)
+                {
+                    zoom = (float)savedZoom.Value;
+                    zoomType = _isVertical ? ZoomType.FitWidth : ZoomType.FitHeight;
+                }
+                else
+                {
+                    zoom = _zoom;
+                    zoomType = ZoomType.CenterInside;
+                }
+
+                ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage",
+                    zoom: zoom, zoomType: zoomType,
+                    page: InitialPage, disableAnimation: true);
                 _isInitialFrameJumped = true;
                 Log("Load", $"InitialFrameScroll (result={scrollResult})");
                 if (scrollResult == ScrollResult.TooClose)
@@ -1081,6 +1103,7 @@ internal partial class ReaderView : UserControl
             }
 
             UpdateImages("ViewChanged");
+            SaveZoomingConfig();
         }
 
         ReaderEventPageChanged?.Invoke(this, !final);
@@ -1654,7 +1677,7 @@ internal partial class ReaderView : UserControl
         _finalValueSynced = false;
     }
 
-    public bool MoveFrame(int increment, string reason)
+    private bool MoveFrame(int increment, string reason)
     {
         MoveFrameInternal(increment, !AppModel.TransitionAnimation, reason);
         return true;
@@ -1692,7 +1715,8 @@ internal partial class ReaderView : UserControl
         }, reason);
     }
 
-    private ScrollResult SetScrollViewer2(string reason, float? zoom = null, double? page = null,
+    private ScrollResult SetScrollViewer2(string reason,
+        float? zoom = null, ZoomType zoomType = ZoomType.CenterInside, double? page = null,
         bool applyParallelOffset = true, bool disableAnimation = false, bool fixForPaddingDelay = false)
     {
         double? horizontalOffset = null;
@@ -1732,6 +1756,7 @@ internal partial class ReaderView : UserControl
         return SetScrollViewerInternal(new ScrollRequest
         {
             zoom = zoom,
+            zoomType = zoomType,
             page = page,
             horizontalOffset = horizontalOffset,
             verticalOffset = verticalOffset,
@@ -1900,9 +1925,22 @@ internal partial class ReaderView : UserControl
         if (request.zoom.HasValue)
         {
             zoom = request.zoom.Value;
-            if (request.zoomType == ZoomType.CenterCrop)
+            switch (request.zoomType)
             {
-                zoom *= centerCropMultipier;
+                case ZoomType.CenterInside:
+                    break;
+                case ZoomType.CenterCrop:
+                    zoom *= centerCropMultipier;
+                    break;
+                case ZoomType.FitWidth:
+                    zoom *= zoomCoefficientNew.FitWidth / zoomCoefficientNew.Min();
+                    break;
+                case ZoomType.FitHeight:
+                    zoom *= zoomCoefficientNew.FitHeight / zoomCoefficientNew.Min();
+                    break;
+                default:
+                    Logger.F(TAG, "Unknown zoom type.");
+                    goto case ZoomType.CenterInside;
             }
         }
         else
@@ -2290,14 +2328,8 @@ internal partial class ReaderView : UserControl
 
     private ZoomCoefficient? CalculateZoomCoefficient(int frameIndex)
     {
-        if (FrameDataSource.Count == 0)
-        {
-            return null;
-        }
-
         if (frameIndex < 0 || frameIndex >= FrameDataSource.Count)
         {
-            Logger.AssertNotReachHere("AC9607BD559C90F8");
             return null;
         }
 
@@ -2325,6 +2357,54 @@ internal partial class ReaderView : UserControl
     {
         double padding = (ViewportPerpendicularLength - ContentPerpendicularLength * zoom) * 0.5;
         return Math.Max(padding, 0);
+    }
+
+    //
+    // Internal State Configs
+    //
+
+    private void SaveZoomingConfig()
+    {
+        ReaderConfigDatabaseWrapper? config = _configDatabase;
+        if (config is null)
+        {
+            return;
+        }
+
+        int frameIdx = PageToFrame(SCCurrentPageFinal, out _, out _);
+        ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameIdx);
+        if (zoomCoefficient is null)
+        {
+            return;
+        }
+
+        if (_isVertical)
+        {
+            double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitWidth;
+            config.VerticalZooming = zooming;
+        }
+        else
+        {
+            double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitHeight;
+            config.HorizontalZooming = zooming;
+        }
+    }
+
+    private double? LoadZoomingConfig()
+    {
+        ReaderConfigDatabaseWrapper? config = _configDatabase;
+        if (config is null)
+        {
+            return null;
+        }
+
+        double? zooming = _isVertical ? config.VerticalZooming : config.HorizontalZooming;
+        if (zooming is null)
+        {
+            return null;
+        }
+
+        return 100.0 * zooming.Value;
     }
 
     //
@@ -2444,6 +2524,21 @@ internal partial class ReaderView : UserControl
     //
     // Classes
     //
+
+    public enum ReaderState
+    {
+        Idle,
+        Ready,
+        Loading,
+        Error,
+    }
+
+    public interface IConfigurationDatabase
+    {
+        string? ReadConfiguration(string key);
+
+        void WriteConfiguration(string key, string value);
+    }
 
     private sealed class ScrollManager : BaseTransaction<ScrollResult>
     {
@@ -2615,25 +2710,19 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    public enum ReaderState
-    {
-        Idle,
-        Ready,
-        Loading,
-        Error,
-    }
-
-    public enum ScrollResult
+    private enum ScrollResult
     {
         Success = 0,
         Failed = 1,
         TooClose = 2,
     }
 
-    public enum ZoomType
+    private enum ZoomType
     {
         CenterInside,
         CenterCrop,
+        FitWidth,
+        FitHeight,
     }
 
     private class ScrollRequest
@@ -2669,5 +2758,90 @@ internal partial class ReaderView : UserControl
         public required int OriginalWidth;
         public required int OriginalHeight;
         public required IImageSource Source;
+    }
+
+    private class ReaderConfigDatabaseWrapper(IConfigurationDatabase db)
+    {
+        private const string KEY_VERTICAL_ZOOMING = "VerticalZooming";
+        private const string KEY_HORIZONTAL_ZOOMING = "HorizontalZooming";
+
+        private bool _initialized = false;
+
+        private double? _verticalZooming = null;
+        public double? VerticalZooming
+        {
+            get
+            {
+                Initialize();
+                return _verticalZooming;
+            }
+            set
+            {
+                if (_verticalZooming == value)
+                {
+                    return;
+                }
+
+                _verticalZooming = value;
+                Write(KEY_VERTICAL_ZOOMING, _verticalZooming?.ToString() ?? "");
+            }
+        }
+
+        private double? _horizontalZooming = null;
+        public double? HorizontalZooming
+        {
+            get
+            {
+                Initialize();
+                return _horizontalZooming;
+            }
+            set
+            {
+                if (_horizontalZooming == value)
+                {
+                    return;
+                }
+
+                _horizontalZooming = value;
+                Write(KEY_HORIZONTAL_ZOOMING, _horizontalZooming?.ToString() ?? "");
+            }
+        }
+
+        private void Initialize()
+        {
+            if (_initialized)
+            {
+                return;
+            }
+
+            _initialized = true;
+            _verticalZooming = ParseDouble(Read(KEY_VERTICAL_ZOOMING));
+            _horizontalZooming = ParseDouble(Read(KEY_HORIZONTAL_ZOOMING));
+        }
+
+        private string? Read(string key)
+        {
+            return db.ReadConfiguration(key);
+        }
+
+        private void Write(string key, string value)
+        {
+            db.WriteConfiguration(key, value);
+        }
+
+        private static double? ParseDouble(string? s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return null;
+            }
+
+            if (double.TryParse(s, out double value))
+            {
+                return value;
+            }
+
+            return null;
+        }
     }
 }
