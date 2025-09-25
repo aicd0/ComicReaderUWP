@@ -342,7 +342,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.ReaderLoadingInfoLiveData.Observe(this, info =>
         {
-            MainReaderView.SetInitialPage(info.InitialPage);
+            MainReaderView.SetCurrentPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
         });
     }
@@ -560,10 +560,7 @@ internal sealed partial class ReaderPage : BasePage
     {
         var ctx = (ReaderImagePreviewViewModel)e.ClickedItem;
         GridViewModeEnabled = false;
-
-        ReaderView.ScrollManager.BeginTransaction(MainReaderView, "JumpToGridItem")
-            .Page(ctx.Page)
-            .Commit();
+        MainReaderView.SetCurrentPage(ctx.Page);
     }
 
     private void FavoriteBt_Click(object sender, RoutedEventArgs e)

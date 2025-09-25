@@ -219,10 +219,20 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
-    public void SetInitialPage(double page)
+    public void SetCurrentPage(double page)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(page);
-        _initialPage = page;
+
+        if (ComicLoaded)
+        {
+            ScrollManager.BeginTransaction(this, "SetCurrentPage")
+                .Page(page)
+                .Commit();
+        }
+        else
+        {
+            _initialPage = page;
+        }
     }
 
     public void StartLoadingImages(IEnumerable<IImageSource> images)
@@ -1207,8 +1217,8 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerCanceled(object sender, PointerRoutedEventArgs e)
     {
-        PointerPoint pointer_point = e.GetCurrentPoint(_gestureReference);
-        _gestureRecognizer.ProcessUpEvent(pointer_point);
+        PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
+        _gestureRecognizer.ProcessUpEvent(pointerPoint);
         ((UIElement)sender).ReleasePointerCapture(e.Pointer);
 
         if (!_gestureRecognizer.AutoProcessInertia)
@@ -1231,14 +1241,14 @@ internal partial class ReaderView : UserControl
     private void OnReaderPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         ((UIElement)sender).CapturePointer(e.Pointer);
-        PointerPoint pointer_point = e.GetCurrentPoint(_gestureReference);
-        _gestureRecognizer.ProcessDownEvent(pointer_point);
+        PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
+        _gestureRecognizer.ProcessDownEvent(pointerPoint);
     }
 
     private void OnReaderPointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        PointerPoint pointer_point = e.GetCurrentPoint(_gestureReference);
-        _gestureRecognizer.ProcessUpEvent(pointer_point);
+        PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
+        _gestureRecognizer.ProcessUpEvent(pointerPoint);
         ((UIElement)sender).ReleasePointerCapture(e.Pointer);
 
         if (!_gestureRecognizer.AutoProcessInertia)
@@ -1249,10 +1259,9 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderScrollViewerPointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
-        // Ctrl key down indicates the user is zooming the page. In that case we shouldn't handle the event.
-        CoreVirtualKeyStates ctrl_state = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control);
-
-        if (ctrl_state.HasFlag(CoreVirtualKeyStates.Down))
+        // Ctrl key down indicates the user is zooming. In that case we shouldn't handle this event.
+        CoreVirtualKeyStates ctrlState = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control);
+        if (ctrlState.HasFlag(CoreVirtualKeyStates.Down))
         {
             return;
         }
@@ -2436,7 +2445,7 @@ internal partial class ReaderView : UserControl
     // Classes
     //
 
-    internal sealed class ScrollManager : BaseTransaction<ScrollResult>
+    private sealed class ScrollManager : BaseTransaction<ScrollResult>
     {
         private readonly WeakReference<ReaderView> _reader;
         private readonly string _reason;
