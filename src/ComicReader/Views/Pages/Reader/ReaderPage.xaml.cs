@@ -342,6 +342,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.ReaderLoadingInfoLiveData.Observe(this, info =>
         {
+            MainReaderView.SetConfigurationDatabase(new ReaderConfigDatabase());
             MainReaderView.SetCurrentPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
         });
@@ -832,5 +833,18 @@ internal sealed partial class ReaderPage : BasePage
     {
         public ReaderStatusEnum Status { get; } = status;
         public string Description { get; } = description;
+    }
+
+    private class ReaderConfigDatabase : ReaderView.IConfigurationDatabase
+    {
+        public string? ReadConfiguration(string key)
+        {
+            return KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_READER_STATE, key);
+        }
+
+        public void WriteConfiguration(string key, string value)
+        {
+            KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_READER_STATE, key, value);
+        }
     }
 }
