@@ -43,6 +43,7 @@ internal partial class ReaderView : UserControl
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 105F;
     private const int PRELOAD_FRAMES_BEFORE = 10;
     private const int PRELOAD_FRAMES_AFTER = 10;
+    private const double AUTO_SCROLL_THRESHOLD = 0.1;
 
     //
     // Variables
@@ -74,6 +75,8 @@ internal partial class ReaderView : UserControl
     private bool _isLastFrameLoaded = false;
     private bool _isLastFrameActionPerformed = false;
 
+    private bool _pointerDown = false;
+    private double _maxLinearVelocity = 0.0;
     private bool _tapPending = false;
     private bool _tapCancelled = false;
     private bool _manipulationDisabled = false;
@@ -235,9 +238,9 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    public void SetAutoScrollEnabled(bool enabled)
+    public void SetAutoScrollSpeed(int speed)
     {
-        _isAutoScrollEnabled = enabled;
+        _autoScrollSpeed = Math.Max(0, speed);
     }
 
     public void SetConfigurationDatabase(IConfigurationDatabase? configDatabase)
@@ -1243,10 +1246,10 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerCanceled(object sender, PointerRoutedEventArgs e)
     {
+        _pointerDown = false;
         PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
         _gestureRecognizer.ProcessUpEvent(pointerPoint);
         ((UIElement)sender).ReleasePointerCapture(e.Pointer);
-
         if (!_gestureRecognizer.AutoProcessInertia)
         {
             _gestureRecognizer.CompleteGesture();
@@ -1266,6 +1269,7 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerPressed(object sender, PointerRoutedEventArgs e)
     {
+        _pointerDown = true;
         ((UIElement)sender).CapturePointer(e.Pointer);
         PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
         _gestureRecognizer.ProcessDownEvent(pointerPoint);
@@ -1273,10 +1277,10 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        _pointerDown = false;
         PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
         _gestureRecognizer.ProcessUpEvent(pointerPoint);
         ((UIElement)sender).ReleasePointerCapture(e.Pointer);
-
         if (!_gestureRecognizer.AutoProcessInertia)
         {
             _gestureRecognizer.CompleteGesture();
@@ -1313,6 +1317,7 @@ internal partial class ReaderView : UserControl
     private void OnReaderManipulationStarted(ManipulationStartedEventArgs e)
     {
         _manipulationDisabled = false;
+        _maxLinearVelocity = 0.0;
     }
 
     private void OnReaderManipulationUpdated(ManipulationUpdatedEventArgs e)
@@ -1340,6 +1345,19 @@ internal partial class ReaderView : UserControl
 
         SetScrollViewer3("ContinuousScrollingUsingManipulation", ScrollSource.User, zoom: zoom,
             horizontalOffset: SCHorizontalOffsetFinal - dx, verticalOffset: SCVerticalOffsetFinal - dy, disableAnimation: false);
+
+        // Handle auto scrolling in continuous mode
+        double v = _isVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
+        _maxLinearVelocity = Math.Max(_maxLinearVelocity, Math.Abs(v));
+        if (_autoScrollSpeed > 0 && _isContinuous && !_pointerDown)
+        {
+            double threshold = _maxLinearVelocity * AUTO_SCROLL_THRESHOLD * _autoScrollSpeed / 50.0;
+            if (Math.Abs(v) < threshold)
+            {
+                _gestureRecognizer.CompleteGesture();
+                StartAutoScrolling(v > 0 ? -threshold : threshold);
+            }
+        }
     }
 
     private void OnReaderManipulationCompleted(ManipulationCompletedEventArgs e)
@@ -1422,6 +1440,75 @@ internal partial class ReaderView : UserControl
                 SetScrollViewer3("FitScreenUsingCenterCrop", ScrollSource.User, zoom: 100, zoomType: ZoomType.CenterInside, disableAnimation: false);
             }
         }
+    }
+
+    //
+    // Auto scrolling
+    //
+
+    private int _autoScrollSpeed = 0;
+    private bool _isAutoScrolling = false;
+
+    private void StartAutoScrolling(double velocity)
+    {
+        if (_isAutoScrolling || _autoScrollSpeed <= 0)
+        {
+            return;
+        }
+
+        _isAutoScrolling = true;
+        Log("AutoScroll", $"Start velocity={velocity}");
+        CoroutineUtils.Start(async () =>
+        {
+            try
+            {
+                long lastTime = GetTick();
+                bool isContinuous = _isContinuous;
+                while (true)
+                {
+                    await Task.Delay(10);
+                    if (!_isAutoScrolling || _autoScrollSpeed <= 0 || isContinuous != _isContinuous)
+                    {
+                        break;
+                    }
+
+                    long currentTime = GetTick();
+                    int elapsed = (int)(currentTime - lastTime);
+                    if (_isContinuous)
+                    {
+                        double delta = velocity * elapsed;
+                        lastTime = currentTime;
+                        SetScrollViewer1("AutoScroll", ScrollSource.Programmatic, parallelOffset: SCParallelOffsetFinal + delta);
+                    }
+                    else
+                    {
+                        if (_pointerDown)
+                        {
+                            // User interaction detected, stop auto scrolling.
+                            break;
+                        }
+
+                        int targetDelay = (int)(8000.0 / _autoScrollSpeed * 50.0);
+                        if (elapsed > targetDelay)
+                        {
+                            lastTime = currentTime;
+                            MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, 1);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                _isAutoScrolling = false;
+            }
+
+            Log("AutoScroll", $"Stop");
+        });
+    }
+
+    private void StopAutoScrolling()
+    {
+        _isAutoScrolling = false;
     }
 
     //
@@ -1514,41 +1601,6 @@ internal partial class ReaderView : UserControl
         _cursorDisposed = true;
         cursor?.Dispose();
         ProtectedCursor = null;
-    }
-
-    //
-    // Auto play
-    //
-
-    private bool _isAutoScrollEnabled = false;
-    private bool _isAutoScrolling = false;
-
-    private void StartAutoScrolling()
-    {
-        if (_isAutoScrolling)
-        {
-            return;
-        }
-
-        _isAutoScrolling = true;
-        CoroutineUtils.Start(async () =>
-        {
-            while (true)
-            {
-                await Task.Delay(100);
-                if (!_isAutoScrolling)
-                {
-                    break;
-                }
-
-                SetScrollViewer1("AutoScroll", ScrollSource.Programmatic, parallelOffset: SCParallelOffsetFinal + 1.0);
-            }
-        });
-    }
-
-    private void StopAutoScrolling()
-    {
-        _isAutoScrolling = false;
     }
 
     //
@@ -1703,13 +1755,18 @@ internal partial class ReaderView : UserControl
         _finalValueSynced = false;
     }
 
-    private bool MoveFrame(int increment, string reason)
+    private void MoveFrame(int increment, string reason)
     {
-        MoveFrameInternal(reason, increment, !AppModel.TransitionAnimation);
-        return true;
+        MoveFrameInternal(reason, ScrollSource.User, increment);
+
+        if (!_isContinuous)
+        {
+            // Page turning in seperate mode starts auto scrolling. Pass 0 velocity as it should never be used.
+            StartAutoScrolling(0F);
+        }
     }
 
-    private void MoveFrameInternal(string reason, int increment, bool disableAnimation)
+    private void MoveFrameInternal(string reason, ScrollSource source, int increment)
     {
         if (FrameDataSource.Count == 0)
         {
@@ -1723,7 +1780,7 @@ internal partial class ReaderView : UserControl
 
         double page = FrameDataSource[frame].Page;
         float? zoom = _zoom > 101f ? 100f : null;
-        SetScrollViewer2(reason, ScrollSource.User, zoom: zoom, page: page, disableAnimation: disableAnimation);
+        SetScrollViewer2(reason, source, zoom: zoom, page: page, disableAnimation: !AppModel.TransitionAnimation);
     }
 
     private ScrollResult SetScrollViewer1(string reason, ScrollSource source, float? zoom = null, double? parallelOffset = null, bool disableAnimation = true)
@@ -1834,6 +1891,12 @@ internal partial class ReaderView : UserControl
             + $",H={request.horizontalOffset}"
             + $",V={request.verticalOffset}"
             + $",D={request.disableAnimation}");
+
+        if (request.Source == ScrollSource.User && _isContinuous)
+        {
+            // User interaction cancels auto scrolling in continuous mode.
+            StopAutoScrolling();
+        }
 
         var context = new ScrollContext
         {

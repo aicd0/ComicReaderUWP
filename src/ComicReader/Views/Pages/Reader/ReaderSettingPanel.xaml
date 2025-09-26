@@ -362,7 +362,6 @@
             Margin="0,0,0,12"
             Fill="{ThemeResource ComicInfoSeparatorForeground}" />
 
-        <!--  Page spacing  -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -375,7 +374,9 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
             </Grid.RowDefinitions>
+
             <TextBlock
                 Grid.Row="0"
                 Grid.Column="0"
@@ -392,9 +393,25 @@
                 StepFrequency="1"
                 ValueChanged="PageGapSlider_ValueChanged"
                 Value="1" />
+
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="0,0,0,2"
+                VerticalAlignment="Center"
+                Text="{x:Bind StringResource.AutoScrolling}" />
+            <Slider
+                x:Name="AutoScrollingSlider"
+                Grid.Row="1"
+                Grid.Column="3"
+                Margin="0,-1,0,0"
+                Maximum="100"
+                Minimum="0"
+                StepFrequency="1"
+                ValueChanged="AutoScrollingSlider_ValueChanged"
+                Value="0" />
         </Grid>
 
-        <!--  Save as default configs  -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -403,7 +420,6 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="30" />
                 <RowDefinition Height="30" />
                 <RowDefinition Height="30" />
             </Grid.RowDefinitions>
@@ -427,29 +443,14 @@
                 Grid.Column="0"
                 Margin="0,0,0,2"
                 VerticalAlignment="Center"
-                Text="{x:Bind StringResource.AutoScrolling}" />
-            <ToggleSwitch
-                x:Name="AutoScrollToggleSwitch"
-                Grid.Row="1"
-                Grid.Column="3"
-                IsOn="False"
-                Style="{StaticResource CompatToggleSwitchStyle}"
-                Toggled="AutoScrollToggleSwitch_Toggled" />
-
-            <TextBlock
-                Grid.Row="2"
-                Grid.Column="0"
-                Margin="0,0,0,2"
-                VerticalAlignment="Center"
                 Text="{x:Bind StringResource.SaveAsDefaultConfig}" />
             <ToggleSwitch
                 x:Name="SaveAsDefaultToggleSwitch"
-                Grid.Row="2"
+                Grid.Row="1"
                 Grid.Column="3"
                 IsOn="True"
                 Style="{StaticResource CompatToggleSwitchStyle}"
                 Toggled="SaveAsDefaultToggleSwitch_Toggled" />
-
         </Grid>
 
     </StackPanel>

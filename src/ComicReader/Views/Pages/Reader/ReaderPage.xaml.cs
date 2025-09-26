@@ -391,7 +391,7 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetPageArrangement(readerSettingModel.PageArrangement);
         reader.SetFlowDirection(readerSettingModel.IsLeftToRight);
         reader.SetUseOriginalSize(readerSettingModel.OriginalSize);
-        reader.SetAutoScrollEnabled(readerSettingModel.AutoScrollEnabled);
+        reader.SetAutoScrollSpeed(readerSettingModel.AutoScrollSpeed);
         reader.SetPageGap(readerSettingModel.PageGap);
     }
 

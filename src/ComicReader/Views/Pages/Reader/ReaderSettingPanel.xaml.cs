@@ -10,6 +10,7 @@ using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReader.Views.Pages.Reader;
 
@@ -130,21 +131,21 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         DispatchDataChangeEvent();
     }
 
-    private void PageGapSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+    private void PageGapSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         _model.PageGap = Math.Clamp((int)e.NewValue, 0, 200);
+        DispatchDataChangeEvent();
+    }
+
+    private void AutoScrollingSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        _model.AutoScrollSpeed = Math.Clamp((int)e.NewValue, 0, 100);
         DispatchDataChangeEvent();
     }
 
     private void OriginalSizeToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
         _model.OriginalSize = OriginalSizeToggleSwitch.IsOn;
-        DispatchDataChangeEvent();
-    }
-
-    private void AutoScrollToggleSwitch_Toggled(object sender, RoutedEventArgs e)
-    {
-        _model.AutoScrollEnabled = AutoScrollToggleSwitch.IsOn;
         DispatchDataChangeEvent();
     }
 
@@ -210,9 +211,9 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         AbbSeperate.Visibility = _model.IsContinuous ? Visibility.Collapsed : Visibility.Visible;
 
         OriginalSizeToggleSwitch.IsOn = _model.OriginalSize;
-        AutoScrollToggleSwitch.IsOn = _model.AutoScrollEnabled;
         SaveAsDefaultToggleSwitch.IsOn = _model.UseDefault;
         PageGapSlider.Value = Math.Clamp(_model.PageGap, 0, 200);
+        AutoScrollingSlider.Value = Math.Clamp(_model.AutoScrollSpeed, 0, 100);
     }
 
     private void DispatchDataChangeEvent()

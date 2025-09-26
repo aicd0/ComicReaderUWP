@@ -130,8 +130,8 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         [JsonPropertyName("PageGap")]
         public int? PageGap { get; set; }
 
-        [JsonPropertyName("AutoScrollEnabled")]
-        public bool? AutoScrollEnabled { get; set; }
+        [JsonPropertyName("AutoScrollSpeed")]
+        public int? AutoScrollSpeed { get; set; }
     }
 
     public class ExternalModel
@@ -213,7 +213,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public PageArrangementEnum VerticalPageArrangement { get; set; }
         public PageArrangementEnum HorizontalPageArrangement { get; set; }
         public int PageGap { get; set; }
-        public bool AutoScrollEnabled { get; set; }
+        public int AutoScrollSpeed { get; set; }
 
         public static ReaderSettingModel From(ReaderSettingJsonModel? model)
         {
@@ -227,7 +227,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 VerticalPageArrangement = ParsePageArrangementEnum(model?.VerticalPageArrangement) ?? PageArrangementEnum.Single,
                 HorizontalPageArrangement = ParsePageArrangementEnum(model?.HorizontalPageArrangement) ?? PageArrangementEnum.DualCoverMirror,
                 PageGap = model?.PageGap ?? 100,
-                AutoScrollEnabled = model?.AutoScrollEnabled ?? false,
+                AutoScrollSpeed = model?.AutoScrollSpeed ?? 0,
             };
         }
 
@@ -243,7 +243,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 VerticalPageArrangement = (int)VerticalPageArrangement,
                 HorizontalPageArrangement = (int)HorizontalPageArrangement,
                 PageGap = PageGap,
-                AutoScrollEnabled = AutoScrollEnabled,
+                AutoScrollSpeed = AutoScrollSpeed,
             };
         }
 

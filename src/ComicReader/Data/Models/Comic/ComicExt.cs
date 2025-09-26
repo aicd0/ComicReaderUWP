@@ -14,6 +14,6 @@ internal static class ComicExt
     public const string VERTICAL_PAGE_ARRANGEMENT = "VerticalPageArrangement";
     public const string HORIZONTAL_PAGE_ARRANGEMENT = "HorizontalPageArrangement";
     public const string PAGE_GAP = "PageGap";
-    public const string AUTO_SCROLL_ENABLED = "AutoScrollEnabled";
+    public const string AUTO_SCROLL_SPEED = "AutoScrollSpeed";
     public const string LINKS = "Links";
 }
