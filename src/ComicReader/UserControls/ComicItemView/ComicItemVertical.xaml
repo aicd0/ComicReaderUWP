@@ -35,7 +35,7 @@
     <Grid
         x:Name="RootGrid"
         Background="{ThemeResource ComicItemBackground}"
-        ContextFlyout="{x:Bind Item.ContextFlyout, Mode=OneWay}"
+        ContextRequested="RootGrid_ContextRequested"
         PointerEntered="RootGrid_PointerEntered"
         PointerExited="RootGrid_PointerExited"
         Tapped="RootGrid_Tapped">
