@@ -715,9 +715,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     };
                     model.OnRequestContextFlyoutAsync = () =>
                     {
-                        List<BaseMenuFlyoutItemViewModel> result = MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
+                        return MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
                             new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
-                        return Task.FromResult(result);
                     };
                     model.UpdateProgress(true);
                     _comicItems.Add(model);
