@@ -49,6 +49,20 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _saveViewConfig = false;
+    public bool SaveViewConfig
+    {
+        get => _saveViewConfig;
+        set
+        {
+            if (_saveViewConfig != value)
+            {
+                _saveViewConfig = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveViewConfig)));
+            }
+        }
+    }
+
     public void Initialize(ComicFilterModel.ExternalFilterModel filter)
     {
         _ = InitializeAsync(filter);
@@ -121,6 +135,19 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         ParseResultLiveData.Emit(hintMessage);
         filter.Expression = expression;
         UpdateButtonStates();
+    }
+
+    public void SetSaveViewConfig(bool save)
+    {
+        _saveViewConfig = save;
+
+        ComicFilterModel.ExternalFilterModel? filter = _filter;
+        if (filter == null)
+        {
+            return;
+        }
+
+        filter.SaveViewConfig = save;
     }
 
     public void Save()
@@ -236,6 +263,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             NameLiveData.Emit(filter.Name);
             UpdateExpression(filter.Expression);
             ExpressionLiveData.Emit(filter.Expression);
+            SaveViewConfig = filter.SaveViewConfig;
         }
     }
 

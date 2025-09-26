@@ -25,6 +25,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="8" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock
                 Grid.Row="0"
@@ -87,8 +88,16 @@
                     </muxc:ItemsRepeater.Layout>
                 </muxc:ItemsRepeater>
             </StackPanel>
+            <CheckBox
+                Grid.Row="5"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Margin="0,16,0,0"
+                Click="SaveViewConfigCheckBox_Click"
+                Content="{x:Bind StringResource.SaveViewConfig}"
+                IsChecked="{x:Bind ViewModel.SaveViewConfig, Mode=OneWay}" />
         </Grid>
-        <Grid Margin="0,30,0,0" HorizontalAlignment="Stretch">
+        <Grid Margin="0,16,0,0" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="5" />

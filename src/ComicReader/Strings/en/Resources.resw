@@ -654,6 +654,9 @@ The evaluation will be performed in the following order:
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Save browsing history</value>
   </data>
+  <data name="SaveViewConfig" xml:space="preserve">
+    <value>Save view configuration</value>
+  </data>
   <data name="SearchResults" xml:space="preserve">
     <value>Search results</value>
   </data>

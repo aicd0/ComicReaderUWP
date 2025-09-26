@@ -118,6 +118,7 @@ public class StringResourceProvider
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");
+    public string SaveViewConfig => GetResourceString("SaveViewConfig");
     public string SearchResults => GetResourceString("SearchResults");
     public string SearchResultsOf => GetResourceString("SearchResultsOf");
     public string Select => GetResourceString("Select");

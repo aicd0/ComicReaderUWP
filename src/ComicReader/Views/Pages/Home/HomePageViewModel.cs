@@ -309,7 +309,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             ComicFilterModel.ExternalFilterModel lastFilter = EnsureLastFilterNoLock();
             if (lastFilter.ViewType != viewType)
             {
-                modified = true;
+                modified = lastFilter.SaveViewConfig;
                 lastFilter.ViewType = viewType;
             }
 
@@ -441,7 +441,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 return;
             }
 
-            _filterModel.LastFilter = filter.Clone();
+            ComicFilterModel.ExternalFilterModel? lastFilter = _filterModel.LastFilter;
+            filter = filter.Clone();
+            _filterModel.LastFilter = filter;
+            if (lastFilter is not null && !filter.SaveViewConfig)
+            {
+                filter.ViewType = lastFilter.ViewType;
+            }
+
             _filterModel.LastFilterModified = false;
             ScheduleUpdateFilters(false);
         });
@@ -1045,6 +1052,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             Name = StringResourceProvider.Instance.Default,
             ViewType = ComicFilterModel.ViewTypeEnum.Large,
+            SaveViewConfig = false,
             SortBy = new(),
             SortByAscending = true,
             GroupBy = null,

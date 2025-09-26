@@ -82,6 +82,9 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         [JsonPropertyName("ViewType")]
         public string? ViewType { get; set; }
 
+        [JsonPropertyName("SaveViewConfig")]
+        public bool? SaveViewConfig { get; set; }
+
         [JsonPropertyName("Expression")]
         public string? Expression { get; set; }
     }
@@ -138,6 +141,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         public FunctionTypeEnum GroupSortingFunction { get; set; } = FunctionTypeEnum.None;
         public ComicPropertyModel? GroupSortingProperty { get; set; }
         public ViewTypeEnum ViewType { get; set; }
+        public bool SaveViewConfig { get; set; }
         public string Expression { get; set; } = "";
 
         public ExternalFilterModel Clone()
@@ -157,6 +161,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 GroupSortingFunction = FunctionTypeToString(GroupSortingFunction),
                 GroupSortingProperty = GroupSortingProperty?.ToJson(),
                 ViewType = ViewTypeToString(ViewType),
+                SaveViewConfig = SaveViewConfig,
                 Expression = Expression,
             };
         }
@@ -178,6 +183,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 GroupSortingFunction = StringToFunctionType(model.GroupSortingFunction ?? FUNCTION_TYPE_NONE),
                 GroupSortingProperty = ComicPropertyModel.FromJson(model.GroupSortingProperty),
                 ViewType = StringToViewType(model.ViewType ?? ""),
+                SaveViewConfig = model.SaveViewConfig ?? true,
                 Expression = model.Expression ?? "",
             };
         }
