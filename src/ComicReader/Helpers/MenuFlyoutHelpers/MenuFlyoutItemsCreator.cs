@@ -148,21 +148,22 @@ internal static class MenuFlyoutItemsCreator
 
     public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagLinkMenuItems(string tagCategory, string tag, ActionHandler actionHandler)
     {
-        List<BaseMenuFlyoutItemViewModel> items = await CreateTagLinkMenuItemsInternal(tagCategory, tag, actionHandler, fromComic: false);
-        if (items.Count == 0)
-        {
-            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
-            {
-                IsEnabled = false,
-            });
-        }
-
-        return items;
+        List<TagLinkModel.LinkModel> links = await GetTagLinks(tagCategory, tag);
+        links.Sort((a, b) => a.Name.CompareTo(b.Name));
+        return CreateLinkMenuItems(actionHandler, links);
     }
 
     private static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicLinkMenuItems(ComicModel comic, ActionHandler actionHandler)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        List<TagLinkModel.LinkModel> links = [];
+
+        {
+            string? linkJson = comic.GetExt(ComicExt.LINKS);
+            var linkModel = TagLinkModel.Parse(linkJson);
+            linkModel.Links.Sort((a, b) => a.Name.CompareTo(b.Name));
+            links.AddRange(linkModel.Links);
+        }
+
         foreach (ComicData.TagData tagData in comic.Tags)
         {
             foreach (string tag in tagData.Tags)
@@ -173,26 +174,22 @@ internal static class MenuFlyoutItemsCreator
                     continue;
                 }
 
-                List<BaseMenuFlyoutItemViewModel> tagLinkItems = await CreateTagLinkMenuItemsInternal(tagData.Name, tag, actionHandler, fromComic: true);
-                items.AddRange(tagLinkItems);
+                List<TagLinkModel.LinkModel> tagLinks = await GetTagLinks(tagData.Name, tag);
+                foreach (TagLinkModel.LinkModel link in tagLinks)
+                {
+                    link.Name = $"{link.Name} ({tag})";
+                }
+
+                tagLinks.Sort((a, b) => a.Name.CompareTo(b.Name));
+                links.AddRange(tagLinks);
             }
         }
 
-        if (items.Count == 0)
-        {
-            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
-            {
-                IsEnabled = false,
-            });
-        }
-
-        return items;
+        return CreateLinkMenuItems(actionHandler, links);
     }
 
-    private static async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagLinkMenuItemsInternal(string tagCategory, string tag, ActionHandler actionHandler, bool fromComic)
+    private static async Task<List<TagLinkModel.LinkModel>> GetTagLinks(string tagCategory, string tag)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
-
         TagCategoryInfoModel? tagCategoryInfo = await TagCategoryInfoModel.Get(tagCategory);
         TagInfoModel? tagInfo = await TagInfoModel.Get(tagCategory, tag);
         List<TagLinkModel.LinkModel> links = [];
@@ -220,19 +217,17 @@ internal static class MenuFlyoutItemsCreator
                 .Replace("{%tag_category_escaped}", tagCategoryEscaped);
         }
 
+        return links;
+    }
+
+    private static List<BaseMenuFlyoutItemViewModel> CreateLinkMenuItems(ActionHandler actionHandler, List<TagLinkModel.LinkModel> links)
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
         if (links.Count > 0)
         {
-            links.Sort((a, b) => a.Name.CompareTo(b.Name));
-
             foreach (TagLinkModel.LinkModel link in links)
             {
-                string name = link.Name;
-                if (fromComic)
-                {
-                    name = $"{name} ({tag})";
-                }
-
-                items.Add(new MenuFlyoutItemViewModel(name)
+                items.Add(new MenuFlyoutItemViewModel(link.Name)
                 {
                     OnClick = () =>
                     {
@@ -251,6 +246,13 @@ internal static class MenuFlyoutItemsCreator
                     }
                 });
             }
+        }
+        else
+        {
+            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
+            {
+                IsEnabled = false,
+            });
         }
 
         return items;
