@@ -226,8 +226,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         },
                         OnRequestContextFlyoutAsync = () =>
                         {
-                            return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler,
-                                new ComicItemMenuFlyoutHandler(this, comic));
+                            return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler);
                         },
                     };
 
@@ -334,20 +333,5 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
     private class TagModel
     {
         public HashSet<long> ComicIds { get; } = [];
-    }
-
-    private class ComicItemMenuFlyoutHandler(TagsPageViewModel viewModel, ComicModel comic) : SimpleComicItemMenuFlyoutHandler(comic)
-    {
-        private readonly ComicModel _comic = comic;
-
-        public override void OnEditClick()
-        {
-            viewModel.EditComicLiveData.Emit([_comic]);
-        }
-
-        protected override void OpenInNewTab(Route route)
-        {
-            viewModel.OpenInNewTabLiveData.Emit(route);
-        }
     }
 }

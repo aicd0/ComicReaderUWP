@@ -99,11 +99,6 @@ internal sealed partial class SearchPage : BasePage
             GetMainPageAbility().OpenInCurrentTab(route);
         });
 
-        ViewModel.OpenInNewTabLiveData.Observe(this, route =>
-        {
-            GetMainPageAbility().OpenInNewTab(route);
-        });
-
         ViewModel.EditComicLiveData.Observe(this, comics =>
         {
             if (comics.Count == 0)
@@ -305,8 +300,9 @@ internal sealed partial class SearchPage : BasePage
                 };
                 item.OnRequestContextFlyoutAsync = () =>
                 {
+                    List<ComicItemViewModel> selection = ViewModel.GetSelection(item);
                     return MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler,
-                        new SearchPageViewModel.ComicItemHandler(ViewModel, item), supportSelection: true);
+                        selectedComics: selection.ConvertAll(x => x.Comic), supportSelection: true);
                 };
                 item.UpdateProgress(false);
 

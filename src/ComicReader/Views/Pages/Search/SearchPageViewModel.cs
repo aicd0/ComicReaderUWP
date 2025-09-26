@@ -9,7 +9,6 @@ using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
-using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.UserControls.ComicItemView;
@@ -29,7 +28,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
     public bool IsLoading;
 
     public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
-    public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
     public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
     public bool IsResultEmpty => SearchResults.Count == 0;
 
@@ -419,57 +417,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 break;
             default:
                 break;
-        }
-    }
-
-    public class ComicItemHandler(SearchPageViewModel viewModel, ComicItemViewModel item) : IComicItemMenuFlyoutHandler
-    {
-        void IComicItemMenuFlyoutHandler.OnAddToFavoritesClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.Favorite, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnEditClick()
-        {
-            List<ComicItemViewModel> selection = viewModel.GetSelection(item);
-            viewModel.EditComicLiveData.Emit(selection.ConvertAll(x => x.Comic));
-        }
-
-        void IComicItemMenuFlyoutHandler.OnHideClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.Hide, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnMarkAsReadClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsRead, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnMarkAsReadingClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsReading, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnMarkAsUnreadClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsUnread, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()
-        {
-            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                .WithParam(RouterConstants.ARG_COMIC_ID, item.Comic.Id.ToString());
-            viewModel.OpenInNewTabLiveData.Emit(route);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnRemoveFromFavoritesClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.Unfavorite, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnUnhideClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.Unhide, item);
         }
     }
 }

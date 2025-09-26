@@ -515,7 +515,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>이름으로 정렬</value>
   </data>
-  <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
+  <data name="More" xml:space="preserve">
     <value>더</value>
   </data>
   <data name="Name" xml:space="preserve">

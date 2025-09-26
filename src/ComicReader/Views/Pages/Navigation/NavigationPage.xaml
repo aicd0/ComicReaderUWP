@@ -124,9 +124,9 @@
 
                         <!--  More button  -->
                         <AppBarButton
-                            x:Uid="MoreButton"
                             Flyout="{x:Bind ViewModel.MoreButtonFlyout, Mode=OneWay}"
-                            Style="{StaticResource NavigationPageTopTileAppBarButton}">
+                            Style="{StaticResource NavigationPageTopTileAppBarButton}"
+                            ToolTipService.ToolTip="{x:Bind StringResource.More}">
                             <AppBarButton.Content>
                                 <FontIcon Glyph="&#xE712;" />
                             </AppBarButton.Content>

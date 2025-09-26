@@ -514,7 +514,7 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>按名称排序</value>
   </data>
-  <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
+  <data name="More" xml:space="preserve">
     <value>更多</value>
   </data>
   <data name="Name" xml:space="preserve">

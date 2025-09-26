@@ -12,6 +12,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
+using ComicReader.Helpers.Navigation;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
@@ -21,17 +22,27 @@ internal static class MenuFlyoutItemsCreator
     public const string CUSTOM_ACTION_NAME_SELECT = "Select";
 
     public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateMenuItems(
-        ComicModel comic,
+        ComicModel primaryComic,
         ActionHandler actionHandler,
-        IComicItemMenuFlyoutHandler handler,
+        IEnumerable<ComicModel>? selectedComics = null,
         bool supportSelection = false)
     {
+        selectedComics ??= [primaryComic];
+
         List<BaseMenuFlyoutItemViewModel> result = [];
 
         result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInNewTab)
         {
             Glyph = "\uE8A5",
-            OnClick = handler.OnOpenInNewTabClicked,
+            OnClick = () =>
+            {
+                Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                    .WithParam(RouterConstants.ARG_COMIC_ID, primaryComic.Id.ToString());
+                ActionModel actionModel = ActionModel.Builder.Create(OpenInNewTabProvider.NAME)
+                    .AddParameter(OpenInNewTabProvider.PARAM_URL, route.Url)
+                    .Build();
+                actionHandler.Handle(actionModel);
+            },
         });
 
         result.Add(new MenuFlyoutSeperatorViewModel());
@@ -39,18 +50,22 @@ internal static class MenuFlyoutItemsCreator
         result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Links)
         {
             Glyph = "\uE71B",
-            Items = await CreateComicLinkMenuItems(comic, actionHandler),
+            Items = await CreateComicLinkMenuItems(primaryComic, actionHandler),
         });
 
         result.Add(new MenuFlyoutSeperatorViewModel());
 
-        bool isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
+        bool isFavorite = FavoriteModel.Instance.FromId(primaryComic.Id) != null;
         if (isFavorite)
         {
             result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.RemoveFromFavorites)
             {
                 Glyph = "\uE8D9",
-                OnClick = handler.OnRemoveFromFavoritesClicked,
+                OnClick = () =>
+                {
+                    List<ComicModel> items = [.. selectedComics];
+                    FavoriteModel.Instance.BatchRemoveWithId(items.ConvertAll(x => x.Id));
+                },
             });
         }
         else
@@ -58,7 +73,15 @@ internal static class MenuFlyoutItemsCreator
             result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.AddToFavorites)
             {
                 Glyph = "\uE734",
-                OnClick = handler.OnAddToFavoritesClicked,
+                OnClick = () =>
+                {
+                    List<ComicModel> items = [.. selectedComics];
+                    FavoriteModel.Instance.BatchAdd(items.ConvertAll(x => new FavoriteModel.FavoriteItem
+                    {
+                        Id = x.Id,
+                        Title = x.Title,
+                    }));
+                },
             });
         }
 
@@ -70,31 +93,55 @@ internal static class MenuFlyoutItemsCreator
 
             groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusUnread)
             {
-                IsChecked = comic.CompletionState == ComicCompletionStatusEnum.NotStarted,
-                OnClick = handler.OnMarkAsUnreadClicked,
+                IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.NotStarted,
+                OnClick = async () =>
+                {
+                    foreach (ComicModel comic in selectedComics)
+                    {
+                        await comic.SetCompletionStateToNotStarted();
+                    }
+                },
             });
 
             groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusReading)
             {
-                IsChecked = comic.CompletionState == ComicCompletionStatusEnum.Started,
-                OnClick = handler.OnMarkAsReadingClicked,
+                IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Started,
+                OnClick = async () =>
+                {
+                    foreach (ComicModel comic in selectedComics)
+                    {
+                        await comic.SetCompletionStateToStarted();
+                    }
+                },
             });
 
             groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusFinished)
             {
-                IsChecked = comic.CompletionState == ComicCompletionStatusEnum.Completed,
-                OnClick = handler.OnMarkAsReadClicked,
+                IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Completed,
+                OnClick = async () =>
+                {
+                    foreach (ComicModel comic in selectedComics)
+                    {
+                        await comic.SetCompletionStateToCompleted();
+                    }
+                },
             });
 
             result.Add(groupItem);
         }
 
-        if (comic.Hidden)
+        if (primaryComic.Hidden)
         {
             result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Unhide)
             {
                 Glyph = "\uE7B3",
-                OnClick = handler.OnUnhideClicked,
+                OnClick = async () =>
+                {
+                    foreach (ComicModel comic in selectedComics)
+                    {
+                        await comic.SaveHiddenAsync(false);
+                    }
+                },
             });
         }
         else
@@ -102,14 +149,28 @@ internal static class MenuFlyoutItemsCreator
             result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Hide)
             {
                 Glyph = "\uED1A",
-                OnClick = handler.OnHideClicked,
+                OnClick = async () =>
+                {
+                    foreach (ComicModel comic in selectedComics)
+                    {
+                        await comic.SaveHiddenAsync(true);
+                    }
+                },
             });
         }
 
         result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
             Glyph = "\uE70F",
-            OnClick = handler.OnEditClick,
+            OnClick = () =>
+            {
+                List<ComicModel> items = [.. selectedComics];
+                string idList = string.Join(',', items.ConvertAll(x => x.Id.ToString()));
+                ActionModel actionModel = ActionModel.Builder.Create(EditComicProvider.NAME)
+                    .AddParameter(EditComicProvider.PARAM_ID, idList)
+                    .Build();
+                actionHandler.Handle(actionModel);
+            },
         });
 
         result.Add(new MenuFlyoutSeperatorViewModel());
@@ -120,7 +181,7 @@ internal static class MenuFlyoutItemsCreator
             OnClick = () =>
             {
                 var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
-                comic.ShowInFileExplorer(er);
+                primaryComic.ShowInFileExplorer(er);
                 er.DisplayErrorMessage(actionHandler);
             },
         });

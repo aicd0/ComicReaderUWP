@@ -34,7 +34,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
-    public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
     public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
     public readonly MutableLiveData<FilterModel> FilterLiveData = new();
     public readonly MutableLiveData<bool> GroupingEnabledLiveData = new();
@@ -715,8 +714,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     };
                     model.OnRequestContextFlyoutAsync = () =>
                     {
+                        List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [item];
                         return MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
-                            new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
+                            selectedComics: selectedComics, supportSelection: true);
                     };
                     model.UpdateProgress(true);
                     _comicItems.Add(model);
@@ -1328,56 +1328,5 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         Ascending,
         Descending,
         Function,
-    }
-
-    private class ComicItemMenuFlyoutHandler(HomePageViewModel viewModel, ComicItemViewModel item) : IComicItemMenuFlyoutHandler
-    {
-        void IComicItemMenuFlyoutHandler.OnOpenInNewTabClicked()
-        {
-            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                .WithParam(RouterConstants.ARG_COMIC_ID, item.Comic.Id.ToString());
-            viewModel.OpenInNewTabLiveData.Emit(route);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnAddToFavoritesClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.Favorite, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnRemoveFromFavoritesClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.Unfavorite, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnHideClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.Hide, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnUnhideClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.Unhide, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnMarkAsReadClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsRead, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnMarkAsReadingClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsReading, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnMarkAsUnreadClicked()
-        {
-            viewModel.ApplyOperationToComic(ComicOperationType.MarkAsUnread, item);
-        }
-
-        void IComicItemMenuFlyoutHandler.OnEditClick()
-        {
-            List<ComicItemViewModel> selection = viewModel.GetSelection(item);
-            viewModel.EditComicLiveData.Emit(selection.ConvertAll(x => x.Comic));
-        }
     }
 }

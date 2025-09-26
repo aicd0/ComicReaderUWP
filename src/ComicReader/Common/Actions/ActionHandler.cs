@@ -69,16 +69,8 @@ internal class ActionHandler
         }
 
         NameValueCollection queires = action.Parameters;
-        ActionProviderContext providerContext = new(this);
+        ActionProviderContext providerContext = new(this, callback);
         provider.Handle(providerContext, queires);
-        if (providerContext.Successful)
-        {
-            callback.OnSuccess();
-        }
-        else
-        {
-            callback.OnError(providerContext.ErrorMessage);
-        }
     }
 
     private class DefaultActionCallback : IActionCallback
@@ -93,8 +85,9 @@ internal class ActionHandler
         }
     }
 
-    private class ActionProviderContext(ActionHandler handler) : IActionProviderContext
+    private class ActionProviderContext(ActionHandler handler, IActionCallback callback) : IActionProviderContext
     {
+        public bool Completed { get; private set; } = false;
         public bool Successful { get; private set; } = true;
         public string ErrorMessage { get; private set; } = string.Empty;
 
@@ -113,8 +106,41 @@ internal class ActionHandler
 
         public void SetError(string message)
         {
+            if (Completed)
+            {
+                Logger.F(TAG, "ActionProviderContext is already completed.");
+                return;
+            }
+
+            Completed = true;
             Successful = false;
             ErrorMessage = message;
+            DispatchCallback();
+        }
+
+        public void SetSuccess()
+        {
+            if (Completed)
+            {
+                Logger.F(TAG, "ActionProviderContext is already completed.");
+                return;
+            }
+
+            Completed = true;
+            Successful = true;
+            DispatchCallback();
+        }
+
+        private void DispatchCallback()
+        {
+            if (Successful)
+            {
+                callback.OnSuccess();
+            }
+            else
+            {
+                callback.OnError(ErrorMessage);
+            }
         }
     }
 }

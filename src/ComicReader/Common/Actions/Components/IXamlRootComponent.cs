@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml;
 
 namespace ComicReader.Common.Actions.Components;
 
-internal interface IXamlRootProvider : IActionComponent
+internal interface IXamlRootComponent : IActionComponent
 {
-    XamlRoot? GetXamlRoot();
+    XamlRoot? XamlRoot { get; }
 }
