@@ -305,9 +305,8 @@ internal sealed partial class SearchPage : BasePage
                 };
                 item.OnRequestContextFlyoutAsync = () =>
                 {
-                    List<BaseMenuFlyoutItemViewModel> result = MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler,
+                    return MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler,
                         new SearchPageViewModel.ComicItemHandler(ViewModel, item), supportSelection: true);
-                    return Task.FromResult(result);
                 };
                 item.UpdateProgress(false);
 

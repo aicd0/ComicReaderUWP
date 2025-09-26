@@ -20,7 +20,7 @@ internal static class MenuFlyoutItemsCreator
     public const string CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU = "ComicItemMenu";
     public const string CUSTOM_ACTION_NAME_SELECT = "Select";
 
-    public static List<BaseMenuFlyoutItemViewModel> CreateMenuItems(
+    public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateMenuItems(
         ComicModel comic,
         ActionHandler actionHandler,
         IComicItemMenuFlyoutHandler handler,
@@ -28,52 +28,38 @@ internal static class MenuFlyoutItemsCreator
     {
         List<BaseMenuFlyoutItemViewModel> result = [];
 
+        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInNewTab)
         {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInNewTab)
-            {
-                Glyph = "\uE8A5",
-                OnClick = handler.OnOpenInNewTabClicked,
-            };
-            result.Add(item);
-        }
+            Glyph = "\uE8A5",
+            OnClick = handler.OnOpenInNewTabClicked,
+        });
 
         result.Add(new MenuFlyoutSeperatorViewModel());
 
+        result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Links)
         {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.OpenInFileExplorer)
-            {
-                Glyph = "\uE838",
-                OnClick = () =>
-                {
-                    var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
-                    comic.ShowInFileExplorer(er);
-                    er.DisplayErrorMessage(actionHandler);
-                },
-            };
-            result.Add(item);
-        }
+            Glyph = "\uE71B",
+            Items = await CreateComicLinkMenuItems(comic, actionHandler),
+        });
 
         result.Add(new MenuFlyoutSeperatorViewModel());
 
         bool isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
-        if (!isFavorite)
-        {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.AddToFavorites)
-            {
-                Glyph = "\uE734",
-                OnClick = handler.OnAddToFavoritesClicked,
-            };
-            result.Add(item);
-        }
-
         if (isFavorite)
         {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.RemoveFromFavorites)
+            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.RemoveFromFavorites)
             {
                 Glyph = "\uE8D9",
                 OnClick = handler.OnRemoveFromFavoritesClicked,
-            };
-            result.Add(item);
+            });
+        }
+        else
+        {
+            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.AddToFavorites)
+            {
+                Glyph = "\uE734",
+                OnClick = handler.OnAddToFavoritesClicked,
+            });
         }
 
         {
@@ -82,90 +68,128 @@ internal static class MenuFlyoutItemsCreator
                 Glyph = "\uE7C1",
             };
 
+            groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusUnread)
             {
-                MenuFlyoutToggleItemViewModel item = new(StringResourceProvider.Instance.CompletionStatusUnread)
-                {
-                    IsChecked = comic.CompletionState == ComicCompletionStatusEnum.NotStarted,
-                    OnClick = handler.OnMarkAsUnreadClicked,
-                };
-                groupItem.Items.Add(item);
-            }
+                IsChecked = comic.CompletionState == ComicCompletionStatusEnum.NotStarted,
+                OnClick = handler.OnMarkAsUnreadClicked,
+            });
 
+            groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusReading)
             {
-                MenuFlyoutToggleItemViewModel item = new(StringResourceProvider.Instance.CompletionStatusReading)
-                {
-                    IsChecked = comic.CompletionState == ComicCompletionStatusEnum.Started,
-                    OnClick = handler.OnMarkAsReadingClicked,
-                };
-                groupItem.Items.Add(item);
-            }
+                IsChecked = comic.CompletionState == ComicCompletionStatusEnum.Started,
+                OnClick = handler.OnMarkAsReadingClicked,
+            });
 
+            groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusFinished)
             {
-                MenuFlyoutToggleItemViewModel item = new(StringResourceProvider.Instance.CompletionStatusFinished)
-                {
-                    IsChecked = comic.CompletionState == ComicCompletionStatusEnum.Completed,
-                    OnClick = handler.OnMarkAsReadClicked,
-                };
-                groupItem.Items.Add(item);
-            }
+                IsChecked = comic.CompletionState == ComicCompletionStatusEnum.Completed,
+                OnClick = handler.OnMarkAsReadClicked,
+            });
 
             result.Add(groupItem);
         }
 
-        if (!comic.Hidden)
-        {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Hide)
-            {
-                Glyph = "\uED1A",
-                OnClick = handler.OnHideClicked,
-            };
-            result.Add(item);
-        }
-
         if (comic.Hidden)
         {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Unhide)
+            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Unhide)
             {
                 Glyph = "\uE7B3",
                 OnClick = handler.OnUnhideClicked,
-            };
-            result.Add(item);
+            });
+        }
+        else
+        {
+            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Hide)
+            {
+                Glyph = "\uED1A",
+                OnClick = handler.OnHideClicked,
+            });
         }
 
+        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
-            MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Edit)
+            Glyph = "\uE70F",
+            OnClick = handler.OnEditClick,
+        });
+
+        result.Add(new MenuFlyoutSeperatorViewModel());
+
+        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInFileExplorer)
+        {
+            Glyph = "\uE838",
+            OnClick = () =>
             {
-                Glyph = "\uE70F",
-                OnClick = handler.OnEditClick,
-            };
-            result.Add(item);
-        }
+                var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
+                comic.ShowInFileExplorer(er);
+                er.DisplayErrorMessage(actionHandler);
+            },
+        });
 
         if (supportSelection)
         {
             result.Add(new MenuFlyoutSeperatorViewModel());
 
+            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Select)
             {
-                MenuFlyoutItemViewModel item = new(StringResourceProvider.Instance.Select)
+                Glyph = "\uE762",
+                OnClick = () =>
                 {
-                    Glyph = "\uE762",
-                    OnClick = () =>
-                    {
-                        ActionModel actionModel = ActionModel.Builder.Create(CustomActionProvider.NAME)
-                            .AddParameter(CustomActionProvider.PARAM_SOURCE, CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU)
-                            .AddParameter(CustomActionProvider.PARAM_NAME, CUSTOM_ACTION_NAME_SELECT)
-                            .Build();
-                        actionHandler.Handle(actionModel);
-                    },
-                };
-                result.Add(item);
-            }
+                    ActionModel actionModel = ActionModel.Builder.Create(CustomActionProvider.NAME)
+                        .AddParameter(CustomActionProvider.PARAM_SOURCE, CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU)
+                        .AddParameter(CustomActionProvider.PARAM_NAME, CUSTOM_ACTION_NAME_SELECT)
+                        .Build();
+                    actionHandler.Handle(actionModel);
+                },
+            });
         }
 
         return result;
     }
 
     public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagLinkMenuItems(string tagCategory, string tag, ActionHandler actionHandler)
+    {
+        List<BaseMenuFlyoutItemViewModel> items = await CreateTagLinkMenuItemsInternal(tagCategory, tag, actionHandler, fromComic: false);
+        if (items.Count == 0)
+        {
+            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
+            {
+                IsEnabled = false,
+            });
+        }
+
+        return items;
+    }
+
+    private static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicLinkMenuItems(ComicModel comic, ActionHandler actionHandler)
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+        foreach (ComicData.TagData tagData in comic.Tags)
+        {
+            foreach (string tag in tagData.Tags)
+            {
+                TagInfoModel? tagModel = await TagInfoModel.Get(tagData.Name, tag);
+                if (tagModel is null)
+                {
+                    continue;
+                }
+
+                List<BaseMenuFlyoutItemViewModel> tagLinkItems = await CreateTagLinkMenuItemsInternal(tagData.Name, tag, actionHandler, fromComic: true);
+                items.AddRange(tagLinkItems);
+            }
+        }
+
+        if (items.Count == 0)
+        {
+            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
+            {
+                IsEnabled = false,
+            });
+        }
+
+        return items;
+    }
+
+    private static async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagLinkMenuItemsInternal(string tagCategory, string tag, ActionHandler actionHandler, bool fromComic)
     {
         List<BaseMenuFlyoutItemViewModel> items = [];
 
@@ -202,7 +226,13 @@ internal static class MenuFlyoutItemsCreator
 
             foreach (TagLinkModel.LinkModel link in links)
             {
-                items.Add(new MenuFlyoutItemViewModel(link.Name)
+                string name = link.Name;
+                if (fromComic)
+                {
+                    name = $"{name} ({tag})";
+                }
+
+                items.Add(new MenuFlyoutItemViewModel(name)
                 {
                     OnClick = () =>
                     {
@@ -221,13 +251,6 @@ internal static class MenuFlyoutItemsCreator
                     }
                 });
             }
-        }
-        else
-        {
-            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
-            {
-                IsEnabled = false,
-            });
         }
 
         return items;

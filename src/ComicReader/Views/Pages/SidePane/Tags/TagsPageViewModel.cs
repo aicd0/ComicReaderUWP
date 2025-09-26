@@ -226,8 +226,8 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         },
                         OnRequestContextFlyoutAsync = () =>
                         {
-                            List<BaseMenuFlyoutItemViewModel> result = MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler, new ComicItemMenuFlyoutHandler(this, comic));
-                            return Task.FromResult(result);
+                            return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler,
+                                new ComicItemMenuFlyoutHandler(this, comic));
                         },
                     };
 
