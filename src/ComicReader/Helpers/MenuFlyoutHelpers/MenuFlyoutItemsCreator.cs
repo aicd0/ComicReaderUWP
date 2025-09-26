@@ -229,12 +229,6 @@ internal static class MenuFlyoutItemsCreator
         {
             foreach (string tag in tagData.Tags)
             {
-                TagInfoModel? tagModel = await TagInfoModel.Get(tagData.Name, tag);
-                if (tagModel is null)
-                {
-                    continue;
-                }
-
                 List<TagLinkModel.LinkModel> tagLinks = await GetTagLinks(tagData.Name, tag);
                 foreach (TagLinkModel.LinkModel link in tagLinks)
                 {
