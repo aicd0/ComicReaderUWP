@@ -134,22 +134,7 @@ internal partial class ReaderView : UserControl
     public int CurrentPageDisplay => CurrentPageInt;
     public bool IsLastPage => PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1;
     public bool IsVertical => _isVertical;
-
-    public bool IsAutoPlaying
-    {
-        get => _autoPlayActive;
-        set
-        {
-            if (value)
-            {
-                StartAutoPlay();
-            }
-            else
-            {
-                StopAutoPlay();
-            }
-        }
-    }
+    public bool IsAutoScrolling => _isAutoScrolling;
 
     public void SetIsVertical(bool isVertical)
     {
@@ -248,6 +233,11 @@ internal partial class ReaderView : UserControl
         {
             _initialPage = page;
         }
+    }
+
+    public void SetAutoScrollEnabled(bool enabled)
+    {
+        _isAutoScrollEnabled = enabled;
     }
 
     public void SetConfigurationDatabase(IConfigurationDatabase? configDatabase)
@@ -1015,7 +1005,7 @@ internal partial class ReaderView : UserControl
             _dataModelSession.Next();
             _imagePool.Cancel();
             DisposeCursor();
-            StopAutoPlay();
+            StopAutoScrolling();
         }
     }
 
@@ -1226,7 +1216,7 @@ internal partial class ReaderView : UserControl
                 break;
 
             case VirtualKey.Space:
-                IsAutoPlaying = !IsAutoPlaying;
+                MoveFrame(1, "JumpToNextPageUsingSpaceKey");
                 break;
 
             case VirtualKey.R:
@@ -1530,34 +1520,35 @@ internal partial class ReaderView : UserControl
     // Auto play
     //
 
-    private bool _autoPlayActive = false;
+    private bool _isAutoScrollEnabled = false;
+    private bool _isAutoScrolling = false;
 
-    private void StartAutoPlay()
+    private void StartAutoScrolling()
     {
-        if (_autoPlayActive)
+        if (_isAutoScrolling)
         {
             return;
         }
 
-        _autoPlayActive = true;
+        _isAutoScrolling = true;
         CoroutineUtils.Start(async () =>
         {
             while (true)
             {
                 await Task.Delay(100);
-                if (!_autoPlayActive)
+                if (!_isAutoScrolling)
                 {
                     break;
                 }
 
-                SetScrollViewer1("Autoplay", ScrollSource.AutoPlay, parallelOffset: SCParallelOffsetFinal + 1.0);
+                SetScrollViewer1("AutoScroll", ScrollSource.Programmatic, parallelOffset: SCParallelOffsetFinal + 1.0);
             }
         });
     }
 
-    private void StopAutoPlay()
+    private void StopAutoScrolling()
     {
-        _autoPlayActive = false;
+        _isAutoScrolling = false;
     }
 
     //
@@ -1830,11 +1821,6 @@ internal partial class ReaderView : UserControl
             return ScrollResult.Failed;
         }
 
-        if (request.Source == ScrollSource.User)
-        {
-            StopAutoPlay();
-        }
-
         Logger.Assert(float.IsFinite(request.zoom ?? 0), "5D42C4251571A722");
         Logger.Assert(!float.IsNegative(request.zoom ?? 0), "65075662668EE56D");
         Logger.Assert(double.IsFinite(request.horizontalOffset ?? 0), "4FD89F79946B8D03");
@@ -1842,6 +1828,7 @@ internal partial class ReaderView : UserControl
 
         Log("Jump", "Request:"
             + $" Reason={reason}"
+            + $",Src={(int)request.Source}"
             + $",P={request.page}"
             + $",Z={request.zoom}"
             + $",H={request.horizontalOffset}"
@@ -2007,15 +1994,6 @@ internal partial class ReaderView : UserControl
         zoomFactorNew = Math.Min(zoomFactorNew, maxZoomFactor);
         zoomFactorNew = Math.Max(zoomFactorNew, minZoomFactor);
         zoom = zoomFactorNew / zoomCoefficientNew.Min();
-
-        // Ignore vary less than 1%
-        // Commented out because it causes calculation error when dimensions of adjacent frames are close but not equal.
-        //if (Math.Abs(zoomFactorNew / SCZoomFactorFinal - 1.0f) <= 0.01f)
-        //{
-        //    context.ZoomFactor = null;
-        //    return;
-        //}
-
         context.ZoomFactor = (float)zoomFactorNew;
         context.ZoomPercentage = (float)zoom;
 
@@ -2625,7 +2603,6 @@ internal partial class ReaderView : UserControl
     {
         User = 0,
         Programmatic = 1,
-        AutoPlay = 2,
     }
 
     private enum ScrollResult

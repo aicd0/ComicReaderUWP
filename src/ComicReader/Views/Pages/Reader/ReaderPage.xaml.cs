@@ -96,7 +96,7 @@ internal sealed partial class ReaderPage : BasePage
             UpdatePage();
             UpdateProgress(sender, save: !isIntermediate);
 
-            if (!reader.IsAutoPlaying)
+            if (!reader.IsAutoScrolling)
             {
                 BottomTileSetHold(false);
             }
@@ -391,6 +391,7 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetPageArrangement(readerSettingModel.PageArrangement);
         reader.SetFlowDirection(readerSettingModel.IsLeftToRight);
         reader.SetUseOriginalSize(readerSettingModel.OriginalSize);
+        reader.SetAutoScrollEnabled(readerSettingModel.AutoScrollEnabled);
         reader.SetPageGap(readerSettingModel.PageGap);
     }
 

@@ -27,6 +27,7 @@ public class StringResourceProvider
     public string AppStoreName => GetResourceString("AppStoreName");
     public string ApplyOnNextLaunch => GetResourceString("ApplyOnNextLaunch");
     public string Ascending => GetResourceString("Ascending");
+    public string AutoScrolling => GetResourceString("AutoScrolling");
     public string Background => GetResourceString("Background");
     public string BackgroundAcrylic => GetResourceString("BackgroundAcrylic");
     public string Calculating => GetResourceString("Calculating");

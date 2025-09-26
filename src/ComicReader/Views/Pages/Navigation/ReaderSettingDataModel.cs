@@ -19,6 +19,7 @@ internal class ReaderSettingDataModel
     public PageArrangementEnum VerticalPageArrangement { get; set; } = PageArrangementEnum.Single;
     public PageArrangementEnum HorizontalPageArrangement { get; set; } = PageArrangementEnum.DualCover;
     public int PageGap { get; set; } = 100;
+    public bool AutoScrollEnabled { get; set; } = false;
 
     public bool IsContinuous
     {
@@ -60,6 +61,7 @@ internal class ReaderSettingDataModel
             VerticalPageArrangement = VerticalPageArrangement,
             HorizontalPageArrangement = HorizontalPageArrangement,
             PageGap = PageGap,
+            AutoScrollEnabled = AutoScrollEnabled,
         };
         return clone;
     }
@@ -73,7 +75,7 @@ internal class ReaderSettingDataModel
         model.HorizontalContinuous = IsHorizontalContinuous;
         model.VerticalPageArrangement = VerticalPageArrangement;
         model.HorizontalPageArrangement = HorizontalPageArrangement;
-        model.PageGap = PageGap;
+        model.AutoScrollEnabled = AutoScrollEnabled;
     }
 
     public void To(ComicModel comic)
@@ -87,6 +89,7 @@ internal class ReaderSettingDataModel
         comic.SetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT, VerticalPageArrangement.ToString());
         comic.SetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT, HorizontalPageArrangement.ToString());
         comic.SetExt(ComicExt.PAGE_GAP, PageGap.ToString());
+        comic.SetExt(ComicExt.AUTO_SCROLL_ENABLED, AutoScrollEnabled ? "1" : "0");
         comic.FlushExt();
     }
 
@@ -116,6 +119,7 @@ internal class ReaderSettingDataModel
         PageArrangementEnum verticalPageArrangement;
         PageArrangementEnum horizontalPageArrangement;
         int pageGap;
+        bool autoScrollEnabled;
 
         if (useDefault)
         {
@@ -127,6 +131,7 @@ internal class ReaderSettingDataModel
             verticalPageArrangement = model.VerticalPageArrangement;
             horizontalPageArrangement = model.HorizontalPageArrangement;
             pageGap = model.PageGap;
+            autoScrollEnabled = model.AutoScrollEnabled;
         }
         else
         {
@@ -137,6 +142,7 @@ internal class ReaderSettingDataModel
             horizontalContinuous = comic.GetExt(ComicExt.HORIZONTAL_CONTINUOUS)?.Equals("1") ?? model.HorizontalContinuous;
             verticalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT)) ?? model.VerticalPageArrangement;
             horizontalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT)) ?? model.HorizontalPageArrangement;
+            autoScrollEnabled = comic.GetExt(ComicExt.AUTO_SCROLL_ENABLED)?.Equals("1") ?? model.AutoScrollEnabled;
 
             pageGap = model.PageGap;
             {
@@ -159,6 +165,7 @@ internal class ReaderSettingDataModel
             VerticalPageArrangement = verticalPageArrangement,
             HorizontalPageArrangement = horizontalPageArrangement,
             PageGap = pageGap,
+            AutoScrollEnabled = autoScrollEnabled,
         };
     }
 }
