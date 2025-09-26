@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
@@ -27,7 +28,12 @@ internal static class MenuFlyoutItemsCreator
         IEnumerable<ComicModel>? selectedComics = null,
         bool supportSelection = false)
     {
+        // If primaryComic is not in selectedComics, ignore selectedComics and use only primaryComic.
         selectedComics ??= [primaryComic];
+        if (!selectedComics.Any(i => i.Id == primaryComic.Id))
+        {
+            selectedComics = [primaryComic];
+        }
 
         List<BaseMenuFlyoutItemViewModel> result = [];
 
