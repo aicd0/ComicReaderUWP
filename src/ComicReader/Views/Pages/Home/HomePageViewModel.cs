@@ -34,7 +34,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
-    public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
     public readonly MutableLiveData<FilterModel> FilterLiveData = new();
     public readonly MutableLiveData<bool> GroupingEnabledLiveData = new();
     public readonly MutableLiveData<ComicFilterModel.ViewTypeEnum> ViewTypeLiveData = new();
