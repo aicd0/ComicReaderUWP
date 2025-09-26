@@ -180,6 +180,9 @@
   <data name="Ascending" xml:space="preserve">
     <value>上昇</value>
   </data>
+  <data name="AutoScrolling" xml:space="preserve">
+    <value>自動スクロール</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>背景</value>
   </data>

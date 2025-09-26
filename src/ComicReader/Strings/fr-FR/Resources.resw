@@ -180,6 +180,9 @@
   <data name="Ascending" xml:space="preserve">
     <value>Ascendant</value>
   </data>
+  <data name="AutoScrolling" xml:space="preserve">
+    <value>Défilement automatique</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>Arrière-plan</value>
   </data>

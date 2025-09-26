@@ -19,6 +19,7 @@ internal class ReaderSettingDataModel
     public PageArrangementEnum VerticalPageArrangement { get; set; } = PageArrangementEnum.Single;
     public PageArrangementEnum HorizontalPageArrangement { get; set; } = PageArrangementEnum.DualCover;
     public int PageGap { get; set; } = 100;
+    public int AutoScrollSpeed { get; set; } = 0;
 
     public bool IsContinuous
     {
@@ -60,6 +61,7 @@ internal class ReaderSettingDataModel
             VerticalPageArrangement = VerticalPageArrangement,
             HorizontalPageArrangement = HorizontalPageArrangement,
             PageGap = PageGap,
+            AutoScrollSpeed = AutoScrollSpeed,
         };
         return clone;
     }
@@ -74,6 +76,7 @@ internal class ReaderSettingDataModel
         model.VerticalPageArrangement = VerticalPageArrangement;
         model.HorizontalPageArrangement = HorizontalPageArrangement;
         model.PageGap = PageGap;
+        model.AutoScrollSpeed = AutoScrollSpeed;
     }
 
     public void To(ComicModel comic)
@@ -87,6 +90,7 @@ internal class ReaderSettingDataModel
         comic.SetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT, VerticalPageArrangement.ToString());
         comic.SetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT, HorizontalPageArrangement.ToString());
         comic.SetExt(ComicExt.PAGE_GAP, PageGap.ToString());
+        comic.SetExt(ComicExt.AUTO_SCROLL_SPEED, AutoScrollSpeed.ToString());
         comic.FlushExt();
     }
 
@@ -116,6 +120,7 @@ internal class ReaderSettingDataModel
         PageArrangementEnum verticalPageArrangement;
         PageArrangementEnum horizontalPageArrangement;
         int pageGap;
+        int autoScrollSpeed;
 
         if (useDefault)
         {
@@ -127,6 +132,7 @@ internal class ReaderSettingDataModel
             verticalPageArrangement = model.VerticalPageArrangement;
             horizontalPageArrangement = model.HorizontalPageArrangement;
             pageGap = model.PageGap;
+            autoScrollSpeed = model.AutoScrollSpeed;
         }
         else
         {
@@ -146,6 +152,15 @@ internal class ReaderSettingDataModel
                     pageGap = parsedPageGap;
                 }
             }
+
+            autoScrollSpeed = model.AutoScrollSpeed;
+            {
+                string? autoScrollSpeedString = comic.GetExt(ComicExt.AUTO_SCROLL_SPEED);
+                if (!string.IsNullOrEmpty(autoScrollSpeedString) && int.TryParse(autoScrollSpeedString, out int parsedAutoScrollSpeed))
+                {
+                    autoScrollSpeed = parsedAutoScrollSpeed;
+                }
+            }
         }
 
         return new ReaderSettingDataModel
@@ -159,6 +174,7 @@ internal class ReaderSettingDataModel
             VerticalPageArrangement = verticalPageArrangement,
             HorizontalPageArrangement = horizontalPageArrangement,
             PageGap = pageGap,
+            AutoScrollSpeed = autoScrollSpeed,
         };
     }
 }
