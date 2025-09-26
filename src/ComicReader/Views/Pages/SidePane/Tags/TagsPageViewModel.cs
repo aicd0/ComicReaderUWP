@@ -182,7 +182,11 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 Title = tagCategory,
                 CanExpand = true,
                 Expanded = true,
-                MenuFlyoutItems = CreateTagCategoryMenuItems(tagCategory),
+                OnRequestContextFlyoutAsync = () =>
+                {
+                    List<BaseMenuFlyoutItemViewModel> result = CreateTagCategoryMenuItems(tagCategory);
+                    return Task.FromResult(result);
+                },
             };
 
             foreach (string tag in tags)
@@ -195,7 +199,10 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                     Title = tag,
                     CanExpand = true,
                     Expanded = false,
-                    MenuFlyoutItems = await CreateTagMenuItems(tagCategory, tag),
+                    OnRequestContextFlyoutAsync = () =>
+                    {
+                        return CreateTagMenuItems(tagCategory, tag);
+                    },
                 };
 
                 List<TagNodeViewModel> tagChildren = [];
@@ -211,12 +218,16 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         Glyph = "\uE8B9",
                         Title = comic.Title,
                         CanExpand = false,
-                        MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler, new ComicItemMenuFlyoutHandler(this, comic)),
                         OnClick = () =>
                         {
                             Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
                                 .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
                             OpenInCurrentTabLiveData.Emit(route);
+                        },
+                        OnRequestContextFlyoutAsync = () =>
+                        {
+                            List<BaseMenuFlyoutItemViewModel> result = MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler, new ComicItemMenuFlyoutHandler(this, comic));
+                            return Task.FromResult(result);
                         },
                     };
 
@@ -243,7 +254,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             from.Description = to.Description;
             from.CanExpand = to.CanExpand;
             from.OnClick = to.OnClick;
-            from.MenuFlyoutItems = to.MenuFlyoutItems;
+            from.OnRequestContextFlyoutAsync = to.OnRequestContextFlyoutAsync;
             DiffUtils.UpdateCollection(from.Children, to.Children, (a, b) => a.Title == b.Title, UpdateItem);
         }
 
