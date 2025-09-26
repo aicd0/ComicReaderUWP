@@ -10,6 +10,7 @@ using ComicReader.Helpers.Imaging;
 using ComicReader.ViewModels;
 
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 
@@ -74,6 +75,37 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
     private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
     {
         Item?.OnClick?.Invoke();
+    }
+
+    private async void RootGrid_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        ComicItemViewModel? viewModel = Item;
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        FlyoutBase? flyout = await viewModel.CreateContextFlyout();
+        if (flyout is null)
+        {
+            return;
+        }
+
+        if (args.TryGetPosition(sender, out Windows.Foundation.Point point))
+        {
+            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+        }
+        else
+        {
+            flyout.ShowAt(fe);
+        }
+
+        args.Handled = true;
     }
 
     public void Bind(ComicItemViewModel item)

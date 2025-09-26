@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Data.Models;
@@ -135,38 +136,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     public bool IsReading => CompletionState == ComicCompletionStatusEnum.Started;
     public bool IsUnread => CompletionState == ComicCompletionStatusEnum.NotStarted;
 
-    private List<BaseMenuFlyoutItemViewModel> _menuFlyoutItems = [];
-    public List<BaseMenuFlyoutItemViewModel> MenuFlyoutItems
-    {
-        get => _menuFlyoutItems;
-        set
-        {
-            _menuFlyoutItems = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MenuFlyoutItems)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ContextFlyout)));
-        }
-    }
-
-    public FlyoutBase? ContextFlyout
-    {
-        get
-        {
-            if (MenuFlyoutItems.Count == 0)
-            {
-                return null;
-            }
-
-            var flyout = new MenuFlyout();
-            foreach (BaseMenuFlyoutItemViewModel item in MenuFlyoutItems)
-            {
-                flyout.Items.Add(item.CreateMenuFlyoutItem());
-            }
-
-            return flyout;
-        }
-    }
-
     public Action? OnClick { get; set; }
+    public Func<Task<List<BaseMenuFlyoutItemViewModel>>>? OnRequestContextFlyoutAsync { get; set; }
 
     //
     // Constructors
@@ -192,7 +163,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         {
             Detail = Detail,
             Progress = Progress,
-            MenuFlyoutItems = MenuFlyoutItems,
+            OnClick = OnClick,
+            OnRequestContextFlyoutAsync = OnRequestContextFlyoutAsync,
         };
 
         model._image.Image = _image.Image;
@@ -209,7 +181,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         IsFavorite = item.IsFavorite;
         IsHide = item.IsHide;
         CompletionState = item.CompletionState;
-        MenuFlyoutItems = item.MenuFlyoutItems;
+        OnClick = item.OnClick;
+        OnRequestContextFlyoutAsync = item.OnRequestContextFlyoutAsync;
         _image.Image = item._image.Image;
         _image.ImageRequested = item._image.ImageRequested;
     }
@@ -236,5 +209,27 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
                     .Replace("$percentage", Comic.Progress.ToString());
             }
         }
+    }
+
+    public async Task<FlyoutBase?> CreateContextFlyout()
+    {
+        if (OnRequestContextFlyoutAsync is null)
+        {
+            return null;
+        }
+
+        List<BaseMenuFlyoutItemViewModel> menuFlyoutItems = await OnRequestContextFlyoutAsync();
+        if (menuFlyoutItems.Count == 0)
+        {
+            return null;
+        }
+
+        var flyout = new MenuFlyout();
+        foreach (BaseMenuFlyoutItemViewModel item in menuFlyoutItems)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        return flyout;
     }
 };

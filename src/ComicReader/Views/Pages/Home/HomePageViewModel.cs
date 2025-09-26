@@ -701,21 +701,25 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 _comicItems.Clear();
                 foreach (ComicModel item in items)
                 {
-                    var model = new ComicItemViewModel(item);
-                    model.UpdateProgress(true);
-                    model.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
-                        new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
-
-                    model.OnClick = () =>
+                    var model = new ComicItemViewModel(item)
                     {
-                        if (!IsSelectMode)
+                        OnClick = () =>
                         {
-                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                                .WithParam(RouterConstants.ARG_COMIC_ID, item.Id.ToString());
-                            OpenInCurrentTabLiveData.Emit(route);
-                        }
+                            if (!IsSelectMode)
+                            {
+                                Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                                    .WithParam(RouterConstants.ARG_COMIC_ID, item.Id.ToString());
+                                OpenInCurrentTabLiveData.Emit(route);
+                            }
+                        },
                     };
-
+                    model.OnRequestContextFlyoutAsync = () =>
+                    {
+                        List<BaseMenuFlyoutItemViewModel> result = MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
+                            new ComicItemMenuFlyoutHandler(this, model), supportSelection: true);
+                        return Task.FromResult(result);
+                    };
+                    model.UpdateProgress(true);
                     _comicItems.Add(model);
                 }
             }

@@ -290,20 +290,26 @@ internal sealed partial class SearchPage : BasePage
                     continue;
                 }
 
-                ComicItemViewModel item = new(comic);
-                item.UpdateProgress(false);
-                item.Detail = "#" + comic.Id;
-                item.MenuFlyoutItems = MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler, new SearchPageViewModel.ComicItemHandler(ViewModel, item), supportSelection: true);
-
-                item.OnClick = () =>
+                ComicItemViewModel item = new(comic)
                 {
-                    if (!ViewModel.IsSelectMode)
+                    Detail = "#" + comic.Id,
+                    OnClick = () =>
                     {
-                        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                            .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                        ViewModel.OpenInCurrentTabLiveData.Emit(route);
-                    }
+                        if (!ViewModel.IsSelectMode)
+                        {
+                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+                            ViewModel.OpenInCurrentTabLiveData.Emit(route);
+                        }
+                    },
                 };
+                item.OnRequestContextFlyoutAsync = () =>
+                {
+                    List<BaseMenuFlyoutItemViewModel> result = MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler,
+                        new SearchPageViewModel.ComicItemHandler(ViewModel, item), supportSelection: true);
+                    return Task.FromResult(result);
+                };
+                item.UpdateProgress(false);
 
                 ViewModel.SearchResults.Add(item);
                 ++i;
