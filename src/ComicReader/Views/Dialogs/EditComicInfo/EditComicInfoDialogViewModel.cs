@@ -3,12 +3,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Text;
 
 using ComicReader.Common.Lifecycle;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.TagInfo;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Dialogs.EditComicInfo;
 
@@ -28,6 +32,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
     private bool _descriptionChanged = false;
     private bool _tagsChanged = false;
     private Dictionary<TagWithId, HashSet<TagWithId>> _commonTags = [];
+    private List<TagLinkModel.LinkModel> _commonLinks = [];
 
     public MutableLiveData<string> Title1TextLiveData = new();
     public MutableLiveData<string> Title2TextLiveData = new();
@@ -49,6 +54,8 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         }
     }
 
+    public ObservableCollection<LinkItemViewModel> Links { get; } = [];
+
     public void Initialize(IEnumerable<ComicModel> comics)
     {
         _comics.AddRange(comics);
@@ -67,11 +74,44 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         DescriptionTextLiveData.Emit(_description);
 
         InitializeTags(_tagIdMode);
+        InitializeLinks();
     }
 
     public void Save()
     {
         List<KeyValuePair<TagWithId, List<TagWithId>>> newTags = ParseTagString(_tags, _tagIdMode);
+
+        // Resolve links differences
+        List<TagLinkModel.LinkModel> DiffLink(List<TagLinkModel.LinkModel> linksA, List<TagLinkModel.LinkModel> linksB)
+        {
+            List<TagLinkModel.LinkModel> diff = [];
+            foreach (TagLinkModel.LinkModel link in linksA)
+            {
+                bool found = false;
+                foreach (TagLinkModel.LinkModel other in linksB)
+                {
+                    if (link.Name == other.Name && link.Link == other.Link)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    diff.Add(link);
+                }
+            }
+
+            return diff;
+        }
+
+        List<TagLinkModel.LinkModel> oldLinks = _commonLinks;
+        List<TagLinkModel.LinkModel> newLinks = Links.ToList()
+            .ConvertAll(i => new TagLinkModel.LinkModel() { Name = i.Name, Link = i.Link })
+            .FindAll(i => !string.IsNullOrWhiteSpace(i.Name) && !string.IsNullOrWhiteSpace(i.Link));
+        List<TagLinkModel.LinkModel> addedLinks = DiffLink(newLinks, oldLinks);
+        List<TagLinkModel.LinkModel> removedLinks = DiffLink(oldLinks, newLinks);
 
         TaskDispatcher.DefaultQueue.Submit("ContentDialogPrimaryButtonClick", delegate
         {
@@ -81,14 +121,17 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                 {
                     comic.SetTitle1(_title1);
                 }
+
                 if (_title2Changed)
                 {
                     comic.SetTitle2(_title2);
                 }
+
                 if (_descriptionChanged)
                 {
                     comic.SetDescription(_description);
                 }
+
                 if (_tagsChanged)
                 {
                     Dictionary<string, HashSet<string>> comicTags = [];
@@ -96,7 +139,13 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                     {
                         comicTags[tagData.Name] = [.. tagData.Tags];
                     }
+
                     comic.SetTags(MergeTags(comicTags, _commonTags, newTags, _tagDiffMode, _tagIdMode));
+                }
+
+                if (addedLinks.Count + removedLinks.Count > 0)
+                {
+                    MergeLinks(comic, addedLinks, removedLinks);
                 }
             }
         });
@@ -584,6 +633,128 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         {
             Id = tagId
         };
+    }
+
+    //
+    // Links
+    //
+
+    private void InitializeLinks()
+    {
+        List<TagLinkModel.LinkModel> commonLinks = [];
+        for (int i = 0; i < _comics.Count; i++)
+        {
+            ComicModel comic = _comics[i];
+            string? linkJson = comic.GetExt(ComicExt.LINKS);
+            var linkModel = TagLinkModel.Parse(linkJson);
+            List<TagLinkModel.LinkModel> comicLinks = [];
+            if (linkModel is not null)
+            {
+                comicLinks.AddRange(linkModel.Links);
+            }
+
+            if (i == 0)
+            {
+                commonLinks = comicLinks;
+            }
+            else
+            {
+                for (int j = commonLinks.Count - 1; j >= 0; j--)
+                {
+                    TagLinkModel.LinkModel link = commonLinks[j];
+                    bool found = false;
+                    for (int k = 0; k < comicLinks.Count; k++)
+                    {
+                        TagLinkModel.LinkModel comicLink = comicLinks[k];
+                        if (link.Name == comicLink.Name && link.Link == comicLink.Link)
+                        {
+                            found = true;
+                            comicLinks.RemoveAt(k);
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        commonLinks.RemoveAt(j);
+                    }
+                }
+
+                if (commonLinks.Count == 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        _commonLinks = commonLinks;
+
+        foreach (TagLinkModel.LinkModel link in commonLinks)
+        {
+            Links.Add(new()
+            {
+                IsPlaceholder = false,
+                Name = link.Name,
+                Link = link.Link,
+            });
+        }
+
+        Links.Add(new()
+        {
+            IsPlaceholder = true,
+        });
+    }
+
+    private void MergeLinks(ComicModel comic, List<TagLinkModel.LinkModel> addedLinks, List<TagLinkModel.LinkModel> removedLinks)
+    {
+        string? linkJson = comic.GetExt(ComicExt.LINKS);
+        var linkModel = TagLinkModel.Parse(linkJson);
+        List<TagLinkModel.LinkModel> comicLinks = [];
+        if (linkModel is not null)
+        {
+            comicLinks.AddRange(linkModel.Links);
+        }
+
+        foreach (TagLinkModel.LinkModel link in removedLinks)
+        {
+            for (int i = comicLinks.Count - 1; i >= 0; i--)
+            {
+                TagLinkModel.LinkModel comicLink = comicLinks[i];
+                if (link.Name == comicLink.Name && link.Link == comicLink.Link)
+                {
+                    comicLinks.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        foreach (TagLinkModel.LinkModel link in addedLinks)
+        {
+            bool found = false;
+            foreach (TagLinkModel.LinkModel comicLink in comicLinks)
+            {
+                if (link.Name == comicLink.Name && link.Link == comicLink.Link)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                comicLinks.Add(link);
+            }
+        }
+
+        var newLinkModel = new TagLinkModel()
+        {
+            Links = comicLinks,
+        };
+        string newLinkJson = newLinkModel.Serialize();
+        if (newLinkJson != linkJson)
+        {
+            comic.SetExt(ComicExt.LINKS, newLinkJson);
+        }
     }
 
     //

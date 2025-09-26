@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReader.Common.BaseUI"
+    xmlns:controls="using:ComicReader.UserControls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
@@ -79,6 +80,8 @@
                     Content="{x:Bind StringResource.ShowTagId}"
                     IsChecked="False" />
             </StackPanel>
+            <TextBlock Margin="0,8,0,0" Text="{x:Bind StringResource.WithColon(StringResource.Links)}" />
+            <controls:EditLinksView Margin="0,8,0,0" Links="{x:Bind ViewModel.Links}" />
         </StackPanel>
     </ScrollView>
 </base:BaseContentDialog>
