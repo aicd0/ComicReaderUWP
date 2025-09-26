@@ -377,40 +377,37 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        CoroutineUtils.Start(async () =>
+        IsExternalComicLiveData.Emit(comic.IsExternal);
+
+        if (comic.Title1.Length == 0)
         {
-            IsExternalComicLiveData.Emit(comic.IsExternal);
+            ComicTitle1 = comic.Title;
+        }
+        else
+        {
+            ComicTitle1 = comic.Title1;
+            ComicTitle2 = comic.Title2;
+        }
 
-            if (comic.Title1.Length == 0)
-            {
-                ComicTitle1 = comic.Title;
-            }
-            else
-            {
-                ComicTitle1 = comic.Title1;
-                ComicTitle2 = comic.Title2;
-            }
+        ComicDescriptionLiveData.Emit(comic.Description);
 
-            ComicDescriptionLiveData.Emit(comic.Description);
+        ComicDir = comic.Location;
+        IsEditable = comic.IsEditable;
 
-            ComicDir = comic.Location;
-            IsEditable = comic.IsEditable;
+        LoadComicTag();
 
-            await LoadComicTag();
+        bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
+        SetIsFavorite(isFavorite, false);
 
-            bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
-            SetIsFavorite(isFavorite, false);
+        SetCompletionState(comic.CompletionState, false);
 
-            SetCompletionState(comic.CompletionState, false);
-
-            if (!comic.IsExternal)
-            {
-                Rating = comic.Rating;
-            }
-        });
+        if (!comic.IsExternal)
+        {
+            Rating = comic.Rating;
+        }
     }
 
-    private async Task LoadComicTag()
+    private void LoadComicTag()
     {
         ComicModel? comic = _comic;
         if (comic == null)
@@ -429,10 +426,13 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 TagViewModel tagModel = new()
                 {
                     Tag = tag,
-                    MenuFlyoutItems = await CreateTagContextMenuItems(tags.Name, tag),
                     OnClicked = () =>
                     {
                         TagClickLiveData.Emit(tag);
+                    },
+                    OnRequestContextFlyoutAsync = () =>
+                    {
+                        return CreateTagContextMenuItems(tags.Name, tag);
                     },
                 };
 
@@ -446,7 +446,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             DiffUtils.UpdateCollection(x.Tags, y.Tags, (a, b) => a.Tag == b.Tag, (a, b) =>
             {
-                a.MenuFlyoutItems = b.MenuFlyoutItems;
+                a.OnRequestContextFlyoutAsync = b.OnRequestContextFlyoutAsync;
                 a.OnClicked = b.OnClicked;
             });
         });

@@ -17,7 +17,7 @@
         Background="{ThemeResource TagButtonBackground}"
         BorderThickness="1.5"
         Click="Button_Click"
-        ContextFlyout="{x:Bind ViewModel.ContextFlyout, Mode=OneWay}"
+        ContextRequested="Button_ContextRequested"
         CornerRadius="13"
         FontSize="13"
         FontWeight="Bold"

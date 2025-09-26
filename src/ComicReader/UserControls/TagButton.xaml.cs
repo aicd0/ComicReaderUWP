@@ -5,6 +5,7 @@ using ComicReader.ViewModels;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReader.UserControls;
 
@@ -21,5 +22,36 @@ internal sealed partial class TagButton : UserControl
     private void Button_Click(object sender, RoutedEventArgs e)
     {
         ViewModel?.OnClicked?.Invoke();
+    }
+
+    private async void Button_ContextRequested(UIElement sender, Microsoft.UI.Xaml.Input.ContextRequestedEventArgs args)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        TagViewModel? viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        FlyoutBase? flyout = await viewModel.CreateContextFlyout();
+        if (flyout is null)
+        {
+            return;
+        }
+
+        if (args.TryGetPosition(sender, out Windows.Foundation.Point point))
+        {
+            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+        }
+        else
+        {
+            flyout.ShowAt(fe);
+        }
+
+        args.Handled = true;
     }
 }
