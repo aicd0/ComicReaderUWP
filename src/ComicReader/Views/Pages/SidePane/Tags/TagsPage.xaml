@@ -22,7 +22,6 @@
                 VerticalContentAlignment="Stretch"
                 AllowDrop="False"
                 AutomationProperties.Name="{x:Bind Title}"
-                ContextFlyout="{x:Bind ContextFlyout, Mode=OneWay}"
                 IsExpanded="{x:Bind Expanded, Mode=TwoWay}"
                 ItemsSource="{x:Bind Children}">
                 <Grid>
@@ -79,6 +78,7 @@
             Text="{x:Bind StringResource.NoTagsHint}"
             Visibility="{x:Bind ViewModel.NoTagsVisible, Mode=OneWay}" />
         <muxc:TreeView
+            ContextRequested="TreeView_ContextRequested"
             ItemInvoked="TreeView_ItemInvoked"
             ItemTemplate="{StaticResource NormalTemplate}"
             ItemsSource="{x:Bind ViewModel.DataSource}" />

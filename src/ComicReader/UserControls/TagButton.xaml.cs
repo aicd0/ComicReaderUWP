@@ -43,7 +43,7 @@ internal sealed partial class TagButton : UserControl
             return;
         }
 
-        if (args.TryGetPosition(sender, out Windows.Foundation.Point point))
+        if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
         {
             flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
         }
