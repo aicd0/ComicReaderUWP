@@ -75,6 +75,7 @@ internal class ReaderSettingDataModel
         model.HorizontalContinuous = IsHorizontalContinuous;
         model.VerticalPageArrangement = VerticalPageArrangement;
         model.HorizontalPageArrangement = HorizontalPageArrangement;
+        model.PageGap = PageGap;
         model.AutoScrollSpeed = AutoScrollSpeed;
     }
 
