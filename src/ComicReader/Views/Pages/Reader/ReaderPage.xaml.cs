@@ -95,7 +95,11 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.SetPageIndex(MainReaderView.CurrentPageDisplay - 1);
             UpdatePage();
             UpdateProgress(sender, save: !isIntermediate);
-            BottomTileSetHold(false);
+
+            if (!reader.IsAutoPlaying)
+            {
+                BottomTileSetHold(false);
+            }
         };
 
         reader.ReaderEventReaderStateChanged += delegate (ReaderView sender, ReaderView.ReaderState state, string description)

@@ -135,6 +135,22 @@ internal partial class ReaderView : UserControl
     public bool IsLastPage => PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1;
     public bool IsVertical => _isVertical;
 
+    public bool IsAutoPlaying
+    {
+        get => _autoPlayActive;
+        set
+        {
+            if (value)
+            {
+                StartAutoPlay();
+            }
+            else
+            {
+                StopAutoPlay();
+            }
+        }
+    }
+
     public void SetIsVertical(bool isVertical)
     {
         if (isVertical == _isVertical)
@@ -226,9 +242,7 @@ internal partial class ReaderView : UserControl
 
         if (ComicLoaded)
         {
-            ScrollManager.BeginTransaction(this, "SetCurrentPage")
-                .Page(page)
-                .Commit();
+            SetScrollViewer2("SetCurrentPage", ScrollSource.User, page: page);
         }
         else
         {
@@ -450,9 +464,8 @@ internal partial class ReaderView : UserControl
                     zoomType = ZoomType.CenterInside;
                 }
 
-                ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage",
-                    zoom: zoom, zoomType: zoomType,
-                    page: InitialPage, disableAnimation: true);
+                ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", ScrollSource.Programmatic,
+                    zoom: zoom, zoomType: zoomType, page: InitialPage);
                 _isInitialFrameJumped = true;
                 Log("Load", $"InitialFrameScroll (result={scrollResult})");
                 if (scrollResult == ScrollResult.TooClose)
@@ -1002,6 +1015,7 @@ internal partial class ReaderView : UserControl
             _dataModelSession.Next();
             _imagePool.Cancel();
             DisposeCursor();
+            StopAutoPlay();
         }
     }
 
@@ -1029,7 +1043,7 @@ internal partial class ReaderView : UserControl
             $"V={VerticalOffset}");
 
         AdjustPadding();
-        SetScrollViewer2("SizeChanged", zoom: zoom, page: page, disableAnimation: true, fixForPaddingDelay: true);
+        SetScrollViewer2("SizeChanged", ScrollSource.Programmatic, zoom: zoom, page: page, fixForPaddingDelay: true);
     }
 
     //
@@ -1080,7 +1094,7 @@ internal partial class ReaderView : UserControl
             SCClearFinalVal("ViewChanged");
 
             // Notify the scroll viewer to update its inner states.
-            SetScrollViewer1(null, null, false, "AdjustInnerStateAfterViewChanged");
+            SetScrollViewer1("AdjustInnerStateAfterViewChanged", ScrollSource.Programmatic, disableAnimation: false);
 
             if (_zoom < FORCE_CONTINUOUS_ZOOM_THRESHOLD)
             {
@@ -1092,12 +1106,14 @@ internal partial class ReaderView : UserControl
                     if (_isContinuous)
                     {
                         // Stick to the vertical center of current frame.
-                        SetScrollViewer2("StickToVerticalCenter", page: page, applyParallelOffset: false, disableAnimation: false);
+                        SetScrollViewer2("StickToVerticalCenter", ScrollSource.Programmatic,
+                            page: page, applyParallelOffset: false, disableAnimation: false);
                     }
                     else
                     {
                         // Stick to the center of current frame.
-                        SetScrollViewer2("StickToFrameCenter", page: page, disableAnimation: false);
+                        SetScrollViewer2("StickToFrameCenter", ScrollSource.Programmatic,
+                            page: page, disableAnimation: false);
                     }
                 }
             }
@@ -1202,25 +1218,22 @@ internal partial class ReaderView : UserControl
                 break;
 
             case VirtualKey.Home:
-                ScrollManager.BeginTransaction(this, "JumpToFirstPageUsingHomeKey")
-                    .Page(1)
-                    .Commit();
+                SetScrollViewer2("JumpToFirstPageUsingHomeKey", ScrollSource.User, page: 1);
                 break;
 
             case VirtualKey.End:
-                ScrollManager.BeginTransaction(this, "JumpToLastPageUsingEndKey")
-                    .Page(PageCount)
-                    .Commit();
+                SetScrollViewer2("JumpToLastPageUsingEndKey", ScrollSource.User, page: PageCount);
                 break;
 
             case VirtualKey.Space:
-                MoveFrame(1, "JumpToNextPageUsingSpaceKey");
+                IsAutoPlaying = !IsAutoPlaying;
                 break;
 
             case VirtualKey.R:
-                ScrollManager.BeginTransaction(this, "JumpToRandomPageUsingRKey")
-                    .Page(Random.Shared.Next(Math.Max(1, PageCount)) + 1)
-                    .Commit();
+                {
+                    int page = Random.Shared.Next(Math.Max(1, PageCount)) + 1;
+                    SetScrollViewer2("JumpToRandomPageUsingRKey", ScrollSource.User, page: page);
+                }
                 break;
 
             default:
@@ -1335,12 +1348,8 @@ internal partial class ReaderView : UserControl
             zoom = _zoom * scale;
         }
 
-        ScrollManager.BeginTransaction(this, "ContinuousScrollingUsingManipulation")
-            .Zoom(zoom)
-            .HorizontalOffset(SCHorizontalOffsetFinal - dx)
-            .VerticalOffset(SCVerticalOffsetFinal - dy)
-            .EnableAnimation()
-            .Commit();
+        SetScrollViewer3("ContinuousScrollingUsingManipulation", ScrollSource.User, zoom: zoom,
+            horizontalOffset: SCHorizontalOffsetFinal - dx, verticalOffset: SCVerticalOffsetFinal - dy, disableAnimation: false);
     }
 
     private void OnReaderManipulationCompleted(ManipulationCompletedEventArgs e)
@@ -1375,10 +1384,8 @@ internal partial class ReaderView : UserControl
         if (_isContinuous || _zoom > 105)
         {
             // Continuous scrolling.
-            ScrollManager.BeginTransaction(this, "ContinuousScrollingUsingPointerWheel")
-                .ParallelOffset(SCParallelOffsetFinal + delta * 140.0)
-                .EnableAnimation()
-                .Commit();
+            SetScrollViewer1("ContinuousScrollingUsingPointerWheel", ScrollSource.User,
+                parallelOffset: SCParallelOffsetFinal + delta * 140.0, disableAnimation: false);
         }
         else
         {
@@ -1418,17 +1425,11 @@ internal partial class ReaderView : UserControl
             _tapCancelled = true;
             if (Math.Abs(_zoom - 100) <= 1)
             {
-                ScrollManager.BeginTransaction(this, "FitScreenUsingCenterCrop")
-                    .Zoom(100, ZoomType.CenterCrop)
-                    .EnableAnimation()
-                    .Commit();
+                SetScrollViewer3("FitScreenUsingCenterCrop", ScrollSource.User, zoom: 100, zoomType: ZoomType.CenterCrop, disableAnimation: false);
             }
             else
             {
-                ScrollManager.BeginTransaction(this, "FitScreenUsingCenterInside")
-                    .Zoom(100)
-                    .EnableAnimation()
-                    .Commit();
+                SetScrollViewer3("FitScreenUsingCenterCrop", ScrollSource.User, zoom: 100, zoomType: ZoomType.CenterInside, disableAnimation: false);
             }
         }
     }
@@ -1523,6 +1524,40 @@ internal partial class ReaderView : UserControl
         _cursorDisposed = true;
         cursor?.Dispose();
         ProtectedCursor = null;
+    }
+
+    //
+    // Auto play
+    //
+
+    private bool _autoPlayActive = false;
+
+    private void StartAutoPlay()
+    {
+        if (_autoPlayActive)
+        {
+            return;
+        }
+
+        _autoPlayActive = true;
+        CoroutineUtils.Start(async () =>
+        {
+            while (true)
+            {
+                await Task.Delay(100);
+                if (!_autoPlayActive)
+                {
+                    break;
+                }
+
+                SetScrollViewer1("Autoplay", ScrollSource.AutoPlay, parallelOffset: SCParallelOffsetFinal + 1.0);
+            }
+        });
+    }
+
+    private void StopAutoPlay()
+    {
+        _autoPlayActive = false;
     }
 
     //
@@ -1679,11 +1714,11 @@ internal partial class ReaderView : UserControl
 
     private bool MoveFrame(int increment, string reason)
     {
-        MoveFrameInternal(increment, !AppModel.TransitionAnimation, reason);
+        MoveFrameInternal(reason, increment, !AppModel.TransitionAnimation);
         return true;
     }
 
-    private void MoveFrameInternal(int increment, bool disableAnimation, string reason)
+    private void MoveFrameInternal(string reason, int increment, bool disableAnimation)
     {
         if (FrameDataSource.Count == 0)
         {
@@ -1697,15 +1732,15 @@ internal partial class ReaderView : UserControl
 
         double page = FrameDataSource[frame].Page;
         float? zoom = _zoom > 101f ? 100f : null;
-        SetScrollViewer2(reason, zoom: zoom, page: page, disableAnimation: disableAnimation);
+        SetScrollViewer2(reason, ScrollSource.User, zoom: zoom, page: page, disableAnimation: disableAnimation);
     }
 
-    private ScrollResult SetScrollViewer1(float? zoom, double? parallelOffset, bool disableAnimation, string reason)
+    private ScrollResult SetScrollViewer1(string reason, ScrollSource source, float? zoom = null, double? parallelOffset = null, bool disableAnimation = true)
     {
         double? horizontalOffset = _isVertical ? null : parallelOffset;
         double? verticalOffset = _isVertical ? parallelOffset : null;
 
-        return SetScrollViewerInternal(new ScrollRequest
+        return SetScrollViewerInternal(new ScrollRequest(source)
         {
             zoom = zoom,
             horizontalOffset = horizontalOffset,
@@ -1715,9 +1750,9 @@ internal partial class ReaderView : UserControl
         }, reason);
     }
 
-    private ScrollResult SetScrollViewer2(string reason,
+    private ScrollResult SetScrollViewer2(string reason, ScrollSource source,
         float? zoom = null, ZoomType zoomType = ZoomType.CenterInside, double? page = null,
-        bool applyParallelOffset = true, bool disableAnimation = false, bool fixForPaddingDelay = false)
+        bool applyParallelOffset = true, bool disableAnimation = true, bool fixForPaddingDelay = false)
     {
         double? horizontalOffset = null;
         double? verticalOffset = null;
@@ -1753,7 +1788,7 @@ internal partial class ReaderView : UserControl
             ConvertOffset(ref horizontalOffset, ref verticalOffset, applyParallelOffset ? parallelOffset : null, perpendicularOffset);
         }
 
-        return SetScrollViewerInternal(new ScrollRequest
+        return SetScrollViewerInternal(new ScrollRequest(source)
         {
             zoom = zoom,
             zoomType = zoomType,
@@ -1765,15 +1800,12 @@ internal partial class ReaderView : UserControl
         }, reason);
     }
 
-    private ScrollResult SetScrollViewer3(
-        float? zoom,
-        ZoomType zoomType,
-        double? horizontalOffset,
-        double? verticalOffset,
-        bool disableAnimation,
-        string reason)
+    private ScrollResult SetScrollViewer3(string reason, ScrollSource source,
+        float? zoom = null, ZoomType zoomType = ZoomType.CenterInside,
+        double? horizontalOffset = null, double? verticalOffset = null,
+        bool disableAnimation = true)
     {
-        return SetScrollViewerInternal(new ScrollRequest
+        return SetScrollViewerInternal(new ScrollRequest(source)
         {
             zoom = zoom,
             zoomType = zoomType,
@@ -1796,6 +1828,11 @@ internal partial class ReaderView : UserControl
         {
             Log("Jump", "Failed (is committing)");
             return ScrollResult.Failed;
+        }
+
+        if (request.Source == ScrollSource.User)
+        {
+            StopAutoPlay();
         }
 
         Logger.Assert(float.IsFinite(request.zoom ?? 0), "5D42C4251571A722");
@@ -2540,132 +2577,6 @@ internal partial class ReaderView : UserControl
         void WriteConfiguration(string key, string value);
     }
 
-    private sealed class ScrollManager : BaseTransaction<ScrollResult>
-    {
-        private readonly WeakReference<ReaderView> _reader;
-        private readonly string _reason;
-        private float? _zoom = null;
-        private ZoomType _zoomType = ZoomType.CenterInside;
-        private double? _parallelOffset = null;
-        private double? _horizontalOffset = null;
-        private double? _verticalOffset = null;
-        private double? _page = null;
-        private bool _disableAnimation = true;
-
-        private ScrollManager(ReaderView reader, string reason)
-        {
-            _reader = new WeakReference<ReaderView>(reader);
-            _reason = reason;
-        }
-
-        public static ScrollManager BeginTransaction(ReaderView reader, string reason)
-        {
-            return new ScrollManager(reader, reason);
-        }
-
-        protected override ScrollResult CommitImpl()
-        {
-            if (!_reader.TryGetTarget(out ReaderView? reader))
-            {
-                return ScrollResult.Failed;
-            }
-
-            if (!reader._isLoaded)
-            {
-                return ScrollResult.Failed;
-            }
-
-            ScrollResult result;
-            if (_parallelOffset.HasValue)
-            {
-                result = reader.SetScrollViewer1(_zoom, _parallelOffset, _disableAnimation, _reason);
-            }
-            else if (_page.HasValue)
-            {
-                result = reader.SetScrollViewer2(_reason, zoom: _zoom, page: _page, disableAnimation: _disableAnimation);
-            }
-            else
-            {
-                result = reader.SetScrollViewer3(_zoom, _zoomType, _horizontalOffset, _verticalOffset, _disableAnimation, _reason);
-            }
-
-            return result;
-        }
-
-        public ScrollManager CopyFrom(ReaderView view)
-        {
-            _page = view.CurrentPage;
-            OnSetOffset();
-            return this;
-        }
-
-        public ScrollManager Zoom(float? zoom, ZoomType zoomType = ZoomType.CenterInside)
-        {
-            _zoom = zoom;
-            _zoomType = zoomType;
-            return this;
-        }
-
-        public ScrollManager ParallelOffset(double? parallel_offset)
-        {
-            _parallelOffset = parallel_offset;
-            OnSetOffset();
-            return this;
-        }
-
-        public ScrollManager HorizontalOffset(double? horizontal_offset)
-        {
-            _horizontalOffset = horizontal_offset;
-            OnSetOffset();
-            return this;
-        }
-
-        public ScrollManager VerticalOffset(double? vertical_offset)
-        {
-            _verticalOffset = vertical_offset;
-            OnSetOffset();
-            return this;
-        }
-
-        public ScrollManager Page(double? page)
-        {
-            _page = page;
-            OnSetOffset();
-            return this;
-        }
-
-        public ScrollManager EnableAnimation()
-        {
-            _disableAnimation = false;
-            return this;
-        }
-
-        private void OnSetOffset()
-        {
-            int checksum = 0;
-
-            if (_page.HasValue)
-            {
-                checksum++;
-            }
-
-            if (_parallelOffset.HasValue)
-            {
-                checksum++;
-            }
-
-            if (_horizontalOffset.HasValue || _verticalOffset.HasValue)
-            {
-                checksum++;
-            }
-
-            if (checksum > 1)
-            {
-                throw new Exception("Cannot set offset twice.");
-            }
-        }
-    }
-
     private class ImageDataModel
     {
         public required IImageSource ImageSource { get; set; }
@@ -2710,6 +2621,13 @@ internal partial class ReaderView : UserControl
         }
     }
 
+    private enum ScrollSource
+    {
+        User = 0,
+        Programmatic = 1,
+        AutoPlay = 2,
+    }
+
     private enum ScrollResult
     {
         Success = 0,
@@ -2725,8 +2643,10 @@ internal partial class ReaderView : UserControl
         FitHeight,
     }
 
-    private class ScrollRequest
+    private class ScrollRequest(ScrollSource source)
     {
+        public readonly ScrollSource Source = source;
+
         // Zoom
         public float? zoom = null;
         public ZoomType zoomType = ZoomType.CenterInside;
