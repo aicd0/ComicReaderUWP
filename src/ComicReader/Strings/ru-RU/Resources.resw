@@ -515,7 +515,7 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>Сортировать по имени</value>
   </data>
-  <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
+  <data name="More" xml:space="preserve">
     <value>Более</value>
   </data>
   <data name="Name" xml:space="preserve">

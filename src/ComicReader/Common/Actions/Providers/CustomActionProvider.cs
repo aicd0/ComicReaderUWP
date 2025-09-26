@@ -33,6 +33,7 @@ internal class CustomActionProvider(CustomActionProvider.IHandler handler) : IAc
         }
 
         handler.Handle(source, name, args);
+        context.SetSuccess();
     }
 
     public interface IHandler

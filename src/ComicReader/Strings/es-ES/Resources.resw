@@ -514,7 +514,7 @@ La evaluación se realizará en el siguiente orden:
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>Ordenar por nombre</value>
   </data>
-  <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
+  <data name="More" xml:space="preserve">
     <value>Más</value>
   </data>
   <data name="Name" xml:space="preserve">

@@ -327,23 +327,6 @@
                                 Label="{x:Bind StringResource.Edit}"
                                 Style="{StaticResource InfoPanelAppBarButtonStyle}" />
                             <AppBarButton
-                                x:Name="FavoriteBt"
-                                Margin="2,0,0,0"
-                                Click="FavoriteBt_Click"
-                                Label="{x:Bind StringResource.Favorite}"
-                                Style="{StaticResource InfoPanelAppBarButtonStyle}">
-                                <AppBarButton.Content>
-                                    <Grid>
-                                        <FontIcon x:Name="FiFavoriteUnfilled" Glyph="&#xE734;" />
-                                        <FontIcon
-                                            x:Name="FiFavoriteFilled"
-                                            Foreground="{ThemeResource SystemAccentColor}"
-                                            Glyph="&#xE735;"
-                                            Visibility="Collapsed" />
-                                    </Grid>
-                                </AppBarButton.Content>
-                            </AppBarButton>
-                            <AppBarButton
                                 x:Name="SetCompletionStateButton"
                                 Margin="2,0,0,0"
                                 Style="{StaticResource InfoPanelAppBarButtonStyle}">
@@ -364,6 +347,12 @@
                                     </MenuFlyout>
                                 </AppBarButton.Flyout>
                             </AppBarButton>
+                            <AppBarButton
+                                Margin="2,0,0,0"
+                                Click="MoreAppBarButton_Click"
+                                Icon="More"
+                                Label="{x:Bind StringResource.More}"
+                                Style="{StaticResource InfoPanelAppBarButtonStyle}" />
                         </StackPanel>
 
                     </Grid>

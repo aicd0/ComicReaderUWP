@@ -8,6 +8,7 @@ using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -163,12 +164,20 @@ internal abstract class BasePage : Page, ILifecycleOwner
             return;
         }
 
-        PageActionHandler.RegisterComponent<IXamlRootProvider>(new WeakXamlRootProvider(this));
+        _communicator = bundle.Communicator;
+
+        // Register action handler components and providers
+        PageActionHandler.RegisterComponent<IXamlRootComponent>(new WeakXamlRootComponent(this));
+        {
+            IMainPageAbility? ability = GetAbility<IMainPageAbility>();
+            if (ability is not null)
+            {
+                PageActionHandler.RegisterComponent<IMainPageAbilityComponent>(new MainPageAbilityComponent(ability));
+            }
+        }
         ActionHandlerUtility.RegisterCommonProviders(PageActionHandler);
 
-        _communicator = bundle.Communicator;
-        _communicator.GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);
-
+        GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);
         DebugUtils.TrackError(() => OnStart(bundle.Bundle));
     }
 

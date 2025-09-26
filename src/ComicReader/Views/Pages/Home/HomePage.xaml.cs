@@ -93,11 +93,6 @@ internal sealed partial class HomePage : BasePage
             GetMainPageAbility().OpenInCurrentTab(route);
         });
 
-        ViewModel.OpenInNewTabLiveData.Observe(this, route =>
-        {
-            GetMainPageAbility().OpenInNewTab(route);
-        });
-
         ViewModel.EditComicLiveData.Observe(this, comics =>
         {
             if (comics.Count == 0)

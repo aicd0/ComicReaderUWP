@@ -87,6 +87,7 @@ public class StringResourceProvider
     public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
     public string Links => GetResourceString("Links");
     public string MaintainRelativeSize => GetResourceString("MaintainRelativeSize");
+    public string More => GetResourceString("More");
     public string Name => GetResourceString("Name");
     public string New => GetResourceString("New");
     public string NewFolder => GetResourceString("NewFolder");

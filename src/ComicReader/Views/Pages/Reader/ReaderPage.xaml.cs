@@ -14,6 +14,7 @@ using ComicReader.Common.Constants;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
@@ -26,6 +27,7 @@ using ComicReader.Views.Pages.Navigation;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 
@@ -259,7 +261,6 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
         {
             RcRating.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
-            FavoriteBt.IsEnabled = !isExternal;
             SetCompletionStateButton.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
             GetNavigationPageAbility().SetExternalComic(isExternal);
         });
@@ -300,9 +301,6 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.IsFavoriteLiveData.Observe(this, isFavorite =>
         {
-            FiFavoriteFilled.Visibility = isFavorite ? Visibility.Visible : Visibility.Collapsed;
-            FiFavoriteUnfilled.Visibility = isFavorite ? Visibility.Collapsed : Visibility.Visible;
-
             GetNavigationPageAbility().SetFavorite(isFavorite);
         });
 
@@ -564,11 +562,6 @@ internal sealed partial class ReaderPage : BasePage
         MainReaderView.SetCurrentPage(ctx.Page);
     }
 
-    private void FavoriteBt_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SetIsFavorite(!ViewModel.IsFavorite, true);
-    }
-
     private void MarkAsUnreadButton_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.SetCompletionState(ComicCompletionStatusEnum.NotStarted, true);
@@ -582,6 +575,34 @@ internal sealed partial class ReaderPage : BasePage
     private void MarkAsFinishedButton_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.SetCompletionState(ComicCompletionStatusEnum.Completed, true);
+    }
+
+    private async void MoreAppBarButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        ComicModel? comic = ViewModel.Comic;
+        if (comic is null)
+        {
+            return;
+        }
+
+        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler);
+        if (menuItems.Count == 0)
+        {
+            return;
+        }
+
+        var flyout = new MenuFlyout();
+        foreach (BaseMenuFlyoutItemViewModel item in menuItems)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
     }
 
     private void OnRatingControlValueChanged(RatingControl sender, object args)
