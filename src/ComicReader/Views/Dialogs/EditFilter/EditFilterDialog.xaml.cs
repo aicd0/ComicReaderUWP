@@ -129,4 +129,10 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
     {
         ViewModel.UpdateExpression(ExpressionTextBox.Text ?? "");
     }
+
+    private void SaveViewConfigCheckBox_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        bool isChecked = ((CheckBox)sender).IsChecked ?? false;
+        ViewModel.SetSaveViewConfig(isChecked);
+    }
 }

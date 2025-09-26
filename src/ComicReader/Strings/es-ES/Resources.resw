@@ -652,6 +652,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Guardar el historial de navegación</value>
   </data>
+  <data name="SaveViewConfig" xml:space="preserve">
+    <value>Guardar configuración de vista</value>
+  </data>
   <data name="SearchResults" xml:space="preserve">
     <value>Resultados de la búsqueda</value>
   </data>

@@ -652,6 +652,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>閲覧履歴を記録する</value>
   </data>
+  <data name="SaveViewConfig" xml:space="preserve">
+    <value>ビュー構成を保存</value>
+  </data>
   <data name="SearchResults" xml:space="preserve">
     <value>検索結果</value>
   </data>

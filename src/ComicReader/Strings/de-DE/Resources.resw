@@ -652,6 +652,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>Browserverlauf speichern</value>
   </data>
+  <data name="SaveViewConfig" xml:space="preserve">
+    <value>Ansichtskonfiguration speichern</value>
+  </data>
   <data name="SearchResults" xml:space="preserve">
     <value>Suchergebnisse</value>
   </data>
