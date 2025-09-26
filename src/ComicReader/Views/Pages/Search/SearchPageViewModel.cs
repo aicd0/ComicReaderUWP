@@ -8,7 +8,6 @@ using System.ComponentModel;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
-using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.UserControls.ComicItemView;
@@ -28,7 +27,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
     public bool IsLoading;
 
     public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
-    public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
     public bool IsResultEmpty => SearchResults.Count == 0;
 
     public ObservableCollection<ComicItemViewModel> SearchResults = [];

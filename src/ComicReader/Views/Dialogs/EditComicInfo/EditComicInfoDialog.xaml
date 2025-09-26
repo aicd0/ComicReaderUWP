@@ -15,58 +15,118 @@
     SecondaryButtonText="{x:Bind StringResource.Cancel}"
     mc:Ignorable="d">
 
-    <ScrollView Width="500">
-        <StackPanel Orientation="Vertical">
-            <TextBlock x:Name="Title1NameTextBlock" />
+    <ScrollView
+        Width="600"
+        MaxHeight="600"
+        VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                x:Name="Title1NameTextBlock"
+                Grid.Row="0"
+                Grid.Column="0"
+                Margin="0,7,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top" />
             <TextBox
                 x:Name="Title1TextBox"
-                Margin="0,6,0,0"
+                Grid.Row="0"
+                Grid.Column="2"
                 TextChanged="Title1TextBox_TextChanged"
                 TextWrapping="Wrap" />
-            <TextBlock x:Name="Title2NameTextBlock" Margin="0,8,0,0" />
+
+            <TextBlock
+                x:Name="Title2NameTextBlock"
+                Grid.Row="2"
+                Grid.Column="0"
+                Margin="0,7,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top" />
             <TextBox
                 x:Name="Title2TextBox"
-                Margin="0,6,0,0"
+                Grid.Row="2"
+                Grid.Column="2"
                 TextChanged="Title2TextBox_TextChanged"
                 TextWrapping="Wrap" />
-            <TextBlock x:Name="DescriptionNameTextBlock" Margin="0,8,0,0" />
+
+            <TextBlock
+                x:Name="DescriptionNameTextBlock"
+                Grid.Row="4"
+                Grid.Column="0"
+                Margin="0,7,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top" />
             <TextBox
                 x:Name="DescriptionTextBox"
-                Margin="0,6,0,0"
+                Grid.Row="4"
+                Grid.Column="2"
                 AcceptsReturn="True"
                 TextChanged="DescriptionTextBox_TextChanged"
                 TextWrapping="Wrap" />
-            <StackPanel Margin="0,8,0,0">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock x:Name="TagNameTextBlock" />
-                    <Button
-                        Margin="20,0,0,2"
-                        Padding="0"
-                        VerticalAlignment="Bottom"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="OnShowTagInfoButtonClicked">
-                        <Button.Content>
-                            <FontIcon FontSize="13" Glyph="&#xE946;" />
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
-                <Grid Height="8" Visibility="{x:Bind ViewModel.IsTagInfoBarOpen, Mode=OneWay}" />
+
+            <StackPanel
+                Grid.Row="6"
+                Grid.Column="2"
+                Orientation="Vertical">
                 <muxc:InfoBar
                     x:Uid="TagIntroduction"
                     Title="{x:Bind StringResource.Tags}"
                     CloseButtonClick="OnTagInfoBarCloseButtonClicked"
                     IsOpen="{x:Bind ViewModel.IsTagInfoBarOpen, Mode=OneWay}"
                     Severity="Informational" />
+                <Grid Height="8" Visibility="{x:Bind ViewModel.IsTagInfoBarOpen, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel
+                Grid.Row="7"
+                Grid.Column="0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+                <TextBlock
+                    x:Name="TagNameTextBlock"
+                    Margin="0,7,0,0"
+                    VerticalAlignment="Top" />
+                <Button
+                    Margin="6,12,0,0"
+                    Padding="0"
+                    VerticalAlignment="Top"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="OnShowTagInfoButtonClicked">
+                    <Button.Content>
+                        <FontIcon FontSize="13" Glyph="&#xE946;" />
+                    </Button.Content>
+                </Button>
             </StackPanel>
             <TextBox
                 x:Name="TagTextBox"
-                Width="500"
-                Margin="0,6,0,0"
+                Grid.Row="7"
+                Grid.Column="2"
                 AcceptsReturn="True"
                 TextChanged="TagTextBox_TextChanged"
                 TextWrapping="Wrap" />
-            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+            <StackPanel
+                Grid.Row="8"
+                Grid.Column="2"
+                Margin="0,4,0,0"
+                Orientation="Horizontal">
                 <CheckBox
                     MinWidth="0"
                     Click="TagDiffModeCheckBox_Click"
@@ -80,8 +140,19 @@
                     Content="{x:Bind StringResource.ShowTagId}"
                     IsChecked="False" />
             </StackPanel>
-            <TextBlock Margin="0,8,0,0" Text="{x:Bind StringResource.WithColon(StringResource.Links)}" />
-            <controls:EditLinksView Margin="0,8,0,0" Links="{x:Bind ViewModel.Links}" />
-        </StackPanel>
+
+            <TextBlock
+                Grid.Row="10"
+                Grid.Column="0"
+                Margin="0,7,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Text="{x:Bind StringResource.WithColon(StringResource.Links)}" />
+            <controls:EditLinksView
+                Grid.Row="10"
+                Grid.Column="2"
+                Links="{x:Bind ViewModel.Links}" />
+
+        </Grid>
     </ScrollView>
 </base:BaseContentDialog>

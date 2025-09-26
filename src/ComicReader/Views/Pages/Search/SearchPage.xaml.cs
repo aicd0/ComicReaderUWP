@@ -21,7 +21,6 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
-using ComicReader.Views.Dialogs.EditComicInfo;
 using ComicReader.Views.Pages.Main;
 using ComicReader.Views.Pages.Navigation;
 
@@ -97,17 +96,6 @@ internal sealed partial class SearchPage : BasePage
         ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
         {
             GetMainPageAbility().OpenInCurrentTab(route);
-        });
-
-        ViewModel.EditComicLiveData.Observe(this, comics =>
-        {
-            if (comics.Count == 0)
-            {
-                return;
-            }
-
-            var dialog = new EditComicInfoDialog(comics);
-            _ = dialog.ShowAsync(XamlRoot);
         });
     }
 
