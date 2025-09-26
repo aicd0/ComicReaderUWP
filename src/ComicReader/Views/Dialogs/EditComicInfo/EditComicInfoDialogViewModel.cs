@@ -754,6 +754,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         if (newLinkJson != linkJson)
         {
             comic.SetExt(ComicExt.LINKS, newLinkJson);
+            comic.FlushExt();
         }
     }
 
