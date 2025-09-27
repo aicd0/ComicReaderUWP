@@ -749,6 +749,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Title2Colon" xml:space="preserve">
     <value>タイトル 2：</value>
   </data>
+  <data name="ToggleAutoScroll" xml:space="preserve">
+    <value>自動スクロール切替</value>
+  </data>
   <data name="TotalComics" xml:space="preserve">
     <value>漫画総数</value>
   </data>

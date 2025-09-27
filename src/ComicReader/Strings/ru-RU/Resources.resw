@@ -750,6 +750,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Title2Colon" xml:space="preserve">
     <value>Заголовок 2:</value>
   </data>
+  <data name="ToggleAutoScroll" xml:space="preserve">
+    <value>Переключить автопрокрутку</value>
+  </data>
   <data name="TotalComics" xml:space="preserve">
     <value>Всего комиксов</value>
   </data>
