@@ -22,6 +22,7 @@ internal class ComicTable : ITable
     public static StringColumn ColumnCoverCacheKey { get; } = new("cover_cache_key");
     public static StringColumn ColumnDescription { get; } = new("description");
     public static Int32Column ColumnCompletionState { get; } = new("completion_state");
+    public static Int32Column ColumnPageCount { get; } = new("page_count");
     public static StringColumn ColumnExt { get; } = new("ext");
 
     private ComicTable() { }

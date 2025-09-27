@@ -7,8 +7,6 @@
     xmlns:converters="using:ComicReader.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    d:DesignHeight="300"
-    d:DesignWidth="400"
     Loaded="UserControl_Loaded"
     Tapped="UserControl_Tapped"
     Unloaded="UserControl_Unloaded"
@@ -19,79 +17,78 @@
 
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
 
         </ResourceDictionary>
     </base:BaseUserControl.Resources>
 
     <Grid
         x:Name="RootGrid"
+        Padding="10,8"
         Background="Transparent"
         ContextRequested="RootGrid_ContextRequested"
         Tapped="RootGrid_Tapped">
-        <Grid Margin="10,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid Grid.Column="0" Width="{StaticResource ComicItemHorizontalImageWidth}">
-                <Rectangle Fill="{ThemeResource ImagePlaceHolderBackground}" />
-                <Image x:Name="ImageHolder" Stretch="UniformToFill" />
-            </Grid>
-            <Grid Grid.Column="1">
-                <Grid Padding="12,2,8,5">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <StackPanel
-                        Grid.Row="0"
-                        Orientation="Vertical"
-                        Spacing="3">
-                        <TextBlock
-                            FontSize="14"
-                            FontWeight="SemiBold"
-                            MaxLines="3"
-                            Text="{x:Bind Item.Title, Mode=OneWay}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="Wrap"
-                            ToolTipService.ToolTip="{x:Bind Item.Title, Mode=OneWay}" />
-                        <StackPanel Orientation="Horizontal">
-                            <Viewbox
-                                Height="20"
-                                Margin="0,2,0,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center">
-                                <controls:ReadonlyRatingView PlaceholderValue="{x:Bind Item.Rating, Mode=OneWay}" Visibility="{x:Bind Item.IsRatingVisible, Mode=OneWay}" />
-                            </Viewbox>
-                            <TextBlock
-                                FontSize="12"
-                                Opacity="0.6"
-                                Text="{x:Bind Item.Progress, Mode=OneWay}" />
-                        </StackPanel>
-                    </StackPanel>
-                    <TextBlock
-                        Grid.Row="1"
-                        FontSize="13"
-                        FontWeight="SemiLight"
-                        MaxLines="2"
-                        Opacity="0.6"
-                        Text="{x:Bind Item.Detail, Mode=OneWay}"
-                        TextTrimming="CharacterEllipsis"
-                        TextWrapping="WrapWholeWords" />
-                </Grid>
-            </Grid>
-            <Grid
-                Grid.Column="1"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Visibility="{x:Bind Item.IsFavorite, Mode=OneWay}">
-                <FontIcon
-                    Margin="0,0,10,8"
-                    FontSize="14"
-                    Foreground="{ThemeResource SystemAccentColor}"
-                    Glyph="&#xE735;" />
-            </Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Width="{StaticResource ComicItemHorizontalImageWidth}">
+            <Rectangle Fill="{ThemeResource ImagePlaceHolderBackground}" />
+            <Image x:Name="ImageHolder" Stretch="UniformToFill" />
         </Grid>
+
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="1"
+            Padding="12,2,8,5"
+            Orientation="Vertical"
+            Spacing="3">
+            <TextBlock
+                Margin="0,0,0,2"
+                FontSize="14"
+                FontWeight="SemiBold"
+                MaxLines="3"
+                Text="{x:Bind Item.Title, Mode=OneWay}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="Wrap"
+                ToolTipService.ToolTip="{x:Bind Item.Title, Mode=OneWay}" />
+            <TextBlock
+                FontSize="12"
+                FontWeight="SemiLight"
+                Opacity="0.6"
+                Text="{x:Bind Item.PageCount, Mode=OneWay}"
+                Visibility="{x:Bind Item.PageCount, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
+            <StackPanel Orientation="Horizontal">
+                <Viewbox
+                    Height="13"
+                    Margin="0,0,0,1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom">
+                    <controls:ReadonlyRatingView
+                        Height="20"
+                        PlaceholderValue="{x:Bind Item.Rating, Mode=OneWay}"
+                        Visibility="{x:Bind Item.IsRatingVisible, Mode=OneWay}" />
+                </Viewbox>
+                <TextBlock
+                    FontSize="12"
+                    Opacity="0.6"
+                    Text="{x:Bind Item.Progress, Mode=OneWay}" />
+            </StackPanel>
+        </StackPanel>
+
+        <Grid
+            Grid.Column="1"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Visibility="{x:Bind Item.IsFavorite, Mode=OneWay}">
+            <FontIcon
+                Margin="0,0,10,8"
+                FontSize="14"
+                Foreground="{ThemeResource SystemAccentColor}"
+                Glyph="&#xE735;" />
+        </Grid>
+
     </Grid>
 
 </base:BaseUserControl>

@@ -132,6 +132,7 @@ internal abstract class ComicData
             IReaderToken<string> coverCacheKeyToken = command.PutQueryString(ComicTable.ColumnCoverCacheKey);
             IReaderToken<string> descriptionToken = command.PutQueryString(ComicTable.ColumnDescription);
             IReaderToken<int> completionStateToken = command.PutQueryInt32(ComicTable.ColumnCompletionState);
+            IReaderToken<int> pageCountToken = command.PutQueryInt32(ComicTable.ColumnPageCount);
             IReaderToken<string> extToken = command.PutQueryString(ComicTable.ColumnExt);
             using SelectCommand.IReader reader = command.Execute();
 
@@ -150,6 +151,7 @@ internal abstract class ComicData
                 string coverCacheKey = coverCacheKeyToken.GetValue();
                 string description = descriptionToken.GetValue();
                 ComicCompletionStatusEnum completionState = ComicPropertyRepository.ParseCompletionState(completionStateToken.GetValue());
+                int pageCount = pageCountToken.GetValue();
                 string extJson = extToken.GetValue();
 
                 ComicData? comic = FromDatabase(type, location);
@@ -170,6 +172,7 @@ internal abstract class ComicData
                 comic.Description = description;
                 comic.Tags = [];
                 comic.CompletionState = completionState;
+                comic.PageCount = pageCount;
 
                 if (!string.IsNullOrEmpty(extJson))
                 {
@@ -318,7 +321,6 @@ internal abstract class ComicData
     //
 
     public long Id { get; private set; } = -1;
-    private ComicType Type { get; set; }
     public ComicCompletionStatusEnum CompletionState { get; private set; }
     public string Location { get; protected set; } = "";
     public string Title1 { get; protected set; } = "";
@@ -331,6 +333,8 @@ internal abstract class ComicData
     public string CoverCacheKey { get; private set; } = "";
     public string Description { get; private set; } = "";
     public IReadOnlyList<TagData> Tags { get; private set; } = [];
+    public int PageCount { get; private set; } = -1;
+
     public string Title
     {
         get
@@ -356,9 +360,12 @@ internal abstract class ComicData
             }
         }
     }
+
     public bool IsExternal { get; private set; }
     public abstract bool IsEditable { get; }
     public virtual string FileExplorerPath => Location;
+
+    private ComicType Type { get; set; }
 
     private ComicType ValueType => Type;
     private string ValueLocation => Location;
@@ -372,6 +379,7 @@ internal abstract class ComicData
     private string ValueCoverCacheKey => CoverCacheKey;
     private string ValueDescription => Description;
     private string ValueExt => JsonSerializer.Serialize(_ext);
+    private int ValuePageCount => PageCount;
 
     //
     // Constructor
@@ -536,6 +544,27 @@ internal abstract class ComicData
         });
     }
 
+    private void SetPageCount(int pageCount)
+    {
+        if (PageCount == pageCount)
+        {
+            return;
+        }
+
+        PageCount = pageCount;
+        _ = Enqueue("SetPageCount", () =>
+        {
+            SaveNoLock(() =>
+            {
+                UpdateCommand.Create(ComicTable.Instance)
+                    .AppendColumn(ComicTable.ColumnPageCount, ValuePageCount)
+                    .AppendCondition(ComicTable.ColumnId, Id)
+                    .Execute();
+            });
+            return true;
+        });
+    }
+
     //
     // Comic Connection
     //
@@ -546,6 +575,24 @@ internal abstract class ComicData
         if (connection is null)
         {
             return null;
+        }
+
+        try
+        {
+            int pageCount = connection.GetImageCount();
+            if (pageCount > 0)
+            {
+                SetPageCount(pageCount);
+            }
+            else
+            {
+                Logger.F(TAG, "OpenComicAsync: Comic has zero images.");
+            }
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
         }
 
         return new ComicConnectionWrapper(connection);
@@ -596,6 +643,7 @@ internal abstract class ComicData
                 .AppendColumn(ComicTable.ColumnCoverCacheKey, ValueCoverCacheKey)
                 .AppendColumn(ComicTable.ColumnDescription, ValueDescription)
                 .AppendColumn(ComicTable.ColumnExt, ValueExt)
+                .AppendColumn(ComicTable.ColumnPageCount, ValuePageCount)
                 .AppendCondition(ComicTable.ColumnId, Id)
                 .Execute();
             InternalSaveTagsNoLock();
@@ -900,6 +948,7 @@ internal abstract class ComicData
             .AppendColumn(ComicTable.ColumnDescription, Description)
             .AppendColumn(ComicTable.ColumnCompletionState, CompletionState)
             .AppendColumn(ComicTable.ColumnExt, ValueExt)
+            .AppendColumn(ComicTable.ColumnPageCount, ValuePageCount)
             .Execute();
 
         InternalSaveTagsNoLock(removeOld: false);

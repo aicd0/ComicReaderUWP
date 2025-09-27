@@ -40,6 +40,20 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _pageCount;
+    public string PageCount
+    {
+        get => _pageCount;
+        set
+        {
+            if (_pageCount != value)
+            {
+                _pageCount = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCount)));
+            }
+        }
+    }
+
     private string _detail = string.Empty;
     public string Detail
     {
@@ -151,6 +165,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         _isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
         _isHidden = comic.Hidden;
         _completionState = comic.CompletionState;
+        _pageCount = comic.PageCount > 0 ? $"{comic.PageCount}P" : string.Empty;
     }
 
     //
@@ -175,12 +190,14 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     public void Update(ComicItemViewModel item)
     {
         Title = item.Title;
-        Detail = item.Detail;
         Rating = item.Rating;
-        Progress = item.Progress;
         IsFavorite = item.IsFavorite;
         IsHide = item.IsHide;
         CompletionState = item.CompletionState;
+        PageCount = item.PageCount;
+
+        Detail = item.Detail;
+        Progress = item.Progress;
         OnClick = item.OnClick;
         OnRequestContextFlyoutAsync = item.OnRequestContextFlyoutAsync;
         _image.Image = item._image.Image;
