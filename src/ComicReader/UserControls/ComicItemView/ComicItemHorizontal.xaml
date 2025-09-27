@@ -17,7 +17,6 @@
 
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
-            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
 
         </ResourceDictionary>
     </base:BaseUserControl.Resources>
@@ -45,7 +44,7 @@
             Orientation="Vertical"
             Spacing="3">
             <TextBlock
-                Margin="0,0,0,2"
+                Margin="0,0,0,4"
                 FontSize="14"
                 FontWeight="SemiBold"
                 MaxLines="3"
@@ -53,28 +52,19 @@
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="Wrap"
                 ToolTipService.ToolTip="{x:Bind Item.Title, Mode=OneWay}" />
+            <Viewbox
+                Height="12"
+                Margin="0,2,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Visibility="{x:Bind Item.IsRatingVisible, Mode=OneWay}">
+                <controls:ReadonlyRatingView Height="20" PlaceholderValue="{x:Bind Item.Rating, Mode=OneWay}" />
+            </Viewbox>
             <TextBlock
                 FontSize="12"
                 FontWeight="SemiLight"
                 Opacity="0.6"
-                Text="{x:Bind Item.PageCount, Mode=OneWay}"
-                Visibility="{x:Bind Item.PageCount, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
-            <StackPanel Orientation="Horizontal">
-                <Viewbox
-                    Height="13"
-                    Margin="0,0,0,1"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Bottom">
-                    <controls:ReadonlyRatingView
-                        Height="20"
-                        PlaceholderValue="{x:Bind Item.Rating, Mode=OneWay}"
-                        Visibility="{x:Bind Item.IsRatingVisible, Mode=OneWay}" />
-                </Viewbox>
-                <TextBlock
-                    FontSize="12"
-                    Opacity="0.6"
-                    Text="{x:Bind Item.Progress, Mode=OneWay}" />
-            </StackPanel>
+                Text="{x:Bind Item.PageCountAndProgress, Mode=OneWay}" />
         </StackPanel>
 
         <Grid

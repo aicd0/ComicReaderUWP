@@ -367,20 +367,6 @@ internal abstract class ComicData
 
     private ComicType Type { get; set; }
 
-    private ComicType ValueType => Type;
-    private string ValueLocation => Location;
-    private string ValueTitle1 => Title1;
-    private string ValueTitle2 => Title2;
-    private bool ValueHidden => Hidden;
-    private int ValueRating => Rating;
-    private int ValueProgress => Progress;
-    private DateTimeOffset ValueLastVisit => LastVisit;
-    private double ValueLastPosition => LastPosition;
-    private string ValueCoverCacheKey => CoverCacheKey;
-    private string ValueDescription => Description;
-    private string ValueExt => JsonSerializer.Serialize(_ext);
-    private int ValuePageCount => PageCount;
-
     //
     // Constructor
     //
@@ -428,7 +414,7 @@ internal abstract class ComicData
             SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnExt, ValueExt)
+                    .AppendColumn(ComicTable.ColumnExt, GetColumnValue(ComicTable.ColumnExt))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -444,7 +430,7 @@ internal abstract class ComicData
             SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)
+                    .AppendColumn(ComicTable.ColumnTitle1, GetColumnValue(ComicTable.ColumnTitle1))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -460,7 +446,7 @@ internal abstract class ComicData
             SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnTitle2, ValueTitle2)
+                    .AppendColumn(ComicTable.ColumnTitle2, GetColumnValue(ComicTable.ColumnTitle2))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -476,7 +462,7 @@ internal abstract class ComicData
             SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnDescription, ValueDescription)
+                    .AppendColumn(ComicTable.ColumnDescription, GetColumnValue(ComicTable.ColumnDescription))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -536,7 +522,7 @@ internal abstract class ComicData
             SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
+                    .AppendColumn(ComicTable.ColumnLocation, GetColumnValue(ComicTable.ColumnLocation))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -557,7 +543,7 @@ internal abstract class ComicData
             SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnPageCount, ValuePageCount)
+                    .AppendColumn(ComicTable.ColumnPageCount, GetColumnValue(ComicTable.ColumnPageCount))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -623,6 +609,57 @@ internal abstract class ComicData
     protected abstract Task<IComicConnection?> OpenComicConnection();
 
     //
+    // DB Helpers
+    //
+
+    private static readonly Lazy<IReadOnlyList<IColumnTypeless>> _allNonIdColumns = new(() =>
+    {
+        return [
+            ComicTable.ColumnType,
+            ComicTable.ColumnLocation,
+            ComicTable.ColumnTitle1,
+            ComicTable.ColumnTitle2,
+            ComicTable.ColumnHidden,
+            ComicTable.ColumnRating,
+            ComicTable.ColumnProgress,
+            ComicTable.ColumnLastVisit,
+            ComicTable.ColumnLastPosition,
+            ComicTable.ColumnCoverCacheKey,
+            ComicTable.ColumnDescription,
+            ComicTable.ColumnCompletionState,
+            ComicTable.ColumnExt,
+            ComicTable.ColumnPageCount,
+        ];
+    });
+
+    private static readonly Lazy<IReadOnlyDictionary<string, Func<ComicData, object>>> _columnValueEvaluator = new(() =>
+    {
+        Dictionary<string, Func<ComicData, object>> evaluators = [];
+        evaluators[ComicTable.ColumnId.Name] = i => TypeAssert.AssertLong(i.Id);
+        evaluators[ComicTable.ColumnType.Name] = i => TypeAssert.AssertLong((long)i.Type);
+        evaluators[ComicTable.ColumnLocation.Name] = i => TypeAssert.AssertString(i.Location);
+        evaluators[ComicTable.ColumnTitle1.Name] = i => TypeAssert.AssertString(i.Title1);
+        evaluators[ComicTable.ColumnTitle2.Name] = i => TypeAssert.AssertString(i.Title2);
+        evaluators[ComicTable.ColumnHidden.Name] = i => TypeAssert.AssertBoolean(i.Hidden);
+        evaluators[ComicTable.ColumnRating.Name] = i => TypeAssert.AssertInt(i.Rating);
+        evaluators[ComicTable.ColumnProgress.Name] = i => TypeAssert.AssertInt(i.Progress);
+        evaluators[ComicTable.ColumnLastVisit.Name] = i => TypeAssert.AssertDateTimeOffset(i.LastVisit);
+        evaluators[ComicTable.ColumnLastPosition.Name] = i => TypeAssert.AssertDouble(i.LastPosition);
+        evaluators[ComicTable.ColumnCoverCacheKey.Name] = i => TypeAssert.AssertString(i.CoverCacheKey);
+        evaluators[ComicTable.ColumnDescription.Name] = i => TypeAssert.AssertString(i.Description);
+        evaluators[ComicTable.ColumnCompletionState.Name] = i => TypeAssert.AssertInt((int)i.CompletionState);
+        evaluators[ComicTable.ColumnExt.Name] = i => TypeAssert.AssertString(JsonSerializer.Serialize(i._ext));
+        evaluators[ComicTable.ColumnPageCount.Name] = i => TypeAssert.AssertInt(i.PageCount);
+        return evaluators;
+    });
+
+    private object GetColumnValue(IColumnTypeless column)
+    {
+        Func<ComicData, object> evaluator = _columnValueEvaluator.Value[column.Name];
+        return evaluator(this);
+    }
+
+    //
     // Unsorted
     //
 
@@ -630,22 +667,14 @@ internal abstract class ComicData
     {
         SaveNoLock(delegate
         {
-            UpdateCommand.Create(ComicTable.Instance)
-                .AppendColumn(ComicTable.ColumnType, (long)ValueType)
-                .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
-                .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)
-                .AppendColumn(ComicTable.ColumnTitle2, ValueTitle2)
-                .AppendColumn(ComicTable.ColumnHidden, ValueHidden)
-                .AppendColumn(ComicTable.ColumnRating, ValueRating)
-                .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
-                .AppendColumn(ComicTable.ColumnLastVisit, ValueLastVisit)
-                .AppendColumn(ComicTable.ColumnLastPosition, ValueLastPosition)
-                .AppendColumn(ComicTable.ColumnCoverCacheKey, ValueCoverCacheKey)
-                .AppendColumn(ComicTable.ColumnDescription, ValueDescription)
-                .AppendColumn(ComicTable.ColumnExt, ValueExt)
-                .AppendColumn(ComicTable.ColumnPageCount, ValuePageCount)
-                .AppendCondition(ComicTable.ColumnId, Id)
-                .Execute();
+            UpdateCommand command = UpdateCommand.Create(ComicTable.Instance)
+                .AppendCondition(ComicTable.ColumnId, Id);
+            foreach (IColumnTypeless column in _allNonIdColumns.Value)
+            {
+                command.AppendColumn(column, GetColumnValue(column));
+            }
+
+            command.Execute();
             InternalSaveTagsNoLock();
         });
     }
@@ -659,7 +688,7 @@ internal abstract class ComicData
             SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnHidden, ValueHidden)
+                    .AppendColumn(ComicTable.ColumnHidden, GetColumnValue(ComicTable.ColumnHidden))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -682,7 +711,7 @@ internal abstract class ComicData
             SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnRating, ValueRating)
+                    .AppendColumn(ComicTable.ColumnRating, GetColumnValue(ComicTable.ColumnRating))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -700,8 +729,8 @@ internal abstract class ComicData
             SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
-                    .AppendColumn(ComicTable.ColumnLastPosition, ValueLastPosition)
+                    .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
+                    .AppendColumn(ComicTable.ColumnLastPosition, GetColumnValue(ComicTable.ColumnLastPosition))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -719,8 +748,8 @@ internal abstract class ComicData
             SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
-                    .AppendColumn(ComicTable.ColumnLastVisit, ValueLastVisit)
+                    .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
+                    .AppendColumn(ComicTable.ColumnLastVisit, GetColumnValue(ComicTable.ColumnLastVisit))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -737,7 +766,7 @@ internal abstract class ComicData
             SaveNoLock(delegate
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnCoverCacheKey, ValueCoverCacheKey)
+                    .AppendColumn(ComicTable.ColumnCoverCacheKey, GetColumnValue(ComicTable.ColumnCoverCacheKey))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
@@ -934,23 +963,13 @@ internal abstract class ComicData
 
     private void InternalInsertNoLock()
     {
-        Id = InsertCommand.Create(ComicTable.Instance)
-            .AppendColumn(ComicTable.ColumnType, (long)ValueType)
-            .AppendColumn(ComicTable.ColumnLocation, ValueLocation)
-            .AppendColumn(ComicTable.ColumnTitle1, ValueTitle1)
-            .AppendColumn(ComicTable.ColumnTitle2, ValueTitle2)
-            .AppendColumn(ComicTable.ColumnHidden, ValueHidden)
-            .AppendColumn(ComicTable.ColumnRating, ValueRating)
-            .AppendColumn(ComicTable.ColumnProgress, ValueProgress)
-            .AppendColumn(ComicTable.ColumnLastVisit, ValueLastVisit)
-            .AppendColumn(ComicTable.ColumnLastPosition, ValueLastPosition)
-            .AppendColumn(ComicTable.ColumnCoverCacheKey, CoverCacheKey)
-            .AppendColumn(ComicTable.ColumnDescription, Description)
-            .AppendColumn(ComicTable.ColumnCompletionState, CompletionState)
-            .AppendColumn(ComicTable.ColumnExt, ValueExt)
-            .AppendColumn(ComicTable.ColumnPageCount, ValuePageCount)
-            .Execute();
+        var command = InsertCommand.Create(ComicTable.Instance);
+        foreach (IColumnTypeless column in _allNonIdColumns.Value)
+        {
+            command.AppendColumn(column, GetColumnValue(column));
+        }
 
+        Id = command.Execute();
         InternalSaveTagsNoLock(removeOld: false);
     }
 

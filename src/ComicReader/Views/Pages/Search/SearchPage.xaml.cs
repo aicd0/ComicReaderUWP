@@ -275,7 +275,6 @@ internal sealed partial class SearchPage : BasePage
 
                 ComicItemViewModel item = new(comic)
                 {
-                    Detail = "#" + comic.Id,
                     OnClick = () =>
                     {
                         if (!ViewModel.IsSelectMode)

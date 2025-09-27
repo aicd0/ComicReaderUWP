@@ -50,20 +50,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
             {
                 _pageCount = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCount)));
-            }
-        }
-    }
-
-    private string _detail = string.Empty;
-    public string Detail
-    {
-        get => _detail;
-        set
-        {
-            if (_detail != value)
-            {
-                _detail = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Detail)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCountAndProgress)));
             }
         }
     }
@@ -93,6 +80,28 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
             {
                 _progress = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCountAndProgress)));
+            }
+        }
+    }
+
+    public string PageCountAndProgress
+    {
+        get
+        {
+            string pageCount = PageCount;
+            string progress = Progress;
+            if (string.IsNullOrEmpty(pageCount))
+            {
+                return progress;
+            }
+            else if (string.IsNullOrEmpty(progress))
+            {
+                return pageCount;
+            }
+            else
+            {
+                return $"{pageCount}  ·  {progress}";
             }
         }
     }
@@ -176,7 +185,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     {
         var model = new ComicItemViewModel(Comic)
         {
-            Detail = Detail,
             Progress = Progress,
             OnClick = OnClick,
             OnRequestContextFlyoutAsync = OnRequestContextFlyoutAsync,
@@ -196,7 +204,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         CompletionState = item.CompletionState;
         PageCount = item.PageCount;
 
-        Detail = item.Detail;
         Progress = item.Progress;
         OnClick = item.OnClick;
         OnRequestContextFlyoutAsync = item.OnRequestContextFlyoutAsync;
