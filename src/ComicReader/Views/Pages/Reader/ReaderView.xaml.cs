@@ -43,7 +43,9 @@ internal partial class ReaderView : UserControl
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 105F;
     private const int PRELOAD_FRAMES_BEFORE = 10;
     private const int PRELOAD_FRAMES_AFTER = 10;
-    private const double AUTO_SCROLL_THRESHOLD = 0.1;
+    private const int AUTO_SCROLL_COMMON_SPEED = 20;
+    private const int AUTO_SCROLL_COMMON_INTERVAL = 10000;
+    private const double AUTO_SCROLL_COMMON_START_THRESHOLD = 0.1;
 
     //
     // Variables
@@ -130,6 +132,9 @@ internal partial class ReaderView : UserControl
 
     public delegate void ReaderEventReaderStateChangeHandler(ReaderView sender, ReaderState state, string description);
     public event ReaderEventReaderStateChangeHandler? ReaderEventReaderStateChanged;
+
+    public delegate void ReaderEventAutoScrollingChangedEventHandler(ReaderView sender, bool isAutoScrolling);
+    public event ReaderEventAutoScrollingChangedEventHandler? ReaderEventAutoScrollingChanged;
 
     public int PageCount { get; private set; } = 0;
     public double CurrentPage { get; private set; } = 0.0;
@@ -1173,11 +1178,11 @@ internal partial class ReaderView : UserControl
             case VirtualKey.Right:
                 if (!_isVertical && !_isLeftToRight)
                 {
-                    MoveFrame(-1, "JumpToPreviousPageUsingRightKey");
+                    MoveFrameByUser("JumpToPreviousPageUsingRightKey", -1);
                 }
                 else
                 {
-                    MoveFrame(1, "JumpToNextPageUsingRightKey");
+                    MoveFrameByUser("JumpToNextPageUsingRightKey", 1);
                 }
 
                 break;
@@ -1185,29 +1190,29 @@ internal partial class ReaderView : UserControl
             case VirtualKey.Left:
                 if (!_isVertical && !_isLeftToRight)
                 {
-                    MoveFrame(1, "JumpToNextPageUsingLeftKey");
+                    MoveFrameByUser("JumpToNextPageUsingLeftKey", 1);
                 }
                 else
                 {
-                    MoveFrame(-1, "JumpToPreviousPageUsingLeftKey");
+                    MoveFrameByUser("JumpToPreviousPageUsingLeftKey", -1);
                 }
 
                 break;
 
             case VirtualKey.Up:
-                MoveFrame(-1, "JumpToPerviousPageUsingUpKey");
+                MoveFrameByUser("JumpToPerviousPageUsingUpKey", -1);
                 break;
 
             case VirtualKey.Down:
-                MoveFrame(1, "JumpToNextPageUsingDownKey");
+                MoveFrameByUser("JumpToNextPageUsingDownKey", 1);
                 break;
 
             case VirtualKey.PageUp:
-                MoveFrame(-1, "JumpToPerviousPageUsingPgUpKey");
+                MoveFrameByUser("JumpToPerviousPageUsingPgUpKey", -1);
                 break;
 
             case VirtualKey.PageDown:
-                MoveFrame(1, "JumpToNextPageUsingPgDownKey");
+                MoveFrameByUser("JumpToNextPageUsingPgDownKey", 1);
                 break;
 
             case VirtualKey.Home:
@@ -1219,7 +1224,7 @@ internal partial class ReaderView : UserControl
                 break;
 
             case VirtualKey.Space:
-                MoveFrame(1, "JumpToNextPageUsingSpaceKey");
+                MoveFrameByUser("JumpToNextPageUsingSpaceKey", 1);
                 break;
 
             case VirtualKey.R:
@@ -1349,9 +1354,9 @@ internal partial class ReaderView : UserControl
         // Handle auto scrolling in continuous mode
         double v = _isVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
         _maxLinearVelocity = Math.Max(_maxLinearVelocity, Math.Abs(v));
-        if (_autoScrollSpeed > 0 && _isContinuous && !_pointerDown)
+        if (_autoScrollSpeed > 0 && _isContinuous && !_pointerDown && v < 0)
         {
-            double threshold = _maxLinearVelocity * AUTO_SCROLL_THRESHOLD * _autoScrollSpeed / 50.0;
+            double threshold = _maxLinearVelocity * AUTO_SCROLL_COMMON_START_THRESHOLD * _autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
             if (Math.Abs(v) < threshold)
             {
                 _gestureRecognizer.CompleteGesture();
@@ -1376,11 +1381,11 @@ internal partial class ReaderView : UserControl
 
         if (velocity > 1.0)
         {
-            MoveFrame(-1, "MoveToLastPageUsingManipulation");
+            MoveFrameByUser("MoveToLastPageUsingManipulation", -1);
         }
         else if (velocity < -1.0)
         {
-            MoveFrame(1, "MoveToNextPageUsingManipulation");
+            MoveFrameByUser("MoveToNextPageUsingManipulation", 1);
         }
     }
 
@@ -1398,7 +1403,7 @@ internal partial class ReaderView : UserControl
         else
         {
             // Page turning.
-            MoveFrame(delta, "PageTurningUsingPointerWheel");
+            MoveFrameByUser("PageTurningUsingPointerWheel", delta);
         }
 
         _manipulationDisabled = true;
@@ -1448,9 +1453,11 @@ internal partial class ReaderView : UserControl
 
     private int _autoScrollSpeed = 0;
     private bool _isAutoScrolling = false;
+    private bool _stopAutoScrollingRequested = false;
 
     private void StartAutoScrolling(double velocity)
     {
+        _stopAutoScrollingRequested = false;
         if (_isAutoScrolling || _autoScrollSpeed <= 0)
         {
             return;
@@ -1458,6 +1465,7 @@ internal partial class ReaderView : UserControl
 
         _isAutoScrolling = true;
         Log("AutoScroll", $"Start velocity={velocity}");
+        ReaderEventAutoScrollingChanged?.Invoke(this, true);
         CoroutineUtils.Start(async () =>
         {
             try
@@ -1467,7 +1475,7 @@ internal partial class ReaderView : UserControl
                 while (true)
                 {
                     await Task.Delay(10);
-                    if (!_isAutoScrolling || _autoScrollSpeed <= 0 || isContinuous != _isContinuous)
+                    if (_stopAutoScrollingRequested || _autoScrollSpeed <= 0 || isContinuous != _isContinuous)
                     {
                         break;
                     }
@@ -1482,13 +1490,7 @@ internal partial class ReaderView : UserControl
                     }
                     else
                     {
-                        if (_pointerDown)
-                        {
-                            // User interaction detected, stop auto scrolling.
-                            break;
-                        }
-
-                        int targetDelay = (int)(8000.0 / _autoScrollSpeed * 50.0);
+                        int targetDelay = (int)((double)AUTO_SCROLL_COMMON_INTERVAL / _autoScrollSpeed * AUTO_SCROLL_COMMON_SPEED);
                         if (elapsed > targetDelay)
                         {
                             lastTime = currentTime;
@@ -1503,12 +1505,13 @@ internal partial class ReaderView : UserControl
             }
 
             Log("AutoScroll", $"Stop");
+            ReaderEventAutoScrollingChanged?.Invoke(this, false);
         });
     }
 
     private void StopAutoScrolling()
     {
-        _isAutoScrolling = false;
+        _stopAutoScrollingRequested = true;
     }
 
     //
@@ -1755,11 +1758,11 @@ internal partial class ReaderView : UserControl
         _finalValueSynced = false;
     }
 
-    private void MoveFrame(int increment, string reason)
+    private void MoveFrameByUser(string reason, int increment)
     {
         MoveFrameInternal(reason, ScrollSource.User, increment);
 
-        if (!_isContinuous)
+        if (!_isContinuous && increment > 0)
         {
             // Page turning in seperate mode starts auto scrolling. Pass 0 velocity as it should never be used.
             StartAutoScrolling(0F);
@@ -1790,11 +1793,11 @@ internal partial class ReaderView : UserControl
 
         return SetScrollViewerInternal(new ScrollRequest(source)
         {
-            zoom = zoom,
-            horizontalOffset = horizontalOffset,
-            verticalOffset = verticalOffset,
-            disableAnimation = disableAnimation,
-            ignoreTooClose = _isViewChanging,
+            Zoom = zoom,
+            HorizontalOffset = horizontalOffset,
+            VerticalOffset = verticalOffset,
+            DisableAnimation = disableAnimation,
+            IgnoreTooClose = _isViewChanging,
         }, reason);
     }
 
@@ -1838,13 +1841,13 @@ internal partial class ReaderView : UserControl
 
         return SetScrollViewerInternal(new ScrollRequest(source)
         {
-            zoom = zoom,
-            zoomType = zoomType,
-            page = page,
-            horizontalOffset = horizontalOffset,
-            verticalOffset = verticalOffset,
-            disableAnimation = disableAnimation,
-            ignoreTooClose = _isViewChanging,
+            Zoom = zoom,
+            ZoomType = zoomType,
+            Page = page,
+            HorizontalOffset = horizontalOffset,
+            VerticalOffset = verticalOffset,
+            DisableAnimation = disableAnimation,
+            IgnoreTooClose = _isViewChanging,
         }, reason);
     }
 
@@ -1855,12 +1858,12 @@ internal partial class ReaderView : UserControl
     {
         return SetScrollViewerInternal(new ScrollRequest(source)
         {
-            zoom = zoom,
-            zoomType = zoomType,
-            horizontalOffset = horizontalOffset,
-            verticalOffset = verticalOffset,
-            disableAnimation = disableAnimation,
-            ignoreTooClose = _isViewChanging,
+            Zoom = zoom,
+            ZoomType = zoomType,
+            HorizontalOffset = horizontalOffset,
+            VerticalOffset = verticalOffset,
+            DisableAnimation = disableAnimation,
+            IgnoreTooClose = _isViewChanging,
         }, reason);
     }
 
@@ -1878,32 +1881,32 @@ internal partial class ReaderView : UserControl
             return ScrollResult.Failed;
         }
 
-        Logger.Assert(float.IsFinite(request.zoom ?? 0), "5D42C4251571A722");
-        Logger.Assert(!float.IsNegative(request.zoom ?? 0), "65075662668EE56D");
-        Logger.Assert(double.IsFinite(request.horizontalOffset ?? 0), "4FD89F79946B8D03");
-        Logger.Assert(double.IsFinite(request.verticalOffset ?? 0), "6678A0ED7D2FEB43");
+        Logger.Assert(float.IsFinite(request.Zoom ?? 0), "5D42C4251571A722");
+        Logger.Assert(!float.IsNegative(request.Zoom ?? 0), "65075662668EE56D");
+        Logger.Assert(double.IsFinite(request.HorizontalOffset ?? 0), "4FD89F79946B8D03");
+        Logger.Assert(double.IsFinite(request.VerticalOffset ?? 0), "6678A0ED7D2FEB43");
 
         Log("Jump", "Request:"
             + $" Reason={reason}"
             + $",Src={(int)request.Source}"
-            + $",P={request.page}"
-            + $",Z={request.zoom}"
-            + $",H={request.horizontalOffset}"
-            + $",V={request.verticalOffset}"
-            + $",D={request.disableAnimation}");
+            + $",P={request.Page}"
+            + $",Z={request.Zoom}"
+            + $",H={request.HorizontalOffset}"
+            + $",V={request.VerticalOffset}"
+            + $",D={request.DisableAnimation}");
 
-        if (request.Source == ScrollSource.User && _isContinuous)
+        if (request.Source == ScrollSource.User)
         {
-            // User interaction cancels auto scrolling in continuous mode.
+            // User interaction cancels auto scrolling
             StopAutoScrolling();
         }
 
         var context = new ScrollContext
         {
-            ZoomPercentage = request.zoom,
-            DisableAnimation = request.disableAnimation,
-            HorizontalOffset = request.horizontalOffset,
-            VerticalOffset = request.verticalOffset,
+            ZoomPercentage = request.Zoom,
+            DisableAnimation = request.DisableAnimation,
+            HorizontalOffset = request.HorizontalOffset,
+            VerticalOffset = request.VerticalOffset,
         };
 
         SetScrollViewerZoom(request, context);
@@ -1948,9 +1951,9 @@ internal partial class ReaderView : UserControl
             + $",V={context.VerticalOffset}"
             + $",D={context.DisableAnimation}");
 
-        if (request.page.HasValue)
+        if (request.Page.HasValue)
         {
-            SCCurrentPageFinal = ToDiscretePage(request.page.Value);
+            SCCurrentPageFinal = ToDiscretePage(request.Page.Value);
         }
 
         if (context.ZoomPercentage.HasValue)
@@ -1963,7 +1966,7 @@ internal partial class ReaderView : UserControl
             return ScrollResult.Success;
         }
 
-        if (request.ignoreTooClose)
+        if (request.IgnoreTooClose)
         {
             double verticalOffsetDiff = context.VerticalOffset.HasValue ? SCVerticalOffsetFinal - context.VerticalOffset.Value : 0.0;
             double horizontalOffsetDiff = context.HorizontalOffset.HasValue ? SCHorizontalOffsetFinal - context.HorizontalOffset.Value : 0.0;
@@ -1987,7 +1990,7 @@ internal partial class ReaderView : UserControl
         ZoomCoefficient? zoomCoefficientNew;
         int frameNew;
         {
-            int pageNew = request.page.HasValue ? (int)Math.Round(request.page.Value) : SCCurrentPageFinal;
+            int pageNew = request.Page.HasValue ? (int)Math.Round(request.Page.Value) : SCCurrentPageFinal;
             frameNew = PageToFrame(pageNew, out _, out _);
             if (frameNew < 0 || frameNew >= FrameDataSource.Count)
             {
@@ -2009,10 +2012,10 @@ internal partial class ReaderView : UserControl
         // Calculate zoom factor
         double centerCropMultipier = zoomCoefficientNew.Max() / zoomCoefficientNew.Min();
         double zoom;
-        if (request.zoom.HasValue)
+        if (request.Zoom.HasValue)
         {
-            zoom = request.zoom.Value;
-            switch (request.zoomType)
+            zoom = request.Zoom.Value;
+            switch (request.ZoomType)
             {
                 case ZoomType.CenterInside:
                     break;
@@ -2688,19 +2691,19 @@ internal partial class ReaderView : UserControl
         public readonly ScrollSource Source = source;
 
         // Zoom
-        public float? zoom = null;
-        public ZoomType zoomType = ZoomType.CenterInside;
-        public double? page = null;
+        public float? Zoom = null;
+        public ZoomType ZoomType = ZoomType.CenterInside;
+        public double? Page = null;
 
         // Offset
-        public double? horizontalOffset = null;
-        public double? verticalOffset = null;
+        public double? HorizontalOffset = null;
+        public double? VerticalOffset = null;
 
         // Animation
-        public bool disableAnimation = false;
+        public bool DisableAnimation = false;
 
         // Options
-        public bool ignoreTooClose = false;
+        public bool IgnoreTooClose = false;
     }
 
     private class ScrollContext
