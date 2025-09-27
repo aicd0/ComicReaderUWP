@@ -45,6 +45,7 @@ internal partial class ReaderView : UserControl
     private const int PRELOAD_FRAMES_AFTER = 10;
     private const int AUTO_SCROLL_COMMON_SPEED = 20;
     private const int AUTO_SCROLL_COMMON_INTERVAL = 10000;
+    private const double AUTO_SCROLL_DUAL_FRAME_MULTIPLIER = 1.8;
     private const double AUTO_SCROLL_COMMON_START_THRESHOLD = 0.1;
 
     //
@@ -293,8 +294,8 @@ internal partial class ReaderView : UserControl
         for (int i = 0; i < FrameDataSource.Count; ++i)
         {
             ReaderFrameViewModel item = FrameDataSource[i];
-            item.PageL = -1;
-            item.PageR = -1;
+            item.PageL = ReaderFrameViewModel.NO_PAGE;
+            item.PageR = ReaderFrameViewModel.NO_PAGE;
         }
 
         SCClearFinalVal("Reload");
@@ -602,7 +603,7 @@ internal partial class ReaderView : UserControl
         Logger.Assert(neighbor >= -1, "01CA2D7BCADC4663");
 
         int page = index + 1;
-        bool dual = neighbor != -1;
+        bool dual = neighbor != ReaderFrameViewModel.NO_PAGE;
 
         ImageDataModel? neighborModel = null;
         if (dual)
@@ -720,7 +721,7 @@ internal partial class ReaderView : UserControl
             item.PageL = neighbor;
         }
 
-        if (item.PageL != -1)
+        if (item.PageL != ReaderFrameViewModel.NO_PAGE)
         {
             if (_dataModel.TryGetValue(item.PageL - 1, out ImageDataModel? imageModel))
             {
@@ -734,7 +735,7 @@ internal partial class ReaderView : UserControl
             item.LeftImageSource = null;
         }
 
-        if (item.PageR != -1)
+        if (item.PageR != ReaderFrameViewModel.NO_PAGE)
         {
             if (_dataModel.TryGetValue(item.PageR - 1, out ImageDataModel? imageModel))
             {
@@ -835,7 +836,7 @@ internal partial class ReaderView : UserControl
         }
 
         ReaderFrameViewModel frame = FrameDataSource[begin];
-        if (frame.PageL == -1 && frame.PageR == -1)
+        if (frame.PageL == ReaderFrameViewModel.NO_PAGE && frame.PageR == ReaderFrameViewModel.NO_PAGE)
         {
             Logger.AssertNotReachHere("E06181918CA281F4");
             return false;
@@ -843,11 +844,11 @@ internal partial class ReaderView : UserControl
 
         int pageMin;
         int pageMax;
-        if (frame.PageL == -1)
+        if (frame.PageL == ReaderFrameViewModel.NO_PAGE)
         {
             pageMin = pageMax = frame.PageR;
         }
-        else if (frame.PageR == -1)
+        else if (frame.PageR == ReaderFrameViewModel.NO_PAGE)
         {
             pageMin = pageMax = frame.PageL;
         }
@@ -1490,7 +1491,18 @@ internal partial class ReaderView : UserControl
                     }
                     else
                     {
-                        int targetDelay = (int)((double)AUTO_SCROLL_COMMON_INTERVAL / _autoScrollSpeed * AUTO_SCROLL_COMMON_SPEED);
+                        double targetDelay = (double)AUTO_SCROLL_COMMON_INTERVAL / _autoScrollSpeed * AUTO_SCROLL_COMMON_SPEED;
+
+                        int frameIndex = PageToFrame(SCCurrentPageFinal, out _, out _);
+                        if (frameIndex >= 0 && frameIndex < FrameDataSource.Count)
+                        {
+                            ReaderFrameViewModel frame = FrameDataSource[frameIndex];
+                            if (frame.PageL != ReaderFrameViewModel.NO_PAGE && frame.PageR != ReaderFrameViewModel.NO_PAGE)
+                            {
+                                targetDelay *= AUTO_SCROLL_DUAL_FRAME_MULTIPLIER;
+                            }
+                        }
+
                         if (elapsed > targetDelay)
                         {
                             lastTime = currentTime;
@@ -2324,7 +2336,7 @@ internal partial class ReaderView : UserControl
 
         int pageMin;
         int pageMax;
-        if (neighbor == -1)
+        if (neighbor == ReaderFrameViewModel.NO_PAGE)
         {
             pageMin = pageMax = pageInt;
         }
@@ -2520,7 +2532,7 @@ internal partial class ReaderView : UserControl
         return 0;
     }
 
-    private int PageToFrame(int page, out bool left_side, out int neighbor)
+    private int PageToFrame(int page, out bool leftSide, out int neighbor)
     {
         Logger.Assert(int.IsPositive(page), "6A1624FDFE839510");
         Logger.Assert(page <= PageCount, "F8C3257028D32ED3");
@@ -2528,24 +2540,24 @@ internal partial class ReaderView : UserControl
         switch (_pageArrangement)
         {
             case PageArrangementEnum.Single:
-                left_side = true;
-                neighbor = -1;
+                leftSide = true;
+                neighbor = ReaderFrameViewModel.NO_PAGE;
                 return page - 1;
             case PageArrangementEnum.DualCover:
-                left_side = page == 1 || page % 2 == 0;
-                neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (left_side ? page + 1 : page - 1) : -1;
+                leftSide = page == 1 || page % 2 == 0;
+                neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
                 return page / 2;
             case PageArrangementEnum.DualCoverMirror:
-                left_side = page == PageCount || page % 2 == 1;
-                neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (left_side ? page - 1 : page + 1) : -1;
+                leftSide = page == PageCount || page % 2 == 1;
+                neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
                 return page / 2;
             case PageArrangementEnum.DualNoCover:
-                left_side = page % 2 == 1;
-                neighbor = (PageCount % 2 == 0 || page < PageCount) ? (left_side ? page + 1 : page - 1) : -1;
+                leftSide = page % 2 == 1;
+                neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
                 return (page - 1) / 2;
             case PageArrangementEnum.DualNoCoverMirror:
-                left_side = page == PageCount || page % 2 == 0;
-                neighbor = (PageCount % 2 == 0 || page < PageCount) ? (left_side ? page - 1 : page + 1) : -1;
+                leftSide = page == PageCount || page % 2 == 0;
+                neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
                 return (page - 1) / 2;
             default:
                 Logger.AssertNotReachHere("734FF3964EFE8681");
