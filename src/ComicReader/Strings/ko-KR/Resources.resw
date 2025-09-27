@@ -180,6 +180,9 @@
   <data name="Ascending" xml:space="preserve">
     <value>오름차순</value>
   </data>
+  <data name="Auto" xml:space="preserve">
+    <value>자동</value>
+  </data>
   <data name="AutoScrolling" xml:space="preserve">
     <value>자동 스크롤</value>
   </data>

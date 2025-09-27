@@ -124,7 +124,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             if (isAutoScrolling)
             {
-                ViewModel.ReaderCommonStatus = "Auto";
+                ViewModel.ReaderCommonStatus = StringResource.Auto;
             }
             else
             {

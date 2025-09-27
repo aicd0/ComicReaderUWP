@@ -180,8 +180,11 @@
   <data name="Ascending" xml:space="preserve">
     <value>По возрастанию</value>
   </data>
+  <data name="Auto" xml:space="preserve">
+    <value>Авто</value>
+  </data>
   <data name="AutoScrolling" xml:space="preserve">
-    <value>Автоматическая прокрутка</value>
+    <value>Автопрокрутка</value>
   </data>
   <data name="Background" xml:space="preserve">
     <value>Фон</value>
