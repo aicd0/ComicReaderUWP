@@ -40,16 +40,17 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _detail = string.Empty;
-    public string Detail
+    private string _pageCount;
+    public string PageCount
     {
-        get => _detail;
+        get => _pageCount;
         set
         {
-            if (_detail != value)
+            if (_pageCount != value)
             {
-                _detail = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Detail)));
+                _pageCount = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCount)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCountAndProgress)));
             }
         }
     }
@@ -79,6 +80,28 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
             {
                 _progress = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCountAndProgress)));
+            }
+        }
+    }
+
+    public string PageCountAndProgress
+    {
+        get
+        {
+            string pageCount = PageCount;
+            string progress = Progress;
+            if (string.IsNullOrEmpty(pageCount))
+            {
+                return progress;
+            }
+            else if (string.IsNullOrEmpty(progress))
+            {
+                return pageCount;
+            }
+            else
+            {
+                return $"{pageCount}  ·  {progress}";
             }
         }
     }
@@ -151,6 +174,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         _isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
         _isHidden = comic.Hidden;
         _completionState = comic.CompletionState;
+        _pageCount = comic.PageCount > 0 ? $"{comic.PageCount}P" : string.Empty;
     }
 
     //
@@ -161,7 +185,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     {
         var model = new ComicItemViewModel(Comic)
         {
-            Detail = Detail,
             Progress = Progress,
             OnClick = OnClick,
             OnRequestContextFlyoutAsync = OnRequestContextFlyoutAsync,
@@ -175,12 +198,13 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     public void Update(ComicItemViewModel item)
     {
         Title = item.Title;
-        Detail = item.Detail;
         Rating = item.Rating;
-        Progress = item.Progress;
         IsFavorite = item.IsFavorite;
         IsHide = item.IsHide;
         CompletionState = item.CompletionState;
+        PageCount = item.PageCount;
+
+        Progress = item.Progress;
         OnClick = item.OnClick;
         OnRequestContextFlyoutAsync = item.OnRequestContextFlyoutAsync;
         _image.Image = item._image.Image;

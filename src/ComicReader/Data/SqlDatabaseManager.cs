@@ -13,7 +13,7 @@ namespace ComicReader.Data;
 
 public static class SqlDatabaseManager
 {
-    public const int DATABASE_VERSION = 5;
+    public const int DATABASE_VERSION = 6;
 
     private const string TAG = nameof(SqlDatabaseManager);
 
@@ -78,6 +78,11 @@ public static class SqlDatabaseManager
                 {
                     ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnExt.Name} TEXT DEFAULT ''");
                 }
+                goto case 5;
+            case 5:
+                {
+                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnPageCount.Name} INTEGER NOT NULL DEFAULT -1");
+                }
                 goto case DATABASE_VERSION;
             case DATABASE_VERSION:
                 break;
@@ -110,6 +115,7 @@ public static class SqlDatabaseManager
             "," + ComicTable.ColumnCoverCacheKey.Name + " TEXT" +
             "," + ComicTable.ColumnDescription.Name + " TEXT" +
             "," + ComicTable.ColumnCompletionState.Name + " INTEGER NOT NULL" +
+            "," + ComicTable.ColumnPageCount.Name + " INTEGER NOT NULL" +
             "," + ComicTable.ColumnExt.Name + " TEXT" +
             ")");
 

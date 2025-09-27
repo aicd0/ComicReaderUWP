@@ -50,6 +50,7 @@ internal sealed class ComicModel
     public string Title1 => _internalModel.Title1;
     public string Title2 => _internalModel.Title2;
     public ComicCompletionStatusEnum CompletionState => _internalModel.CompletionState;
+    public int PageCount => _internalModel.PageCount;
 
     public Dictionary<string, HashSet<string>> TagsCopy
     {
