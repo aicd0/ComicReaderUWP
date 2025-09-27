@@ -47,6 +47,7 @@ internal partial class ReaderView : UserControl
     private const int AUTO_SCROLL_COMMON_INTERVAL = 10000;
     private const double AUTO_SCROLL_DUAL_FRAME_MULTIPLIER = 1.8;
     private const double AUTO_SCROLL_COMMON_START_THRESHOLD = 0.1;
+    private const double AUTO_SCROLL_COMMON_DEFAULT_VELOCITY = 0.05;
 
     //
     // Variables
@@ -1225,7 +1226,7 @@ internal partial class ReaderView : UserControl
                 break;
 
             case VirtualKey.Space:
-                MoveFrameByUser("JumpToNextPageUsingSpaceKey", 1);
+                ToggleAutoScrolling();
                 break;
 
             case VirtualKey.R:
@@ -1362,7 +1363,7 @@ internal partial class ReaderView : UserControl
             if (Math.Abs(v) < threshold)
             {
                 _gestureRecognizer.CompleteGesture();
-                StartAutoScrolling(threshold);
+                StartAutoScrolling(velocity: threshold);
             }
         }
     }
@@ -1457,7 +1458,19 @@ internal partial class ReaderView : UserControl
     private bool _isAutoScrolling = false;
     private bool _stopAutoScrollingRequested = false;
 
-    private void StartAutoScrolling(double velocity)
+    private void ToggleAutoScrolling()
+    {
+        if (_isAutoScrolling)
+        {
+            StopAutoScrolling();
+        }
+        else
+        {
+            StartAutoScrolling();
+        }
+    }
+
+    private void StartAutoScrolling(double? velocity = null)
     {
         _stopAutoScrollingRequested = false;
         if (_isAutoScrolling || _autoScrollSpeed <= 0)
@@ -1465,8 +1478,27 @@ internal partial class ReaderView : UserControl
             return;
         }
 
+        double velocityValue = 0.0;
+        if (_isContinuous)
+        {
+            velocity ??= _configDatabase?.AutoScrollVelocity;
+            if (velocity.HasValue)
+            {
+                velocityValue = velocity.Value;
+            }
+            else
+            {
+                velocityValue = AUTO_SCROLL_COMMON_DEFAULT_VELOCITY * _autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
+            }
+
+            if (_configDatabase is not null)
+            {
+                _configDatabase.AutoScrollVelocity = velocityValue;
+            }
+        }
+
         _isAutoScrolling = true;
-        Log("AutoScroll", $"Start velocity={velocity}");
+        Log("AutoScroll", $"Start velocity={velocityValue}");
         ReaderEventAutoScrollingChanged?.Invoke(this, true);
         CoroutineUtils.Start(async () =>
         {
@@ -1486,7 +1518,7 @@ internal partial class ReaderView : UserControl
                     int elapsed = (int)(currentTime - lastTime);
                     if (_isContinuous)
                     {
-                        double delta = velocity * elapsed;
+                        double delta = velocityValue * elapsed;
                         lastTime = currentTime;
                         SetScrollViewer1("AutoScroll", ScrollSource.Programmatic, parallelOffset: SCParallelOffsetFinal + delta);
                     }
@@ -1777,8 +1809,8 @@ internal partial class ReaderView : UserControl
 
         if (!_isContinuous && increment > 0)
         {
-            // Page turning in seperate mode starts auto scrolling. Pass 0 velocity as it should never be used.
-            StartAutoScrolling(0F);
+            // Page turning in seperate mode starts auto scrolling
+            StartAutoScrolling();
         }
     }
 
@@ -2740,6 +2772,7 @@ internal partial class ReaderView : UserControl
     {
         private const string KEY_VERTICAL_ZOOMING = "VerticalZooming";
         private const string KEY_HORIZONTAL_ZOOMING = "HorizontalZooming";
+        private const string KEY_AUTO_SCROLL_VELOCITY = "AutoScrollVelocity";
 
         private bool _initialized = false;
 
@@ -2783,6 +2816,26 @@ internal partial class ReaderView : UserControl
             }
         }
 
+        private double? _autoScrollVelocity = null;
+        public double? AutoScrollVelocity
+        {
+            get
+            {
+                Initialize();
+                return _autoScrollVelocity;
+            }
+            set
+            {
+                if (_autoScrollVelocity == value)
+                {
+                    return;
+                }
+
+                _autoScrollVelocity = value;
+                Write(KEY_AUTO_SCROLL_VELOCITY, _autoScrollVelocity?.ToString() ?? "");
+            }
+        }
+
         private void Initialize()
         {
             if (_initialized)
@@ -2793,6 +2846,7 @@ internal partial class ReaderView : UserControl
             _initialized = true;
             _verticalZooming = ParseDouble(Read(KEY_VERTICAL_ZOOMING));
             _horizontalZooming = ParseDouble(Read(KEY_HORIZONTAL_ZOOMING));
+            _autoScrollVelocity = ParseDouble(Read(KEY_AUTO_SCROLL_VELOCITY));
         }
 
         private string? Read(string key)

@@ -749,6 +749,9 @@ Variables spéciales :
   <data name="Title2Colon" xml:space="preserve">
     <value>Titre 2:</value>
   </data>
+  <data name="ToggleAutoScroll" xml:space="preserve">
+    <value>Activer/désactiver le défilement automatique</value>
+  </data>
   <data name="TotalComics" xml:space="preserve">
     <value>Total des bandes dessinées</value>
   </data>

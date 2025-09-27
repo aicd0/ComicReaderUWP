@@ -749,6 +749,9 @@ Spezielle Variablen:
   <data name="Title2Colon" xml:space="preserve">
     <value>Titel 2:</value>
   </data>
+  <data name="ToggleAutoScroll" xml:space="preserve">
+    <value>Automatisches Scrollen umschalten</value>
+  </data>
   <data name="TotalComics" xml:space="preserve">
     <value>Comics insgesamt</value>
   </data>

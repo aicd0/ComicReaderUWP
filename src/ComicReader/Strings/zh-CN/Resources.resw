@@ -749,6 +749,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Title2Colon" xml:space="preserve">
     <value>标题 2：</value>
   </data>
+  <data name="ToggleAutoScroll" xml:space="preserve">
+    <value>切换自动滚动</value>
+  </data>
   <data name="TotalComics" xml:space="preserve">
     <value>漫画总数</value>
   </data>
