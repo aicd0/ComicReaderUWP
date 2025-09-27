@@ -180,6 +180,9 @@
   <data name="Ascending" xml:space="preserve">
     <value>Ascendant</value>
   </data>
+  <data name="Auto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
   <data name="AutoScrolling" xml:space="preserve">
     <value>Défilement automatique</value>
   </data>

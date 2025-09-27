@@ -55,6 +55,15 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource ForegroundGrey2}" />
+            <TextBlock
+                Margin="12,0,0,8"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                FontSize="16"
+                FontWeight="Bold"
+                Opacity="0.3"
+                Text="{x:Bind ViewModel.ReaderCommonStatus, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.ReaderCommonStatus, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
 
             <!--  Reader  -->
             <Grid PointerEntered="OnReaderPointerEntered">

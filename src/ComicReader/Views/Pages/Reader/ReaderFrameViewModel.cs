@@ -13,8 +13,10 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace ComicReader.Views.Pages.Reader;
 
-internal class ReaderFrameViewModel : INotifyPropertyChanged
+internal partial class ReaderFrameViewModel : INotifyPropertyChanged
 {
+    public const int NO_PAGE = -1;
+
     public event PropertyChangedEventHandler PropertyChanged;
 
     private Thickness _frameMargin = new(0.0, 0.0, 0.0, 0.0);
@@ -103,9 +105,9 @@ internal class ReaderFrameViewModel : INotifyPropertyChanged
     public double FrameWidth => LeftImageWidth + RightImageWidth;
     public double FrameHeight => Math.Max(LeftImageHeight, RightImageHeight);
 
-    public int PageL { get; set; } = -1;
-    public int PageR { get; set; } = -1;
-    public double Page => PageL != -1 && PageR != -1 ? (PageL + PageR) * 0.5 : PageL == -1 ? PageR : PageL;
+    public int PageL { get; set; } = NO_PAGE;
+    public int PageR { get; set; } = NO_PAGE;
+    public double Page => PageL != NO_PAGE && PageR != NO_PAGE ? (PageL + PageR) * 0.5 : PageL == NO_PAGE ? PageR : PageL;
 
     public ReaderFrameViewModel(ReaderImagePool pool)
     {

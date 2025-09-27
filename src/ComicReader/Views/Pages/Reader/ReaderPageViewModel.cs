@@ -149,6 +149,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _readerCommonStatus = "";
+    public string ReaderCommonStatus
+    {
+        get => _readerCommonStatus;
+        set
+        {
+            _readerCommonStatus = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ReaderCommonStatus)));
+        }
+    }
+
     public ComicModel? Comic => _comic;
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
     public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];

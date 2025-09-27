@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -81,7 +80,7 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.ComicTitle2 = "";
         ViewModel.ComicDir = "";
         ViewModel.IsEditable = false;
-        ViewModel.PreviewDataSource = new ObservableCollection<ReaderImagePreviewViewModel>();
+        ViewModel.PreviewDataSource = [];
 
         ReaderView reader = MainReaderView;
 
@@ -118,6 +117,18 @@ internal sealed partial class ReaderPage : BasePage
                 case ReaderView.ReaderState.Error:
                     ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error, description));
                     break;
+            }
+        };
+
+        reader.ReaderEventAutoScrollingChanged += delegate (ReaderView sender, bool isAutoScrolling)
+        {
+            if (isAutoScrolling)
+            {
+                ViewModel.ReaderCommonStatus = StringResource.Auto;
+            }
+            else
+            {
+                ViewModel.ReaderCommonStatus = "";
             }
         };
     }
