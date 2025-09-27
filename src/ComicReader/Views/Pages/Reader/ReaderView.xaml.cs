@@ -1355,13 +1355,14 @@ internal partial class ReaderView : UserControl
         // Handle auto scrolling in continuous mode
         double v = _isVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
         _maxLinearVelocity = Math.Max(_maxLinearVelocity, Math.Abs(v));
-        if (_autoScrollSpeed > 0 && _isContinuous && !_pointerDown && v < 0)
+        bool normalDirection = (_isVertical || _isLeftToRight) ? double.IsNegative(v) : double.IsPositive(v);
+        if (_autoScrollSpeed > 0 && _isContinuous && !_pointerDown && normalDirection)
         {
             double threshold = _maxLinearVelocity * AUTO_SCROLL_COMMON_START_THRESHOLD * _autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
             if (Math.Abs(v) < threshold)
             {
                 _gestureRecognizer.CompleteGesture();
-                StartAutoScrolling(v > 0 ? -threshold : threshold);
+                StartAutoScrolling(threshold);
             }
         }
     }
