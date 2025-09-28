@@ -1000,11 +1000,18 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
             if (comicsGrouped != null)
             {
+                // Disable ME as it's causing a native crash in Microsoft.ui.xaml.dll.
+                // This is not garanteed a fix but so far it works fine. 
+                // How to reproduce: Under group view (with 20+ groups), scroll to bottom (or close to bottom)
+                // of the list. Then switch between different filter presets which share the same group names,
+                // the crash should occur.
+                // This problem can still be reproduced under lastest Windows SDK (1.8.250916003). The native
+                // stack trace indicates that it relates to a MAUI collection component (likely GridView).
                 DiffUtils.UpdateCollection(GroupedComicItems, comicsGrouped, (x, y) => x.GroupName == y.GroupName, (x, y) =>
                 {
                     x.Description = y.Description;
                     x.UpdateItems(y.Items, ComicComparer, ComicUpdater);
-                });
+                }, disableME: true);
 
                 GroupingEnabledLiveData.Emit(true);
             }

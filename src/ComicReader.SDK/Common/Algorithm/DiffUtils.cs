@@ -9,11 +9,11 @@ public static class DiffUtils
 {
     public static void UpdateCollection<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
     {
-        List<Modification> modifications = CalculateModifications(fromCollection, toCollection, comparer);
+        List<Modification> modifications = CalculateModifications(fromCollection, toCollection, comparer, false);
         UpdateCollection(fromCollection, toCollection, modifications);
     }
 
-    public static void UpdateCollection<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer, Action<T, T> updater)
+    public static void UpdateCollection<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer, Action<T, T> updater, bool disableME = false)
     {
         Collection<bool> fromCollectionFlags = [];
         for (int i = 0; i < fromCollection.Count; ++i)
@@ -27,7 +27,7 @@ public static class DiffUtils
             toCollectionFlags.Add(false);
         }
 
-        List<Modification> modifications = CalculateModifications(fromCollection, toCollection, comparer);
+        List<Modification> modifications = CalculateModifications(fromCollection, toCollection, comparer, disableME);
         UpdateCollection(fromCollection, toCollection, modifications);
         UpdateCollection(fromCollectionFlags, toCollectionFlags, modifications);
         for (int i = 0; i < fromCollection.Count; ++i)
@@ -57,10 +57,10 @@ public static class DiffUtils
         UpdateCollection(fromCollection, toCollection, modifications);
     }
 
-    private static List<Modification> CalculateModifications<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer)
+    private static List<Modification> CalculateModifications<T>(Collection<T> fromCollection, IReadOnlyList<T> toCollection, Func<T, T, bool> comparer, bool disableME)
     {
         List<Modification> modifications;
-        if (fromCollection.Count * toCollection.Count <= 65536)
+        if (!disableME && fromCollection.Count * toCollection.Count <= 65536)
         {
             modifications = UpdateCollectionUsingMinimumEditing(fromCollection, toCollection, comparer);
         }
