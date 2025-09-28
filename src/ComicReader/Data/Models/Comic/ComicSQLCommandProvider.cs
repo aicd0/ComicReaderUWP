@@ -21,6 +21,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
     public const string VAR_TITLE1 = "title1";
     public const string VAR_TITLE2 = "title2";
     public const string VAR_PROGRESS = "progress";
+    public const string VAR_PAGE_COUNT = "page_count";
 
     public ICondition CreateComparisonCondition(VariableOrValue left, VariableOrValue right, ComparisonTypeEnum comparisonType)
     {
@@ -157,6 +158,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
             VAR_TITLE1 => NotNullAndEmptyCondition(ComicTable.ColumnTitle1),
             VAR_TITLE2 => NotNullAndEmptyCondition(ComicTable.ColumnTitle2),
             VAR_PROGRESS => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnProgress), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThanOrEqual),
+            VAR_PAGE_COUNT => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnPageCount), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThan),
             _ => throw new ExpressionException($"Variable '{path1}' cannot be used as a condition"),
         };
     }
@@ -193,6 +195,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
             VAR_TITLE1 => conditionCreator(ComicTable.ColumnTitle1),
             VAR_TITLE2 => conditionCreator(ComicTable.ColumnTitle2),
             VAR_PROGRESS => conditionCreator(ComicTable.ColumnProgress),
+            VAR_PAGE_COUNT => conditionCreator(ComicTable.ColumnPageCount),
             _ => throw new ExpressionException($"Variable '{path1}' cannot be used here"),
         };
     }

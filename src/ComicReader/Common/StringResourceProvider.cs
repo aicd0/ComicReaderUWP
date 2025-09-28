@@ -104,6 +104,7 @@ public class StringResourceProvider
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenRandomComic => GetResourceString("OpenRandomComic");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
+    public string PageCount => GetResourceString("PageCount");
     public string PageGap => GetResourceString("PageGap");
     public string PageLayoutDualNoCover => GetResourceString("PageLayoutDualNoCover");
     public string PageLayoutDualNoCoverMirrored => GetResourceString("PageLayoutDualNoCoverMirrored");

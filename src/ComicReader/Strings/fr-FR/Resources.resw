@@ -574,6 +574,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Cette opération écrasera les entrées existantes.</value>
   </data>
+  <data name="PageCount" xml:space="preserve">
+    <value>Pages</value>
+  </data>
   <data name="PageGap" xml:space="preserve">
     <value>Espacement</value>
   </data>
