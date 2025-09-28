@@ -27,6 +27,7 @@ internal class ComicPropertyModel
     private const string PROP_TYPE_RATING = "Rating";
     private const string PROP_TYPE_COMPLETION_STATE = "CompletionState";
     private const string PROP_TYPE_LAST_READ_TIME = "LastReadTime";
+    private const string PROP_TYPE_PAGES = "Pages";
 
     private static readonly List<PropertyTypeEnum> _properties = [
         PropertyTypeEnum.Title,
@@ -34,6 +35,7 @@ internal class ComicPropertyModel
         PropertyTypeEnum.Rating,
         PropertyTypeEnum.CompletionState,
         PropertyTypeEnum.LastReadTime,
+        PropertyTypeEnum.Pages,
     ];
 
     private PropertyTypeEnum Type { get; set; } = PropertyTypeEnum.Title;
@@ -53,6 +55,7 @@ internal class ComicPropertyModel
         PropertyTypeEnum.Rating => StringResourceProvider.Instance.Rating,
         PropertyTypeEnum.CompletionState => StringResourceProvider.Instance.CompletionState,
         PropertyTypeEnum.LastReadTime => StringResourceProvider.Instance.LastReadTime,
+        PropertyTypeEnum.Pages => StringResourceProvider.Instance.PageCount,
         _ => "",
     };
 
@@ -128,6 +131,7 @@ internal class ComicPropertyModel
             PropertyTypeEnum.Rating => new SimpleSorter<ComicModel, int>(x => x.Rating),
             PropertyTypeEnum.CompletionState => new SimpleSorter<ComicModel, int>(x => CompletionStateToComparable(x.CompletionState)),
             PropertyTypeEnum.LastReadTime => new SimpleSorter<ComicModel, long>(x => x.LastVisit.Ticks),
+            PropertyTypeEnum.Pages => new SimpleSorter<ComicModel, int>(x => x.PageCount),
             _ => new SimpleSorter<ComicModel, long>(x => x.Id),
         };
     }
@@ -188,6 +192,32 @@ internal class ComicPropertyModel
             return rating.ToString();
         }
 
+        string GetPagesGroupName(ComicModel comic)
+        {
+            int pages = comic.PageCount;
+            if (pages <= 0)
+            {
+                return StringResourceProvider.Instance.Ungrouped;
+            }
+
+            if (pages < 10)
+            {
+                return "<10";
+            }
+
+            if (pages < 100)
+            {
+                return $"{pages / 10 * 10}";
+            }
+
+            if (pages < 1000)
+            {
+                return $"{pages / 100 * 100}";
+            }
+
+            return "1000+";
+        }
+
         string GetCompletionStatusGroupName(ComicModel comic)
         {
             return comic.CompletionState switch
@@ -223,19 +253,21 @@ internal class ComicPropertyModel
         return Type switch
         {
             PropertyTypeEnum.Title => new ComicGroupSorter(x => [GetTitleGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(x.GroupName), x => string.Empty, StringUtils.SmartFileNameComparer)),
+                x => StringUtils.SmartFileNameKeySelector(x.GroupName), comparer: StringUtils.SmartFileNameComparer)),
             PropertyTypeEnum.Progress => new ComicGroupSorter(x => [GetProgressGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => Math.Clamp(x.Items[0].Progress, 0, 100), x => string.Empty)),
+                x => Math.Clamp(x.Items[0].Progress, 0, 100))),
             PropertyTypeEnum.Tag => new ComicGroupSorter(GetTagGroupNames, new GroupSorter<GroupSortingKeySelectorParams, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(x.GroupName), x => string.Empty, StringUtils.SmartFileNameComparer)),
+                x => StringUtils.SmartFileNameKeySelector(x.GroupName), comparer: StringUtils.SmartFileNameComparer)),
             PropertyTypeEnum.Rating => new ComicGroupSorter(x => [GetRatingGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => Math.Clamp(x.Items[0].Rating, 0, 5), x => string.Empty)),
+                x => Math.Clamp(x.Items[0].Rating, 0, 5))),
             PropertyTypeEnum.CompletionState => new ComicGroupSorter(x => [GetCompletionStatusGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => GetCompletionStatusGroupSortingKey(x.Items[0]), x => string.Empty)),
+                x => GetCompletionStatusGroupSortingKey(x.Items[0]))),
             PropertyTypeEnum.LastReadTime => new ComicGroupSorter(x => [GetLastReadTimeGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, long>(
-                x => x.Items[0].LastVisit.Ticks, x => string.Empty)),
+                x => x.Items[0].LastVisit.Ticks)),
+            PropertyTypeEnum.Pages => new ComicGroupSorter(x => [GetPagesGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
+                x => x.Items[0].PageCount)),
             _ => new ComicGroupSorter(x => [new(StringResourceProvider.Instance.Ungrouped)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => 0, x => string.Empty)),
+                x => 0)),
         };
     }
 
@@ -277,6 +309,7 @@ internal class ComicPropertyModel
             PropertyTypeEnum.Rating => PROP_TYPE_RATING,
             PropertyTypeEnum.CompletionState => PROP_TYPE_COMPLETION_STATE,
             PropertyTypeEnum.LastReadTime => PROP_TYPE_LAST_READ_TIME,
+            PropertyTypeEnum.Pages => PROP_TYPE_PAGES,
             _ => PROP_TYPE_TITLE,
         };
     }
@@ -296,6 +329,7 @@ internal class ComicPropertyModel
             PROP_TYPE_RATING => PropertyTypeEnum.Rating,
             PROP_TYPE_COMPLETION_STATE => PropertyTypeEnum.CompletionState,
             PROP_TYPE_LAST_READ_TIME => PropertyTypeEnum.LastReadTime,
+            PROP_TYPE_PAGES => PropertyTypeEnum.Pages,
             _ => PropertyTypeEnum.Title,
         };
     }
@@ -394,6 +428,7 @@ internal class ComicPropertyModel
                     PropertyTypeEnum.Rating => comic.Rating > 0 ? comic.Rating : null,
                     PropertyTypeEnum.CompletionState => (int)comic.CompletionState,
                     PropertyTypeEnum.LastReadTime => comic.LastVisit != DateTimeOffset.MinValue ? comic.LastVisit.ToUnixTimeMilliseconds() : null,
+                    PropertyTypeEnum.Pages => comic.PageCount > 0 ? comic.PageCount : null,
                     _ => null,
                 };
             }
@@ -498,9 +533,9 @@ internal class ComicPropertyModel
         }
     }
 
-    private class GroupSorter<A, B>(Func<A, B> keySelector, Func<B, string> keyInfoConverter, IComparer<B>? comparer = null) : SimpleSorter<A, B>(keySelector, comparer), IItemSorterWithKeyInfo<A, string>
+    private class GroupSorter<A, B>(Func<A, B> keySelector, Func<B, string>? keyInfoConverter = null, IComparer<B>? comparer = null) : SimpleSorter<A, B>(keySelector, comparer), IItemSorterWithKeyInfo<A, string>
     {
-        private Func<B, string> KeyInfoConverter { get; } = keyInfoConverter;
+        private Func<B, string> KeyInfoConverter { get; } = keyInfoConverter ?? (_ => string.Empty);
 
         public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, bool ascending, Action<T, string> keyBinder)
         {
@@ -536,5 +571,6 @@ internal class ComicPropertyModel
         Tag,
         Title,
         LastReadTime,
+        Pages,
     }
 }

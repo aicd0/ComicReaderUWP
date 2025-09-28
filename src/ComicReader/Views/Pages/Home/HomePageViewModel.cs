@@ -526,23 +526,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Applies an operation to a specific comic item.
-    /// </summary>
-    /// <param name="operationType">The operation type.</param>
-    /// <param name="comic">The comic item to operate.</param>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
-    public void ApplyOperationToComic(ComicOperationType operationType, ComicItemViewModel comic)
-    {
-        List<ComicItemViewModel> selection = GetSelection(comic);
-        _sharedDispatcher.Submit("ApplyOperationToSelection", delegate
-        {
-            BatchApplyOperation(operationType, selection);
-        });
-    }
-
-    /// <summary>
     /// Applies a batch operation to the selected comic items.
     /// </summary>
     /// <param name="operationType">The operation type.</param>
