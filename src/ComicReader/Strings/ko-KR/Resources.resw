@@ -575,6 +575,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>이 작업을 수행하면 기존 항목이 덮어쓰여집니다.</value>
   </data>
+  <data name="PageCount" xml:space="preserve">
+    <value>페이지 수</value>
+  </data>
   <data name="PageGap" xml:space="preserve">
     <value>페이지 간격</value>
   </data>

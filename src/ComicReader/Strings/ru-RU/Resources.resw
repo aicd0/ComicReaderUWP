@@ -575,6 +575,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Эта операция перезапишет существующие записи.</value>
   </data>
+  <data name="PageCount" xml:space="preserve">
+    <value>Страницы</value>
+  </data>
   <data name="PageGap" xml:space="preserve">
     <value>интервал</value>
   </data>

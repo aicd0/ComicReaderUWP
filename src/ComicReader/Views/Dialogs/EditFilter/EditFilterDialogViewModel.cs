@@ -235,20 +235,21 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             buttons.Add(new() { Tag = ">=", OnClicked = () => OnClickButton(">= ") });
             buttons.Add(new() { Tag = "<=", OnClicked = () => OnClickButton("<= ") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionIn, OnClicked = () => OnClickButton("in ()", -2) });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, OnClicked = () => OnClickButton("%title") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TITLE}") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Rating, OnClicked = () => OnClickButton("%rating") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusUnread, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.NotStarted}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusReading, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.Started}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusFinished, OnClicked = () => OnClickButton($"%completion_state = {(int)ComicCompletionStatusEnum.Completed}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Progress, OnClicked = () => OnClickButton("%progress") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title1, OnClicked = () => OnClickButton("%title1") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, OnClicked = () => OnClickButton("%title2") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Tag, OnClicked = () => OnClickButton("%tag") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusUnread, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.NotStarted}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusReading, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.Started}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusFinished, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.Completed}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Progress, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_PROGRESS}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title1, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TITLE1}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TITLE2}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.PageCount, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_PAGE_COUNT}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Tag, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TAG}") });
 
             List<string> tagCategories = await ComicModel.GetAllTagCategories();
             foreach (string category in tagCategories)
             {
-                buttons.Add(new() { Tag = $"{StringResourceProvider.Instance.Tag}.{category}", OnClicked = () => OnClickButton($"%tag.\"{ParserUtils.EscapeString(category)}\"") });
+                buttons.Add(new() { Tag = $"{StringResourceProvider.Instance.Tag}.{category}", OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TAG}.\"{ParserUtils.EscapeString(category)}\"") });
             }
 
             ExpressionButtons = buttons;

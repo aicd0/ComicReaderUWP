@@ -576,6 +576,9 @@ The evaluation will be performed in the following order:
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>This operation will overwrite existing entries.</value>
   </data>
+  <data name="PageCount" xml:space="preserve">
+    <value>Pages</value>
+  </data>
   <data name="PageGap" xml:space="preserve">
     <value>Page spacing</value>
   </data>

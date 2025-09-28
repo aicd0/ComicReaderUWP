@@ -574,6 +574,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>此操作將覆蓋現有條目。</value>
   </data>
+  <data name="PageCount" xml:space="preserve">
+    <value>頁數</value>
+  </data>
   <data name="PageGap" xml:space="preserve">
     <value>頁面間距</value>
   </data>
