@@ -5,9 +5,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-using ComicReader.Common.Utils;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.Data.Tables;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.ViewModels;
 

@@ -15,6 +15,7 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
 using ComicReader.Views.Dialogs.EditFilter;

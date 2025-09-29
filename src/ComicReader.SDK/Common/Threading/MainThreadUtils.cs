@@ -1,14 +1,11 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Threading.Tasks;
-
-using ComicReader.Common.Test;
+using ComicReader.SDK.Common.Test;
 
 using Microsoft.UI.Dispatching;
 
-namespace ComicReader.Common.Threading;
+namespace ComicReader.SDK.Common.Threading;
 
 public static class MainThreadUtils
 {

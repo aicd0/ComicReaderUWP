@@ -1,10 +1,10 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReader.Common.Lifecycle;
-using ComicReader.Common.Lifecycle.Utils;
-using ComicReader.Common.Test;
-using ComicReader.Common.Utils;
+using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Common.Lifecycle.Utils;
+using ComicReader.SDK.Common.Test;
+using ComicReader.SDK.Common.Utils;
 
 namespace ComicReader.Tests.Lifecycle;
 
@@ -15,7 +15,6 @@ internal class LiveDataTest
     public void TestMutableLiveDataWithMinInterval()
     {
         TestSettings.UseCurrentThreadAsMainThread = true;
-        TestSettings.LiveDataAllowObserveForever = true;
 
         MutableLiveData<int> internalLiveData = new();
         MutableLiveDataWithMinInterval<int> liveData = new(internalLiveData, 1000);
@@ -24,10 +23,11 @@ internal class LiveDataTest
         {
             int observedValue = 0;
             int changeCount = 0;
+            AlwaysActiveLifecycleOwner owner = new();
             for (int i = 0; i < 100; i++)
             {
                 int temp = i;
-                liveData.Observe(null, delegate (int value)
+                liveData.Observe(owner, delegate (int value)
                 {
                     Interlocked.Increment(ref changeCount);
                     observedValue = value;
@@ -92,4 +92,19 @@ internal class LiveDataTest
     //{
     //    System.Diagnostics.Debug.WriteLine($"{DateTime.Now:HH:mm:ss.fff}: {eventName}");
     //}
+
+    private class AlwaysActiveLifecycleOwner : ILifecycleOwner
+    {
+        private readonly SimpleLifecycle _lifecycle = new();
+
+        public AlwaysActiveLifecycleOwner()
+        {
+            _lifecycle.SetState(ILifecycle.State.Resumed);
+        }
+
+        public ILifecycle GetLifecycle()
+        {
+            return _lifecycle;
+        }
+    }
 }

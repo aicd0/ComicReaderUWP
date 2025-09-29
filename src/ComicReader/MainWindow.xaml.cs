@@ -17,6 +17,7 @@ using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Native;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI;

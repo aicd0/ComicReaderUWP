@@ -18,6 +18,7 @@ using ComicReader.Data.Tables;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;

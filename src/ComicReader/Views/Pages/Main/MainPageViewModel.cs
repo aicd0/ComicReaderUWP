@@ -7,9 +7,9 @@ using System.ComponentModel;
 using System.Linq;
 
 using ComicReader.Common.Constants;
-using ComicReader.Common.Threading;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Pages.Main;

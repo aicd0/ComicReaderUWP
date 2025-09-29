@@ -4,8 +4,8 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-using ComicReader.Common.Utils;
 using ComicReader.Data.Models.TagInfo;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Dialogs.EditTag;

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Lifecycle;
+using ComicReader.SDK.Common.Lifecycle;
 
 namespace ComicReader.Views.Pages.Navigation;
 

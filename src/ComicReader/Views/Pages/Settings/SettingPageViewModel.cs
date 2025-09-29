@@ -12,14 +12,12 @@ using System.Threading;
 
 using ComicReader.Common;
 using ComicReader.Common.Imaging;
-using ComicReader.Common.Lifecycle;
-using ComicReader.Common.Threading;
-using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;

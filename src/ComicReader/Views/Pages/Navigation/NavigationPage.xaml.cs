@@ -6,12 +6,12 @@ using System;
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
-using ComicReader.Common.Lifecycle;
-using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Input;
