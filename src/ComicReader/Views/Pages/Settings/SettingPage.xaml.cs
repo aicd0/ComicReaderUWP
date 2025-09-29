@@ -126,15 +126,20 @@ internal sealed partial class SettingPage : BasePage
 
     private void RemoveUnreachableCheckBox_Click(object sender, RoutedEventArgs e)
     {
-        var checkbox = (CheckBox)sender;
-        bool isChecked = checkbox.IsChecked ?? false;
-        ViewModel.SetRemoveUnreachableComics(isChecked);
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            ViewModel.SetRemoveUnreachableComics(isChecked.Value);
+        }
     }
 
     private void PromptBeforeRemovingComicsCheckBox_Click(object sender, RoutedEventArgs e)
     {
-        bool isChecked = ((CheckBox)sender).IsChecked ?? false;
-        ViewModel.SetRemoveUnreachableComics(isChecked);
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            ViewModel.SetPromptBeforeRemovingComics(isChecked.Value);
+        }
     }
 
     private void OnRescanFilesClicked(object sender, RoutedEventArgs e)
