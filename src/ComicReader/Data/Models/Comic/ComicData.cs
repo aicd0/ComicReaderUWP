@@ -1172,17 +1172,22 @@ internal abstract class ComicData
 
         if (locationRemoved.Count > 0)
         {
-            string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
-                .Replace("$count", locationRemoved.Count.ToString())
-                .Replace("$comics", string.Join('\n', locationRemoved));
-            DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
-                .SetTitle(StringResourceProvider.Instance.Warning)
-                .SetContent(promptContent)
-                .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
-                .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
-                .Build();
-            ContentDialogResult result = await DialogUtils.EnqueueDialogAsync(options);
-            if (result == ContentDialogResult.Primary)
+            bool proceed = true;
+            if (appSettings.PromptBeforeRemovingComics)
+            {
+                string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
+                    .Replace("$count", locationRemoved.Count.ToString())
+                    .Replace("$comics", string.Join('\n', locationRemoved));
+                DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+                    .SetTitle(StringResourceProvider.Instance.Warning)
+                    .SetContent(promptContent)
+                    .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
+                    .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
+                    .Build();
+                proceed = await DialogUtils.EnqueueDialogAsync(options) == ContentDialogResult.Primary;
+            }
+
+            if (proceed)
             {
                 await TransactionBlock(delegate
                 {

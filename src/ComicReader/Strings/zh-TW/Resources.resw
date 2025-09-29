@@ -612,6 +612,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Progress" xml:space="preserve">
     <value>進度</value>
   </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>移除漫畫前提示</value>
+  </data>
   <data name="Rating" xml:space="preserve">
     <value>評分</value>
   </data>

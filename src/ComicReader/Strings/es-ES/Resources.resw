@@ -612,6 +612,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="Progress" xml:space="preserve">
     <value>Progreso</value>
   </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>Confirmar antes de eliminar cómics</value>
+  </data>
   <data name="Rating" xml:space="preserve">
     <value>Puntaje</value>
   </data>

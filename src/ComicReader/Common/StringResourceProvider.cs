@@ -115,6 +115,7 @@ public class StringResourceProvider
     public string PageN => GetResourceString("PageN");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
+    public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");
     public string Rating => GetResourceString("Rating");
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");

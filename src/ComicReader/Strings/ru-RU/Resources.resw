@@ -613,6 +613,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Progress" xml:space="preserve">
     <value>Прогресс</value>
   </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>Запрашивать подтверждение перед удалением комиксов</value>
+  </data>
   <data name="Rating" xml:space="preserve">
     <value>Рейтинг</value>
   </data>

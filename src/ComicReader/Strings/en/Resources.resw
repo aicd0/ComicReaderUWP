@@ -614,6 +614,9 @@ The evaluation will be performed in the following order:
   <data name="Progress" xml:space="preserve">
     <value>Progress</value>
   </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>Prompt before removing comics</value>
+  </data>
   <data name="Rating" xml:space="preserve">
     <value>Rating</value>
   </data>

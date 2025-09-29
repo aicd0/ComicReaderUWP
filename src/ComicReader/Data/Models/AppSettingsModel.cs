@@ -91,6 +91,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         [JsonPropertyName("RemoveUnreachableComics")]
         public bool? RemoveUnreachableComics { get; set; }
 
+        [JsonPropertyName("PromptBeforeRemovingComics")]
+        public bool? PromptBeforeRemovingComics { get; set; }
+
         [JsonPropertyName("Language")]
         public string? Language { get; set; }
 
@@ -138,6 +141,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         public List<string> ComicFolders { get; set; } = [];
         public bool RemoveUnreachableComics { get; set; }
+        public bool PromptBeforeRemovingComics { get; set; }
         public string Language { get; set; } = "";
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
         public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
@@ -148,6 +152,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             ExternalModel externalModel = new()
             {
                 RemoveUnreachableComics = model.RemoveUnreachableComics ?? true,
+                PromptBeforeRemovingComics = model.PromptBeforeRemovingComics ?? true,
                 Language = model.Language ?? "",
                 DefaultReaderSetting = ReaderSettingModel.From(model.DefaultReaderSetting),
             };
@@ -191,6 +196,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         {
             model.ComicFolders = [.. ComicFolders];
             model.RemoveUnreachableComics = RemoveUnreachableComics;
+            model.PromptBeforeRemovingComics = PromptBeforeRemovingComics;
             model.Language = Language;
             model.Theme = (int)Theme;
             model.DefaultReaderSetting = DefaultReaderSetting.To();

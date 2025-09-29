@@ -131,6 +131,12 @@ internal sealed partial class SettingPage : BasePage
         ViewModel.SetRemoveUnreachableComics(isChecked);
     }
 
+    private void PromptBeforeRemovingComicsCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        bool isChecked = ((CheckBox)sender).IsChecked ?? false;
+        ViewModel.SetRemoveUnreachableComics(isChecked);
+    }
+
     private void OnRescanFilesClicked(object sender, RoutedEventArgs e)
     {
         ComicModel.UpdateAllComics("OnRescanFilesClicked");
