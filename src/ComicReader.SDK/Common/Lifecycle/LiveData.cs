@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.Test;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 
@@ -65,45 +64,36 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         });
     }
 
-    private void ObserveInternal(ILifecycleOwner? owner, IObserver<T> observer, bool sticky)
+    private void ObserveInternal(ILifecycleOwner owner, IObserver<T> observer, bool sticky)
     {
         if (_clearing)
         {
             return;
         }
 
-        ObserverWrapper observerWrapper;
-        if (owner == null && TestSettings.LiveDataAllowObserveForever)
+        if (owner == null || observer == null)
         {
-            observerWrapper = new ForeverObserverWrapper(this, observer);
-            _observers[observer] = observerWrapper;
+            Logger.AssertNotReachHere("3CC47B4DD23EFA9E");
+            return;
         }
-        else
+
+        if (!owner.GetLifecycle().GetState().IsStarted())
         {
-            if (owner == null || observer == null)
-            {
-                Logger.AssertNotReachHere("3CC47B4DD23EFA9E");
-                return;
-            }
-
-            if (!owner.GetLifecycle().GetState().IsStarted())
-            {
-                return;
-            }
-
-            if (_observers.TryGetValue(observer, out ObserverWrapper? wrapper))
-            {
-                if (wrapper.IsSameOwner(owner))
-                {
-                    Logger.AssertNotReachHere("4EC4F8B92CAAE0D0");
-                }
-
-                return;
-            }
-
-            observerWrapper = new LifecycleObserverWrapper(this, owner, observer);
-            _observers[observer] = observerWrapper;
+            return;
         }
+
+        if (_observers.TryGetValue(observer, out ObserverWrapper? wrapper))
+        {
+            if (wrapper.IsSameOwner(owner))
+            {
+                Logger.AssertNotReachHere("4EC4F8B92CAAE0D0");
+            }
+
+            return;
+        }
+
+        ObserverWrapper observerWrapper = new LifecycleObserverWrapper(this, owner, observer);
+        _observers[observer] = observerWrapper;
 
         if (sticky && _version > 0)
         {

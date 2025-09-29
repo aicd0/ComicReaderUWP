@@ -6,5 +6,4 @@ namespace ComicReader.SDK.Common.Test;
 public static class TestSettings
 {
     public static bool UseCurrentThreadAsMainThread { get; set; } = false;
-    public static bool LiveDataAllowObserveForever { get; set; } = false;
 }
