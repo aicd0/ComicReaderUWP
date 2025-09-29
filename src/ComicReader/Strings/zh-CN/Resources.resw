@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>漫画信息</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>以下 $count 本漫画将被永久从你的库中移除：
+（你可以在设置中禁用此警告）
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>完成状态</value>
   </data>
@@ -606,6 +611,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="Progress" xml:space="preserve">
     <value>进度</value>
+  </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>移除漫画前提示</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>评分</value>

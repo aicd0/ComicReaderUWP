@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>Comic information</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>The following $count comics will be permanently removed from your library:
+(You can disable this warning in settings)
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>Completion status</value>
   </data>
@@ -608,6 +613,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="Progress" xml:space="preserve">
     <value>Progress</value>
+  </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>Prompt before removing comics</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>Rating</value>

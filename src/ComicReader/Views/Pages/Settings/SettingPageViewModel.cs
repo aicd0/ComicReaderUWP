@@ -62,6 +62,17 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _promptBeforeRemovingComics = true;
+    public bool PromptBeforeRemovingComics
+    {
+        get => _promptBeforeRemovingComics;
+        set
+        {
+            _promptBeforeRemovingComics = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PromptBeforeRemovingComics)));
+        }
+    }
+
     private int _defaultArchiveCodePageIndex = 0;
     public int DefaultArchiveCodePageIndex
     {
@@ -352,6 +363,14 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         AppSettingsModel.Instance.UpdateModel(model);
     }
 
+    public void SetPromptBeforeRemovingComics(bool promptBeforeRemovingComics)
+    {
+        _promptBeforeRemovingComics = promptBeforeRemovingComics;
+        AppSettingsModel.ExternalModel model = GetSettingsModel();
+        model.PromptBeforeRemovingComics = promptBeforeRemovingComics;
+        AppSettingsModel.Instance.UpdateModel(model);
+    }
+
     public void SetBackground(int index)
     {
         if (index == _backgroundIndex)
@@ -494,12 +513,14 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     {
         bool hasHistory = HistoryModel.Instance.GetModel().Items.Count > 0;
         bool removeUnreachableComics = model.RemoveUnreachableComics;
+        bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
         bool saveBrowsingHistory = AppModel.SaveBrowsingHistory;
 
         MainThreadUtils.RunInMainThread(() =>
         {
             IsClearHistoryEnabled = hasHistory;
             RemoveUnreachableComics = removeUnreachableComics;
+            PromptBeforeRemovingComics = promptBeforeRemovingComics;
             HistorySaveBrowsingHistory = saveBrowsingHistory;
         });
     }

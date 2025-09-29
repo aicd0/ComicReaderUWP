@@ -7,6 +7,7 @@ using System.Text;
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
@@ -63,16 +64,13 @@ internal sealed partial class SettingPage : BasePage
         {
             if (debugMode)
             {
-                var dialog = new ContentDialog
-                {
-                    Title = StringResourceProvider.Instance.Warning,
-                    Content = StringResourceProvider.Instance.DebugModeWarning,
-                    PrimaryButtonText = StringResourceProvider.Instance.Proceed,
-                    CloseButtonText = StringResourceProvider.Instance.Cancel,
-                    XamlRoot = XamlRoot
-                };
-                ContentDialogResult result = await dialog.ShowAsync();
-
+                DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+                    .SetTitle(StringResourceProvider.Instance.Warning)
+                    .SetContent(StringResourceProvider.Instance.DebugModeWarning)
+                    .SetPrimaryButtonText(StringResourceProvider.Instance.Proceed)
+                    .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
+                    .Build();
+                ContentDialogResult result = await DialogUtils.EnqueueDialogAsync(WindowId, options);
                 if (result == ContentDialogResult.None)
                 {
                     ViewModel.DebugMode = false;
@@ -90,7 +88,7 @@ internal sealed partial class SettingPage : BasePage
         C0.Run(async delegate
         {
             var dialog = new ChooseLocationsDialog(WindowId);
-            await dialog.ShowAsync(XamlRoot);
+            await dialog.ShowAsync(WindowId);
         });
     }
 
@@ -128,9 +126,20 @@ internal sealed partial class SettingPage : BasePage
 
     private void RemoveUnreachableCheckBox_Click(object sender, RoutedEventArgs e)
     {
-        var checkbox = (CheckBox)sender;
-        bool isChecked = checkbox.IsChecked ?? false;
-        ViewModel.SetRemoveUnreachableComics(isChecked);
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            ViewModel.SetRemoveUnreachableComics(isChecked.Value);
+        }
+    }
+
+    private void PromptBeforeRemovingComicsCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            ViewModel.SetPromptBeforeRemovingComics(isChecked.Value);
+        }
     }
 
     private void OnRescanFilesClicked(object sender, RoutedEventArgs e)

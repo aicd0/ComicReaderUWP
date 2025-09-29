@@ -20,6 +20,8 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Data.SqlHelpers;
 
+using Microsoft.UI.Xaml.Controls;
+
 namespace ComicReader.Data.Models.Comic;
 
 internal abstract class ComicData
@@ -1094,7 +1096,7 @@ internal abstract class ComicData
                 newLocations.AddRange(incrementNewLocations);
                 noAccessLocations.AddRange(ctx.NoAccessItems);
 
-                // Update comics
+                // Create/Update comics
                 var queue = new List<UpdateItemInfo>();
 
                 var locationAdded = C3<string, string, string>.Except(
@@ -1145,28 +1147,47 @@ internal abstract class ComicData
             }
         }
 
+        // Remove comics
+        List<string> locationRemoved = [];
         if (appSettings.RemoveUnreachableComics)
         {
-            var locationRemoved = C3<string, string, string>.Except(
+            locationRemoved = [.. C3<string, string, string>.Except(
                 oldLocations, newLocations,
                 StringUtils.UniquePath, StringUtils.UniquePath,
-                new C1<string>.DefaultEqualityComparer()).ToList();
+                new C1<string>.DefaultEqualityComparer())];
+        }
 
-            // Skip no access directories
-            for (int i = locationRemoved.Count - 1; i >= 0; i--)
+        for (int i = locationRemoved.Count - 1; i >= 0; i--)
+        {
+            string location = locationRemoved[i];
+            foreach (string noAccessLocation in noAccessLocations)
             {
-                string location = locationRemoved[i];
-                foreach (string noAccessLocation in noAccessLocations)
+                if (StringUtils.FolderContain(noAccessLocation, location))
                 {
-                    if (StringUtils.FolderContain(noAccessLocation, location))
-                    {
-                        locationRemoved.RemoveAt(i);
-                        break;
-                    }
+                    locationRemoved.RemoveAt(i);
+                    break;
                 }
             }
+        }
 
-            if (locationRemoved.Count > 0)
+        if (locationRemoved.Count > 0)
+        {
+            bool proceed = true;
+            if (appSettings.PromptBeforeRemovingComics)
+            {
+                string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
+                    .Replace("$count", locationRemoved.Count.ToString())
+                    .Replace("$comics", string.Join('\n', locationRemoved));
+                DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+                    .SetTitle(StringResourceProvider.Instance.Warning)
+                    .SetContent(promptContent)
+                    .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
+                    .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
+                    .Build();
+                proceed = await DialogUtils.EnqueueDialogAsync(options) == ContentDialogResult.Primary;
+            }
+
+            if (proceed)
             {
                 await TransactionBlock(delegate
                 {

@@ -12,6 +12,13 @@ namespace ComicReader.Common.Threading;
 
 public static class MainThreadUtils
 {
+    private static DispatcherQueue? _mainDispatcherQueue = null;
+
+    public static void Initialize(DispatcherQueue dispatcherQueue)
+    {
+        _mainDispatcherQueue = dispatcherQueue;
+    }
+
     public static Task RunInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
         if (TestSettings.UseCurrentThreadAsMainThread)
@@ -21,9 +28,9 @@ public static class MainThreadUtils
         }
 
         DispatcherQueue? dispatcher = GetMainThreadDispatcher();
-        if (dispatcher == null)
+        if (dispatcher is null)
         {
-            return Task.CompletedTask;
+            return Task.FromException(new InvalidOperationException("Main thread dispatcher is currently unavailable"));
         }
 
         if (dispatcher.HasThreadAccess)
@@ -45,53 +52,6 @@ public static class MainThreadUtils
             try
             {
                 action();
-                taskCompletionSource.SetResult(null);
-            }
-            catch (Exception e)
-            {
-                taskCompletionSource.SetException(e);
-            }
-        });
-
-        if (!success)
-        {
-            taskCompletionSource.SetException(new InvalidOperationException("Failed to enqueue the operation"));
-        }
-
-        return taskCompletionSource.Task;
-    }
-
-    public static Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
-    {
-        if (TestSettings.UseCurrentThreadAsMainThread)
-        {
-            return action();
-        }
-
-        DispatcherQueue? dispatcher = GetMainThreadDispatcher();
-        if (dispatcher == null)
-        {
-            return Task.CompletedTask;
-        }
-
-        if (dispatcher.HasThreadAccess)
-        {
-            try
-            {
-                return action();
-            }
-            catch (Exception e)
-            {
-                return Task.FromException(e);
-            }
-        }
-
-        var taskCompletionSource = new TaskCompletionSource<object?>();
-        bool success = dispatcher.TryEnqueue(priority, async delegate
-        {
-            try
-            {
-                await action();
                 taskCompletionSource.SetResult(null);
             }
             catch (Exception e)
@@ -161,12 +121,6 @@ public static class MainThreadUtils
 
     private static DispatcherQueue? GetMainThreadDispatcher()
     {
-        MainWindow? window = App.WindowManager.GetAnyWindow();
-        if (window == null)
-        {
-            return null;
-        }
-
-        return window.DispatcherQueue;
+        return _mainDispatcherQueue;
     }
 }

@@ -465,7 +465,7 @@ internal sealed partial class HomePage : BasePage
         C0.Run(async delegate
         {
             var dialog = new EditFilterDialog(await ViewModel.GetFilter());
-            _ = await dialog.ShowAsync(XamlRoot);
+            _ = await dialog.ShowAsync(WindowId);
             ViewModel.Refresh(filters: true);
         });
     }

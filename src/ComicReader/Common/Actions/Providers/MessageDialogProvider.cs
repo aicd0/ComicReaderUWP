@@ -6,8 +6,6 @@ using System.Collections.Specialized;
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Utils;
 
-using Microsoft.UI.Xaml;
-
 namespace ComicReader.Common.Actions.Providers;
 
 internal class MessageDialogProvider : IActionProvider
@@ -20,17 +18,10 @@ internal class MessageDialogProvider : IActionProvider
 
     public void Handle(IActionProviderContext context, NameValueCollection parameters)
     {
-        IXamlRootComponent? xamlRootProvider = context.GetComponent<IXamlRootComponent>();
-        if (xamlRootProvider == null)
+        IMainWindowComponent? mainWindowCom = context.GetComponent<IMainWindowComponent>();
+        if (mainWindowCom is null)
         {
-            context.SetError("No IXamlRootProvider component found.");
-            return;
-        }
-
-        XamlRoot? xamlRoot = xamlRootProvider.XamlRoot;
-        if (xamlRoot == null)
-        {
-            context.SetError("XamlRoot is null.");
+            context.SetError("No IMainWindowComponent component found.");
             return;
         }
 
@@ -40,7 +31,7 @@ internal class MessageDialogProvider : IActionProvider
             .SetTitle(title)
             .SetContent(message)
             .Build();
-        _ = DialogUtils.ShowDialogAsync(xamlRoot, options);
+        _ = DialogUtils.EnqueueDialogAsync(mainWindowCom.WindowId, options);
         context.SetSuccess();
     }
 }

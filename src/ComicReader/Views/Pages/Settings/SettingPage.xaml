@@ -73,6 +73,10 @@
                                     x:Uid="RemoveUnreachableCheckBox"
                                     Click="RemoveUnreachableCheckBox_Click"
                                     IsChecked="{x:Bind ViewModel.RemoveUnreachableComics, Mode=OneWay}" />
+                                <CheckBox
+                                    Click="PromptBeforeRemovingComicsCheckBox_Click"
+                                    Content="{x:Bind StringResource.PromptBeforeRemovingComics}"
+                                    IsChecked="{x:Bind ViewModel.PromptBeforeRemovingComics, Mode=OneWay}" />
                                 <Grid Height="12" />
                                 <StackPanel Orientation="Horizontal">
                                     <Button

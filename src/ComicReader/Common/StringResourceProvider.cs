@@ -37,6 +37,7 @@ public class StringResourceProvider
     public string ClearCacheDetail => GetResourceString("ClearCacheDetail");
     public string CollapseAll => GetResourceString("CollapseAll");
     public string ComicInfo => GetResourceString("ComicInfo");
+    public string ComicRemovalPromptContent => GetResourceString("ComicRemovalPromptContent");
     public string CompletionState => GetResourceString("CompletionState");
     public string CompletionStatusFinished => GetResourceString("CompletionStatusFinished");
     public string CompletionStatusReading => GetResourceString("CompletionStatusReading");
@@ -114,6 +115,7 @@ public class StringResourceProvider
     public string PageN => GetResourceString("PageN");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
+    public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");
     public string Rating => GetResourceString("Rating");
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");

@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>Информация о комиксах</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>Следующие $count комиксов будут безвозвратно удалены из вашей библиотеки:
+(Вы можете отключить это предупреждение в настройках)
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>Состояние завершения</value>
   </data>
@@ -607,6 +612,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Progress" xml:space="preserve">
     <value>Прогресс</value>
+  </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>Запрашивать подтверждение перед удалением комиксов</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>Рейтинг</value>

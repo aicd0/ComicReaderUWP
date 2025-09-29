@@ -13,7 +13,6 @@ using ComicReader.Common.Actions;
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Threading;
-using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Imaging;
@@ -49,7 +48,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     public readonly MutableLiveData<string> TagClickLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
-    public readonly MutableLiveData<DialogUtils.DialogOptions> ShowDialogLiveData = new();
     public readonly MutableLiveData<ReaderStatusInfo> ReaderStatusLiveData = new(new(ReaderStatusEnum.Loading));
     public readonly MutableLiveData<ReaderSettingDataModel> ReaderSettingLiveData = new();
     public readonly MutableLiveData<bool> IsExternalComicLiveData = new(true);

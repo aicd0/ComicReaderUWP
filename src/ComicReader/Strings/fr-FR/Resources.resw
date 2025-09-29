@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>Informations sur la bande dessinée</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>Les $count bandes dessinées suivantes seront définitivement supprimées de votre bibliothèque :
+(Vous pouvez désactiver cet avertissement dans les paramètres)
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>État d'achèvement</value>
   </data>
@@ -606,6 +611,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="Progress" xml:space="preserve">
     <value>Progrès</value>
+  </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>Confirmer avant de supprimer les bandes dessinées</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>score</value>

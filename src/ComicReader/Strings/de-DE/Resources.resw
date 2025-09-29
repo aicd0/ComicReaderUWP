@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>Comic-Informationen</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>Die folgenden $count Comics werden dauerhaft aus deiner Bibliothek entfernt:
+(Diese Warnung kannst du in den Einstellungen deaktivieren)
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>Abschlussstatus</value>
   </data>
@@ -606,6 +611,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Progress" xml:space="preserve">
     <value>Fortschritt</value>
+  </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>Vor dem Entfernen von Comics bestätigen</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>Punktzahl</value>

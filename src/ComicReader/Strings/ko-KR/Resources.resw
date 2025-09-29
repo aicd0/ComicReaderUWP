@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>만화 정보</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>다음 $count개의 만화가 라이브러리에서 영구적으로 삭제됩니다:
+(이 경고는 설정에서 비활성화할 수 있습니다)
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>완료 상태</value>
   </data>
@@ -607,6 +612,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Progress" xml:space="preserve">
     <value>진행 상황</value>
+  </data>
+  <data name="PromptBeforeRemovingComics" xml:space="preserve">
+    <value>만화를 삭제하기 전에 확인</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>점수</value>

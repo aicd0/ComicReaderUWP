@@ -1,11 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.UI.Xaml;
-
 namespace ComicReader.Common.Actions.Components;
 
-internal interface IXamlRootComponent : IActionComponent
+internal interface IMainWindowComponent : IActionComponent
 {
-    XamlRoot? XamlRoot { get; }
+    int WindowId { get; }
 }
