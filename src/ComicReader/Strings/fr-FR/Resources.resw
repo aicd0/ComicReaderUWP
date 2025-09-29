@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>Informations sur la bande dessinée</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>Les $count bandes dessinées suivantes seront définitivement supprimées de votre bibliothèque :
+(Vous pouvez désactiver cet avertissement dans les paramètres)
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>État d'achèvement</value>
   </data>

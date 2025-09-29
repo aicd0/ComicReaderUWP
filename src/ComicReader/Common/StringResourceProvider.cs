@@ -37,6 +37,7 @@ public class StringResourceProvider
     public string ClearCacheDetail => GetResourceString("ClearCacheDetail");
     public string CollapseAll => GetResourceString("CollapseAll");
     public string ComicInfo => GetResourceString("ComicInfo");
+    public string ComicRemovalPromptContent => GetResourceString("ComicRemovalPromptContent");
     public string CompletionState => GetResourceString("CompletionState");
     public string CompletionStatusFinished => GetResourceString("CompletionStatusFinished");
     public string CompletionStatusReading => GetResourceString("CompletionStatusReading");

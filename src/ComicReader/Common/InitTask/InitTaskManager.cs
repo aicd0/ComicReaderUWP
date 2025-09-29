@@ -6,15 +6,16 @@ using System.IO;
 
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Services;
+using ComicReader.Common.Threading;
 using ComicReader.Data;
 using ComicReader.Data.Legacy;
 using ComicReader.Data.Models;
-using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Storage;
 
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.Globalization;
 
@@ -45,6 +46,9 @@ internal class InitTaskManager(Application application)
         {
             DebugUtils.CaptureFatalError(e.Message, e.Exception);
         };
+
+        // Initialize main thread dispatcher
+        MainThreadUtils.Initialize(DispatcherQueue.GetForCurrentThread());
 
         // Register services
         ServiceManager.RegisterService<IApplicationService>(new ApplicationService());
@@ -86,9 +90,6 @@ internal class InitTaskManager(Application application)
         XmlDatabaseManager.Initialize();
         SqlDatabaseManager.Initialize();
         DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
-
-        // Update comic library
-        ComicModel.UpdateAllComics("InitOnAppLaunchInternal");
     }
 
     private void InitializeAppTheme()

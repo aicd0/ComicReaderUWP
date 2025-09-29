@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>コミック情報</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>以下の $count 件のコミックがライブラリから完全に削除されます：
+（この警告は設定で無効にできます）
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>完了ステータス</value>
   </data>

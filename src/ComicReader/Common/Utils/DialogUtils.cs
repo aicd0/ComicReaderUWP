@@ -19,67 +19,36 @@ internal class DialogUtils
 
     private static readonly Dictionary<int, Queue<PendingDialogItem>> _windowDialogQueue = [];
 
-    public static Task<ContentDialogResult> EnqueueDialogAsync(DialogOptions dialogOptions)
+    public static Task<ContentDialogResult> EnqueueDialogAsync(DialogOptions options)
     {
-        MainWindow? window = App.WindowManager.GetActiveWindow() ?? App.WindowManager.GetAnyWindow();
-        if (window is null)
+        TaskCompletionSource<ContentDialogResult> resultSource = new();
+        MainThreadUtils.RunInMainThread(() =>
         {
-            Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found.");
-            return Task.FromResult(ContentDialogResult.None);
-        }
+            MainWindow? window = App.WindowManager.GetActiveWindow() ?? App.WindowManager.GetAnyWindow();
+            if (window is null)
+            {
+                Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found.");
+                resultSource.SetResult(ContentDialogResult.None);
+                return;
+            }
 
-        return EnqueueDialogAsync(window.WindowId, dialogOptions);
+            ContentDialog dialog = CreateDialog(options);
+            EnqueueDialogInternal(resultSource, window.WindowId, dialog);
+        });
+
+        return resultSource.Task;
     }
 
     public static Task<ContentDialogResult> EnqueueDialogAsync(int windowId, DialogOptions options)
     {
-        var scrollableContent = new ScrollViewer
+        TaskCompletionSource<ContentDialogResult> resultSource = new();
+        MainThreadUtils.RunInMainThread(() =>
         {
-            Content = new TextBlock
-            {
-                Text = options.Content,
-                TextWrapping = TextWrapping.Wrap,
-                IsTextSelectionEnabled = options.ContentSelectable,
-            },
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            MaxHeight = 400,
-        };
+            ContentDialog dialog = CreateDialog(options);
+            EnqueueDialogInternal(resultSource, windowId, dialog);
+        });
 
-        var dialog = new ContentDialog
-        {
-            Title = options.Title,
-            Content = scrollableContent,
-            PrimaryButtonText = options.PrimaryButtonText,
-            DefaultButton = ContentDialogButton.Primary,
-        };
-
-        if (!string.IsNullOrEmpty(options.SecondaryButtonText))
-        {
-            dialog.SecondaryButtonText = options.SecondaryButtonText;
-        }
-
-        if (!string.IsNullOrEmpty(options.CloseButtonText))
-        {
-            dialog.CloseButtonText = options.CloseButtonText;
-        }
-
-        if (options.PrimaryButtonClick != null)
-        {
-            dialog.PrimaryButtonClick += (s, e) =>
-            {
-                options.PrimaryButtonClick.Invoke(e);
-            };
-        }
-
-        if (options.SecondaryButtonClick != null)
-        {
-            dialog.SecondaryButtonClick += (s, e) =>
-            {
-                options.SecondaryButtonClick.Invoke(e);
-            };
-        }
-
-        return EnqueueDialogAsync(windowId, dialog);
+        return resultSource.Task;
     }
 
     public static Task<ContentDialogResult> EnqueueDialogAsync(int windowId, ContentDialog dialog)
@@ -87,32 +56,37 @@ internal class DialogUtils
         TaskCompletionSource<ContentDialogResult> resultSource = new();
         MainThreadUtils.RunInMainThread(() =>
         {
-            if (!_windowDialogQueue.TryGetValue(windowId, out Queue<PendingDialogItem>? queue))
-            {
-                if (App.WindowManager.GetWindow(windowId) is null)
-                {
-                    Logger.F(TAG, "EnqueueDialogAsync: Window not found.");
-                    resultSource.SetResult(ContentDialogResult.None);
-                    return;
-                }
-
-                queue = [];
-                _windowDialogQueue[windowId] = queue;
-            }
-
-            queue.Enqueue(new()
-            {
-                Dialog = dialog,
-                ResultSource = resultSource,
-            });
-
-            if (queue.Count == 1)
-            {
-                ShowNextDialog(windowId);
-            }
+            EnqueueDialogInternal(resultSource, windowId, dialog);
         });
 
         return resultSource.Task;
+    }
+
+    private static void EnqueueDialogInternal(TaskCompletionSource<ContentDialogResult> resultSource, int windowId, ContentDialog dialog)
+    {
+        if (!_windowDialogQueue.TryGetValue(windowId, out Queue<PendingDialogItem>? queue))
+        {
+            if (App.WindowManager.GetWindow(windowId) is null)
+            {
+                Logger.F(TAG, "EnqueueDialogAsync: Window not found.");
+                resultSource.SetResult(ContentDialogResult.None);
+                return;
+            }
+
+            queue = [];
+            _windowDialogQueue[windowId] = queue;
+        }
+
+        queue.Enqueue(new()
+        {
+            Dialog = dialog,
+            ResultSource = resultSource,
+        });
+
+        if (queue.Count == 1)
+        {
+            ShowNextDialog(windowId);
+        }
     }
 
     private static async void ShowNextDialog(int windowId)
@@ -162,6 +136,57 @@ internal class DialogUtils
             item.ResultSource.SetResult(result);
             queue.Dequeue();
         }
+    }
+
+    private static ContentDialog CreateDialog(DialogOptions options)
+    {
+        var scrollableContent = new ScrollViewer
+        {
+            Content = new TextBlock
+            {
+                Text = options.Content,
+                TextWrapping = TextWrapping.Wrap,
+                IsTextSelectionEnabled = options.ContentSelectable,
+            },
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            MaxHeight = 400,
+        };
+
+        var dialog = new ContentDialog
+        {
+            Title = options.Title,
+            Content = scrollableContent,
+            PrimaryButtonText = options.PrimaryButtonText,
+            DefaultButton = ContentDialogButton.Primary,
+        };
+
+        if (!string.IsNullOrEmpty(options.SecondaryButtonText))
+        {
+            dialog.SecondaryButtonText = options.SecondaryButtonText;
+        }
+
+        if (!string.IsNullOrEmpty(options.CloseButtonText))
+        {
+            dialog.CloseButtonText = options.CloseButtonText;
+        }
+
+        if (options.PrimaryButtonClick != null)
+        {
+            dialog.PrimaryButtonClick += (s, e) =>
+            {
+                options.PrimaryButtonClick.Invoke(e);
+            };
+        }
+
+        if (options.SecondaryButtonClick != null)
+        {
+            dialog.SecondaryButtonClick += (s, e) =>
+            {
+                options.SecondaryButtonClick.Invoke(e);
+            };
+        }
+
+        return dialog;
     }
 
     public class DialogOptions

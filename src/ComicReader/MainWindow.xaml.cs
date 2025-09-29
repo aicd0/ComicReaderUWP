@@ -190,14 +190,19 @@ public sealed partial class MainWindow : Window
         // Restore window placement
         TryRestoreWindowPlacement();
 
-        // Show last crash report if applicable
-        if (WindowMembers.sCanReportCrash)
+        if (WindowMembers.sIsFirstWindow)
         {
-            WindowMembers.sCanReportCrash = false;
+            WindowMembers.sIsFirstWindow = false;
+
+            // Show last crash report if applicable
             if (!App.ExitedNormallyLastTime && DebugUtils.DebugMode)
             {
                 DebugUtils.ReportLastCrash();
             }
+
+            // Update comic library
+            // We delay this operation to here because it might involve dialog display which requires an active window
+            ComicModel.UpdateAllComics("InitOnAppLaunchInternal");
         }
     }
 
@@ -468,7 +473,7 @@ public sealed partial class MainWindow : Window
 
     private class WindowMembers
     {
-        public static bool sCanReportCrash = true;
+        public static bool sIsFirstWindow = true;
 
         public MainPage? _mainPage;
         public string _url = string.Empty;

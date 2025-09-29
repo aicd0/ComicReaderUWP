@@ -222,6 +222,11 @@
   <data name="ComicInfo" xml:space="preserve">
     <value>Información del cómic</value>
   </data>
+  <data name="ComicRemovalPromptContent" xml:space="preserve">
+    <value>Los siguientes $count cómics se eliminarán permanentemente de tu biblioteca:
+(Puedes desactivar esta advertencia en la configuración)
+$comics</value>
+  </data>
   <data name="CompletionState" xml:space="preserve">
     <value>Estado de finalización</value>
   </data>
