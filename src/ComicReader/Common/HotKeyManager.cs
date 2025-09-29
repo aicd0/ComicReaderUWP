@@ -4,8 +4,8 @@
 using System.Collections.Concurrent;
 using System.Threading;
 
-using ComicReader.Common.Lifecycle;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Lifecycle;
 
 using Windows.Win32;
 

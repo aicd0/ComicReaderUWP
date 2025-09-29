@@ -3,8 +3,8 @@
 
 using System.Threading.Tasks;
 
-using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
+using ComicReader.SDK.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

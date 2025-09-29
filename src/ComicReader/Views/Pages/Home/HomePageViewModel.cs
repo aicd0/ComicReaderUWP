@@ -11,14 +11,13 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Actions;
-using ComicReader.Common.Lifecycle;
-using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;

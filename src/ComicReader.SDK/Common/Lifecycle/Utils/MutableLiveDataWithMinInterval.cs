@@ -1,12 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Threading.Tasks;
+using ComicReader.SDK.Common.Utils;
 
-using ComicReader.Common.Utils;
-
-namespace ComicReader.Common.Lifecycle.Utils;
+namespace ComicReader.SDK.Common.Lifecycle.Utils;
 
 public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval, int delay = 0) : IMutableLiveData<T>
 {

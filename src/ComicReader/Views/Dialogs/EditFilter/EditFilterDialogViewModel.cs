@@ -10,10 +10,10 @@ using ComicReader.Common;
 using ComicReader.Common.Expression;
 using ComicReader.Common.Expression.Compiler;
 using ComicReader.Common.Expression.Sql;
-using ComicReader.Common.Lifecycle;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
+using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.ViewModels;
 

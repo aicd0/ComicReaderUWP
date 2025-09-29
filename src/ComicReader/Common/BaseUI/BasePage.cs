@@ -4,10 +4,10 @@
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Actions.Utils;
-using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReader.Common.Lifecycle;
-using ComicReader.Common.Lifecycle.Utils;
-using ComicReader.Common.Test;
-using ComicReader.Common.Utils;
+using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Common.Lifecycle.Utils;
+using ComicReader.SDK.Common.Test;
 
 namespace ComicReader.Tests.Lifecycle;
 

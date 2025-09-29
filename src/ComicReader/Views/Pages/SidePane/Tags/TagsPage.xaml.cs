@@ -3,7 +3,7 @@
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Utils;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 using ComicReader.Views.Dialogs.EditTag;
 using ComicReader.Views.Dialogs.EditTagCategory;

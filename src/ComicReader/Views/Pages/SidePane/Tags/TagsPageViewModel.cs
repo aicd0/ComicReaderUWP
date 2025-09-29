@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Actions;
-using ComicReader.Common.Lifecycle;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
@@ -18,6 +17,8 @@ using ComicReader.Data.Tables;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
+using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.ViewModels;
 

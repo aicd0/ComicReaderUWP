@@ -6,7 +6,6 @@ using System.IO;
 
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Services;
-using ComicReader.Common.Threading;
 using ComicReader.Data;
 using ComicReader.Data.Legacy;
 using ComicReader.Data.Models;
@@ -14,6 +13,7 @@ using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Storage;
+using ComicReader.SDK.Common.Threading;
 
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;

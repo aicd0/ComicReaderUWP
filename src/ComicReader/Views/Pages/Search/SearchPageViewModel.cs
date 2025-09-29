@@ -5,10 +5,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-using ComicReader.Common.Lifecycle;
-using ComicReader.Common.Threading;
 using ComicReader.Data.Models;
 using ComicReader.Helpers.Navigation;
+using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;

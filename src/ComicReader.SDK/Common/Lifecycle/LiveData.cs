@@ -1,14 +1,12 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Collections.Generic;
-
-using ComicReader.Common.Test;
-using ComicReader.Common.Threading;
-using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Test;
+using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 
-namespace ComicReader.Common.Lifecycle;
+namespace ComicReader.SDK.Common.Lifecycle;
 
 public class LiveData<T> : ILiveData<T>, ILiveDataNoType
 {

@@ -1,14 +1,11 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Threading.Tasks;
-
 using ComicReader.SDK.Common.Threading;
 
-namespace ComicReader.Common.Utils;
+namespace ComicReader.SDK.Common.Utils;
 
-internal static class CoroutineUtils
+public static class CoroutineUtils
 {
     public static void Start(Func<Task> task)
     {

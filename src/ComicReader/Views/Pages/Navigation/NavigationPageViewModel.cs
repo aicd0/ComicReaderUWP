@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 using ComicReader.Common;
-using ComicReader.Common.Lifecycle;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

@@ -8,9 +8,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-using ComicReader.Common.Lifecycle;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
+using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
 

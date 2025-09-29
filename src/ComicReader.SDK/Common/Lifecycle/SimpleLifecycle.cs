@@ -1,9 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Collections.Generic;
-
-namespace ComicReader.Common.Lifecycle;
+namespace ComicReader.SDK.Common.Lifecycle;
 
 public class SimpleLifecycle : ILifecycle
 {
@@ -103,7 +101,7 @@ public class SimpleLifecycle : ILifecycle
     {
         if (from == to)
         {
-            throw new System.InvalidOperationException("from and to must be different");
+            throw new InvalidOperationException("from and to must be different");
         }
 
         return from switch
@@ -113,24 +111,24 @@ public class SimpleLifecycle : ILifecycle
                 ILifecycle.State.Started => ILifecycle.State.Started,
                 ILifecycle.State.Resumed => ILifecycle.State.Started,
                 ILifecycle.State.Stopped => ILifecycle.State.Stopped,
-                _ => throw new System.InvalidOperationException("Unknown state: " + to),
+                _ => throw new InvalidOperationException("Unknown state: " + to),
             },
             ILifecycle.State.Started => to switch
             {
-                ILifecycle.State.Initialized => throw new System.InvalidOperationException("Cannot transition from Started to Initialized"),
+                ILifecycle.State.Initialized => throw new InvalidOperationException("Cannot transition from Started to Initialized"),
                 ILifecycle.State.Resumed => ILifecycle.State.Resumed,
                 ILifecycle.State.Stopped => ILifecycle.State.Stopped,
-                _ => throw new System.InvalidOperationException("Unknown state: " + to),
+                _ => throw new InvalidOperationException("Unknown state: " + to),
             },
             ILifecycle.State.Resumed => to switch
             {
-                ILifecycle.State.Initialized => throw new System.InvalidOperationException("Cannot transition from Resumed to Initialized"),
+                ILifecycle.State.Initialized => throw new InvalidOperationException("Cannot transition from Resumed to Initialized"),
                 ILifecycle.State.Started => ILifecycle.State.Started,
                 ILifecycle.State.Stopped => ILifecycle.State.Stopped,
-                _ => throw new System.InvalidOperationException("Unknown state: " + to),
+                _ => throw new InvalidOperationException("Unknown state: " + to),
             },
-            ILifecycle.State.Stopped => throw new System.InvalidOperationException("Cannot transition from Stopped state"),
-            _ => throw new System.InvalidOperationException("Unknown state: " + from),
+            ILifecycle.State.Stopped => throw new InvalidOperationException("Cannot transition from Stopped state"),
+            _ => throw new InvalidOperationException("Unknown state: " + from),
         };
     }
 }

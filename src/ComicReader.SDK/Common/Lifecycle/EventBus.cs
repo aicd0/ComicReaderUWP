@@ -1,9 +1,7 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Collections.Generic;
-
-namespace ComicReader.Common.Lifecycle;
+namespace ComicReader.SDK.Common.Lifecycle;
 
 public class EventBus : IEventBus
 {

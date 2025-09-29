@@ -3,8 +3,8 @@
 
 using System;
 
-using ComicReader.Common.Lifecycle;
-using ComicReader.Common.Lifecycle.Utils;
+using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Common.Lifecycle.Utils;
 
 namespace ComicReader.Common;
 

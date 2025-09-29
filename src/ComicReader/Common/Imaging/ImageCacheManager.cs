@@ -10,7 +10,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ComicReader.Common.Threading;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.Caching;
 using ComicReader.SDK.Common.DebugTools;
