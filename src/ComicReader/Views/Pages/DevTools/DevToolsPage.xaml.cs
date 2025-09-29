@@ -18,7 +18,6 @@ using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.Views.Pages.Main;
 
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 using Windows.Storage;
@@ -173,15 +172,15 @@ internal sealed partial class DevToolsPage : BasePage
         CoroutineUtils.Start(async () =>
         {
             await Task.Delay(3000);
-            MainWindow? activeWindow = App.WindowManager.GetActiveWindow();
-            if (activeWindow is not null)
+            DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+                .SetContent("This is a test dialog")
+                .SetPrimaryButtonText("Primary")
+                .SetSecondaryButtonText("Secondary")
+                .Build();
+            _ = DialogUtils.EnqueueDialogAsync(options).ContinueWith(t =>
             {
-                XamlRoot? xamlRoot = (activeWindow.Content as FrameworkElement)?.XamlRoot;
-                if (xamlRoot is not null)
-                {
-                    _ = DialogUtils.ShowDialogAsync(xamlRoot, new DialogUtils.DialogOptions.Builder().SetContent("This is a test dialog").Build());
-                }
-            }
+                SetResult($"Show dialog result: {t.Result}");
+            }, TaskScheduler.FromCurrentSynchronizationContext());
         });
     }
 

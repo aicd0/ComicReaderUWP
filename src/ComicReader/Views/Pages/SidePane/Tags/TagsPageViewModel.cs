@@ -31,7 +31,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
     public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
     public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
-    public readonly MutableLiveData<List<ComicModel>> EditComicLiveData = new();
     public readonly MutableLiveData<string> EditTagCategoryLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
 

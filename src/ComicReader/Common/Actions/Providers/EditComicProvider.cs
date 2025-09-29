@@ -10,41 +10,32 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Views.Dialogs.EditComicInfo;
 
-using Microsoft.UI.Xaml;
-
 namespace ComicReader.Common.Actions.Providers;
 
 internal class EditComicProvider : IActionProvider
 {
     public const string NAME = "EditComic";
-    public const string PARAM_ID = "ID";
+    public const string PARAM_COMIC_ID = "ComicId";
 
     public string Name => NAME;
 
     public void Handle(IActionProviderContext context, NameValueCollection parameters)
     {
-        IXamlRootComponent? xamlRootProvider = context.GetComponent<IXamlRootComponent>();
-        if (xamlRootProvider == null)
+        IMainWindowComponent? mainWindowCom = context.GetComponent<IMainWindowComponent>();
+        if (mainWindowCom is null)
         {
-            context.SetError("No IXamlRootProvider component found.");
+            context.SetError("No IMainWindowComponent component found.");
             return;
         }
 
-        XamlRoot? xamlRoot = xamlRootProvider.XamlRoot;
-        if (xamlRoot == null)
-        {
-            context.SetError("XamlRoot is null.");
-            return;
-        }
-
-        string idList = parameters[PARAM_ID] ?? string.Empty;
+        string idList = parameters[PARAM_COMIC_ID] ?? string.Empty;
         string[] idsRaw = idList.Split(',', StringSplitOptions.RemoveEmptyEntries);
         List<long> ids = [];
         foreach (string idRaw in idsRaw)
         {
             if (!long.TryParse(idRaw, out long id))
             {
-                context.SetError($"Invalid ID parameter: {idRaw}");
+                context.SetError($"Invalid ComicId: {idRaw}");
                 return;
             }
 
@@ -53,7 +44,7 @@ internal class EditComicProvider : IActionProvider
 
         if (ids.Count == 0)
         {
-            context.SetError("No valid ID parameter found.");
+            context.SetError("No valid comic ID found.");
             return;
         }
 
@@ -63,7 +54,7 @@ internal class EditComicProvider : IActionProvider
             if (comics.Count > 0)
             {
                 var dialog = new EditComicInfoDialog(comics);
-                _ = dialog.ShowAsync(xamlRoot);
+                _ = dialog.ShowAsync(mainWindowCom.WindowId);
             }
 
             context.SetSuccess();

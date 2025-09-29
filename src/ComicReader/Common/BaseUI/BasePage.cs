@@ -167,7 +167,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
         _communicator = bundle.Communicator;
 
         // Register action handler components and providers
-        PageActionHandler.RegisterComponent<IXamlRootComponent>(new WeakXamlRootComponent(this));
+        PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(WindowId));
         {
             IMainPageAbility? ability = GetAbility<IMainPageAbility>();
             if (ability is not null)

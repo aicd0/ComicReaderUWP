@@ -5,34 +5,24 @@ using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.ServiceManagement;
 
-using Microsoft.UI.Xaml;
-
 namespace ComicReader.Common.Services;
 
 internal class DebugService : IDebugService
 {
     public void OnCrashReport(string info)
     {
-        MainWindow? window = App.WindowManager.GetActiveWindow() ?? App.WindowManager.GetAnyWindow();
-        if (window is not null)
-        {
-            XamlRoot? xamlRoot = (window.Content as FrameworkElement)?.XamlRoot;
-            if (xamlRoot is not null)
+        DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+            .SetTitle(StringResourceProvider.Instance.UnhandledExceptionTitle)
+            .SetContent(StringResourceProvider.Instance.UnhandledExceptionContent.Replace("$info", info), selectable: true)
+            .SetPrimaryButtonText(StringResourceProvider.Instance.OK)
+            .SetSecondaryButtonText(StringResourceProvider.Instance.Copy)
+            .OnSecondaryButtonClick((e) =>
             {
-                DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
-                    .SetTitle(StringResourceProvider.Instance.UnhandledExceptionTitle)
-                    .SetContent(StringResourceProvider.Instance.UnhandledExceptionContent.Replace("$info", info), selectable: true)
-                    .SetPrimaryButtonText(StringResourceProvider.Instance.OK)
-                    .SetSecondaryButtonText(StringResourceProvider.Instance.Copy)
-                    .OnSecondaryButtonClick((e) =>
-                    {
-                        ClipboardUtils.SetText(info);
-                        e.Cancel = true;
-                    })
-                    .Build();
-                _ = DialogUtils.ShowDialogAsync(xamlRoot, options);
-            }
-        }
+                ClipboardUtils.SetText(info);
+                e.Cancel = true;
+            })
+            .Build();
+        _ = DialogUtils.EnqueueDialogAsync(options);
     }
 
     public bool HandleDebugCommand(string command)

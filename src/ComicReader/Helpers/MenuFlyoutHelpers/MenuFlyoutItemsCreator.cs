@@ -173,7 +173,7 @@ internal static class MenuFlyoutItemsCreator
                 List<ComicModel> items = [.. selectedComics];
                 string idList = string.Join(',', items.ConvertAll(x => x.Id.ToString()));
                 ActionModel actionModel = ActionModel.Builder.Create(EditComicProvider.NAME)
-                    .AddParameter(EditComicProvider.PARAM_ID, idList)
+                    .AddParameter(EditComicProvider.PARAM_COMIC_ID, idList)
                     .Build();
                 actionHandler.Handle(actionModel);
             },

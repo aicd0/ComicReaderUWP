@@ -5,7 +5,6 @@ using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Utils;
 using ComicReader.ViewModels;
-using ComicReader.Views.Dialogs.EditComicInfo;
 using ComicReader.Views.Dialogs.EditTag;
 using ComicReader.Views.Dialogs.EditTagCategory;
 using ComicReader.Views.Pages.Main;
@@ -63,27 +62,16 @@ internal sealed partial class TagsPage : BasePage
             GetMainPageAbility().OpenInNewTab(route);
         });
 
-        ViewModel.EditComicLiveData.Observe(this, comics =>
-        {
-            if (comics.Count == 0)
-            {
-                return;
-            }
-
-            var dialog = new EditComicInfoDialog(comics);
-            _ = dialog.ShowAsync(XamlRoot);
-        });
-
         ViewModel.EditTagCategoryLiveData.Observe(this, tagCategory =>
         {
             var dialog = new EditTagCateogoryDialog(tagCategory);
-            _ = dialog.ShowAsync(XamlRoot);
+            _ = dialog.ShowAsync(WindowId);
         });
 
         ViewModel.EditTagLiveData.Observe(this, pair =>
         {
             var dialog = new EditTagDialog(pair.Key, pair.Value);
-            _ = dialog.ShowAsync(XamlRoot);
+            _ = dialog.ShowAsync(WindowId);
         });
     }
 

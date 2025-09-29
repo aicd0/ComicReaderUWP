@@ -265,12 +265,7 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.EditTagLiveData.Observe(this, pair =>
         {
             var dialog = new EditTagDialog(pair.Key, pair.Value);
-            _ = dialog.ShowAsync(XamlRoot);
-        });
-
-        ViewModel.ShowDialogLiveData.Observe(this, options =>
-        {
-            _ = DialogUtils.ShowDialogAsync(XamlRoot, options);
+            _ = dialog.ShowAsync(WindowId);
         });
 
         ViewModel.IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
@@ -642,7 +637,7 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         var dialog = new EditComicInfoDialog([comic]);
-        _ = dialog.ShowAsync(XamlRoot);
+        _ = dialog.ShowAsync(WindowId);
     }
 
     private void OnNonReaderUIPointerEntered(object sender, PointerRoutedEventArgs e)
