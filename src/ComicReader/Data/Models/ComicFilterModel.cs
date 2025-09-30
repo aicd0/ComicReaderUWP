@@ -19,6 +19,10 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
     public const string FUNCTION_TYPE_MIN = "Min";
     public const string FUNCTION_TYPE_SUM = "Sum";
     public const string FUNCTION_TYPE_AVERAGE = "Average";
+    public const string ORDER_METHOD_ASCENDING = "Ascending";
+    public const string ORDER_METHOD_DESCENDING = "Descending";
+    public const string ORDER_METHOD_SHUFFLE = "Shuffle";
+    public const string ORDER_METHOD_SHUFFLE_STABLE = "ShuffleStable";
 
     public static readonly ComicFilterModel Instance = new();
 
@@ -64,12 +68,20 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         [JsonPropertyName("SortBy")]
         public JsonNode? SortBy { get; set; }
 
+        [JsonPropertyName("ComicOrderMethod")]
+        public string? ComicOrderMethod { get; set; }
+
+        // Deprecated, use ComicOrderMethod instead
         [JsonPropertyName("SortByAscending")]
         public bool? SortByAscending { get; set; }
 
         [JsonPropertyName("GroupBy")]
         public JsonNode? GroupBy { get; set; }
 
+        [JsonPropertyName("GroupOrderMethod")]
+        public string? GroupOrderMethod { get; set; }
+
+        // Deprecated, use GroupOrderMethod instead
         [JsonPropertyName("GroupByAscending")]
         public bool? GroupByAscending { get; set; }
 
@@ -135,9 +147,9 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
     {
         public string Name { get; set; } = "";
         public ComicPropertyModel SortBy { get; set; } = new();
-        public bool SortByAscending { get; set; }
+        public OrderMethodEnum ComicOrderMethod { get; set; }
         public ComicPropertyModel? GroupBy { get; set; }
-        public bool GroupByAscending { get; set; }
+        public OrderMethodEnum GroupOrderMethod { get; set; }
         public FunctionTypeEnum GroupSortingFunction { get; set; } = FunctionTypeEnum.None;
         public ComicPropertyModel? GroupSortingProperty { get; set; }
         public ViewTypeEnum ViewType { get; set; }
@@ -155,9 +167,9 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             {
                 Name = Name,
                 SortBy = SortBy.ToJson(),
-                SortByAscending = SortByAscending,
+                ComicOrderMethod = OrderMethodToString(ComicOrderMethod),
                 GroupBy = GroupBy?.ToJson(),
-                GroupByAscending = GroupByAscending,
+                GroupOrderMethod = OrderMethodToString(GroupOrderMethod),
                 GroupSortingFunction = FunctionTypeToString(GroupSortingFunction),
                 GroupSortingProperty = GroupSortingProperty?.ToJson(),
                 ViewType = ViewTypeToString(ViewType),
@@ -177,9 +189,13 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             {
                 Name = model.Name ?? "",
                 SortBy = ComicPropertyModel.FromJson(model.SortBy) ?? new(),
-                SortByAscending = model.SortByAscending ?? false,
+                ComicOrderMethod = string.IsNullOrEmpty(model.ComicOrderMethod) ?
+                    (model.SortByAscending ?? false ? OrderMethodEnum.Ascending : OrderMethodEnum.Descending) :
+                    StringToOrderMethod(model.ComicOrderMethod),
                 GroupBy = ComicPropertyModel.FromJson(model.GroupBy),
-                GroupByAscending = model.GroupByAscending ?? false,
+                GroupOrderMethod = string.IsNullOrEmpty(model.GroupOrderMethod) ?
+                    (model.GroupByAscending ?? false ? OrderMethodEnum.Ascending : OrderMethodEnum.Descending) :
+                    StringToOrderMethod(model.GroupOrderMethod),
                 GroupSortingFunction = StringToFunctionType(model.GroupSortingFunction ?? FUNCTION_TYPE_NONE),
                 GroupSortingProperty = ComicPropertyModel.FromJson(model.GroupSortingProperty),
                 ViewType = StringToViewType(model.ViewType ?? ""),
@@ -212,7 +228,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             };
         }
 
-        public static string FunctionTypeToString(FunctionTypeEnum value)
+        private static string FunctionTypeToString(FunctionTypeEnum value)
         {
             return value switch
             {
@@ -226,7 +242,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             };
         }
 
-        public static FunctionTypeEnum StringToFunctionType(string value)
+        private static FunctionTypeEnum StringToFunctionType(string value)
         {
             return value switch
             {
@@ -239,6 +255,38 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 _ => FunctionTypeEnum.None,
             };
         }
+
+        private static string OrderMethodToString(OrderMethodEnum value)
+        {
+            return value switch
+            {
+                OrderMethodEnum.Ascending => ORDER_METHOD_ASCENDING,
+                OrderMethodEnum.Descending => ORDER_METHOD_DESCENDING,
+                OrderMethodEnum.Shuffle => ORDER_METHOD_SHUFFLE,
+                OrderMethodEnum.ShuffleStable => ORDER_METHOD_SHUFFLE_STABLE,
+                _ => ORDER_METHOD_ASCENDING,
+            };
+        }
+
+        private static OrderMethodEnum StringToOrderMethod(string value)
+        {
+            return value switch
+            {
+                ORDER_METHOD_ASCENDING => OrderMethodEnum.Ascending,
+                ORDER_METHOD_DESCENDING => OrderMethodEnum.Descending,
+                ORDER_METHOD_SHUFFLE => OrderMethodEnum.Shuffle,
+                ORDER_METHOD_SHUFFLE_STABLE => OrderMethodEnum.ShuffleStable,
+                _ => OrderMethodEnum.Ascending,
+            };
+        }
+    }
+
+    public enum OrderMethodEnum
+    {
+        Ascending,
+        Descending,
+        Shuffle,
+        ShuffleStable,
     }
 
     public enum ViewTypeEnum

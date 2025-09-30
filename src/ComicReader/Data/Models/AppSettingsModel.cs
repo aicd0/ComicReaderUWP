@@ -105,6 +105,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("DefaultReaderSetting")]
         public ReaderSettingJsonModel? DefaultReaderSetting { get; set; }
+
+        [JsonPropertyName("ComicShuffleRandomSeed")]
+        public int? ComicShuffleRandomSeed { get; set; }
     }
 
     public class ReaderSettingJsonModel
@@ -146,6 +149,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
         public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
         public ReaderSettingModel DefaultReaderSetting { get; set; } = new ReaderSettingModel();
+        public int ComicShuffleRandomSeed { get; set; }
 
         public static ExternalModel From(JsonModel model)
         {
@@ -155,6 +159,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 PromptBeforeRemovingComics = model.PromptBeforeRemovingComics ?? true,
                 Language = model.Language ?? "",
                 DefaultReaderSetting = ReaderSettingModel.From(model.DefaultReaderSetting),
+                ComicShuffleRandomSeed = model.ComicShuffleRandomSeed ?? 0,
             };
 
             if (model.ComicFolders is not null)
@@ -200,6 +205,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             model.Language = Language;
             model.Theme = (int)Theme;
             model.DefaultReaderSetting = DefaultReaderSetting.To();
+            model.ComicShuffleRandomSeed = ComicShuffleRandomSeed;
 
             model.Background = Background switch
             {

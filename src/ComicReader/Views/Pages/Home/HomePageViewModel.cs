@@ -292,166 +292,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Selects the view type for displaying comics.
-    /// </summary>
-    /// <param name="viewType">The view type to select.</param>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
-    public void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
-    {
-        _sharedDispatcher.Submit("SelectViewType", delegate
-        {
-            bool modified = false;
-            ComicFilterModel.ExternalFilterModel lastFilter = EnsureLastFilterNoLock();
-            if (lastFilter.ViewType != viewType)
-            {
-                modified = lastFilter.SaveViewConfig;
-                lastFilter.ViewType = viewType;
-            }
-
-            if (modified)
-            {
-                _filterModel.LastFilterModified = true;
-            }
-
-            ScheduleUpdateFilters(false);
-        });
-    }
-
-    /// <summary>
-    /// Selects the sorting method for comics.
-    /// </summary>
-    /// <param name="model">The sorting model to apply.</param>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
-    public void SelectSortOrGroup(SortByUIModel? model)
-    {
-        if (model == null)
-        {
-            return;
-        }
-
-        _sharedDispatcher.Submit("SelectSortOrGroup", delegate
-        {
-            bool modified = false;
-            ComicFilterModel.ExternalFilterModel lastFilter = EnsureLastFilterNoLock();
-            if (model.IsSortBy)
-            {
-                switch (model.Type)
-                {
-                    case SortByMenuItemTypeEnum.Property:
-                        if (model.Property != null && !model.Property.Equals(lastFilter.SortBy))
-                        {
-                            modified = true;
-                            lastFilter.SortBy = model.Property;
-                        }
-                        break;
-                    case SortByMenuItemTypeEnum.Ascending:
-                        if (!lastFilter.SortByAscending)
-                        {
-                            modified = true;
-                            lastFilter.SortByAscending = true;
-                        }
-                        break;
-                    case SortByMenuItemTypeEnum.Descending:
-                        if (lastFilter.SortByAscending)
-                        {
-                            modified = true;
-                            lastFilter.SortByAscending = false;
-                        }
-                        break;
-                    case SortByMenuItemTypeEnum.Function:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                switch (model.Type)
-                {
-                    case SortByMenuItemTypeEnum.Property:
-                        if ((model.Property != null && !model.Property.Equals(lastFilter.GroupBy)) ||
-                            (lastFilter.GroupBy != null && !lastFilter.GroupBy.Equals(model.Property)))
-                        {
-                            modified = true;
-                            lastFilter.GroupBy = model.Property;
-                        }
-                        break;
-                    case SortByMenuItemTypeEnum.Ascending:
-                        if (!lastFilter.GroupByAscending)
-                        {
-                            modified = true;
-                            lastFilter.GroupByAscending = true;
-                        }
-                        break;
-                    case SortByMenuItemTypeEnum.Descending:
-                        if (lastFilter.GroupByAscending)
-                        {
-                            modified = true;
-                            lastFilter.GroupByAscending = false;
-                        }
-                        break;
-                    case SortByMenuItemTypeEnum.Function:
-                        if (lastFilter.GroupSortingFunction != model.FunctionType)
-                        {
-                            modified = true;
-                            lastFilter.GroupSortingFunction = model.FunctionType;
-                        }
-                        if (model.Property != null && !model.Property.Equals(lastFilter.GroupSortingProperty))
-                        {
-                            modified = true;
-                            lastFilter.GroupSortingProperty = model.Property;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            if (modified)
-            {
-                _filterModel.LastFilterModified = true;
-            }
-
-            ScheduleUpdateFilters(false);
-        });
-    }
-
-    /// <summary>
-    /// Selects a filter preset by name.
-    /// </summary>
-    /// <param name="name">The name of the filter preset.</param>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
-    public void SelectFilterPreset(string? name)
-    {
-        name ??= "";
-        _sharedDispatcher.Submit("SelectFilterPreset", delegate
-        {
-            ComicFilterModel.ExternalFilterModel? filter = _filterModel.Filters.Find(x => x.Name == name);
-            if (filter == null)
-            {
-                return;
-            }
-
-            ComicFilterModel.ExternalFilterModel? lastFilter = _filterModel.LastFilter;
-            filter = filter.Clone();
-            _filterModel.LastFilter = filter;
-            if (lastFilter is not null && !filter.SaveViewConfig)
-            {
-                filter.ViewType = lastFilter.ViewType;
-            }
-
-            _filterModel.LastFilterModified = false;
-            ScheduleUpdateFilters(false);
-        });
-    }
-
-    /// <summary>
     /// Set the selection mode.
     /// </summary>
     /// <param name="enabled">Is selection mode enabled.</param>
@@ -608,6 +448,71 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
 
         UpdateCollapseExpandGroupButtonStates();
+    }
+
+    //
+    // Click handlers
+    //
+
+    private void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
+    {
+        _sharedDispatcher.Submit("SelectViewType", delegate
+        {
+            bool modified = false;
+            ComicFilterModel.ExternalFilterModel lastFilter = EnsureLastFilterNoLock();
+            if (lastFilter.ViewType != viewType)
+            {
+                modified = lastFilter.SaveViewConfig;
+                lastFilter.ViewType = viewType;
+            }
+
+            if (modified)
+            {
+                _filterModel.LastFilterModified = true;
+            }
+
+            ScheduleUpdateFilters(false);
+        });
+    }
+
+    private void SelectSortOrGroup(Func<ComicFilterModel.ExternalFilterModel, bool> handler)
+    {
+        _sharedDispatcher.Submit("SelectSortOrGroup", delegate
+        {
+            ComicFilterModel.ExternalFilterModel lastFilter = EnsureLastFilterNoLock();
+            bool modified = handler(lastFilter);
+
+            if (modified)
+            {
+                _filterModel.LastFilterModified = true;
+            }
+
+            ScheduleUpdateFilters(false);
+        });
+    }
+
+    private void SelectFilterPreset(string? name)
+    {
+        name ??= "";
+        _sharedDispatcher.Submit("SelectFilterPreset", delegate
+        {
+            ComicFilterModel.ExternalFilterModel? filter = _filterModel.Filters.Find(x => x.Name == name);
+            if (filter == null)
+            {
+                return;
+            }
+
+            ComicFilterModel.ExternalFilterModel? lastFilter = _filterModel.LastFilter;
+            filter = filter.Clone();
+            _filterModel.LastFilter = filter;
+            if (lastFilter is not null && !filter.SaveViewConfig)
+            {
+                filter.ViewType = lastFilter.ViewType;
+            }
+
+            _filterModel.LastFilterModified = false;
+            ScheduleUpdateFilters(false);
+        });
     }
 
     //
@@ -885,24 +790,29 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         ComicFilterModel.Instance.UpdateModel(_filterModel);
 
         // Update UI
-        var viewTypeDropDown = new DropDownButtonModel<ComicFilterModel.ViewTypeEnum>
+        var viewTypeDropDown = new DropDownButtonModel
         {
             Name = StringResourceProvider.Instance.ViewType,
-            Items = _viewTypes.ConvertAll(x => CreateToggleMenuFlyoutItem(ViewTypeToDisplayName(x), x == lastFilter.ViewType, x)),
+            Items = _viewTypes.ConvertAll(x => new MenuFlyoutToggleItemViewModel(ViewTypeToDisplayName(x))
+            {
+                IsChecked = x == lastFilter.ViewType,
+                OnClick = () =>
+                {
+                    SelectViewType(x);
+                },
+            }),
         };
 
         List<ComicPropertyModel> properties = await ComicPropertyModel.GetProperties();
-        var sortByDropDown = new MenuFlyoutItemModel<SortByUIModel>
+        var sortByDropDown = new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Sort)
         {
-            Name = StringResourceProvider.Instance.Sort,
-            SubItems = CreateSortByMenuItems(properties, lastFilter.SortBy, lastFilter.SortByAscending),
+            Items = CreateSortByMenuItems(properties, lastFilter.SortBy, lastFilter.ComicOrderMethod),
         };
-        var groupByDropDown = new MenuFlyoutItemModel<SortByUIModel>
+        var groupByDropDown = new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Group)
         {
-            Name = StringResourceProvider.Instance.Group,
-            SubItems = CreateGroupByMenuItems(properties, lastFilter.GroupBy, lastFilter.GroupByAscending, lastFilter.GroupSortingFunction, lastFilter.GroupSortingProperty),
+            Items = CreateGroupByMenuItems(properties, lastFilter.GroupBy, lastFilter.GroupOrderMethod, lastFilter.GroupSortingFunction, lastFilter.GroupSortingProperty),
         };
-        var sortAndGroupDropDown = new DropDownButtonModel<SortByUIModel>
+        var sortAndGroupDropDown = new DropDownButtonModel
         {
             Name = StringResourceProvider.Instance.Sort + " & " + StringResourceProvider.Instance.Group,
             Items = [sortByDropDown, groupByDropDown],
@@ -913,10 +823,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             lastFilterName += " *";
         }
-        var filterPresetDropDown = new DropDownButtonModel<string>
+
+        var filterPresetDropDown = new DropDownButtonModel
         {
             Name = lastFilterName,
-            Items = filters.ConvertAll(x => CreateMenuFlyoutItem(x.Name, x.Name)),
+            Items = filters.ConvertAll(x => new MenuFlyoutItemViewModel(x.Name)
+            {
+                OnClick = () => SelectFilterPreset(x.Name),
+            }),
         };
 
         var uiModel = new FilterModel
@@ -972,11 +886,11 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             if (groupBy != null)
             {
                 List<ComicPropertyModel.GroupItem<ComicItemViewModel>> groupItems = groupBy.GroupComics(comicItems, (x) => x.Comic,
-                    filter.GroupByAscending, filter.GroupSortingFunction, filter.GroupSortingProperty);
+                    filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty);
                 comicsGrouped = [];
                 foreach (ComicPropertyModel.GroupItem<ComicItemViewModel> item in groupItems)
                 {
-                    List<ComicItemViewModel> sorted = SortComicItemsByProerty(item.Items, sortBy, filter.SortByAscending);
+                    List<ComicItemViewModel> sorted = SortComicItemsByProerty(item.Items, sortBy, filter.ComicOrderMethod);
                     var group = new ComicGroupViewModel(item.Name, sorted, false)
                     {
                         Description = item.Description,
@@ -986,7 +900,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             }
             else
             {
-                comicsUngrouped = SortComicItemsByProerty(comicItems, sortBy, filter.SortByAscending);
+                comicsUngrouped = SortComicItemsByProerty(comicItems, sortBy, filter.ComicOrderMethod);
             }
         }
 
@@ -1025,9 +939,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         });
     }
 
-    private List<ComicItemViewModel> SortComicItemsByProerty(IReadOnlyList<ComicItemViewModel> items, ComicPropertyModel property, bool ascending)
+    private List<ComicItemViewModel> SortComicItemsByProerty(IReadOnlyList<ComicItemViewModel> items,
+        ComicPropertyModel property, ComicFilterModel.OrderMethodEnum orderMethod)
     {
-        return property.SortComics(items, (x) => x.Comic, ascending);
+        return property.SortComics(items, (x) => x.Comic, orderMethod);
     }
 
     private ComicFilterModel.ExternalFilterModel EnsureLastFilterNoLock()
@@ -1045,80 +960,176 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             ViewType = ComicFilterModel.ViewTypeEnum.Large,
             SaveViewConfig = false,
             SortBy = new(),
-            SortByAscending = true,
+            ComicOrderMethod = ComicFilterModel.OrderMethodEnum.Ascending,
             GroupBy = null,
-            GroupByAscending = true,
+            GroupOrderMethod = ComicFilterModel.OrderMethodEnum.Ascending,
             Expression = "",
         };
     }
 
-    private List<MenuFlyoutItemModel<SortByUIModel>> CreateSortByMenuItems(List<ComicPropertyModel> properties, ComicPropertyModel? selectedProperty, bool ascending)
+    private List<BaseMenuFlyoutItemViewModel> CreateSortByMenuItems(List<ComicPropertyModel> properties,
+        ComicPropertyModel? selectedProperty, ComicFilterModel.OrderMethodEnum selectedOrderMethod)
     {
-        List<MenuFlyoutItemModel<SortByUIModel>> items = [];
-        items.AddRange(CreateSortByPropertyMenuItems(properties, selectedProperty, new SortByUIModel
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.AddRange(CreateSortByPropertyMenuItems(properties, selectedProperty, p =>
         {
-            Type = SortByMenuItemTypeEnum.Property,
-            IsSortBy = true,
+            SelectSortOrGroup(filter =>
+            {
+                if (!p.Equals(filter.SortBy))
+                {
+                    filter.SortBy = p;
+                    return true;
+                }
+
+                return false;
+            });
         }));
+
         if (selectedProperty != null)
         {
-            items.Add(CreateSeperatorMenuFlyoutItem<SortByUIModel>());
-            items.Add(CreateToggleMenuFlyoutItem(StringResourceProvider.Instance.Ascending, ascending, new SortByUIModel
+            items.Add(new MenuFlyoutSeperatorViewModel());
+            items.AddRange(CreateOrderMethodMenuItems(selectedOrderMethod, orderMethod =>
             {
-                Type = SortByMenuItemTypeEnum.Ascending,
-                IsSortBy = true,
-            }));
-            items.Add(CreateToggleMenuFlyoutItem(StringResourceProvider.Instance.Descending, !ascending, new SortByUIModel
-            {
-                Type = SortByMenuItemTypeEnum.Descending,
-                IsSortBy = true,
+                SelectSortOrGroup(filter =>
+                {
+                    if (orderMethod != filter.ComicOrderMethod)
+                    {
+                        filter.ComicOrderMethod = orderMethod;
+                    }
+
+                    return false;
+                });
             }));
         }
+
         return items;
     }
 
-    private List<MenuFlyoutItemModel<SortByUIModel>> CreateGroupByMenuItems(List<ComicPropertyModel> properties,
-        ComicPropertyModel? selectedProperty, bool ascending, ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty)
+    private List<BaseMenuFlyoutItemViewModel> CreateGroupByMenuItems(List<ComicPropertyModel> properties,
+        ComicPropertyModel? selectedProperty, ComicFilterModel.OrderMethodEnum selectedOrderMethod,
+        ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty)
     {
-        List<MenuFlyoutItemModel<SortByUIModel>> items = [];
-        items.Add(CreateToggleMenuFlyoutItem(StringResourceProvider.Instance.None, selectedProperty is null, new SortByUIModel
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.None)
         {
-            Type = SortByMenuItemTypeEnum.Property,
-            IsSortBy = false,
-        }));
-        items.AddRange(CreateSortByPropertyMenuItems(properties, selectedProperty, new SortByUIModel
+            IsChecked = selectedProperty is null,
+            OnClick = () =>
+            {
+                SelectSortOrGroup(filter =>
+                {
+                    if (filter.GroupBy is not null)
+                    {
+                        filter.GroupBy = null;
+                        return true;
+                    }
+
+                    return false;
+                });
+            }
+        });
+
+        items.AddRange(CreateSortByPropertyMenuItems(properties, selectedProperty, p =>
         {
-            Type = SortByMenuItemTypeEnum.Property,
-            IsSortBy = false,
+            SelectSortOrGroup(filter =>
+            {
+                if (!p.Equals(filter.GroupBy))
+                {
+                    filter.GroupBy = p;
+                    return true;
+                }
+
+                return false;
+            });
         }));
+
         if (selectedProperty != null)
         {
-            items.Add(CreateSeperatorMenuFlyoutItem<SortByUIModel>());
-            items.Add(CreateToggleMenuFlyoutItem(StringResourceProvider.Instance.Ascending, ascending, new SortByUIModel
+            items.Add(new MenuFlyoutSeperatorViewModel());
+
+            items.AddRange(CreateOrderMethodMenuItems(selectedOrderMethod, orderMethod =>
             {
-                Type = SortByMenuItemTypeEnum.Ascending,
-                IsSortBy = false,
-            }));
-            items.Add(CreateToggleMenuFlyoutItem(StringResourceProvider.Instance.Descending, !ascending, new SortByUIModel
-            {
-                Type = SortByMenuItemTypeEnum.Descending,
-                IsSortBy = false,
-            }));
-            items.Add(new MenuFlyoutItemModel<SortByUIModel>
-            {
-                Name = StringResourceProvider.Instance.SortingFunction,
-                SubItems = CreateSortingFunctionMenuItems(properties, sortingFunction, sortingProperty, new SortByUIModel
+                SelectSortOrGroup(filter =>
                 {
-                    Type = SortByMenuItemTypeEnum.Function,
-                    IsSortBy = false,
+                    if (orderMethod != filter.GroupOrderMethod)
+                    {
+                        filter.GroupOrderMethod = orderMethod;
+                    }
+
+                    return false;
+                });
+            }));
+
+            items.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.SortingFunction)
+            {
+                Items = CreateSortingFunctionMenuItems(properties, sortingFunction, sortingProperty, (f, p) =>
+                {
+                    SelectSortOrGroup(filter =>
+                    {
+                        bool modified = false;
+
+                        if (filter.GroupSortingFunction != f)
+                        {
+                            modified = true;
+                            filter.GroupSortingFunction = f;
+                        }
+
+                        if (p is not null && !p.Equals(filter.GroupSortingProperty))
+                        {
+                            modified = true;
+                            filter.GroupSortingProperty = p;
+                        }
+
+                        return modified;
+                    });
                 }),
             });
         }
+
         return items;
     }
 
-    private List<MenuFlyoutItemModel<SortByUIModel>> CreateSortingFunctionMenuItems(List<ComicPropertyModel> properties,
-        ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty, SortByUIModel templateModel)
+    private List<BaseMenuFlyoutItemViewModel> CreateOrderMethodMenuItems(ComicFilterModel.OrderMethodEnum selectedMethod, Action<ComicFilterModel.OrderMethodEnum> clickHandler)
+    {
+        string GetOrderMethodDisplayName(ComicFilterModel.OrderMethodEnum method)
+        {
+            return method switch
+            {
+                ComicFilterModel.OrderMethodEnum.Ascending => StringResourceProvider.Instance.Ascending,
+                ComicFilterModel.OrderMethodEnum.Descending => StringResourceProvider.Instance.Descending,
+                ComicFilterModel.OrderMethodEnum.Shuffle => StringResourceProvider.Instance.Shuffle,
+                ComicFilterModel.OrderMethodEnum.ShuffleStable => StringResourceProvider.Instance.ShuffleStable,
+                _ => "???"
+            };
+        }
+
+        List<ComicFilterModel.OrderMethodEnum> orderMethods = [
+            ComicFilterModel.OrderMethodEnum.Ascending,
+            ComicFilterModel.OrderMethodEnum.Descending,
+            ComicFilterModel.OrderMethodEnum.Shuffle,
+            ComicFilterModel.OrderMethodEnum.ShuffleStable,
+        ];
+
+        List<BaseMenuFlyoutItemViewModel> items = [];
+        foreach (ComicFilterModel.OrderMethodEnum orderMethod in orderMethods)
+        {
+            items.Add(new MenuFlyoutToggleItemViewModel(GetOrderMethodDisplayName(orderMethod))
+            {
+                IsChecked = orderMethod == selectedMethod,
+                OnClick = () =>
+                {
+                    clickHandler(orderMethod);
+                },
+            });
+        }
+
+        return items;
+    }
+
+    private List<BaseMenuFlyoutItemViewModel> CreateSortingFunctionMenuItems(List<ComicPropertyModel> properties,
+        ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty,
+        Action<ComicFilterModel.FunctionTypeEnum, ComicPropertyModel?> clickHandler)
     {
         string GetFunctionDisplayName(ComicFilterModel.FunctionTypeEnum function)
         {
@@ -1134,7 +1145,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             };
         }
 
-        List<MenuFlyoutItemModel<SortByUIModel>> items = [];
+        List<BaseMenuFlyoutItemViewModel> items = [];
         List<ComicFilterModel.FunctionTypeEnum> simpleFunctions = [
             ComicFilterModel.FunctionTypeEnum.None,
             ComicFilterModel.FunctionTypeEnum.ItemCount,
@@ -1145,30 +1156,36 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             ComicFilterModel.FunctionTypeEnum.Max,
             ComicFilterModel.FunctionTypeEnum.Min,
         ];
+
         foreach (ComicFilterModel.FunctionTypeEnum function in simpleFunctions)
         {
-            items.Add(CreateToggleMenuFlyoutItem(GetFunctionDisplayName(function), function == sortingFunction, new SortByUIModel(templateModel)
+            items.Add(new MenuFlyoutToggleItemViewModel(GetFunctionDisplayName(function))
             {
-                FunctionType = function,
-            }));
+                IsChecked = function == sortingFunction,
+                OnClick = () =>
+                {
+                    clickHandler(function, null);
+                }
+            });
         }
+
         foreach (ComicFilterModel.FunctionTypeEnum function in propertyFunctions)
         {
-            List<MenuFlyoutItemModel<SortByUIModel>> subItems = CreateSortByPropertyMenuItems(properties, function == sortingFunction ? sortingProperty : null, new SortByUIModel(templateModel)
+            List<BaseMenuFlyoutItemViewModel> subItems = CreateSortByPropertyMenuItems(properties, function == sortingFunction ? sortingProperty : null, p =>
             {
-                FunctionType = function,
+                clickHandler(function, p);
             });
-            items.Add(new MenuFlyoutItemModel<SortByUIModel>
+            items.Add(new MenuFlyoutSubItemViewModel(GetFunctionDisplayName(function))
             {
-                Name = GetFunctionDisplayName(function),
-                SubItems = subItems,
+                Items = subItems,
             });
         }
+
         return items;
     }
 
-    private List<MenuFlyoutItemModel<SortByUIModel>> CreateSortByPropertyMenuItems(List<ComicPropertyModel> properties,
-        ComicPropertyModel? selectedProperty, SortByUIModel templateModel)
+    private static List<BaseMenuFlyoutItemViewModel> CreateSortByPropertyMenuItems(List<ComicPropertyModel> properties,
+        ComicPropertyModel? selectedProperty, Action<ComicPropertyModel> clickHandler)
     {
         Dictionary<string, List<ComicPropertyModel>> propertyGroupMap = [];
         foreach (ComicPropertyModel property in properties)
@@ -1179,6 +1196,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 value = [];
                 propertyGroupMap[groupName] = value;
             }
+
             value.Add(property);
         }
 
@@ -1194,64 +1212,47 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             propertyGroupList.Add(kvp);
             kvp.Value.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName));
         }
+
         propertyGroupList.Sort((a, b) => string.Compare(a.Key, b.Key, StringComparison.Ordinal));
 
-        List<MenuFlyoutItemModel<SortByUIModel>> items = [];
+        List<BaseMenuFlyoutItemViewModel> items = [];
         if (plainProperties != null)
         {
             foreach (ComicPropertyModel p in plainProperties)
             {
-                items.Add(CreateToggleMenuFlyoutItem(p.DisplayName, p.Equals(selectedProperty), new SortByUIModel(templateModel)
+                items.Add(new MenuFlyoutToggleItemViewModel(p.DisplayName)
                 {
-                    Property = p,
-                }));
+                    IsChecked = p.Equals(selectedProperty),
+                    OnClick = () =>
+                    {
+                        clickHandler(p);
+                    }
+                });
             }
         }
+
         foreach (KeyValuePair<string, List<ComicPropertyModel>> kvp in propertyGroupList)
         {
-            List<MenuFlyoutItemModel<SortByUIModel>> subItems = [];
+            List<BaseMenuFlyoutItemViewModel> subItems = [];
             foreach (ComicPropertyModel p in kvp.Value)
             {
-                subItems.Add(CreateToggleMenuFlyoutItem(p.DisplayName, p.Equals(selectedProperty), new SortByUIModel(templateModel)
+                subItems.Add(new MenuFlyoutToggleItemViewModel(p.DisplayName)
                 {
-                    Property = p,
-                }));
+                    IsChecked = p.Equals(selectedProperty),
+                    OnClick = () =>
+                    {
+                        clickHandler(p);
+                    }
+                });
             }
-            items.Add(new MenuFlyoutItemModel<SortByUIModel>
+
+            items.Add(new MenuFlyoutSubItemViewModel(kvp.Key)
             {
-                Name = kvp.Key,
-                SubItems = subItems,
+                Items = subItems,
             });
         }
+
         return items;
-    }
-
-    private MenuFlyoutItemModel<T> CreateMenuFlyoutItem<T>(string name, T dataContext)
-    {
-        return new MenuFlyoutItemModel<T>
-        {
-            Name = name,
-            DataContext = dataContext
-        };
-    }
-
-    private MenuFlyoutItemModel<T> CreateToggleMenuFlyoutItem<T>(string name, bool toggled, T dataContext)
-    {
-        return new MenuFlyoutItemModel<T>
-        {
-            Name = name,
-            CanToggle = true,
-            Toggled = toggled,
-            DataContext = dataContext
-        };
-    }
-
-    private MenuFlyoutItemModel<T> CreateSeperatorMenuFlyoutItem<T>()
-    {
-        return new MenuFlyoutItemModel<T>
-        {
-            IsSeperator = true,
-        };
     }
 
     private string ViewTypeToDisplayName(ComicFilterModel.ViewTypeEnum viewType)
@@ -1271,43 +1272,15 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     public class FilterModel
     {
-        public DropDownButtonModel<ComicFilterModel.ViewTypeEnum> ViewTypeDropDown { get; set; } = new();
-        public DropDownButtonModel<SortByUIModel> SortAndGroupDropDown { get; set; } = new();
-        public DropDownButtonModel<string> FilterPresetDropDown { get; set; } = new();
+        public DropDownButtonModel ViewTypeDropDown { get; set; } = new();
+        public DropDownButtonModel SortAndGroupDropDown { get; set; } = new();
+        public DropDownButtonModel FilterPresetDropDown { get; set; } = new();
     }
 
-    public class DropDownButtonModel<T>
+    public class DropDownButtonModel
     {
         public string Name { get; set; } = "";
-        public List<MenuFlyoutItemModel<T>> Items { get; set; } = [];
-    }
-
-    public class MenuFlyoutItemModel<T>
-    {
-        public bool IsSeperator { get; set; } = false;
-        public string Name { get; set; } = "";
-        public bool CanToggle { get; set; } = false;
-        public bool Toggled { get; set; } = false;
-        public List<MenuFlyoutItemModel<T>>? SubItems { get; set; } = null;
-        public T? DataContext { get; set; } = default;
-    }
-
-    public class SortByUIModel
-    {
-        public SortByUIModel() { }
-
-        public SortByUIModel(SortByUIModel source)
-        {
-            IsSortBy = source.IsSortBy;
-            Type = source.Type;
-            FunctionType = source.FunctionType;
-            Property = source.Property;
-        }
-
-        public bool IsSortBy { get; set; }
-        public SortByMenuItemTypeEnum Type { get; set; }
-        public ComicFilterModel.FunctionTypeEnum FunctionType { get; set; } = ComicFilterModel.FunctionTypeEnum.None;
-        public ComicPropertyModel? Property { get; set; }
+        public IEnumerable<BaseMenuFlyoutItemViewModel> Items { get; set; } = [];
     }
 
     public enum SortByMenuItemTypeEnum

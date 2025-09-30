@@ -83,17 +83,18 @@ internal class ComicPropertyModel
         return JsonSerializer.SerializeToNode(jsonModel);
     }
 
-    public List<T> SortComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector, bool ascending)
+    public List<T> SortComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector, ComicFilterModel.OrderMethodEnum orderMethod)
     {
         IItemSorter<ComicModel> sorter = GetComicItemSorter();
-        return sorter.Sort(items, selector, ascending);
+        return sorter.Sort(items, selector, orderMethod);
     }
 
-    public List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector, bool ascending,
-        ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty)
+    public List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector,
+        ComicFilterModel.OrderMethodEnum orderMethod, ComicFilterModel.FunctionTypeEnum sortingFunction,
+        ComicPropertyModel? sortingProperty)
     {
         IComicGroupSorter sorter = GetComicGroupSorter();
-        return sorter.GroupComics(items, selector, ascending, sortingFunction, sortingProperty);
+        return sorter.GroupComics(items, selector, orderMethod, sortingFunction, sortingProperty);
     }
 
     private IItemSorter<ComicModel> GetComicItemSorter()
@@ -378,8 +379,9 @@ internal class ComicPropertyModel
 
     private interface IComicGroupSorter
     {
-        List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector, bool ascending,
-            ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty);
+        List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector,
+            ComicFilterModel.OrderMethodEnum orderMethod, ComicFilterModel.FunctionTypeEnum sortingFunction,
+            ComicPropertyModel? sortingProperty);
     }
 
     private class ComicGroupSorter(Func<ComicModel, IEnumerable<string>> groupNameSelector, IItemSorterWithKeyInfo<GroupSortingKeySelectorParams, string> defaultSorter) : IComicGroupSorter
@@ -387,8 +389,9 @@ internal class ComicPropertyModel
         private readonly Func<ComicModel, IEnumerable<string>> GroupNameSelector = groupNameSelector;
         private readonly IItemSorterWithKeyInfo<GroupSortingKeySelectorParams, string> DefaultGroupSorter = defaultSorter;
 
-        public List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector, bool ascending,
-            ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty)
+        public List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector,
+            ComicFilterModel.OrderMethodEnum orderMethod, ComicFilterModel.FunctionTypeEnum sortingFunction,
+            ComicPropertyModel? sortingProperty)
         {
             Dictionary<string, List<T>> groupMap = [];
             foreach (T item in items)
@@ -412,7 +415,7 @@ internal class ComicPropertyModel
             }
 
             IItemSorterWithKeyInfo<GroupSortingKeySelectorParams, string> sorter = GetSorter(sortingFunction, sortingProperty);
-            return sorter.Sort(comicGroups, x => new(x.Name, x.Items.ConvertAll(y => selector(y))), ascending,
+            return sorter.Sort(comicGroups, x => new(x.Name, x.Items.ConvertAll(y => selector(y))), orderMethod,
                 (m, t) => m.Description = string.IsNullOrEmpty(t) ? $"({m.Items.Count})" : $"({t})");
         }
 
@@ -507,12 +510,12 @@ internal class ComicPropertyModel
 
     private interface IItemSorter<K>
     {
-        List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, bool ascending);
+        List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, ComicFilterModel.OrderMethodEnum orderMethod);
     }
 
     private interface IItemSorterWithKeyInfo<K, M> : IItemSorter<K>
     {
-        List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, bool ascending, Action<T, M> keyBinder);
+        List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, ComicFilterModel.OrderMethodEnum orderMethod, Action<T, M> keyBinder);
     }
 
     private class SimpleSorter<A, B>(Func<A, B> keySelector, IComparer<B>? comparer = null) : IItemSorter<A>
@@ -520,15 +523,23 @@ internal class ComicPropertyModel
         protected IComparer<B> Comparer { get; } = comparer ?? Comparer<B>.Default;
         protected Func<A, B> KeySelector { get; } = keySelector;
 
-        public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, bool ascending)
+        public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, ComicFilterModel.OrderMethodEnum orderMethod)
         {
-            if (ascending)
+            switch (orderMethod)
             {
-                return [.. items.OrderBy(x => KeySelector(selector(x)), Comparer)];
-            }
-            else
-            {
-                return [.. items.OrderByDescending(x => KeySelector(selector(x)), Comparer)];
+                case ComicFilterModel.OrderMethodEnum.Ascending:
+                    return [.. items.OrderBy(x => KeySelector(selector(x)), Comparer)];
+                case ComicFilterModel.OrderMethodEnum.Descending:
+                    return [.. items.OrderByDescending(x => KeySelector(selector(x)), Comparer)];
+                case ComicFilterModel.OrderMethodEnum.Shuffle:
+                    return [.. items.OrderBy(_ => Random.Shared.Next())];
+                case ComicFilterModel.OrderMethodEnum.ShuffleStable:
+                    {
+                        var rng = new Random(AppSettingsModel.Instance.GetModel().ComicShuffleRandomSeed);
+                        return [.. items.OrderBy(_ => rng.Next())];
+                    }
+                default:
+                    goto case ComicFilterModel.OrderMethodEnum.Ascending;
             }
         }
     }
@@ -537,7 +548,7 @@ internal class ComicPropertyModel
     {
         private Func<B, string> KeyInfoConverter { get; } = keyInfoConverter ?? (_ => string.Empty);
 
-        public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, bool ascending, Action<T, string> keyBinder)
+        public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, ComicFilterModel.OrderMethodEnum orderMethod, Action<T, string> keyBinder)
         {
             B GroupKeySelector(T item)
             {
@@ -546,13 +557,21 @@ internal class ComicPropertyModel
                 return key;
             }
 
-            if (ascending)
+            switch (orderMethod)
             {
-                return [.. items.OrderBy(GroupKeySelector, Comparer)];
-            }
-            else
-            {
-                return [.. items.OrderByDescending(GroupKeySelector, Comparer)];
+                case ComicFilterModel.OrderMethodEnum.Ascending:
+                    return [.. items.OrderBy(GroupKeySelector, Comparer)];
+                case ComicFilterModel.OrderMethodEnum.Descending:
+                    return [.. items.OrderByDescending(GroupKeySelector, Comparer)];
+                case ComicFilterModel.OrderMethodEnum.Shuffle:
+                    return [.. items.OrderBy(_ => Random.Shared.Next())];
+                case ComicFilterModel.OrderMethodEnum.ShuffleStable:
+                    {
+                        var rng = new Random(AppSettingsModel.Instance.GetModel().ComicShuffleRandomSeed);
+                        return [.. items.OrderBy(_ => rng.Next())];
+                    }
+                default:
+                    goto case ComicFilterModel.OrderMethodEnum.Ascending;
             }
         }
     }

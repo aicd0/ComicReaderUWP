@@ -364,12 +364,12 @@ internal sealed partial class HomePage : BasePage
             return;
         }
 
-        BindDropDownButton(ViewTypeDropDownButton, ViewTypeDropDownButtonText, model.ViewTypeDropDown, ViewModel.SelectViewType);
-        BindDropDownButton(SortAndGroupDropDownButton, SortAndGroupDropDownButtonText, model.SortAndGroupDropDown, ViewModel.SelectSortOrGroup);
-        BindDropDownButton(FilterPresetDropDownButton, FilterPresetDropDownButtonText, model.FilterPresetDropDown, ViewModel.SelectFilterPreset);
+        BindDropDownButton(ViewTypeDropDownButton, ViewTypeDropDownButtonText, model.ViewTypeDropDown);
+        BindDropDownButton(SortAndGroupDropDownButton, SortAndGroupDropDownButtonText, model.SortAndGroupDropDown);
+        BindDropDownButton(FilterPresetDropDownButton, FilterPresetDropDownButtonText, model.FilterPresetDropDown);
     }
 
-    private void BindDropDownButton<T>(DropDownButton button, TextBlock buttonText, HomePageViewModel.DropDownButtonModel<T> model, Action<T?> clickHandler)
+    private void BindDropDownButton(DropDownButton button, TextBlock buttonText, HomePageViewModel.DropDownButtonModel model)
     {
         if (button == null)
         {
@@ -387,60 +387,14 @@ internal sealed partial class HomePage : BasePage
             };
             button.Flyout = flyout;
         }
+
         var menuFlyout = (MenuFlyout)flyout;
 
         menuFlyout.Items.Clear();
-        foreach (HomePageViewModel.MenuFlyoutItemModel<T> item in model.Items)
+        foreach (BaseMenuFlyoutItemViewModel item in model.Items)
         {
-            menuFlyout.Items.Add(CreateMenuFlyoutItem(item, clickHandler));
+            menuFlyout.Items.Add(item.CreateMenuFlyoutItem());
         }
-    }
-
-    private MenuFlyoutItemBase CreateMenuFlyoutItem<T>(HomePageViewModel.MenuFlyoutItemModel<T> item, Action<T?> clickHandler)
-    {
-        MenuFlyoutItemBase menuItem;
-        if (item.IsSeperator)
-        {
-            menuItem = new MenuFlyoutSeparator();
-        }
-        else if (item.SubItems != null)
-        {
-            var actualMenuItem = new MenuFlyoutSubItem
-            {
-                Text = item.Name,
-            };
-            foreach (HomePageViewModel.MenuFlyoutItemModel<T> subItem in item.SubItems)
-            {
-                actualMenuItem.Items.Add(CreateMenuFlyoutItem(subItem, clickHandler));
-            }
-            menuItem = actualMenuItem;
-        }
-        else if (item.CanToggle)
-        {
-            var actualMenuItem = new ToggleMenuFlyoutItem
-            {
-                Text = item.Name,
-                IsChecked = item.Toggled,
-            };
-            actualMenuItem.Click += delegate (object sender, RoutedEventArgs e)
-            {
-                clickHandler(item.DataContext);
-            };
-            menuItem = actualMenuItem;
-        }
-        else
-        {
-            var actualMenuItem = new MenuFlyoutItem
-            {
-                Text = item.Name,
-            };
-            actualMenuItem.Click += delegate (object sender, RoutedEventArgs e)
-            {
-                clickHandler(item.DataContext);
-            };
-            menuItem = actualMenuItem;
-        }
-        return menuItem;
     }
 
     //

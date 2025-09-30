@@ -235,11 +235,13 @@
                                         VerticalAlignment="Center"
                                         IsActive="{x:Bind ViewModel.IsClearingCache, Mode=OneWay}" />
                                 </StackPanel>
-                                <Grid Height="8" />
+                                <Grid Height="4" />
                                 <TextBlock
                                     Foreground="{ThemeResource ForegroundGrey2}"
                                     Style="{StaticResource SettingsPageBodyTextBlock}"
                                     Text="{x:Bind ViewModel.CacheSize, Mode=OneWay}" />
+                                <Grid Height="16" />
+                                <Button Click="OnRefreshRandomSeedClick" Content="{x:Bind StringResource.RefreshRandomSeed}" />
                                 <Grid Height="16" />
                                 <TextBlock x:Uid="DebugMode" Style="{StaticResource SettingsPageBodyTextBlock}" />
                                 <ToggleSwitch

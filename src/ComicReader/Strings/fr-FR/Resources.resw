@@ -642,6 +642,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="Refresh" xml:space="preserve">
     <value>Rafraîchir</value>
   </data>
+  <data name="RefreshRandomSeed" xml:space="preserve">
+    <value>Actualiser la graine aléatoire</value>
+  </data>
   <data name="Remove" xml:space="preserve">
     <value>Retirer</value>
   </data>
@@ -698,6 +701,12 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Afficher l'ID de la balise</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>Aléatoire</value>
+  </data>
+  <data name="ShuffleStable" xml:space="preserve">
+    <value>Aléatoire (stable)</value>
   </data>
   <data name="Sort" xml:space="preserve">
     <value>Tri</value>

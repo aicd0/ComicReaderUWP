@@ -152,6 +152,11 @@ internal sealed partial class SettingPage : BasePage
         ViewModel.ClearCache();
     }
 
+    private void OnRefreshRandomSeedClick(object sender, RoutedEventArgs e)
+    {
+        ViewModel.RefreshRandomSeed();
+    }
+
     //
     // UI
     //

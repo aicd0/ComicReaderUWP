@@ -644,6 +644,9 @@ The evaluation will be performed in the following order:
   <data name="Refresh" xml:space="preserve">
     <value>Refresh</value>
   </data>
+  <data name="RefreshRandomSeed" xml:space="preserve">
+    <value>Refresh random seed</value>
+  </data>
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>
   </data>
@@ -700,6 +703,12 @@ The evaluation will be performed in the following order:
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Show tag ID</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>Shuffle</value>
+  </data>
+  <data name="ShuffleStable" xml:space="preserve">
+    <value>Shuffle (stable)</value>
   </data>
   <data name="Sort" xml:space="preserve">
     <value>Sort</value>
