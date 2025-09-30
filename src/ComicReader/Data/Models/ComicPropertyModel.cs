@@ -122,18 +122,20 @@ internal class ComicPropertyModel
             };
         }
 
+        int IdSelector(ComicModel x) => HashUtils.GetSHA256Int(x.Id);
+
         return Type switch
         {
             PropertyTypeEnum.Title => new SimpleSorter<ComicModel, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(x.Title ?? StringResourceProvider.Instance.Untitled), StringUtils.SmartFileNameComparer),
-            PropertyTypeEnum.Progress => new SimpleSorter<ComicModel, int>(x => x.Progress),
+                x => StringUtils.SmartFileNameKeySelector(x.Title ?? StringResourceProvider.Instance.Untitled), IdSelector, comparer: StringUtils.SmartFileNameComparer),
+            PropertyTypeEnum.Progress => new SimpleSorter<ComicModel, int>(x => x.Progress, IdSelector),
             PropertyTypeEnum.Tag => new SimpleSorter<ComicModel, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(GetConcatenatedTag(x)), StringUtils.SmartFileNameComparer),
-            PropertyTypeEnum.Rating => new SimpleSorter<ComicModel, int>(x => x.Rating),
-            PropertyTypeEnum.CompletionState => new SimpleSorter<ComicModel, int>(x => CompletionStateToComparable(x.CompletionState)),
-            PropertyTypeEnum.LastReadTime => new SimpleSorter<ComicModel, long>(x => x.LastVisit.Ticks),
-            PropertyTypeEnum.Pages => new SimpleSorter<ComicModel, int>(x => x.PageCount),
-            _ => new SimpleSorter<ComicModel, long>(x => x.Id),
+                x => StringUtils.SmartFileNameKeySelector(GetConcatenatedTag(x)), IdSelector, comparer: StringUtils.SmartFileNameComparer),
+            PropertyTypeEnum.Rating => new SimpleSorter<ComicModel, int>(x => x.Rating, IdSelector),
+            PropertyTypeEnum.CompletionState => new SimpleSorter<ComicModel, int>(x => CompletionStateToComparable(x.CompletionState), IdSelector),
+            PropertyTypeEnum.LastReadTime => new SimpleSorter<ComicModel, long>(x => x.LastVisit.Ticks, IdSelector),
+            PropertyTypeEnum.Pages => new SimpleSorter<ComicModel, int>(x => x.PageCount, IdSelector),
+            _ => new SimpleSorter<ComicModel, long>(x => x.Id, IdSelector),
         };
     }
 
@@ -251,24 +253,26 @@ internal class ComicPropertyModel
             return lastReadTime.ToString("D", EnvironmentProvider.Instance.GetCurrentAppLanguageInfo());
         }
 
+        int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetSHA256Int(x.GroupName);
+
         return Type switch
         {
             PropertyTypeEnum.Title => new ComicGroupSorter(x => [GetTitleGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(x.GroupName), comparer: StringUtils.SmartFileNameComparer)),
+                x => StringUtils.SmartFileNameKeySelector(x.GroupName), IdSelector, comparer: StringUtils.SmartFileNameComparer)),
             PropertyTypeEnum.Progress => new ComicGroupSorter(x => [GetProgressGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => Math.Clamp(x.Items[0].Progress, 0, 100))),
+                x => Math.Clamp(x.Items[0].Progress, 0, 100), IdSelector)),
             PropertyTypeEnum.Tag => new ComicGroupSorter(GetTagGroupNames, new GroupSorter<GroupSortingKeySelectorParams, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(x.GroupName), comparer: StringUtils.SmartFileNameComparer)),
+                x => StringUtils.SmartFileNameKeySelector(x.GroupName), IdSelector, comparer: StringUtils.SmartFileNameComparer)),
             PropertyTypeEnum.Rating => new ComicGroupSorter(x => [GetRatingGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => Math.Clamp(x.Items[0].Rating, 0, 5))),
+                x => Math.Clamp(x.Items[0].Rating, 0, 5), IdSelector)),
             PropertyTypeEnum.CompletionState => new ComicGroupSorter(x => [GetCompletionStatusGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => GetCompletionStatusGroupSortingKey(x.Items[0]))),
+                x => GetCompletionStatusGroupSortingKey(x.Items[0]), IdSelector)),
             PropertyTypeEnum.LastReadTime => new ComicGroupSorter(x => [GetLastReadTimeGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, long>(
-                x => x.Items[0].LastVisit.Ticks)),
+                x => x.Items[0].LastVisit.Ticks, IdSelector)),
             PropertyTypeEnum.Pages => new ComicGroupSorter(x => [GetPagesGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => x.Items[0].PageCount)),
+                x => x.Items[0].PageCount, IdSelector)),
             _ => new ComicGroupSorter(x => [new(StringResourceProvider.Instance.Ungrouped)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => 0)),
+                x => 0, IdSelector)),
         };
     }
 
@@ -495,14 +499,21 @@ internal class ComicPropertyModel
                 return str;
             }
 
+            int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetSHA256Int(x.GroupName);
+
             return sortingFunction switch
             {
                 ComicFilterModel.FunctionTypeEnum.None => DefaultGroupSorter,
-                ComicFilterModel.FunctionTypeEnum.ItemCount => new GroupSorter<GroupSortingKeySelectorParams, int>(x => x.Items.Count, x => x.ToString()),
-                ComicFilterModel.FunctionTypeEnum.Max => new GroupSorter<GroupSortingKeySelectorParams, double>(x => x.Items.Max(PropertyToNumber) ?? 0, NumberToString),
-                ComicFilterModel.FunctionTypeEnum.Min => new GroupSorter<GroupSortingKeySelectorParams, double>(x => x.Items.Min(PropertyToNumber) ?? 0, NumberToString),
-                ComicFilterModel.FunctionTypeEnum.Sum => new GroupSorter<GroupSortingKeySelectorParams, double>(x => x.Items.Sum(PropertyToNumber) ?? 0, NumberToString),
-                ComicFilterModel.FunctionTypeEnum.Average => new GroupSorter<GroupSortingKeySelectorParams, double>(x => x.Items.Average(PropertyToNumber) ?? 0, NumberToString),
+                ComicFilterModel.FunctionTypeEnum.ItemCount => new GroupSorter<GroupSortingKeySelectorParams, int>(
+                    x => x.Items.Count, IdSelector, keyInfoConverter: x => x.ToString()),
+                ComicFilterModel.FunctionTypeEnum.Max => new GroupSorter<GroupSortingKeySelectorParams, double>(
+                    x => x.Items.Max(PropertyToNumber) ?? 0, IdSelector, keyInfoConverter: NumberToString),
+                ComicFilterModel.FunctionTypeEnum.Min => new GroupSorter<GroupSortingKeySelectorParams, double>(
+                    x => x.Items.Min(PropertyToNumber) ?? 0, IdSelector, keyInfoConverter: NumberToString),
+                ComicFilterModel.FunctionTypeEnum.Sum => new GroupSorter<GroupSortingKeySelectorParams, double>(
+                    x => x.Items.Sum(PropertyToNumber) ?? 0, IdSelector, keyInfoConverter: NumberToString),
+                ComicFilterModel.FunctionTypeEnum.Average => new GroupSorter<GroupSortingKeySelectorParams, double>(
+                    x => x.Items.Average(PropertyToNumber) ?? 0, IdSelector, keyInfoConverter: NumberToString),
                 _ => DefaultGroupSorter,
             };
         }
@@ -518,10 +529,11 @@ internal class ComicPropertyModel
         List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, ComicFilterModel.OrderMethodEnum orderMethod, Action<T, M> keyBinder);
     }
 
-    private class SimpleSorter<A, B>(Func<A, B> keySelector, IComparer<B>? comparer = null) : IItemSorter<A>
+    private class SimpleSorter<A, B>(Func<A, B> keySelector, Func<A, int> idSelector, IComparer<B>? comparer = null) : IItemSorter<A>
     {
         protected IComparer<B> Comparer { get; } = comparer ?? Comparer<B>.Default;
         protected Func<A, B> KeySelector { get; } = keySelector;
+        protected Func<A, int> IdSelector { get; } = idSelector;
 
         public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, ComicFilterModel.OrderMethodEnum orderMethod)
         {
@@ -532,11 +544,15 @@ internal class ComicPropertyModel
                 case ComicFilterModel.OrderMethodEnum.Descending:
                     return [.. items.OrderByDescending(x => KeySelector(selector(x)), Comparer)];
                 case ComicFilterModel.OrderMethodEnum.Shuffle:
-                    return [.. items.OrderBy(_ => Random.Shared.Next())];
+                    {
+                        int salt = Random.Shared.Next();
+                        return [.. items.OrderBy(x => IdSelector(selector(x)) ^ salt)];
+                    }
                 case ComicFilterModel.OrderMethodEnum.ShuffleStable:
                     {
                         var rng = new Random(AppSettingsModel.Instance.GetModel().ComicShuffleRandomSeed);
-                        return [.. items.OrderBy(_ => rng.Next())];
+                        int salt = rng.Next();
+                        return [.. items.OrderBy(x => IdSelector(selector(x)) ^ salt)];
                     }
                 default:
                     goto case ComicFilterModel.OrderMethodEnum.Ascending;
@@ -544,7 +560,8 @@ internal class ComicPropertyModel
         }
     }
 
-    private class GroupSorter<A, B>(Func<A, B> keySelector, Func<B, string>? keyInfoConverter = null, IComparer<B>? comparer = null) : SimpleSorter<A, B>(keySelector, comparer), IItemSorterWithKeyInfo<A, string>
+    private class GroupSorter<A, B>(Func<A, B> keySelector, Func<A, int> idSelector, Func<B, string>? keyInfoConverter = null, IComparer<B>? comparer = null) :
+        SimpleSorter<A, B>(keySelector, idSelector, comparer), IItemSorterWithKeyInfo<A, string>
     {
         private Func<B, string> KeyInfoConverter { get; } = keyInfoConverter ?? (_ => string.Empty);
 
@@ -564,12 +581,13 @@ internal class ComicPropertyModel
                 case ComicFilterModel.OrderMethodEnum.Descending:
                     return [.. items.OrderByDescending(GroupKeySelector, Comparer)];
                 case ComicFilterModel.OrderMethodEnum.Shuffle:
-                    return [.. items.OrderBy(_ => Random.Shared.Next())];
                 case ComicFilterModel.OrderMethodEnum.ShuffleStable:
+                    foreach (T item in items)
                     {
-                        var rng = new Random(AppSettingsModel.Instance.GetModel().ComicShuffleRandomSeed);
-                        return [.. items.OrderBy(_ => rng.Next())];
+                        GroupKeySelector(item); // Bind the key info
                     }
+
+                    return Sort(items, selector, orderMethod);
                 default:
                     goto case ComicFilterModel.OrderMethodEnum.Ascending;
             }
