@@ -643,6 +643,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Refresh" xml:space="preserve">
     <value>새로 고치다</value>
   </data>
+  <data name="RefreshRandomSeed" xml:space="preserve">
+    <value>랜덤 시드 새로고침</value>
+  </data>
   <data name="Remove" xml:space="preserve">
     <value>제거하다</value>
   </data>
@@ -699,6 +702,12 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>태그 ID 표시</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>셔플</value>
+  </data>
+  <data name="ShuffleStable" xml:space="preserve">
+    <value>셔플(안정)</value>
   </data>
   <data name="Sort" xml:space="preserve">
     <value>정렬</value>

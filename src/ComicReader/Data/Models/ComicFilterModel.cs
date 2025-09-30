@@ -22,6 +22,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
     public const string ORDER_METHOD_ASCENDING = "Ascending";
     public const string ORDER_METHOD_DESCENDING = "Descending";
     public const string ORDER_METHOD_SHUFFLE = "Shuffle";
+    public const string ORDER_METHOD_SHUFFLE_STABLE = "ShuffleStable";
 
     public static readonly ComicFilterModel Instance = new();
 
@@ -262,6 +263,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 OrderMethodEnum.Ascending => ORDER_METHOD_ASCENDING,
                 OrderMethodEnum.Descending => ORDER_METHOD_DESCENDING,
                 OrderMethodEnum.Shuffle => ORDER_METHOD_SHUFFLE,
+                OrderMethodEnum.ShuffleStable => ORDER_METHOD_SHUFFLE_STABLE,
                 _ => ORDER_METHOD_ASCENDING,
             };
         }
@@ -273,6 +275,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 ORDER_METHOD_ASCENDING => OrderMethodEnum.Ascending,
                 ORDER_METHOD_DESCENDING => OrderMethodEnum.Descending,
                 ORDER_METHOD_SHUFFLE => OrderMethodEnum.Shuffle,
+                ORDER_METHOD_SHUFFLE_STABLE => OrderMethodEnum.ShuffleStable,
                 _ => OrderMethodEnum.Ascending,
             };
         }
@@ -283,6 +286,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         Ascending,
         Descending,
         Shuffle,
+        ShuffleStable,
     }
 
     public enum ViewTypeEnum

@@ -642,6 +642,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Refresh" xml:space="preserve">
     <value>リフレッシュ</value>
   </data>
+  <data name="RefreshRandomSeed" xml:space="preserve">
+    <value>乱数シードを更新</value>
+  </data>
   <data name="Remove" xml:space="preserve">
     <value>取り除く</value>
   </data>
@@ -698,6 +701,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>タグIDを表示</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>シャッフル</value>
+  </data>
+  <data name="ShuffleStable" xml:space="preserve">
+    <value>シャッフル（安定）</value>
   </data>
   <data name="Sort" xml:space="preserve">
     <value>ソート</value>

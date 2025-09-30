@@ -533,6 +533,11 @@ internal class ComicPropertyModel
                     return [.. items.OrderByDescending(x => KeySelector(selector(x)), Comparer)];
                 case ComicFilterModel.OrderMethodEnum.Shuffle:
                     return [.. items.OrderBy(_ => Random.Shared.Next())];
+                case ComicFilterModel.OrderMethodEnum.ShuffleStable:
+                    {
+                        var rng = new Random(AppSettingsModel.Instance.GetModel().ComicShuffleRandomSeed);
+                        return [.. items.OrderBy(_ => rng.Next())];
+                    }
                 default:
                     goto case ComicFilterModel.OrderMethodEnum.Ascending;
             }
@@ -560,6 +565,11 @@ internal class ComicPropertyModel
                     return [.. items.OrderByDescending(GroupKeySelector, Comparer)];
                 case ComicFilterModel.OrderMethodEnum.Shuffle:
                     return [.. items.OrderBy(_ => Random.Shared.Next())];
+                case ComicFilterModel.OrderMethodEnum.ShuffleStable:
+                    {
+                        var rng = new Random(AppSettingsModel.Instance.GetModel().ComicShuffleRandomSeed);
+                        return [.. items.OrderBy(_ => rng.Next())];
+                    }
                 default:
                     goto case ComicFilterModel.OrderMethodEnum.Ascending;
             }

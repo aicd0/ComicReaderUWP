@@ -643,6 +643,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Refresh" xml:space="preserve">
     <value>Обновить</value>
   </data>
+  <data name="RefreshRandomSeed" xml:space="preserve">
+    <value>Обновить случайное зерно</value>
+  </data>
   <data name="Remove" xml:space="preserve">
     <value>Удалять</value>
   </data>
@@ -699,6 +702,12 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Показать идентификатор тега</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>Случайно</value>
+  </data>
+  <data name="ShuffleStable" xml:space="preserve">
+    <value>Случайно (стабильно)</value>
   </data>
   <data name="Sort" xml:space="preserve">
     <value>Сортировка</value>

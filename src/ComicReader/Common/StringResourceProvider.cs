@@ -120,6 +120,7 @@ public class StringResourceProvider
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");
     public string Refresh => GetResourceString("Refresh");
+    public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
     public string Save => GetResourceString("Save");
@@ -131,6 +132,8 @@ public class StringResourceProvider
     public string SetCompletionState => GetResourceString("SetCompletionState");
     public string Settings => GetResourceString("Settings");
     public string ShowTagId => GetResourceString("ShowTagId");
+    public string Shuffle => GetResourceString("Shuffle");
+    public string ShuffleStable => GetResourceString("ShuffleStable");
     public string Sort => GetResourceString("Sort");
     public string SortingFunction => GetResourceString("SortingFunction");
     public string Statistics => GetResourceString("Statistics");

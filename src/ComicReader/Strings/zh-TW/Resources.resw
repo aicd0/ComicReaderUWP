@@ -642,6 +642,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Refresh" xml:space="preserve">
     <value>重新整理</value>
   </data>
+  <data name="RefreshRandomSeed" xml:space="preserve">
+    <value>刷新隨機種子</value>
+  </data>
   <data name="Remove" xml:space="preserve">
     <value>移除</value>
   </data>
@@ -698,6 +701,12 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>顯示標籤ID</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>隨機</value>
+  </data>
+  <data name="ShuffleStable" xml:space="preserve">
+    <value>隨機（穩定）</value>
   </data>
   <data name="Sort" xml:space="preserve">
     <value>排序</value>

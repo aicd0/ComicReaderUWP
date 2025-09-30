@@ -1098,8 +1098,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 ComicFilterModel.OrderMethodEnum.Ascending => StringResourceProvider.Instance.Ascending,
                 ComicFilterModel.OrderMethodEnum.Descending => StringResourceProvider.Instance.Descending,
-                ComicFilterModel.OrderMethodEnum.Shuffle => "Shuffle",
-                _ => "Unknown function"
+                ComicFilterModel.OrderMethodEnum.Shuffle => StringResourceProvider.Instance.Shuffle,
+                ComicFilterModel.OrderMethodEnum.ShuffleStable => StringResourceProvider.Instance.ShuffleStable,
+                _ => "???"
             };
         }
 
@@ -1107,6 +1108,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             ComicFilterModel.OrderMethodEnum.Ascending,
             ComicFilterModel.OrderMethodEnum.Descending,
             ComicFilterModel.OrderMethodEnum.Shuffle,
+            ComicFilterModel.OrderMethodEnum.ShuffleStable,
         ];
 
         List<BaseMenuFlyoutItemViewModel> items = [];

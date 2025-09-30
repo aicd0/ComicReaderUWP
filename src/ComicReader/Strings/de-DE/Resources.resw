@@ -642,6 +642,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Refresh" xml:space="preserve">
     <value>Aktualisieren</value>
   </data>
+  <data name="RefreshRandomSeed" xml:space="preserve">
+    <value>Zufallssamen aktualisieren</value>
+  </data>
   <data name="Remove" xml:space="preserve">
     <value>Entfernen</value>
   </data>
@@ -698,6 +701,12 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Tag-ID anzeigen</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>Zufall</value>
+  </data>
+  <data name="ShuffleStable" xml:space="preserve">
+    <value>Zufall (stabil)</value>
   </data>
   <data name="Sort" xml:space="preserve">
     <value>Sortierung</value>

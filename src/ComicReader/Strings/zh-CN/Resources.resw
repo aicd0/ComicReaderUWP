@@ -642,6 +642,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Refresh" xml:space="preserve">
     <value>刷新</value>
   </data>
+  <data name="RefreshRandomSeed" xml:space="preserve">
+    <value>刷新随机种子</value>
+  </data>
   <data name="Remove" xml:space="preserve">
     <value>移除</value>
   </data>
@@ -698,6 +701,12 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>显示标签ID</value>
+  </data>
+  <data name="Shuffle" xml:space="preserve">
+    <value>随机</value>
+  </data>
+  <data name="ShuffleStable" xml:space="preserve">
+    <value>随机（稳定）</value>
   </data>
   <data name="Sort" xml:space="preserve">
     <value>排序</value>

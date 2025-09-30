@@ -369,6 +369,13 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         AppSettingsModel.Instance.UpdateModel(model);
     }
 
+    public void RefreshRandomSeed()
+    {
+        AppSettingsModel.ExternalModel model = GetSettingsModel();
+        model.ComicShuffleRandomSeed = Random.Shared.Next();
+        AppSettingsModel.Instance.UpdateModel(model);
+    }
+
     public void SetBackground(int index)
     {
         if (index == _backgroundIndex)
