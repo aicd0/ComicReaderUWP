@@ -996,6 +996,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     if (orderMethod != filter.ComicOrderMethod)
                     {
                         filter.ComicOrderMethod = orderMethod;
+                        return true;
                     }
 
                     return false;
@@ -1055,6 +1056,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     if (orderMethod != filter.GroupOrderMethod)
                     {
                         filter.GroupOrderMethod = orderMethod;
+                        return true;
                     }
 
                     return false;
