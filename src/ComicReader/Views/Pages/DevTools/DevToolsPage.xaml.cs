@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -122,6 +123,8 @@ internal sealed partial class DevToolsPage : BasePage
                 return true;
             });
 
+            List<ComicModel> failedComics = [];
+            List<Tuple<ComicModel, string>> comicToNewPath = [];
             foreach (long id in ids)
             {
                 ComicModel? comic = await ComicModel.FromId(id, "SyncFileName");
@@ -134,27 +137,25 @@ internal sealed partial class DevToolsPage : BasePage
                 string parentDir = Path.GetDirectoryName(path) ?? string.Empty;
                 if (string.IsNullOrEmpty(parentDir))
                 {
+                    failedComics.Add(comic);
                     continue;
                 }
 
                 string? newName = SanitizeForNtfsFileName(comic.Title);
                 if (newName == null)
                 {
+                    failedComics.Add(comic);
                     continue;
                 }
 
                 string newPath;
-                if (File.Exists(path))
-                {
-                    string extension = Path.GetExtension(path);
-                    newPath = Path.Combine(parentDir, $"{newName}{extension}");
-                }
-                else if (Directory.Exists(path))
+                if (Directory.Exists(path))
                 {
                     newPath = Path.Combine(parentDir, newName);
                 }
                 else
                 {
+                    failedComics.Add(comic);
                     continue;
                 }
 
@@ -163,8 +164,58 @@ internal sealed partial class DevToolsPage : BasePage
                     continue;
                 }
 
-                await comic.MoveToLocation(newPath);
+                comicToNewPath.Add(new(comic, newPath));
             }
+
+            if (failedComics.Count > 0)
+            {
+                StringBuilder stringBuilder = new();
+                stringBuilder.AppendLine("Failed to process the following comics:");
+                foreach (ComicModel comic in failedComics)
+                {
+                    stringBuilder.AppendLine($"  {comic.Location}");
+                }
+
+                DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+                    .SetTitle("Warning")
+                    .SetContent(stringBuilder.ToString())
+                    .SetPrimaryButtonText("OK")
+                    .Build();
+                await DialogUtils.EnqueueDialogAsync(options);
+            }
+
+            if (comicToNewPath.Count > 0)
+            {
+                StringBuilder stringBuilder = new();
+                stringBuilder.AppendLine("The following comics will be renamed:");
+                foreach (Tuple<ComicModel, string> tuple in comicToNewPath)
+                {
+                    ComicModel comic = tuple.Item1;
+                    string newPath = tuple.Item2;
+                    stringBuilder.AppendLine($"  {comic.Location}  =>  {newPath}");
+                }
+
+                DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+                    .SetTitle("Warning")
+                    .SetContent(stringBuilder.ToString())
+                    .SetPrimaryButtonText("OK")
+                    .SetSecondaryButtonText("Cancel")
+                    .Build();
+                if (await DialogUtils.EnqueueDialogAsync(options) != ContentDialogResult.Primary)
+                {
+                    SetResult("SyncFileName: Cancelled");
+                    return;
+                }
+
+                foreach (Tuple<ComicModel, string> tuple in comicToNewPath)
+                {
+                    ComicModel comic = tuple.Item1;
+                    string newPath = tuple.Item2;
+                    await comic.MoveToLocation(newPath);
+                }
+            }
+
+            SetResult("SyncFileName: Completed");
         });
     }
 
