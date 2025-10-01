@@ -340,6 +340,7 @@ $comics</value>
 %rating           - 匹配评分。例如：4 代表 4 星，0 代表无评分。
 %completion_state - 漫画完成状态（0 - 未读，1 - 正在阅读，2 - 已完成）。
 %progress         - 阅读进度，以百分比表示。例如：50 代表 50%。
+%page_count       - 总页数。
 
 2. 变量运算符
 

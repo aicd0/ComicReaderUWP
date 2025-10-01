@@ -340,6 +340,7 @@ Ausdrucksreferenz
 %rating                   - Bewertung abgleichen. Beispiel: 4 steht für 4 Sterne, 0 für keine Bewertung.
 %completion_state         - Status der Comic-Vervollständigung (0 - Ungelesen, 1 - Lesen, 2 - Abgeschlossen).
 %progress                 - Lesefortschritt in Prozent. Beispiel: 50 steht für 50 %.
+%page_count               - Seitenanzahl.
 
 2. Variablenoperatoren
 
