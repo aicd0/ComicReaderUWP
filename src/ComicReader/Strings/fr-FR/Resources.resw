@@ -340,6 +340,7 @@ Référence des expressions
 %rating               - Correspond à la note. Par exemple : 4 représente 4 étoiles, 0 représente aucune note.
 %completion_state     - État d'achèvement de la BD (0 - Non lu, 1 - Lu, 2 - Terminé).
 %progress             - Progression de la lecture, en pourcentage. Par exemple : 50 représente 50 %.
+%page_count           - Nombre total de pages.
 
 2. Opérateurs de variables
 

@@ -340,6 +340,7 @@ Expression Reference
 %rating             - Match rating. For example: 4 represents 4 stars, 0 represents no rating.
 %completion_state   - Comic completion state (0 - Unread, 1 - Reading, 2 - Completed).
 %progress           - reading progress, in percentage. For example: 50 represents 50%.
+%page_count         - Total pages.
 
 2. Variable operators
 
