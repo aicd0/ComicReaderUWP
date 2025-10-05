@@ -2349,34 +2349,39 @@ internal partial class ReaderView : UserControl
     {
         Logger.Assert(double.IsFinite(page), "251D69B9AD4BFDDA");
 
-        int pageInt = (int)Math.Round(page);
-        page = Math.Min(page, PageCount);
-        pageInt = Math.Min(pageInt, PageCount);
-        page = Math.Max(page, 1);
-        pageInt = Math.Max(pageInt, 1);
+        // Valid range is [0.5, PageCount + 0.5]
+        page = Math.Min(page, PageCount + 0.5);
+        page = Math.Max(page, 0.5);
 
-        int frame = PageToFrame(pageInt, out _, out int neighbor);
+        int nearestPage = (int)Math.Round(page);
+        nearestPage = Math.Min(nearestPage, PageCount);
+        nearestPage = Math.Max(nearestPage, 1);
+
+        int frame = PageToFrame(nearestPage, out _, out int neighbor);
         FrameOffsetData? offsets = FrameOffset(frame);
         if (offsets == null)
         {
             return null;
         }
 
-        double perpendicularOffset = offsets.PerpendicularCenter * SCZoomFactorFinal - ViewportPerpendicularLength * 0.5;
-        // Negative offset indicates that the scrollable content is smaller
-        // than the visible area of the ScrollViewer. In that case offset is 0.
+        double perpendicularOffset = offsets.PerpendicularCenter * SCZoomFactorFinal -
+            ViewportPerpendicularLength * 0.5;
+
+        // Negative offset indicates that the scrollable content is smaller than the
+        // visible area of the ScrollViewer, in that case offset should be clamped to
+        // zero.
         perpendicularOffset = Math.Max(perpendicularOffset, 0.0);
 
         int pageMin;
         int pageMax;
         if (neighbor == ReaderFrameViewModel.NO_PAGE)
         {
-            pageMin = pageMax = pageInt;
+            pageMin = pageMax = nearestPage;
         }
         else
         {
-            pageMin = Math.Min(pageInt, neighbor);
-            pageMax = Math.Max(pageInt, neighbor);
+            pageMin = Math.Min(nearestPage, neighbor);
+            pageMax = Math.Max(nearestPage, neighbor);
         }
 
         double parallelOffset;
