@@ -575,17 +575,17 @@ internal sealed partial class ReaderPage : BasePage
 
     private void MarkAsUnreadButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.NotStarted, true);
+        ViewModel.SetCompletionState(ComicCompletionStatusEnum.NotStarted);
     }
 
     private void MarkAsReadingButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.Started, true);
+        ViewModel.SetCompletionState(ComicCompletionStatusEnum.Started);
     }
 
     private void MarkAsFinishedButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.Completed, true);
+        ViewModel.SetCompletionState(ComicCompletionStatusEnum.Completed);
     }
 
     private async void MoreAppBarButton_Click(object sender, RoutedEventArgs e)

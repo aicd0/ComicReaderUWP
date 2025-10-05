@@ -41,7 +41,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     private IComicConnection? _comicConnection;
     private int _pageIndex = -1;
     private bool? _isFavorite = null;
-    private ComicCompletionStatusEnum? _completionState = null;
 
     private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
 
@@ -199,18 +198,15 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public void SetCompletionState(ComicCompletionStatusEnum completionState, bool writeDatabase)
+    public void SetCompletionState(ComicCompletionStatusEnum completionState)
     {
-        if (_completionState == completionState)
+        ComicModel? comic = _comic;
+        if (comic is null)
         {
             return;
         }
 
-        _completionState = completionState;
-        CompletionStateLiveData.Emit(completionState);
-
-        ComicModel? comic = _comic;
-        if (writeDatabase && comic != null && !comic.IsExternal)
+        if (comic.CompletionState != completionState && !comic.IsExternal)
         {
             switch (completionState)
             {
@@ -227,6 +223,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                     break;
             }
         }
+
+        CompletionStateLiveData.Emit(comic.CompletionState);
     }
 
     public void SetPageIndex(int pageIndex)
@@ -407,7 +405,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
         SetIsFavorite(isFavorite, false);
 
-        SetCompletionState(comic.CompletionState, false);
+        SetCompletionState(comic.CompletionState);
 
         if (!comic.IsExternal)
         {
