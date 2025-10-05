@@ -4,11 +4,11 @@
 // Licensed to the Microsoft Corporation under one or more agreements.
 // The Microsoft Corporation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
+
+using ComicReader.SDK.Common.DebugTools;
 
 using Microsoft.Win32;
 
@@ -16,10 +16,12 @@ namespace ComicReader.SDK.Common.AppEnvironment;
 
 internal class DeviceInformationHelper
 {
+    private const string TAG = nameof(DeviceInformationHelper);
+
     public static string DefaultSystemManufacturer = "System manufacturer";
     public static string DefaultSystemProductName = "System Product Name";
 
-    private static DeviceInformationHelper _instanceField;
+    private static DeviceInformationHelper? _instanceField;
     internal static DeviceInformationHelper Instance => _instanceField ??= new DeviceInformationHelper();
 
     private readonly ManagementClassFactory _managmentClassFactory;
@@ -29,7 +31,7 @@ internal class DeviceInformationHelper
         _managmentClassFactory = ManagementClassFactory.Instance;
     }
 
-    public string GetDeviceModel()
+    public string? GetDeviceModel()
     {
         try
         {
@@ -60,12 +62,12 @@ internal class DeviceInformationHelper
         return string.Empty;
     }
 
-    public string GetAppNamespace()
+    public string? GetAppNamespace()
     {
-        return Assembly.GetEntryAssembly()?.EntryPoint.DeclaringType?.Namespace;
+        return Assembly.GetEntryAssembly()?.EntryPoint?.DeclaringType?.Namespace;
     }
 
-    public string GetDeviceOemName()
+    public string? GetDeviceOemName()
     {
         try
         {
@@ -96,12 +98,17 @@ internal class DeviceInformationHelper
         return string.Empty;
     }
 
-    public string GetOsBuild()
+    public string? GetOsBuild()
     {
         using RegistryKey registryKey = Registry.LocalMachine;
-        using RegistryKey registryKey2 = registryKey.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion");
-        object value = registryKey2.GetValue("CurrentMajorVersionNumber");
-        if (value != null)
+        using RegistryKey? registryKey2 = registryKey.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion");
+        if (registryKey2 is null)
+        {
+            return null;
+        }
+
+        object? value = registryKey2.GetValue("CurrentMajorVersionNumber");
+        if (value is not null)
         {
             object value2 = registryKey2.GetValue("CurrentMinorVersionNumber", "0");
             object value3 = registryKey2.GetValue("CurrentBuildNumber", "0");
@@ -111,8 +118,8 @@ internal class DeviceInformationHelper
 
         object value5 = registryKey2.GetValue("CurrentVersion", "0.0");
         object value6 = registryKey2.GetValue("CurrentBuild", "0");
-        string[] array = registryKey2.GetValue("BuildLabEx")?.ToString().Split('.');
-        string value7 = array != null && array.Length >= 2 ? array[1] : "0";
+        string[]? array = registryKey2.GetValue("BuildLabEx")?.ToString()?.Split('.');
+        string value7 = array is not null && array.Length >= 2 ? array[1] : "0";
         return $"{value5}.{value6}.{value7}";
     }
 
@@ -150,5 +157,49 @@ internal class DeviceInformationHelper
     {
         WindowsHelper.GetScreenSize(out int width, out int height);
         return $"{width}x{height}";
+    }
+
+    public string? GetCpuId()
+    {
+        try
+        {
+            using var mc = new ManagementClass("Win32_Processor");
+            foreach (ManagementBaseObject? mo in mc.GetInstances())
+            {
+                string? cpuId = mo["ProcessorId"]?.ToString();
+                if (!string.IsNullOrEmpty(cpuId))
+                {
+                    return cpuId;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+        }
+
+        return null;
+    }
+
+    public string? GetMotherboardSerial()
+    {
+        try
+        {
+            using var mc = new ManagementClass("Win32_BaseBoard");
+            foreach (ManagementBaseObject? mo in mc.GetInstances())
+            {
+                string? serial = mo["SerialNumber"]?.ToString();
+                if (!string.IsNullOrEmpty(serial))
+                {
+                    return serial;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+        }
+
+        return null;
     }
 }

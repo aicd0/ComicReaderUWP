@@ -51,14 +51,13 @@ public class EnvironmentProvider
         sb.SafeAppend("OS build", DeviceInformationHelper.Instance.GetOsBuild);
         sb.SafeAppend("OS version", DeviceInformationHelper.Instance.GetOsVersion);
         sb.SafeAppend("OS architecture", () => RuntimeInformation.OSArchitecture);
-        sb.SafeAppend("Installed system language", () => CultureInfo.InstalledUICulture.Name);
+        sb.SafeAppend("Installed system language", GetInstalledSystemLanguage);
         sb.SafeAppend("Current system language", GetCurrentSystemLanguage);
         sb.SafeAppend("Current app language", GetCurrentAppLanguage);
         sb.SafeAppend("Device ID", GetDeviceId);
         sb.SafeAppend("Device model", DeviceInformationHelper.Instance.GetDeviceModel);
         sb.SafeAppend("OEM name", DeviceInformationHelper.Instance.GetDeviceOemName);
         sb.SafeAppend("Processor count", () => Environment.ProcessorCount);
-        sb.SafeAppend("Screen size", DeviceInformationHelper.Instance.GetScreenSize);
         sb.SafeAppend("Version name", GetVersionName);
         sb.SafeAppend("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
         sb.SafeAppend("Portable", () => IsPortable());
@@ -88,12 +87,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        string[] macAddresses = [.. NetworkInterface.GetAllNetworkInterfaces()
-            .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
-            .Select(nic => nic.GetPhysicalAddress().ToString())
-            .Where(mac => !string.IsNullOrEmpty(mac))];
-
-        string combined = string.Join("-", macAddresses);
+        string combined = GenerateDeviceUniqueString();
         if (combined.Length < 12)
         {
             combined = Guid.NewGuid().ToString();
@@ -178,9 +172,12 @@ public class EnvironmentProvider
     public static Dictionary<string, string> GetEnvironmentTags()
     {
         Dictionary<string, string> tags = [];
-        tags["version-name"] = GetVersionName();
-        tags["portable"] = IsPortable() ? "true" : "false";
-        tags["user-device-id"] = Instance.GetDeviceId();
+        tags["cr-version-name"] = GetVersionName();
+        tags["cr-portable"] = IsPortable() ? "true" : "false";
+        tags["cr-device-id"] = Instance.GetDeviceId();
+        tags["cr-lang-installed"] = GetInstalledSystemLanguage();
+        tags["cr-lang-current"] = GetCurrentSystemLanguage();
+        tags["cr-lang-app"] = Instance.GetCurrentAppLanguage();
         return tags;
     }
 
@@ -203,6 +200,11 @@ public class EnvironmentProvider
         }
     }
 
+    public static string GetInstalledSystemLanguage()
+    {
+        return CultureInfo.InstalledUICulture.Name;
+    }
+
     public static string GetCurrentSystemLanguage()
     {
         return GlobalizationPreferences.Languages[0];
@@ -211,5 +213,31 @@ public class EnvironmentProvider
     public static bool IsPortable()
     {
         return ServiceManager.GetService<IApplicationService>().IsPortableBuild();
+    }
+
+    private static string GenerateDeviceUniqueString()
+    {
+        string[] macAddresses = [.. NetworkInterface.GetAllNetworkInterfaces()
+            .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
+            .Select(nic => nic.GetPhysicalAddress().ToString())
+            .Where(mac => !string.IsNullOrEmpty(mac))];
+        string? cpuId = DeviceInformationHelper.Instance.GetCpuId();
+        string? motherboardSerial = DeviceInformationHelper.Instance.GetMotherboardSerial();
+
+        List<string> devices = [];
+
+        if (!string.IsNullOrEmpty(cpuId))
+        {
+            devices.Add(cpuId);
+        }
+
+        if (!string.IsNullOrEmpty(motherboardSerial))
+        {
+            devices.Add(motherboardSerial);
+        }
+
+        devices.AddRange(macAddresses);
+
+        return string.Join('-', devices);
     }
 }

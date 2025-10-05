@@ -9,7 +9,7 @@ namespace ComicReader.SDK.Common.Utils;
 
 public static class Extensions
 {
-    public static void SafeAppend(this StringBuilder sb, string category, Func<object> func)
+    public static void SafeAppend(this StringBuilder sb, string category, Func<object?> func)
     {
         string value;
         try
