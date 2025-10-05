@@ -197,7 +197,7 @@ internal static class ImageCacheManager
         string uri = source.GetUri();
         if (string.IsNullOrEmpty(uri))
         {
-            Logger.AssertNotReachHere("0DA4B46E1643F4BF");
+            Logger.E(TAG, "Image source URI is null or empty");
             return;
         }
 

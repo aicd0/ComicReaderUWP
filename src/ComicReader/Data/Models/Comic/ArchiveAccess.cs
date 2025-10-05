@@ -289,6 +289,12 @@ public class ArchiveAccess
                                 Logger.E(TAG, "Unable to read next archive entry: unexpected end of the stream.", e);
                                 break;
                             }
+                            catch (SharpCompress.Common.CryptographicException)
+                            {
+                                // To be implemented: encrypted archive support
+                                Logger.E(TAG, "Unable to read next archive entry: the archive may be encrypted.");
+                                break;
+                            }
                             catch (Exception e)
                             {
                                 Logger.F(TAG, "ArchiveReaderMoveNext", e);
