@@ -255,13 +255,6 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.SetIsFavorite(isFavorite, true);
         });
 
-        ViewModel.TagClickLiveData.Observe(this, tag =>
-        {
-            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
-                .WithParam(RouterConstants.ARG_KEYWORD, "<tag: " + tag + ">");
-            GetMainPageAbility().OpenInNewTab(route);
-        });
-
         ViewModel.EditTagLiveData.Observe(this, pair =>
         {
             var dialog = new EditTagDialog(pair.Key, pair.Value);

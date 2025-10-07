@@ -31,9 +31,4 @@ internal class ParserUtils
             _ => false,
         };
     }
-
-    public static string EscapeString(string str)
-    {
-        return str.Replace("\\", "\\\\").Replace("\"", "\\\"");
-    }
 }

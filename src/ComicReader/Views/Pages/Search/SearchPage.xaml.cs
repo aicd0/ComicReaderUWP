@@ -5,27 +5,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Legacy;
-using ComicReader.Common.Utils;
-using ComicReader.Data.Models.Comic;
-using ComicReader.Data.Tables;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
-using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
 using ComicReader.Views.Pages.Main;
 using ComicReader.Views.Pages.Navigation;
-
-using LiteDB;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -40,9 +31,6 @@ internal sealed partial class SearchPage : BasePage
 
     private SearchPageViewModel ViewModel { get; set; } = new SearchPageViewModel();
 
-    private List<Match> _matches = [];
-    private int _matchIndex = 0;
-    private readonly CancellationLock _searchLock = new();
     private string _keyword = "";
 
     public SearchPage()
@@ -61,15 +49,30 @@ internal sealed partial class SearchPage : BasePage
         PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(this)));
 
         _keyword = bundle.GetString(RouterConstants.ARG_KEYWORD, "");
-        ViewModel.IsSelectMode = false;
-        ViewModel.ComicItemSelectionMode = ListViewSelectionMode.None;
 
-        C0.Run(async delegate
-        {
-            await StartSearch();
-        });
+        ViewModel.Initialize(PageActionHandler);
+        ViewModel.SetSearchText(_keyword);
 
         ObserveData();
+
+        string searchText = _keyword.Trim();
+        string titleText;
+        string tabTitle;
+        if (searchText.Length > 0)
+        {
+            titleText = $"\"{searchText}\"";
+            tabTitle = StringResourceProvider.Instance.SearchResultsOf.Replace("$keyword", searchText);
+        }
+        else
+        {
+            titleText = StringResourceProvider.Instance.AllMatchedResults;
+            tabTitle = StringResourceProvider.Instance.SearchResults;
+        }
+
+        GetMainPageAbility().SetTitle(tabTitle);
+        GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Find });
+        ViewModel.Title = titleText;
+        ViewModel.NoResultText = StringResourceProvider.Instance.NoResults.Replace("$keyword", searchText);
     }
 
     protected override void OnResume()
@@ -77,21 +80,18 @@ internal sealed partial class SearchPage : BasePage
         base.OnResume();
 
         GetNavigationPageAbility().SetSearchBox(_keyword);
-
-        ScrollViewer scrollViewer = SearchResultGridView.ChildrenBreadthFirst().OfType<ScrollViewer>().First();
-        scrollViewer.ViewChanged += OnScrollViewerViewChanged;
     }
 
     private void ObserveData()
     {
         GlobalEvent.Instance.ComicUpdated.Observe(this, (p1) =>
         {
-            _ = StartSearch();
+            ViewModel.Refresh();
         });
 
         GlobalEvent.Instance.FavoriteUpdated.Observe(this, (p1) =>
         {
-            _ = StartSearch();
+            ViewModel.Refresh();
         });
 
         ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
@@ -103,204 +103,6 @@ internal sealed partial class SearchPage : BasePage
     //
     // Unsorted
     //
-
-    private async Task StartSearch()
-    {
-        await _searchLock.LockAsync(async delegate (CancellationLock.Token token)
-        {
-            ViewModel.SetSelectMode(false);
-            string keyword = _keyword;
-
-            // Extract filters and keywords from string.
-            var filter = Filter.Parse(keyword, out List<string> remaining);
-            var keywords = new List<string>();
-
-            foreach (string text in remaining)
-            {
-                keywords = keywords.Concat(text.Split(' ', StringSplitOptions.RemoveEmptyEntries)).ToList();
-            }
-
-            if (!filter.ContainsFilter("hidden"))
-            {
-                _ = filter.AddFilter("~hidden");
-            }
-
-            string title_text;
-            string tab_title;
-            string filter_brief = filter.DescriptionBrief();
-            string filter_details = filter.DescriptionDetailed();
-
-            if (keywords.Count != 0)
-            {
-                string keyword_combined = StringUtils.Join(" ", keywords);
-                title_text = "\"" + keyword_combined + "\"";
-                tab_title = StringResourceProvider.Instance.SearchResultsOf;
-                tab_title = tab_title.Replace("$keyword", keyword_combined);
-            }
-            else if (filter_brief.Length != 0)
-            {
-                title_text = filter_brief;
-                tab_title = filter_brief;
-                filter_details = "";
-            }
-            else
-            {
-                title_text = StringResourceProvider.Instance.AllMatchedResults;
-                tab_title = StringResourceProvider.Instance.SearchResults;
-            }
-
-            // update tab header
-            GetMainPageAbility().SetTitle(tab_title);
-            GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Find });
-
-            // start searching
-            ViewModel.IsLoading = true;
-            ViewModel.UpdateUI();
-            await SearchMain(keywords, filter);
-            _matchIndex = 0;
-            ViewModel.IsLoading = false;
-
-            // update UI
-            ViewModel.Title = title_text;
-            ViewModel.FilterDetails = filter_details;
-
-            string no_results = StringResourceProvider.Instance.NoResults;
-            no_results = no_results.Replace("$keyword", keyword);
-
-            ViewModel.NoResultText = no_results;
-            ViewModel.SearchResults.Clear();
-        });
-
-        await LoadMoreResults(100);
-    }
-
-    private class Match
-    {
-        public long Id;
-        public int Similarity = 0;
-        public string SortTitle = "";
-    }
-
-    private async Task SearchMain(List<string> keywords, Filter filter)
-    {
-        for (int i = 0; i < keywords.Count; ++i)
-        {
-            keywords[i] = keywords[i].ToLower();
-        }
-
-        var keyword_matched = new List<Match>();
-        List<long> filter_matched = null;
-
-        await ComicData.Enqueue("SearchComics", delegate
-        {
-            var command = SelectCommand.Create(ComicTable.Instance);
-            IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
-            IReaderToken<string> title1Token = command.PutQueryString(ComicTable.ColumnTitle1);
-            IReaderToken<string> title2Token = command.PutQueryString(ComicTable.ColumnTitle2);
-            using SelectCommand.IReader reader = command.Execute();
-
-            while (reader.Read())
-            {
-                // Calculate similarity.
-                int similarity = 0;
-                string title1 = title1Token.GetValue();
-                string title2 = title2Token.GetValue();
-
-                if (keywords.Count != 0)
-                {
-                    string match_text = title1 + " " + title2;
-                    similarity = StringUtils.QuickMatch(keywords, match_text);
-
-                    if (similarity < 1)
-                    {
-                        continue;
-                    }
-                }
-
-                // Save results.
-                keyword_matched.Add(new Match
-                {
-                    Id = idToken.GetValue(),
-                    Similarity = similarity,
-                    SortTitle = title1 + " " + title2
-                });
-            }
-
-            var all = new List<long>(keyword_matched.Count);
-
-            foreach (Match match in keyword_matched)
-            {
-                all.Add(match.Id);
-            }
-
-            filter_matched = filter.Match(all);
-            return true;
-        });
-
-        // Intersect two.
-        _matches = C3<Match, long, long>.Intersect(keyword_matched, filter_matched,
-            (Match x) => x.Id, (long x) => x,
-            new C1<long>.DefaultEqualityComparer()).ToList();
-
-        // Sort by similarity.
-        _matches = _matches
-            .OrderBy(delegate (Match m) { return StringUtils.SmartFileNameKeySelector(m.SortTitle); }, StringUtils.SmartFileNameComparer)
-            .OrderByDescending(x => x.Similarity)
-            .ToList();
-    }
-
-    private async Task LoadMoreResults(int count)
-    {
-        await _searchLock.LockAsync(async delegate (CancellationLock.Token token)
-        {
-            for (int i = 0; i < count; ++_matchIndex)
-            {
-                if (token.CancellationRequested)
-                {
-                    return;
-                }
-
-                if (_matchIndex >= _matches.Count)
-                {
-                    break;
-                }
-
-                Match match = _matches[_matchIndex];
-                ComicModel comic = await ComicModel.FromId(match.Id, "SearchLoadComic");
-
-                if (comic == null)
-                {
-                    Logger.AssertNotReachHere("A86F0459678D1B60");
-                    continue;
-                }
-
-                ComicItemViewModel item = new(comic)
-                {
-                    OnClick = () =>
-                    {
-                        if (!ViewModel.IsSelectMode)
-                        {
-                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                            ViewModel.OpenInCurrentTabLiveData.Emit(route);
-                        }
-                    },
-                };
-                item.OnRequestContextFlyoutAsync = () =>
-                {
-                    List<ComicItemViewModel> selection = ViewModel.GetSelection(item);
-                    return MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler,
-                        selectedComics: selection.ConvertAll(x => x.Comic), supportSelection: true);
-                };
-                item.UpdateProgress(false);
-
-                ViewModel.SearchResults.Add(item);
-                ++i;
-            }
-
-            ViewModel.UpdateUI();
-        });
-    }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
     {
@@ -315,18 +117,6 @@ internal sealed partial class SearchPage : BasePage
         {
             viewHolder.Bind(item);
         }
-    }
-
-    private void OnScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
-    {
-        C0.Run(async delegate
-        {
-            var scrollViewer = (ScrollViewer)sender;
-            if (scrollViewer.ScrollableHeight - scrollViewer.VerticalOffset < scrollViewer.ActualHeight * 0.5)
-            {
-                await LoadMoreResults(30);
-            }
-        });
     }
 
     private void OnScrollViewerTapped(object sender, TappedRoutedEventArgs e)
