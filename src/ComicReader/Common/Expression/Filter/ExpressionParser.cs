@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 
-using ComicReader.Common.Expression.Compiler;
+using ComicReader.Common.Expression.Filter.Parser;
 
-namespace ComicReader.Common.Expression;
+namespace ComicReader.Common.Expression.Filter;
 
 internal class ExpressionParser
 {

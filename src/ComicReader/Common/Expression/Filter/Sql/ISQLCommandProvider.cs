@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 using ComicReader.SDK.Data.SqlHelpers;
 
-namespace ComicReader.Common.Expression.Sql;
+namespace ComicReader.Common.Expression.Filter.Sql;
 
 internal interface ISQLCommandProvider
 {

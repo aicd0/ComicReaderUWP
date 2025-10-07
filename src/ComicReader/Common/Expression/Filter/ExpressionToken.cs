@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-using ComicReader.Common.Expression.Tokens;
+using ComicReader.Common.Expression.Filter.Tokens;
 
-namespace ComicReader.Common.Expression;
+namespace ComicReader.Common.Expression.Filter;
 
 internal sealed class ExpressionToken
 {

@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ComicReader.Common.Expression.Compiler;
+namespace ComicReader.Common.Expression.Filter.Parser;
 
 class Tokenizer
 {

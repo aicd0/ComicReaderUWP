@@ -7,9 +7,9 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
-using ComicReader.Common.Expression;
-using ComicReader.Common.Expression.Compiler;
-using ComicReader.Common.Expression.Sql;
+using ComicReader.Common.Expression.Filter;
+using ComicReader.Common.Expression.Filter.Parser;
+using ComicReader.Common.Expression.Filter.Sql;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
