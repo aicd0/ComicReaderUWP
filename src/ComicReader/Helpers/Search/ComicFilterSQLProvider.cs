@@ -5,24 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using ComicReader.Common.Expression.Filter;
+using ComicReader.Common.Expression;
 using ComicReader.Common.Expression.Filter.Sql;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Data.SqlHelpers;
 
-namespace ComicReader.Data.Models.Comic;
+namespace ComicReader.Helpers.Search;
 
-internal class ComicSQLCommandProvider : ISQLCommandProvider
+internal class ComicFilterSQLProvider : ISQLCommandProvider
 {
-    public const string VAR_TAG = "tag";
-    public const string VAR_TITLE = "title";
-    public const string VAR_RATING = "rating";
-    public const string VAR_COMPLETION_STATE = "completion_state";
-    public const string VAR_TITLE1 = "title1";
-    public const string VAR_TITLE2 = "title2";
-    public const string VAR_PROGRESS = "progress";
-    public const string VAR_PAGE_COUNT = "page_count";
-
     public ICondition CreateComparisonCondition(VariableOrValue left, VariableOrValue right, ComparisonTypeEnum comparisonType)
     {
         if (left.Path is null)
@@ -149,16 +140,16 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
     {
         return path1.ToLower() switch
         {
-            VAR_TAG => CreateTagCondition(new BooleanCondition(true)),
-            VAR_TITLE => new OrCondition([
+            ComicSQLProviderUtils.VAR_TAG => ComicSQLProviderUtils.CreateTagCondition(new BooleanCondition(true)),
+            ComicSQLProviderUtils.VAR_TITLE => new OrCondition([
                 NotNullAndEmptyCondition(ComicTable.ColumnTitle1),
                 NotNullAndEmptyCondition(ComicTable.ColumnTitle2),
             ]),
-            VAR_RATING => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnRating), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThan),
-            VAR_TITLE1 => NotNullAndEmptyCondition(ComicTable.ColumnTitle1),
-            VAR_TITLE2 => NotNullAndEmptyCondition(ComicTable.ColumnTitle2),
-            VAR_PROGRESS => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnProgress), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThanOrEqual),
-            VAR_PAGE_COUNT => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnPageCount), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThan),
+            ComicSQLProviderUtils.VAR_RATING => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnRating), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThan),
+            ComicSQLProviderUtils.VAR_TITLE1 => NotNullAndEmptyCondition(ComicTable.ColumnTitle1),
+            ComicSQLProviderUtils.VAR_TITLE2 => NotNullAndEmptyCondition(ComicTable.ColumnTitle2),
+            ComicSQLProviderUtils.VAR_PROGRESS => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnProgress), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThanOrEqual),
+            ComicSQLProviderUtils.VAR_PAGE_COUNT => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnPageCount), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThan),
             _ => throw new ExpressionException($"Variable '{path1}' cannot be used as a condition"),
         };
     }
@@ -167,7 +158,7 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
     {
         return path1.ToLower() switch
         {
-            VAR_TAG => CreateTagCategoryCondition(path2),
+            ComicSQLProviderUtils.VAR_TAG => ComicSQLProviderUtils.CreateTagCategoryCondition(path2),
             _ => throw new ExpressionException($"Variable '{path1}.{path2}' cannot be used as a condition"),
         };
     }
@@ -176,7 +167,8 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
     {
         return path1.ToLower() switch
         {
-            VAR_TAG => CreateTagInTagCategoryCondition(path2, new ComparisonCondition(ColumnOrValue.FromColumn(TagTable.ColumnContent), ColumnOrValue.FromValue(path3))),
+            ComicSQLProviderUtils.VAR_TAG => ComicSQLProviderUtils.CreateTagInTagCategoryCondition(path2,
+                new ComparisonCondition(ColumnOrValue.FromColumn(TagTable.ColumnContent), ColumnOrValue.FromValue(path3))),
             _ => throw new ExpressionException($"Variable '{path1}.{path2}.{path3}' cannot be used as a condition"),
         };
     }
@@ -185,17 +177,17 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
     {
         return path1.ToLower() switch
         {
-            VAR_TAG => CreateTagCondition(conditionCreator(TagTable.ColumnContent)),
-            VAR_TITLE => new OrCondition([
+            ComicSQLProviderUtils.VAR_TAG => ComicSQLProviderUtils.CreateTagCondition(conditionCreator(TagTable.ColumnContent)),
+            ComicSQLProviderUtils.VAR_TITLE => new OrCondition([
                 conditionCreator(ComicTable.ColumnTitle1),
                 conditionCreator(ComicTable.ColumnTitle2),
             ]),
-            VAR_RATING => conditionCreator(ComicTable.ColumnRating),
-            VAR_COMPLETION_STATE => conditionCreator(ComicTable.ColumnCompletionState),
-            VAR_TITLE1 => conditionCreator(ComicTable.ColumnTitle1),
-            VAR_TITLE2 => conditionCreator(ComicTable.ColumnTitle2),
-            VAR_PROGRESS => conditionCreator(ComicTable.ColumnProgress),
-            VAR_PAGE_COUNT => conditionCreator(ComicTable.ColumnPageCount),
+            ComicSQLProviderUtils.VAR_RATING => conditionCreator(ComicTable.ColumnRating),
+            ComicSQLProviderUtils.VAR_COMPLETION_STATE => conditionCreator(ComicTable.ColumnCompletionState),
+            ComicSQLProviderUtils.VAR_TITLE1 => conditionCreator(ComicTable.ColumnTitle1),
+            ComicSQLProviderUtils.VAR_TITLE2 => conditionCreator(ComicTable.ColumnTitle2),
+            ComicSQLProviderUtils.VAR_PROGRESS => conditionCreator(ComicTable.ColumnProgress),
+            ComicSQLProviderUtils.VAR_PAGE_COUNT => conditionCreator(ComicTable.ColumnPageCount),
             _ => throw new ExpressionException($"Variable '{path1}' cannot be used here"),
         };
     }
@@ -204,41 +196,9 @@ internal class ComicSQLCommandProvider : ISQLCommandProvider
     {
         return path1.ToLower() switch
         {
-            VAR_TAG => CreateTagInTagCategoryCondition(path2, conditionCreator(TagTable.ColumnContent)),
+            ComicSQLProviderUtils.VAR_TAG => ComicSQLProviderUtils.CreateTagInTagCategoryCondition(path2, conditionCreator(TagTable.ColumnContent)),
             _ => throw new ExpressionException($"Variable '{path1}.{path2}' cannot be used here"),
         };
-    }
-
-    private static ICondition CreateTagCondition(ICondition condition)
-    {
-        var subquery = SelectCommand.Create(TagTable.Instance);
-        subquery.AppendCondition(condition);
-        subquery.PutQueryInt64(TagTable.ColumnComicId);
-        subquery.Distinct();
-        return new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), subquery);
-    }
-
-    private static ICondition CreateTagCategoryCondition(string category)
-    {
-        var subquery = SelectCommand.Create(TagCategoryTable.Instance);
-        subquery.AppendCondition(TagCategoryTable.ColumnName, category);
-        subquery.PutQueryInt64(TagCategoryTable.ColumnComicId);
-        subquery.Distinct();
-        return new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), subquery);
-    }
-
-    private static ICondition CreateTagInTagCategoryCondition(string category, ICondition condition)
-    {
-        var subquery1 = SelectCommand.Create(TagCategoryTable.Instance);
-        subquery1.AppendCondition(TagCategoryTable.ColumnName, category);
-        subquery1.PutQueryInt64(TagCategoryTable.ColumnId);
-        subquery1.Distinct();
-        var subquery2 = SelectCommand.Create(TagTable.Instance);
-        subquery2.AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnTagCategoryId), subquery1));
-        subquery2.AppendCondition(condition);
-        subquery2.PutQueryInt64(TagTable.ColumnComicId);
-        subquery2.Distinct();
-        return new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), subquery2);
     }
 
     private static ICondition NotNullAndEmptyCondition(IColumnTypeless column)

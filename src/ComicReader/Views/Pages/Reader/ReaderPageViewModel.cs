@@ -10,11 +10,15 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Actions;
+using ComicReader.Common.Actions.Providers;
+using ComicReader.Common.Expression;
 using ComicReader.Common.Imaging;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Imaging;
 using ComicReader.Helpers.MenuFlyoutHelpers;
+using ComicReader.Helpers.Navigation;
+using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
@@ -44,7 +48,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
 
-    public readonly MutableLiveData<string> TagClickLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
     public readonly MutableLiveData<ReaderStatusInfo> ReaderStatusLiveData = new(new(ReaderStatusEnum.Loading));
     public readonly MutableLiveData<ReaderSettingDataModel> ReaderSettingLiveData = new();
@@ -434,7 +437,13 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                     Tag = tag,
                     OnClicked = () =>
                     {
-                        TagClickLiveData.Emit(tag);
+                        string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(tags.Name)}\"=\"{ExpressionUtils.EscapeString(tag)}\"";
+                        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
+                            .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
+                        ActionModel actionModel = ActionModel.Builder.Create(OpenInNewTabProvider.NAME)
+                            .AddParameter(OpenInNewTabProvider.PARAM_URL, route.Url)
+                            .Build();
+                        _actionHandler.Handle(actionModel);
                     },
                     OnRequestContextFlyoutAsync = () =>
                     {

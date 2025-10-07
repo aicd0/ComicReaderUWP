@@ -22,6 +22,7 @@
 
             <!--  Value Converters  -->
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         </ResourceDictionary>
     </Page.Resources>
 
@@ -73,7 +74,7 @@
                         Foreground="{ThemeResource ForegroundGrey2}"
                         Text="{x:Bind ViewModel.FilterDetails, Mode=OneWay}"
                         TextWrapping="Wrap"
-                        Visibility="{x:Bind ViewModel.FilterDetailsVisible, Mode=OneWay}" />
+                        Visibility="{x:Bind ViewModel.FilterDetails, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
                 </StackPanel>
             </controls:AdaptiveGridView.Header>
             <controls:AdaptiveGridView.Footer>

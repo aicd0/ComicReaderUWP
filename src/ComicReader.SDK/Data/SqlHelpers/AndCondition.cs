@@ -35,6 +35,7 @@ public class AndCondition : ICondition
             }
             sb.Append('(').Append(_conditions[i].GetExpression(command)).Append(')');
         }
+
         return sb.ToString();
     }
 }

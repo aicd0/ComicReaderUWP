@@ -9,7 +9,7 @@ using ComicReader.SDK.Data.SqlHelpers;
 
 namespace ComicReader.Common.Expression.Filter.Sql;
 
-internal class SQLGenerator
+internal static class SQLGenerator
 {
     public static ICondition CreateQuery(ExpressionToken token, ISQLCommandProvider commandProvider)
     {

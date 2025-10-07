@@ -7,12 +7,13 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Expression;
 using ComicReader.Common.Expression.Filter;
-using ComicReader.Common.Expression.Filter.Parser;
 using ComicReader.Common.Expression.Filter.Sql;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
+using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.ViewModels;
@@ -107,7 +108,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         ExpressionToken token;
         try
         {
-            token = ExpressionParser.Parse(expression);
+            token = ExpressionParser.ParseFilter(expression);
         }
         catch (ExpressionException e)
         {
@@ -118,7 +119,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         ICondition condition;
         try
         {
-            condition = SQLGenerator.CreateQuery(token, new ComicSQLCommandProvider());
+            condition = SQLGenerator.CreateQuery(token, new ComicFilterSQLProvider());
         }
         catch (ExpressionException e)
         {
@@ -235,21 +236,25 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             buttons.Add(new() { Tag = ">=", OnClicked = () => OnClickButton(">= ") });
             buttons.Add(new() { Tag = "<=", OnClicked = () => OnClickButton("<= ") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionIn, OnClicked = () => OnClickButton("in ()", -2) });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TITLE}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Rating, OnClicked = () => OnClickButton("%rating") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusUnread, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.NotStarted}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusReading, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.Started}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusFinished, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.Completed}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Progress, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_PROGRESS}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title1, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TITLE1}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TITLE2}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.PageCount, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_PAGE_COUNT}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.Tag, OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TAG}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TITLE}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Rating, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_RATING}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusUnread, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.NotStarted}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusReading, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.Started}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusFinished, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.Completed}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Progress, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_PROGRESS}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title1, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TITLE1}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TITLE2}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.PageCount, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_PAGE_COUNT}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Tag, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TAG}") });
 
             List<string> tagCategories = await ComicModel.GetAllTagCategories();
             foreach (string category in tagCategories)
             {
-                buttons.Add(new() { Tag = $"{StringResourceProvider.Instance.Tag}.{category}", OnClicked = () => OnClickButton($"%{ComicSQLCommandProvider.VAR_TAG}.\"{ParserUtils.EscapeString(category)}\"") });
+                buttons.Add(new()
+                {
+                    Tag = $"{StringResourceProvider.Instance.Tag}.{category}",
+                    OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(category)}\""),
+                });
             }
 
             ExpressionButtons = buttons;

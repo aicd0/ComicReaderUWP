@@ -5,8 +5,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
+using ComicReader.Common.Actions;
 using ComicReader.Data.Models;
+using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
+using ComicReader.Helpers.Search;
+using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.UserControls.ComicItemView;
@@ -19,16 +24,6 @@ namespace ComicReader.Views.Pages.Search;
 internal partial class SearchPageViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
-    private readonly List<ComicItemViewModel> _selectedItems = [];
-
-    public bool IsLoading;
-
-    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
-    public bool IsResultEmpty => SearchResults.Count == 0;
-
-    public ObservableCollection<ComicItemViewModel> SearchResults = [];
 
     private bool m_IsLoadingRingVisible;
     public bool IsLoadingRingVisible
@@ -60,10 +55,8 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         {
             _filterDetails = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FilterDetails)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FilterDetailsVisible)));
         }
     }
-    public bool FilterDetailsVisible => FilterDetails.Length > 0;
 
     private bool m_IsResultGridVisible;
     public bool IsResultGridVisible
@@ -206,6 +199,38 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
             _isCommandBarMarkAsUnreadEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarMarkAsUnreadEnabled)));
         }
+    }
+
+    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
+
+    public bool IsLoading;
+
+    public bool IsResultEmpty => SearchResults.Count == 0;
+
+    public ObservableCollection<ComicItemViewModel> SearchResults = [];
+
+    private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
+    private readonly List<ComicItemViewModel> _selectedItems = [];
+    private ActionHandler _actionHandler = ActionHandler.Dummy;
+    private readonly ComicSearchEngine _searchEngine = new();
+
+    public void Initialize(ActionHandler actionHandler)
+    {
+        _actionHandler = actionHandler;
+        _searchEngine.SetResultCallback(OnSearchResult);
+
+        IsLoading = true;
+        SetSelectMode(false);
+    }
+
+    public void Refresh()
+    {
+        _searchEngine.Update();
+    }
+
+    public void SetSearchText(string text)
+    {
+        _searchEngine.SearchText = text;
     }
 
     public void UpdateUI()
@@ -415,5 +440,46 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
             default:
                 break;
         }
+    }
+
+    private void OnSearchResult(IReadOnlyList<ComicModel> comics)
+    {
+        _sharedDispatcher.Submit("OnSearchResult", () =>
+        {
+            List<ComicItemViewModel> newItems = [];
+            foreach (ComicModel comic in comics)
+            {
+                ComicItemViewModel item = new(comic)
+                {
+                    OnClick = () =>
+                    {
+                        if (!IsSelectMode)
+                        {
+                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+                            OpenInCurrentTabLiveData.Emit(route);
+                        }
+                    },
+                };
+                item.OnRequestContextFlyoutAsync = () =>
+                {
+                    List<ComicItemViewModel> selection = GetSelection(item);
+                    return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler,
+                        selectedComics: selection.ConvertAll(x => x.Comic), supportSelection: true);
+                };
+                item.UpdateProgress(false);
+                newItems.Add(item);
+            }
+
+            MainThreadUtils.RunInMainThread(() =>
+            {
+                bool ComicComparer(ComicItemViewModel x, ComicItemViewModel y) => x.Comic.Id == y.Comic.Id;
+                void ComicUpdater(ComicItemViewModel x, ComicItemViewModel y) => x.Update(y);
+
+                IsLoading = false;
+                DiffUtils.UpdateCollection(SearchResults, newItems, ComicComparer, ComicUpdater);
+                UpdateUI();
+            });
+        });
     }
 }

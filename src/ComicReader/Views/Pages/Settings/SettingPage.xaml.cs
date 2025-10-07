@@ -11,6 +11,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
+using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.Views.Dialogs.ChooseLocation;
@@ -120,7 +121,7 @@ internal sealed partial class SettingPage : BasePage
     private void ShowHiddenComicButton_Click(object sender, RoutedEventArgs e)
     {
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
-            .WithParam(RouterConstants.ARG_KEYWORD, "<hidden>");
+            .WithParam(RouterConstants.ARG_KEYWORD, $"{ComicSQLProviderUtils.VAR_HIDDEN}:1");
         GetMainPageAbility().OpenInNewTab(route);
     }
 

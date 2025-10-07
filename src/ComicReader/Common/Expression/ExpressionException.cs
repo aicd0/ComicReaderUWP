@@ -3,7 +3,7 @@
 
 using System;
 
-namespace ComicReader.Common.Expression.Filter;
+namespace ComicReader.Common.Expression;
 
 internal class ExpressionException(string message) : Exception(message)
 {
