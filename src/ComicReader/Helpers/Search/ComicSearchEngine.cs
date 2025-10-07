@@ -160,6 +160,10 @@ internal class ComicSearchEngine
     private async Task<List<long>> SearchByKeywords(string searchText, ICondition? additionalCondition)
     {
         ICondition? searchCondition = ParseSearchExpresssion(searchText, out List<string> remaining);
+        for (int i = 0; i < remaining.Count; i++)
+        {
+            remaining[i] = remaining[i].ToLowerInvariant();
+        }
 
         var matches = new List<Match>();
         await ComicData.Enqueue("SearchComics", delegate
@@ -189,8 +193,8 @@ internal class ComicSearchEngine
 
                 if (remaining.Count > 0)
                 {
-                    string match_text = title1 + " " + title2;
-                    similarity = StringUtils.QuickMatch(remaining, match_text);
+                    string matchText = (title1 + " " + title2).ToLowerInvariant();
+                    similarity = StringUtils.QuickMatch(remaining, matchText);
                     if (similarity < 1)
                     {
                         continue;

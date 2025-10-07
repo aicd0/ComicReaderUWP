@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 using ComicReader.Common;
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
+using ComicReader.Common.Expression;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.Helpers.Navigation;
+using ComicReader.Helpers.Search;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
@@ -57,6 +59,12 @@ internal static class MenuFlyoutItemsCreator
         {
             Glyph = "\uE71B",
             Items = await CreateComicLinkMenuItems(primaryComic, actionHandler),
+        });
+
+        result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Tags)
+        {
+            Glyph = "\uE8EC",
+            Items = CreateComicTagMenuItems(primaryComic, actionHandler),
         });
 
         result.Add(new MenuFlyoutSeperatorViewModel());
@@ -304,6 +312,45 @@ internal static class MenuFlyoutItemsCreator
                                 .Build();
                             actionHandler.Handle(actionModel);
                         }
+                    }
+                });
+            }
+        }
+        else
+        {
+            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
+            {
+                IsEnabled = false,
+            });
+        }
+
+        return items;
+    }
+
+    private static List<BaseMenuFlyoutItemViewModel> CreateComicTagMenuItems(ComicModel comic, ActionHandler actionHandler)
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+        var tags = comic.Tags
+            .SelectMany(tagData => tagData.Tags.Select(tag => (Category: tagData.Name, Tag: tag)))
+            .OrderBy(t => t.Category)
+            .ThenBy(t => t.Tag)
+            .ToList();
+        if (tags.Count > 0)
+        {
+            foreach ((string Category, string Tag) pair in tags)
+            {
+                string name = $"{pair.Tag} ({pair.Category})";
+                items.Add(new MenuFlyoutItemViewModel(name)
+                {
+                    OnClick = () =>
+                    {
+                        string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(pair.Category)}\"=\"{ExpressionUtils.EscapeString(pair.Tag)}\"";
+                        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
+                            .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
+                        ActionModel actionModel = ActionModel.Builder.Create(OpenInNewTabProvider.NAME)
+                            .AddParameter(OpenInNewTabProvider.PARAM_URL, route.Url)
+                            .Build();
+                        actionHandler.Handle(actionModel);
                     }
                 });
             }

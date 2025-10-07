@@ -114,7 +114,6 @@ class StringUtils
     public static int QuickMatch(List<string> keywords, string str)
     {
         int totalSimilarity = 0;
-        str = str.ToLower();
         List<int> keywordIndices = new(8);
         foreach (string keyword in keywords)
         {
@@ -122,6 +121,7 @@ class StringUtils
             {
                 continue;
             }
+
             keywordIndices.Clear();
             int similarity = 0;
             foreach (char c in str)
@@ -147,6 +147,7 @@ class StringUtils
                         keywordIndices.RemoveAt(i);
                     }
                 }
+
                 if (keyword[0] == c)
                 {
                     if (1 >= keyword.Length)
@@ -159,12 +160,15 @@ class StringUtils
                     }
                 }
             }
+
             if (similarity == 0)
             {
                 return 0;
             }
+
             totalSimilarity += similarity;
         }
+
         return totalSimilarity;
     }
 
