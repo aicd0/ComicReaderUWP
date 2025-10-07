@@ -3,11 +3,11 @@
 
 using System.Collections.Generic;
 
-using ComicReader.Common.Expression.Compiler;
-using ComicReader.Common.Expression.Tokens;
+using ComicReader.Common.Expression.Filter.Parser;
+using ComicReader.Common.Expression.Filter.Tokens;
 using ComicReader.SDK.Data.SqlHelpers;
 
-namespace ComicReader.Common.Expression.Sql;
+namespace ComicReader.Common.Expression.Filter.Sql;
 
 internal class SQLGenerator
 {

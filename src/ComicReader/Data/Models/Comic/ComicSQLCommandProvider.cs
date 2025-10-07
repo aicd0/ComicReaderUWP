@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using ComicReader.Common.Expression;
-using ComicReader.Common.Expression.Sql;
+using ComicReader.Common.Expression.Filter;
+using ComicReader.Common.Expression.Filter.Sql;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Data.SqlHelpers;
 

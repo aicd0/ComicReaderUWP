@@ -8,8 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
-using ComicReader.Common.Expression;
-using ComicReader.Common.Expression.Sql;
+using ComicReader.Common.Expression.Filter;
+using ComicReader.Common.Expression.Filter.Sql;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;

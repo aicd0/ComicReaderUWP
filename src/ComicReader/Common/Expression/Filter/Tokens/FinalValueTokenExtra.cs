@@ -3,7 +3,7 @@
 
 using System.Text;
 
-namespace ComicReader.Common.Expression.Tokens;
+namespace ComicReader.Common.Expression.Filter.Tokens;
 
 class FinalValueTokenExtra(FinalValueTokenExtra.TypeEnum type, string value) : ITokenExtra
 {

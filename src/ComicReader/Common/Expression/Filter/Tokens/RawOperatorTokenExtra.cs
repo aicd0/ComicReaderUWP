@@ -3,9 +3,9 @@
 
 using System.Text;
 
-namespace ComicReader.Common.Expression.Tokens;
+namespace ComicReader.Common.Expression.Filter.Tokens;
 
-class RawNameTokenExtra(string name) : ITokenExtra
+class RawOperatorTokenExtra(string name) : ITokenExtra
 {
     public readonly string Name = name;
 

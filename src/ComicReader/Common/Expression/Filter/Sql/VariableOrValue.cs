@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 
-using ComicReader.Common.Expression.Tokens;
+using ComicReader.Common.Expression.Filter.Tokens;
 
-namespace ComicReader.Common.Expression.Sql;
+namespace ComicReader.Common.Expression.Filter.Sql;
 
 internal class VariableOrValue
 {

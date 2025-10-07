@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ComicReader.Common.Expression.Tokens;
+namespace ComicReader.Common.Expression.Filter.Tokens;
 
 internal class FinalListTokenExtra : ITokenExtra
 {
