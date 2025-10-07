@@ -94,22 +94,7 @@ internal class Evaluator
                     LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(node, ExpressionToken.CreateFinalFilter(
                         nextToken.IntermediateFilterExtra.Key, nextToken.IntermediateFilterExtra.Value, true));
                     tokens.Remove(node);
-                    nextNode = newNode.Next;
-                }
-            }
-        }
-
-        // Parse raw name
-        {
-            LinkedListNode<ExpressionToken>? nextNode;
-            for (LinkedListNode<ExpressionToken>? node = tokens.First; node != null; node = nextNode)
-            {
-                nextNode = node.Next;
-                ExpressionToken token = node.Value;
-                if (token.Level == ExpressionToken.LEVEL_RAW && token.Type == ExpressionToken.TYPE_RAW_NAME)
-                {
-                    LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(node, ExpressionToken.CreateFinalStringLiteral(token.RawNameExtra.Name));
-                    tokens.Remove(node);
+                    tokens.Remove(nextNode);
                     nextNode = newNode.Next;
                 }
             }
@@ -126,6 +111,36 @@ internal class Evaluator
                 {
                     LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(node, ExpressionToken.CreateFinalFilter(
                         token.IntermediateFilterExtra.Key, token.IntermediateFilterExtra.Value, false));
+                    tokens.Remove(node);
+                    nextNode = newNode.Next;
+                }
+            }
+        }
+
+        // Remove whitespace
+        {
+            LinkedListNode<ExpressionToken>? nextNode;
+            for (LinkedListNode<ExpressionToken>? node = tokens.First; node != null; node = nextNode)
+            {
+                nextNode = node.Next;
+                ExpressionToken token = node.Value;
+                if (token.Level == ExpressionToken.LEVEL_RAW && token.Type == ExpressionToken.TYPE_RAW_WHITESPACE)
+                {
+                    tokens.Remove(node);
+                }
+            }
+        }
+
+        // Parse raw name
+        {
+            LinkedListNode<ExpressionToken>? nextNode;
+            for (LinkedListNode<ExpressionToken>? node = tokens.First; node != null; node = nextNode)
+            {
+                nextNode = node.Next;
+                ExpressionToken token = node.Value;
+                if (token.Level == ExpressionToken.LEVEL_RAW && token.Type == ExpressionToken.TYPE_RAW_NAME)
+                {
+                    LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(node, ExpressionToken.CreateFinalStringLiteral(token.RawNameExtra.Name));
                     tokens.Remove(node);
                     nextNode = newNode.Next;
                 }
