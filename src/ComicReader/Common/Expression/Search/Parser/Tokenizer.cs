@@ -16,7 +16,7 @@ class Tokenizer
             char currentChar = expression[index];
             if (IsWhiteSpace(currentChar))
             {
-                index++;
+                tokens.AddLast(ParseWhitespace(expression, ref index));
                 continue;
             }
 
@@ -76,6 +76,16 @@ class Tokenizer
             nameBuilder.Append(currentChar);
             index++;
         }
+    }
+
+    private static ExpressionToken ParseWhitespace(string expression, ref int index)
+    {
+        while (index < expression.Length && IsWhiteSpace(expression[index]))
+        {
+            index++;
+        }
+
+        return ExpressionToken.CreateRawWhitespace();
     }
 
     private static ExpressionToken ParseQuatedString(string expression, ref int index)

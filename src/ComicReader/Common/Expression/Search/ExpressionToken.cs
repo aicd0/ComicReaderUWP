@@ -12,6 +12,7 @@ internal sealed class ExpressionToken
     public const int LEVEL_RAW = 0;
     public const int TYPE_RAW_NAME = 0;
     public const int TYPE_RAW_OPERATOR = 1;
+    public const int TYPE_RAW_WHITESPACE = 2;
 
     public const int LEVEL_INTERMEDIATE = 1;
     public const int TYPE_INTERMEDIATE_FILTER = 0;
@@ -55,6 +56,11 @@ internal sealed class ExpressionToken
     public static ExpressionToken CreateRawOperator(string name)
     {
         return new ExpressionToken(LEVEL_RAW, TYPE_RAW_OPERATOR, new RawOperatorTokenExtra(name));
+    }
+
+    public static ExpressionToken CreateRawWhitespace()
+    {
+        return new ExpressionToken(LEVEL_RAW, TYPE_RAW_WHITESPACE, null);
     }
 
     public static ExpressionToken CreateIntermediateFilter(string key, string value)
