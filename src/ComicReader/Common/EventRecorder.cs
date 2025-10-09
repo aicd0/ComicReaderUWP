@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
@@ -11,11 +12,25 @@ using ComicReader.SDK.Common.DebugTools;
 
 namespace ComicReader.Common;
 
-internal class EventRecorder
+internal partial class EventRecorder
 {
+    [GeneratedRegex(@"[\r\n]+")]
+    private static partial Regex LineBreakRegex();
+
     public static EventRecorder Create(string tag)
     {
         return new(tag);
+    }
+
+    private static string NormalizeLineBreaks(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return string.Empty;
+        }
+
+        input = input.Trim('\r', '\n');
+        return LineBreakRegex().Replace(input, " ");
     }
 
     public bool Successful { get; private set; } = true;
@@ -39,7 +54,7 @@ internal class EventRecorder
                     return;
                 }
 
-                string content = recorder.ErrorMessage;
+                string content = NormalizeLineBreaks(recorder.ErrorMessage);
                 if (string.IsNullOrEmpty(content))
                 {
                     content = "(no message)";
