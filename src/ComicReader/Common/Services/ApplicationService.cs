@@ -33,7 +33,7 @@ internal class ApplicationService : IApplicationService
     {
         if (PORTABLE)
         {
-            return Path.Combine(GetDeploymentPath(), CONFIG_FILE);
+            return Path.Combine(GetDeploymentPath(), DIR_USER, CONFIG_FILE);
         }
         else
         {
