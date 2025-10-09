@@ -212,7 +212,7 @@ internal partial class ComicArchiveData : ComicData
             Stream? stream = await ArchiveAccess.TryGetFileStream(_archiveFile, path);
             if (stream == null)
             {
-                Log("Failed to access entry '" + _entries[index] + "'");
+                Logger.I(TAG, "Failed to access entry '" + _entries[index] + "'");
                 return null;
             }
 

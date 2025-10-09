@@ -14,7 +14,6 @@ using ComicReader.Common;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
-using ComicReader.SDK.Common.AutoProperty;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
@@ -152,7 +151,7 @@ internal abstract class ComicData
                 double lastPosition = lastPositionToken.GetValue();
                 string coverCacheKey = coverCacheKeyToken.GetValue();
                 string description = descriptionToken.GetValue();
-                ComicCompletionStatusEnum completionState = ComicPropertyRepository.ParseCompletionState(completionStateToken.GetValue());
+                ComicCompletionStatusEnum completionState = ParseCompletionState(completionStateToken.GetValue());
                 int pageCount = pageCountToken.GetValue();
                 string extJson = extToken.GetValue();
 
@@ -306,9 +305,14 @@ internal abstract class ComicData
         }
     }
 
-    protected static void Log(string message)
+    private static ComicCompletionStatusEnum ParseCompletionState(int value)
     {
-        Logger.I("ComicData", message);
+        if (Enum.IsDefined(typeof(ComicCompletionStatusEnum), value))
+        {
+            return (ComicCompletionStatusEnum)value;
+        }
+
+        return ComicCompletionStatusEnum.NotStarted;
     }
 
     //
@@ -698,10 +702,21 @@ internal abstract class ComicData
         });
     }
 
-    public Task SaveCompletionState(ComicCompletionStatusEnum completionState)
+    public async Task SaveCompletionState(ComicCompletionStatusEnum completionState)
     {
         CompletionState = completionState;
-        return ComicPropertyRepository.Instance.CompletionStateOperator.Write(Id, completionState, CreateRequestOption());
+
+        await Enqueue("SaveCompletionState", delegate
+        {
+            SaveNoLock(delegate
+            {
+                UpdateCommand.Create(ComicTable.Instance)
+                    .AppendColumn(ComicTable.ColumnCompletionState, GetColumnValue(ComicTable.ColumnCompletionState))
+                    .AppendCondition(ComicTable.ColumnId, Id)
+                    .Execute();
+            });
+            return true;
+        });
     }
 
     public void SaveRating(int rating)
@@ -878,8 +893,8 @@ internal abstract class ComicData
     public static void UpdateAllComics(string reason, bool skipExistingLocation)
     {
         int pendingCount = Interlocked.Increment(ref _pendingUpdateTaskCount);
-        Log($"UpdateAllComics#Enqueue(reason={reason},skipExistingLocation={skipExistingLocation})");
-        TaskDispatcher.LongRunningThreadPool.Submit($"{TAG}#UpdateAllComics", delegate
+        Logger.I(TAG, $"UpdateAllComics(reason={reason},SEL={skipExistingLocation})");
+        TaskDispatcher.LongRunningThreadPool.Submit("UpdateAllComics", delegate
         {
             int pendingCount = Interlocked.Decrement(ref _pendingUpdateTaskCount);
             if (pendingCount > 0)
@@ -907,14 +922,12 @@ internal abstract class ComicData
 
     protected abstract Task<bool> ReloadImages();
 
-    private static void UpdateComicNoLock(string location, ComicType type, bool is_exist)
+    private static void UpdateComicNoLock(string location, ComicType type, bool isExist)
     {
-        Log((is_exist ? "Updat" : "Add") + "ing comic '" + location + "'");
-
         // Update or create a new one.
         ComicData? comic;
 
-        if (is_exist)
+        if (isExist)
         {
             comic = FromLocationNoLock(location);
         }
@@ -929,7 +942,7 @@ internal abstract class ComicData
         }
 
         // Load comic info locally.
-        if (!is_exist)
+        if (!isExist)
         {
             comic.SetAsDefaultInfo();
             comic.SaveAllNoLock();
@@ -1201,11 +1214,6 @@ internal abstract class ComicData
                 }, "RemoveLocationsFromDatabase");
             }
         }
-    }
-
-    private RequestOption CreateRequestOption()
-    {
-        return new(!IsExternal);
     }
 
     //
