@@ -104,6 +104,7 @@ public class StringResourceProvider
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenRandomComic => GetResourceString("OpenRandomComic");
+    public string OpenUserDataFolder => GetResourceString("OpenUserDataFolder");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
     public string PageCount => GetResourceString("PageCount");
     public string PageGap => GetResourceString("PageGap");

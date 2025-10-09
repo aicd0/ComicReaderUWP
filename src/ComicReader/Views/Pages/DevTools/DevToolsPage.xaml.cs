@@ -15,15 +15,11 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml.Controls;
-
-using Windows.Storage;
-using Windows.System;
 
 namespace ComicReader.Views.Pages.DevTools;
 
@@ -59,19 +55,6 @@ internal sealed partial class DevToolsPage : BasePage
     //
     // Events
     //
-
-    private void OnOpenAppFolderClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        C0.Run(async () =>
-        {
-            string path = StorageLocation.LocalFolderPath;
-            StorageFolder? folder = await Storage.TryGetFolder(path);
-            if (folder != null)
-            {
-                _ = Launcher.LaunchFolderAsync(folder);
-            }
-        });
-    }
 
     private void CrashAppButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {

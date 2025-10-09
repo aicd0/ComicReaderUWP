@@ -241,7 +241,11 @@
                                     Style="{StaticResource SettingsPageBodyTextBlock}"
                                     Text="{x:Bind ViewModel.CacheSize, Mode=OneWay}" />
                                 <Grid Height="16" />
-                                <Button Click="OnRefreshRandomSeedClick" Content="{x:Bind StringResource.RefreshRandomSeed}" />
+                                <Button Click="OnOpenUserDataFolderClick" Content="{x:Bind StringResource.OpenUserDataFolder}" />
+                                <Button
+                                    Margin="0,8,0,0"
+                                    Click="OnRefreshRandomSeedClick"
+                                    Content="{x:Bind StringResource.RefreshRandomSeed}" />
                                 <Grid Height="16" />
                                 <TextBlock x:Uid="DebugMode" Style="{StaticResource SettingsPageBodyTextBlock}" />
                                 <ToggleSwitch

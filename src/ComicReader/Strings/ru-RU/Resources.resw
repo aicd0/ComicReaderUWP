@@ -578,6 +578,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Откройте случайный комикс</value>
   </data>
+  <data name="OpenUserDataFolder" xml:space="preserve">
+    <value>Открыть папку с данными пользователя</value>
+  </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>Эта операция перезапишет существующие записи.</value>
   </data>
