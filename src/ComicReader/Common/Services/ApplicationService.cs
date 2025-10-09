@@ -4,8 +4,11 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using ComicReader.SDK.Common.AppEnvironment;
+using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.ServiceManagement;
 
 using Windows.Storage;
@@ -14,6 +17,8 @@ namespace ComicReader.Common.Services;
 
 internal class ApplicationService : IApplicationService
 {
+    private const string TAG = nameof(ApplicationService);
+
 #if PORTABLE
     private const bool PORTABLE = true;
 #else
@@ -21,15 +26,29 @@ internal class ApplicationService : IApplicationService
 #endif
 
     private const string DIR_USER = "user";
-
-    private static string GetDeploymentPath()
-    {
-        return AppContext.BaseDirectory;
-    }
+    private const string CONFIG_FILE = "config.json";
 
 #pragma warning disable CS0162 // Unreachable code detected
-    private readonly Lazy<string> _localFolderPath = new(() =>
+    private static readonly Lazy<string> _configFilePath = new(() =>
     {
+        if (PORTABLE)
+        {
+            return Path.Combine(GetDeploymentPath(), CONFIG_FILE);
+        }
+        else
+        {
+            return Path.Combine(ApplicationData.Current.LocalFolder.Path, CONFIG_FILE);
+        }
+    });
+
+    private static readonly Lazy<string> _localFolderPath = new(() =>
+    {
+        string? configPath = GetConfig().LocalFolderPath;
+        if (!string.IsNullOrEmpty(configPath))
+        {
+            return configPath;
+        }
+
         if (PORTABLE)
         {
             return Path.Combine(GetDeploymentPath(), DIR_USER, "local");
@@ -40,8 +59,14 @@ internal class ApplicationService : IApplicationService
         }
     });
 
-    private readonly Lazy<string> _localCacheFolderPath = new(() =>
+    private static readonly Lazy<string> _localCacheFolderPath = new(() =>
     {
+        string? configPath = GetConfig().LocalCacheFolderPath;
+        if (!string.IsNullOrEmpty(configPath))
+        {
+            return configPath;
+        }
+
         if (PORTABLE)
         {
             return Path.Combine(GetDeploymentPath(), DIR_USER, "local_cache");
@@ -52,8 +77,14 @@ internal class ApplicationService : IApplicationService
         }
     });
 
-    private readonly Lazy<string> _temporaryFolderPath = new(() =>
+    private static readonly Lazy<string> _temporaryFolderPath = new(() =>
     {
+        string? configPath = GetConfig().TemporaryFolderPath;
+        if (!string.IsNullOrEmpty(configPath))
+        {
+            return configPath;
+        }
+
         if (PORTABLE)
         {
             return Path.Combine(GetDeploymentPath(), DIR_USER, "temporary");
@@ -64,6 +95,62 @@ internal class ApplicationService : IApplicationService
         }
     });
 #pragma warning restore CS0162 // Unreachable code detected
+
+    private static readonly object _lock = new();
+    private static ConfigJsonModel? _config;
+
+    private static string GetDeploymentPath()
+    {
+        return AppContext.BaseDirectory;
+    }
+
+    private static ConfigJsonModel GetConfig()
+    {
+        ConfigJsonModel? config = _config;
+        if (config is not null)
+        {
+            return config;
+        }
+
+        lock (_lock)
+        {
+            config = _config;
+            if (config is not null)
+            {
+                return config;
+            }
+
+            string configFilePath = _configFilePath.Value;
+            string? configText = null;
+            if (File.Exists(configFilePath))
+            {
+                try
+                {
+                    configText = File.ReadAllText(configFilePath);
+                }
+                catch (Exception ex)
+                {
+                    Logger.E(TAG, ex);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(configText))
+            {
+                try
+                {
+                    config = JsonSerializer.Deserialize<ConfigJsonModel>(configText);
+                }
+                catch (Exception ex)
+                {
+                    Logger.E(TAG, ex);
+                }
+            }
+
+            config ??= new();
+            _config = config;
+            return config;
+        }
+    }
 
     public bool IsPortableBuild()
     {
@@ -90,5 +177,17 @@ internal class ApplicationService : IApplicationService
         StringBuilder sb = new();
         EnvironmentProvider.Instance.AppendDebugText(sb);
         return sb.ToString();
+    }
+
+    private class ConfigJsonModel
+    {
+        [JsonPropertyName("LocalFolderPath")]
+        public string? LocalFolderPath { get; set; }
+
+        [JsonPropertyName("LocalCacheFolderPath")]
+        public string? LocalCacheFolderPath { get; set; }
+
+        [JsonPropertyName("TemporaryFolderPath")]
+        public string? TemporaryFolderPath { get; set; }
     }
 }
