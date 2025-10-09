@@ -29,7 +29,7 @@ internal abstract class ComicData
     // Constants
     //
 
-    private const string TAG = "ComicData";
+    private const string TAG = nameof(ComicData);
     private const int COVER_INDEX = 0;
 
     //

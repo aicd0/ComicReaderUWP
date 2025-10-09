@@ -7,5 +7,11 @@ public interface IApplicationService : IService
 {
     bool IsPortableBuild();
 
+    string GetLocalFolderPath();
+
+    string GetLocalCacheFolderPath();
+
+    string GetTemporaryFolderPath();
+
     string GetEnvironmentDebugInfo();
 }
