@@ -577,6 +577,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="OpenRandomComic" xml:space="preserve">
     <value>開啟隨機漫畫</value>
   </data>
+  <data name="OpenUserDataFolder" xml:space="preserve">
+    <value>開啟用戶資料資料夾</value>
+  </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>此操作將覆蓋現有條目。</value>
   </data>

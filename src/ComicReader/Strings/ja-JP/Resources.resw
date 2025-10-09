@@ -577,6 +577,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="OpenRandomComic" xml:space="preserve">
     <value>ランダムにコミックを開く</value>
   </data>
+  <data name="OpenUserDataFolder" xml:space="preserve">
+    <value>ユーザーデータフォルダを開く</value>
+  </data>
   <data name="OverwriteExistingEntries" xml:space="preserve">
     <value>この操作により既存のエントリが上書きされます。</value>
   </data>

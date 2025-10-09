@@ -14,16 +14,23 @@ using ComicReader.Helpers.Navigation;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Storage;
 using ComicReader.Views.Dialogs.ChooseLocation;
 using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
+using Windows.Storage;
+
+using Windows.System;
+
 namespace ComicReader.Views.Pages.Settings;
 
 internal sealed partial class SettingPage : BasePage
 {
+    private const string TAG = nameof(SettingPage);
+
     private SettingPageViewModel ViewModel { get; } = new();
 
     public SettingPage()
@@ -156,6 +163,23 @@ internal sealed partial class SettingPage : BasePage
     private void OnRefreshRandomSeedClick(object sender, RoutedEventArgs e)
     {
         ViewModel.RefreshRandomSeed();
+    }
+
+    private async void OnOpenUserDataFolderClick(object sender, RoutedEventArgs e)
+    {
+        string path = StorageLocation.LocalFolderPath;
+        var er = EventRecorder.Create("OnOpenUserDataFolderClick");
+        try
+        {
+            StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(path);
+            await Launcher.LaunchFolderAsync(folder);
+        }
+        catch (Exception ex)
+        {
+            er.SetError(ex);
+        }
+
+        er.DisplayErrorMessage(PageActionHandler);
     }
 
     //
