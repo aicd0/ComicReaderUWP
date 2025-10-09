@@ -7,13 +7,50 @@ namespace ComicReader.SDK.Tests.Common;
 
 internal class ApplicationService : IApplicationService
 {
-    public string GetEnvironmentDebugInfo()
+    private const string DIR_USER = "user";
+
+    private static string GetDeploymentPath()
     {
-        return string.Empty;
+        return AppContext.BaseDirectory;
     }
+
+    private readonly Lazy<string> _localFolderPath = new(() =>
+    {
+        return Path.Combine(GetDeploymentPath(), DIR_USER, "local");
+    });
+
+    private readonly Lazy<string> _localCacheFolderPath = new(() =>
+    {
+        return Path.Combine(GetDeploymentPath(), DIR_USER, "local_cache");
+    });
+
+    private readonly Lazy<string> _temporaryFolderPath = new(() =>
+    {
+        return Path.Combine(GetDeploymentPath(), DIR_USER, "temporary");
+    });
 
     public bool IsPortableBuild()
     {
         return true;
+    }
+
+    public string GetLocalFolderPath()
+    {
+        return _localFolderPath.Value;
+    }
+
+    public string GetLocalCacheFolderPath()
+    {
+        return _localCacheFolderPath.Value;
+    }
+
+    public string GetTemporaryFolderPath()
+    {
+        return _temporaryFolderPath.Value;
+    }
+
+    public string GetEnvironmentDebugInfo()
+    {
+        return string.Empty;
     }
 }

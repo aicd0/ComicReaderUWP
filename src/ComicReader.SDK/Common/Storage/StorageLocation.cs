@@ -3,61 +3,26 @@
 
 using ComicReader.SDK.Common.ServiceManagement;
 
-using Windows.Storage;
-
 namespace ComicReader.SDK.Common.Storage;
 
 public static class StorageLocation
 {
-    private const string DIR_USER = "user";
-
-    private static readonly Lazy<bool> _portable = new(() =>
-    {
-        return ServiceManager.GetService<IApplicationService>().IsPortableBuild();
-    });
-
     private static readonly Lazy<string> _localFolderPath = new(() =>
     {
-        if (_portable.Value)
-        {
-            return Path.Combine(GetDeploymentPath(), DIR_USER, "local");
-        }
-        else
-        {
-            return ApplicationData.Current.LocalFolder.Path;
-        }
+        return ServiceManager.GetService<IApplicationService>().GetLocalFolderPath();
     });
 
     private static readonly Lazy<string> _localCacheFolderPath = new(() =>
     {
-        if (_portable.Value)
-        {
-            return Path.Combine(GetDeploymentPath(), DIR_USER, "local_cache");
-        }
-        else
-        {
-            return ApplicationData.Current.LocalCacheFolder.Path;
-        }
+        return ServiceManager.GetService<IApplicationService>().GetLocalCacheFolderPath();
     });
 
     private static readonly Lazy<string> _temporaryFolderPath = new(() =>
     {
-        if (_portable.Value)
-        {
-            return Path.Combine(GetDeploymentPath(), DIR_USER, "temporary");
-        }
-        else
-        {
-            return ApplicationData.Current.TemporaryFolder.Path;
-        }
+        return ServiceManager.GetService<IApplicationService>().GetTemporaryFolderPath();
     });
 
     public static string LocalFolderPath => _localFolderPath.Value;
     public static string LocalCacheFolderPath => _localCacheFolderPath.Value;
     public static string TemporaryFolderPath => _temporaryFolderPath.Value;
-
-    private static string GetDeploymentPath()
-    {
-        return AppContext.BaseDirectory;
-    }
 }
