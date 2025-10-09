@@ -45,13 +45,13 @@ internal class Evaluator
 
                     ExpressionToken previousToken = previousNode.Value;
                     ExpressionToken nextToken = nextNode.Value;
-                    if (!IsRawNameToken(previousToken) || !(IsRawNameToken(nextToken) || IsFinalValueToken(nextToken)))
+                    if (!(IsRawNameToken(previousToken) || IsFinalValueToken(previousToken)) || !(IsRawNameToken(nextToken) || IsFinalValueToken(nextToken)))
                     {
                         ReplaceWithString();
                         continue;
                     }
 
-                    string key = previousToken.RawNameExtra.Name;
+                    string key = IsRawNameToken(previousToken) ? previousToken.RawNameExtra.Name : previousToken.FinalValueExtra.Value;
                     string value = IsRawNameToken(nextToken) ? nextToken.RawNameExtra.Name : nextToken.FinalValueExtra.Value;
                     LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(previousNode, ExpressionToken.CreateIntermediateFilter(key, value));
                     tokens.Remove(previousNode);
