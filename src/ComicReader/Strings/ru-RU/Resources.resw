@@ -665,6 +665,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Повторное сканирование файлов</value>
   </data>
+  <data name="RestoreLastReadingPosition" xml:space="preserve">
+    <value>Восстанавливать последнюю позицию чтения</value>
+  </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>Справа налево</value>
   </data>

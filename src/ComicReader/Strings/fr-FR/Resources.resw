@@ -664,6 +664,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Réanalyser les fichiers</value>
   </data>
+  <data name="RestoreLastReadingPosition" xml:space="preserve">
+    <value>Restaurer la dernière position de lecture</value>
+  </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>De droite à gauche</value>
   </data>

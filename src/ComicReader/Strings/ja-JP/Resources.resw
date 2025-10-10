@@ -664,6 +664,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>ファイルの再スキャン</value>
   </data>
+  <data name="RestoreLastReadingPosition" xml:space="preserve">
+    <value>最後の読書位置を復元</value>
+  </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>右から左へ</value>
   </data>

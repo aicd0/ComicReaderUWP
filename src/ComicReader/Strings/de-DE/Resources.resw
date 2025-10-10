@@ -664,6 +664,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Dateien erneut scannen</value>
   </data>
+  <data name="RestoreLastReadingPosition" xml:space="preserve">
+    <value>Letzte Leseposition wiederherstellen</value>
+  </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>Von rechts nach links</value>
   </data>

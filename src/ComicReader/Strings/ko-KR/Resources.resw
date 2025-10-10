@@ -665,6 +665,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>파일 다시 검사</value>
   </data>
+  <data name="RestoreLastReadingPosition" xml:space="preserve">
+    <value>마지막 읽은 위치 복원</value>
+  </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>오른쪽에서 왼쪽으로</value>
   </data>

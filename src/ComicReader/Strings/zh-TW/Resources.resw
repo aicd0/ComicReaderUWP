@@ -664,6 +664,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>重新掃描文件</value>
   </data>
+  <data name="RestoreLastReadingPosition" xml:space="preserve">
+    <value>恢復上次閱讀位置</value>
+  </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>自右向左</value>
   </data>
