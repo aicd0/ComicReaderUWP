@@ -5,9 +5,15 @@ using System.Collections.Concurrent;
 
 namespace ComicReader.SDK.Common.KVStorage;
 
-internal class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
+internal partial class KVDatabaseMethodCache(KVDatabaseMethod method) : KVDatabaseMethod
 {
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object?>> _cache = new();
+
+    public override void Dispose()
+    {
+        method.Dispose();
+        _cache.Clear();
+    }
 
     public override void Remove(string lib, string key)
     {

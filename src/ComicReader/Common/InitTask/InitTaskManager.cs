@@ -11,6 +11,7 @@ using ComicReader.Data.Legacy;
 using ComicReader.Data.Models;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Threading;
@@ -158,6 +159,7 @@ internal class InitTaskManager(Application application)
         AppDomain.CurrentDomain.ProcessExit += (s, e) =>
         {
             Logger.Flush();
+            KVDatabase.Dispose();
             if (_appLock is FileStream fileStream)
             {
                 try
