@@ -124,6 +124,7 @@ public class StringResourceProvider
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
+    public string RestoreLastReadingPosition => GetResourceString("RestoreLastReadingPosition");
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");
     public string SaveViewConfig => GetResourceString("SaveViewConfig");

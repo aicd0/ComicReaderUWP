@@ -343,7 +343,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        ReaderLoadingInfoLiveData.Emit(new(images, comic.IsExternal ? 0.0 : comic.LastPosition));
+        bool restorePosition = AppSettingsModel.Instance.GetModel().RestoreLastReadingPosition && !comic.IsExternal;
+        ReaderLoadingInfoLiveData.Emit(new(images, restorePosition ? comic.LastPosition : 0.0));
 
         // Load preview images
         double previewWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"];

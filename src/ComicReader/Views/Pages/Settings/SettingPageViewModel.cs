@@ -60,6 +60,17 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _restoreLastReadingPosition = true;
+    public bool RestoreLastReadingPosition
+    {
+        get => _restoreLastReadingPosition;
+        set
+        {
+            _restoreLastReadingPosition = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RestoreLastReadingPosition)));
+        }
+    }
+
     private bool _promptBeforeRemovingComics = true;
     public bool PromptBeforeRemovingComics
     {
@@ -361,6 +372,14 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         AppSettingsModel.Instance.UpdateModel(model);
     }
 
+    public void SetRestoreLastReadingPosition(bool restoreLastReadingPosition)
+    {
+        _restoreLastReadingPosition = restoreLastReadingPosition;
+        AppSettingsModel.ExternalModel model = GetSettingsModel();
+        model.RestoreLastReadingPosition = restoreLastReadingPosition;
+        AppSettingsModel.Instance.UpdateModel(model);
+    }
+
     public void SetPromptBeforeRemovingComics(bool promptBeforeRemovingComics)
     {
         _promptBeforeRemovingComics = promptBeforeRemovingComics;
@@ -519,6 +538,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         bool hasHistory = HistoryModel.Instance.GetModel().Items.Count > 0;
         bool removeUnreachableComics = model.RemoveUnreachableComics;
         bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
+        bool restoreLastReadingPosition = model.RestoreLastReadingPosition;
         bool saveBrowsingHistory = AppModel.SaveBrowsingHistory;
 
         MainThreadUtils.RunInMainThread(() =>
@@ -527,6 +547,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             RemoveUnreachableComics = removeUnreachableComics;
             PromptBeforeRemovingComics = promptBeforeRemovingComics;
             HistorySaveBrowsingHistory = saveBrowsingHistory;
+            RestoreLastReadingPosition = restoreLastReadingPosition;
         });
     }
 
