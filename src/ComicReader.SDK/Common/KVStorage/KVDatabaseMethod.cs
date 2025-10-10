@@ -3,9 +3,11 @@
 
 namespace ComicReader.SDK.Common.KVStorage;
 
-public abstract class KVDatabaseMethod
+public abstract class KVDatabaseMethod : IDisposable
 {
     private readonly Dictionary<string, KVDatabaseLib> _libs = [];
+
+    public abstract void Dispose();
 
     public KVDatabaseLib With(string libName)
     {

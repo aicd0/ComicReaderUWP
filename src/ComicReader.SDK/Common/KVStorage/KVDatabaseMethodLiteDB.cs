@@ -9,7 +9,7 @@ using LiteDB;
 
 namespace ComicReader.SDK.Common.KVStorage;
 
-internal class KVDatabaseMethodLiteDB(string prefix) : KVDatabaseMethod, IDisposable
+internal partial class KVDatabaseMethodLiteDB(string prefix) : KVDatabaseMethod
 {
     private const string DEFAULT_COLLECTION = "default";
 
@@ -17,12 +17,14 @@ internal class KVDatabaseMethodLiteDB(string prefix) : KVDatabaseMethod, IDispos
     private readonly string _prefix = prefix;
     private readonly ConcurrentDictionary<string, LiteDatabase> _db = [];
 
-    public void Dispose()
+    public override void Dispose()
     {
         foreach (LiteDatabase db in _db.Values)
         {
             db.Dispose();
         }
+
+        _db.Clear();
     }
 
     public override void Remove(string lib, string key)

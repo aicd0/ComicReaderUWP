@@ -5,16 +5,15 @@ namespace ComicReader.SDK.Common.KVStorage;
 
 public static class KVDatabase
 {
-    private static readonly Lazy<KVDatabaseMethod> sDefaultMethod = new(delegate
-    {
-        return new KVDatabaseMethodCache(new KVDatabaseMethodLiteDB("lib"));
-    });
+    private static readonly KVDatabaseMethod sDefaultMethod = new KVDatabaseMethodCache(new KVDatabaseMethodLiteDB("lib"));
+    private static readonly KVDatabaseMethod sSdkMethod = new KVDatabaseMethodCache(new KVDatabaseMethodLiteDB("sdk"));
 
-    private static readonly Lazy<KVDatabaseMethod> sSdkMethod = new(delegate
-    {
-        return new KVDatabaseMethodCache(new KVDatabaseMethodLiteDB("sdk"));
-    });
+    public static KVDatabaseMethod Default => sDefaultMethod;
+    internal static KVDatabaseMethod Sdk => sSdkMethod;
 
-    public static KVDatabaseMethod Default => sDefaultMethod.Value;
-    internal static KVDatabaseMethod Sdk => sSdkMethod.Value;
+    public static void Dispose()
+    {
+        sDefaultMethod.Dispose();
+        sSdkMethod.Dispose();
+    }
 }
