@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,6 +14,7 @@ using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.Expression;
 using ComicReader.Common.Imaging;
+using ComicReader.Common.Localization;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Imaging;
@@ -281,6 +283,61 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         LoadReaderSettings();
     }
 
+    public void AddNewTags(string command)
+    {
+        ComicModel? comic = _comic;
+        if (comic is null || string.IsNullOrWhiteSpace(command))
+        {
+            return;
+        }
+
+        command = command.ReplaceLineEndings(string.Empty);
+        string key = string.Empty;
+        string value = command;
+        bool overwriteMode = false;
+        for (int i = 0; i < command.Length; i++)
+        {
+            char c = command[i];
+            if (LocalizationUtils.Commas.Contains(c))
+            {
+                break;
+            }
+            else if (LocalizationUtils.Colons.Contains(c))
+            {
+                key = command[..i];
+                overwriteMode = i + 1 < command.Length && LocalizationUtils.Colons.Contains(command[i + 1]);
+                value = command[(overwriteMode ? i + 2 : i + 1)..];
+                break;
+            }
+        }
+
+        key = key.Trim();
+        if (string.IsNullOrEmpty(key))
+        {
+            key = StringResourceProvider.Instance.Default;
+        }
+
+        string[] values = value.Split(LocalizationUtils.Commas, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        Dictionary<string, HashSet<string>> tags = comic.TagsCopy;
+        if (!tags.TryGetValue(key, out HashSet<string>? categoryTags))
+        {
+            categoryTags = [];
+            tags.Add(key, categoryTags);
+        }
+
+        if (overwriteMode)
+        {
+            categoryTags.Clear();
+        }
+
+        foreach (string tag in values)
+        {
+            categoryTags.Add(tag);
+        }
+
+        comic.SetTags(tags);
+    }
+
     private async Task LoadComicInternal(ComicModel comic)
     {
         if (comic == _comic)
@@ -425,8 +482,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        var newCollection = new ObservableCollection<TagCollectionViewModel>();
-
+        List<TagCollectionViewModel> newCollection = [];
         for (int i = 0; i < comic.Tags.Count; ++i)
         {
             ComicData.TagData tags = comic.Tags[i];

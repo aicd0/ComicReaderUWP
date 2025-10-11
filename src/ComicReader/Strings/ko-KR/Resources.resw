@@ -296,6 +296,13 @@ $comics</value>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>전체 화면으로 전환</value>
   </data>
+  <data name="EnterNewTags" xml:space="preserve">
+    <value>새 태그를 입력</value>
+  </data>
+  <data name="EnterNewTagsHint" xml:space="preserve">
+    <value>카테고리: 태그1, 태그2     - ‘카테고리’에 ‘태그1’과 ‘태그2’를 추가합니다.
+카테고리:: 태그1, 태그2    - ‘카테고리’를 ‘태그1’과 ‘태그2’로 덮어씁니다.</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>오류</value>
   </data>
@@ -730,8 +737,8 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>태그를 제대로 사용하면 라이브러리를 더 쉽게 정리할 수 있습니다. 예:
-카테고리1: 태그1/태그2/태그3
-카테고리2: 태그4/태그5
+카테고리1: 태그1, 태그2, 태그3
+카테고리2: 태그4, 태그5
 ...</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">

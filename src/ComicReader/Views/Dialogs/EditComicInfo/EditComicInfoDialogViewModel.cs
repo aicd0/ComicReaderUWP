@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
+using ComicReader.Common.Localization;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.SDK.Common.Lifecycle;
@@ -325,7 +326,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             {
                 if (!first)
                 {
-                    sb.Append('/');
+                    sb.Append(", ");
                 }
                 first = false;
                 if (tagIdMode)
@@ -580,18 +581,20 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
 
     private static ParsePropertyResult? ParseProperty(string src, bool tagIdMode)
     {
-        string[] pieces = src.Split(":", 2);
+        string[] pieces = src.Split(LocalizationUtils.Colons, 2);
         if (pieces.Length != 2)
         {
             return null;
         }
+
         TagWithId? name = ParseTag(pieces[0], tagIdMode);
         if (name is null)
         {
             return null;
         }
+
         var result = new ParsePropertyResult(name);
-        var tags = new List<string>(pieces[1].Split("/", StringSplitOptions.RemoveEmptyEntries));
+        var tags = new List<string>(pieces[1].Split(LocalizationUtils.Commas, StringSplitOptions.RemoveEmptyEntries));
         foreach (string tag in tags)
         {
             TagWithId? item = ParseTag(tag, tagIdMode);
@@ -601,6 +604,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             }
             result.Tags.Add(item);
         }
+
         return result;
     }
 

@@ -296,6 +296,13 @@ $comics</value>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Vollbildmodus aktivieren</value>
   </data>
+  <data name="EnterNewTags" xml:space="preserve">
+    <value>Neue Tags eingeben</value>
+  </data>
+  <data name="EnterNewTagsHint" xml:space="preserve">
+    <value>Kategorie: Tag1, Tag2     - Füge „Tag1“ und „Tag2“ zur „Kategorie“ hinzu.
+Kategorie:: Tag1, Tag2    - Überschreibe „Kategorie“ mit „Tag1“ und „Tag2“.</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>Fehler</value>
   </data>
@@ -729,8 +736,8 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>Die richtige Verwendung von Tags erleichtert die Organisation Ihrer Bibliothek. Beispiel:
-Kategorie 1: Tag 1/Tag 2/Tag 3
-Kategorie 2: Tag 4/Tag 5
+Kategorie 1: Tag 1, Tag 2, Tag 3
+Kategorie 2: Tag 4, Tag 5
 ...</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">

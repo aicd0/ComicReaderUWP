@@ -8,6 +8,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Actions;
+using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Common.Legacy;
@@ -564,6 +566,27 @@ internal sealed partial class ReaderPage : BasePage
         var ctx = (ReaderImagePreviewViewModel)e.ClickedItem;
         GridViewModeEnabled = false;
         MainReaderView.SetCurrentPage(ctx.Page);
+    }
+
+    private void NewTagsTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+        {
+            var textBox = (TextBox)sender;
+            string text = textBox.Text;
+            textBox.Text = string.Empty;
+            ViewModel.AddNewTags(text);
+            e.Handled = true;
+        }
+    }
+
+    private void NewTagTipButton_Click(object sender, RoutedEventArgs e)
+    {
+        ActionModel actionModel = ActionModel.Builder.Create(MessageDialogProvider.NAME)
+            .AddParameter(MessageDialogProvider.PARAM_TITLE, StringResourceProvider.Instance.EnterNewTags)
+            .AddParameter(MessageDialogProvider.PARAM_MESSAGE, StringResourceProvider.Instance.EnterNewTagsHint)
+            .Build();
+        PageActionHandler.Handle(actionModel);
     }
 
     private void MarkAsUnreadButton_Click(object sender, RoutedEventArgs e)

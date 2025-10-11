@@ -296,6 +296,13 @@ $comics</value>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>全画面表示</value>
   </data>
+  <data name="EnterNewTags" xml:space="preserve">
+    <value>新しいタグを入力</value>
+  </data>
+  <data name="EnterNewTagsHint" xml:space="preserve">
+    <value>カテゴリー: タグ1,タグ2     - 「カテゴリー」に「タグ1」と「タグ2」を追加します。
+カテゴリー:: タグ1,タグ2    - 「カテゴリー」を「タグ1」と「タグ2」で上書きします。</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>エラー</value>
   </data>
@@ -729,8 +736,8 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>タグを適切に使うことで、ライブラリを整理しやすくなります。例：
-カテゴリー1: タグ1/タグ2/タグ3
-カテゴリー2: タグ4/タグ5
+カテゴリー1: タグ1, タグ2, タグ3
+カテゴリー2: タグ4, タグ5
 …</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">

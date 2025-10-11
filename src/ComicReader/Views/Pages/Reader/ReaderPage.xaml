@@ -277,8 +277,7 @@
                                 <Rectangle
                                     Height="1"
                                     Margin="0,20"
-                                    Fill="{ThemeResource ComicInfoSeparatorForeground}"
-                                    Visibility="{x:Bind ViewModel.IsComicTagsVisible, Mode=OneWay}" />
+                                    Fill="{ThemeResource ComicInfoSeparatorForeground}" />
 
                                 <ListView
                                     Margin="0,0,0,0"
@@ -293,33 +292,36 @@
                                     </ListView.ItemContainerStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="vm:TagCollectionViewModel">
-                                            <StackPanel Margin="0,0,0,10" Orientation="Vertical">
-                                                <StackPanel Margin="5,0,0,5" Orientation="Horizontal">
-                                                    <FontIcon
-                                                        Margin="0,0,7,0"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="12"
-                                                        Glyph="&#xE8EC;" />
-                                                    <TextBlock
-                                                        Margin="0,0,0,1"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="12"
-                                                        Text="{x:Bind Name}" />
-                                                </StackPanel>
-                                                <muxc:ItemsRepeater ItemsSource="{x:Bind Tags}">
-                                                    <muxc:ItemsRepeater.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:TagViewModel">
-                                                            <controls:TagButton DataContext="{x:Bind}" />
-                                                        </DataTemplate>
-                                                    </muxc:ItemsRepeater.ItemTemplate>
-                                                    <muxc:ItemsRepeater.Layout>
-                                                        <cwc:WrapLayout HorizontalSpacing="5" VerticalSpacing="5" />
-                                                    </muxc:ItemsRepeater.Layout>
-                                                </muxc:ItemsRepeater>
-                                            </StackPanel>
+                                            <reader:TagCategoryView DataContext="{x:Bind}" />
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
+
+                                <Grid Height="4" Visibility="{x:Bind ViewModel.IsComicTagsVisible, Mode=OneWay}" />
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox
+                                        Grid.Column="0"
+                                        IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
+                                        KeyDown="NewTagsTextBox_KeyDown"
+                                        PlaceholderText="{x:Bind StringResource.EnterNewTags}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0"
+                                        Padding="0"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="NewTagTipButton_Click">
+                                        <Button.Content>
+                                            <FontIcon FontSize="12" Glyph="&#xE946;" />
+                                        </Button.Content>
+                                    </Button>
+                                </Grid>
+
                             </StackPanel>
                         </ScrollViewer>
 
