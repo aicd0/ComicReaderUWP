@@ -482,8 +482,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        var newCollection = new ObservableCollection<TagCollectionViewModel>();
-
+        List<TagCollectionViewModel> newCollection = [];
         for (int i = 0; i < comic.Tags.Count; ++i)
         {
             ComicData.TagData tags = comic.Tags[i];

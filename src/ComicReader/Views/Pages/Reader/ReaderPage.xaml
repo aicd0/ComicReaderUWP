@@ -292,30 +292,7 @@
                                     </ListView.ItemContainerStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="vm:TagCollectionViewModel">
-                                            <StackPanel Margin="0,0,0,10" Orientation="Vertical">
-                                                <StackPanel Margin="5,0,0,5" Orientation="Horizontal">
-                                                    <FontIcon
-                                                        Margin="0,0,7,0"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="12"
-                                                        Glyph="&#xE8EC;" />
-                                                    <TextBlock
-                                                        Margin="0,0,0,1"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="12"
-                                                        Text="{x:Bind Name}" />
-                                                </StackPanel>
-                                                <muxc:ItemsRepeater ItemsSource="{x:Bind Tags}">
-                                                    <muxc:ItemsRepeater.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:TagViewModel">
-                                                            <controls:TagButton DataContext="{x:Bind}" />
-                                                        </DataTemplate>
-                                                    </muxc:ItemsRepeater.ItemTemplate>
-                                                    <muxc:ItemsRepeater.Layout>
-                                                        <cwc:WrapLayout HorizontalSpacing="5" VerticalSpacing="5" />
-                                                    </muxc:ItemsRepeater.Layout>
-                                                </muxc:ItemsRepeater>
-                                            </StackPanel>
+                                            <reader:TagCategoryView DataContext="{x:Bind}" />
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>

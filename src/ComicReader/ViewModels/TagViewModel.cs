@@ -57,6 +57,8 @@ internal partial class TagViewModel : INotifyPropertyChanged
 
 internal partial class TagCollectionViewModel(string name) : INotifyPropertyChanged
 {
+    public static readonly TagCollectionViewModel Default = new(string.Empty);
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private string _name = name;
@@ -71,4 +73,12 @@ internal partial class TagCollectionViewModel(string name) : INotifyPropertyChan
     }
 
     public ObservableCollection<TagViewModel> Tags { get; } = [];
+
+    public void NotifyImmediately()
+    {
+        for (int i = 0; i < Tags.Count; i++)
+        {
+            Tags[i] = Tags[i];
+        }
+    }
 };
