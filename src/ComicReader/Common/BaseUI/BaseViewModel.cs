@@ -6,4 +6,8 @@ namespace ComicReader.Common.BaseUI;
 public class BaseViewModel
 {
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
+
+    public virtual void NotifyImmediately()
+    {
+    }
 }
