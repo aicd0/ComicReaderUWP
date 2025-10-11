@@ -737,8 +737,8 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>Правильное использование тегов может облегчить организацию вашей библиотеки. Например:
-Категория1: Тег1/Тег2/Тег3
-Категория2: Тег4/Тег5
+Категория1: Тег1, Тег2, Тег3
+Категория2: Тег4, Тег5
 ...</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">

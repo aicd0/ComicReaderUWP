@@ -736,8 +736,8 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>为漫画添加标签可以使您的仓库更易于管理，例如：
-类别1: 标签1/标签2/标签3
-类别2: 标签4/标签5
+类别1: 标签1, 标签2, 标签3
+类别2: 标签4, 标签5
 ...</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">

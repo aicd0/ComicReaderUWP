@@ -736,8 +736,8 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>為漫畫添加標籤可以使您的倉庫更易於管理，例如：
-類別1: 標籤1/標籤2/標籤3
-類別2: 標籤4/標籤5
+類別1: 標籤1, 標籤2, 標籤3
+類別2: 標籤4, 標籤5
 …</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">

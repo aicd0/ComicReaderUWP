@@ -736,8 +736,8 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>Utiliser correctement les étiquettes peut faciliter l'organisation de votre bibliothèque. Par exemple :
-Catégorie 1 : Étiquette 1/Étiquette 2/Étiquette 3
-Catégorie 2 : Étiquette 4/Étiquette 5
+Catégorie 1 : Étiquette 1, Étiquette 2, Étiquette 3
+Catégorie 2 : Étiquette 4, Étiquette 5
 …</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">

@@ -738,8 +738,8 @@ The evaluation will be performed in the following order:
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>Using tags properly can make your library easier to get organized. For example:
-Category1: Tag1/Tag2/Tag3
-Category2: Tag4/Tag5
+Category1: Tag1, Tag2, Tag3
+Category2: Tag4, Tag5
 ...</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">

@@ -736,8 +736,8 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>タグを適切に使うことで、ライブラリを整理しやすくなります。例：
-カテゴリー1: タグ1/タグ2/タグ3
-カテゴリー2: タグ4/タグ5
+カテゴリー1: タグ1, タグ2, タグ3
+カテゴリー2: タグ4, タグ5
 …</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
