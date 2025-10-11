@@ -39,16 +39,6 @@ internal abstract class ComicData
     private static readonly MutableLiveData<bool> _isScanningLibrary = new(false);
     public static LiveData<bool> IsScanningLibrary => _isScanningLibrary;
 
-    private static string? _defaultTagsString = null;
-    private static string DefaultTagsString
-    {
-        get
-        {
-            _defaultTagsString ??= StringResourceProvider.Instance.DefaultTags;
-            return _defaultTagsString;
-        }
-    }
-
     private static int _pendingUpdateTaskCount = 0;
 
     //
@@ -821,9 +811,9 @@ internal abstract class ComicData
             return;
         }
 
-        Title1 = tags[tags.Count - 1];
+        Title1 = tags[^1];
 
-        TagData defaultTag = new(DefaultTagsString, tags.Skip(1).ToHashSet());
+        TagData defaultTag = new(StringResourceProvider.Instance.Default, tags.Skip(1).ToHashSet());
         Tags = [defaultTag];
     }
 

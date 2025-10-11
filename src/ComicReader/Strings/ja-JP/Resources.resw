@@ -296,6 +296,13 @@ $comics</value>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>全画面表示</value>
   </data>
+  <data name="EnterNewTags" xml:space="preserve">
+    <value>新しいタグを入力</value>
+  </data>
+  <data name="EnterNewTagsHint" xml:space="preserve">
+    <value>カテゴリー: タグ1,タグ2     - 「カテゴリー」に「タグ1」と「タグ2」を追加します。
+カテゴリー:: タグ1,タグ2    - 「カテゴリー」を「タグ1」と「タグ2」で上書きします。</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>エラー</value>
   </data>

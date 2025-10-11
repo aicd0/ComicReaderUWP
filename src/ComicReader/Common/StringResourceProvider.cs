@@ -56,6 +56,8 @@ public class StringResourceProvider
     public string Done => GetResourceString("Done");
     public string Edit => GetResourceString("Edit");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
+    public string EnterNewTags => GetResourceString("EnterNewTags");
+    public string EnterNewTagsHint => GetResourceString("EnterNewTagsHint");
     public string Error => GetResourceString("Error");
     public string ErrorCommonDescription => GetResourceString("ErrorCommonDescription");
     public string Exit => GetResourceString("Exit");

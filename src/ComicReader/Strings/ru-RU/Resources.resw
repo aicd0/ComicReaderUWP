@@ -296,6 +296,13 @@ $comics</value>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Перейти в полноэкранный режим</value>
   </data>
+  <data name="EnterNewTags" xml:space="preserve">
+    <value>Введите новые теги</value>
+  </data>
+  <data name="EnterNewTagsHint" xml:space="preserve">
+    <value>Категория: Тег1, Тег2     - Добавить «Тег1» и «Тег2» в «Категорию».
+Категория:: Тег1, Тег2    - Перезаписать «Категорию» на «Тег1» и «Тег2».</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>Ошибка</value>
   </data>

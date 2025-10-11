@@ -277,8 +277,7 @@
                                 <Rectangle
                                     Height="1"
                                     Margin="0,20"
-                                    Fill="{ThemeResource ComicInfoSeparatorForeground}"
-                                    Visibility="{x:Bind ViewModel.IsComicTagsVisible, Mode=OneWay}" />
+                                    Fill="{ThemeResource ComicInfoSeparatorForeground}" />
 
                                 <ListView
                                     Margin="0,0,0,0"
@@ -320,6 +319,32 @@
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
+
+                                <Grid Height="4" Visibility="{x:Bind ViewModel.IsComicTagsVisible, Mode=OneWay}" />
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox
+                                        Grid.Column="0"
+                                        IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
+                                        KeyDown="NewTagsTextBox_KeyDown"
+                                        PlaceholderText="{x:Bind StringResource.EnterNewTags}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Margin="8,0,0,0"
+                                        Padding="0"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="NewTagTipButton_Click">
+                                        <Button.Content>
+                                            <FontIcon FontSize="12" Glyph="&#xE946;" />
+                                        </Button.Content>
+                                    </Button>
+                                </Grid>
+
                             </StackPanel>
                         </ScrollViewer>
 

@@ -296,6 +296,13 @@ $comics</value>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Enter fullscreen</value>
   </data>
+  <data name="EnterNewTags" xml:space="preserve">
+    <value>Enter new tags</value>
+  </data>
+  <data name="EnterNewTagsHint" xml:space="preserve">
+    <value>Category: Tag1, Tag2     - Add "Tag1" and "Tag2" to "Category".
+Category:: Tag1, Tag2    - Overwrite "Category" with "Tag1" and "Tag2".</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>

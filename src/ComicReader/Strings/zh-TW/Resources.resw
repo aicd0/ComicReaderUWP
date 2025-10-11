@@ -296,6 +296,13 @@ $comics</value>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>進入全螢幕</value>
   </data>
+  <data name="EnterNewTags" xml:space="preserve">
+    <value>輸入新標籤</value>
+  </data>
+  <data name="EnterNewTagsHint" xml:space="preserve">
+    <value>分類: 標籤1,標籤2     - 將「標籤1」和「標籤2」新增到「分類」中。
+分類:: 標籤1,標籤2    - 以「標籤1」和「標籤2」覆蓋「分類」。</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>錯誤</value>
   </data>
