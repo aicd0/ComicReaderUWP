@@ -169,7 +169,7 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <Grid SizeChanged="OnRootGridSizeChanged">
+    <Grid>
 
         <!--  Content  -->
         <muxc:TabView

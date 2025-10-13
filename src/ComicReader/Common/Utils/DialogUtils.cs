@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

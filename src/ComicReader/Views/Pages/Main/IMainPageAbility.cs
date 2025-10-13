@@ -12,16 +12,11 @@ namespace ComicReader.Views.Pages.Main;
 internal interface IMainPageAbility : IPageAbility
 {
     public delegate void TabUnselectedEventHandler();
-    public delegate void FullscreenChangedEventHandler(bool isFullscreen);
     public delegate void TitleBarVisibilityChangedEventHandler(bool visible);
 
     void OpenInCurrentTab(Route route);
 
     void OpenInNewTab(Route route);
-
-    void EnterFullscreen();
-
-    void ExitFullscreen();
 
     void SetTitle(string title);
 
@@ -30,8 +25,6 @@ internal interface IMainPageAbility : IPageAbility
     void SetCurrentPageInfo(string url, IPageTrait pageTrait);
 
     void RegisterTabUnselectedHandler(ILifecycleOwner owner, TabUnselectedEventHandler handler);
-
-    void RegisterFullscreenChangedHandler(ILifecycleOwner owner, FullscreenChangedEventHandler handler);
 
     void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);
 

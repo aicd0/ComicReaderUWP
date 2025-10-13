@@ -11,6 +11,7 @@ using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Native;
 using ComicReader.SDK.Common.Storage;
+using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;

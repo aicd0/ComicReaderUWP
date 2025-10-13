@@ -4,6 +4,7 @@
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.ServiceManagement;
+using ComicReader.Views.AppWindows.Main;
 
 namespace ComicReader.Common.Services;
 

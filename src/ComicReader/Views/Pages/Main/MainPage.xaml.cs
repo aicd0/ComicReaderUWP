@@ -15,6 +15,7 @@ using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.Views.AppWindows.Main;
 using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI;
@@ -114,6 +115,9 @@ internal sealed partial class MainPage : BasePage
     {
         base.OnStart(bundle);
 
+        string url = bundle.GetString(RouterConstants.ARG_URL);
+        bool recoverTabs = bundle.GetString(RouterConstants.ARG_RECOVER_TABS, "0") == "1";
+
         Window? window = CurrentWindow;
         if (window is not null)
         {
@@ -131,17 +135,7 @@ internal sealed partial class MainPage : BasePage
         }
 
         ViewModel.OnStart();
-
-        string url = bundle.GetString(RouterConstants.ARG_URL);
-        bool recoverTabs = bundle.GetString(RouterConstants.ARG_RECOVER_TABS, "0") == "1";
         LoadInitialTabs(url, recoverTabs);
-
-        if (recoverTabs)
-        {
-            bool isFullscreen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, false);
-            EnterOrExitFullscreen(isFullscreen);
-        }
-
         ObserveData();
     }
 
@@ -187,6 +181,11 @@ internal sealed partial class MainPage : BasePage
         });
 
         GetEventBus().With<int>(EventId.CloseTab).Observe(this, CloseTabNoLock);
+
+        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, isFullscreen =>
+        {
+            ViewModel.IsFullscreen = isFullscreen;
+        });
     }
 
     private void LoadInitialTabs(string url, bool recoverTabs)
@@ -684,45 +683,12 @@ internal sealed partial class MainPage : BasePage
 
     private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)
     {
-        EnterOrExitFullscreen(true);
+        GetMainWindowAbility().EnterFullscreen();
     }
 
     private void OnBackToWindowBtClicked(object sender, RoutedEventArgs e)
     {
-        EnterOrExitFullscreen(false);
-    }
-
-    private void EnterOrExitFullscreen(bool isFullscreen)
-    {
-        Window? window = CurrentWindow;
-        if (window == null || IsFullScreen(window) == isFullscreen)
-        {
-            return;
-        }
-
-        window.AppWindow.SetPresenter(isFullscreen ? AppWindowPresenterKind.FullScreen : AppWindowPresenterKind.Default);
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, isFullscreen);
-        DispatchFullscreenChangeEvent(isFullscreen);
-    }
-
-    private void DispatchFullscreenChangeEvent(bool isFullscreen)
-    {
-        if (ViewModel.IsFullscreen == isFullscreen)
-        {
-            return;
-        }
-
-        ViewModel.IsFullscreen = isFullscreen;
-
-        DispatchToAllTabs(delegate (MainPageAbility ability)
-        {
-            ability.SendFullscreenChangedEvent(isFullscreen);
-        });
-    }
-
-    private bool IsFullScreen(Window window)
-    {
-        return window.AppWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen;
+        GetMainWindowAbility().ExitFullscreen();
     }
 
     //
@@ -732,15 +698,6 @@ internal sealed partial class MainPage : BasePage
     private void OnTabContainerGridSizeChanged(object sender, SizeChangedEventArgs e)
     {
         GetEventBus().With<double>(EventId.RootTabHeightChange).Emit(e.NewSize.Height);
-    }
-
-    private void OnRootGridSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        Window? window = CurrentWindow;
-        if (window != null && !IsFullScreen(window))
-        {
-            DispatchFullscreenChangeEvent(false);
-        }
     }
 
     //
@@ -753,7 +710,7 @@ internal sealed partial class MainPage : BasePage
         switch (e.Key)
         {
             case Windows.System.VirtualKey.Escape:
-                EnterOrExitFullscreen(false);
+                GetMainWindowAbility().ExitFullscreen();
                 handled = true;
                 break;
             default:
@@ -770,6 +727,11 @@ internal sealed partial class MainPage : BasePage
     //
     // Utilities
     //
+
+    private IMainWindowAbility GetMainWindowAbility()
+    {
+        return GetAbility<IMainWindowAbility>()!;
+    }
 
     private void DispatchToAllTabs(Action<MainPageAbility> action)
     {
@@ -861,9 +823,10 @@ internal sealed partial class MainPage : BasePage
     // Page Ability
     //
 
-    private static void RegisterPageAbility(PageCommunicator communicator, MainPageAbility ability)
+    private void RegisterPageAbility(PageCommunicator communicator, MainPageAbility ability)
     {
         communicator.RegisterAbility<ICommonPageAbility>(ability);
+        communicator.RegisterAbility(GetMainWindowAbility());
         communicator.RegisterAbility<IMainPageAbility>(ability);
     }
 
@@ -873,7 +836,6 @@ internal sealed partial class MainPage : BasePage
 
         private readonly WeakReference<MainPage> _parent = new(parent);
         private readonly EventBus _eventBus = new();
-        private readonly MutableLiveData<bool> _fullscreenChangeLiveData = new(parent.ViewModel.IsFullscreen);
         private readonly MutableLiveData<bool> _titleBarVisibilityChangeLiveData = new(parent._titleBarVisible);
         private readonly int _tabId = tabId;
 
@@ -913,26 +875,6 @@ internal sealed partial class MainPage : BasePage
             }
 
             parent.OpenInNewTab(route);
-        }
-
-        public void EnterFullscreen()
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            parent.EnterOrExitFullscreen(true);
-        }
-
-        public void ExitFullscreen()
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            parent.EnterOrExitFullscreen(false);
         }
 
         public void SetTitle(string title)
@@ -988,14 +930,6 @@ internal sealed partial class MainPage : BasePage
             _eventBus.With<bool>(EVENT_TAB_UNSELECTED).Emit(true);
         }
 
-        public void RegisterFullscreenChangedHandler(ILifecycleOwner owner, IMainPageAbility.FullscreenChangedEventHandler handler)
-        {
-            _fullscreenChangeLiveData.ObserveSticky(owner, delegate (bool isFullscreen)
-            {
-                handler(isFullscreen);
-            });
-        }
-
         public void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)
         {
             _titleBarVisibilityChangeLiveData.ObserveSticky(owner, delegate (bool visible)
@@ -1012,11 +946,6 @@ internal sealed partial class MainPage : BasePage
             }
 
             parent.ShowOrHideTitleBar(show, transitionAnimation: true);
-        }
-
-        public void SendFullscreenChangedEvent(bool isFullscreen)
-        {
-            _fullscreenChangeLiveData.Emit(isFullscreen);
         }
 
         public void SendTitleBarVisibilityChangedEvent(bool visible)

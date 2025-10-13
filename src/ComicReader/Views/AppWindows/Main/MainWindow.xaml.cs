@@ -16,7 +16,9 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Native;
+using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.Pages.Main;
 
@@ -31,7 +33,7 @@ using Windows.Win32;
 
 using WinRT.Interop;
 
-namespace ComicReader;
+namespace ComicReader.Views.AppWindows.Main;
 
 public sealed partial class MainWindow : Window
 {
@@ -50,25 +52,26 @@ public sealed partial class MainWindow : Window
             Route? route = await GetFileActivatedComicRoute(args);
             if (route is null)
             {
-                Open(recoverTabs: true);
+                Open(recoverTabs: true, restorePlacement: true);
                 return;
             }
 
-            Open(route.Url, recoverTabs: false);
+            Open(route.Url, recoverTabs: false, restorePlacement: true);
         });
     }
 
-    public static void Open(string url = "", bool recoverTabs = false)
+    public static void Open(string url = "", bool recoverTabs = false, bool restorePlacement = false)
     {
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
-            .WithParam(RouterConstants.ARG_RECOVER_TABS, recoverTabs ? "1" : "0");
+        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN);
 
         if (!string.IsNullOrEmpty(url))
         {
             route.WithParam(RouterConstants.ARG_URL, url);
         }
 
-        MainWindow window = new(route.Url);
+        route.WithParam(RouterConstants.ARG_RECOVER_TABS, recoverTabs ? "1" : "0");
+
+        MainWindow window = new(route.Url, restorePlacement);
         window.Activate();
     }
 
@@ -91,10 +94,11 @@ public sealed partial class MainWindow : Window
     // Constructors
     //
 
-    private MainWindow(string url)
+    private MainWindow(string url, bool restorePlacement)
     {
-        _members = new();
+        _members = new(this);
         Members._url = url;
+        Members._restorePlacementRequested = restorePlacement;
 
         InitializeComponent();
 
@@ -172,6 +176,11 @@ public sealed partial class MainWindow : Window
 
     private void OnWindowSizeChanged(object sender, WindowSizeChangedEventArgs args)
     {
+        MainThreadUtils.PostInMainThread(() =>
+        {
+            DispatchFullscreenChangeEvent(IsFullScreen());
+        });
+
         ScheduleSavingWindowPlacement();
     }
 
@@ -182,6 +191,7 @@ public sealed partial class MainWindow : Window
             .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
         NavigationBundle bundle = AppRouter.Process(route)!;
         bundle.Communicator.RegisterAbility<ICommonPageAbility>(Members._mainWindowAbility);
+        bundle.Communicator.RegisterAbility<IMainWindowAbility>(Members._mainWindowAbility);
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
         Members._mainPage = (MainPage)PageFrame.Content;
 
@@ -189,7 +199,18 @@ public sealed partial class MainWindow : Window
         Alive = true;
 
         // Restore window placement
-        TryRestoreWindowPlacement();
+        if (Members._restorePlacementRequested)
+        {
+            bool fullscreen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, false);
+            if (fullscreen)
+            {
+                EnterOrExitFullscreen(true);
+            }
+            else
+            {
+                TryRestoreWindowPlacement();
+            }
+        }
 
         if (WindowMembers.sIsFirstWindow)
         {
@@ -398,6 +419,38 @@ public sealed partial class MainWindow : Window
     }
 
     //
+    // Fullscreen
+    //
+
+    private void EnterOrExitFullscreen(bool isFullscreen)
+    {
+        if (IsFullScreen() == isFullscreen)
+        {
+            return;
+        }
+
+        AppWindow.SetPresenter(isFullscreen ? AppWindowPresenterKind.FullScreen : AppWindowPresenterKind.Default);
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, isFullscreen);
+        DispatchFullscreenChangeEvent(isFullscreen);
+    }
+
+    private bool IsFullScreen()
+    {
+        return AppWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen;
+    }
+
+    private void DispatchFullscreenChangeEvent(bool isFullscreen)
+    {
+        if (Members._fullscreen == isFullscreen)
+        {
+            return;
+        }
+
+        Members._fullscreen = isFullscreen;
+        Members._mainWindowAbility.SendFullscreenChangedEvent(isFullscreen);
+    }
+
+    //
     // Helpers
     //
 
@@ -447,8 +500,10 @@ public sealed partial class MainWindow : Window
     // Page Ability
     //
 
-    private class MainWindowAbility : ICommonPageAbility
+    private class MainWindowAbility(MainWindow window) : ICommonPageAbility, IMainWindowAbility
     {
+        private readonly WeakReference<MainWindow> _windowRef = new(window);
+        private readonly MutableLiveData<bool> _fullscreenChangeLiveData = new(false);
         private PageStopEventHandler? _pageStopped;
 
         public void RegisterPageStopHandler(PageStopEventHandler handler)
@@ -461,10 +516,43 @@ public sealed partial class MainWindow : Window
             _pageStopped -= handler;
         }
 
+        public void EnterFullscreen()
+        {
+            GetWindow()?.EnterOrExitFullscreen(true);
+        }
+
+        public void ExitFullscreen()
+        {
+            GetWindow()?.EnterOrExitFullscreen(false);
+        }
+
+        public void RegisterFullscreenChangedHandler(ILifecycleOwner owner, IMainWindowAbility.FullscreenChangedEventHandler handler)
+        {
+            _fullscreenChangeLiveData.ObserveSticky(owner, delegate (bool isFullscreen)
+            {
+                handler(isFullscreen);
+            });
+        }
+
         public void DispatchPageStoppedEvent()
         {
             _pageStopped?.Invoke();
             _pageStopped = null;
+        }
+
+        public void SendFullscreenChangedEvent(bool isFullscreen)
+        {
+            _fullscreenChangeLiveData.Emit(isFullscreen);
+        }
+
+        private MainWindow? GetWindow()
+        {
+            if (_windowRef.TryGetTarget(out MainWindow? window))
+            {
+                return window;
+            }
+
+            return null;
         }
     }
 
@@ -472,7 +560,7 @@ public sealed partial class MainWindow : Window
     // Types
     //
 
-    private class WindowMembers
+    private class WindowMembers(MainWindow window)
     {
         public static bool sIsFirstWindow = true;
 
@@ -480,7 +568,9 @@ public sealed partial class MainWindow : Window
         public string _url = string.Empty;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _originProc;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _wndProcDelegate;
-        public readonly MainWindowAbility _mainWindowAbility = new();
+        public readonly MainWindowAbility _mainWindowAbility = new(window);
+        public bool _fullscreen = false;
+        public bool _restorePlacementRequested = false;
         public bool _saveWindowPlacementScheduled = false;
     }
 }

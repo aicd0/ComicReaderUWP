@@ -18,6 +18,26 @@ public static class MainThreadUtils
 
     public static Task RunInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
+        return RunInMainThread(action, priority, true);
+    }
+
+    public static Task PostInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    {
+        return RunInMainThread(action, priority, false);
+    }
+
+    public static Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    {
+        return RunInMainThreadAsync(action, priority, true);
+    }
+
+    public static Task PostInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    {
+        return RunInMainThreadAsync(action, priority, false);
+    }
+
+    private static Task RunInMainThread(Action action, DispatcherQueuePriority priority, bool runImmediatelyIfPossible)
+    {
         if (TestSettings.UseCurrentThreadAsMainThread)
         {
             action();
@@ -30,7 +50,7 @@ public static class MainThreadUtils
             return Task.FromException(new InvalidOperationException("Main thread dispatcher is currently unavailable"));
         }
 
-        if (dispatcher.HasThreadAccess)
+        if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
             try
             {
@@ -65,7 +85,7 @@ public static class MainThreadUtils
         return taskCompletionSource.Task;
     }
 
-    public static Task PostInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    private static Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority, bool runImmediatelyIfPossible)
     {
         if (TestSettings.UseCurrentThreadAsMainThread)
         {
@@ -73,9 +93,21 @@ public static class MainThreadUtils
         }
 
         DispatcherQueue? dispatcher = GetMainThreadDispatcher();
-        if (dispatcher == null)
+        if (dispatcher is null)
         {
             return Task.CompletedTask;
+        }
+
+        if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
+        {
+            try
+            {
+                return action();
+            }
+            catch (Exception e)
+            {
+                return Task.FromException(e);
+            }
         }
 
         var taskCompletionSource = new TaskCompletionSource<object?>();
