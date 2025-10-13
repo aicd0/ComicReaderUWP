@@ -6,6 +6,7 @@ using System.Threading;
 
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.Views.AppWindows.Main;
 
 namespace ComicReader.Common;
 

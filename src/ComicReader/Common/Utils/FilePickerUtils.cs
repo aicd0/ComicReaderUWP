@@ -4,6 +4,8 @@
 using System;
 using System.Threading.Tasks;
 
+using ComicReader.Views.AppWindows.Main;
+
 using Windows.Storage;
 using Windows.Storage.Pickers;
 

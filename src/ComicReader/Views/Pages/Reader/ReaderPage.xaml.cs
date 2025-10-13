@@ -20,6 +20,7 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
+using ComicReader.Views.AppWindows.Main;
 using ComicReader.Views.Dialogs.EditComicInfo;
 using ComicReader.Views.Dialogs.EditTag;
 using ComicReader.Views.Pages.Main;

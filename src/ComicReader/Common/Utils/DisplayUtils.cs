@@ -6,6 +6,7 @@ using System.Drawing;
 
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Native;
+using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI;
 using Microsoft.UI.Windowing;

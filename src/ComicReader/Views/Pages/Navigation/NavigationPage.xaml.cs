@@ -12,6 +12,7 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.Views.AppWindows.Main;
 using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Input;

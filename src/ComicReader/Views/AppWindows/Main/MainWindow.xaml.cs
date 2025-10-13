@@ -33,7 +33,7 @@ using Windows.Win32;
 
 using WinRT.Interop;
 
-namespace ComicReader;
+namespace ComicReader.Views.AppWindows.Main;
 
 public sealed partial class MainWindow : Window
 {

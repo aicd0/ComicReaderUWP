@@ -4,7 +4,7 @@
 using ComicReader.Common.BaseUI;
 using ComicReader.SDK.Common.Lifecycle;
 
-namespace ComicReader;
+namespace ComicReader.Views.AppWindows.Main;
 
 internal interface IMainWindowAbility : IPageAbility
 {
