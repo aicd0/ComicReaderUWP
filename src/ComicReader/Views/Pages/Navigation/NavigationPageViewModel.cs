@@ -36,6 +36,28 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _refreshing = false;
+    public bool Refreshing
+    {
+        get => _refreshing;
+        set
+        {
+            _refreshing = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Refreshing)));
+        }
+    }
+
+    private bool _isHomePage = false;
+    public bool IsHomePage
+    {
+        get => _isHomePage;
+        set
+        {
+            _isHomePage = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsHomePage)));
+        }
+    }
+
     private List<BaseMenuFlyoutItemViewModel> _moreButtonFlyoutItems = [];
     public List<BaseMenuFlyoutItemViewModel> MoreButtonFlyoutItems
     {

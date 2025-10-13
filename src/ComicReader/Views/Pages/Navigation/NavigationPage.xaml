@@ -81,17 +81,22 @@
                             Style="{StaticResource NavigationPageTopTileAppBarButton}"
                             ToolTipService.ToolTip="{x:Bind StringResource.GoForward}" />
                         <AppBarButton
-                            x:Name="AbbHomeButton"
                             x:Uid="HomeButton"
                             Click="OnHomeClick"
                             Icon="Home"
-                            Style="{StaticResource NavigationPageTopTileAppBarButton}" />
-                        <AppBarButton
-                            x:Name="AbbRefreshButton"
-                            Click="OnRefreshClick"
-                            Icon="Refresh"
                             Style="{StaticResource NavigationPageTopTileAppBarButton}"
-                            ToolTipService.ToolTip="{x:Bind StringResource.Refresh}" />
+                            Visibility="{x:Bind ViewModel.IsHomePage, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
+                        <Grid Visibility="{x:Bind ViewModel.IsHomePage, Mode=OneWay}">
+                            <AppBarButton
+                                Click="OnRefreshClick"
+                                Icon="Refresh"
+                                Style="{StaticResource NavigationPageTopTileAppBarButton}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.Refresh}"
+                                Visibility="{x:Bind ViewModel.Refreshing, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
+                            <AppBarButton Style="{StaticResource NavigationPageTopTileAppBarButton}" Visibility="{x:Bind ViewModel.Refreshing, Mode=OneWay}">
+                                <ProgressRing IsActive="True" />
+                            </AppBarButton>
+                        </Grid>
                     </StackPanel>
 
                     <!--  Search box  -->

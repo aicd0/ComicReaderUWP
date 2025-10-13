@@ -7,6 +7,7 @@ using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Data.Models;
+using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
@@ -62,6 +63,11 @@ internal sealed partial class NavigationPage : BasePage
 
     private void ObserveData()
     {
+        ComicData.IsScanningLibrary.ObserveSticky(this, scanning =>
+        {
+            ViewModel.Refreshing = scanning;
+        });
+
         GetEventBus().With<double>(EventId.RootTabHeightChange).ObserveSticky(this, delegate (double h)
         {
             _rootTabHeight = h;
@@ -171,8 +177,7 @@ internal sealed partial class NavigationPage : BasePage
         NavigationPageSidePane.IsPaneOpen = false;
         bool isHomePage = _currentBundle.PageTrait is HomePageTrait;
         bool isReaderPage = _currentBundle.PageTrait is ReaderPageTrait;
-        AbbHomeButton.Visibility = isHomePage ? Visibility.Collapsed : Visibility.Visible;
-        AbbRefreshButton.Visibility = isHomePage ? Visibility.Visible : Visibility.Collapsed;
+        ViewModel.IsHomePage = isHomePage;
         SearchBox.Visibility = isReaderPage ? Visibility.Collapsed : Visibility.Visible;
         SpCenterButtons.Visibility = isReaderPage ? Visibility.Visible : Visibility.Collapsed;
         SetSearchBox("");
