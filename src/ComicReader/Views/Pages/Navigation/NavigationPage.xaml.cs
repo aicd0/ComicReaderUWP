@@ -73,7 +73,7 @@ internal sealed partial class NavigationPage : BasePage
             TopTile.IsHitTestVisible = opacity > 0.5;
         });
 
-        GetMainPageAbility().RegisterFullscreenChangedHandler(this, isFullscreen =>
+        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, isFullscreen =>
         {
             ViewModel.IsFullscreen = isFullscreen;
         });
@@ -92,11 +92,11 @@ internal sealed partial class NavigationPage : BasePage
         {
             if (isFullscreen)
             {
-                GetMainPageAbility().EnterFullscreen();
+                GetMainWindowAbility().EnterFullscreen();
             }
             else
             {
-                GetMainPageAbility().ExitFullscreen();
+                GetMainWindowAbility().ExitFullscreen();
             }
         });
     }
@@ -381,6 +381,11 @@ internal sealed partial class NavigationPage : BasePage
     // Utilities
     //
 
+    private IMainWindowAbility GetMainWindowAbility()
+    {
+        return GetAbility<IMainWindowAbility>()!;
+    }
+
     private IMainPageAbility GetMainPageAbility()
     {
         return GetAbility<IMainPageAbility>()!;
@@ -389,6 +394,7 @@ internal sealed partial class NavigationPage : BasePage
     private void TransferAbility(PageCommunicator communicator)
     {
         communicator.RegisterAbility(GetAbility<ICommonPageAbility>()!);
+        communicator.RegisterAbility(GetAbility<IMainWindowAbility>()!);
         communicator.RegisterAbility(GetMainPageAbility());
         communicator.RegisterAbility<INavigationPageAbility>(_ability);
     }

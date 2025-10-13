@@ -222,7 +222,7 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        GetMainPageAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
+        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
         {
             ViewModel.IsFullscreen = isFullscreen;
         });
@@ -678,12 +678,12 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)
     {
-        GetMainPageAbility().EnterFullscreen();
+        GetMainWindowAbility().EnterFullscreen();
     }
 
     private void OnBackToWindowBtClicked(object sender, RoutedEventArgs e)
     {
-        GetMainPageAbility().ExitFullscreen();
+        GetMainWindowAbility().ExitFullscreen();
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
@@ -696,6 +696,11 @@ internal sealed partial class ReaderPage : BasePage
     //
     // Utilities
     //
+
+    private IMainWindowAbility GetMainWindowAbility()
+    {
+        return GetAbility<IMainWindowAbility>()!;
+    }
 
     private IMainPageAbility GetMainPageAbility()
     {
