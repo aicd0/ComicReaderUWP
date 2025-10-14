@@ -880,29 +880,28 @@ internal abstract class ComicData
         return coverCacheKey;
     }
 
-    public static void UpdateAllComics(string reason, bool skipExistingLocation)
+    public static void UpdateAllComics(string reason)
     {
         int pendingCount = Interlocked.Increment(ref _pendingUpdateTaskCount);
-        Logger.I(TAG, $"UpdateAllComics(reason={reason},SEL={skipExistingLocation})");
+        Logger.I(TAG, $"UpdateAllComics(reason={reason})");
         TaskDispatcher.LongRunningThreadPool.Submit("UpdateAllComics", delegate
         {
             int pendingCount = Interlocked.Decrement(ref _pendingUpdateTaskCount);
             if (pendingCount > 0)
             {
+                // Only keep the last request
                 return;
             }
 
             _isScanningLibrary.Emit(true);
             try
             {
-                UpdateAllComicsInternal(skipExistingLocation).Wait();
+                UpdateAllComicsInternal();
             }
             finally
             {
                 _isScanningLibrary.Emit(false);
             }
-
-            DispatchComicUpdateEvent();
         });
     }
 
@@ -911,33 +910,6 @@ internal abstract class ComicData
     public abstract int GetImageSignature(int index);
 
     protected abstract Task<bool> ReloadImages();
-
-    private static void UpdateComicNoLock(string location, ComicType type, bool isExist)
-    {
-        // Update or create a new one.
-        ComicData? comic;
-
-        if (isExist)
-        {
-            comic = FromLocationNoLock(location);
-        }
-        else
-        {
-            comic = FromDatabase(type, location);
-        }
-
-        if (comic == null)
-        {
-            return;
-        }
-
-        // Load comic info locally.
-        if (!isExist)
-        {
-            comic.SetAsDefaultInfo();
-            comic.SaveAllNoLock();
-        }
-    }
 
     private void InternalSaveTagsNoLock(bool removeOld = true)
     {
@@ -1017,13 +989,14 @@ internal abstract class ComicData
         }
     }
 
-    private static async Task UpdateAllComicsInternal(bool skipExistingLocation)
+    private static void UpdateAllComicsInternal()
     {
         AppSettingsModel.ExternalModel appSettings = AppSettingsModel.Instance.GetModel();
+        bool comicUpdatedSinceLastBroadcast = false;
 
         // Fetch all locations in the database
         var oldLocations = new List<string>();
-        await Enqueue("GetLocationsFromDatabase", delegate
+        Enqueue("GetLocationsFromDatabase", delegate
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
@@ -1034,7 +1007,7 @@ internal abstract class ComicData
             }
 
             return true;
-        });
+        }).Wait();
 
         // Get all root folders from setting
         List<string> rootFolders = [];
@@ -1058,7 +1031,7 @@ internal abstract class ComicData
             }
 
             var ctx = new SearchContext(folderPath, PathType.Folder);
-            while (await ctx.Search(1024))
+            while (ctx.Search(1024).Result)
             {
                 if (_pendingUpdateTaskCount > 0)
                 {
@@ -1112,38 +1085,33 @@ internal abstract class ComicData
                     {
                         Location = location,
                         ItemType = scanResult[location],
-                        IsExist = false,
                     });
                 }
 
-                if (!skipExistingLocation)
+                if (queue.Count > 0)
                 {
-                    var locationKept = C3<string, string, string>.Intersect(
-                        incrementNewLocations, oldLocations,
-                        StringUtils.UniquePath, StringUtils.UniquePath,
-                        new C1<string>.DefaultEqualityComparer()).ToList();
-                    foreach (string location in locationKept)
+                    comicUpdatedSinceLastBroadcast = true;
+                    TransactionBlock(async delegate
                     {
-                        queue.Add(new UpdateItemInfo
+                        foreach (UpdateItemInfo info in queue)
                         {
-                            Location = location,
-                            ItemType = scanResult[location],
-                            IsExist = true,
-                        });
-                    }
+                            ComicData? comic = FromDatabase(info.ItemType, info.Location);
+                            if (comic is null)
+                            {
+                                continue;
+                            }
+
+                            comic.SetAsDefaultInfo();
+                            comic.SaveAllNoLock();
+                        }
+
+                        await Task.CompletedTask;
+                    }, "UpdateComic").Wait();
                 }
 
-                await TransactionBlock(async delegate
+                if (watch.LapSpan().TotalSeconds > 2 && comicUpdatedSinceLastBroadcast)
                 {
-                    foreach (UpdateItemInfo info in queue)
-                    {
-                        UpdateComicNoLock(info.Location, info.ItemType, info.IsExist);
-                    }
-                    await Task.CompletedTask;
-                }, "UpdateComic");
-
-                if (watch.LapSpan().TotalSeconds > 2)
-                {
+                    comicUpdatedSinceLastBroadcast = false;
                     DispatchComicUpdateEvent();
                     watch.Lap();
                 }
@@ -1187,12 +1155,13 @@ internal abstract class ComicData
                     .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
                     .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
                     .Build();
-                proceed = await DialogUtils.EnqueueDialogAsync(options) == ContentDialogResult.Primary;
+                proceed = DialogUtils.EnqueueDialogAsync(options).Result == ContentDialogResult.Primary;
             }
 
             if (proceed)
             {
-                await TransactionBlock(delegate
+                comicUpdatedSinceLastBroadcast = true;
+                TransactionBlock(delegate
                 {
                     foreach (string location in locationRemoved)
                     {
@@ -1201,8 +1170,13 @@ internal abstract class ComicData
                     }
 
                     return Task.CompletedTask;
-                }, "RemoveLocationsFromDatabase");
+                }, "RemoveLocationsFromDatabase").Wait();
             }
+        }
+
+        if (comicUpdatedSinceLastBroadcast)
+        {
+            DispatchComicUpdateEvent();
         }
     }
 
@@ -1223,7 +1197,6 @@ internal abstract class ComicData
     {
         public string Location;
         public ComicType ItemType;
-        public bool IsExist;
     };
 
     internal class TagData(string name, IEnumerable<string> tags)

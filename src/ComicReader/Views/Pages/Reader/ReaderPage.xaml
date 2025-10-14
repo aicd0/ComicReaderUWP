@@ -273,12 +273,12 @@
                                     TextWrapping="Wrap"
                                     Visibility="{x:Bind ViewModel.ImageDescription, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
 
-                                <!--  Tags  -->
                                 <Rectangle
                                     Height="1"
                                     Margin="0,20"
                                     Fill="{ThemeResource ComicInfoSeparatorForeground}" />
 
+                                <!--  Tags  -->
                                 <ListView
                                     Margin="0,0,0,0"
                                     ItemsSource="{x:Bind ViewModel.ComicTags}"
@@ -297,73 +297,76 @@
                                     </ListView.ItemTemplate>
                                 </ListView>
 
-                                <Grid Height="4" Visibility="{x:Bind ViewModel.IsComicTagsVisible, Mode=OneWay}" />
-                                <Grid Margin="0,0,0,4">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox
-                                        Grid.Column="0"
-                                        IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
-                                        KeyDown="NewTagsTextBox_KeyDown"
-                                        PlaceholderText="{x:Bind StringResource.EnterNewTags}" />
-                                    <Button
-                                        Grid.Column="1"
-                                        Margin="8,0,0,0"
-                                        Padding="0"
-                                        VerticalAlignment="Center"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Click="NewTagTipButton_Click">
-                                        <Button.Content>
-                                            <FontIcon FontSize="12" Glyph="&#xE946;" />
-                                        </Button.Content>
-                                    </Button>
-                                </Grid>
-
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!--  Bottom buttons  -->
+                        <!--  Bottom controls  -->
                         <StackPanel
                             Grid.Row="1"
                             Margin="15,5,15,3"
-                            HorizontalAlignment="Right"
-                            Orientation="Horizontal">
-                            <AppBarButton
-                                Click="OnEditInfoClick"
-                                Icon="Edit"
-                                IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
-                                Label="{x:Bind StringResource.Edit}"
-                                Style="{StaticResource InfoPanelAppBarButtonStyle}" />
-                            <AppBarButton
-                                x:Name="SetCompletionStateButton"
-                                Margin="2,0,0,0"
-                                Style="{StaticResource InfoPanelAppBarButtonStyle}">
-                                <AppBarButton.Flyout>
-                                    <MenuFlyout>
-                                        <ToggleMenuFlyoutItem
-                                            x:Name="MarkAsUnreadButton"
-                                            Click="MarkAsUnreadButton_Click"
-                                            Text="{x:Bind StringResource.CompletionStatusUnread}" />
-                                        <ToggleMenuFlyoutItem
-                                            x:Name="MarkAsReadingButton"
-                                            Click="MarkAsReadingButton_Click"
-                                            Text="{x:Bind StringResource.CompletionStatusReading}" />
-                                        <ToggleMenuFlyoutItem
-                                            x:Name="MarkAsFinishedButton"
-                                            Click="MarkAsFinishedButton_Click"
-                                            Text="{x:Bind StringResource.CompletionStatusFinished}" />
-                                    </MenuFlyout>
-                                </AppBarButton.Flyout>
-                            </AppBarButton>
-                            <AppBarButton
-                                Margin="2,0,0,0"
-                                Click="MoreAppBarButton_Click"
-                                Icon="More"
-                                Label="{x:Bind StringResource.More}"
-                                Style="{StaticResource InfoPanelAppBarButtonStyle}" />
+                            Orientation="Vertical">
+
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    Grid.Column="0"
+                                    BorderBrush="Transparent"
+                                    IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
+                                    KeyDown="NewTagsTextBox_KeyDown"
+                                    PlaceholderText="{x:Bind StringResource.EnterNewTags}" />
+                                <Button
+                                    Grid.Column="1"
+                                    Margin="8,0,0,0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="NewTagTipButton_Click">
+                                    <Button.Content>
+                                        <FontIcon FontSize="12" Glyph="&#xE946;" />
+                                    </Button.Content>
+                                </Button>
+                            </Grid>
+
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                <AppBarButton
+                                    Click="OnEditInfoClick"
+                                    Icon="Edit"
+                                    IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
+                                    Label="{x:Bind StringResource.Edit}"
+                                    Style="{StaticResource InfoPanelAppBarButtonStyle}" />
+                                <AppBarButton
+                                    x:Name="SetCompletionStateButton"
+                                    Margin="2,0,0,0"
+                                    Style="{StaticResource InfoPanelAppBarButtonStyle}">
+                                    <AppBarButton.Flyout>
+                                        <MenuFlyout>
+                                            <ToggleMenuFlyoutItem
+                                                x:Name="MarkAsUnreadButton"
+                                                Click="MarkAsUnreadButton_Click"
+                                                Text="{x:Bind StringResource.CompletionStatusUnread}" />
+                                            <ToggleMenuFlyoutItem
+                                                x:Name="MarkAsReadingButton"
+                                                Click="MarkAsReadingButton_Click"
+                                                Text="{x:Bind StringResource.CompletionStatusReading}" />
+                                            <ToggleMenuFlyoutItem
+                                                x:Name="MarkAsFinishedButton"
+                                                Click="MarkAsFinishedButton_Click"
+                                                Text="{x:Bind StringResource.CompletionStatusFinished}" />
+                                        </MenuFlyout>
+                                    </AppBarButton.Flyout>
+                                </AppBarButton>
+                                <AppBarButton
+                                    Margin="2,0,0,0"
+                                    Click="MoreAppBarButton_Click"
+                                    Icon="More"
+                                    Label="{x:Bind StringResource.More}"
+                                    Style="{StaticResource InfoPanelAppBarButtonStyle}" />
+                            </StackPanel>
+
                         </StackPanel>
 
                     </Grid>

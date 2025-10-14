@@ -390,9 +390,9 @@ internal sealed class ComicModel
     // Utilities
     //
 
-    public static void UpdateAllComics(string reason, bool skipExistingLocation = false)
+    public static void UpdateAllComics(string reason)
     {
-        ComicData.UpdateAllComics(reason, skipExistingLocation);
+        ComicData.UpdateAllComics(reason);
     }
 
     public static Task<List<string>> GetAllTagCategories()
