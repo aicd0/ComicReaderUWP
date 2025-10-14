@@ -95,17 +95,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _isComicTagsVisible = false;
-    public bool IsComicTagsVisible
-    {
-        get => _isComicTagsVisible;
-        set
-        {
-            _isComicTagsVisible = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsComicTagsVisible)));
-        }
-    }
-
     private bool _isEditable;
     public bool IsEditable
     {
@@ -522,8 +511,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 a.OnClicked = b.OnClicked;
             });
         });
-
-        IsComicTagsVisible = newCollection.Count > 0;
     }
 
     private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagContextMenuItems(string tagCategory, string tag)
