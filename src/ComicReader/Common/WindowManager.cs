@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 
 using ComicReader.SDK.Common.DebugTools;
@@ -75,6 +76,17 @@ class WindowManager
 
         Logger.F(TAG, $"Unable to get desired event bus, window ID {windowId} not found.");
         return EmptyEventBus.Instance;
+    }
+
+    public Dictionary<int, string> GetAllWindowInfo()
+    {
+        Dictionary<int, string> result = [];
+        foreach (KeyValuePair<int, WindowWrapper> pair in _windows)
+        {
+            result[pair.Key] = pair.Value.Window.FriendlyTitle;
+        }
+
+        return result;
     }
 
     private class WindowWrapper(MainWindow window)

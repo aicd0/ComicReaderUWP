@@ -706,6 +706,9 @@ The evaluation will be performed in the following order:
   <data name="SendFeedbackButton.Content" xml:space="preserve">
     <value>Send feedback</value>
   </data>
+  <data name="SendToWindow" xml:space="preserve">
+    <value>Send to window</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>Set completion status</value>
   </data>
@@ -834,5 +837,8 @@ $info</value>
   </data>
   <data name="WatchingFolders.Text" xml:space="preserve">
     <value>Right now, we're watching these folders:</value>
+  </data>
+  <data name="WindowN" xml:space="preserve">
+    <value>Window $n</value>
   </data>
 </root>

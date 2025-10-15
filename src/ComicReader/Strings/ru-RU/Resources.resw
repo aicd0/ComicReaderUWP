@@ -705,6 +705,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="SendFeedbackButton.Content" xml:space="preserve">
     <value>Отправить отзыв</value>
   </data>
+  <data name="SendToWindow" xml:space="preserve">
+    <value>Отправить в окно</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>Установить состояние завершения</value>
   </data>
@@ -833,5 +836,8 @@ $info</value>
   </data>
   <data name="WatchingFolders.Text" xml:space="preserve">
     <value>Прямо сейчас мы наблюдаем за этими папками:</value>
+  </data>
+  <data name="WindowN" xml:space="preserve">
+    <value>Окно $n</value>
   </data>
 </root>

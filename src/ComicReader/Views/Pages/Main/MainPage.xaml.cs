@@ -57,6 +57,8 @@ internal sealed partial class MainPage : BasePage
     // Properties
     //
 
+    public string Title => _currentTab?.Item?.Header as string ?? string.Empty;
+
     private MainWindow? CurrentWindow
     {
         get
@@ -89,6 +91,18 @@ internal sealed partial class MainPage : BasePage
         MainThreadUtils.RunInMainThread(() =>
         {
             LoadTabNoLock(-1, route, true);
+        });
+    }
+
+    public void OpenInCurrentTab(Route route)
+    {
+        MainThreadUtils.RunInMainThread(() =>
+        {
+            TabInfo? tab = _currentTab;
+            if (tab is not null)
+            {
+                LoadTabNoLock(tab.Id, route, true);
+            }
         });
     }
 

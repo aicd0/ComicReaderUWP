@@ -86,9 +86,15 @@ public sealed partial class MainWindow : Window
     private WindowMembers? _members;
     private WindowMembers Members => _members!;
 
+    //
+    // Properties
+    //
+
     public int WindowId { get; }
     public IntPtr WindowHandle { get; private set; }
     public bool Alive { get; private set; } = false;
+    public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle);
+    public string FriendlyTitle => Members._mainPage?.Title ?? string.Empty;
 
     //
     // Constructors
@@ -122,8 +128,6 @@ public sealed partial class MainWindow : Window
     // Public Methods
     //
 
-    public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle);
-
     public void OnCommandLine(string[] args)
     {
         CoroutineUtils.Start(async () =>
@@ -151,6 +155,25 @@ public sealed partial class MainWindow : Window
             PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
             PInvoke.SetForegroundWindow(hWnd);
         });
+    }
+
+    public void OpenTab(string url, bool newTab)
+    {
+        var route = Route.Create(url);
+        MainPage? mainPage = Members._mainPage;
+        if (mainPage is null)
+        {
+            return;
+        }
+
+        if (newTab)
+        {
+            mainPage.OpenInNewTab(route);
+        }
+        else
+        {
+            mainPage.OpenInCurrentTab(route);
+        }
     }
 
     //

@@ -705,6 +705,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="SendFeedbackButton.Content" xml:space="preserve">
     <value>피드백 보내기</value>
   </data>
+  <data name="SendToWindow" xml:space="preserve">
+    <value>창으로 보내기</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>완료 상태 설정</value>
   </data>
@@ -833,5 +836,8 @@ $info</value>
   </data>
   <data name="WatchingFolders.Text" xml:space="preserve">
     <value>지금 우리는 다음 폴더를 감시하고 있습니다:</value>
+  </data>
+  <data name="WindowN" xml:space="preserve">
+    <value>창 $n</value>
   </data>
 </root>

@@ -8,7 +8,6 @@ using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -168,13 +167,6 @@ internal abstract class BasePage : Page, ILifecycleOwner
 
         // Register action handler components and providers
         PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(WindowId));
-        {
-            IMainPageAbility? ability = GetAbility<IMainPageAbility>();
-            if (ability is not null)
-            {
-                PageActionHandler.RegisterComponent<IMainPageAbilityComponent>(new MainPageAbilityComponent(ability));
-            }
-        }
         ActionHandlerUtility.RegisterCommonProviders(PageActionHandler);
 
         GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);

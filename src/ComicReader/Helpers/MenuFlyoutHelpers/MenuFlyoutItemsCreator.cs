@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Actions;
+using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.Expression;
 using ComicReader.Common.Utils;
@@ -37,6 +38,16 @@ internal static class MenuFlyoutItemsCreator
             selectedComics = [primaryComic];
         }
 
+        var primaryComicRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER);
+        if (primaryComic.IsExternal)
+        {
+            primaryComicRoute.WithParam(RouterConstants.ARG_COMIC_LOCATION, primaryComic.Location);
+        }
+        else
+        {
+            primaryComicRoute.WithParam(RouterConstants.ARG_COMIC_ID, primaryComic.Id.ToString());
+        }
+
         List<BaseMenuFlyoutItemViewModel> result = [];
 
         result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInNewTab)
@@ -44,21 +55,17 @@ internal static class MenuFlyoutItemsCreator
             Glyph = "\uE8A5",
             OnClick = () =>
             {
-                var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER);
-                if (primaryComic.IsExternal)
-                {
-                    route.WithParam(RouterConstants.ARG_COMIC_LOCATION, primaryComic.Location);
-                }
-                else
-                {
-                    route.WithParam(RouterConstants.ARG_COMIC_ID, primaryComic.Id.ToString());
-                }
-
-                ActionModel actionModel = ActionModel.Builder.Create(OpenInNewTabProvider.NAME)
-                    .AddParameter(OpenInNewTabProvider.PARAM_URL, route.Url)
+                ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                    .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
                     .Build();
                 actionHandler.Handle(actionModel);
             },
+        });
+
+        result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.SendToWindow)
+        {
+            Glyph = "\uE78B",
+            Items = CreateSendToWindowMenuItems(primaryComicRoute.Url, actionHandler),
         });
 
         result.Add(new MenuFlyoutSeperatorViewModel());
@@ -239,6 +246,61 @@ internal static class MenuFlyoutItemsCreator
         return CreateLinkMenuItems(actionHandler, links);
     }
 
+    private static List<BaseMenuFlyoutItemViewModel> CreateSendToWindowMenuItems(string url, ActionHandler actionHandler)
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        int currentWindowId = -1;
+        if (actionHandler.TryGetComponent<IMainWindowComponent>(out IMainWindowComponent? mainWindowCom))
+        {
+            currentWindowId = mainWindowCom.WindowId;
+        }
+
+        Dictionary<int, string> windowInfo = App.WindowManager.GetAllWindowInfo();
+        foreach (KeyValuePair<int, string> pair in windowInfo)
+        {
+            int windowId = pair.Key;
+            if (windowId == currentWindowId)
+            {
+                continue;
+            }
+
+            string title = pair.Value;
+            string name = StringResourceProvider.Instance.WindowN.Replace("$n", windowId.ToString());
+            if (!string.IsNullOrEmpty(title))
+            {
+                name += $" ({title})";
+            }
+
+            items.Add(new MenuFlyoutItemViewModel(name)
+            {
+                OnClick = () =>
+                {
+                    ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                        .AddParameter(OpenTabProvider.PARAM_URL, url)
+                        .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, windowId.ToString())
+                        .AddParameter(OpenTabProvider.PARAM_NEW_TAB, "0")
+                        .Build();
+                    actionHandler.Handle(actionModel);
+                }
+            });
+        }
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewWindow)
+        {
+            OnClick = () =>
+            {
+                ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                    .AddParameter(OpenTabProvider.PARAM_URL, url)
+                    .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
+                    .Build();
+                actionHandler.Handle(actionModel);
+            }
+        });
+
+        return items;
+    }
+
     private static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicLinkMenuItems(ComicModel comic, ActionHandler actionHandler)
     {
         List<TagLinkModel.LinkModel> links = [];
@@ -358,8 +420,8 @@ internal static class MenuFlyoutItemsCreator
                         string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(pair.Category)}\"=\"{ExpressionUtils.EscapeString(pair.Tag)}\"";
                         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
                             .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
-                        ActionModel actionModel = ActionModel.Builder.Create(OpenInNewTabProvider.NAME)
-                            .AddParameter(OpenInNewTabProvider.PARAM_URL, route.Url)
+                        ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                            .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                             .Build();
                         actionHandler.Handle(actionModel);
                     }

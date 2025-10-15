@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 
 using ComicReader.SDK.Common.DebugTools;
 
@@ -54,6 +55,18 @@ internal class ActionHandler
         {
             Logger.E(TAG, $"Failed to unregister provider with key {key}. It may not be registered.");
         }
+    }
+
+    public bool TryGetComponent<T>([MaybeNullWhen(false)] out T component) where T : IActionComponent
+    {
+        if (!_components.TryGetValue(typeof(T), out IActionComponent? com))
+        {
+            component = default;
+            return false;
+        }
+
+        component = (T)com;
+        return true;
     }
 
     public void Handle(ActionModel action, IActionCallback? callback = null)

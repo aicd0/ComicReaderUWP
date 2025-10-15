@@ -133,6 +133,7 @@ public class StringResourceProvider
     public string SearchResults => GetResourceString("SearchResults");
     public string SearchResultsOf => GetResourceString("SearchResultsOf");
     public string Select => GetResourceString("Select");
+    public string SendToWindow => GetResourceString("SendToWindow");
     public string SetCompletionState => GetResourceString("SetCompletionState");
     public string Settings => GetResourceString("Settings");
     public string ShowTagId => GetResourceString("ShowTagId");
@@ -164,6 +165,7 @@ public class StringResourceProvider
     public string ViewTypeLarge => GetResourceString("ViewTypeLarge");
     public string ViewTypeMedium => GetResourceString("ViewTypeMedium");
     public string Warning => GetResourceString("Warning");
+    public string WindowN => GetResourceString("WindowN");
     //// SECTION MARKER - DO NOT MOVE ////
 
     private StringResourceProvider() { }

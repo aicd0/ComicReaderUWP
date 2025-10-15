@@ -704,6 +704,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="SendFeedbackButton.Content" xml:space="preserve">
     <value>Enviar comentarios</value>
   </data>
+  <data name="SendToWindow" xml:space="preserve">
+    <value>Enviar a ventana</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>Establecer estado de finalización</value>
   </data>
@@ -832,5 +835,8 @@ $info</value>
   </data>
   <data name="WatchingFolders.Text" xml:space="preserve">
     <value>En este momento estamos viendo estas carpetas:</value>
+  </data>
+  <data name="WindowN" xml:space="preserve">
+    <value>Ventana $n</value>
   </data>
 </root>
