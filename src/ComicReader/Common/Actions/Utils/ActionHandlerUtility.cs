@@ -14,7 +14,7 @@ internal class ActionHandlerUtility
     public static void RegisterCommonProviders(ActionHandler handler)
     {
         handler.RegisterProvider(new MessageDialogProvider());
-        handler.RegisterProvider(new OpenInNewTabProvider());
+        handler.RegisterProvider(new OpenTabProvider());
         handler.RegisterProvider(new EditComicProvider());
     }
 }

@@ -486,8 +486,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                         string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(tags.Name)}\"=\"{ExpressionUtils.EscapeString(tag)}\"";
                         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
                             .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
-                        ActionModel actionModel = ActionModel.Builder.Create(OpenInNewTabProvider.NAME)
-                            .AddParameter(OpenInNewTabProvider.PARAM_URL, route.Url)
+                        ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                            .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                             .Build();
                         _actionHandler.Handle(actionModel);
                     },

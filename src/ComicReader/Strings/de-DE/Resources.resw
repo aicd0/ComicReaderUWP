@@ -704,6 +704,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="SendFeedbackButton.Content" xml:space="preserve">
     <value>Feedback senden</value>
   </data>
+  <data name="SendToWindow" xml:space="preserve">
+    <value>An Fenster senden</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>Abschlussstatus festlegen</value>
   </data>
@@ -832,5 +835,8 @@ $info</value>
   </data>
   <data name="WatchingFolders.Text" xml:space="preserve">
     <value>Im Moment beobachten wir diese Ordner:</value>
+  </data>
+  <data name="WindowN" xml:space="preserve">
+    <value>Fenster $n</value>
   </data>
 </root>

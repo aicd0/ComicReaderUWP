@@ -704,6 +704,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="SendFeedbackButton.Content" xml:space="preserve">
     <value>フィードバックを送信</value>
   </data>
+  <data name="SendToWindow" xml:space="preserve">
+    <value>ウィンドウへ送る</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>完了状態を設定する</value>
   </data>
@@ -832,5 +835,8 @@ $info</value>
   </data>
   <data name="WatchingFolders.Text" xml:space="preserve">
     <value>現在、リポジトリには次のフォルダーが含まれています。</value>
+  </data>
+  <data name="WindowN" xml:space="preserve">
+    <value>ウィンドウ $n</value>
   </data>
 </root>

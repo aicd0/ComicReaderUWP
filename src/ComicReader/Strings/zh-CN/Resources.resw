@@ -704,6 +704,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="SendFeedbackButton.Content" xml:space="preserve">
     <value>发送反馈</value>
   </data>
+  <data name="SendToWindow" xml:space="preserve">
+    <value>发送到窗口</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>设置完成状态</value>
   </data>
@@ -832,5 +835,8 @@ $info</value>
   </data>
   <data name="WatchingFolders.Text" xml:space="preserve">
     <value>目前，您的仓库包含如下文件夹：</value>
+  </data>
+  <data name="WindowN" xml:space="preserve">
+    <value>窗口 $n</value>
   </data>
 </root>
