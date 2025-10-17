@@ -27,14 +27,9 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         _version = 1;
     }
 
-    public void Observe(ILifecycleOwner owner, IObserver<T> observer)
+    public void Observe(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options)
     {
-        ObserveInternal(owner, observer, false);
-    }
-
-    public void ObserveSticky(ILifecycleOwner owner, IObserver<T> observer)
-    {
-        ObserveInternal(owner, observer, true);
+        ObserveInternal(owner, observer, options);
     }
 
     public T? GetValue()
@@ -64,7 +59,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         });
     }
 
-    private void ObserveInternal(ILifecycleOwner owner, IObserver<T> observer, bool sticky)
+    private void ObserveInternal(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options)
     {
         if (_clearing)
         {
@@ -95,7 +90,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         ObserverWrapper observerWrapper = new LifecycleObserverWrapper(this, owner, observer);
         _observers[observer] = observerWrapper;
 
-        if (sticky && _version > 0)
+        if (options.StickyOnObserve && _version > 0)
         {
             DispatchValue(observerWrapper);
         }

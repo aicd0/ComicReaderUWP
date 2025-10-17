@@ -13,16 +13,12 @@ public class EmptyLiveData<T> : IMutableLiveData<T>
     {
     }
 
+    public void Observe(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options)
+    {
+    }
+
     public T? GetValue()
     {
         return default;
-    }
-
-    public void Observe(ILifecycleOwner owner, IObserver<T> observer)
-    {
-    }
-
-    public void ObserveSticky(ILifecycleOwner owner, IObserver<T> observer)
-    {
     }
 }

@@ -24,14 +24,9 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
         return _liveData.GetValue();
     }
 
-    public void Observe(ILifecycleOwner owner, IObserver<T> observer)
+    public void Observe(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options)
     {
-        _liveData.Observe(owner, new ObserverWrapper<T>(owner, observer, minInterval, delay));
-    }
-
-    public void ObserveSticky(ILifecycleOwner owner, IObserver<T> observer)
-    {
-        _liveData.ObserveSticky(owner, new ObserverWrapper<T>(owner, observer, minInterval, delay));
+        _liveData.Observe(owner, new ObserverWrapper<T>(owner, observer, minInterval, delay), options);
     }
 
     private class ObserverWrapper<U>(ILifecycleOwner owner, IObserver<U> observer, long minInterval, int delay) : IObserver<U>

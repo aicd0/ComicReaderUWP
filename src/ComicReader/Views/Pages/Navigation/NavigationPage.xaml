@@ -94,7 +94,7 @@
                                 ToolTipService.ToolTip="{x:Bind StringResource.Refresh}"
                                 Visibility="{x:Bind ViewModel.Refreshing, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
                             <AppBarButton Style="{StaticResource NavigationPageTopTileAppBarButton}" Visibility="{x:Bind ViewModel.Refreshing, Mode=OneWay}">
-                                <ProgressRing Margin="-4" IsActive="True" />
+                                <ProgressRing Margin="-2" IsActive="True" />
                             </AppBarButton>
                         </Grid>
                     </StackPanel>

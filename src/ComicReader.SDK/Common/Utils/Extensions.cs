@@ -9,6 +9,12 @@ namespace ComicReader.SDK.Common.Utils;
 
 public static class Extensions
 {
+    private static readonly ObserveOptions sObserveOptionDefault = new();
+    private static readonly ObserveOptions sObserveOptionSticky = new()
+    {
+        StickyOnObserve = true,
+    };
+
     public static void SafeAppend(this StringBuilder sb, string category, Func<object?> func)
     {
         string value;
@@ -34,13 +40,13 @@ public static class Extensions
     public static void Observe<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer)
     {
         var wrapper = new Observer<T>(observer);
-        liveData.Observe(owner, wrapper);
+        liveData.Observe(owner, wrapper, sObserveOptionDefault);
     }
 
     public static void ObserveSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer)
     {
         var wrapper = new Observer<T>(observer);
-        liveData.ObserveSticky(owner, wrapper);
+        liveData.Observe(owner, wrapper, sObserveOptionSticky);
     }
 
     private class Observer<U>(Action<U> action) : SDK.Common.Lifecycle.IObserver<U>

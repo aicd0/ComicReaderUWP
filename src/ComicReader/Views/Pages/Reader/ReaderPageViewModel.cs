@@ -139,6 +139,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _hasAnyTags = false;
+    public bool HasAnyTags
+    {
+        get => _hasAnyTags;
+        set
+        {
+            _hasAnyTags = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasAnyTags)));
+        }
+    }
+
     private string _readerCommonStatus = "";
     public string ReaderCommonStatus
     {
@@ -511,6 +522,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 a.OnClicked = b.OnClicked;
             });
         });
+
+        HasAnyTags = ComicTags.Count > 0;
     }
 
     private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagContextMenuItems(string tagCategory, string tag)
