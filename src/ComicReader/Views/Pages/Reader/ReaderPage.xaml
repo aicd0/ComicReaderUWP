@@ -22,6 +22,7 @@
                 <ResourceDictionary Source="/Styles/AppBarButton.xaml" />
                 <ResourceDictionary Source="/Styles/Button.xaml" />
                 <ResourceDictionary Source="/Styles/RatingControl.xaml" />
+                <ResourceDictionary Source="/Styles/TextBox.xaml" />
                 <ResourceDictionary Source="/Styles/ToggleButton.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
@@ -60,7 +61,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Bottom"
                 FontSize="16"
-                FontWeight="Bold"
+                FontWeight="SemiLight"
                 Opacity="0.3"
                 Text="{x:Bind ViewModel.ReaderCommonStatus, Mode=OneWay}"
                 Visibility="{x:Bind ViewModel.ReaderCommonStatus, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
@@ -276,7 +277,8 @@
                                 <Rectangle
                                     Height="1"
                                     Margin="0,20"
-                                    Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+                                    Fill="{ThemeResource ComicInfoSeparatorForeground}"
+                                    Visibility="{x:Bind ViewModel.HasAnyTags, Mode=OneWay}" />
 
                                 <!--  Tags  -->
                                 <ListView
@@ -313,10 +315,10 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox
                                     Grid.Column="0"
-                                    BorderBrush="Transparent"
                                     IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
                                     KeyDown="NewTagsTextBox_KeyDown"
-                                    PlaceholderText="{x:Bind StringResource.EnterNewTags}" />
+                                    PlaceholderText="{x:Bind StringResource.EnterNewTags}"
+                                    Style="{StaticResource SecondaryTextBoxStyle}" />
                                 <Button
                                     Grid.Column="1"
                                     Margin="8,0,0,0"

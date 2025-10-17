@@ -5,9 +5,7 @@ namespace ComicReader.SDK.Common.Lifecycle;
 
 public interface ILiveData<T> : ILiveDataNoType
 {
-    public void Observe(ILifecycleOwner owner, IObserver<T> observer);
-
-    public void ObserveSticky(ILifecycleOwner owner, IObserver<T> observer);
+    public void Observe(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options);
 
     public T? GetValue();
 }
