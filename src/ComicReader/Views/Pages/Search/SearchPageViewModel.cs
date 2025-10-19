@@ -214,23 +214,21 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ComicSearchEngine _searchEngine = new();
 
-    public void Initialize(ActionHandler actionHandler)
+    public void Initialize(ActionHandler actionHandler, string searchText)
     {
         _actionHandler = actionHandler;
         _searchEngine.SetResultCallback(OnSearchResult);
 
         IsLoading = true;
         SetSelectMode(false);
+
+        _searchEngine.SearchText = searchText;
+        Refresh();
     }
 
     public void Refresh()
     {
         _searchEngine.Update();
-    }
-
-    public void SetSearchText(string text)
-    {
-        _searchEngine.SearchText = text;
     }
 
     public void UpdateUI()

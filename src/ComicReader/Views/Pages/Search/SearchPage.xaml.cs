@@ -50,8 +50,7 @@ internal sealed partial class SearchPage : BasePage
 
         _keyword = bundle.GetString(RouterConstants.ARG_KEYWORD, "");
 
-        ViewModel.Initialize(PageActionHandler);
-        ViewModel.SetSearchText(_keyword);
+        ViewModel.Initialize(PageActionHandler, _keyword);
 
         ObserveData();
 
