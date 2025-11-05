@@ -40,6 +40,7 @@ internal partial class ReaderView : UserControl
     private const float MIN_ZOOM_CENTER_CROP = 20F;
     private const double DEFAULT_VERTICAL_PAGE_SPACING = 10.0;
     private const double DEFAULT_HORIZONTAL_PAGE_SPACING = 100.0;
+    private const double DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER = 2.0;
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 105F;
     private const int PRELOAD_FRAMES_BEFORE = 10;
     private const int PRELOAD_FRAMES_AFTER = 10;
@@ -456,7 +457,7 @@ internal partial class ReaderView : UserControl
                 if (savedZoom.HasValue)
                 {
                     zoom = (float)savedZoom.Value;
-                    zoomType = _isVertical ? ZoomType.FitWidth : ZoomType.FitHeight;
+                    zoomType = _isVertical ? ZoomType.FitWidthDualAware : ZoomType.FitHeightDualAware;
                 }
                 else
                 {
@@ -673,7 +674,7 @@ internal partial class ReaderView : UserControl
                 double defaultHeight = 300.0;
                 if (dual)
                 {
-                    defaultWidth *= 2;
+                    defaultWidth *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
                 }
 
                 imageHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
@@ -2032,26 +2033,33 @@ internal partial class ReaderView : UserControl
     private void SetScrollViewerZoom(ScrollRequest request, ScrollContext context)
     {
         // Calculate zoom coefficient for new frame
-        ZoomCoefficient? zoomCoefficientNew;
-        int frameNew;
+        int newFrameIndex;
+        ReaderFrameViewModel? newFrame = null;
+        ZoomCoefficient? zoomCoefficientNew = null;
         {
             int pageNew = request.Page.HasValue ? (int)Math.Round(request.Page.Value) : SCCurrentPageFinal;
-            frameNew = PageToFrame(pageNew, out _, out _);
-            if (frameNew < 0 || frameNew >= FrameDataSource.Count)
+            newFrameIndex = PageToFrame(pageNew, out _, out _);
+            if (newFrameIndex < 0 || newFrameIndex >= FrameDataSource.Count)
             {
-                frameNew = 0;
+                newFrameIndex = 0;
             }
-            zoomCoefficientNew = CalculateZoomCoefficient(frameNew);
-            Log("Jump", "Zoom#1:"
-                + $" PN={pageNew}"
-                + $",FN={frameNew}"
-                + $",ZCN={zoomCoefficientNew}");
-            if (zoomCoefficientNew == null)
+
+            if (newFrameIndex < FrameDataSource.Count)
             {
-                context.ZoomPercentage = _zoom;
-                context.ZoomFactor = null;
-                return;
+                newFrame = FrameDataSource[newFrameIndex];
+                zoomCoefficientNew = CalculateZoomCoefficient(newFrame);
+                Log("Jump", "Zoom#1:"
+                    + $" PN={pageNew}"
+                    + $",FN={newFrameIndex}"
+                    + $",ZCN={zoomCoefficientNew}");
             }
+        }
+
+        if (newFrame is null || zoomCoefficientNew == null)
+        {
+            context.ZoomPercentage = _zoom;
+            context.ZoomFactor = null;
+            return;
         }
 
         // Calculate zoom factor
@@ -2067,11 +2075,21 @@ internal partial class ReaderView : UserControl
                 case ZoomType.CenterCrop:
                     zoom *= centerCropMultipier;
                     break;
-                case ZoomType.FitWidth:
+                case ZoomType.FitWidthDualAware:
                     zoom *= zoomCoefficientNew.FitWidth / zoomCoefficientNew.Min();
+                    if (newFrame.IsDualPage)
+                    {
+                        zoom *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
+                    }
+
                     break;
-                case ZoomType.FitHeight:
+                case ZoomType.FitHeightDualAware:
                     zoom *= zoomCoefficientNew.FitHeight / zoomCoefficientNew.Min();
+                    if (newFrame.IsDualPage)
+                    {
+                        zoom *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
+                    }
+
                     break;
                 default:
                     Logger.F(TAG, "Unknown zoom type.");
@@ -2087,7 +2105,7 @@ internal partial class ReaderView : UserControl
             }
 
             ZoomCoefficient zoomCoefficient = zoomCoefficientNew;
-            if (frame != frameNew)
+            if (frame != newFrameIndex)
             {
                 ZoomCoefficient? zoomCoefficientTest = CalculateZoomCoefficient(frame);
                 if (zoomCoefficientTest != null)
@@ -2148,6 +2166,7 @@ internal partial class ReaderView : UserControl
             context.VerticalOffset *= zoomChangeRatio;
             context.VerticalOffset -= halfViewportHeight - extraPaddingAfter;
         }
+
         context.HorizontalOffset = Math.Max(0.0, context.HorizontalOffset.Value);
         context.VerticalOffset = Math.Max(0.0, context.VerticalOffset.Value);
     }
@@ -2179,11 +2198,11 @@ internal partial class ReaderView : UserControl
         float commitZoomFactor = SCZoomFactorFinal;
         bool commitDisableAnimation = SCDisableAnimationFinal;
 
-        bool sucess;
+        bool successful;
         _isCommitting = true;
         try
         {
-            sucess = ThisScrollViewer.ChangeView(commitHorizontalOffset, commitVerticalOffset, commitZoomFactor, commitDisableAnimation);
+            successful = ThisScrollViewer.ChangeView(commitHorizontalOffset, commitVerticalOffset, commitZoomFactor, commitDisableAnimation);
         }
         finally
         {
@@ -2191,13 +2210,13 @@ internal partial class ReaderView : UserControl
         }
 
         Log("Jump", "Commit:"
-        + " Success=" + sucess.ToString()
+        + " Success=" + successful.ToString()
         + ",Z=" + commitZoomFactor.ToString()
         + ",H=" + commitHorizontalOffset.ToString()
         + ",V=" + commitVerticalOffset.ToString()
         + ",D=" + commitDisableAnimation.ToString());
 
-        return sucess;
+        return successful;
     }
 
     private void AdjustParallelOffset(ScrollContext context)
@@ -2464,10 +2483,15 @@ internal partial class ReaderView : UserControl
             return null;
         }
 
+        return CalculateZoomCoefficient(FrameDataSource[frameIndex]);
+    }
+
+    private ZoomCoefficient? CalculateZoomCoefficient(ReaderFrameViewModel frame)
+    {
         double viewportWidth = ViewportWidth;
         double viewportHeight = ViewportHeight;
-        double frameWidth = FrameDataSource[frameIndex].FrameWidth;
-        double frameHeight = FrameDataSource[frameIndex].FrameHeight;
+        double frameWidth = frame.FrameWidth;
+        double frameHeight = frame.FrameHeight;
 
         double minValue = Math.Min(viewportWidth, viewportHeight);
         minValue = Math.Min(minValue, frameWidth);
@@ -2503,7 +2527,13 @@ internal partial class ReaderView : UserControl
         }
 
         int frameIdx = PageToFrame(SCCurrentPageFinal, out _, out _);
-        ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameIdx);
+        if (frameIdx < 0 || frameIdx >= FrameDataSource.Count)
+        {
+            return;
+        }
+
+        ReaderFrameViewModel frameModel = FrameDataSource[frameIdx];
+        ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameModel);
         if (zoomCoefficient is null)
         {
             return;
@@ -2512,11 +2542,21 @@ internal partial class ReaderView : UserControl
         if (_isVertical)
         {
             double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitWidth;
+            if (frameModel.IsDualPage)
+            {
+                zooming /= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
+            }
+
             config.VerticalZooming = zooming;
         }
         else
         {
             double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitHeight;
+            if (frameModel.IsDualPage)
+            {
+                zooming /= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
+            }
+
             config.HorizontalZooming = zooming;
         }
     }
@@ -2732,8 +2772,8 @@ internal partial class ReaderView : UserControl
     {
         CenterInside,
         CenterCrop,
-        FitWidth,
-        FitHeight,
+        FitWidthDualAware,
+        FitHeightDualAware,
     }
 
     private class ScrollRequest(ScrollSource source)

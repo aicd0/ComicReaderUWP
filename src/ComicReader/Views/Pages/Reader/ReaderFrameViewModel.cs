@@ -108,6 +108,7 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged
     public int PageL { get; set; } = NO_PAGE;
     public int PageR { get; set; } = NO_PAGE;
     public double Page => PageL != NO_PAGE && PageR != NO_PAGE ? (PageL + PageR) * 0.5 : PageL == NO_PAGE ? PageR : PageL;
+    public bool IsDualPage => PageL != NO_PAGE && PageR != NO_PAGE;
 
     public ReaderFrameViewModel(ReaderImagePool pool)
     {
