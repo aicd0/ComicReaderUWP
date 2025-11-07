@@ -603,7 +603,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     {
                         List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [item];
                         return MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
-                            selectedComics: selectedComics, supportSelection: true);
+                            selectedComics: selectedComics, canSelect: true);
                     };
                     model.UpdateProgress(true);
                     _comicItems.Add(model);
