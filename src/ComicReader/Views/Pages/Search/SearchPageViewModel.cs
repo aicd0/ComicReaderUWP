@@ -463,7 +463,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 {
                     List<ComicItemViewModel> selection = GetSelection(item);
                     return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler,
-                        selectedComics: selection.ConvertAll(x => x.Comic), supportSelection: true);
+                        selectedComics: selection.ConvertAll(x => x.Comic), canSelect: true);
                 };
                 item.UpdateProgress(false);
                 newItems.Add(item);

@@ -477,17 +477,41 @@ internal sealed partial class HomePage : BasePage
         GetMainPageAbility().OpenInCurrentTab(route);
     }
 
-    private void OpenRandomComicInNewTabButton_Click(object sender, RoutedEventArgs e)
+    private async void OpenRandomComicButton_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
-        ComicModel? comic = ViewModel.GetRandomComic();
-        if (comic == null)
+        if (sender is not FrameworkElement fe)
         {
             return;
         }
 
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-        GetMainPageAbility().OpenInNewTab(route);
+        ComicModel? comic = ViewModel.GetRandomComic();
+        if (comic is null)
+        {
+            return;
+        }
+
+        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler, canEdit: false);
+        if (menuItems.Count == 0)
+        {
+            return;
+        }
+
+        var flyout = new MenuFlyout();
+        foreach (BaseMenuFlyoutItemViewModel item in menuItems)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
+        {
+            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+        }
+        else
+        {
+            flyout.ShowAt(fe);
+        }
+
+        args.Handled = true;
     }
 
     //

@@ -29,7 +29,8 @@ internal static class MenuFlyoutItemsCreator
         ComicModel primaryComic,
         ActionHandler actionHandler,
         IEnumerable<ComicModel>? selectedComics = null,
-        bool supportSelection = false)
+        bool canEdit = true,
+        bool canSelect = false)
     {
         // If primaryComic is not in selectedComics, ignore selectedComics and use only primaryComic.
         selectedComics ??= [primaryComic];
@@ -82,7 +83,7 @@ internal static class MenuFlyoutItemsCreator
             Items = CreateComicTagMenuItems(primaryComic, actionHandler),
         });
 
-        if (!selectedComics.All(i => i.IsExternal))
+        if (canEdit && !selectedComics.All(i => i.IsExternal))
         {
             result.Add(new MenuFlyoutSeperatorViewModel());
 
@@ -218,7 +219,7 @@ internal static class MenuFlyoutItemsCreator
             },
         });
 
-        if (supportSelection)
+        if (canSelect)
         {
             result.Add(new MenuFlyoutSeperatorViewModel());
 
