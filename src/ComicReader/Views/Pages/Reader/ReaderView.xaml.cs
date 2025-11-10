@@ -90,7 +90,7 @@ internal partial class ReaderView : UserControl
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
     private double _initialPage = 0.0;
-    private ReaderConfigDatabaseWrapper? _configDatabase = null;
+    private ReaderViewInternalDatabase? _internalDB = null;
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
     private bool _isViewChanging = false;
@@ -253,7 +253,7 @@ internal partial class ReaderView : UserControl
 
     public void SetConfigurationDatabase(IConfigurationDatabase? configDatabase)
     {
-        _configDatabase = configDatabase is null ? null : new(configDatabase);
+        _internalDB = configDatabase is null ? null : new(configDatabase);
     }
 
     public void StartLoadingImages(IEnumerable<IImageSource> images)
@@ -451,20 +451,7 @@ internal partial class ReaderView : UserControl
 
             PostToCurrentThread(delegate
             {
-                double? savedZoom = LoadZoomingConfig();
-                float zoom;
-                ZoomType zoomType;
-                if (savedZoom.HasValue)
-                {
-                    zoom = (float)savedZoom.Value;
-                    zoomType = _isVertical ? ZoomType.FitWidthDualAware : ZoomType.FitHeight;
-                }
-                else
-                {
-                    zoom = _zoom;
-                    zoomType = ZoomType.CenterInside;
-                }
-
+                LoadZoomingConfig(out float zoom, out ZoomType zoomType);
                 ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", ScrollSource.Programmatic,
                     zoom: zoom, zoomType: zoomType, page: InitialPage);
                 _isInitialFrameJumped = true;
@@ -1482,7 +1469,7 @@ internal partial class ReaderView : UserControl
         double velocityValue = 0.0;
         if (_isContinuous)
         {
-            velocity ??= _configDatabase?.AutoScrollVelocity;
+            velocity ??= _internalDB?.AutoScrollVelocity;
             if (velocity.HasValue)
             {
                 velocityValue = velocity.Value;
@@ -1492,9 +1479,9 @@ internal partial class ReaderView : UserControl
                 velocityValue = AUTO_SCROLL_COMMON_DEFAULT_VELOCITY * _autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
             }
 
-            if (_configDatabase is not null)
+            if (_internalDB is not null)
             {
-                _configDatabase.AutoScrollVelocity = velocityValue;
+                _internalDB.AutoScrollVelocity = velocityValue;
             }
         }
 
@@ -1657,7 +1644,7 @@ internal partial class ReaderView : UserControl
     //
 
     private bool _isCommitting = false;
-    private float _zoom = 100f;
+    private float _zoom = 100F;
     private bool _finalValueSynced = false;
 
     private ScrollViewer ThisScrollViewer => SvReader;
@@ -2515,8 +2502,8 @@ internal partial class ReaderView : UserControl
 
     private void SaveZoomingConfig()
     {
-        ReaderConfigDatabaseWrapper? config = _configDatabase;
-        if (config is null)
+        ReaderViewInternalDatabase? db = _internalDB;
+        if (db is null)
         {
             return;
         }
@@ -2534,38 +2521,59 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        if (_isVertical)
+        if (_isContinuous)
         {
-            double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitWidth;
-            if (frameModel.IsDualPage)
+            if (_isVertical)
             {
-                zooming /= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
-            }
+                double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitWidth;
+                if (frameModel.IsDualPage)
+                {
+                    zooming /= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
+                }
 
-            config.VerticalZooming = zooming;
+                db.FitWidthDualAwareZooming = zooming;
+            }
+            else
+            {
+                double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitHeight;
+                db.FitHeightZooming = zooming;
+            }
         }
         else
         {
-            double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitHeight;
-            config.HorizontalZooming = zooming;
+            db.CenterInsideZooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.Min();
         }
     }
 
-    private double? LoadZoomingConfig()
+    private void LoadZoomingConfig(out float zoom, out ZoomType zoomType)
     {
-        ReaderConfigDatabaseWrapper? config = _configDatabase;
-        if (config is null)
+        zoom = _zoom;
+        zoomType = ZoomType.CenterInside;
+
+        ReaderViewInternalDatabase? db = _internalDB;
+        if (db is null)
         {
-            return null;
+            return;
         }
 
-        double? zooming = _isVertical ? config.VerticalZooming : config.HorizontalZooming;
-        if (zooming is null)
+        if (!_isContinuous)
         {
-            return null;
+            if (db.CenterInsideZooming.HasValue)
+            {
+                zoom = (float)(100.0 * db.CenterInsideZooming.Value);
+            }
+
+            return;
         }
 
-        return 100.0 * zooming.Value;
+        double? savedZooming = _isVertical ? db.FitWidthDualAwareZooming : db.FitHeightZooming;
+        if (savedZooming is null)
+        {
+            return;
+        }
+
+        zoom = (float)(100.0 * savedZooming.Value);
+        zoomType = _isVertical ? ZoomType.FitWidthDualAware : ZoomType.FitHeight;
     }
 
     //
@@ -2801,112 +2809,5 @@ internal partial class ReaderView : UserControl
         public required int OriginalWidth;
         public required int OriginalHeight;
         public required IImageSource Source;
-    }
-
-    private class ReaderConfigDatabaseWrapper(IConfigurationDatabase db)
-    {
-        private const string KEY_VERTICAL_ZOOMING = "VerticalZooming";
-        private const string KEY_HORIZONTAL_ZOOMING = "HorizontalZooming";
-        private const string KEY_AUTO_SCROLL_VELOCITY = "AutoScrollVelocity";
-
-        private bool _initialized = false;
-
-        private double? _verticalZooming = null;
-        public double? VerticalZooming
-        {
-            get
-            {
-                Initialize();
-                return _verticalZooming;
-            }
-            set
-            {
-                if (_verticalZooming == value)
-                {
-                    return;
-                }
-
-                _verticalZooming = value;
-                Write(KEY_VERTICAL_ZOOMING, _verticalZooming?.ToString() ?? "");
-            }
-        }
-
-        private double? _horizontalZooming = null;
-        public double? HorizontalZooming
-        {
-            get
-            {
-                Initialize();
-                return _horizontalZooming;
-            }
-            set
-            {
-                if (_horizontalZooming == value)
-                {
-                    return;
-                }
-
-                _horizontalZooming = value;
-                Write(KEY_HORIZONTAL_ZOOMING, _horizontalZooming?.ToString() ?? "");
-            }
-        }
-
-        private double? _autoScrollVelocity = null;
-        public double? AutoScrollVelocity
-        {
-            get
-            {
-                Initialize();
-                return _autoScrollVelocity;
-            }
-            set
-            {
-                if (_autoScrollVelocity == value)
-                {
-                    return;
-                }
-
-                _autoScrollVelocity = value;
-                Write(KEY_AUTO_SCROLL_VELOCITY, _autoScrollVelocity?.ToString() ?? "");
-            }
-        }
-
-        private void Initialize()
-        {
-            if (_initialized)
-            {
-                return;
-            }
-
-            _initialized = true;
-            _verticalZooming = ParseDouble(Read(KEY_VERTICAL_ZOOMING));
-            _horizontalZooming = ParseDouble(Read(KEY_HORIZONTAL_ZOOMING));
-            _autoScrollVelocity = ParseDouble(Read(KEY_AUTO_SCROLL_VELOCITY));
-        }
-
-        private string? Read(string key)
-        {
-            return db.ReadConfiguration(key);
-        }
-
-        private void Write(string key, string value)
-        {
-            db.WriteConfiguration(key, value);
-        }
-
-        private static double? ParseDouble(string? s)
-        {
-            if (string.IsNullOrEmpty(s))
-            {
-                return null;
-            }
-
-            if (double.TryParse(s, out double value))
-            {
-                return value;
-            }
-
-            return null;
-        }
     }
 }
