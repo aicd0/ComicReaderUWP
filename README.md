@@ -1,8 +1,6 @@
 # Comic Reader UWP
 The Comic Reader UWP is a modern Windows app written in C#. The app provided basic functionality for comic reading, along with some common utilities such as file management, searching, tagging, rating, etc.
 
-Notice that though the app is named "UWP", the framework of the app is no longer based on UWP (Windows Universal Platform). It has advanced to WinUI 3 since 1.4.
-
 Comic Reader UWP irregularly ships with new features and bug fixes. You can get the latest version of Comic Reader UWP in the [Microsoft Store](https://www.microsoft.com/store/apps/9NS9FG32DCP5).
 
 ![Comic Reader UWP Screenshot](docs/Images/ComicReaderScreenshot.png)
