@@ -457,7 +457,7 @@ internal partial class ReaderView : UserControl
                 if (savedZoom.HasValue)
                 {
                     zoom = (float)savedZoom.Value;
-                    zoomType = _isVertical ? ZoomType.FitWidthDualAware : ZoomType.FitHeightDualAware;
+                    zoomType = _isVertical ? ZoomType.FitWidthDualAware : ZoomType.FitHeight;
                 }
                 else
                 {
@@ -2083,13 +2083,8 @@ internal partial class ReaderView : UserControl
                     }
 
                     break;
-                case ZoomType.FitHeightDualAware:
+                case ZoomType.FitHeight:
                     zoom *= zoomCoefficientNew.FitHeight / zoomCoefficientNew.Min();
-                    if (newFrame.IsDualPage)
-                    {
-                        zoom *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
-                    }
-
                     break;
                 default:
                     Logger.F(TAG, "Unknown zoom type.");
@@ -2552,11 +2547,6 @@ internal partial class ReaderView : UserControl
         else
         {
             double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitHeight;
-            if (frameModel.IsDualPage)
-            {
-                zooming /= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
-            }
-
             config.HorizontalZooming = zooming;
         }
     }
@@ -2773,7 +2763,7 @@ internal partial class ReaderView : UserControl
         CenterInside,
         CenterCrop,
         FitWidthDualAware,
-        FitHeightDualAware,
+        FitHeight,
     }
 
     private class ScrollRequest(ScrollSource source)
