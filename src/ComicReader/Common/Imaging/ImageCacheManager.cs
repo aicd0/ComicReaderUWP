@@ -139,16 +139,7 @@ internal static class ImageCacheManager
                 using (stream)
                 {
                     stream.Seek(0);
-                    Image? image = null;
-                    try
-                    {
-                        image = Image.Load(stream.AsStream());
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.F(TAG, "GetImageMeta", ex);
-                    }
-
+                    Image? image = LoadImageFromStream(stream.AsStream());
                     if (image is null)
                     {
                         return null;
@@ -396,16 +387,7 @@ internal static class ImageCacheManager
         string cacheKey, string sourceFingerprint)
     {
         sourceStream.Seek(0);
-        Image? image = null;
-        try
-        {
-            image = Image.Load(sourceStream.AsStream());
-        }
-        catch (Exception ex)
-        {
-            Logger.F(TAG, "TryCreateThumbnail", ex);
-        }
-
+        Image? image = LoadImageFromStream(sourceStream.AsStream());
         if (image is null)
         {
             return null;
@@ -476,6 +458,27 @@ internal static class ImageCacheManager
         {
             image.Dispose();
         }
+    }
+
+    private static Image? LoadImageFromStream(Stream stream)
+    {
+        Image? image = null;
+        try
+        {
+            image = Image.Load(stream);
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, "LoadImageFromStream", ex);
+        }
+
+        if (image is null)
+        {
+            return null;
+        }
+
+        image.Mutate(p => p.AutoOrient()); // Rotation EXIF for JPEG
+        return image;
     }
 
     private static IEnumerable<string> CalculateCacheEntryKeys(double frameWidth, double frameHeight, StretchModeEnum stretchMode, int originWidth, int originHeight)
