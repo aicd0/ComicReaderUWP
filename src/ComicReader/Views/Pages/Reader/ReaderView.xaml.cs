@@ -35,13 +35,13 @@ internal partial class ReaderView : UserControl
     //
 
     private const string TAG = nameof(ReaderView);
-    private const float MAX_ZOOM = 250F;
-    private const float MIN_ZOOM_CENTER_INSIDE = 50F;
-    private const float MIN_ZOOM_CENTER_CROP = 20F;
+    private const float MAX_ZOOM = 2.5F;
+    private const float MIN_ZOOM_CENTER_INSIDE = 0.5F;
+    private const float MIN_ZOOM_CENTER_CROP = 0.2F;
     private const double DEFAULT_VERTICAL_PAGE_SPACING = 10.0;
     private const double DEFAULT_HORIZONTAL_PAGE_SPACING = 100.0;
     private const double DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER = 2.0;
-    private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 105F;
+    private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 1.05F;
     private const int PRELOAD_FRAMES_BEFORE = 10;
     private const int PRELOAD_FRAMES_AFTER = 10;
     private const int AUTO_SCROLL_COMMON_SPEED = 20;
@@ -1333,7 +1333,7 @@ internal partial class ReaderView : UserControl
 
         float? zoom = null;
 
-        if (Math.Abs(scale - 1.0f) > 0.01f)
+        if (Math.Abs(scale - 1.0F) > 0.01F)
         {
             zoom = _zoom * scale;
         }
@@ -1427,13 +1427,13 @@ internal partial class ReaderView : UserControl
         else if (e.TapCount == 2)
         {
             _tapCancelled = true;
-            if (Math.Abs(_zoom - 100) <= 1)
+            if (Math.Abs(_zoom - 1F) <= 0.01F)
             {
-                SetScrollViewer3("FitScreenUsingCenterCrop", ScrollSource.User, zoom: 100, zoomType: ZoomType.CenterCrop, disableAnimation: false);
+                SetScrollViewer3("FitScreenUsingCenterCrop", ScrollSource.User, zoom: 1F, zoomType: ZoomType.CenterCrop, disableAnimation: false);
             }
             else
             {
-                SetScrollViewer3("FitScreenUsingCenterCrop", ScrollSource.User, zoom: 100, zoomType: ZoomType.CenterInside, disableAnimation: false);
+                SetScrollViewer3("FitScreenUsingCenterCrop", ScrollSource.User, zoom: 1F, zoomType: ZoomType.CenterInside, disableAnimation: false);
             }
         }
     }
@@ -1644,7 +1644,7 @@ internal partial class ReaderView : UserControl
     //
 
     private bool _isCommitting = false;
-    private float _zoom = 100F;
+    private float _zoom = 1F;
     private bool _finalValueSynced = false;
 
     private ScrollViewer ThisScrollViewer => SvReader;
@@ -1815,7 +1815,7 @@ internal partial class ReaderView : UserControl
         frame = Math.Max(0, frame);
 
         double page = FrameDataSource[frame].Page;
-        float? zoom = _zoom > 101f ? 100f : null;
+        float? zoom = _zoom > 1.01F ? 1F : null;
         SetScrollViewer2(reason, source, zoom: zoom, page: page, disableAnimation: !AppModel.TransitionAnimation);
     }
 
@@ -1936,7 +1936,7 @@ internal partial class ReaderView : UserControl
 
         var context = new ScrollContext
         {
-            ZoomPercentage = request.Zoom,
+            Zoom = request.Zoom,
             DisableAnimation = request.DisableAnimation,
             HorizontalOffset = request.HorizontalOffset,
             VerticalOffset = request.VerticalOffset,
@@ -1944,8 +1944,8 @@ internal partial class ReaderView : UserControl
 
         SetScrollViewerZoom(request, context);
 
-        Logger.Assert(float.IsFinite(context.ZoomPercentage ?? 0), "8E76EB6D567DCCB9");
-        Logger.Assert(!float.IsNegative(context.ZoomPercentage ?? 0), "7D83986CC7231EAE");
+        Logger.Assert(float.IsFinite(context.Zoom ?? 0), "8E76EB6D567DCCB9");
+        Logger.Assert(!float.IsNegative(context.Zoom ?? 0), "7D83986CC7231EAE");
         Logger.Assert(float.IsFinite(context.ZoomFactor ?? 0), "92391D195B22B685");
         Logger.Assert(!float.IsNegative(context.ZoomFactor ?? 0), "358402C4AFBEA082");
         Logger.Assert(double.IsFinite(context.HorizontalOffset ?? 0), "473A38A62A78DD26");
@@ -1962,7 +1962,7 @@ internal partial class ReaderView : UserControl
         }
 
         Log("Jump", "ParamAfterZoom:"
-            + $" Z={context.ZoomPercentage}"
+            + $" Z={context.Zoom}"
             + $",ZF={context.ZoomFactor}"
             + $",H={context.HorizontalOffset}"
             + $",V={context.VerticalOffset}"
@@ -1970,15 +1970,15 @@ internal partial class ReaderView : UserControl
 
         AdjustParallelOffset(context);
 
-        Logger.Assert(float.IsFinite(context.ZoomPercentage ?? 0), "6BC2B5793E12AFA4");
-        Logger.Assert(!float.IsNegative(context.ZoomPercentage ?? 0), "CF5A68638CB59852");
+        Logger.Assert(float.IsFinite(context.Zoom ?? 0), "6BC2B5793E12AFA4");
+        Logger.Assert(!float.IsNegative(context.Zoom ?? 0), "CF5A68638CB59852");
         Logger.Assert(float.IsFinite(context.ZoomFactor ?? 0), "FF0AD921D9E8BBB0");
         Logger.Assert(!float.IsNegative(context.ZoomFactor ?? 0), "C226B0EBAC496CED");
         Logger.Assert(double.IsFinite(context.HorizontalOffset ?? 0), "A1FF6DDBAD093F79");
         Logger.Assert(double.IsFinite(context.VerticalOffset ?? 0), "C8D35D8BDDF468F8");
 
         Log("Jump", "ParamAfterFix:"
-            + $" Z={context.ZoomPercentage}"
+            + $" Z={context.Zoom}"
             + $",ZF={context.ZoomFactor}"
             + $",H={context.HorizontalOffset}"
             + $",V={context.VerticalOffset}"
@@ -1989,9 +1989,9 @@ internal partial class ReaderView : UserControl
             SCCurrentPageFinal = ToDiscretePage(request.Page.Value);
         }
 
-        if (context.ZoomPercentage.HasValue)
+        if (context.Zoom.HasValue)
         {
-            _zoom = context.ZoomPercentage.Value;
+            _zoom = context.Zoom.Value;
         }
 
         if (context.HorizontalOffset == null && context.VerticalOffset == null && context.ZoomFactor == null)
@@ -2044,7 +2044,7 @@ internal partial class ReaderView : UserControl
 
         if (newFrame is null || zoomCoefficientNew == null)
         {
-            context.ZoomPercentage = _zoom;
+            context.Zoom = _zoom;
             context.ZoomFactor = null;
             return;
         }
@@ -2106,7 +2106,7 @@ internal partial class ReaderView : UserControl
         zoomFactorNew = Math.Max(zoomFactorNew, minZoomFactor);
         zoom = zoomFactorNew / zoomCoefficientNew.Min();
         context.ZoomFactor = (float)zoomFactorNew;
-        context.ZoomPercentage = (float)zoom;
+        context.Zoom = (float)zoom;
 
         // Apply zooming
         double zoomFactorBefore = SCZoomFactorFinal;
@@ -2302,11 +2302,13 @@ internal partial class ReaderView : UserControl
             {
                 break;
             }
+
             ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameIdx);
             if (zoomCoefficient == null)
             {
                 break;
             }
+
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
             zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
@@ -2322,11 +2324,13 @@ internal partial class ReaderView : UserControl
             {
                 break;
             }
+
             ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameIdx);
             if (zoomCoefficient == null)
             {
                 break;
             }
+
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
             zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
@@ -2485,8 +2489,8 @@ internal partial class ReaderView : UserControl
 
         return new ZoomCoefficient
         {
-            FitWidth = 0.01 * viewportWidth / frameWidth,
-            FitHeight = 0.01 * viewportHeight / frameHeight
+            FitWidth = viewportWidth / frameWidth,
+            FitHeight = viewportHeight / frameHeight
         };
     }
 
@@ -2525,7 +2529,7 @@ internal partial class ReaderView : UserControl
         {
             if (_isVertical)
             {
-                double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitWidth;
+                double zooming = SCZoomFactorFinal / zoomCoefficient.FitWidth;
                 if (frameModel.IsDualPage)
                 {
                     zooming /= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
@@ -2535,13 +2539,13 @@ internal partial class ReaderView : UserControl
             }
             else
             {
-                double zooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.FitHeight;
+                double zooming = SCZoomFactorFinal / zoomCoefficient.FitHeight;
                 db.FitHeightZooming = zooming;
             }
         }
         else
         {
-            db.CenterInsideZooming = 0.01 * SCZoomFactorFinal / zoomCoefficient.Min();
+            db.CenterInsideZooming = SCZoomFactorFinal / zoomCoefficient.Min();
         }
     }
 
@@ -2560,7 +2564,7 @@ internal partial class ReaderView : UserControl
         {
             if (db.CenterInsideZooming.HasValue)
             {
-                zoom = (float)(100.0 * db.CenterInsideZooming.Value);
+                zoom = (float)db.CenterInsideZooming.Value;
             }
 
             return;
@@ -2572,7 +2576,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        zoom = (float)(100.0 * savedZooming.Value);
+        zoom = (float)savedZooming.Value;
         zoomType = _isVertical ? ZoomType.FitWidthDualAware : ZoomType.FitHeight;
     }
 
@@ -2796,7 +2800,7 @@ internal partial class ReaderView : UserControl
 
     private class ScrollContext
     {
-        public float? ZoomPercentage = null;
+        public float? Zoom = null;
         public float? ZoomFactor = null;
         public double? HorizontalOffset = null;
         public double? VerticalOffset = null;
