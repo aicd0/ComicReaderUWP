@@ -264,7 +264,7 @@
                                     Content="{x:Bind StringResource.RefreshRandomSeed}" />
                                 <TextBlock
                                     x:Uid="DebugMode"
-                                    Margin="0,16,0,0"
+                                    Margin="0,20,0,0"
                                     Style="{StaticResource SettingsPageBodyTextBlock}" />
                                 <ToggleSwitch
                                     x:Name="TsDebugMode"
