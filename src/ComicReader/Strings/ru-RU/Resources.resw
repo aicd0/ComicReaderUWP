@@ -251,6 +251,9 @@ $comics</value>
   <data name="Copy" xml:space="preserve">
     <value>Копировать</value>
   </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Пользовательский</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>Отладочная информация</value>
   </data>
@@ -292,6 +295,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Редактировать</value>
+  </data>
+  <data name="EditPreset" xml:space="preserve">
+    <value>Редактировать пресет</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Перейти в полноэкранный режим</value>
@@ -671,6 +677,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Повторное сканирование файлов</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Сбросить</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Восстанавливать последнюю позицию чтения</value>

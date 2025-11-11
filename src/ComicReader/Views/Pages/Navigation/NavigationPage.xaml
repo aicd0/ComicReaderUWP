@@ -183,7 +183,7 @@
                             <FontIcon Glyph="&#xE713;" />
                         </AppBarButton.Content>
                         <AppBarButton.Flyout>
-                            <Flyout>
+                            <Flyout Closing="ReaderSettingFlyout_Closing">
                                 <Flyout.FlyoutPresenterStyle>
                                     <Style TargetType="FlyoutPresenter">
                                         <Setter Property="CornerRadius" Value="8" />
@@ -191,7 +191,7 @@
                                         <Setter Property="MaxWidth" Value="1000" />
                                     </Style>
                                 </Flyout.FlyoutPresenterStyle>
-                                <reader:ReaderSettingPanel x:Name="RspReaderSetting" DataChanged="RspReaderSetting_DataChanged" />
+                                <reader:ReaderSettingPanel x:Name="MainReaderSettingPanel" DataChanged="MainReaderSettingPanel_DataChanged" />
                             </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>

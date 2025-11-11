@@ -243,12 +243,6 @@ internal sealed partial class ReaderPage : BasePage
 
         GetNavigationPageAbility().RegisterReaderSettingsChangedEventHandler(this, delegate (ReaderSettingDataModel setting)
         {
-            ComicModel? comic = ViewModel.Comic;
-            if (comic != null && !comic.IsExternal)
-            {
-                setting.To(comic);
-            }
-
             ApplyReaderSettings(setting);
             UpdateReaderUI();
         });
@@ -293,10 +287,9 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        ViewModel.ReaderSettingLiveData.Observe(this, setting =>
+        ViewModel.ReaderSettingLiveData.Observe(this, comic =>
         {
-            GetNavigationPageAbility().SetReaderSettings(setting);
-            ApplyReaderSettings(setting);
+            GetNavigationPageAbility().SetReaderSettings(comic);
         });
 
         ViewModel.ComicDescriptionLiveData.Observe(this, description =>

@@ -251,6 +251,9 @@ $comics</value>
   <data name="Copy" xml:space="preserve">
     <value>Copy</value>
   </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>Debug information</value>
   </data>
@@ -292,6 +295,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Edit</value>
+  </data>
+  <data name="EditPreset" xml:space="preserve">
+    <value>Edit preset</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Enter fullscreen</value>
@@ -672,6 +678,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Rescan files</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Reset</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Restore last reading position</value>

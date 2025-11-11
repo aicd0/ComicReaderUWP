@@ -387,7 +387,7 @@
                 x:Name="PageGapSlider"
                 Grid.Row="0"
                 Grid.Column="3"
-                Margin="0,-1"
+                Margin="0,-2"
                 Maximum="200"
                 Minimum="0"
                 StepFrequency="1"
@@ -404,7 +404,7 @@
                 x:Name="AutoScrollingSlider"
                 Grid.Row="1"
                 Grid.Column="3"
-                Margin="0,-1"
+                Margin="0,-2"
                 Maximum="100"
                 Minimum="0"
                 StepFrequency="1"
@@ -421,7 +421,6 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="30" />
-                <RowDefinition Height="30" />
             </Grid.RowDefinitions>
 
             <TextBlock
@@ -437,20 +436,38 @@
                 IsOn="False"
                 Style="{StaticResource CompatToggleSwitchStyle}"
                 Toggled="OriginalSizeToggleSwitch_Toggled" />
+        </Grid>
 
-            <TextBlock
-                Grid.Row="1"
+        <Rectangle
+            Height="1"
+            Margin="0,12,0,12"
+            Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button
                 Grid.Column="0"
-                Margin="0,0,0,2"
-                VerticalAlignment="Center"
-                Text="{x:Bind StringResource.SaveAsDefaultConfig}" />
-            <ToggleSwitch
-                x:Name="SaveAsDefaultToggleSwitch"
-                Grid.Row="1"
+                Click="ResetButton_Click"
+                Content="{x:Bind StringResource.Reset}" />
+            <DropDownButton
+                x:Name="PresetDropDownButton"
+                Grid.Column="2"
+                Margin="5,0,0,0" />
+            <Button
                 Grid.Column="3"
-                IsOn="True"
-                Style="{StaticResource CompatToggleSwitchStyle}"
-                Toggled="SaveAsDefaultToggleSwitch_Toggled" />
+                Width="32"
+                Margin="5,0,0,0"
+                Padding="0"
+                VerticalAlignment="Stretch"
+                Click="EditPresetButton_Click"
+                ToolTipService.ToolTip="{x:Bind StringResource.Edit}">
+                <FontIcon FontSize="16" Glyph="&#xE70F;" />
+            </Button>
         </Grid>
 
     </StackPanel>

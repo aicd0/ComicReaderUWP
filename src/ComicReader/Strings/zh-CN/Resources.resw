@@ -251,6 +251,9 @@ $comics</value>
   <data name="Copy" xml:space="preserve">
     <value>复制</value>
   </data>
+  <data name="Custom" xml:space="preserve">
+    <value>自定义</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>调试信息</value>
   </data>
@@ -292,6 +295,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>编辑</value>
+  </data>
+  <data name="EditPreset" xml:space="preserve">
+    <value>编辑预设</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>进入全屏</value>
@@ -670,6 +676,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>重新扫描文件</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>重置</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>恢复上次阅读位置</value>

@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
+
   <PropertyGroup>
     <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
     <AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
@@ -36,7 +36,7 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <IsPackaged>true</IsPackaged>
   </PropertyGroup>
-	
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <OutputPath>bin\x86\Debug\</OutputPath>
   </PropertyGroup>
@@ -55,7 +55,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM64'">
     <OutputPath>bin\ARM64\Release\</OutputPath>
   </PropertyGroup>
-	
+
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Debug|true'">
     <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP;$(Platform)</DefineConstants>
   </PropertyGroup>
@@ -78,7 +78,7 @@
 
   <PropertyGroup Condition="'$(IsPackaged)' != 'true'">
     <WindowsPackageType>None</WindowsPackageType>
-    <Version>2.6.2.0</Version>
+    <Version>2.7.0.0</Version>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <AssemblyTitle>Comic Reader UWP</AssemblyTitle>
@@ -88,7 +88,7 @@
       <SubType>Designer</SubType>
     </AppxManifest>
   </ItemGroup>
-	
+
   <ItemGroup>
     <None Include="Package.StoreAssociation.xml" />
   </ItemGroup>
@@ -110,5 +110,5 @@
   <ItemGroup>
     <ProjectReference Include="..\ComicReader.SDK\ComicReader.SDK.csproj" />
   </ItemGroup>
-	
+
 </Project>

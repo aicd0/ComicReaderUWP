@@ -20,7 +20,7 @@ class WindowManager
 
     public int RegisterWindow(MainWindow window)
     {
-        int windowId = Interlocked.Increment(ref _nextWindowId);
+        int windowId = Interlocked.Increment(ref _nextWindowId) - 1;
         WindowWrapper wrapper = new(window);
         bool success = _windows.TryAdd(windowId, wrapper);
         Logger.Assert(success, "B62A8795DA9036E2");

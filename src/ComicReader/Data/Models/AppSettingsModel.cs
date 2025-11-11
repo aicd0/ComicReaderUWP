@@ -106,8 +106,11 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         [JsonPropertyName("Background")]
         public string? Background { get; set; }
 
-        [JsonPropertyName("DefaultReaderSetting")]
-        public ReaderSettingJsonModel? DefaultReaderSetting { get; set; }
+        [JsonPropertyName("ReaderSettingPresets")]
+        public Dictionary<string, ReaderSettingJsonModel?>? ReaderSettingPresets { get; set; }
+
+        [JsonPropertyName("DefaultReaderSettingPresetKey")]
+        public string? DefaultReaderSettingPresetKey { get; set; }
 
         [JsonPropertyName("ComicShuffleRandomSeed")]
         public int? ComicShuffleRandomSeed { get; set; }
@@ -115,6 +118,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
     public class ReaderSettingJsonModel
     {
+        [JsonPropertyName("PresetName")]
+        public string? PresetName { get; set; }
+
         [JsonPropertyName("OriginalSize")]
         public bool? OriginalSize { get; set; }
 
@@ -152,7 +158,8 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public string Language { get; set; } = "";
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
         public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
-        public ReaderSettingModel DefaultReaderSetting { get; set; } = new ReaderSettingModel();
+        public Dictionary<string, ReaderSettingModel> ReaderSettingPresets { get; set; } = [];
+        public string DefaultReaderSettingPresetKey { get; set; } = string.Empty;
         public int ComicShuffleRandomSeed { get; set; }
 
         public static ExternalModel From(JsonModel model)
@@ -163,9 +170,22 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 PromptBeforeRemovingComics = model.PromptBeforeRemovingComics ?? true,
                 RestoreLastReadingPosition = model.RestoreLastReadingPosition ?? true,
                 Language = model.Language ?? "",
-                DefaultReaderSetting = ReaderSettingModel.From(model.DefaultReaderSetting),
                 ComicShuffleRandomSeed = model.ComicShuffleRandomSeed ?? 0,
+                DefaultReaderSettingPresetKey = model.DefaultReaderSettingPresetKey ?? string.Empty,
             };
+
+            if (model.ReaderSettingPresets is not null)
+            {
+                foreach (KeyValuePair<string, ReaderSettingJsonModel?> kvp in model.ReaderSettingPresets)
+                {
+                    string key = kvp.Key;
+                    ReaderSettingJsonModel? settingJsonModel = kvp.Value;
+                    if (settingJsonModel is not null)
+                    {
+                        externalModel.ReaderSettingPresets[key] = ReaderSettingModel.From(settingJsonModel);
+                    }
+                }
+            }
 
             if (model.ComicFolders is not null)
             {
@@ -210,19 +230,28 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             model.PromptBeforeRemovingComics = PromptBeforeRemovingComics;
             model.Language = Language;
             model.Theme = (int)Theme;
-            model.DefaultReaderSetting = DefaultReaderSetting.To();
             model.ComicShuffleRandomSeed = ComicShuffleRandomSeed;
+            model.DefaultReaderSettingPresetKey = DefaultReaderSettingPresetKey;
 
             model.Background = Background switch
             {
                 AppBackgroundEnum.Acrylic => APP_BACKGROUND_ACRYLIC,
                 _ => APP_BACKGROUND_NONE,
             };
+
+            model.ReaderSettingPresets = [];
+            foreach (KeyValuePair<string, ReaderSettingModel> kvp in ReaderSettingPresets)
+            {
+                string key = kvp.Key;
+                ReaderSettingModel settingModel = kvp.Value;
+                model.ReaderSettingPresets[key] = settingModel.To();
+            }
         }
     }
 
     public class ReaderSettingModel
     {
+        public string PresetName { get; set; } = string.Empty;
         public bool OriginalSize { get; set; }
         public bool VerticalReading { get; set; }
         public bool LeftToRight { get; set; }
@@ -233,19 +262,20 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public int PageGap { get; set; }
         public int AutoScrollSpeed { get; set; }
 
-        public static ReaderSettingModel From(ReaderSettingJsonModel? model)
+        public static ReaderSettingModel From(ReaderSettingJsonModel model)
         {
             return new ReaderSettingModel
             {
-                OriginalSize = model?.OriginalSize ?? false,
-                VerticalReading = model?.VerticalReading ?? true,
-                LeftToRight = model?.LeftToRight ?? false,
-                VerticalContinuous = model?.VerticalContinuous ?? true,
-                HorizontalContinuous = model?.HorizontalContinuous ?? false,
-                VerticalPageArrangement = ParsePageArrangementEnum(model?.VerticalPageArrangement) ?? PageArrangementEnum.Single,
-                HorizontalPageArrangement = ParsePageArrangementEnum(model?.HorizontalPageArrangement) ?? PageArrangementEnum.DualCoverMirror,
-                PageGap = model?.PageGap ?? 100,
-                AutoScrollSpeed = model?.AutoScrollSpeed ?? 0,
+                PresetName = model.PresetName ?? "?",
+                OriginalSize = model.OriginalSize ?? false,
+                VerticalReading = model.VerticalReading ?? true,
+                LeftToRight = model.LeftToRight ?? false,
+                VerticalContinuous = model.VerticalContinuous ?? true,
+                HorizontalContinuous = model.HorizontalContinuous ?? false,
+                VerticalPageArrangement = ParsePageArrangementEnum(model.VerticalPageArrangement) ?? PageArrangementEnum.Single,
+                HorizontalPageArrangement = ParsePageArrangementEnum(model.HorizontalPageArrangement) ?? PageArrangementEnum.DualCoverMirror,
+                PageGap = model.PageGap ?? 100,
+                AutoScrollSpeed = model.AutoScrollSpeed ?? 0,
             };
         }
 
@@ -253,6 +283,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         {
             return new()
             {
+                PresetName = PresetName,
                 OriginalSize = OriginalSize,
                 VerticalReading = VerticalReading,
                 LeftToRight = LeftToRight,

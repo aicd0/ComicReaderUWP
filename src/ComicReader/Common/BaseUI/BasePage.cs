@@ -157,7 +157,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
         }
 
         WindowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
-        if (WindowId <= 0)
+        if (WindowId < 0)
         {
             Logger.F(TAG, "Invalid window ID in navigation parameters: " + WindowId);
             return;

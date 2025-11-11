@@ -251,6 +251,9 @@ $comics</value>
   <data name="Copy" xml:space="preserve">
     <value>コピー</value>
   </data>
+  <data name="Custom" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
   <data name="DebugInformation.Text" xml:space="preserve">
     <value>デバッグ情報</value>
   </data>
@@ -292,6 +295,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>編集</value>
+  </data>
+  <data name="EditPreset" xml:space="preserve">
+    <value>プリセットを編集</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>全画面表示</value>
@@ -670,6 +676,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>ファイルの再スキャン</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>リセット</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>最後の読書位置を復元</value>

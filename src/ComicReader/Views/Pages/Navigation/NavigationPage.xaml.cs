@@ -6,7 +6,6 @@ using System;
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
@@ -19,6 +18,7 @@ using ComicReader.Views.Pages.Main;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 
@@ -110,6 +110,7 @@ internal sealed partial class NavigationPage : BasePage
 
     private void UpdateUI()
     {
+        MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
         NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
 
@@ -307,22 +308,19 @@ internal sealed partial class NavigationPage : BasePage
         _ability.SendGridViewModeChangedEvent(false);
     }
 
-    private void RspReaderSetting_DataChanged(ReaderSettingDataModel data)
+    private void MainReaderSettingPanel_DataChanged(ReaderSettingDataModel model)
     {
-        if (data.UseDefault)
-        {
-            AppSettingsModel.ExternalModel settingsModel = AppSettingsModel.Instance.GetModel();
-            AppSettingsModel.ReaderSettingModel readerSettings = settingsModel.DefaultReaderSetting;
-            data.To(readerSettings);
-            AppSettingsModel.Instance.UpdateModel(settingsModel);
-        }
-
-        _ability.SendReaderSettingsChangedEvent(data);
+        _ability.SendReaderSettingsChangedEvent(model);
     }
 
     private void SetGridViewModeEnabled(bool enabled)
     {
         AbtbPreviewButton.IsChecked = enabled;
+    }
+
+    private void ReaderSettingFlyout_Closing(FlyoutBase sender, FlyoutBaseClosingEventArgs args)
+    {
+        args.Cancel = MainReaderSettingPanel.ActionInProgress;
     }
 
     //
@@ -482,14 +480,14 @@ internal sealed partial class NavigationPage : BasePage
             parent.NavigationPageSidePane.IsPaneOpen = isOpen;
         }
 
-        public void SetReaderSettings(ReaderSettingDataModel settings)
+        public void SetReaderSettings(ComicModel comic)
         {
             if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return;
             }
 
-            parent.RspReaderSetting.SetData(settings);
+            parent.MainReaderSettingPanel.SetComic(comic);
         }
 
         public void SetSearchBox(string text)

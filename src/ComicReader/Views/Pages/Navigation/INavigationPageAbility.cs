@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.Lifecycle;
 
 namespace ComicReader.Views.Pages.Navigation;
@@ -14,7 +15,7 @@ internal interface INavigationPageAbility : IPageAbility
     public delegate void ReaderSettingsChangedEventHandler(ReaderSettingDataModel settings);
     public delegate void SearchTextChangeEventHandler(string text);
 
-    void SetReaderSettings(ReaderSettingDataModel settings);
+    void SetReaderSettings(ComicModel comic);
 
     void SetExternalComic(bool isExternal);
 

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using ComicReader.Data.Legacy;
 using ComicReader.Data.Models;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
@@ -82,7 +81,6 @@ class DatabaseUpgradeManager
             return false;
         }
 
-        versions.ComicDatabaseVersion = XmlDatabase.Settings.DatabaseVersion;
         versions.DatabaseVersionsVersion = 1;
         return true;
     }
@@ -106,28 +104,6 @@ class DatabaseUpgradeManager
             return false;
         }
 
-        FavoriteData oldData = XmlDatabase.Favorites;
-        if (oldData != null)
-        {
-            FavoriteModel.ExternalModel newData = new([]);
-            FavoriteModel.ExternalNodeModel CloneNode(FavoriteNodeData node)
-            {
-                FavoriteModel.ExternalNodeModel newNode = new(node.Type, node.Name, node.Id, []);
-                if (node.Children != null)
-                {
-                    foreach (FavoriteNodeData child in node.Children)
-                    {
-                        newNode.Children.Add(CloneNode(child));
-                    }
-                }
-                return newNode;
-            }
-            foreach (FavoriteNodeData child in oldData.RootNodes)
-            {
-                newData.Children.Add(CloneNode(child));
-            }
-            FavoriteModel.Instance.UpdateModel(newData);
-        }
         versions.FavoritesVersion = 1;
         return true;
     }
@@ -139,17 +115,6 @@ class DatabaseUpgradeManager
             return false;
         }
 
-        HistoryData oldData = XmlDatabase.History;
-        if (oldData != null)
-        {
-            HistoryModel.ExternalModel newData = new([]);
-            foreach (HistoryItemData item in oldData.Items)
-            {
-                newData.Items.Add(new HistoryModel.ExternalItemModel(item.Id, item.Title, item.DateTime));
-            }
-            HistoryModel.Instance.UpdateModel(newData);
-        }
-
         versions.HistoryVersion = 1;
         return true;
     }
@@ -159,21 +124,6 @@ class DatabaseUpgradeManager
         if (versions.AppSettingVersion >= 1)
         {
             return false;
-        }
-
-        SettingData oldModel = XmlDatabase.Settings;
-        if (oldModel != null)
-        {
-            AppSettingsModel.ExternalModel newModel = AppSettingsModel.Instance.GetModel();
-            newModel.ComicFolders = oldModel.ComicFolders ?? [];
-            AppSettingsModel.ReaderSettingModel readerSettings = newModel.DefaultReaderSetting;
-            readerSettings.VerticalReading = oldModel.VerticalReading;
-            readerSettings.LeftToRight = oldModel.LeftToRight;
-            readerSettings.VerticalContinuous = oldModel.VerticalContinuous;
-            readerSettings.HorizontalContinuous = oldModel.HorizontalContinuous;
-            readerSettings.VerticalPageArrangement = oldModel.VerticalPageArrangement;
-            readerSettings.HorizontalPageArrangement = oldModel.HorizontalPageArrangement;
-            AppSettingsModel.Instance.UpdateModel(newModel);
         }
 
         versions.AppSettingVersion = 1;
