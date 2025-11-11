@@ -45,6 +45,7 @@ public class StringResourceProvider
     public string ContributionRunAfterLink => GetResourceString("ContributionRunAfterLink");
     public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
     public string Copy => GetResourceString("Copy");
+    public string Custom => GetResourceString("Custom");
     public string DebugModeWarning => GetResourceString("DebugModeWarning");
     public string Default => GetResourceString("Default");
     public string DefaultTags => GetResourceString("DefaultTags");
@@ -55,6 +56,7 @@ public class StringResourceProvider
     public string DiffMode => GetResourceString("DiffMode");
     public string Done => GetResourceString("Done");
     public string Edit => GetResourceString("Edit");
+    public string EditPreset => GetResourceString("EditPreset");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
     public string EnterNewTags => GetResourceString("EnterNewTags");
     public string EnterNewTagsHint => GetResourceString("EnterNewTagsHint");
@@ -126,6 +128,7 @@ public class StringResourceProvider
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
+    public string Reset => GetResourceString("Reset");
     public string RestoreLastReadingPosition => GetResourceString("RestoreLastReadingPosition");
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");

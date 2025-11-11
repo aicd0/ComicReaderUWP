@@ -2,10 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 
 using ComicReader.Common.BaseUI;
 using ComicReader.Data.Models;
+using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.Views.Dialogs.EditReaderSettingPreset;
 using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI.Xaml;
@@ -19,6 +23,10 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     public delegate void DataChangedEventHandler(ReaderSettingDataModel data);
     public event DataChangedEventHandler? DataChanged;
 
+    public bool ActionInProgress { get; private set; } = false;
+
+    private int _windowId = -1;
+    private ComicModel? _comic;
     private ReaderSettingDataModel _model = new();
     private bool _updatingUI = false;
 
@@ -27,51 +35,17 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         InitializeComponent();
     }
 
-    public void SetData(ReaderSettingDataModel settings)
+    public void SetWindowId(int windowId)
     {
-        _model = settings;
+        _windowId = windowId;
+    }
+
+    public void SetComic(ComicModel comic)
+    {
+        _comic = comic;
+        _model = ReaderSettingDataModel.FromComic(comic);
         UpdateUI();
         DispatchDataChangeEvent();
-    }
-
-    private int PageArrangementToIndex(PageArrangementEnum pageArrangement)
-    {
-        switch (pageArrangement)
-        {
-            case PageArrangementEnum.Single:
-                return 0;
-            case PageArrangementEnum.DualCover:
-                return 1;
-            case PageArrangementEnum.DualCoverMirror:
-                return 2;
-            case PageArrangementEnum.DualNoCover:
-                return 3;
-            case PageArrangementEnum.DualNoCoverMirror:
-                return 4;
-            default:
-                Logger.AssertNotReachHere("979D38CE673E1BC0");
-                return 0;
-        }
-    }
-
-    private PageArrangementEnum IndexToPageArrangement(int index)
-    {
-        switch (index)
-        {
-            case 0:
-                return PageArrangementEnum.Single;
-            case 1:
-                return PageArrangementEnum.DualCover;
-            case 2:
-                return PageArrangementEnum.DualCoverMirror;
-            case 3:
-                return PageArrangementEnum.DualNoCover;
-            case 4:
-                return PageArrangementEnum.DualNoCoverMirror;
-            default:
-                Logger.AssertNotReachHere("B8CA81937666C2FB");
-                return PageArrangementEnum.Single;
-        }
     }
 
     private void LvPageArrangement_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -85,6 +59,8 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         {
             _model.HorizontalPageArrangement = pageArrangement;
         }
+
+        SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -92,6 +68,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     private void AbbVertical_Click(object sender, RoutedEventArgs e)
     {
         _model.IsVertical = false;
+        SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -99,6 +76,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     private void AbbHorizontal_Click(object sender, RoutedEventArgs e)
     {
         _model.IsVertical = true;
+        SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -106,6 +84,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     private void AbbLeftToRight_Click(object sender, RoutedEventArgs e)
     {
         _model.IsLeftToRight = false;
+        SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -113,6 +92,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     private void AbbRightToLeft_Click(object sender, RoutedEventArgs e)
     {
         _model.IsLeftToRight = true;
+        SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -120,6 +100,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     private void AbbSeperate_Click(object sender, RoutedEventArgs e)
     {
         _model.IsContinuous = true;
+        SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -127,6 +108,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     private void AbbContinuous_Click(object sender, RoutedEventArgs e)
     {
         _model.IsContinuous = false;
+        SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -134,25 +116,80 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     private void PageGapSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         _model.PageGap = Math.Clamp((int)e.NewValue, 0, 200);
+        SaveSettings();
         DispatchDataChangeEvent();
     }
 
     private void AutoScrollingSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         _model.AutoScrollSpeed = Math.Clamp((int)e.NewValue, 0, 100);
+        SaveSettings();
         DispatchDataChangeEvent();
     }
 
     private void OriginalSizeToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
         _model.OriginalSize = OriginalSizeToggleSwitch.IsOn;
+        SaveSettings();
         DispatchDataChangeEvent();
     }
 
-    private void SaveAsDefaultToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    private async void EditPresetButton_Click(object sender, RoutedEventArgs e)
     {
-        _model.UseDefault = SaveAsDefaultToggleSwitch.IsOn;
+        if (_comic is null || _windowId < 0)
+        {
+            return;
+        }
+
+        ActionInProgress = true;
+        try
+        {
+            var dialog = new EditReaderSettingPresetDialog(_comic);
+            _ = await dialog.ShowAsync(_windowId);
+        }
+        finally
+        {
+            ActionInProgress = false;
+        }
+
+        _model = ReaderSettingDataModel.FromComic(_comic);
+        UpdateUI();
         DispatchDataChangeEvent();
+    }
+
+    private void ResetButton_Click(object sender, RoutedEventArgs e)
+    {
+        _model = new ReaderSettingDataModel
+        {
+            PresetKey = _model.PresetKey,
+            PresetName = _model.PresetName,
+        };
+
+        SaveSettings();
+        UpdateUI();
+        DispatchDataChangeEvent();
+    }
+
+    private void SaveSettings()
+    {
+        if (_updatingUI || _comic is null)
+        {
+            return;
+        }
+
+        if (_model.PresetKey == ReaderSettingDataModel.PRESET_KEY_CUSTOM)
+        {
+            if (_comic is not null && !_comic.IsExternal)
+            {
+                _model.ToComic(_comic);
+            }
+        }
+        else
+        {
+            AppSettingsModel.ExternalModel settingsModel = AppSettingsModel.Instance.GetModel();
+            settingsModel.ReaderSettingPresets[_model.PresetKey] = _model.ToSettingModel();
+            AppSettingsModel.Instance.UpdateModel(settingsModel);
+        }
     }
 
     private void UpdateUI()
@@ -211,9 +248,67 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         AbbSeperate.Visibility = _model.IsContinuous ? Visibility.Collapsed : Visibility.Visible;
 
         OriginalSizeToggleSwitch.IsOn = _model.OriginalSize;
-        SaveAsDefaultToggleSwitch.IsOn = _model.UseDefault;
         PageGapSlider.Value = Math.Clamp(_model.PageGap, 0, 200);
         AutoScrollingSlider.Value = Math.Clamp(_model.AutoScrollSpeed, 0, 100);
+
+        PresetDropDownButton.Flyout = CreatePresetContextMenu();
+        PresetDropDownButton.Content = _model.PresetKey == ReaderSettingDataModel.PRESET_KEY_CUSTOM ? StringResource.Custom : _model.PresetName;
+    }
+
+    private MenuFlyout CreatePresetContextMenu()
+    {
+        AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
+        List<Tuple<string, string>> presets = [];
+        foreach (KeyValuePair<string, AppSettingsModel.ReaderSettingModel> kvp in settingModel.ReaderSettingPresets)
+        {
+            presets.Add(new Tuple<string, string>(kvp.Value.PresetName, kvp.Key));
+        }
+
+        if (presets.Count == 0)
+        {
+            presets.Add(new Tuple<string, string>(StringResource.Default, ReaderSettingDataModel.PRESET_KEY_DEFAULT));
+        }
+
+        presets.Sort((a, b) => StringComparer.CurrentCultureIgnoreCase.Compare(a.Item1, b.Item1));
+        presets.Add(new Tuple<string, string>(StringResource.Custom, ReaderSettingDataModel.PRESET_KEY_CUSTOM));
+
+        List<BaseMenuFlyoutItemViewModel> items = [];
+        foreach (Tuple<string, string> preset in presets)
+        {
+            string presetKey = preset.Item2;
+            items.Add(new MenuFlyoutToggleItemViewModel(preset.Item1)
+            {
+                IsChecked = _model.PresetKey == presetKey,
+                OnClick = () =>
+                {
+                    if (presetKey != _model.PresetKey && _comic is not null)
+                    {
+                        _model.PresetKey = presetKey;
+                        _model.ToComic(_comic);
+
+                        if (presetKey != ReaderSettingDataModel.PRESET_KEY_CUSTOM)
+                        {
+                            AppSettingsModel.ExternalModel settingsModel = AppSettingsModel.Instance.GetModel();
+                            settingsModel.DefaultReaderSettingPresetKey = presetKey;
+                            AppSettingsModel.Instance.UpdateModel(settingsModel);
+                        }
+
+                        _model = ReaderSettingDataModel.FromComic(_comic);
+                        DispatchDataChangeEvent();
+                    }
+
+                    UpdateUI();
+                },
+            });
+        }
+
+        var flyout = new MenuFlyout();
+        foreach (BaseMenuFlyoutItemViewModel item in items)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        return flyout;
     }
 
     private void DispatchDataChangeEvent()
@@ -224,5 +319,45 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         }
 
         DataChanged?.Invoke(_model);
+    }
+
+    private static int PageArrangementToIndex(PageArrangementEnum pageArrangement)
+    {
+        switch (pageArrangement)
+        {
+            case PageArrangementEnum.Single:
+                return 0;
+            case PageArrangementEnum.DualCover:
+                return 1;
+            case PageArrangementEnum.DualCoverMirror:
+                return 2;
+            case PageArrangementEnum.DualNoCover:
+                return 3;
+            case PageArrangementEnum.DualNoCoverMirror:
+                return 4;
+            default:
+                Logger.AssertNotReachHere("979D38CE673E1BC0");
+                return 0;
+        }
+    }
+
+    private static PageArrangementEnum IndexToPageArrangement(int index)
+    {
+        switch (index)
+        {
+            case 0:
+                return PageArrangementEnum.Single;
+            case 1:
+                return PageArrangementEnum.DualCover;
+            case 2:
+                return PageArrangementEnum.DualCoverMirror;
+            case 3:
+                return PageArrangementEnum.DualNoCover;
+            case 4:
+                return PageArrangementEnum.DualNoCoverMirror;
+            default:
+                Logger.AssertNotReachHere("B8CA81937666C2FB");
+                return PageArrangementEnum.Single;
+        }
     }
 }

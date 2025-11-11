@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 
+using ComicReader.Common;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 
@@ -10,8 +12,12 @@ namespace ComicReader.Views.Pages.Navigation;
 
 internal class ReaderSettingDataModel
 {
+    public const string PRESET_KEY_DEFAULT = "###default###";
+    public const string PRESET_KEY_CUSTOM = "###custom###";
+
+    public string PresetKey { get; set; } = string.Empty;
+    public string PresetName { get; set; } = string.Empty;
     public bool OriginalSize { get; set; } = false;
-    public bool UseDefault { get; set; } = true;
     public bool IsVertical { get; set; } = true;
     public bool IsLeftToRight { get; set; } = false;
     public bool IsVerticalContinuous { get; set; } = false;
@@ -52,8 +58,9 @@ internal class ReaderSettingDataModel
     {
         var clone = new ReaderSettingDataModel
         {
+            PresetKey = PresetKey,
+            PresetName = PresetName,
             OriginalSize = OriginalSize,
-            UseDefault = UseDefault,
             IsVertical = IsVertical,
             IsLeftToRight = IsLeftToRight,
             IsVerticalContinuous = IsVerticalContinuous,
@@ -66,23 +73,27 @@ internal class ReaderSettingDataModel
         return clone;
     }
 
-    public void To(AppSettingsModel.ReaderSettingModel model)
+    public AppSettingsModel.ReaderSettingModel ToSettingModel()
     {
-        model.OriginalSize = OriginalSize;
-        model.VerticalReading = IsVertical;
-        model.LeftToRight = IsLeftToRight;
-        model.VerticalContinuous = IsVerticalContinuous;
-        model.HorizontalContinuous = IsHorizontalContinuous;
-        model.VerticalPageArrangement = VerticalPageArrangement;
-        model.HorizontalPageArrangement = HorizontalPageArrangement;
-        model.PageGap = PageGap;
-        model.AutoScrollSpeed = AutoScrollSpeed;
+        return new AppSettingsModel.ReaderSettingModel
+        {
+            PresetName = PresetName,
+            OriginalSize = OriginalSize,
+            VerticalReading = IsVertical,
+            LeftToRight = IsLeftToRight,
+            VerticalContinuous = IsVerticalContinuous,
+            HorizontalContinuous = IsHorizontalContinuous,
+            VerticalPageArrangement = VerticalPageArrangement,
+            HorizontalPageArrangement = HorizontalPageArrangement,
+            PageGap = PageGap,
+            AutoScrollSpeed = AutoScrollSpeed,
+        };
     }
 
-    public void To(ComicModel comic)
+    public void ToComic(ComicModel comic)
     {
+        comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, PresetKey);
         comic.SetExt(ComicExt.ORIGINAL_SIZE, OriginalSize ? "1" : "0");
-        comic.SetExt(ComicExt.USE_DEFAULT_READER_SETTINGS, UseDefault ? "1" : "0");
         comic.SetExt(ComicExt.VERTICAL_READING, IsVertical ? "1" : "0");
         comic.SetExt(ComicExt.LEFT_TO_RIGHT, IsLeftToRight ? "1" : "0");
         comic.SetExt(ComicExt.VERTICAL_CONTINUOUS, IsVerticalContinuous ? "1" : "0");
@@ -94,7 +105,7 @@ internal class ReaderSettingDataModel
         comic.FlushExt();
     }
 
-    public static ReaderSettingDataModel From(AppSettingsModel.ReaderSettingModel model, ComicModel comic)
+    public static ReaderSettingDataModel FromComic(ComicModel comic)
     {
         PageArrangementEnum? ParsePageArrangement(string? value)
         {
@@ -111,70 +122,70 @@ internal class ReaderSettingDataModel
             return null;
         }
 
-        bool useDefault = comic.GetExt(ComicExt.USE_DEFAULT_READER_SETTINGS)?.Equals("1") ?? true;
-        bool originalSize;
-        bool verticalReading;
-        bool leftToRight;
-        bool verticalContinuous;
-        bool horizontalContinuous;
-        PageArrangementEnum verticalPageArrangement;
-        PageArrangementEnum horizontalPageArrangement;
-        int pageGap;
-        int autoScrollSpeed;
+        AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
+        Dictionary<string, AppSettingsModel.ReaderSettingModel> presets = settingModel.ReaderSettingPresets;
+        string presetKey = comic.GetExt(ComicExt.READER_SETTING_PRESET_KEY) ?? settingModel.DefaultReaderSettingPresetKey;
+        var model = new ReaderSettingDataModel();
 
-        if (useDefault)
+        if (presetKey == PRESET_KEY_CUSTOM)
         {
-            originalSize = model.OriginalSize;
-            verticalReading = model.VerticalReading;
-            leftToRight = model.LeftToRight;
-            verticalContinuous = model.VerticalContinuous;
-            horizontalContinuous = model.HorizontalContinuous;
-            verticalPageArrangement = model.VerticalPageArrangement;
-            horizontalPageArrangement = model.HorizontalPageArrangement;
-            pageGap = model.PageGap;
-            autoScrollSpeed = model.AutoScrollSpeed;
-        }
-        else
-        {
-            originalSize = comic.GetExt(ComicExt.ORIGINAL_SIZE)?.Equals("1") ?? model.OriginalSize;
-            verticalReading = comic.GetExt(ComicExt.VERTICAL_READING)?.Equals("1") ?? model.VerticalReading;
-            leftToRight = comic.GetExt(ComicExt.LEFT_TO_RIGHT)?.Equals("1") ?? model.LeftToRight;
-            verticalContinuous = comic.GetExt(ComicExt.VERTICAL_CONTINUOUS)?.Equals("1") ?? model.VerticalContinuous;
-            horizontalContinuous = comic.GetExt(ComicExt.HORIZONTAL_CONTINUOUS)?.Equals("1") ?? model.HorizontalContinuous;
-            verticalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT)) ?? model.VerticalPageArrangement;
-            horizontalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT)) ?? model.HorizontalPageArrangement;
+            model.OriginalSize = comic.GetExt(ComicExt.ORIGINAL_SIZE)?.Equals("1") ?? model.OriginalSize;
+            model.IsVertical = comic.GetExt(ComicExt.VERTICAL_READING)?.Equals("1") ?? model.IsVertical;
+            model.IsLeftToRight = comic.GetExt(ComicExt.LEFT_TO_RIGHT)?.Equals("1") ?? model.IsLeftToRight;
+            model.IsVerticalContinuous = comic.GetExt(ComicExt.VERTICAL_CONTINUOUS)?.Equals("1") ?? model.IsVerticalContinuous;
+            model.IsHorizontalContinuous = comic.GetExt(ComicExt.HORIZONTAL_CONTINUOUS)?.Equals("1") ?? model.IsHorizontalContinuous;
+            model.VerticalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT)) ?? model.VerticalPageArrangement;
+            model.HorizontalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT)) ?? model.HorizontalPageArrangement;
 
-            pageGap = model.PageGap;
             {
                 string? pageGapString = comic.GetExt(ComicExt.PAGE_GAP);
                 if (!string.IsNullOrEmpty(pageGapString) && int.TryParse(pageGapString, out int parsedPageGap))
                 {
-                    pageGap = parsedPageGap;
+                    model.PageGap = parsedPageGap;
                 }
             }
 
-            autoScrollSpeed = model.AutoScrollSpeed;
             {
                 string? autoScrollSpeedString = comic.GetExt(ComicExt.AUTO_SCROLL_SPEED);
                 if (!string.IsNullOrEmpty(autoScrollSpeedString) && int.TryParse(autoScrollSpeedString, out int parsedAutoScrollSpeed))
                 {
-                    autoScrollSpeed = parsedAutoScrollSpeed;
+                    model.AutoScrollSpeed = parsedAutoScrollSpeed;
                 }
             }
         }
-
-        return new ReaderSettingDataModel
+        else
         {
-            OriginalSize = originalSize,
-            UseDefault = useDefault,
-            IsVertical = verticalReading,
-            IsLeftToRight = leftToRight,
-            IsVerticalContinuous = verticalContinuous,
-            IsHorizontalContinuous = horizontalContinuous,
-            VerticalPageArrangement = verticalPageArrangement,
-            HorizontalPageArrangement = horizontalPageArrangement,
-            PageGap = pageGap,
-            AutoScrollSpeed = autoScrollSpeed,
-        };
+            if (!presets.TryGetValue(presetKey, out AppSettingsModel.ReaderSettingModel? presetModel))
+            {
+                foreach (KeyValuePair<string, AppSettingsModel.ReaderSettingModel> kvp in presets)
+                {
+                    presetKey = kvp.Key;
+                    presetModel = kvp.Value;
+                    break;
+                }
+            }
+
+            if (presetModel is null)
+            {
+                presetKey = PRESET_KEY_DEFAULT;
+                model.PresetName = StringResourceProvider.Instance.Default;
+            }
+            else
+            {
+                model.PresetName = presetModel.PresetName;
+                model.OriginalSize = presetModel.OriginalSize;
+                model.IsVertical = presetModel.VerticalReading;
+                model.IsLeftToRight = presetModel.LeftToRight;
+                model.IsVerticalContinuous = presetModel.VerticalContinuous;
+                model.IsHorizontalContinuous = presetModel.HorizontalContinuous;
+                model.VerticalPageArrangement = presetModel.VerticalPageArrangement;
+                model.HorizontalPageArrangement = presetModel.HorizontalPageArrangement;
+                model.PageGap = presetModel.PageGap;
+                model.AutoScrollSpeed = presetModel.AutoScrollSpeed;
+            }
+        }
+
+        model.PresetKey = presetKey;
+        return model;
     }
 }

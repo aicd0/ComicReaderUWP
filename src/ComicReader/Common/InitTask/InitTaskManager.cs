@@ -7,7 +7,6 @@ using System.IO;
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Services;
 using ComicReader.Data;
-using ComicReader.Data.Legacy;
 using ComicReader.Data.Models;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
@@ -88,7 +87,6 @@ internal class InitTaskManager(Application application)
 
         // Initialize database
         DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
-        XmlDatabaseManager.Initialize();
         SqlDatabaseManager.Initialize();
         DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
     }

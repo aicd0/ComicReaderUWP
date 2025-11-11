@@ -5,8 +5,8 @@ namespace ComicReader.Data.Models.Comic;
 
 internal static class ComicExt
 {
+    public const string READER_SETTING_PRESET_KEY = "ReaderSettingPresetKey";
     public const string ORIGINAL_SIZE = "OriginalSize";
-    public const string USE_DEFAULT_READER_SETTINGS = "UseDefaultReaderSettings";
     public const string VERTICAL_READING = "VerticalReading";
     public const string LEFT_TO_RIGHT = "LeftToRight";
     public const string VERTICAL_CONTINUOUS = "VerticalContinuous";

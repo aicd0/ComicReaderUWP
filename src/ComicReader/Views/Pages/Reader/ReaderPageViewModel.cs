@@ -26,11 +26,8 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
-using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI.Xaml;
-
-using static ComicReader.Views.Pages.Reader.ReaderPage;
 
 namespace ComicReader.Views.Pages.Reader;
 
@@ -51,8 +48,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
 
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
-    public readonly MutableLiveData<ReaderStatusInfo> ReaderStatusLiveData = new(new(ReaderStatusEnum.Loading));
-    public readonly MutableLiveData<ReaderSettingDataModel> ReaderSettingLiveData = new();
+    public readonly MutableLiveData<ReaderPage.ReaderStatusInfo> ReaderStatusLiveData = new(new(ReaderPage.ReaderStatusEnum.Loading));
+    public readonly MutableLiveData<ComicModel> ReaderSettingLiveData = new();
     public readonly MutableLiveData<bool> IsExternalComicLiveData = new(true);
     public readonly MutableLiveData<string> ComicDescriptionLiveData = new();
     public readonly MutableLiveData<bool> IsFavoriteLiveData = new();
@@ -353,7 +350,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         // Load new comic
         if (comic == null)
         {
-            ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
+            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
             return;
         }
 
@@ -374,19 +371,19 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         if (!comic.IsExternal && !await comic.ReloadImageFiles())
         {
             Logger.I(TAG, "Failed to load images of '" + comic.Location + "'. ");
-            ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
+            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
             return;
         }
 
         IComicConnection? connection = await comic.OpenComicAsync();
         if (connection is null)
         {
-            ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
+            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
             return;
         }
 
         _comicConnection = connection;
-        ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Loading));
+        ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
 
         var images = new List<IImageSource>();
         for (int i = 0; i < connection.GetImageCount(); ++i)
@@ -396,7 +393,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         if (images.Count == 0)
         {
-            ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
+            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
             return;
         }
 
@@ -431,9 +428,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        AppSettingsModel.ReaderSettingModel readerSettings = AppSettingsModel.Instance.GetModel().DefaultReaderSetting;
-        var readerSettingModel = ReaderSettingDataModel.From(readerSettings, comic);
-        ReaderSettingLiveData.Emit(readerSettingModel);
+        ReaderSettingLiveData.Emit(comic);
     }
 
     private void LoadComicInfo()
