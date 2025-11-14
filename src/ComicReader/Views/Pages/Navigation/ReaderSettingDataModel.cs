@@ -157,11 +157,14 @@ internal class ReaderSettingDataModel
         {
             if (!presets.TryGetValue(presetKey, out AppSettingsModel.ReaderSettingModel? presetModel))
             {
-                foreach (KeyValuePair<string, AppSettingsModel.ReaderSettingModel> kvp in presets)
+                if (!presets.TryGetValue(settingModel.DefaultReaderSettingPresetKey, out presetModel))
                 {
-                    presetKey = kvp.Key;
-                    presetModel = kvp.Value;
-                    break;
+                    foreach (KeyValuePair<string, AppSettingsModel.ReaderSettingModel> kvp in presets)
+                    {
+                        presetKey = kvp.Key;
+                        presetModel = kvp.Value;
+                        break;
+                    }
                 }
             }
 

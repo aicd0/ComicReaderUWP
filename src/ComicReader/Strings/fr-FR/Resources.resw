@@ -716,6 +716,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="SendToWindow" xml:space="preserve">
     <value>Envoyer vers la fenêtre</value>
   </data>
+  <data name="SetAsDefault" xml:space="preserve">
+    <value>Définir par défaut</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>Définir l'état d'achèvement</value>
   </data>

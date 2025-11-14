@@ -716,6 +716,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="SendToWindow" xml:space="preserve">
     <value>发送到窗口</value>
   </data>
+  <data name="SetAsDefault" xml:space="preserve">
+    <value>设为默认</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>设置完成状态</value>
   </data>

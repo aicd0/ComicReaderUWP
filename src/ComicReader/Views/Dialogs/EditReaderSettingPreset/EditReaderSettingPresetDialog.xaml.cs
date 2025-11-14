@@ -51,4 +51,10 @@ internal sealed partial class EditReaderSettingPresetDialog : BaseContentDialog
         var textBox = (TextBox)sender;
         ViewModel.UpdateName(textBox.Text ?? string.Empty);
     }
+
+    private void SetAsDefaultCheckBox_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        var checkBox = (CheckBox)sender;
+        ViewModel.UpdateSetAsDefault(checkBox.IsChecked ?? false);
+    }
 }

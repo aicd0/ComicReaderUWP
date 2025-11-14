@@ -37,6 +37,17 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         }
     }
 
+    private bool _setAsDefault = false;
+    public bool SetAsDefault
+    {
+        get => _setAsDefault;
+        set
+        {
+            _setAsDefault = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SetAsDefault)));
+        }
+    }
+
     private bool _saveEnabled = false;
     public bool SaveEnabled
     {
@@ -80,6 +91,7 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
 
         Title = StringResourceProvider.Instance.EditPreset;
         Name = _presetModel.PresetName;
+        SetAsDefault = _presetModel.PresetKey == AppSettingsModel.Instance.GetModel().DefaultReaderSettingPresetKey;
         UpdateUI();
     }
 
@@ -106,7 +118,12 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         _presetModel.PresetName = name;
         AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
         settingModel.ReaderSettingPresets[_presetModel.PresetKey] = _presetModel.ToSettingModel();
-        settingModel.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+
+        if (_setAsDefault)
+        {
+            settingModel.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+        }
+
         AppSettingsModel.Instance.UpdateModel(settingModel);
     }
 
@@ -122,7 +139,12 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         _presetModel.PresetName = name;
         AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
         settingModel.ReaderSettingPresets[_presetModel.PresetKey] = _presetModel.ToSettingModel();
-        settingModel.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+
+        if (_setAsDefault)
+        {
+            settingModel.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+        }
+
         AppSettingsModel.Instance.UpdateModel(settingModel);
 
         if (_comic is not null)
@@ -135,6 +157,11 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
     {
         _name = name;
         UpdateUI();
+    }
+
+    public void UpdateSetAsDefault(bool isDefault)
+    {
+        _setAsDefault = isDefault;
     }
 
     private void UpdateUI()
