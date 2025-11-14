@@ -285,14 +285,6 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
                     {
                         _model.PresetKey = presetKey;
                         _model.ToComic(_comic);
-
-                        if (presetKey != ReaderSettingDataModel.PRESET_KEY_CUSTOM)
-                        {
-                            AppSettingsModel.ExternalModel settingsModel = AppSettingsModel.Instance.GetModel();
-                            settingsModel.DefaultReaderSettingPresetKey = presetKey;
-                            AppSettingsModel.Instance.UpdateModel(settingsModel);
-                        }
-
                         _model = ReaderSettingDataModel.FromComic(_comic);
                         DispatchDataChangeEvent();
                     }

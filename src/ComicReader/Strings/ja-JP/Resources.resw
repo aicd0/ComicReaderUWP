@@ -716,6 +716,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="SendToWindow" xml:space="preserve">
     <value>ウィンドウへ送る</value>
   </data>
+  <data name="SetAsDefault" xml:space="preserve">
+    <value>デフォルトに設定</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>完了状態を設定する</value>
   </data>

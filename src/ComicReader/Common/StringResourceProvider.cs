@@ -137,6 +137,7 @@ public class StringResourceProvider
     public string SearchResultsOf => GetResourceString("SearchResultsOf");
     public string Select => GetResourceString("Select");
     public string SendToWindow => GetResourceString("SendToWindow");
+    public string SetAsDefault => GetResourceString("SetAsDefault");
     public string SetCompletionState => GetResourceString("SetCompletionState");
     public string Settings => GetResourceString("Settings");
     public string ShowTagId => GetResourceString("ShowTagId");

@@ -717,6 +717,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="SendToWindow" xml:space="preserve">
     <value>Отправить в окно</value>
   </data>
+  <data name="SetAsDefault" xml:space="preserve">
+    <value>Сделать по умолчанию</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>Установить состояние завершения</value>
   </data>

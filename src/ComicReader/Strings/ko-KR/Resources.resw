@@ -717,6 +717,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="SendToWindow" xml:space="preserve">
     <value>창으로 보내기</value>
   </data>
+  <data name="SetAsDefault" xml:space="preserve">
+    <value>기본값으로 설정</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>완료 상태 설정</value>
   </data>

@@ -716,6 +716,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="SendToWindow" xml:space="preserve">
     <value>An Fenster senden</value>
   </data>
+  <data name="SetAsDefault" xml:space="preserve">
+    <value>Als Standard festlegen</value>
+  </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>Abschlussstatus festlegen</value>
   </data>
