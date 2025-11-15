@@ -768,9 +768,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Tags" xml:space="preserve">
     <value>標籤</value>
   </data>
-  <data name="TagsColon" xml:space="preserve">
-    <value>標籤：</value>
-  </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text：</value>
   </data>
@@ -789,14 +786,8 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Title1" xml:space="preserve">
     <value>標題 1</value>
   </data>
-  <data name="Title1Colon" xml:space="preserve">
-    <value>標題 1：</value>
-  </data>
   <data name="Title2" xml:space="preserve">
     <value>標題 2</value>
-  </data>
-  <data name="Title2Colon" xml:space="preserve">
-    <value>標題 2：</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>切換自動捲動</value>

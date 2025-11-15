@@ -769,9 +769,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Tags" xml:space="preserve">
     <value>태그</value>
   </data>
-  <data name="TagsColon" xml:space="preserve">
-    <value>태그: </value>
-  </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
   </data>
@@ -790,14 +787,8 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Title1" xml:space="preserve">
     <value>제목 1</value>
   </data>
-  <data name="Title1Colon" xml:space="preserve">
-    <value>제목 1:</value>
-  </data>
   <data name="Title2" xml:space="preserve">
     <value>제목 2</value>
-  </data>
-  <data name="Title2Colon" xml:space="preserve">
-    <value>제목 2:</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>자동 스크롤 전환</value>

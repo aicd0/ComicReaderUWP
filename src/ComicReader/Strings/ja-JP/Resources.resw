@@ -768,9 +768,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Tags" xml:space="preserve">
     <value>ラベル</value>
   </data>
-  <data name="TagsColon" xml:space="preserve">
-    <value>ラベル：</value>
-  </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
   </data>
@@ -789,14 +786,8 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Title1" xml:space="preserve">
     <value>タイトル 1</value>
   </data>
-  <data name="Title1Colon" xml:space="preserve">
-    <value>タイトル 1：</value>
-  </data>
   <data name="Title2" xml:space="preserve">
     <value>タイトル 2</value>
-  </data>
-  <data name="Title2Colon" xml:space="preserve">
-    <value>タイトル 2：</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>自動スクロール切替</value>

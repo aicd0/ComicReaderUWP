@@ -58,41 +58,45 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
 
         ViewModel.Title1ChangedLiveData.ObserveSticky(this, (changed) =>
         {
-            string name = StringResource.Title1Colon;
+            string name = StringResource.Title1;
             if (changed)
             {
                 name += " *";
             }
+
             Title1NameTextBlock.Text = name;
         });
 
         ViewModel.Title2ChangedLiveData.ObserveSticky(this, (changed) =>
         {
-            string name = StringResource.Title2Colon;
+            string name = StringResource.Title2;
             if (changed)
             {
                 name += " *";
             }
+
             Title2NameTextBlock.Text = name;
         });
 
         ViewModel.DescriptionChangedLiveData.ObserveSticky(this, (changed) =>
         {
-            string name = StringResource.WithColon(StringResource.Description);
+            string name = StringResource.Description;
             if (changed)
             {
                 name += " *";
             }
+
             DescriptionNameTextBlock.Text = name;
         });
 
         ViewModel.TagChangedLiveData.ObserveSticky(this, (changed) =>
         {
-            string name = StringResource.TagsColon;
+            string name = StringResource.Tags;
             if (changed)
             {
                 name += " *";
             }
+
             TagNameTextBlock.Text = name;
         });
     }

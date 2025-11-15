@@ -769,9 +769,6 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Tags" xml:space="preserve">
     <value>Теги</value>
   </data>
-  <data name="TagsColon" xml:space="preserve">
-    <value>Теги:</value>
-  </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
   </data>
@@ -790,14 +787,8 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Title1" xml:space="preserve">
     <value>Заголовок 1</value>
   </data>
-  <data name="Title1Colon" xml:space="preserve">
-    <value>Заголовок 1:</value>
-  </data>
   <data name="Title2" xml:space="preserve">
     <value>Заголовок 2</value>
-  </data>
-  <data name="Title2Colon" xml:space="preserve">
-    <value>Заголовок 2:</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>Переключить автопрокрутку</value>

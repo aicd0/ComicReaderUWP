@@ -149,13 +149,10 @@ public class StringResourceProvider
     public string Tag => GetResourceString("Tag");
     public string TagLinkTip => GetResourceString("TagLinkTip");
     public string Tags => GetResourceString("Tags");
-    public string TagsColon => GetResourceString("TagsColon");
     public string TextWithColon => GetResourceString("TextWithColon");
     public string Title => GetResourceString("Title");
     public string Title1 => GetResourceString("Title1");
-    public string Title1Colon => GetResourceString("Title1Colon");
     public string Title2 => GetResourceString("Title2");
-    public string Title2Colon => GetResourceString("Title2Colon");
     public string ToggleAutoScroll => GetResourceString("ToggleAutoScroll");
     public string TotalComics => GetResourceString("TotalComics");
     public string Unfavorite => GetResourceString("Unfavorite");
