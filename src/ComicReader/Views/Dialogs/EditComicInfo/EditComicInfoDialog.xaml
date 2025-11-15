@@ -147,7 +147,7 @@
                 Margin="0,7,0,0"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                Text="{x:Bind StringResource.WithColon(StringResource.Links)}" />
+                Text="{x:Bind StringResource.Links}" />
             <controls:EditLinksView
                 Grid.Row="10"
                 Grid.Column="2"

@@ -770,9 +770,6 @@ Special variables:
   <data name="Tags" xml:space="preserve">
     <value>Tags</value>
   </data>
-  <data name="TagsColon" xml:space="preserve">
-    <value>Tags:</value>
-  </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
   </data>
@@ -791,14 +788,8 @@ Special variables:
   <data name="Title1" xml:space="preserve">
     <value>Title 1</value>
   </data>
-  <data name="Title1Colon" xml:space="preserve">
-    <value>Title 1:</value>
-  </data>
   <data name="Title2" xml:space="preserve">
     <value>Title 2</value>
-  </data>
-  <data name="Title2Colon" xml:space="preserve">
-    <value>Title 2:</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>Toggle auto scrolling</value>

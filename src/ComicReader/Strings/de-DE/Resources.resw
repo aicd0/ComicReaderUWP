@@ -768,9 +768,6 @@ Spezielle Variablen:
   <data name="Tags" xml:space="preserve">
     <value>Schlagwörter</value>
   </data>
-  <data name="TagsColon" xml:space="preserve">
-    <value>Stichworte:</value>
-  </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
   </data>
@@ -789,14 +786,8 @@ Spezielle Variablen:
   <data name="Title1" xml:space="preserve">
     <value>Titel 1</value>
   </data>
-  <data name="Title1Colon" xml:space="preserve">
-    <value>Titel 1:</value>
-  </data>
   <data name="Title2" xml:space="preserve">
     <value>Titel 2</value>
-  </data>
-  <data name="Title2Colon" xml:space="preserve">
-    <value>Titel 2:</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>Automatisches Scrollen umschalten</value>

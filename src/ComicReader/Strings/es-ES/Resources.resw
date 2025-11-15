@@ -768,9 +768,6 @@ Variables especiales:
   <data name="Tags" xml:space="preserve">
     <value>Etiquetas</value>
   </data>
-  <data name="TagsColon" xml:space="preserve">
-    <value>Etiquetas:</value>
-  </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
   </data>
@@ -789,14 +786,8 @@ Variables especiales:
   <data name="Title1" xml:space="preserve">
     <value>Título 1</value>
   </data>
-  <data name="Title1Colon" xml:space="preserve">
-    <value>Título 1: </value>
-  </data>
   <data name="Title2" xml:space="preserve">
     <value>Título 2</value>
-  </data>
-  <data name="Title2Colon" xml:space="preserve">
-    <value>Título 2:  </value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>Alternar desplazamiento automático</value>
