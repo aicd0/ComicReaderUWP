@@ -1385,7 +1385,7 @@ internal partial class ReaderView : UserControl
         PointerPoint pt = e.GetCurrentPoint(null);
         int delta = -pt.Properties.MouseWheelDelta / 120;
 
-        if (_isContinuous || _zoom > 105)
+        if (_isContinuous || _zoom > FORCE_CONTINUOUS_ZOOM_THRESHOLD)
         {
             // Continuous scrolling.
             SetScrollViewer1("ContinuousScrollingUsingPointerWheel", ScrollSource.User,
