@@ -361,7 +361,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             await comic.SetCompletionStateToAtLeastStarted();
             if (AppModel.SaveBrowsingHistory)
             {
-                HistoryModel.Instance.Add(comic.Id, comic.Title1, true);
+                _ = ComicHistoryItemModel.AddAsync(comic.Id, comic.Title1);
             }
         }
 

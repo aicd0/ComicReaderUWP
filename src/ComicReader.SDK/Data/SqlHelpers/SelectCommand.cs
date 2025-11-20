@@ -7,7 +7,7 @@ using Microsoft.Data.Sqlite;
 
 namespace ComicReader.SDK.Data.SqlHelpers;
 
-public class SelectCommand
+public partial class SelectCommand
 {
     private readonly ITable _table;
     private readonly Dictionary<string, ITokenInternal> _tokens = [];
@@ -94,13 +94,8 @@ public class SelectCommand
         {
             throw new InvalidOperationException("Cannot execute the same command twice.");
         }
+
         _executed = true;
-
-        if (_tokens.Count == 0)
-        {
-            return new EmptyReader();
-        }
-
         var tokens = new List<ITokenInternal>(_tokens.Values);
         CommandWrapper command = GenerateCommand(tokens);
         return new Reader(command.ExecuteReader(_table.GetDatabase()), tokens);
@@ -112,13 +107,8 @@ public class SelectCommand
         {
             throw new InvalidOperationException("Cannot execute the same command twice.");
         }
+
         _executed = true;
-
-        if (_tokens.Count == 0)
-        {
-            return new EmptyReader();
-        }
-
         var tokens = new List<ITokenInternal>(_tokens.Values);
         CommandWrapper command = GenerateCommand(tokens);
         return new Reader(await command.ExecuteReaderAsync(_table.GetDatabase()), tokens);
@@ -154,6 +144,11 @@ public class SelectCommand
             sb.Append("DISTINCT ");
         }
 
+        if (tokens.Count == 0)
+        {
+            throw new InvalidOperationException("No tokens have been added to the select command.");
+        }
+
         bool divider = false;
         foreach (ITokenInternal token in tokens)
         {
@@ -161,6 +156,7 @@ public class SelectCommand
             {
                 sb.Append(',');
             }
+
             divider = true;
             sb.Append(token.GetQueryExpression());
         }
@@ -177,6 +173,7 @@ public class SelectCommand
                 {
                     sb.Append(" AND ");
                 }
+
                 sb.Append('(').Append(_conditions[i].GetExpression(command)).Append(')');
             }
         }
@@ -196,7 +193,7 @@ public class SelectCommand
         return token;
     }
 
-    private class Reader(SqliteDataReader reader, List<ITokenInternal> tokens) : IReader
+    private partial class Reader(SqliteDataReader reader, List<ITokenInternal> tokens) : IReader
     {
         public void Dispose()
         {
@@ -229,23 +226,6 @@ public class SelectCommand
                 }
             }
             return hasMore;
-        }
-    }
-
-    private class EmptyReader : IReader
-    {
-        public void Dispose()
-        {
-        }
-
-        public bool Read()
-        {
-            return false;
-        }
-
-        public Task<bool> ReadAsync()
-        {
-            return Task.FromResult(false);
         }
     }
 

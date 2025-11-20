@@ -21,17 +21,39 @@ public static class SqlDatabaseManager
 
     private static bool _initialized = false;
 
+    //
+    // Comic Database
+    //
+
     private static SqlDatabase? _mainDatabase = null;
     public static SqlDatabase MainDatabase => _mainDatabase!;
 
     private static readonly ITaskDispatcher _mainDbDispatcher = TaskDispatcher.Factory.NewQueue("MainDatabaseQueue");
     public static ITaskDispatcher MainDatabaseDispatcher => _mainDbDispatcher;
 
+    //
+    // Tag Info Database
+    //
+
     private static SqlDatabase? _tagInfoDatabase = null;
     public static SqlDatabase TagInfoDatabase => _tagInfoDatabase!;
 
     private static readonly ITaskDispatcher _tabInfoDbDispatcher = TaskDispatcher.Factory.NewQueue("TagInfoDatabaseQueue");
     public static ITaskDispatcher TagInfoDatabaseDispatcher => _tabInfoDbDispatcher;
+
+    //
+    // Miscellaneous Database
+    //
+
+    private static SqlDatabase? _miscDatabase = null;
+    public static SqlDatabase MiscDatabase => _miscDatabase!;
+
+    private static readonly ITaskDispatcher _miscDbDispatcher = TaskDispatcher.Factory.NewQueue("MiscDatabaseQueue");
+    public static ITaskDispatcher MiscDatabaseDispatcher => _miscDbDispatcher;
+
+    //
+    // Public Methods
+    //
 
     public static void Initialize()
     {
@@ -49,6 +71,7 @@ public static class SqlDatabaseManager
 
         InitializeMainDatabase();
         InitializeTagInfoDatabase();
+        InitializeMiscDatabase();
         _initialized = true;
     }
 
@@ -149,6 +172,20 @@ public static class SqlDatabaseManager
             TagInfoTable.ColumnName.Name + " TEXT NOT NULL" +
             "," + TagInfoTable.ColumnTagCategory.Name + " TEXT NOT NULL REFERENCES " + tagCategoryInfoTable + "(" + TagCategoryInfoTable.ColumnName.Name + ") ON DELETE CASCADE ON UPDATE CASCADE" +
             "," + TagInfoTable.ColumnExt.Name + " TEXT" +
+            ")");
+    }
+
+    private static void InitializeMiscDatabase()
+    {
+        _miscDatabase?.Dispose();
+        _miscDatabase = new SqlDatabase(Path.Combine(DatabaseFolderPath, "misc.db"));
+
+        string comicHistoryTable = ComicHistoryTable.Instance.GetTableName();
+
+        ExecuteCommand(MiscDatabase, "CREATE TABLE IF NOT EXISTS " + comicHistoryTable + " (" +
+            ComicHistoryTable.ColumnComicId.Name + " INTEGER PRIMARY KEY" +
+            "," + ComicHistoryTable.ColumnTitle.Name + " TEXT NOT NULL" +
+            "," + ComicHistoryTable.ColumnTime.Name + " INTEGER NOT NULL" +
             ")");
     }
 
