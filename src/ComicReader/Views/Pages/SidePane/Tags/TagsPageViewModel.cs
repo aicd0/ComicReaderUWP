@@ -178,7 +178,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
             TagNodeViewModel tagCategoryNode = new()
             {
-                Glyph = "\uE8EC",
                 Title = tagCategory,
                 CanExpand = true,
                 Expanded = true,
