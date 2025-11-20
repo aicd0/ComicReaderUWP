@@ -28,25 +28,26 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="8" />
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="10" />
                     </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0" Height="24">
+                    <Grid Grid.Column="0" Height="18">
                         <Grid Visibility="{x:Bind CanExpand, Mode=OneWay}">
                             <FontIcon
                                 Margin="0,2,0,0"
-                                FontSize="16"
+                                FontSize="14"
                                 Glyph="{x:Bind Glyph, Mode=OneWay}"
                                 Visibility="{x:Bind Expanded, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
                             <FontIcon
                                 Margin="0,2,0,0"
-                                FontSize="16"
+                                FontSize="14"
                                 Glyph="{x:Bind Glyph, Mode=OneWay}"
                                 Visibility="{x:Bind Expanded, Mode=OneWay}" />
                         </Grid>
                         <FontIcon
                             Margin="0,2,0,0"
-                            FontSize="16"
+                            FontSize="14"
                             Glyph="{x:Bind Glyph, Mode=OneWay}"
                             Visibility="{x:Bind CanExpand, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
                     </Grid>
