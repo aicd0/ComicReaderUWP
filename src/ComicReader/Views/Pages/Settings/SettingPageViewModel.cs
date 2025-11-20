@@ -535,19 +535,22 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     private void UpdateHistory(AppSettingsModel.ExternalModel model)
     {
-        bool hasHistory = HistoryModel.Instance.GetModel().Items.Count > 0;
-        bool removeUnreachableComics = model.RemoveUnreachableComics;
-        bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
-        bool restoreLastReadingPosition = model.RestoreLastReadingPosition;
-        bool saveBrowsingHistory = AppModel.SaveBrowsingHistory;
-
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.Start(async () =>
         {
-            IsClearHistoryEnabled = hasHistory;
-            RemoveUnreachableComics = removeUnreachableComics;
-            PromptBeforeRemovingComics = promptBeforeRemovingComics;
-            HistorySaveBrowsingHistory = saveBrowsingHistory;
-            RestoreLastReadingPosition = restoreLastReadingPosition;
+            bool hasHistory = !await ComicHistoryItemModel.IsEmptyAsync();
+            bool removeUnreachableComics = model.RemoveUnreachableComics;
+            bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
+            bool restoreLastReadingPosition = model.RestoreLastReadingPosition;
+            bool saveBrowsingHistory = AppModel.SaveBrowsingHistory;
+
+            _ = MainThreadUtils.RunInMainThread(() =>
+            {
+                IsClearHistoryEnabled = hasHistory;
+                RemoveUnreachableComics = removeUnreachableComics;
+                PromptBeforeRemovingComics = promptBeforeRemovingComics;
+                HistorySaveBrowsingHistory = saveBrowsingHistory;
+                RestoreLastReadingPosition = restoreLastReadingPosition;
+            });
         });
     }
 

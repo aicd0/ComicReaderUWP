@@ -102,7 +102,7 @@ internal sealed partial class SettingPage : BasePage
 
     private void OnHistoryClearAllClicked(object sender, RoutedEventArgs e)
     {
-        HistoryModel.Instance.Clear(true);
+        _ = ComicHistoryItemModel.ClearAsync();
         ViewModel.IsClearHistoryEnabled = false;
     }
 
