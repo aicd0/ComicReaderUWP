@@ -60,7 +60,7 @@ internal class OpenTabProvider : IActionProvider
         }
         else
         {
-            MainWindow? window = App.WindowManager.GetWindow(windowId);
+            MainWindow? window = App.Instance.WindowManager.GetWindow(windowId);
             if (window is null)
             {
                 context.SetError($"Window {windowId} not found.");

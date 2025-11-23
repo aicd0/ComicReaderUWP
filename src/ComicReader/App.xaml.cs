@@ -4,19 +4,26 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.InitTask;
+using ComicReader.Common.Legacy;
+using ComicReader.Common.Utils;
+using ComicReader.Data.Models.Comic;
+using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Native;
 using ComicReader.SDK.Common.Storage;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 
 using Windows.ApplicationModel.Activation;
+using Windows.Storage;
 
 namespace ComicReader;
 
@@ -25,18 +32,50 @@ public partial class App : Application
     private const string TAG = nameof(App);
     private const string COMMAND_LINE_FILE_NAME = "command_line.txt";
 
+    private static App? _instance;
+    public static App Instance => _instance!;
+
     private readonly InitTaskManager _initTaskManager;
 
-    internal static readonly WindowManager WindowManager = new();
-    internal static bool ExitedNormallyLastTime { get; private set; } = true;
+    internal readonly WindowManager WindowManager = new();
+    internal bool ExitedNormallyLastTime { get; private set; } = true;
 
     public App()
     {
+        _instance = this;
         _initTaskManager = new(this);
         _initTaskManager.InitOnAppCreate();
         ExitedNormallyLastTime = _initTaskManager.ExitedNormallyLastTime;
         InitializeComponent();
     }
+
+    //
+    // Public Methods
+    //
+
+    internal void OnCommandLine(MainWindow window, string[] args)
+    {
+        CoroutineUtils.Start(async () =>
+        {
+            Route? route = await GetFileActivatedComicRoute(args);
+            if (!window.Alive)
+            {
+                Logger.E(TAG, "Unable to process command line because window is not alive.");
+                return;
+            }
+
+            if (route is not null)
+            {
+                window.OpenTab(route.Url, true);
+            }
+
+            window.BringToFront();
+        });
+    }
+
+    //
+    // Lifecycle
+    //
 
     protected override async void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs e)
     {
@@ -123,7 +162,17 @@ public partial class App : Application
 
         if (firstLaunch)
         {
-            MainWindow.Open(cmdArgs);
+            CoroutineUtils.Start(async () =>
+            {
+                Route? route = await GetFileActivatedComicRoute(cmdArgs);
+                if (route is null)
+                {
+                    WindowManager.RestoreWindowStatus();
+                    return;
+                }
+
+                MainWindow.Open(route.Url, restorePlacement: true);
+            });
         }
         else
         {
@@ -134,7 +183,7 @@ public partial class App : Application
                 return;
             }
 
-            window.OnCommandLine(cmdArgs);
+            OnCommandLine(window, cmdArgs);
         }
     }
 
@@ -216,5 +265,69 @@ public partial class App : Application
         {
             NativeMethods.LocalFree(argv);
         }
+    }
+
+    //
+    // File Activation
+    //
+
+    private static async Task<Route?> GetFileActivatedComicRoute(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            return null;
+        }
+
+        string targetFilePath = args[0];
+        if (!File.Exists(targetFilePath))
+        {
+            Logger.W("GetFileActivatedComicRoute", "Target file does not exist: " + targetFilePath);
+            return null;
+        }
+
+        string targetFileExtension = Path.GetExtension(targetFilePath);
+        if (!AppInfoProvider.IsSupportedExternalFileExtension(targetFileExtension))
+        {
+            return null;
+        }
+
+        StorageFile? targetFile = await Storage.TryGetFile(targetFilePath);
+        if (targetFile is null)
+        {
+            Logger.W("GetFileActivatedComicRoute", "Failed to get target file: " + targetFilePath);
+            return null;
+        }
+
+        ComicModel? comic = await ComicModel.FromFile(targetFile);
+        if (comic is not null)
+        {
+            if (comic.IsExternal)
+            {
+                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                    .WithParam(RouterConstants.ARG_COMIC_LOCATION, targetFile.Path);
+            }
+            else
+            {
+                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+            }
+        }
+
+        if (AppInfoProvider.IsSupportedImageExtension(targetFile.FileType))
+        {
+            string parentPath = targetFile.Path;
+            parentPath = StringUtils.ParentLocationFromLocation(parentPath);
+            comic = await ComicModel.FromLocation(parentPath, "GetFileActivatedComicRoute");
+            if (comic is not null && !comic.IsExternal)
+            {
+                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+            }
+
+            return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                .WithParam(RouterConstants.ARG_COMIC_LOCATION, parentPath);
+        }
+
+        return null;
     }
 }

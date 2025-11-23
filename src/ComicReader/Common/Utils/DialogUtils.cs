@@ -25,7 +25,7 @@ internal class DialogUtils
         TaskCompletionSource<ContentDialogResult> resultSource = new();
         MainThreadUtils.RunInMainThread(() =>
         {
-            MainWindow? window = App.WindowManager.GetActiveWindow() ?? App.WindowManager.GetAnyWindow();
+            MainWindow? window = App.Instance.WindowManager.GetActiveWindow() ?? App.Instance.WindowManager.GetAnyWindow();
             if (window is null)
             {
                 Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found.");
@@ -67,7 +67,7 @@ internal class DialogUtils
     {
         if (!_windowDialogQueue.TryGetValue(windowId, out Queue<PendingDialogItem>? queue))
         {
-            if (App.WindowManager.GetWindow(windowId) is null)
+            if (App.Instance.WindowManager.GetWindow(windowId) is null)
             {
                 Logger.F(TAG, "EnqueueDialogAsync: Window not found.");
                 resultSource.SetResult(ContentDialogResult.None);
@@ -109,7 +109,7 @@ internal class DialogUtils
 
         while (queue.TryPeek(out PendingDialogItem? item))
         {
-            MainWindow? window = App.WindowManager.GetWindow(windowId);
+            MainWindow? window = App.Instance.WindowManager.GetWindow(windowId);
             if (window is null)
             {
                 ClearQueue();

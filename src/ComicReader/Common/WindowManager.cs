@@ -3,10 +3,17 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
+using System.Threading.Tasks;
 
+using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.AppWindows.Main;
 
 namespace ComicReader.Common;
@@ -17,6 +24,8 @@ class WindowManager
 
     private int _nextWindowId = 0;
     private readonly ConcurrentDictionary<int, WindowWrapper> _windows = [];
+    private bool _saveWindowStatusScheduled = false;
+    private bool _windowStatusLocked = false;
 
     public int RegisterWindow(MainWindow window)
     {
@@ -89,9 +98,100 @@ class WindowManager
         return result;
     }
 
+    public void ScheduleSaveWindowStatus()
+    {
+        if (_saveWindowStatusScheduled || _windowStatusLocked)
+        {
+            return;
+        }
+
+        _saveWindowStatusScheduled = true;
+        Task.Delay(500).ContinueWith(delegate
+        {
+            _saveWindowStatusScheduled = false;
+            if (_windowStatusLocked)
+            {
+                return;
+            }
+
+            SaveWindowStatus();
+        });
+    }
+
+    public void LockWindowStatus()
+    {
+        if (_windowStatusLocked)
+        {
+            return;
+        }
+
+        _windowStatusLocked = true;
+        SaveWindowStatus();
+    }
+
+    public void RestoreWindowStatus()
+    {
+        WindowStatusModel? model = null;
+        string? serialized = KVDatabase.Default.With(DatabaseEntry.KV_LIB_APP).GetString(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS);
+        if (!string.IsNullOrEmpty(serialized))
+        {
+            try
+            {
+                model = JsonSerializer.Deserialize<WindowStatusModel>(serialized);
+            }
+            catch (JsonException ex)
+            {
+                Logger.E(TAG, "Failed to deserialize window status model.", ex);
+            }
+        }
+
+        if (model is null || model.Windows.Count == 0)
+        {
+            MainWindow.Open();
+            return;
+        }
+
+        foreach (MainWindow.WindowStatusModel windowStatus in model.Windows)
+        {
+            MainWindow.Open(windowStatus);
+        }
+    }
+
+    private void SaveWindowStatus()
+    {
+        CoroutineUtils.Start(async () =>
+        {
+            WindowStatusModel model = new()
+            {
+                Windows = []
+            };
+
+            await MainThreadUtils.RunInMainThread(() =>
+            {
+                foreach (WindowWrapper wrapper in _windows.Values)
+                {
+                    MainWindow.WindowStatusModel? windowStatus = wrapper.Window.GetWindowStatus();
+                    if (windowStatus is not null)
+                    {
+                        model.Windows.Add(windowStatus);
+                    }
+                }
+            });
+
+            string serialized = JsonSerializer.Serialize(model);
+            KVDatabase.Default.With(DatabaseEntry.KV_LIB_APP).SetString(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS, serialized);
+        });
+    }
+
     private class WindowWrapper(MainWindow window)
     {
         public MainWindow Window { get; set; } = window;
         public EventBus EventBus { get; } = new();
+    }
+
+    private class WindowStatusModel
+    {
+        [JsonPropertyName("Windows")]
+        public required List<MainWindow.WindowStatusModel> Windows { get; init; }
     }
 }

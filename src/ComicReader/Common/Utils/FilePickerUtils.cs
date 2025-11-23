@@ -15,7 +15,7 @@ internal static class FilePickerUtils
 {
     public static Task<StorageFolder?> PickFolder(int windowId)
     {
-        MainWindow? window = App.WindowManager.GetWindow(windowId);
+        MainWindow? window = App.Instance.WindowManager.GetWindow(windowId);
         if (window is null)
         {
             return Task.FromResult<StorageFolder?>(null);

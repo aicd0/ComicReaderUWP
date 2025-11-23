@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using ComicReader.Common;
@@ -11,7 +10,6 @@ using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
@@ -59,19 +57,8 @@ internal sealed partial class MainPage : BasePage
 
     public string Title => _currentTab?.Item?.Header as string ?? string.Empty;
 
-    private MainWindow? CurrentWindow
-    {
-        get
-        {
-            MainWindow? window = App.WindowManager.GetWindow(WindowId);
-            if (window is null)
-            {
-                Logger.F(TAG, $"Failed to get current window with ID {WindowId}.");
-            }
-
-            return window;
-        }
-    }
+    private MainWindow? _currentWindow;
+    private MainWindow CurrentWindow => _currentWindow!;
 
     //
     // Constructors
@@ -109,16 +96,92 @@ internal sealed partial class MainPage : BasePage
     /// <summary>
     /// Closes all currently open tabs and performs any necessary cleanup. Must be called from the UI thread.
     /// </summary>
-    /// <remarks>This method ensures that the state of each tab is saved before closing.  Tabs are closed in
-    /// the order they appear, and the operation continues  until all tabs have been closed. This method is not
-    /// thread-safe and  should be called only from the appropriate thread managing the tabs.</remarks>
     public void CloseAllTabs()
     {
-        SaveTabStatus();
         while (_tabs.Count > 0)
         {
             CloseTabInternalNoLock(_tabs[0]);
         }
+    }
+
+    /// <summary>
+    /// Must be called from the UI thread.
+    /// </summary>
+    /// <returns></returns>
+    public LastTabStatusJsonModel GetTabStatus()
+    {
+        TabStatusModel model = new()
+        {
+            SelectedIndex = RootTabView.SelectedIndex
+        };
+
+        foreach (TabInfo item in _tabs)
+        {
+            model.Tabs.Add(new TabModel { Url = item.CurrentUrl });
+        }
+
+        LastTabStatusJsonModel jsonModel = new()
+        {
+            SelectedIndex = model.SelectedIndex,
+            Tabs = []
+        };
+
+        foreach (TabModel tab in model.Tabs)
+        {
+            jsonModel.Tabs.Add(new TabJsonModel { Url = tab.Url });
+        }
+
+        return jsonModel;
+    }
+
+    public void RestoreTabStatus(LastTabStatusJsonModel? jsonModel)
+    {
+        TabStatusModel? model = null;
+        if (jsonModel is not null)
+        {
+            model = new();
+            if (jsonModel.Tabs is not null)
+            {
+                foreach (TabJsonModel? tab in jsonModel.Tabs)
+                {
+                    if (tab is null || string.IsNullOrEmpty(tab.Url))
+                    {
+                        continue;
+                    }
+
+                    model.Tabs.Add(new TabModel { Url = tab.Url });
+                }
+            }
+
+            if (model.Tabs.Count == 0)
+            {
+                model = null;
+            }
+            else
+            {
+                model.SelectedIndex = Math.Clamp(jsonModel.SelectedIndex ?? -1, 0, model.Tabs.Count - 1);
+            }
+        }
+
+        MainThreadUtils.RunInMainThread(() =>
+        {
+            if (model is not null)
+            {
+                for (int i = 0; i < model.Tabs.Count; ++i)
+                {
+                    TabModel tab = model.Tabs[i];
+                    if (string.IsNullOrEmpty(tab.Url))
+                    {
+                        continue;
+                    }
+
+                    var route = Route.Create(tab.Url);
+                    LoadTabNoLock(-1, route, i == model.SelectedIndex);
+                }
+            }
+
+            EnsureInitialTabNoLock();
+        });
     }
 
     //
@@ -129,27 +192,20 @@ internal sealed partial class MainPage : BasePage
     {
         base.OnStart(bundle);
 
-        string url = bundle.GetString(RouterConstants.ARG_URL);
-        bool recoverTabs = bundle.GetString(RouterConstants.ARG_RECOVER_TABS, "0") == "1";
+        _currentWindow = App.Instance.WindowManager.GetWindow(WindowId);
 
-        Window? window = CurrentWindow;
-        if (window is not null)
-        {
-            window.SetTitleBar(MainTitleBar);
-
-            AppWindowTitleBar titleBar = window.AppWindow.TitleBar;
-            titleBar.ButtonBackgroundColor = MainTitleBar.ButtonBackground?.Color;
-            titleBar.ButtonForegroundColor = MainTitleBar.ButtonForeground?.Color;
-            titleBar.ButtonInactiveBackgroundColor = MainTitleBar.ButtonInactiveBackground?.Color;
-            titleBar.ButtonInactiveForegroundColor = MainTitleBar.ButtonInactiveForeground?.Color;
-            titleBar.ButtonHoverBackgroundColor = MainTitleBar.ButtonHoverBackground?.Color;
-            titleBar.ButtonHoverForegroundColor = MainTitleBar.ButtonHoverForeground?.Color;
-            titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
-            titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
-        }
+        CurrentWindow.SetTitleBar(MainTitleBar);
+        AppWindowTitleBar titleBar = CurrentWindow.AppWindow.TitleBar;
+        titleBar.ButtonBackgroundColor = MainTitleBar.ButtonBackground?.Color;
+        titleBar.ButtonForegroundColor = MainTitleBar.ButtonForeground?.Color;
+        titleBar.ButtonInactiveBackgroundColor = MainTitleBar.ButtonInactiveBackground?.Color;
+        titleBar.ButtonInactiveForegroundColor = MainTitleBar.ButtonInactiveForeground?.Color;
+        titleBar.ButtonHoverBackgroundColor = MainTitleBar.ButtonHoverBackground?.Color;
+        titleBar.ButtonHoverForegroundColor = MainTitleBar.ButtonHoverForeground?.Color;
+        titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
+        titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
 
         ViewModel.OnStart();
-        LoadInitialTabs(url, recoverTabs);
         ObserveData();
     }
 
@@ -200,36 +256,6 @@ internal sealed partial class MainPage : BasePage
         {
             ViewModel.IsFullscreen = isFullscreen;
         });
-    }
-
-    private void LoadInitialTabs(string url, bool recoverTabs)
-    {
-        if (recoverTabs)
-        {
-            TabStatusModel? lastTabStatus = GetLastTabStatus();
-            if (lastTabStatus is not null)
-            {
-                for (int i = 0; i < lastTabStatus.Tabs.Count; ++i)
-                {
-                    TabModel tab = lastTabStatus.Tabs[i];
-                    if (string.IsNullOrEmpty(tab.Url))
-                    {
-                        continue;
-                    }
-
-                    Route route = Route.Create(tab.Url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-                    LoadTabNoLock(-1, route, i == lastTabStatus.SelectedIndex);
-                }
-            }
-        }
-
-        if (!string.IsNullOrEmpty(url))
-        {
-            Route route = Route.Create(url).WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-            LoadTabNoLock(-1, route, true);
-        }
-
-        EnsureInitialTabNoLock();
     }
 
     //
@@ -394,6 +420,8 @@ internal sealed partial class MainPage : BasePage
         {
             CurrentWindow?.Close();
         }
+
+        App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
     private void CloseTabInternalNoLock(TabInfo tabInfo)
@@ -497,7 +525,7 @@ internal sealed partial class MainPage : BasePage
         {
             if (sourceWindowId != WindowId)
             {
-                App.WindowManager.GetEventBus(sourceWindowId).With<int>(EventId.CloseTab).Emit(sourceTabId);
+                App.Instance.WindowManager.GetEventBus(sourceWindowId).With<int>(EventId.CloseTab).Emit(sourceTabId);
                 LoadTabNoLock(-1, Route.Create(url), true);
                 EnsureInitialTabNoLock();
             }
@@ -515,7 +543,7 @@ internal sealed partial class MainPage : BasePage
                 {
                     if (item is Windows.Storage.StorageFile file)
                     {
-                        CurrentWindow?.OnCommandLine([item.Path]);
+                        App.Instance.OnCommandLine(CurrentWindow, [item.Path]);
                     }
                 }
             });
@@ -585,6 +613,8 @@ internal sealed partial class MainPage : BasePage
                 FullscreenButtonGrid.Visibility = Visibility.Visible;
             }
         }
+
+        App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
     private void UpdateTopPadding()
@@ -758,81 +788,6 @@ internal sealed partial class MainPage : BasePage
         });
     }
 
-    private static TabStatusModel? GetLastTabStatus()
-    {
-        string? json = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LAST_TAB_STATUS);
-        if (string.IsNullOrEmpty(json))
-        {
-            return null;
-        }
-
-        LastTabStatusJsonModel? jsonModel;
-        try
-        {
-            jsonModel = JsonSerializer.Deserialize<LastTabStatusJsonModel>(json);
-        }
-        catch (JsonException)
-        {
-            Logger.E(TAG, "Failed to deserialize last tab status JSON.");
-            return null;
-        }
-
-        if (jsonModel is null)
-        {
-            return null;
-        }
-
-        TabStatusModel model = new();
-        if (jsonModel.Tabs is not null)
-        {
-            foreach (TabJsonModel? tab in jsonModel.Tabs)
-            {
-                if (tab is null || string.IsNullOrEmpty(tab.Url))
-                {
-                    continue;
-                }
-
-                model.Tabs.Add(new TabModel { Url = tab.Url });
-            }
-        }
-
-        if (model.Tabs.Count == 0)
-        {
-            return null;
-        }
-
-        model.SelectedIndex = Math.Clamp(jsonModel.SelectedIndex ?? -1, 0, model.Tabs.Count - 1);
-        return model;
-    }
-
-    private void SaveTabStatus()
-    {
-        TabStatusModel model = new()
-        {
-            SelectedIndex = RootTabView.SelectedIndex
-        };
-
-        foreach (TabInfo item in _tabs)
-        {
-            model.Tabs.Add(new TabModel { Url = item.CurrentUrl });
-        }
-
-        LastTabStatusJsonModel jsonModel = new()
-        {
-            SelectedIndex = model.SelectedIndex,
-            Tabs = []
-        };
-
-        foreach (TabModel tab in model.Tabs)
-        {
-            jsonModel.Tabs.Add(new TabJsonModel { Url = tab.Url });
-        }
-
-        string json = JsonSerializer.Serialize(jsonModel);
-        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LAST_TAB_STATUS, json);
-        Logger.I(TAG, $"Saved tab status: {json}");
-    }
-
     //
     // Page Ability
     //
@@ -991,16 +946,28 @@ internal sealed partial class MainPage : BasePage
         public required IPageTrait CurrentPageTrait { get; set; }
     }
 
-    private class LastTabStatusJsonModel
+    public class LastTabStatusJsonModel
     {
         [JsonPropertyName("SelectedIndex")]
         public int? SelectedIndex { get; set; }
 
         [JsonPropertyName("Tabs")]
         public List<TabJsonModel?>? Tabs { get; set; }
+
+        public static LastTabStatusJsonModel FromUrl(string url)
+        {
+            return new LastTabStatusJsonModel
+            {
+                SelectedIndex = 0,
+                Tabs =
+                [
+                    new() { Url = url }
+                ]
+            };
+        }
     }
 
-    private class TabJsonModel
+    public class TabJsonModel
     {
         [JsonPropertyName("Url")]
         public string? Url { get; set; }

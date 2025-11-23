@@ -257,7 +257,7 @@ internal static class MenuFlyoutItemsCreator
             currentWindowId = mainWindowCom.WindowId;
         }
 
-        Dictionary<int, string> windowInfo = App.WindowManager.GetAllWindowInfo();
+        Dictionary<int, string> windowInfo = App.Instance.WindowManager.GetAllWindowInfo();
         foreach (KeyValuePair<int, string> pair in windowInfo)
         {
             int windowId = pair.Key;

@@ -2,19 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Constants;
-using ComicReader.Common.Legacy;
-using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
@@ -26,14 +21,13 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
-using Windows.Storage;
 using Windows.Win32;
 
 using WinRT.Interop;
 
 namespace ComicReader.Views.AppWindows.Main;
 
-public sealed partial class MainWindow : Window
+internal sealed partial class MainWindow : Window
 {
     private const string TAG = nameof(MainWindow);
     private const uint WM_MOVE = 0x0003;
@@ -43,33 +37,21 @@ public sealed partial class MainWindow : Window
     // Creators
     //
 
-    public static void Open(string[] args)
+    public static void Open()
     {
-        CoroutineUtils.Start(async () =>
-        {
-            Route? route = await GetFileActivatedComicRoute(args);
-            if (route is null)
-            {
-                Open(recoverTabs: true, restorePlacement: true);
-                return;
-            }
-
-            Open(route.Url, recoverTabs: false, restorePlacement: true);
-        });
+        MainWindow window = new(null, restorePlacement: false);
+        window.Activate();
     }
 
-    public static void Open(string url = "", bool recoverTabs = false, bool restorePlacement = false)
+    public static void Open(string url, bool restorePlacement = false)
     {
-        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN);
+        MainWindow window = new(WindowStatusModel.FromUrl(url), restorePlacement);
+        window.Activate();
+    }
 
-        if (!string.IsNullOrEmpty(url))
-        {
-            route.WithParam(RouterConstants.ARG_URL, url);
-        }
-
-        route.WithParam(RouterConstants.ARG_RECOVER_TABS, recoverTabs ? "1" : "0");
-
-        MainWindow window = new(route.Url, restorePlacement);
+    public static void Open(WindowStatusModel windowStatus)
+    {
+        MainWindow window = new(windowStatus, restorePlacement: true);
         window.Activate();
     }
 
@@ -98,15 +80,15 @@ public sealed partial class MainWindow : Window
     // Constructors
     //
 
-    private MainWindow(string url, bool restorePlacement)
+    private MainWindow(WindowStatusModel? windowStatus, bool restorePlacement)
     {
         _members = new(this);
-        Members._url = url;
-        Members._restorePlacementRequested = restorePlacement;
+        Members._requestWindowStatus = windowStatus;
+        Members._requestRestorePlacement = restorePlacement;
 
         InitializeComponent();
 
-        WindowId = App.WindowManager.RegisterWindow(this);
+        WindowId = App.Instance.WindowManager.RegisterWindow(this);
         WindowHandle = WindowNative.GetWindowHandle(this);
 
         if (DebugUtils.DeveloperMode)
@@ -126,35 +108,6 @@ public sealed partial class MainWindow : Window
     // Public Methods
     //
 
-    public void OnCommandLine(string[] args)
-    {
-        CoroutineUtils.Start(async () =>
-        {
-            Route? route = await GetFileActivatedComicRoute(args);
-            if (!Alive)
-            {
-                Logger.E(TAG, "Unable to process command line because window is not alive.");
-                return;
-            }
-
-            if (route is not null)
-            {
-                if (Members._mainPage is null)
-                {
-                    Members._url = route.Url;
-                }
-                else
-                {
-                    Members._mainPage.OpenInNewTab(route);
-                }
-            }
-
-            var hWnd = new Windows.Win32.Foundation.HWND(WindowHandle);
-            PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
-            PInvoke.SetForegroundWindow(hWnd);
-        });
-    }
-
     public void OpenTab(string url, bool newTab)
     {
         var route = Route.Create(url);
@@ -172,6 +125,32 @@ public sealed partial class MainWindow : Window
         {
             mainPage.OpenInCurrentTab(route);
         }
+    }
+
+    /// <summary>
+    /// Must be called from the UI thread.
+    /// </summary>
+    /// <returns></returns>
+    public WindowStatusModel? GetWindowStatus()
+    {
+        if (!Alive || Members._mainPage is null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            Fullscreen = Members._fullscreen,
+            WindowPlacement = Members._windowPlacementManager.GetWindowPlacement(),
+            TabStatus = Members._mainPage.GetTabStatus()
+        };
+    }
+
+    public void BringToFront()
+    {
+        var hWnd = new Windows.Win32.Foundation.HWND(WindowHandle);
+        PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
+        PInvoke.SetForegroundWindow(hWnd);
     }
 
     //
@@ -202,13 +181,13 @@ public sealed partial class MainWindow : Window
             DispatchFullscreenChangeEvent(IsFullScreen());
         });
 
-        Members._windowPlacementManager.ScheduleSavingWindowPlacement();
+        App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
     private void OnPageFrameLoaded(object sender, RoutedEventArgs e)
     {
         // Load the main page
-        Route route = Route.Create(Members._url)
+        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
             .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
         NavigationBundle bundle = AppRouter.Process(route)!;
         bundle.Communicator.RegisterAbility<ICommonPageAbility>(Members._mainWindowAbility);
@@ -220,25 +199,28 @@ public sealed partial class MainWindow : Window
         Alive = true;
 
         // Restore window placement
-        if (Members._restorePlacementRequested)
+        WindowStatusModel? windowStatus = Members._requestWindowStatus;
+        if (windowStatus is not null && Members._requestRestorePlacement)
         {
-            bool fullscreen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, false);
-            if (fullscreen)
+            if (windowStatus.Fullscreen)
             {
                 EnterOrExitFullscreen(true);
             }
-            else
+            else if (windowStatus.WindowPlacement is not null)
             {
-                Members._windowPlacementManager.TryRestoreWindowPlacement();
+                Members._windowPlacementManager.RestoreWindowPlacement(windowStatus.WindowPlacement);
             }
         }
+
+        // Load tabs
+        Members._mainPage.RestoreTabStatus(windowStatus?.TabStatus);
 
         if (WindowMembers.sIsFirstWindow)
         {
             WindowMembers.sIsFirstWindow = false;
 
             // Show last crash report if applicable
-            if (!App.ExitedNormallyLastTime && DebugUtils.DebugMode)
+            if (!App.Instance.ExitedNormallyLastTime && DebugUtils.DebugMode)
             {
                 DebugUtils.ReportLastCrash();
             }
@@ -251,6 +233,12 @@ public sealed partial class MainWindow : Window
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
     {
+        bool isLastWindow = App.Instance.WindowManager.GetAllWindowInfo().Count == 1;
+        if (isLastWindow)
+        {
+            App.Instance.WindowManager.LockWindowStatus();
+        }
+
         // Mark the end of the window lifecycle
         Alive = false;
 
@@ -266,10 +254,10 @@ public sealed partial class MainWindow : Window
         UnregisterMessageLoop();
 
         // Unregister window from WindowManager
-        App.WindowManager.UnregisterWindow(WindowId);
+        App.Instance.WindowManager.UnregisterWindow(WindowId);
 
         // Use another window to register hotkeys again
-        MainWindow? anyWindow = App.WindowManager.GetAnyWindow();
+        MainWindow? anyWindow = App.Instance.WindowManager.GetAnyWindow();
         if (anyWindow != null)
         {
             HotKeyManager.Instance.RegisterHotKeys(anyWindow.WindowHandle);
@@ -280,6 +268,8 @@ public sealed partial class MainWindow : Window
         PageFrame.Content = null;
         PageFrame = null;
         WindowHandle = IntPtr.Zero;
+
+        App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
     //
@@ -299,7 +289,7 @@ public sealed partial class MainWindow : Window
 #endif
         if (prevWndProc == IntPtr.Zero)
         {
-            Logger.AssertNotReachHere("Failed to set window procedure.");
+            Logger.F(TAG, "Failed to register message loop.");
             return;
         }
 
@@ -313,14 +303,18 @@ public sealed partial class MainWindow : Window
             Windows.Win32.Foundation.HWND hwnd = new(WindowHandle);
             nint originProcPtr = Marshal.GetFunctionPointerForDelegate(Members._originProc);
 #if x86
-            PInvoke.SetWindowLong(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, (int)originProcPtr);
+            nint prevWndProc = PInvoke.SetWindowLong(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, (int)originProcPtr);
 #elif x64 || ARM64
             PInvoke.SetWindowLongPtr(hwnd, Windows.Win32.UI.WindowsAndMessaging.WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, originProcPtr);
 #endif
-
-            Members._originProc = null;
-            Members._wndProcDelegate = null;
+            if (prevWndProc == IntPtr.Zero)
+            {
+                Logger.F(TAG, "Failed to unregister message loop.");
+            }
         }
+
+        Members._originProc = null;
+        Members._wndProcDelegate = null;
     }
 
     private Windows.Win32.Foundation.LRESULT MessageLoopProc(Windows.Win32.Foundation.HWND hwnd,
@@ -331,7 +325,7 @@ public sealed partial class MainWindow : Window
         switch (uMsg)
         {
             case WM_MOVE:
-                Members._windowPlacementManager.ScheduleSavingWindowPlacement();
+                App.Instance.WindowManager.ScheduleSaveWindowStatus();
                 break;
             case WM_HOTKEY:
                 {
@@ -350,70 +344,6 @@ public sealed partial class MainWindow : Window
     }
 
     //
-    // File Activation
-    //
-
-    private static async Task<Route?> GetFileActivatedComicRoute(string[] args)
-    {
-        if (args.Length == 0)
-        {
-            return null;
-        }
-
-        string targetFilePath = args[0];
-        if (!File.Exists(targetFilePath))
-        {
-            Logger.W("GetFileActivatedComicRoute", "Target file does not exist: " + targetFilePath);
-            return null;
-        }
-
-        string targetFileExtension = Path.GetExtension(targetFilePath);
-        if (!AppInfoProvider.IsSupportedExternalFileExtension(targetFileExtension))
-        {
-            return null;
-        }
-
-        StorageFile? targetFile = await Storage.TryGetFile(targetFilePath);
-        if (targetFile is null)
-        {
-            Logger.W("GetFileActivatedComicRoute", "Failed to get target file: " + targetFilePath);
-            return null;
-        }
-
-        ComicModel? comic = await ComicModel.FromFile(targetFile);
-        if (comic is not null)
-        {
-            if (comic.IsExternal)
-            {
-                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                    .WithParam(RouterConstants.ARG_COMIC_LOCATION, targetFile.Path);
-            }
-            else
-            {
-                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-            }
-        }
-
-        if (AppInfoProvider.IsSupportedImageExtension(targetFile.FileType))
-        {
-            string parentPath = targetFile.Path;
-            parentPath = StringUtils.ParentLocationFromLocation(parentPath);
-            comic = await ComicModel.FromLocation(parentPath, "GetFileActivatedComicRoute");
-            if (comic is not null && !comic.IsExternal)
-            {
-                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-            }
-
-            return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                .WithParam(RouterConstants.ARG_COMIC_LOCATION, parentPath);
-        }
-
-        return null;
-    }
-
-    //
     // Fullscreen
     //
 
@@ -425,8 +355,8 @@ public sealed partial class MainWindow : Window
         }
 
         AppWindow.SetPresenter(isFullscreen ? AppWindowPresenterKind.FullScreen : AppWindowPresenterKind.Default);
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_FULLSCREEN, isFullscreen);
         DispatchFullscreenChangeEvent(isFullscreen);
+        App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
     private bool IsFullScreen()
@@ -534,12 +464,34 @@ public sealed partial class MainWindow : Window
         public static bool sIsFirstWindow = true;
 
         public MainPage? _mainPage;
-        public string _url = string.Empty;
+        public WindowStatusModel? _requestWindowStatus = null;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _originProc;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _wndProcDelegate;
         public readonly MainWindowAbility _mainWindowAbility = new(window);
         public bool _fullscreen = false;
-        public bool _restorePlacementRequested = false;
+        public bool _requestRestorePlacement = false;
         public WindowPlacementManager _windowPlacementManager = new(window);
+    }
+
+    public class WindowStatusModel
+    {
+        [JsonPropertyName("Fullscreen")]
+        public bool Fullscreen { get; init; }
+
+        [JsonPropertyName("WindowPlacement")]
+        public WindowPlacementManager.SavedWindowState? WindowPlacement { get; init; }
+
+        [JsonPropertyName("TabStatus")]
+        public required MainPage.LastTabStatusJsonModel TabStatus { get; init; }
+
+        public static WindowStatusModel FromUrl(string url)
+        {
+            return new WindowStatusModel
+            {
+                Fullscreen = false,
+                WindowPlacement = null,
+                TabStatus = MainPage.LastTabStatusJsonModel.FromUrl(url)
+            };
+        }
     }
 }

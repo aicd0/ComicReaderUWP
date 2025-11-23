@@ -9,7 +9,7 @@ internal static class DatabaseEntry
     public const string KV_LIB_READER_STATE = "reader_state";
     public const string KV_LIB_TIPS = "tips";
 
-    public const string KV_KEY_APP_WINDOW_STATES = "WindowStates";
+    public const string KV_KEY_APP_WINDOW_STATUS = "WindowStatus";
     public const string KV_KEY_APP_SIDE_PANE_WIDTH = "SidePaneWidth";
     public const string KV_KEY_APP_SIDE_PANE_LAST_ITEM = "SidePaneLastItem";
     public const string KV_KEY_APP_LOG_VISIBLE = "LogVisible";
@@ -20,5 +20,4 @@ internal static class DatabaseEntry
     public const string KV_KEY_APP_SAVE_BROWSING_HISTORY = "save_browsing_history";
     public const string KV_KEY_APP_TRANSITION_ANIMATION = "transition_animation";
     public const string KV_KEY_APP_AUTO_HIDE_CURSOR = "AutoHideCursor";
-    public const string KV_KEY_APP_FULLSCREEN = "Fullscreen";
 }

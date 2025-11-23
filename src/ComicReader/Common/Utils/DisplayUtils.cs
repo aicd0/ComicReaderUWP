@@ -47,7 +47,7 @@ internal static class DisplayUtils
 
     private static double GetScaleAdjustment()
     {
-        MainWindow? window = App.WindowManager.GetAnyWindow();
+        MainWindow? window = App.Instance.WindowManager.GetAnyWindow();
         if (window == null)
         {
             Logger.AssertNotReachHere("A10F68C0A70A9EC2");
