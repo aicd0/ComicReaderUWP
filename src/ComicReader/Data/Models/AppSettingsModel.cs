@@ -24,10 +24,18 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         return new();
     }
 
+    //
+    // Getters
+    //
+
     public ExternalModel GetModel()
     {
         return Read(ExternalModel.From);
     }
+
+    //
+    // Setters
+    //
 
     public void UpdateModel(ExternalModel model)
     {
@@ -82,6 +90,10 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             Save();
         }
     }
+
+    //
+    // Types
+    //
 
     public class JsonModel
     {

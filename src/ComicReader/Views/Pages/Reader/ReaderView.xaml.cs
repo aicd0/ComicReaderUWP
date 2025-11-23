@@ -1387,13 +1387,22 @@ internal partial class ReaderView : UserControl
 
         if (_isContinuous || _zoom > FORCE_CONTINUOUS_ZOOM_THRESHOLD)
         {
-            // Continuous scrolling.
-            SetScrollViewer1("ContinuousScrollingUsingPointerWheel", ScrollSource.User,
-                parallelOffset: SCParallelOffsetFinal + delta * 140.0, disableAnimation: false);
+            // Continuous scrolling
+            CoreVirtualKeyStates menuState = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu);
+            if (menuState.HasFlag(CoreVirtualKeyStates.Down))
+            {
+                SetScrollViewer3("ContinuousHorizontalScrollingUsingPointerWheel", ScrollSource.User,
+                    horizontalOffset: SCHorizontalOffsetFinal + delta * 140.0, disableAnimation: false);
+            }
+            else
+            {
+                SetScrollViewer3("ContinuousVerticalScrollingUsingPointerWheel", ScrollSource.User,
+                    verticalOffset: SCVerticalOffsetFinal + delta * 140.0, disableAnimation: false);
+            }
         }
         else
         {
-            // Page turning.
+            // Page turning
             MoveFrameByUser("PageTurningUsingPointerWheel", delta);
         }
 
