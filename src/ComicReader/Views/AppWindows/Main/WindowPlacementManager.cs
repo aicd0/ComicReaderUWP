@@ -2,13 +2,9 @@
 // Licensed under the MIT License.
 
 using System.Drawing;
-using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
-using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Native;
 
 using Windows.Win32;
@@ -19,42 +15,9 @@ internal class WindowPlacementManager(MainWindow window)
 {
     private const string TAG = nameof(WindowPlacementManager);
 
-    private static readonly JsonSerializerOptions sWindowPlacementJsonOptions = new() { IncludeFields = true };
-
     private readonly MainWindow _window = window;
-    private bool _saveWindowPlacementScheduled = false;
 
-    public void ScheduleSavingWindowPlacement()
-    {
-        if (!_window.Alive || _saveWindowPlacementScheduled)
-        {
-            return;
-        }
-
-        _saveWindowPlacementScheduled = true;
-        Task.Delay(500).ContinueWith(delegate
-        {
-            _saveWindowPlacementScheduled = false;
-            if (!_window.Alive)
-            {
-                return;
-            }
-
-            SaveWindowPlacement();
-        });
-    }
-
-    public void TryRestoreWindowPlacement()
-    {
-        if (!_window.Alive)
-        {
-            return;
-        }
-
-        RestoreWindowPlacement();
-    }
-
-    private void SaveWindowPlacement()
+    public SavedWindowState? GetWindowPlacement()
     {
         var hWnd = new Windows.Win32.Foundation.HWND(_window.WindowHandle);
 
@@ -71,7 +34,7 @@ internal class WindowPlacementManager(MainWindow window)
         if (!gotPlacement)
         {
             Logger.E(TAG, "Failed to get window placement.");
-            return;
+            return null;
         }
 
         bool gotFrameRect;
@@ -94,7 +57,7 @@ internal class WindowPlacementManager(MainWindow window)
         if (!IsValidPlacement(placement, currentRect))
         {
             Logger.I(TAG, "Invalid window placement, not saving.");
-            return;
+            return null;
         }
 
         var state = new SavedWindowState
@@ -103,30 +66,12 @@ internal class WindowPlacementManager(MainWindow window)
             Placement = WindowPlacementDto.FromNative(placement),
             CurrentRect = RectDto.FromNative(currentRect)
         };
-        string serialized = JsonSerializer.Serialize(state, sWindowPlacementJsonOptions);
-        KVDatabase.Default.With(DatabaseEntry.KV_LIB_APP).SetString(DatabaseEntry.KV_KEY_APP_WINDOW_STATES, serialized);
+        return state;
     }
 
-    private void RestoreWindowPlacement()
+    public void RestoreWindowPlacement(SavedWindowState state)
     {
-        string? windowStates = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_WINDOW_STATES);
-        if (string.IsNullOrEmpty(windowStates))
-        {
-            return;
-        }
-
-        SavedWindowState? state;
-        try
-        {
-            state = JsonSerializer.Deserialize<SavedWindowState>(windowStates, sWindowPlacementJsonOptions);
-        }
-        catch (JsonException ex)
-        {
-            Logger.E(TAG, "Failed to deserialize window placement.", ex);
-            return;
-        }
-
-        if (state is null || state.Version < SavedWindowState.CURRENT_VERSION)
+        if (state.Version < SavedWindowState.CURRENT_VERSION)
         {
             return;
         }
@@ -206,16 +151,16 @@ internal class WindowPlacementManager(MainWindow window)
         height = NativeMethods.GetDeviceCaps(hdc, 117);
     }
 
-    private class SavedWindowState
+    public class SavedWindowState
     {
         public const int CURRENT_VERSION = 1;
 
-        public int Version { get; set; } = 0;
-        public WindowPlacementDto Placement { get; set; }
-        public RectDto CurrentRect { get; set; }
+        public int Version { get; init; } = 0;
+        public required WindowPlacementDto Placement { get; init; }
+        public RectDto CurrentRect { get; init; }
     }
 
-    private readonly struct WindowPlacementDto
+    public class WindowPlacementDto
     {
         [JsonPropertyName("flags")]
         public uint Flags { get; init; }
@@ -224,10 +169,10 @@ internal class WindowPlacementManager(MainWindow window)
         public int ShowCmd { get; init; }
 
         [JsonPropertyName("MinPosition")]
-        public PointDto MinPosition { get; init; }
+        public required PointDto MinPosition { get; init; }
 
         [JsonPropertyName("MaxPosition")]
-        public PointDto MaxPosition { get; init; }
+        public required PointDto MaxPosition { get; init; }
 
         [JsonPropertyName("NormalPosition")]
         public RectDto NormalPosition { get; init; }
@@ -254,7 +199,7 @@ internal class WindowPlacementManager(MainWindow window)
         }
     }
 
-    private readonly struct PointDto
+    public class PointDto
     {
         [JsonPropertyName("X")]
         public int X { get; init; }
@@ -278,7 +223,7 @@ internal class WindowPlacementManager(MainWindow window)
         }
     }
 
-    private readonly struct RectDto
+    public readonly struct RectDto
     {
         [JsonPropertyName("Left")]
         public int Left { get; init; }

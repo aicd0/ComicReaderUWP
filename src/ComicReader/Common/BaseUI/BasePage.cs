@@ -114,7 +114,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
 
     protected IEventBus GetEventBus()
     {
-        return App.WindowManager.GetEventBus(WindowId);
+        return App.Instance.WindowManager.GetEventBus(WindowId);
     }
 
     private void OnLoadedInternal(object sender, RoutedEventArgs e)

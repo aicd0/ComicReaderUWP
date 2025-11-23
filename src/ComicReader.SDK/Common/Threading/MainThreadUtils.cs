@@ -44,12 +44,7 @@ public static class MainThreadUtils
             return Task.CompletedTask;
         }
 
-        DispatcherQueue? dispatcher = GetMainThreadDispatcher();
-        if (dispatcher is null)
-        {
-            return Task.FromException(new InvalidOperationException("Main thread dispatcher is currently unavailable"));
-        }
-
+        DispatcherQueue? dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
             try
@@ -79,7 +74,7 @@ public static class MainThreadUtils
 
         if (!success)
         {
-            taskCompletionSource.SetException(new InvalidOperationException("Failed to enqueue the operation"));
+            throw new InvalidOperationException("Failed to enqueue the operation");
         }
 
         return taskCompletionSource.Task;
@@ -92,12 +87,7 @@ public static class MainThreadUtils
             return action();
         }
 
-        DispatcherQueue? dispatcher = GetMainThreadDispatcher();
-        if (dispatcher is null)
-        {
-            return Task.CompletedTask;
-        }
-
+        DispatcherQueue? dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
             try
@@ -126,7 +116,7 @@ public static class MainThreadUtils
 
         if (!success)
         {
-            taskCompletionSource.SetException(new InvalidOperationException("Failed to enqueue the operation"));
+            throw new InvalidOperationException("Failed to enqueue the operation");
         }
 
         return taskCompletionSource.Task;
