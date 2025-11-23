@@ -44,12 +44,6 @@ public class NativeMethods
     public static extern int GetDpiForMonitor(nint hmonitor, NativeModels.MonitorDPIType dpiType, out uint dpiX, out uint dpiY);
 
     [DllImport("user32.dll")]
-    public static extern bool GetWindowPlacement(nint hWnd, out NativeModels.WindowPlacement lpwndpl);
-
-    [DllImport("user32.dll")]
-    public static extern bool SetWindowPlacement(nint hWnd, [In] ref NativeModels.WindowPlacement lpwndpl);
-
-    [DllImport("user32.dll")]
     public static extern nint SetWinEventHook(uint eventMin, uint eventMax, nint eventHookAssemblyHandle, NativeModels.WinEventDelegate eventHookHandle, uint processId, uint threadId, uint dwFlags);
 
     [DllImport("user32.dll")]

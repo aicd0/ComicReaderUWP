@@ -48,25 +48,5 @@ public class NativeModels
         MDT_Default = MDT_Effective_DPI
     }
 
-    public enum ShowWindowCommands : int
-    {
-        Hide = 0,
-        Normal = 1,
-        Minimized = 2,
-        Maximized = 3,
-    }
-
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
-    public struct WindowPlacement
-    {
-        public int length { get; set; }
-        public int flags { get; set; }
-        public ShowWindowCommands showCmd { get; set; }
-        public System.Drawing.Point ptMinPosition { get; set; }
-        public System.Drawing.Point ptMaxPosition { get; set; }
-        public System.Drawing.Rectangle rcNormalPosition { get; set; }
-    }
-
     public delegate void WinEventDelegate(nint winEventHookHandle, uint eventType, nint windowHandle, int objectId, int childId, uint eventThreadId, uint eventTimeInMilliseconds);
 }
