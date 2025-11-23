@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
@@ -17,7 +16,6 @@ using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
-using ComicReader.SDK.Common.Native;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.Pages.Main;
@@ -204,7 +202,7 @@ public sealed partial class MainWindow : Window
             DispatchFullscreenChangeEvent(IsFullScreen());
         });
 
-        ScheduleSavingWindowPlacement();
+        Members._windowPlacementManager.ScheduleSavingWindowPlacement();
     }
 
     private void OnPageFrameLoaded(object sender, RoutedEventArgs e)
@@ -231,7 +229,7 @@ public sealed partial class MainWindow : Window
             }
             else
             {
-                TryRestoreWindowPlacement();
+                Members._windowPlacementManager.TryRestoreWindowPlacement();
             }
         }
 
@@ -333,7 +331,7 @@ public sealed partial class MainWindow : Window
         switch (uMsg)
         {
             case WM_MOVE:
-                ScheduleSavingWindowPlacement();
+                Members._windowPlacementManager.ScheduleSavingWindowPlacement();
                 break;
             case WM_HOTKEY:
                 {
@@ -416,32 +414,6 @@ public sealed partial class MainWindow : Window
     }
 
     //
-    // Window Placement
-    //
-
-    private void ScheduleSavingWindowPlacement()
-    {
-        if (!Alive || Members._saveWindowPlacementScheduled)
-        {
-            return;
-        }
-
-        Members._saveWindowPlacementScheduled = true;
-        Task.Delay(500).ContinueWith(delegate
-        {
-            if (!Alive)
-            {
-                return;
-            }
-
-            Members._saveWindowPlacementScheduled = false;
-            NativeMethods.GetWindowPlacement(WindowHandle, out NativeModels.WindowPlacement placement);
-            string serialized = JsonSerializer.Serialize(placement);
-            KVDatabase.Default.With(DatabaseEntry.KV_LIB_APP).SetString(DatabaseEntry.KV_KEY_APP_WINDOW_STATES, serialized);
-        });
-    }
-
-    //
     // Fullscreen
     //
 
@@ -484,32 +456,6 @@ public sealed partial class MainWindow : Window
             var desktopAcrylicBackdrop = new DesktopAcrylicBackdrop();
             SystemBackdrop = desktopAcrylicBackdrop;
         }
-    }
-
-    private void TryRestoreWindowPlacement()
-    {
-        if (!Alive)
-        {
-            return;
-        }
-
-        string? windowStates = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_WINDOW_STATES);
-        if (string.IsNullOrEmpty(windowStates))
-        {
-            return;
-        }
-
-        NativeModels.WindowPlacement windowPlacement;
-        try
-        {
-            windowPlacement = JsonSerializer.Deserialize<NativeModels.WindowPlacement>(windowStates);
-        }
-        catch (Exception)
-        {
-            return;
-        }
-
-        NativeMethods.SetWindowPlacement(WindowHandle, ref windowPlacement);
     }
 
     private void SetWindowIcon()
@@ -594,6 +540,6 @@ public sealed partial class MainWindow : Window
         public readonly MainWindowAbility _mainWindowAbility = new(window);
         public bool _fullscreen = false;
         public bool _restorePlacementRequested = false;
-        public bool _saveWindowPlacementScheduled = false;
+        public WindowPlacementManager _windowPlacementManager = new(window);
     }
 }

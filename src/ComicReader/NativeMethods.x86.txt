@@ -1,7 +1,12 @@
 CallWindowProc
+DwmGetWindowAttribute
 GetActiveWindow
+GetWindowPlacement
+GetWindowRect
 RegisterHotKey
 SetForegroundWindow
 SetWindowLong
+SetWindowPlacement
+SetWindowPos
 ShowWindow
 UnregisterHotKey
