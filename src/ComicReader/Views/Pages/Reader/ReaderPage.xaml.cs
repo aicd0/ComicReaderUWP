@@ -156,7 +156,12 @@ internal sealed partial class ReaderPage : BasePage
         CoroutineUtils.Start(async () =>
         {
             ComicModel? comic = await GetTargetComic(bundle);
-            if (comic != null)
+            if (comic is null)
+            {
+                GetMainPageAbility().SetTitle(StringResource.Error);
+                ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
+            }
+            else
             {
                 GetMainPageAbility().SetTitle(comic.Title);
                 await ViewModel.LoadComic(comic);

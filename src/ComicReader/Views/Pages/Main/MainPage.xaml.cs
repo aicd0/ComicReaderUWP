@@ -372,7 +372,7 @@ internal sealed partial class MainPage : BasePage
     {
         var item = new TabViewItem
         {
-            Header = "Loading...",
+            Header = StringResource.Untitled,
             Content = new Frame()
         };
 
