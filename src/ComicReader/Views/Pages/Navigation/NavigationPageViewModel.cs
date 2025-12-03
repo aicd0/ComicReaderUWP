@@ -164,7 +164,6 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Exit)
         {
-            Glyph = "\uF78A",
             OnClick = () =>
             {
                 App.Instance.WindowManager.LockWindowStatus();
