@@ -456,10 +456,7 @@ internal partial class ReaderView : UserControl
                     zoom: zoom, zoomType: zoomType, page: InitialPage);
                 _isInitialFrameJumped = true;
                 Log("Load", $"InitialFrameScroll (result={scrollResult})");
-                if (scrollResult == ScrollResult.TooClose)
-                {
-                    UpdateImages("InitialFrameLoaded");
-                }
+                UpdateImages("InitialFrameLoaded");
             });
 
             needDispatchReadyState = true;
