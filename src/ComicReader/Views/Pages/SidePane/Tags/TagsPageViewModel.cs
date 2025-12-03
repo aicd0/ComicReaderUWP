@@ -266,7 +266,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
-            Glyph = "\uE70F",
             OnClick = () =>
             {
                 EditTagCategoryLiveData.Emit(tagCategory);
@@ -277,7 +276,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
-            Glyph = "\uE74D",
             OnClick = () =>
             {
                 _ = TagCategoryInfoModel.Delete(tagCategory);
@@ -293,7 +291,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Links)
         {
-            Glyph = "\uE71B",
             Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(tagCategory, tag, _actionHandler),
         });
 
@@ -301,7 +298,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
-            Glyph = "\uE70F",
             OnClick = () =>
             {
                 EditTagLiveData.Emit(new(tagCategory, tag));
@@ -312,7 +308,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
-            Glyph = "\uE74D",
             OnClick = () =>
             {
                 _ = TagInfoModel.Delete(tagCategory, tag);
