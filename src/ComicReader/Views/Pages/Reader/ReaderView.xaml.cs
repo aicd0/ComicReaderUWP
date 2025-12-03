@@ -1389,15 +1389,32 @@ internal partial class ReaderView : UserControl
         {
             // Continuous scrolling
             CoreVirtualKeyStates menuState = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu);
-            if (menuState.HasFlag(CoreVirtualKeyStates.Down))
+            bool verticalScrolling = !menuState.HasFlag(CoreVirtualKeyStates.Down);
+
+            if (verticalScrolling && !_isVertical)
             {
-                SetScrollViewer3("ContinuousHorizontalScrollingUsingPointerWheel", ScrollSource.User,
-                    horizontalOffset: SCHorizontalOffsetFinal + delta * 140.0, disableAnimation: false);
+                int frame = PageToFrame(SCCurrentPageFinal, out _, out _);
+                ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frame);
+                if (zoomCoefficient != null)
+                {
+                    double zoomFitHeight = SCZoomFactorFinal / zoomCoefficient.FitHeight;
+                    verticalScrolling = zoomFitHeight > FORCE_CONTINUOUS_ZOOM_THRESHOLD;
+                }
+                else
+                {
+                    verticalScrolling = false;
+                }
             }
-            else
+
+            if (verticalScrolling)
             {
                 SetScrollViewer3("ContinuousVerticalScrollingUsingPointerWheel", ScrollSource.User,
                     verticalOffset: SCVerticalOffsetFinal + delta * 140.0, disableAnimation: false);
+            }
+            else
+            {
+                SetScrollViewer3("ContinuousHorizontalScrollingUsingPointerWheel", ScrollSource.User,
+                    horizontalOffset: SCHorizontalOffsetFinal + delta * 140.0, disableAnimation: false);
             }
         }
         else
