@@ -8,7 +8,7 @@ using ComicReader.SDK.Common.Lifecycle;
 
 namespace ComicReader.Common;
 
-internal static class OnScreenLogger
+internal static class OnscreenLogger
 {
     private static readonly MutableLiveData<bool> _started = new(false);
     public static ILiveData<bool> Started => _started;

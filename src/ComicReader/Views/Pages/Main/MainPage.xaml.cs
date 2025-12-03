@@ -208,7 +208,7 @@ internal sealed partial class MainPage : BasePage
         titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
         titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
 
-        OnScreenLogger.Initialize();
+        OnscreenLogger.Initialize();
         ObserveData();
     }
 
@@ -220,8 +220,8 @@ internal sealed partial class MainPage : BasePage
 
     private void ObserveData()
     {
-        OnScreenLogger.Started.ObserveSticky(this, ViewModel.SetLogStarted);
-        OnScreenLogger.Visible.ObserveSticky(this, ViewModel.SetLogVisibility);
+        OnscreenLogger.Started.ObserveSticky(this, ViewModel.SetLogStarted);
+        OnscreenLogger.Visible.ObserveSticky(this, ViewModel.SetLogVisibility);
 
         GetEventBus().With<double>(EventId.RootTabHeightChange).ObserveSticky(this, delegate (double h)
         {
@@ -757,14 +757,14 @@ internal sealed partial class MainPage : BasePage
             case Windows.System.VirtualKey.F10:
                 if (ctrlDown)
                 {
-                    OnScreenLogger.StartOrPause();
+                    OnscreenLogger.StartOrPause();
                     handled = true;
                 }
                 break;
             case Windows.System.VirtualKey.F11:
                 if (ctrlDown)
                 {
-                    OnScreenLogger.ShowOrHide();
+                    OnscreenLogger.ShowOrHide();
                     handled = true;
                 }
                 break;
