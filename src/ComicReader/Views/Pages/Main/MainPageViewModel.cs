@@ -6,9 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 
-using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
 
@@ -50,28 +48,12 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         _logListener = new LogListener(this);
     }
 
-    public void OnStart()
-    {
-        SetLogVisibility(KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, false));
-        SetLogStarted(KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_STARTED, true));
-    }
-
     public void OnStop()
     {
         Logger.RemoveListener(_logListener);
     }
 
-    public void StartOrPauseLog()
-    {
-        SetLogStarted(!_logStarted);
-    }
-
-    public void ToggleLogVisibility()
-    {
-        SetLogVisibility(!_isLogVisible);
-    }
-
-    private void SetLogStarted(bool started)
+    public void SetLogStarted(bool started)
     {
         if (started && !DebugUtils.DeveloperMode)
         {
@@ -92,11 +74,9 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         {
             Logger.RemoveListener(_logListener);
         }
-
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_STARTED, started);
     }
 
-    private void SetLogVisibility(bool visible)
+    public void SetLogVisibility(bool visible)
     {
         if (visible && !DebugUtils.DeveloperMode)
         {
@@ -109,7 +89,6 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
 
         IsLogVisible = visible;
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, visible);
     }
 
     private void AppendLog(string message)

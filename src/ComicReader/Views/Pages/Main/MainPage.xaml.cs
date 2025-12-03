@@ -17,6 +17,7 @@ using ComicReader.Views.AppWindows.Main;
 using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI;
+using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -25,6 +26,8 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 
 using Windows.ApplicationModel.DataTransfer;
+using Windows.System;
+using Windows.UI.Core;
 
 namespace ComicReader.Views.Pages.Main;
 
@@ -205,7 +208,7 @@ internal sealed partial class MainPage : BasePage
         titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
         titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
 
-        ViewModel.OnStart();
+        OnscreenLogger.Initialize();
         ObserveData();
     }
 
@@ -217,15 +220,8 @@ internal sealed partial class MainPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.HotKeyF10.Observe(this, delegate
-        {
-            ViewModel.StartOrPauseLog();
-        });
-
-        GlobalEvent.Instance.HotKeyF11.Observe(this, delegate
-        {
-            ViewModel.ToggleLogVisibility();
-        });
+        OnscreenLogger.Started.ObserveSticky(this, ViewModel.SetLogStarted);
+        OnscreenLogger.Visible.ObserveSticky(this, ViewModel.SetLogVisibility);
 
         GetEventBus().With<double>(EventId.RootTabHeightChange).ObserveSticky(this, delegate (double h)
         {
@@ -750,15 +746,27 @@ internal sealed partial class MainPage : BasePage
 
     private void OnKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        bool handled;
+        bool ctrlDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down);
+        bool handled = false;
         switch (e.Key)
         {
             case Windows.System.VirtualKey.Escape:
                 GetMainWindowAbility().ExitFullscreen();
                 handled = true;
                 break;
-            default:
-                handled = false;
+            case Windows.System.VirtualKey.F10:
+                if (ctrlDown)
+                {
+                    OnscreenLogger.StartOrPause();
+                    handled = true;
+                }
+                break;
+            case Windows.System.VirtualKey.F11:
+                if (ctrlDown)
+                {
+                    OnscreenLogger.ShowOrHide();
+                    handled = true;
+                }
                 break;
         }
 
