@@ -31,7 +31,6 @@ internal sealed partial class MainWindow : Window
 {
     private const string TAG = nameof(MainWindow);
     private const uint WM_MOVE = 0x0003;
-    private const uint WM_HOTKEY = 0x0312;
 
     //
     // Creators
@@ -94,7 +93,6 @@ internal sealed partial class MainWindow : Window
         if (DebugUtils.DeveloperMode)
         {
             RegisterMessageLoop();
-            HotKeyManager.Instance.RegisterHotKeys(WindowHandle);
         }
 
         Title = StringResourceProvider.Instance.AppDisplayName;
@@ -249,19 +247,11 @@ internal sealed partial class MainWindow : Window
         // Unsubscribe window events
         UnsubscribeEvents();
 
-        // Unregister hotkeys and message loop
-        HotKeyManager.Instance.UnregisterHotKeys(WindowHandle);
+        // Unregister message loop
         UnregisterMessageLoop();
 
         // Unregister window from WindowManager
         App.Instance.WindowManager.UnregisterWindow(WindowId);
-
-        // Use another window to register hotkeys again
-        MainWindow? anyWindow = App.Instance.WindowManager.GetAnyWindow();
-        if (anyWindow != null)
-        {
-            HotKeyManager.Instance.RegisterHotKeys(anyWindow.WindowHandle);
-        }
 
         // Dereference all members
         _members = null;
@@ -326,15 +316,6 @@ internal sealed partial class MainWindow : Window
         {
             case WM_MOVE:
                 App.Instance.WindowManager.ScheduleSaveWindowStatus();
-                break;
-            case WM_HOTKEY:
-                {
-                    int hotkeyId = (int)wParam.Value;
-                    if (HotKeyManager.Instance.HandleHotKey(hotkeyId))
-                    {
-                        return (Windows.Win32.Foundation.LRESULT)IntPtr.Zero;
-                    }
-                }
                 break;
             default:
                 break;
