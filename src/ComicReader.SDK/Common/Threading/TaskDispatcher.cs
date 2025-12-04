@@ -11,8 +11,9 @@ public abstract class TaskDispatcher : ITaskDispatcher
 {
     private const string TAG = "TaskDispatcher";
 
-    public static readonly ITaskDispatcher DefaultQueue = Factory.NewQueue("DefaultQueue");
-    public static readonly ITaskDispatcher LongRunningThreadPool = new ThreadPoolDispatcher("LongRunningThreadPool", TaskCreationOptions.LongRunning);
+    public static ITaskDispatcher DefaultQueue { get; } = Factory.NewQueue("DefaultQueue");
+    public static ITaskDispatcher DefaultThreadPool { get; } = Factory.NewThreadPool("DefaultThreadPool");
+    public static ITaskDispatcher LongRunningThreadPool { get; } = new ThreadPoolDispatcher("LongRunningThreadPool", TaskCreationOptions.LongRunning);
 
     private readonly string _name;
     private readonly LogTag _submitTag;
@@ -38,7 +39,7 @@ public abstract class TaskDispatcher : ITaskDispatcher
         {
             int pendingCount = Interlocked.Increment(ref _pendingTaskCount);
             int runningCount = _runningTaskCount;
-            Logger.I(_submitTag, $"task={taskName},running={runningCount},pending={pendingCount}");
+            Log(_submitTag, $"task={taskName},running={runningCount},pending={pendingCount}");
         }
 
         SubmitInternal(delegate
@@ -48,7 +49,7 @@ public abstract class TaskDispatcher : ITaskDispatcher
                 long since0 = GetCurrentMilliseconds() - submitTime;
                 int pendingCount = Interlocked.Decrement(ref _pendingTaskCount);
                 int runningCount = Interlocked.Increment(ref _runningTaskCount);
-                Logger.I(_startTag, $"task={taskName},since0={since0},running={runningCount},pending={pendingCount}");
+                Log(_startTag, $"task={taskName},since0={since0},running={runningCount},pending={pendingCount}");
             }
 
             try
@@ -66,12 +67,17 @@ public abstract class TaskDispatcher : ITaskDispatcher
                 long time = GetCurrentMilliseconds();
                 long since0 = time - submitTime;
                 long since1 = time - startTime;
-                Logger.I(_endTag, $"task={taskName},since0={since0},since1={since1},running={runningCount},pending={pendingCount}");
+                Log(_endTag, $"task={taskName},since0={since0},since1={since1},running={runningCount},pending={pendingCount}");
             }
         });
     }
 
     protected abstract void SubmitInternal(Action action);
+
+    private static void Log(LogTag tag, string message)
+    {
+        // Do nothing for now
+    }
 
     private static long GetCurrentMilliseconds()
     {

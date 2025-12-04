@@ -79,9 +79,6 @@ internal class InitTaskManager(Application application)
         // Initialize debug tools
         DebugUtils.Initialize();
 
-        // Initialize logger
-        Logger.Initialize();
-
         // Initialize imaging service
         ImageCacheManager.Initialize(Path.Combine(StorageLocation.LocalCacheFolderPath, "image_cache"), clear: false);
 
