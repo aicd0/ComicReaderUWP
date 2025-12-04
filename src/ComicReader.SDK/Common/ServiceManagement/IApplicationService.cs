@@ -14,4 +14,6 @@ public interface IApplicationService : IService
     string GetTemporaryFolderPath();
 
     string GetEnvironmentDebugInfo();
+
+    bool IsShuttingDown();
 }

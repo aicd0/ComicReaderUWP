@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 using ComicReader.Common;
+using ComicReader.Common.Services;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
@@ -166,7 +167,7 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
         {
             OnClick = () =>
             {
-                App.Instance.WindowManager.LockWindowStatus();
+                ApplicationService.StartShuttingDown();
                 Application.Current.Exit();
             },
         });

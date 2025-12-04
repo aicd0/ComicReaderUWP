@@ -47,12 +47,12 @@ internal class InitTaskManager(Application application)
             DebugUtils.CaptureFatalError(e.Message, e.Exception);
         };
 
-        // Initialize main thread dispatcher
-        MainThreadUtils.Initialize(DispatcherQueue.GetForCurrentThread());
-
         // Register services
         ServiceManager.RegisterService<IApplicationService>(new ApplicationService());
         ServiceManager.RegisterService<IDebugService>(new DebugService());
+
+        // Initialize main thread dispatcher
+        MainThreadUtils.Initialize(DispatcherQueue.GetForCurrentThread());
 
         // Initialize environment information
         EnvironmentProvider.Instance.Initialize(Properties.AdditionalDebugInformation);

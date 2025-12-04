@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.InitTask;
+using ComicReader.Common.Services;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
@@ -237,7 +238,7 @@ internal sealed partial class MainWindow : Window
         bool isLastWindow = App.Instance.WindowManager.GetAllWindowInfo().Count == 1;
         if (isLastWindow)
         {
-            App.Instance.WindowManager.LockWindowStatus();
+            ApplicationService.StartShuttingDown();
         }
 
         // Mark the end of the window lifecycle
