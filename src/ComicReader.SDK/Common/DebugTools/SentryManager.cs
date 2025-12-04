@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.SDK.Common.AppEnvironment;
+using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Storage;
 
 namespace ComicReader.SDK.Common.DebugTools;
@@ -9,6 +10,7 @@ namespace ComicReader.SDK.Common.DebugTools;
 public static class SentryManager
 {
     private const string TAG_USER_LEVEL = "user-level";
+    private const string TAG_SHUTTING_DOWN = "shutting-down";
     private const string LEVEL_INFO = "info";
     private const string LEVEL_WARNING = "warning";
     private const string LEVEL_ERROR = "error";
@@ -42,8 +44,6 @@ public static class SentryManager
         });
 
         _initialized = true;
-
-        //CaptureInfo("SentryInit");
     }
 
     internal static void CaptureInfo(string message)
@@ -54,6 +54,7 @@ public static class SentryManager
         }
 
         using IDisposable scope = SentrySdk.PushScope();
+        PushRuntimeTags();
         SentrySdk.SetTag(TAG_USER_LEVEL, LEVEL_INFO);
         SentrySdk.CaptureMessage(message);
     }
@@ -66,6 +67,7 @@ public static class SentryManager
         }
 
         using IDisposable scope = SentrySdk.PushScope();
+        PushRuntimeTags();
         SentrySdk.SetTag(TAG_USER_LEVEL, LEVEL_WARNING);
         SentrySdk.CaptureException(exception);
     }
@@ -78,7 +80,13 @@ public static class SentryManager
         }
 
         using IDisposable scope = SentrySdk.PushScope();
+        PushRuntimeTags();
         SentrySdk.SetTag(TAG_USER_LEVEL, LEVEL_ERROR);
         SentrySdk.CaptureException(exception);
+    }
+
+    private static void PushRuntimeTags()
+    {
+        SentrySdk.SetTag(TAG_SHUTTING_DOWN, ServiceManager.GetServiceNullable<IApplicationService>()?.IsShuttingDown() == true ? "true" : "false");
     }
 }

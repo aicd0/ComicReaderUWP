@@ -53,4 +53,9 @@ internal class ApplicationService : IApplicationService
     {
         return string.Empty;
     }
+
+    public bool IsShuttingDown()
+    {
+        return false;
+    }
 }

@@ -96,8 +96,15 @@ internal class ApplicationService : IApplicationService
     });
 #pragma warning restore CS0162 // Unreachable code detected
 
-    private static readonly object _lock = new();
+    private static readonly object _configLock = new();
     private static ConfigJsonModel? _config;
+    private static bool _shuttingDown = false;
+
+    public static void StartShuttingDown()
+    {
+        _shuttingDown = true;
+        App.Instance.WindowManager.LockWindowStatus();
+    }
 
     private static string GetDeploymentPath()
     {
@@ -112,7 +119,7 @@ internal class ApplicationService : IApplicationService
             return config;
         }
 
-        lock (_lock)
+        lock (_configLock)
         {
             config = _config;
             if (config is not null)
@@ -177,6 +184,11 @@ internal class ApplicationService : IApplicationService
         StringBuilder sb = new();
         EnvironmentProvider.Instance.AppendDebugText(sb);
         return sb.ToString();
+    }
+
+    public bool IsShuttingDown()
+    {
+        return _shuttingDown;
     }
 
     private class ConfigJsonModel
