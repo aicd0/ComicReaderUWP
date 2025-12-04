@@ -110,18 +110,18 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     private class LogListener(MainPageViewModel viewModel) : Logger.ILogListener
     {
-        void Logger.ILogListener.OnLog(int level, LogTag tag, string message)
+        public void OnLog(Logger.LogItem item)
         {
-            if (level <= 2)
+            if (item.Level <= 2)
             {
                 List<LogTag?> consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
-                if (!consoleWhitelist.Any(t => t is null || t.ContainsAny(tag)))
+                if (!consoleWhitelist.Any(t => t is null || t.ContainsAny(item.Tag)))
                 {
                     return;
                 }
             }
 
-            viewModel.AppendLog(message);
+            viewModel.AppendLog(item.DisplayMessage);
         }
     }
 }

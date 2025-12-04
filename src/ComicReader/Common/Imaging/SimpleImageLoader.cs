@@ -11,7 +11,7 @@ namespace ComicReader.Common.Imaging;
 
 internal static class SimpleImageLoader
 {
-    public static ITaskDispatcher DefaultDispatcher { get; } = TaskDispatcher.Factory.NewThreadPool("SimpleImageLoader");
+    public static ITaskDispatcher DefaultDispatcher { get; } = TaskDispatcher.DefaultThreadPool;
 
     public sealed class Transaction : BaseTransaction
     {

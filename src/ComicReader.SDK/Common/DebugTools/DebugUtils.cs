@@ -95,6 +95,7 @@ public static class DebugUtils
     public static void Initialize()
     {
         DebugSwitchModel.Instance.Initialize();
+        Logger.Initialize();
     }
 
     public static void ReportLastCrash()

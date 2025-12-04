@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Text;
 
 using ComicReader.SDK.Common.Storage;
+using ComicReader.SDK.Common.Threading;
 
 namespace ComicReader.SDK.Common.DebugTools;
 
@@ -18,13 +18,19 @@ public static class Logger
     private const int LEVEL_WARN = 3;
     private const int LEVEL_ERROR = 4;
     private const int LEVEL_FATAL = 5;
-    private const int LOG_INTERVAL = 5000;
+    private const int FLUSH_INTERVAL = 5000;
+    private const int BUFFER_SIZE = 1000;
+
+    private static int sNextLogId = 0;
+    private static int sPostDispatch = 0;
+    private static readonly ConcurrentQueue<LogItem> sPendingQueue = new();
+    private static readonly LinkedList<LogItem> sBuffer = new();
+    private static readonly ConcurrentDictionary<ILogListener, LogListenerWrapper> sListeners = [];
 
     private static int sInitialized = 0;
     private static string sLogFolderPath = "";
-    private static readonly ConcurrentQueue<LogItem> sBuffer = new();
+    private static readonly ConcurrentQueue<LogItem> sFlushQueue = new();
     private static long sLastErrorReportTime = 0;
-    private static ImmutableList<ILogListener> sListeners = [];
 
     private static bool Initialized => sInitialized == 1;
 
@@ -45,6 +51,7 @@ public static class Logger
         };
 
         logThread.Start();
+        AddListener(new InternalLogListener());
     }
 
     public static void AddListener(ILogListener listener)
@@ -54,7 +61,15 @@ public static class Logger
             return;
         }
 
-        sListeners = sListeners.Add(listener);
+        LogListenerWrapper wrapper = new()
+        {
+            Listener = listener,
+        };
+
+        if (sListeners.TryAdd(listener, wrapper))
+        {
+            DispatchLogItems();
+        }
     }
 
     public static void RemoveListener(ILogListener listener)
@@ -64,7 +79,7 @@ public static class Logger
             return;
         }
 
-        sListeners = sListeners.Remove(listener);
+        sListeners.TryRemove(listener, out _);
     }
 
     public static void Flush()
@@ -141,42 +156,36 @@ public static class Logger
     {
         AssertException exceptionNotNull = new(null, message);
         Log(LEVEL_FATAL, LogTag.N(tag), message, exceptionNotNull);
-        FailOnDebug(exceptionNotNull);
     }
 
     public static void F(LogTag? tag, string? message)
     {
         AssertException exceptionNotNull = new(null, message);
         Log(LEVEL_FATAL, tag, message, exceptionNotNull);
-        FailOnDebug(exceptionNotNull);
     }
 
     public static void F(string? tag, Exception? exception)
     {
         AssertException exceptionNotNull = new(null, exception);
         Log(LEVEL_FATAL, LogTag.N(tag), null, exceptionNotNull);
-        FailOnDebug(exceptionNotNull);
     }
 
     public static void F(LogTag? tag, Exception? exception)
     {
         AssertException exceptionNotNull = new(null, exception);
         Log(LEVEL_FATAL, tag, null, exceptionNotNull);
-        FailOnDebug(exceptionNotNull);
     }
 
     public static void F(string? tag, string? message, Exception? exception)
     {
         AssertException exceptionNotNull = new(null, message, exception);
         Log(LEVEL_FATAL, LogTag.N(tag), message, exceptionNotNull);
-        FailOnDebug(exceptionNotNull);
     }
 
     public static void F(LogTag? tag, string? message, Exception? exception)
     {
         AssertException exceptionNotNull = new(null, message, exception);
         Log(LEVEL_FATAL, tag, message, exceptionNotNull);
-        FailOnDebug(exceptionNotNull);
     }
 
     public static void Assert(bool condition, string? eventName)
@@ -199,16 +208,10 @@ public static class Logger
         AssertNotReachHereInternal(eventName, null, exception);
     }
 
-    public static void AssertNotReachHere(string? eventName, string? message, Exception? exception)
-    {
-        AssertNotReachHereInternal(eventName, message, exception);
-    }
-
     private static void AssertNotReachHereInternal(string? eventName, string? message, Exception? exception)
     {
         AssertException exceptionNotNull = new(eventName, message, exception);
         Log(LEVEL_FATAL, LogTag.N("Assert", eventName), message, exceptionNotNull);
-        FailOnDebug(exceptionNotNull);
     }
 
     private static void Console(string message)
@@ -223,94 +226,91 @@ public static class Logger
         while (true)
         {
             FlushToFile();
-            Thread.Sleep(LOG_INTERVAL);
+            Thread.Sleep(FLUSH_INTERVAL);
         }
     }
 
     private static void Log(int level, LogTag? tag, string? message, Exception? exception)
     {
-        if (!Initialized)
+        tag ??= LogTag.Empty;
+        var item = new LogItem
+        {
+            Id = Interlocked.Increment(ref sNextLogId) - 1,
+            Time = DateTimeOffset.Now,
+            Level = level,
+            Tag = tag,
+            Message = message,
+            Exception = exception
+        };
+
+        sPendingQueue.Enqueue(item);
+        DispatchLogItems();
+    }
+
+    private static void DispatchLogItems()
+    {
+        bool postDispatch = Interlocked.Exchange(ref sPostDispatch, 1) == 0;
+        if (!postDispatch)
         {
             return;
         }
 
-        tag ??= LogTag.Empty;
-        string levelTag;
-        switch (level)
+        TaskDispatcher.DefaultQueue.Submit("Log", () =>
         {
-            case LEVEL_CONSOLE:
-                levelTag = "C";
-                break;
-            case LEVEL_DEBUG:
-                levelTag = "D";
-                break;
-            case LEVEL_INFO:
-                levelTag = "I";
-                break;
-            case LEVEL_WARN:
-                levelTag = "W";
-                break;
-            case LEVEL_ERROR:
-                levelTag = "E";
-                break;
-            case LEVEL_FATAL:
-                levelTag = "F";
-                break;
-            default:
-                FailOnDebug(new AssertException("CC13A1E9D13CC9EC"));
-                levelTag = "U";
-                break;
-        }
-
-        string realMessage = $"{DateTimeOffset.Now:yyyy/M/d HH:mm:ss.fff} [{levelTag},{tag}] {message}";
-        if (exception != null)
-        {
-            realMessage += "\n" + exception.ToString();
-        }
-
-        if (DebugSwitchModel.Instance.ConsoleEnabled)
-        {
-            List<LogTag?> consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
-            if (consoleWhitelist.Any(t => t is null || t.ContainsAny(tag)))
+            Interlocked.Exchange(ref sPostDispatch, 0);
+            List<LogItem> pendingLogs = [];
+            while (sPendingQueue.TryDequeue(out LogItem? item))
             {
-                LogToConsole(realMessage);
+                pendingLogs.Add(item);
             }
-        }
 
-        if (DebugUtils.DebugMode && level >= LEVEL_INFO)
-        {
-            var item = new LogItem
+            foreach (LogItem item in pendingLogs)
             {
-                Tag = tag,
-                Message = realMessage,
-            };
+                sBuffer.AddLast(item);
+            }
 
-            LogToFile(item);
-        }
+            List<LogListenerWrapper> snapshot = [.. sListeners.Values];
+            List<LogItem> dispatchingItems = [];
+            foreach (LogListenerWrapper listener in snapshot)
+            {
+                dispatchingItems.Clear();
+                for (LinkedListNode<LogItem>? node = sBuffer.Last; node != null; node = node.Previous)
+                {
+                    LogItem item = node.Value;
+                    if (item.Id <= listener.LastId)
+                    {
+                        break;
+                    }
 
-        foreach (ILogListener listener in sListeners)
-        {
-            listener.OnLog(level, tag, realMessage);
-        }
-    }
+                    dispatchingItems.Add(item);
+                }
 
-    private static void LogToFile(LogItem message)
-    {
-        sBuffer.Enqueue(message);
+                for (int i = dispatchingItems.Count - 1; i >= 0; i--)
+                {
+                    LogItem item = dispatchingItems[i];
+                    listener.LastId = item.Id;
+                    listener.Listener.OnLog(item);
+                }
+            }
+
+            while (sBuffer.Count > BUFFER_SIZE)
+            {
+                sBuffer.RemoveFirst();
+            }
+        });
     }
 
     private static void FlushToFile()
     {
-        if (sBuffer.IsEmpty)
+        if (sFlushQueue.IsEmpty)
         {
             return;
         }
 
         List<LogItem> logs = [];
-
         while (true)
         {
-            if (sBuffer.TryDequeue(out LogItem? item))
+            if (sFlushQueue.TryDequeue(out LogItem? item))
             {
                 logs.Add(item);
             }
@@ -333,7 +333,7 @@ public static class Logger
         StringBuilder sb = new();
         foreach (LogItem item in logs)
         {
-            sb.Append(item.Message);
+            sb.Append(item.DisplayMessage);
             sb.Append('\n');
         }
 
@@ -351,7 +351,6 @@ public static class Logger
         catch (Exception e)
         {
             F(TAG, e.ToString());
-            return;
         }
     }
 
@@ -393,16 +392,25 @@ public static class Logger
             StringBuilder sb = new();
             foreach (LogItem item in pair.Value)
             {
-                sb.Append(item.Message);
+                sb.Append(item.DisplayMessage);
                 sb.Append('\n');
             }
             string content = sb.ToString();
 
             string folderPath = cacheFolder + pair.Key;
             string filePath = $"{folderPath}\\{fileName}";
-            Directory.CreateDirectory(folderPath);
-            using StreamWriter writer = new(filePath, true, Encoding.UTF8);
-            writer.Write(content);
+            try
+            {
+                Directory.CreateDirectory(folderPath);
+                using StreamWriter writer = new(filePath, true, Encoding.UTF8);
+                writer.Write(content);
+                Console($"flushed {pair.Value.Count} logs to {filePath}");
+            }
+            catch (Exception e)
+            {
+                F(TAG, e.ToString());
+                break;
+            }
         }
     }
 
@@ -413,11 +421,6 @@ public static class Logger
 
     private static void FailOnDebug(AssertException exception)
     {
-        if (!Initialized)
-        {
-            return;
-        }
-
         long time = GetTick();
         if (time - sLastErrorReportTime > 5000)
         {
@@ -437,10 +440,100 @@ public static class Logger
         return Environment.TickCount64;
     }
 
-    private class LogItem
+    private class InternalLogListener : ILogListener
     {
-        public required LogTag Tag;
-        public required string Message;
+        public void OnLog(LogItem item)
+        {
+            if (DebugSwitchModel.Instance.ConsoleEnabled)
+            {
+                List<LogTag?> consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
+                if (consoleWhitelist.Any(t => t is null || t.ContainsAny(item.Tag)))
+                {
+                    LogToConsole(item.DisplayMessage);
+                }
+            }
+
+            if (DebugUtils.DebugMode && item.Level >= LEVEL_INFO)
+            {
+                sFlushQueue.Enqueue(item);
+            }
+
+            if (item.Level >= LEVEL_FATAL)
+            {
+                if (item.Exception is AssertException assertException)
+                {
+                    FailOnDebug(assertException);
+                }
+                else
+                {
+                    FailOnDebug(new AssertException("Expect an AssertException.", item.Exception));
+                }
+            }
+        }
+    }
+
+    public class LogItem
+    {
+        public required int Id { init; get; }
+        public required DateTimeOffset Time { init; get; }
+        public required int Level { init; get; }
+        public required LogTag Tag { init; get; }
+        public required string? Message { init; get; }
+        public required Exception? Exception { init; get; }
+
+        private string? _displayMessage = null;
+        public string DisplayMessage
+        {
+            get
+            {
+                string? msg = _displayMessage;
+                if (msg == null)
+                {
+                    msg = GenerateDisplayMessage();
+                    _displayMessage = msg;
+                }
+
+                return msg;
+            }
+        }
+
+        private string GenerateDisplayMessage()
+        {
+            string levelTag;
+            switch (Level)
+            {
+                case LEVEL_CONSOLE:
+                    levelTag = "C";
+                    break;
+                case LEVEL_DEBUG:
+                    levelTag = "D";
+                    break;
+                case LEVEL_INFO:
+                    levelTag = "I";
+                    break;
+                case LEVEL_WARN:
+                    levelTag = "W";
+                    break;
+                case LEVEL_ERROR:
+                    levelTag = "E";
+                    break;
+                case LEVEL_FATAL:
+                    levelTag = "F";
+                    break;
+                default:
+                    FailOnDebug(new AssertException($"Unknown log level {Level}."));
+                    levelTag = "U";
+                    break;
+            }
+
+            string realMessage = $"{Time:yyyy/M/d HH:mm:ss.fff} [{levelTag},{Tag}] {Message}";
+            if (Exception != null)
+            {
+                realMessage += "\n" + Exception.ToString();
+            }
+
+            return realMessage;
+        }
     }
 
     private class AssertException : Exception
@@ -476,8 +569,14 @@ public static class Logger
         }
     }
 
+    private class LogListenerWrapper
+    {
+        public int LastId = -1;
+        public required ILogListener Listener { init; get; }
+    }
+
     public interface ILogListener
     {
-        void OnLog(int level, LogTag tag, string message);
+        void OnLog(LogItem item);
     }
 }
