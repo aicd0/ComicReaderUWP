@@ -17,17 +17,12 @@ using ComicReader.Views.AppWindows.Main;
 using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI;
-using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-
-using Windows.ApplicationModel.DataTransfer;
-using Windows.System;
-using Windows.UI.Core;
 
 namespace ComicReader.Views.Pages.Main;
 
@@ -530,7 +525,7 @@ internal sealed partial class MainPage : BasePage
         }
 
         // Handle file drop
-        if (e.DataView.Contains(StandardDataFormats.StorageItems))
+        if (e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
         {
             CoroutineUtils.Start(async () =>
             {
@@ -550,7 +545,7 @@ internal sealed partial class MainPage : BasePage
 
     private void OnRootTabViewDragOver(object sender, DragEventArgs e)
     {
-        e.AcceptedOperation = DataPackageOperation.Move;
+        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
     }
 
     private void OnRootTabViewTabDroppedOutside(TabView sender, TabViewTabDroppedOutsideEventArgs args)
@@ -744,11 +739,11 @@ internal sealed partial class MainPage : BasePage
     // Key Events
     //
 
-    private void OnKeyDown(object sender, KeyRoutedEventArgs e)
+    private void KeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        bool ctrlDown = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down);
         bool handled = false;
-        switch (e.Key)
+        bool ctrlDown = args.KeyboardAccelerator.Modifiers.HasFlag(Windows.System.VirtualKeyModifiers.Control);
+        switch (args.KeyboardAccelerator.Key)
         {
             case Windows.System.VirtualKey.Escape:
                 GetMainWindowAbility().ExitFullscreen();
@@ -772,7 +767,7 @@ internal sealed partial class MainPage : BasePage
 
         if (handled)
         {
-            e.Handled = true;
+            args.Handled = true;
         }
     }
 
