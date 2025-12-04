@@ -10,7 +10,7 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:primitiveContract7Present="using:Microsoft.UI.Xaml.Controls.Primitives?IsApiContractPresent(Windows.Foundation.UniversalApiContract,7)"
     xmlns:vm="using:ComicReader.ViewModels"
-    KeyDown="OnKeyDown"
+    KeyboardAcceleratorPlacementMode="Hidden"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -168,6 +168,21 @@
 
         </ResourceDictionary>
     </Page.Resources>
+
+    <Page.KeyboardAccelerators>
+        <KeyboardAccelerator
+            Key="Escape"
+            Invoked="KeyboardAccelerator_Invoked"
+            Modifiers="None" />
+        <KeyboardAccelerator
+            Key="F10"
+            Invoked="KeyboardAccelerator_Invoked"
+            Modifiers="Control" />
+        <KeyboardAccelerator
+            Key="F11"
+            Invoked="KeyboardAccelerator_Invoked"
+            Modifiers="Control" />
+    </Page.KeyboardAccelerators>
 
     <Grid>
 

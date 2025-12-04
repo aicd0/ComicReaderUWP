@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.InitTask;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
@@ -227,6 +228,8 @@ internal sealed partial class MainWindow : Window
             // We delay this operation to here because it might involve dialog display which requires an active window
             ComicModel.UpdateAllComics("InitOnAppLaunchInternal");
         }
+
+        LaunchPerformanceTracker.MarkTabRestored();
     }
 
     private void OnWindowClosed(object sender, WindowEventArgs args)

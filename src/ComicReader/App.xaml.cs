@@ -42,6 +42,7 @@ public partial class App : Application
 
     public App()
     {
+        LaunchPerformanceTracker.MarkAppEntry();
         _instance = this;
         _initTaskManager = new(this);
         _initTaskManager.InitOnAppCreate();
@@ -79,6 +80,8 @@ public partial class App : Application
 
     protected override async void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs e)
     {
+        LaunchPerformanceTracker.MarkAppLaunched();
+
         // Read: https://docs.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/guides/applifecycle#single-instancing-in-applicationonlaunched
         // If this is the first instance launched, then register it as the "main" instance.
         // If this isn't the first instance launched, then "main" will already be registered,

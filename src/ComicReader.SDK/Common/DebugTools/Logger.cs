@@ -499,33 +499,16 @@ public static class Logger
 
         private string GenerateDisplayMessage()
         {
-            string levelTag;
-            switch (Level)
+            string levelTag = Level switch
             {
-                case LEVEL_CONSOLE:
-                    levelTag = "C";
-                    break;
-                case LEVEL_DEBUG:
-                    levelTag = "D";
-                    break;
-                case LEVEL_INFO:
-                    levelTag = "I";
-                    break;
-                case LEVEL_WARN:
-                    levelTag = "W";
-                    break;
-                case LEVEL_ERROR:
-                    levelTag = "E";
-                    break;
-                case LEVEL_FATAL:
-                    levelTag = "F";
-                    break;
-                default:
-                    FailOnDebug(new AssertException($"Unknown log level {Level}."));
-                    levelTag = "U";
-                    break;
-            }
-
+                LEVEL_CONSOLE => "C",
+                LEVEL_DEBUG => "D",
+                LEVEL_INFO => "I",
+                LEVEL_WARN => "W",
+                LEVEL_ERROR => "E",
+                LEVEL_FATAL => "F",
+                _ => "U",
+            };
             string realMessage = $"{Time:yyyy/M/d HH:mm:ss.fff} [{levelTag},{Tag}] {Message}";
             if (Exception != null)
             {
