@@ -357,7 +357,7 @@ internal partial class ReaderView : UserControl
 
                     foreach (PengingImageItem item in pendingListCopy)
                     {
-                        SetImageData(item.Index, item.OriginalWidth, item.OriginalHeight, item.Source);
+                        SetImageData(item.Index, item.OriginalWidth, item.OriginalHeight, item.Source, lastFrameIndex);
                     }
                 });
             }
@@ -421,25 +421,18 @@ internal partial class ReaderView : UserControl
 
         Log("Load", reason);
 
-        bool needAdjustPadding = false;
-
         if (_isFirstFrameLoaded && !_isFirstFrameActionPerformed)
         {
             Log("Load", "FirstFrame");
             _isFirstFrameActionPerformed = true;
-            needAdjustPadding = true;
+            AdjustPadding("FirstFrame", fixOffset: false);
         }
 
         if (_isLastFrameLoaded && !_isLastFrameActionPerformed)
         {
             Log("Load", "LastFrame");
             _isLastFrameActionPerformed = true;
-            needAdjustPadding = true;
-        }
-
-        if (needAdjustPadding)
-        {
-            AdjustPadding();
+            AdjustPadding("LastFrame", fixOffset: true);
         }
 
         bool needDispatchReadyState = false;
@@ -571,7 +564,7 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    private void SetImageData(int index, int originalWidth, int originalHeight, IImageSource source)
+    private void SetImageData(int index, int originalWidth, int originalHeight, IImageSource source, int lastFrameIndex)
     {
         Logger.Assert(index >= 0, "E55E628AD1456D37");
 
@@ -584,6 +577,8 @@ internal partial class ReaderView : UserControl
         _dataModel[index] = model;
 
         int frameIndex = PageToFrame(index + 1, out bool leftSide, out int neighbor);
+        bool firstFrame = frameIndex == 0;
+        bool lastFrame = frameIndex == lastFrameIndex;
 
         Logger.Assert(frameIndex >= 0, "50AEE34F38D316D0");
         Logger.Assert(neighbor >= -1, "01CA2D7BCADC4663");
@@ -686,7 +681,9 @@ internal partial class ReaderView : UserControl
         Logger.Assert(double.IsFinite(horizontalPadding), "B742A59FA82023CD");
         Logger.Assert(double.IsFinite(verticalPadding), "37E400F20758C487");
 
-        item.FrameMargin = new Thickness(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
+        double topPadding = _isVertical && firstFrame ? 0 : verticalPadding;
+        double bottomPadding = _isVertical && lastFrame ? 0 : verticalPadding;
+        item.FrameMargin = new Thickness(horizontalPadding, topPadding, horizontalPadding, bottomPadding);
 
         if (leftSide)
         {
@@ -872,7 +869,7 @@ internal partial class ReaderView : UserControl
         int frame = PageToFrame(CurrentPageInt, out _, out _);
         int preloadWindowBegin = Math.Max(frame - PRELOAD_FRAMES_BEFORE, 0);
         int preloadWindowEnd = Math.Min(frame + PRELOAD_FRAMES_AFTER, FrameDataSource.Count - 1);
-        Log("LoadImage", $"reason={reason},P={CurrentPageInt}");
+        Log("LoadImage", $"Reason={reason},P={CurrentPageInt}");
 
         for (int i = 0; i < FrameDataSource.Count; ++i)
         {
@@ -1015,20 +1012,14 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        float zoom = _zoom;
-        double page = CurrentPage;
-
         Log("SizeChanged",
             $"OS=({e.PreviousSize})",
             $"NS=({e.NewSize})",
-            $"Z={zoom}",
-            $"P={page}",
             $"ZF={ZoomFactor}",
             $"H={HorizontalOffset}",
             $"V={VerticalOffset}");
 
-        AdjustPadding();
-        SetScrollViewer2("SizeChanged", ScrollSource.Programmatic, zoom: zoom, page: page, fixForPaddingDelay: true);
+        AdjustPadding("SizeChanged", fixOffset: true);
     }
 
     //
@@ -2031,7 +2022,7 @@ internal partial class ReaderView : UserControl
             {
                 // Ignore the request if target offset is really close to the current offset,
                 // otherwise we might trigger a dead loop
-                Log("Jump", "Cancelled (too close)");
+                Log("Jump", "Cancelled (TooClose)");
                 return ScrollResult.TooClose;
             }
         }
@@ -2305,7 +2296,7 @@ internal partial class ReaderView : UserControl
         _manipulationDisabled = true;
     }
 
-    private void AdjustPadding()
+    private void AdjustPadding(string reason, bool fixOffset)
     {
         if (!_isLoaded)
         {
@@ -2361,15 +2352,34 @@ internal partial class ReaderView : UserControl
             paddingEnd = Math.Max(0.0, paddingEnd);
         } while (false);
 
+        double oldPaddingStart = SCPaddingStartFinal;
+        double oldPaddingEnd = SCPaddingEndFinal;
+        float oldZoom = _zoom;
+        double oldPage = CurrentPage;
+
         SCPaddingStartFinal = paddingStart;
         SCPaddingEndFinal = paddingEnd;
-        if (IsVertical)
+        if (_isVertical)
         {
             ThisListView.Padding = new Thickness(0.0, paddingStart, 0.0, paddingEnd);
         }
         else
         {
             ThisListView.Padding = new Thickness(paddingStart, 0.0, paddingEnd, 0.0);
+        }
+
+        Log("AdjustPadding",
+            $"Reason={reason}",
+            $"PS1={oldPaddingStart}",
+            $"PE1={oldPaddingEnd}",
+            $"PS2={paddingStart}",
+            $"PE2={paddingEnd}",
+            $"Z={oldZoom}",
+            $"P={oldPage}");
+
+        if (fixOffset)
+        {
+            SetScrollViewer2($"FixOffsetFor{reason}", ScrollSource.Programmatic, zoom: oldZoom, page: oldPage, fixForPaddingDelay: true);
         }
     }
 
