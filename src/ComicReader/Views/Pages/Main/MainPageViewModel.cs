@@ -70,10 +70,6 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         {
             Logger.AddListener(_logListener);
         }
-        else
-        {
-            Logger.RemoveListener(_logListener);
-        }
     }
 
     public void SetLogVisibility(bool visible)
@@ -112,6 +108,11 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
     {
         public void OnLog(Logger.LogItem item)
         {
+            if (!viewModel._logStarted)
+            {
+                return;
+            }
+
             if (item.Level <= 2)
             {
                 List<LogTag?> consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
