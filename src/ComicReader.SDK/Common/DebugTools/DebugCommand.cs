@@ -15,12 +15,12 @@ public static class DebugCommand
     private const string TAG = nameof(DebugCommand);
     private const int SIGNATURE_LENGTH = 256;
     private const string PUBLIC_KEY_PEM = @"-----BEGIN RSA PUBLIC KEY-----
-MIIBCgKCAQEAmyJ4ckZZJaRPsTrHz2VNB+rV7sFb2c9L2aaxg72D71vR44KPFVJO
-mhzCPtYNIsghteqUVGUevlrWAEaomnROWSuygLwIfsXV+0fC524Jxgls50lYxsFV
-DpoNPybbClgakzEX8v0XOxEMbykzE7y+sNk4BFMSqMrN0vn24EH/9W0UZZQzsIfR
-Mxo8Z+rYxNV8Orkf4CSIRL7h9UFFr6EkaApGpgqVl3QvQvNrSo5OCqELsZ/4/DF3
-xp8vQPBayknp/N1WAT768SYpXAT/nta/ddJnCkbMsCd/C1AZhDDwsjk4+Bsmj3DK
-5RycCc4/1JVY+rervfzfCzXLTOyPdmvE6QIDAQAB
+MIIBCgKCAQEAot89oOONQcVUgUft6YLU15yntMd+Ve1pM7kU5Lr61T8hFnfFxL7x
+tLmodYK+o+FTPKtcoWglxA1fp9cHjRaRI7SUYqPyixXxepGeMMf0NUndduScthTk
+ZNuH9P/la/gFTq+yb9bWhjH1HNLAMD/XaUjF+6eVlE0CVcslVEde6foHlYqjMQlp
+Mv5FKy9jFQCHhFcfvXaP4yd8bCE3pL2x43qEbGQw9iOufGCgFplckblXy9OFmbgB
+xpRSqAgubJDMUR3a8NNWEmKaKfKTbY85OV0Qe1mYo4DWPJRYywjglHmUY+IHxoPV
+TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
 -----END RSA PUBLIC KEY-----";
 
     private static bool? _unlockedDeveloperMode = null;
@@ -71,10 +71,8 @@ xp8vQPBayknp/N1WAT768SYpXAT/nta/ddJnCkbMsCd/C1AZhDDwsjk4+Bsmj3DK
         Array.Copy(signatureAndCommandBytes, SIGNATURE_LENGTH, commandBytes, 0, signatureAndCommandBytes.Length - SIGNATURE_LENGTH);
         string command = System.Text.Encoding.UTF8.GetString(commandBytes);
 
-        string versionName = EnvironmentProvider.GetVersionName();
-        string deviceId = EnvironmentProvider.Instance.GetDeviceId();
-
-        byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes($"{versionName}+{deviceId}+{command}");
+        string developerToken = EnvironmentProvider.Instance.GetDeveloperToken();
+        byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes($"{developerToken}+{command}");
         if (!VerifySignature(payloadBytes, signatureBytes, PUBLIC_KEY_PEM))
         {
             return null;
