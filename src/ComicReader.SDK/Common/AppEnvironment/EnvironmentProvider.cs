@@ -62,6 +62,7 @@ public class EnvironmentProvider
         sb.SafeAppend("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
         sb.SafeAppend("Portable", () => IsPortable());
         sb.SafeAppend("Process architecture", () => RuntimeInformation.ProcessArchitecture);
+        sb.SafeAppend("Developer token", GetDeveloperToken);
         sb.SafeAppend("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
         sb.SafeAppend("Awake time", () => GetAwakeTime());
 
@@ -87,7 +88,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        string combined = GenerateDeviceUniqueString();
+        string combined = string.Join('-', GetDeviceList());
         if (combined.Length < 12)
         {
             combined = Guid.NewGuid().ToString();
@@ -159,6 +160,16 @@ public class EnvironmentProvider
         }
     }
 
+    public string GetDeveloperToken()
+    {
+        List<string> info = [];
+        info.Add(GetDeviceId());
+        info.Add(GetVersionName());
+        string combined = string.Join('-', info);
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
+        return Convert.ToHexString(hash)[..8];
+    }
+
     public DateTimeOffset GetLaunchTime()
     {
         return _launchTime;
@@ -215,29 +226,28 @@ public class EnvironmentProvider
         return ServiceManager.GetService<IApplicationService>().IsPortableBuild();
     }
 
-    private static string GenerateDeviceUniqueString()
+    private static List<string> GetDeviceList()
     {
+        List<string> results = [];
+
+        string? cpuId = DeviceInformationHelper.Instance.GetCpuId();
+        if (!string.IsNullOrEmpty(cpuId))
+        {
+            results.Add(cpuId);
+        }
+
         string[] macAddresses = [.. NetworkInterface.GetAllNetworkInterfaces()
             .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
             .Select(nic => nic.GetPhysicalAddress().ToString())
             .Where(mac => !string.IsNullOrEmpty(mac))];
-        string? cpuId = DeviceInformationHelper.Instance.GetCpuId();
+        results.AddRange(macAddresses);
+
         string? motherboardSerial = DeviceInformationHelper.Instance.GetMotherboardSerial();
-
-        List<string> devices = [];
-
-        if (!string.IsNullOrEmpty(cpuId))
-        {
-            devices.Add(cpuId);
-        }
-
         if (!string.IsNullOrEmpty(motherboardSerial))
         {
-            devices.Add(motherboardSerial);
+            results.Add(motherboardSerial);
         }
 
-        devices.AddRange(macAddresses);
-
-        return string.Join('-', devices);
+        return results;
     }
 }
