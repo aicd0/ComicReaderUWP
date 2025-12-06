@@ -30,13 +30,7 @@
 
     <Grid>
 
-        <Grid
-            x:Name="ContentGrid"
-            Background="Transparent"
-            PointerPressed="OnPagePointerPressed"
-            PointerReleased="OnPagePointerReleased">
-            <Frame x:Name="ContentFrame" Navigated="OnPageChanged" />
-        </Grid>
+        <Grid x:Name="ContentGridImmersive" />
 
         <Grid>
             <Grid.RowDefinitions>
@@ -241,6 +235,16 @@
                             Opacity="0" />
                     </Grid>
                 </SplitView.Pane>
+
+                <Grid x:Name="ContentGridNormal">
+                    <Frame
+                        x:Name="ContentFrame"
+                        Background="Transparent"
+                        Navigated="OnPageChanged"
+                        PointerPressed="OnPagePointerPressed"
+                        PointerReleased="OnPagePointerReleased" />
+                </Grid>
+
             </SplitView>
 
         </Grid>

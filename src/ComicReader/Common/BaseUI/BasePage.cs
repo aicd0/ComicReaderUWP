@@ -28,7 +28,8 @@ internal abstract class BasePage : Page, ILifecycleOwner
     private bool _isLoaded = false;
 
     protected int WindowId { get; private set; } = 0;
-    public bool IsStarted => _isStarted;
+    public bool Started => _isStarted;
+    public bool Resumed => _isResumed;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
     public ActionHandler PageActionHandler { get; } = new();

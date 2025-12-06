@@ -26,9 +26,13 @@ namespace ComicReader.Views.Pages.Navigation;
 
 internal sealed partial class NavigationPage : BasePage
 {
+    private const string TAG = nameof(NavigationPage);
+
     private bool _isFavorite = false;
+    private bool _immersiveMode = false;
     private double _rootTabHeight = 0;
     private double _navigationBarHeight = 0;
+    private NavigationBundle? _pendingBundle;
     private NavigationBundle? _currentBundle;
     private readonly NavigationPageAbility _ability;
 
@@ -61,6 +65,13 @@ internal sealed partial class NavigationPage : BasePage
         base.OnResume();
 
         UpdateUI();
+
+        NavigationBundle? pendingBundle = _pendingBundle;
+        if (pendingBundle is not null)
+        {
+            _pendingBundle = null;
+            Navigate(pendingBundle);
+        }
     }
 
     private void ObserveData()
@@ -124,6 +135,12 @@ internal sealed partial class NavigationPage : BasePage
 
     public void Navigate(NavigationBundle bundle)
     {
+        if (!Resumed)
+        {
+            _pendingBundle = bundle;
+            return;
+        }
+
         TransferAbility(bundle.Communicator);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
     }
@@ -178,7 +195,42 @@ internal sealed partial class NavigationPage : BasePage
         SearchBox.Visibility = isReaderPage ? Visibility.Collapsed : Visibility.Visible;
         SpCenterButtons.Visibility = isReaderPage ? Visibility.Visible : Visibility.Collapsed;
         SetSearchBox("");
-        UpdateTopPadding();
+
+        bool immersiveMode = _currentBundle.PageTrait.ImmersiveMode();
+        if (immersiveMode != _immersiveMode)
+        {
+            _immersiveMode = immersiveMode;
+            UpdateContentFramePlacement();
+            UpdateTopPadding();
+        }
+    }
+
+    private void UpdateContentFramePlacement()
+    {
+        DependencyObject parent = ContentFrame.Parent;
+        if (parent is Grid parentGrid)
+        {
+            bool success = parentGrid.Children.Remove(ContentFrame);
+            if (!success)
+            {
+                Logger.F(TAG, "Failed to remove ContentFrame from parent panel.");
+                return;
+            }
+        }
+        else
+        {
+            Logger.F(TAG, $"Unrecognized ContentFrame's parent {parent}.");
+            return;
+        }
+
+        if (_immersiveMode)
+        {
+            ContentGridImmersive.Children.Add(ContentFrame);
+        }
+        else
+        {
+            ContentGridNormal.Children.Add(ContentFrame);
+        }
     }
 
     //
@@ -189,21 +241,17 @@ internal sealed partial class NavigationPage : BasePage
     {
         _navigationBarHeight = e.NewSize.Height;
         GetEventBus().With<double>(EventId.NavigationBarHeightChange).Emit(_navigationBarHeight);
-        UpdateTopPadding();
     }
 
     private void UpdateTopPadding()
     {
-        if (_currentBundle!.PageTrait.ImmersiveMode())
+        if (_immersiveMode)
         {
             TopTile.Margin = new Thickness(0, _rootTabHeight, 0, 0);
-            ContentGrid.Margin = new Thickness(0, 0, 0, 0);
         }
         else
         {
-            // MainPage has done that job for us.
             TopTile.Margin = new Thickness(0, 0, 0, 0);
-            ContentGrid.Margin = new Thickness(0, _navigationBarHeight, 0, 0);
         }
     }
 

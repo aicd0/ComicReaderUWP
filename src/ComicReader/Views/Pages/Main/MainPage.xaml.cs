@@ -633,7 +633,7 @@ internal sealed partial class MainPage : BasePage
 
         _tabContainerGridOpacityListenerToken = _tabContainerGrid.RegisterPropertyChangedCallback(OpacityProperty, (sender, dp) =>
         {
-            if (!IsStarted)
+            if (!Started)
             {
                 return;
             }
