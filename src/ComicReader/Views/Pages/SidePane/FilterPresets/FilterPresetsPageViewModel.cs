@@ -8,12 +8,14 @@ using System.Threading;
 
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
+using ComicReader.Common.Constants;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Algorithm;
+using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
@@ -30,7 +32,7 @@ internal class FilterPresetsPageViewModel
     private readonly ComicSearchEngine _searchEngine = new();
     private ComicFilterModel.ExternalFilterModel? _selectedFilter;
 
-    private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
+    private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.Factory.NewQueue("FilterPresetsPageQueue");
     private int _updateComicSubmitted = 0;
 
     public void Initialize(ActionHandler actionHandler)
@@ -86,8 +88,18 @@ internal class FilterPresetsPageViewModel
             selectedFilter = filters.Find(x => x.Name == _selectedFilter.Name);
         }
 
+        if (selectedFilter is null)
+        {
+            string? lastFilterName = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET);
+            if (!string.IsNullOrEmpty(lastFilterName))
+            {
+                selectedFilter = filters.Find(x => x.Name == lastFilterName);
+            }
+        }
+
         selectedFilter ??= filters[0];
         _selectedFilter = selectedFilter;
+        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET, selectedFilter.Name);
 
         DropDownButtonModel filterPresetDropdown = new()
         {

@@ -125,6 +125,7 @@ internal sealed partial class NavigationPage : BasePage
     {
         MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
+        NavigationPageSidePane.IsPaneOpen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false);
         NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
         RightSidePane.RestoreLastStatus();
     }
@@ -299,7 +300,9 @@ internal sealed partial class NavigationPage : BasePage
 
     private void NavigationPageSidePane_PaneOpenedOrClosed(SplitView sender, object args)
     {
-        ViewModel.UpdateSidebarButton(NavigationPageSidePane.IsPaneOpen);
+        bool opened = NavigationPageSidePane.IsPaneOpen;
+        ViewModel.UpdateSidebarButton(opened);
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
     }
 
     private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)

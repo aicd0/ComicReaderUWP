@@ -72,7 +72,6 @@ class WindowManager
             return wrapper.Window;
         }
 
-        Logger.AssertNotReachHere("6046D73C153C55AB");
         return null;
     }
 

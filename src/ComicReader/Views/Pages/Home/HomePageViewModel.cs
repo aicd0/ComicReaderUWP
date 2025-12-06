@@ -192,7 +192,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     private readonly List<ComicItemViewModel> _selectedComicItems = [];
     private long _lastSearchTime = 0;
 
-    private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
+    private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.Factory.NewQueue("HomePageQueue");
     private bool _filterInvalidated = true;
     private bool _comicInvalidated = true;
     private int _updateFilterSubmitted = 0;
