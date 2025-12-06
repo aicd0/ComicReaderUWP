@@ -86,6 +86,9 @@ internal class InitTaskManager(Application application)
         DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
         SqlDatabaseManager.Initialize();
         DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
+
+        // Initialize focus tracker
+        FocusTracker.Initialize();
     }
 
     private void InitializeAppTheme()

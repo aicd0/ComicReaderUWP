@@ -625,6 +625,9 @@ The evaluation will be performed in the following order:
   <data name="PageN" xml:space="preserve">
     <value>Page $page</value>
   </data>
+  <data name="Pin" xml:space="preserve">
+    <value>Pin</value>
+  </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>Privacy Policy</value>
   </data>
@@ -819,6 +822,9 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Unhide</value>
+  </data>
+  <data name="Unpin" xml:space="preserve">
+    <value>Unpin</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>Untitled</value>

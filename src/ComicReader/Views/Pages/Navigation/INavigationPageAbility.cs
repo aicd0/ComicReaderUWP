@@ -23,9 +23,7 @@ internal interface INavigationPageAbility : IPageAbility
 
     void SetGridViewMode(bool enabled);
 
-    bool GetIsSidePaneOpen();
-
-    void SetIsSidePaneOpen(bool isOpen);
+    void SetSidePaneOpen(bool open, bool force);
 
     void SetSearchBox(string text);
 

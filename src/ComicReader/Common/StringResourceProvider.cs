@@ -120,6 +120,7 @@ public class StringResourceProvider
     public string PageLayoutDualWithCoverMirrored => GetResourceString("PageLayoutDualWithCoverMirrored");
     public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
     public string PageN => GetResourceString("PageN");
+    public string Pin => GetResourceString("Pin");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
     public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");
@@ -162,6 +163,7 @@ public class StringResourceProvider
     public string UnhandledExceptionContent => GetResourceString("UnhandledExceptionContent");
     public string UnhandledExceptionTitle => GetResourceString("UnhandledExceptionTitle");
     public string Unhide => GetResourceString("Unhide");
+    public string Unpin => GetResourceString("Unpin");
     public string Untitled => GetResourceString("Untitled");
     public string UseSystemLanguage => GetResourceString("UseSystemLanguage");
     public string ViewType => GetResourceString("ViewType");

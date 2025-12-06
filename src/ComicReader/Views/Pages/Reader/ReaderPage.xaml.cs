@@ -178,6 +178,7 @@ internal sealed partial class ReaderPage : BasePage
         GetNavigationPageAbility().SetGridViewMode(false);
         ViewModel.ReloadReaderSettings();
         UpdateReaderUI();
+        MainReaderView.Focus(FocusState.Programmatic);
     }
 
     protected override void OnStop()
@@ -243,6 +244,7 @@ internal sealed partial class ReaderPage : BasePage
             if (InfoPane != null)
             {
                 InfoPane.IsPaneOpen = true;
+                GetNavigationPageAbility().SetSidePaneOpen(false, force: true);
             }
         });
 
@@ -464,11 +466,6 @@ internal sealed partial class ReaderPage : BasePage
     // Bottom Tile
     //
 
-    private void OnReaderPointerExited()
-    {
-        ShowBottomTile();
-    }
-
     private void HideBottomTileDelayed(int delayMilliseconds)
     {
         if (!_bottomTileShowed)
@@ -506,7 +503,6 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled ||
-            GetNavigationPageAbility().GetIsSidePaneOpen() ||
             ViewModel.ReaderStatusLiveData.GetValue()?.Status != ReaderStatusEnum.Working)
         {
             return;
@@ -655,9 +651,9 @@ internal sealed partial class ReaderPage : BasePage
         _ = dialog.ShowAsync(WindowId);
     }
 
-    private void OnNonReaderUIPointerEntered(object sender, PointerRoutedEventArgs e)
+    private void OnReaderPointerExited(object sender, PointerRoutedEventArgs e)
     {
-        OnReaderPointerExited();
+        ShowBottomTile();
     }
 
     private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)

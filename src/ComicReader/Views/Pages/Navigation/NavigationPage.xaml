@@ -228,7 +228,7 @@
                 PanePlacement="Right">
                 <SplitView.Pane>
                     <Grid SizeChanged="NavigationPageSidePane_SizeChanged">
-                        <navigation:SidePane x:Name="RightSidePane" SelectionChanged="OnSidePaneSelectionChanged" />
+                        <navigation:SidePane x:Name="RightSidePane" PinStateChanged="RightSidePane_PinStateChanged" />
                         <Rectangle
                             Width="1"
                             HorizontalAlignment="Left"

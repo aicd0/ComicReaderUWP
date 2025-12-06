@@ -41,6 +41,7 @@ internal sealed partial class NavigationPage : BasePage
         InitializeComponent();
 
         Background = AppearanceManager.Instance.GetThemeBackground();
+        RightSidePane.Initialize(new SidePaneHandler(this));
         ViewModel.UpdateSidebarButton(NavigationPageSidePane.IsPaneOpen);
     }
 
@@ -78,7 +79,7 @@ internal sealed partial class NavigationPage : BasePage
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
             TopTile.Opacity = opacity;
-            TopTile.IsHitTestVisible = opacity > 0.5;
+            NavigationPageSidePane.Opacity = opacity;
         });
 
         GetMainWindowAbility().RegisterFullscreenChangedHandler(this, isFullscreen =>
@@ -114,12 +115,7 @@ internal sealed partial class NavigationPage : BasePage
         MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
         NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
-
-        string lastSidePaneItem = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
-        if (!RightSidePane.NavigateToItem(lastSidePaneItem))
-        {
-            RightSidePane.NavigateToItem(SidePane.FAVORITES);
-        }
+        RightSidePane.RestoreLastStatus();
     }
 
     //
@@ -176,7 +172,6 @@ internal sealed partial class NavigationPage : BasePage
         _currentBundle = (NavigationBundle)e.Parameter;
         GetMainPageAbility().SetCurrentPageInfo(_currentBundle.Url, _currentBundle.PageTrait);
 
-        NavigationPageSidePane.IsPaneOpen = false;
         bool isHomePage = _currentBundle.PageTrait is HomePageTrait;
         bool isReaderPage = _currentBundle.PageTrait is ReaderPageTrait;
         ViewModel.IsHomePage = isHomePage;
@@ -251,15 +246,35 @@ internal sealed partial class NavigationPage : BasePage
 
     private void OnOpenSidebarClick(object sender, RoutedEventArgs e)
     {
-        if (NavigationPageSidePane != null)
-        {
-            NavigationPageSidePane.IsPaneOpen = !NavigationPageSidePane.IsPaneOpen;
-        }
+        NavigationPageSidePane.IsPaneOpen = !NavigationPageSidePane.IsPaneOpen;
     }
 
     private void NavigationPageSidePane_PaneOpenedOrClosed(SplitView sender, object args)
     {
         ViewModel.UpdateSidebarButton(NavigationPageSidePane.IsPaneOpen);
+    }
+
+    private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        double newWidth = NavigationPageSidePane.OpenPaneLength;
+        KVDatabase.Default.SetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
+    }
+
+    private void RightSidePane_PinStateChanged(SidePane sender, bool pinned)
+    {
+        NavigationPageSidePane.DisplayMode = pinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
+    }
+
+    private void SetSidePaneOpen(bool open, bool force)
+    {
+        if (open)
+        {
+            NavigationPageSidePane.IsPaneOpen = true;
+        }
+        else if (force || !RightSidePane.Pinned)
+        {
+            NavigationPageSidePane.IsPaneOpen = false;
+        }
     }
 
     //
@@ -364,34 +379,6 @@ internal sealed partial class NavigationPage : BasePage
     }
 
     //
-    // Side pane
-    //
-
-    private void OnSidePaneSelectionChanged(SidePane sender, string item)
-    {
-        Route route = item switch
-        {
-            SidePane.FAVORITES => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
-            SidePane.HISTORY => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_HISTORY),
-            SidePane.TAGS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_TAGS),
-            _ => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
-        };
-
-        route.WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-        NavigationBundle bundle = AppRouter.Process(route)!;
-        TransferAbility(bundle.Communicator);
-        sender.Navigate(bundle);
-
-        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
-    }
-
-    private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        double newWidth = NavigationPageSidePane.OpenPaneLength;
-        KVDatabase.Default.SetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
-    }
-
-    //
     // Utilities
     //
 
@@ -414,8 +401,21 @@ internal sealed partial class NavigationPage : BasePage
     }
 
     //
-    // Page ability
+    // Types
     //
+
+    private class SidePaneHandler(NavigationPage page) : SidePane.ISidePaneHandler
+    {
+        public int GetWindowId()
+        {
+            return page.WindowId;
+        }
+
+        public void TransferAbility(NavigationBundle bundle)
+        {
+            page.TransferAbility(bundle.Communicator);
+        }
+    }
 
     private class NavigationPageAbility : INavigationPageAbility
     {
@@ -438,16 +438,6 @@ internal sealed partial class NavigationPage : BasePage
         public void ClearSubscriptions()
         {
             _eventBus.Clear();
-        }
-
-        public bool GetIsSidePaneOpen()
-        {
-            if (!_parent.TryGetTarget(out NavigationPage? parent))
-            {
-                return false;
-            }
-
-            return parent.NavigationPageSidePane.IsPaneOpen;
         }
 
         public void SetExternalComic(bool isExternal)
@@ -480,14 +470,14 @@ internal sealed partial class NavigationPage : BasePage
             parent.SetGridViewModeEnabled(enabled);
         }
 
-        public void SetIsSidePaneOpen(bool isOpen)
+        public void SetSidePaneOpen(bool open, bool force)
         {
             if (!_parent.TryGetTarget(out NavigationPage? parent))
             {
                 return;
             }
 
-            parent.NavigationPageSidePane.IsPaneOpen = isOpen;
+            parent.SetSidePaneOpen(open, force: force);
         }
 
         public void SetReaderSettings(ComicModel comic)
