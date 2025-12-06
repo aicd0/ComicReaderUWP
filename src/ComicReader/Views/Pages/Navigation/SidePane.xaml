@@ -36,6 +36,21 @@
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
         </muxc:NavigationView.MenuItems>
+        <muxc:NavigationView.PaneFooter>
+            <StackPanel Orientation="Vertical">
+                <Button
+                    Margin="4,1,3,1"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="PinButton_Click"
+                    FocusVisualSecondaryBrush="Transparent"
+                    ToolTipService.ToolTip="{x:Bind ViewModel.PinButtonText, Mode=OneWay}">
+                    <Grid Padding="2,4,0,4">
+                        <FontIcon FontSize="15.5" Glyph="{x:Bind ViewModel.PinButtonGlyph, Mode=OneWay}" />
+                    </Grid>
+                </Button>
+            </StackPanel>
+        </muxc:NavigationView.PaneFooter>
     </muxc:NavigationView>
 
 </base:BaseUserControl>

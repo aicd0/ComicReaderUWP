@@ -30,7 +30,7 @@ internal static class LaunchPerformanceTracker
     private static void LogStage(string stageName)
     {
         long timeUsed = GetTick() - _appEntryTime;
-        Logger.D(TAG, $"{stageName}={timeUsed}ms");
+        Logger.I(TAG, $"{stageName}={timeUsed}ms");
     }
 
     private static long GetTick()

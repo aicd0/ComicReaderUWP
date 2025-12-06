@@ -2,6 +2,9 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Constants;
+using ComicReader.Helpers.Navigation;
+using ComicReader.SDK.Common.KVStorage;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -9,12 +12,18 @@ namespace ComicReader.Views.Pages.Navigation;
 
 internal sealed partial class SidePane : BaseUserControl
 {
-    public const string FAVORITES = "Favorites";
-    public const string HISTORY = "History";
-    public const string TAGS = "Tags";
+    private const string FAVORITES = "Favorites";
+    private const string HISTORY = "History";
+    private const string TAGS = "Tags";
 
-    public delegate void SelectionChangedEventHandler(SidePane sender, string item);
-    public event SelectionChangedEventHandler? SelectionChanged;
+    public delegate void PinStateChangedEventHandler(SidePane sender, bool pinned);
+    public event PinStateChangedEventHandler? PinStateChanged;
+
+    private readonly SidePaneViewModel ViewModel = new();
+
+    private ISidePaneHandler? _handler = null;
+
+    public bool Pinned { get; private set; } = false;
 
     public SidePane()
     {
@@ -25,12 +34,64 @@ internal sealed partial class SidePane : BaseUserControl
     // Public Methods
     //
 
-    public void Navigate(NavigationBundle bundle)
+    public void Initialize(ISidePaneHandler handler)
     {
-        ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+        _handler = handler;
     }
 
-    public bool NavigateToItem(string itemName)
+    public void RestoreLastStatus()
+    {
+        string lastSidePaneItem = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
+        if (!NavigateToItem(lastSidePaneItem))
+        {
+            NavigateToItem(FAVORITES);
+        }
+
+        bool pinned = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
+        SetPinState(pinned);
+    }
+
+    //
+    // Events
+    //
+
+    private void OnNavPaneSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        if (args.SelectedItem is not NavigationViewItem viewItem || _handler is null)
+        {
+            return;
+        }
+
+        string item = viewItem.Name;
+
+        Route route = item switch
+        {
+            FAVORITES => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
+            HISTORY => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_HISTORY),
+            TAGS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_TAGS),
+            _ => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
+        };
+
+        route.WithParam(RouterConstants.ARG_WINDOW_ID, _handler.GetWindowId().ToString());
+        NavigationBundle bundle = AppRouter.Process(route)!;
+        _handler.TransferAbility(bundle);
+        ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+
+        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
+    }
+
+    private void PinButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        bool pinned = !Pinned;
+        SetPinState(pinned);
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
+    }
+
+    //
+    // Helpers
+    //
+
+    private bool NavigateToItem(string itemName)
     {
         foreach (object item in MainNavigationView.MenuItems)
         {
@@ -44,13 +105,21 @@ internal sealed partial class SidePane : BaseUserControl
         return false;
     }
 
+    private void SetPinState(bool pinned)
+    {
+        Pinned = pinned;
+        ViewModel.UpdatePinButton(pinned);
+        PinStateChanged?.Invoke(this, pinned);
+    }
+
     //
-    // Events
+    // Types
     //
 
-    private void OnNavPaneSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    public interface ISidePaneHandler
     {
-        string item = ((NavigationViewItem)args.SelectedItem).Name;
-        SelectionChanged?.Invoke(this, item);
+        int GetWindowId();
+
+        void TransferAbility(NavigationBundle bundle);
     }
 }

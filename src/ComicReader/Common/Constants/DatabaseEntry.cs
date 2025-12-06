@@ -12,6 +12,7 @@ internal static class DatabaseEntry
     public const string KV_KEY_APP_WINDOW_STATUS = "WindowStatus";
     public const string KV_KEY_APP_SIDE_PANE_WIDTH = "SidePaneWidth";
     public const string KV_KEY_APP_SIDE_PANE_LAST_ITEM = "SidePaneLastItem";
+    public const string KV_KEY_APP_SIDE_PANE_PINNED = "SidePanePinned";
     public const string KV_KEY_APP_LOG_VISIBLE = "LogVisible";
     public const string KV_KEY_APP_LOG_STARTED = "LogStarted";
     public const string KV_KEY_APP_LAST_TAB_STATUS = "LastTabStatus";

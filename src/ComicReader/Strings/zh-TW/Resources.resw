@@ -623,6 +623,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="PageN" xml:space="preserve">
     <value>第$page頁</value>
   </data>
+  <data name="Pin" xml:space="preserve">
+    <value>固定</value>
+  </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>隱私權策略</value>
   </data>
@@ -817,6 +820,9 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>取消隱藏</value>
+  </data>
+  <data name="Unpin" xml:space="preserve">
+    <value>取消固定</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>未命名</value>

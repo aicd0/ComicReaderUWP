@@ -67,7 +67,7 @@
                 Visibility="{x:Bind ViewModel.ReaderCommonStatus, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
 
             <!--  Reader  -->
-            <Grid PointerEntered="OnReaderPointerEntered">
+            <Grid PointerEntered="OnReaderPointerEntered" PointerExited="OnReaderPointerExited">
                 <Grid x:Name="ManipulationReference" />
                 <reader:ReaderView x:Name="MainReaderView" />
             </Grid>
@@ -95,8 +95,7 @@
                 Background="{ThemeResource FlyoutPresenterBackground}"
                 BorderThickness="0"
                 CornerRadius="24"
-                Opacity="0"
-                PointerEntered="OnNonReaderUIPointerEntered">
+                Opacity="0">
                 <TextBlock
                     x:Name="PageIndicator"
                     Margin="1,0,0,2"
@@ -111,8 +110,7 @@
             <Grid
                 x:Name="FullscreenButtonGrid"
                 HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                PointerEntered="OnNonReaderUIPointerEntered">
+                VerticalAlignment="Bottom">
                 <Button
                     Click="OnFullscreenBtClicked"
                     Style="{StaticResource ReaderFullscreenButtonStyle}"
@@ -178,8 +176,7 @@
                 x:Name="TitleBarArea"
                 Grid.Row="0"
                 VerticalAlignment="Top"
-                Background="Transparent"
-                PointerEntered="OnNonReaderUIPointerEntered" />
+                Background="Transparent" />
 
             <SplitView
                 x:Name="InfoPane"
@@ -191,7 +188,7 @@
 
                 <!--  Information Pane  -->
                 <SplitView.Pane>
-                    <Grid PointerEntered="OnNonReaderUIPointerEntered">
+                    <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />

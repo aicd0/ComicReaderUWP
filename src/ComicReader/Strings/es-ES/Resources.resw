@@ -623,6 +623,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="PageN" xml:space="preserve">
     <value>Página $page</value>
   </data>
+  <data name="Pin" xml:space="preserve">
+    <value>Fijar</value>
+  </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>política de privacidad</value>
   </data>
@@ -817,6 +820,9 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Mostrar</value>
+  </data>
+  <data name="Unpin" xml:space="preserve">
+    <value>Desfijar</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>Intitulado</value>

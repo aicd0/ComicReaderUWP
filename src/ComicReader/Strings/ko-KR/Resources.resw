@@ -624,6 +624,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="PageN" xml:space="preserve">
     <value>$page페이지</value>
   </data>
+  <data name="Pin" xml:space="preserve">
+    <value>고정</value>
+  </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>개인정보 보호정책</value>
   </data>
@@ -818,6 +821,9 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>숨기기 해제</value>
+  </data>
+  <data name="Unpin" xml:space="preserve">
+    <value>고정 해제</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>이름 없음</value>

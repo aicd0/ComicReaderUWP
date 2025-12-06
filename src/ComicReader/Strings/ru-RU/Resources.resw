@@ -624,6 +624,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="PageN" xml:space="preserve">
     <value>Страница $page</value>
   </data>
+  <data name="Pin" xml:space="preserve">
+    <value>Закрепить</value>
+  </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>политика конфиденциальности</value>
   </data>
@@ -818,6 +821,9 @@ $info</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Показать</value>
+  </data>
+  <data name="Unpin" xml:space="preserve">
+    <value>Открепить</value>
   </data>
   <data name="Untitled" xml:space="preserve">
     <value>Безымянный</value>
