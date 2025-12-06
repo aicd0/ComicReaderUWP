@@ -34,6 +34,7 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 
 using Windows.Storage;
+using Windows.Win32;
 
 namespace ComicReader.Views.Pages.Reader;
 
@@ -53,6 +54,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private volatile bool _updatingProgress = false;
 
+    private bool _readerPointerEntered = true;
     private bool _bottomTileShowed = false;
     private bool _bottomTileHold = false;
     private long _bottomTileTargetHideTime = -1;
@@ -653,11 +655,21 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderPointerExited(object sender, PointerRoutedEventArgs e)
     {
-        ShowBottomTile();
+        if (!_readerPointerEntered)
+        {
+            return;
+        }
+
+        _readerPointerEntered = false;
+        if (IsPointerInsideWindow())
+        {
+            ShowBottomTile();
+        }
     }
 
     private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)
     {
+        _readerPointerEntered = true;
         if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse || _bottomTileHold)
         {
             return;
@@ -705,6 +717,24 @@ internal sealed partial class ReaderPage : BasePage
     private INavigationPageAbility GetNavigationPageAbility()
     {
         return GetAbility<INavigationPageAbility>()!;
+    }
+
+    private bool IsPointerInsideWindow()
+    {
+        MainWindow? window = App.Instance.WindowManager.GetWindow(WindowId);
+        if (window is null)
+        {
+            return true;
+        }
+
+        Windows.Win32.Foundation.HWND hWnd = new(window.WindowHandle);
+        PInvoke.GetCursorPos(out System.Drawing.Point pos);
+        PInvoke.ScreenToClient(hWnd, ref pos);
+        PInvoke.GetClientRect(hWnd, out Windows.Win32.Foundation.RECT rect);
+        bool inside =
+            pos.X >= rect.left && pos.X < rect.right &&
+            pos.Y >= rect.top && pos.Y < rect.bottom;
+        return inside;
     }
 
     private static async Task<ComicModel?> GetComicFromLocation(string location)
