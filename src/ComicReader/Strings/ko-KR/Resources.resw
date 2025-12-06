@@ -216,6 +216,9 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>캐시 크기: $size</value>
   </data>
+  <data name="CloseSidebar" xml:space="preserve">
+    <value>사이드바 닫기</value>
+  </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>모두 접기</value>
   </data>
@@ -398,9 +401,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Favorites" xml:space="preserve">
     <value>즐겨찾기</value>
-  </data>
-  <data name="FavoritesButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>즐겨찾기 및 역사</value>
   </data>
   <data name="Feedback.Text" xml:space="preserve">
     <value>피드백</value>
@@ -590,6 +590,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>무작위 만화를 엽니다</value>
+  </data>
+  <data name="OpenSidebar" xml:space="preserve">
+    <value>사이드바 열기</value>
   </data>
   <data name="OpenUserDataFolder" xml:space="preserve">
     <value>사용자 데이터 폴더 열기</value>

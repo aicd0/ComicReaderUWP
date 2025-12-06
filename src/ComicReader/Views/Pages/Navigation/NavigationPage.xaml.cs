@@ -41,6 +41,7 @@ internal sealed partial class NavigationPage : BasePage
         InitializeComponent();
 
         Background = AppearanceManager.Instance.GetThemeBackground();
+        ViewModel.UpdateSidebarButton(NavigationPageSidePane.IsPaneOpen);
     }
 
     //
@@ -245,6 +246,23 @@ internal sealed partial class NavigationPage : BasePage
     }
 
     //
+    // Sidebar
+    //
+
+    private void OnOpenSidebarClick(object sender, RoutedEventArgs e)
+    {
+        if (NavigationPageSidePane != null)
+        {
+            NavigationPageSidePane.IsPaneOpen = !NavigationPageSidePane.IsPaneOpen;
+        }
+    }
+
+    private void NavigationPageSidePane_PaneOpenedOrClosed(SplitView sender, object args)
+    {
+        ViewModel.UpdateSidebarButton(NavigationPageSidePane.IsPaneOpen);
+    }
+
+    //
     // Buttons
     //
 
@@ -267,14 +285,6 @@ internal sealed partial class NavigationPage : BasePage
     private void OnRefreshClick(object sender, RoutedEventArgs e)
     {
         _ability.SendRefreshEvent();
-    }
-
-    private void OnFavoritesClick(object sender, RoutedEventArgs e)
-    {
-        if (NavigationPageSidePane != null)
-        {
-            NavigationPageSidePane.IsPaneOpen = !NavigationPageSidePane.IsPaneOpen;
-        }
     }
 
     private void OnAddToFavoritesClick(object sender, RoutedEventArgs e)

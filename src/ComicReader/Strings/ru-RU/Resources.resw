@@ -216,6 +216,9 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>Размер кэша: $size</value>
   </data>
+  <data name="CloseSidebar" xml:space="preserve">
+    <value>Закрыть боковую панель</value>
+  </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>Свернуть все</value>
   </data>
@@ -398,9 +401,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Favorites" xml:space="preserve">
     <value>Избранное</value>
-  </data>
-  <data name="FavoritesButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>Избранное и история</value>
   </data>
   <data name="Feedback.Text" xml:space="preserve">
     <value>Обратная связь</value>
@@ -590,6 +590,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>Откройте случайный комикс</value>
+  </data>
+  <data name="OpenSidebar" xml:space="preserve">
+    <value>Открыть боковую панель</value>
   </data>
   <data name="OpenUserDataFolder" xml:space="preserve">
     <value>Открыть папку с данными пользователя</value>
