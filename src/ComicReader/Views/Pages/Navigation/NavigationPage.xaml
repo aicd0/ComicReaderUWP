@@ -117,13 +117,13 @@
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
 
-                        <!--  Expand favorites pane button  -->
+                        <!--  Open pane button  -->
                         <AppBarButton
-                            x:Uid="FavoritesButton"
-                            Click="OnFavoritesClick"
-                            Style="{StaticResource NavigationPageTopTileAppBarButton}">
+                            Click="OnOpenSidebarClick"
+                            Style="{StaticResource NavigationPageTopTileAppBarButton}"
+                            ToolTipService.ToolTip="{x:Bind ViewModel.SidebarButtonText, Mode=OneWay}">
                             <AppBarButton.Content>
-                                <FontIcon Glyph="&#xE728;" />
+                                <FontIcon Glyph="{x:Bind ViewModel.SidebarButtonGlyph, Mode=OneWay}" />
                             </AppBarButton.Content>
                         </AppBarButton>
 
@@ -223,6 +223,8 @@
                 DisplayMode="Overlay"
                 OpenPaneLength="380"
                 PaneBackground="{ThemeResource FlyoutPresenterBackground}"
+                PaneClosed="NavigationPageSidePane_PaneOpenedOrClosed"
+                PaneOpened="NavigationPageSidePane_PaneOpenedOrClosed"
                 PanePlacement="Right">
                 <SplitView.Pane>
                     <Grid SizeChanged="NavigationPageSidePane_SizeChanged">

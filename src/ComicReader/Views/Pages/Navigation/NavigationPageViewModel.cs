@@ -59,6 +59,28 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _sidebarButtonText = string.Empty;
+    public string SidebarButtonText
+    {
+        get => _sidebarButtonText;
+        set
+        {
+            _sidebarButtonText = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SidebarButtonText)));
+        }
+    }
+
+    private string _sidebarButtonGlyph = string.Empty;
+    public string SidebarButtonGlyph
+    {
+        get => _sidebarButtonGlyph;
+        set
+        {
+            _sidebarButtonGlyph = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SidebarButtonGlyph)));
+        }
+    }
+
     private List<BaseMenuFlyoutItemViewModel> _moreButtonFlyoutItems = [];
     public List<BaseMenuFlyoutItemViewModel> MoreButtonFlyoutItems
     {
@@ -90,6 +112,20 @@ internal partial class NavigationPageViewModel : INotifyPropertyChanged
             }
 
             return flyout;
+        }
+    }
+
+    public void UpdateSidebarButton(bool opened)
+    {
+        if (opened)
+        {
+            SidebarButtonGlyph = "\uE89F";
+            SidebarButtonText = StringResourceProvider.Instance.CloseSidebar;
+        }
+        else
+        {
+            SidebarButtonGlyph = "\uE8A0";
+            SidebarButtonText = StringResourceProvider.Instance.OpenSidebar;
         }
     }
 

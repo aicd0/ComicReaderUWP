@@ -216,6 +216,9 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>快取大小：$size</value>
   </data>
+  <data name="CloseSidebar" xml:space="preserve">
+    <value>關閉側邊欄</value>
+  </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>折疊全部</value>
   </data>
@@ -397,9 +400,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="Favorites" xml:space="preserve">
     <value>收藏夾</value>
-  </data>
-  <data name="FavoritesButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>收藏及歷史記錄</value>
   </data>
   <data name="Feedback.Text" xml:space="preserve">
     <value>回饋</value>
@@ -589,6 +589,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="OpenRandomComic" xml:space="preserve">
     <value>開啟隨機漫畫</value>
+  </data>
+  <data name="OpenSidebar" xml:space="preserve">
+    <value>打開側邊欄</value>
   </data>
   <data name="OpenUserDataFolder" xml:space="preserve">
     <value>開啟用戶資料資料夾</value>
