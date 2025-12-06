@@ -1,9 +1,12 @@
 CallWindowProc
 DwmGetWindowAttribute
 GetActiveWindow
+GetClientRect
+GetCursorPos
 GetWindowPlacement
 GetWindowRect
 RegisterHotKey
+ScreenToClient
 SetForegroundWindow
 SetWindowLongPtr
 SetWindowPlacement
