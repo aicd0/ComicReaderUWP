@@ -407,6 +407,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="FeedbackIntroduction.Text" xml:space="preserve">
     <value>以下のボタンを使用して、GitHub で提案を送信したり、問題を報告したりすることができます。</value>
   </data>
+  <data name="FilterPresets" xml:space="preserve">
+    <value>フィルターのプリセット</value>
+  </data>
   <data name="FilterSettings" xml:space="preserve">
     <value>フィルター設定</value>
   </data>

@@ -408,6 +408,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="FeedbackIntroduction.Text" xml:space="preserve">
     <value>Используйте кнопку ниже, чтобы отправить нам предложения или сообщить об ошибке на GitHub.</value>
   </data>
+  <data name="FilterPresets" xml:space="preserve">
+    <value>Предустановки фильтров</value>
+  </data>
   <data name="FilterSettings" xml:space="preserve">
     <value>Настройки фильтра</value>
   </data>

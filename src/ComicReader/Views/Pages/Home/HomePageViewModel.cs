@@ -772,12 +772,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             _filterModel = ComicFilterModel.Instance.GetModel() ?? new();
         }
+
         List<ComicFilterModel.ExternalFilterModel> filters = _filterModel.Filters;
         if (filters == null || filters.Count == 0)
         {
-            filters = [CreateDefaultFilter()];
+            filters = [ComicFilterModel.ExternalFilterModel.FromDefault()];
             _filterModel.Filters = filters;
         }
+
         filters.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
 
         ComicFilterModel.ExternalFilterModel? lastFilter = _filterModel.LastFilter ?? filters[0].Clone();
@@ -880,7 +882,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
         else
         {
-            ComicFilterModel.ExternalFilterModel filter = _filterModel.LastFilter ?? CreateDefaultFilter();
+            ComicFilterModel.ExternalFilterModel filter = _filterModel.LastFilter
+                ?? ComicFilterModel.ExternalFilterModel.FromDefault();
             ComicPropertyModel sortBy = filter.SortBy;
             ComicPropertyModel? groupBy = filter.GroupBy;
 
@@ -948,24 +951,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     private ComicFilterModel.ExternalFilterModel EnsureLastFilterNoLock()
     {
-        ComicFilterModel.ExternalFilterModel filter = _filterModel.LastFilter ?? CreateDefaultFilter();
+        ComicFilterModel.ExternalFilterModel filter = _filterModel.LastFilter
+            ?? ComicFilterModel.ExternalFilterModel.FromDefault();
         _filterModel.LastFilter = filter;
         return filter;
-    }
-
-    private ComicFilterModel.ExternalFilterModel CreateDefaultFilter()
-    {
-        return new ComicFilterModel.ExternalFilterModel
-        {
-            Name = StringResourceProvider.Instance.Default,
-            ViewType = ComicFilterModel.ViewTypeEnum.Large,
-            SaveViewConfig = false,
-            SortBy = new(),
-            ComicOrderMethod = ComicFilterModel.OrderMethodEnum.Ascending,
-            GroupBy = null,
-            GroupOrderMethod = ComicFilterModel.OrderMethodEnum.Ascending,
-            Expression = "",
-        };
     }
 
     private List<BaseMenuFlyoutItemViewModel> CreateSortByMenuItems(List<ComicPropertyModel> properties,
@@ -1284,13 +1273,5 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     {
         public string Name { get; set; } = "";
         public IEnumerable<BaseMenuFlyoutItemViewModel> Items { get; set; } = [];
-    }
-
-    public enum SortByMenuItemTypeEnum
-    {
-        Property,
-        Ascending,
-        Descending,
-        Function,
     }
 }

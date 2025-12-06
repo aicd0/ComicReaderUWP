@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
+using ComicReader.Common;
 using ComicReader.SDK.Data;
 
 namespace ComicReader.Data.Models;
@@ -46,6 +47,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             return true;
         });
         Save();
+        GlobalEvent.Instance.FilterUpdated.Emit(0);
     }
 
     public class JsonModel
@@ -201,6 +203,21 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 ViewType = StringToViewType(model.ViewType ?? ""),
                 SaveViewConfig = model.SaveViewConfig ?? true,
                 Expression = model.Expression ?? "",
+            };
+        }
+
+        public static ExternalFilterModel FromDefault()
+        {
+            return new ExternalFilterModel
+            {
+                Name = StringResourceProvider.Instance.Default,
+                ViewType = ViewTypeEnum.Large,
+                SaveViewConfig = false,
+                SortBy = new(),
+                ComicOrderMethod = OrderMethodEnum.Ascending,
+                GroupBy = null,
+                GroupOrderMethod = OrderMethodEnum.Ascending,
+                Expression = string.Empty,
             };
         }
 
