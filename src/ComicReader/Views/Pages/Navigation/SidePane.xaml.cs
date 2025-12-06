@@ -15,6 +15,7 @@ internal sealed partial class SidePane : BaseUserControl
     private const string FAVORITES = "Favorites";
     private const string HISTORY = "History";
     private const string TAGS = "Tags";
+    private const string FILTER_PRESETS = "FilterPresets";
 
     public delegate void PinStateChangedEventHandler(SidePane sender, bool pinned);
     public event PinStateChangedEventHandler? PinStateChanged;
@@ -69,6 +70,7 @@ internal sealed partial class SidePane : BaseUserControl
             FAVORITES => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
             HISTORY => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_HISTORY),
             TAGS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_TAGS),
+            FILTER_PRESETS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FILTER_PRESETS),
             _ => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
         };
 

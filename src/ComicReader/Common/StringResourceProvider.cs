@@ -75,6 +75,7 @@ public class StringResourceProvider
     public string ExpressionValid => GetResourceString("ExpressionValid");
     public string Favorite => GetResourceString("Favorite");
     public string Favorites => GetResourceString("Favorites");
+    public string FilterPresets => GetResourceString("FilterPresets");
     public string FilterSettings => GetResourceString("FilterSettings");
     public string FilteredBy => GetResourceString("FilteredBy");
     public string FinishPercentage => GetResourceString("FinishPercentage");

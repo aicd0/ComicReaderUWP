@@ -409,6 +409,9 @@ The evaluation will be performed in the following order:
   <data name="FeedbackIntroduction.Text" xml:space="preserve">
     <value>Use the button below to send us suggestions or issue a bug on GitHub.</value>
   </data>
+  <data name="FilterPresets" xml:space="preserve">
+    <value>Filter presets</value>
+  </data>
   <data name="FilterSettings" xml:space="preserve">
     <value>Filter settings</value>
   </data>

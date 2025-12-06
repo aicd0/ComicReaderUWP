@@ -407,6 +407,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="FeedbackIntroduction.Text" xml:space="preserve">
     <value>Verwenden Sie die Schaltfläche unten, um uns Vorschläge zu senden oder einen Fehler auf GitHub zu melden.</value>
   </data>
+  <data name="FilterPresets" xml:space="preserve">
+    <value>Filter-Voreinstellungen</value>
+  </data>
   <data name="FilterSettings" xml:space="preserve">
     <value>Filtereinstellungen</value>
   </data>

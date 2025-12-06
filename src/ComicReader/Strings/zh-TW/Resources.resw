@@ -407,6 +407,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="FeedbackIntroduction.Text" xml:space="preserve">
     <value>您可以透過以下按鈕在GitHub上向我們提交建議或報告問題。</value>
   </data>
+  <data name="FilterPresets" xml:space="preserve">
+    <value>過濾器預設</value>
+  </data>
   <data name="FilterSettings" xml:space="preserve">
     <value>過濾器設定</value>
   </data>
