@@ -245,6 +245,18 @@ public static class Logger
 
         sPendingQueue.Enqueue(item);
         DispatchLogItems();
+
+        if (item.Level >= LEVEL_FATAL)
+        {
+            if (item.Exception is AssertException assertException)
+            {
+                FailOnDebug(assertException);
+            }
+            else
+            {
+                FailOnDebug(new AssertException("Expect an AssertException.", item.Exception));
+            }
+        }
     }
 
     private static void DispatchLogItems()
@@ -456,18 +468,6 @@ public static class Logger
             if (DebugUtils.DebugMode && item.Level >= LEVEL_INFO)
             {
                 sFlushQueue.Enqueue(item);
-            }
-
-            if (item.Level >= LEVEL_FATAL)
-            {
-                if (item.Exception is AssertException assertException)
-                {
-                    FailOnDebug(assertException);
-                }
-                else
-                {
-                    FailOnDebug(new AssertException("Expect an AssertException.", item.Exception));
-                }
             }
         }
     }
