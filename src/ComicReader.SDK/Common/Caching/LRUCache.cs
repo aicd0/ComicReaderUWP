@@ -218,6 +218,7 @@ public class LRUCache(string directoryPath, long maxSize)
         {
             return folder;
         }
+
         folder = StorageFolder.GetFolderFromPathAsync(_directoryPath).AsTask().Result;
         _folder = folder;
         return folder;
@@ -340,30 +341,21 @@ public class LRUCache(string directoryPath, long maxSize)
                     return null;
                 }
 
-                string cleanFileName = GetCleanFileName(_key);
-                StorageFile file = null;
-                try
-                {
-                    file = _cache.GetFolder().GetFileAsync(cleanFileName).AsTask().Result;
-                }
-                catch (Exception e)
-                {
-                    Logger.E(TAG, "StartRead", e);
-                }
-                if (file == null)
-                {
-                    return null;
-                }
-
+                string filePath = Path.Combine(_cache._directoryPath, GetCleanFileName(_key));
                 IRandomAccessStream stream = null;
                 try
                 {
-                    stream = file.OpenAsync(FileAccessMode.Read).AsTask().Result;
+                    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                    stream = fileStream.AsRandomAccessStream();
+                }
+                catch (FileNotFoundException)
+                {
                 }
                 catch (Exception e)
                 {
                     Logger.F(TAG, "StartRead", e);
                 }
+
                 if (stream == null)
                 {
                     return null;

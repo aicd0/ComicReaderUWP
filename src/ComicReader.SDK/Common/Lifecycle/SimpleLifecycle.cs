@@ -7,6 +7,8 @@ public class SimpleLifecycle : ILifecycle
 {
     private ILifecycle.State _currentState = ILifecycle.State.Initialized;
     private readonly Dictionary<ILifecycleObserver, ILifecycle.State> _lifecycleObservers = [];
+    private ILifecycleObserver? _preLifecycleObserver = null;
+    private ILifecycleObserver? _postLifecycleObserver = null;
     private bool _syncing = false;
     private bool _syncInvalidated = false;
 
@@ -37,6 +39,16 @@ public class SimpleLifecycle : ILifecycle
         SyncState(null);
     }
 
+    public void SetPreLifecycleObserver(ILifecycleObserver? observer)
+    {
+        _preLifecycleObserver = observer;
+    }
+
+    public void SetPostLifecycleObserver(ILifecycleObserver? observer)
+    {
+        _postLifecycleObserver = observer;
+    }
+
     private void SyncState(ILifecycleObserver? initiator)
     {
         if (_syncing)
@@ -58,8 +70,7 @@ public class SimpleLifecycle : ILifecycle
                 }
                 else
                 {
-                    List<ILifecycleObserver> snapshot = [.. _lifecycleObservers.Keys];
-                    foreach (ILifecycleObserver observer in snapshot)
+                    foreach (ILifecycleObserver observer in GetObserverSnapshot())
                     {
                         SyncStateForObserver(observer);
                         if (_syncInvalidated)
@@ -73,6 +84,38 @@ public class SimpleLifecycle : ILifecycle
         finally
         {
             _syncing = false;
+        }
+    }
+
+    private IEnumerable<ILifecycleObserver> GetObserverSnapshot()
+    {
+        HashSet<ILifecycleObserver> normalObservers = [.. _lifecycleObservers.Keys];
+        ILifecycleObserver? preObserver = _preLifecycleObserver;
+        ILifecycleObserver? postObserver = _postLifecycleObserver;
+
+        if (preObserver is not null)
+        {
+            normalObservers.Remove(preObserver);
+        }
+
+        if (postObserver is not null)
+        {
+            normalObservers.Remove(postObserver);
+        }
+
+        if (preObserver is not null)
+        {
+            yield return preObserver;
+        }
+
+        foreach (ILifecycleObserver observer in normalObservers)
+        {
+            yield return observer;
+        }
+
+        if (postObserver is not null)
+        {
+            yield return postObserver;
         }
     }
 
@@ -99,36 +142,40 @@ public class SimpleLifecycle : ILifecycle
 
     private static ILifecycle.State GetNextState(ILifecycle.State from, ILifecycle.State to)
     {
+        Exception InvalidTransitionException()
+        {
+            return new InvalidOperationException($"Invalid state transition: {from} -> {to}.");
+        }
+
         if (from == to)
         {
-            throw new InvalidOperationException("from and to must be different");
+            throw InvalidTransitionException();
         }
 
         return from switch
         {
+
             ILifecycle.State.Initialized => to switch
             {
                 ILifecycle.State.Started => ILifecycle.State.Started,
                 ILifecycle.State.Resumed => ILifecycle.State.Started,
                 ILifecycle.State.Stopped => ILifecycle.State.Stopped,
-                _ => throw new InvalidOperationException("Unknown state: " + to),
+                _ => throw InvalidTransitionException(),
             },
             ILifecycle.State.Started => to switch
             {
-                ILifecycle.State.Initialized => throw new InvalidOperationException("Cannot transition from Started to Initialized"),
                 ILifecycle.State.Resumed => ILifecycle.State.Resumed,
                 ILifecycle.State.Stopped => ILifecycle.State.Stopped,
-                _ => throw new InvalidOperationException("Unknown state: " + to),
+                _ => throw InvalidTransitionException(),
             },
             ILifecycle.State.Resumed => to switch
             {
-                ILifecycle.State.Initialized => throw new InvalidOperationException("Cannot transition from Resumed to Initialized"),
                 ILifecycle.State.Started => ILifecycle.State.Started,
-                ILifecycle.State.Stopped => ILifecycle.State.Stopped,
-                _ => throw new InvalidOperationException("Unknown state: " + to),
+                ILifecycle.State.Stopped => ILifecycle.State.Started,
+                _ => throw InvalidTransitionException(),
             },
-            ILifecycle.State.Stopped => throw new InvalidOperationException("Cannot transition from Stopped state"),
-            _ => throw new InvalidOperationException("Unknown state: " + from),
+            ILifecycle.State.Stopped => throw InvalidTransitionException(),
+            _ => throw InvalidTransitionException(),
         };
     }
 }

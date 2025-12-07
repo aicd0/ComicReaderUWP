@@ -13,9 +13,9 @@ public interface ILifecycle
 
     public enum State
     {
-        Initialized,
-        Started,
-        Resumed,
-        Stopped,
+        Initialized = 0,
+        Stopped = 1,
+        Started = 2,
+        Resumed = 3,
     }
 }

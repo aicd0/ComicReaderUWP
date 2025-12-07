@@ -328,7 +328,7 @@ internal sealed partial class MainPage : BasePage
                 NavigationBundle? navigationPageBundle = AppRouter.Process(navigationRoute);
                 if (navigationPageBundle is not null)
                 {
-                    RegisterPageAbility(navigationPageBundle.Communicator, tabInfo.Ability);
+                    TransferAbility(navigationPageBundle.Communicator, tabInfo.Ability);
                     if (!frame.Navigate(navigationPageBundle.PageTrait.GetPageType(), navigationPageBundle))
                     {
                         Logger.F(TAG, $"Failed to navigate to navigation page for tab ID {tabId}.");
@@ -353,6 +353,7 @@ internal sealed partial class MainPage : BasePage
         }
         else
         {
+            TransferAbility(bundle.Communicator, tabInfo.Ability);
             frame.Navigate(bundle.PageTrait.GetPageType(), bundle);
         }
 
@@ -366,7 +367,6 @@ internal sealed partial class MainPage : BasePage
             Header = StringResource.Untitled,
             Content = new Frame()
         };
-
         int tabId = _nextTabId++;
         var ability = new MainPageAbility(this, tabId);
         var tabInfo = new TabInfo(tabId, item)
@@ -375,8 +375,6 @@ internal sealed partial class MainPage : BasePage
             CurrentUrl = bundle.Url,
             Ability = ability
         };
-
-        RegisterPageAbility(bundle.Communicator, ability);
         _tabs.Add(tabInfo);
         RootTabView.TabItems.Add(item);
         return tabId;
@@ -417,7 +415,7 @@ internal sealed partial class MainPage : BasePage
 
     private void CloseTabInternalNoLock(TabInfo tabInfo)
     {
-        tabInfo.Ability.DispatchPageStoppedEvent();
+        tabInfo.Ability.GetLifecycleAbility().SetCustomState("Tab", ILifecycle.State.Stopped);
         _tabs.Remove(tabInfo);
         RootTabView.TabItems.Remove(tabInfo.Item);
     }
@@ -795,39 +793,23 @@ internal sealed partial class MainPage : BasePage
     // Page Ability
     //
 
-    private void RegisterPageAbility(PageCommunicator communicator, MainPageAbility ability)
+    private void TransferAbility(PageCommunicator communicator, MainPageAbility ability)
     {
-        communicator.RegisterAbility<ICommonPageAbility>(ability);
+        ability.GetLifecycleAbility().Observe(this);
+        communicator.RegisterAbility<ILifecycleAwareAbility>(ability);
         communicator.RegisterAbility(GetMainWindowAbility());
         communicator.RegisterAbility<IMainPageAbility>(ability);
     }
 
-    private class MainPageAbility(MainPage parent, int tabId) : ICommonPageAbility, IMainPageAbility
+    private class MainPageAbility(MainPage parent, int tabId) : IMainPageAbility, ILifecycleAwareAbility
     {
         private const string EVENT_TAB_UNSELECTED = "TabUnselected";
 
         private readonly WeakReference<MainPage> _parent = new(parent);
+        private readonly LifecycleAwareAbility _lifecycleAbility = new();
         private readonly EventBus _eventBus = new();
         private readonly MutableLiveData<bool> _titleBarVisibilityChangeLiveData = new(parent._titleBarVisible);
         private readonly int _tabId = tabId;
-
-        private PageStopEventHandler? _pageStopped;
-
-        public void RegisterPageStopHandler(PageStopEventHandler handler)
-        {
-            _pageStopped += handler;
-        }
-
-        public void UnregisterPageStopHandler(PageStopEventHandler handler)
-        {
-            _pageStopped -= handler;
-        }
-
-        public void DispatchPageStoppedEvent()
-        {
-            _pageStopped?.Invoke();
-            _pageStopped = null;
-        }
 
         public void OpenInCurrentTab(Route route)
         {
@@ -923,6 +905,21 @@ internal sealed partial class MainPage : BasePage
         public void SendTitleBarVisibilityChangedEvent(bool visible)
         {
             _titleBarVisibilityChangeLiveData.Emit(visible);
+        }
+
+        public void RegisterPageLifecycleHandler(PageLifecycleEventHandler handler)
+        {
+            _lifecycleAbility.RegisterPageLifecycleHandler(handler);
+        }
+
+        public void UnregisterPageLifecycleHandler(PageLifecycleEventHandler handler)
+        {
+            _lifecycleAbility.UnregisterPageLifecycleHandler(handler);
+        }
+
+        public LifecycleAwareAbility GetLifecycleAbility()
+        {
+            return _lifecycleAbility;
         }
 
         private TabInfo? GetTab()
