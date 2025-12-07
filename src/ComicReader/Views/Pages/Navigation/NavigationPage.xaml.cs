@@ -59,13 +59,6 @@ internal sealed partial class NavigationPage : BasePage
         base.OnStart(bundle);
 
         ObserveData();
-    }
-
-    protected override void OnResume()
-    {
-        base.OnResume();
-
-        UpdateUI();
 
         NavigationBundle? pendingBundle = _pendingBundle;
         if (pendingBundle is not null)
@@ -73,6 +66,13 @@ internal sealed partial class NavigationPage : BasePage
             _pendingBundle = null;
             Navigate(pendingBundle);
         }
+    }
+
+    protected override void OnResume()
+    {
+        base.OnResume();
+
+        UpdateUI();
     }
 
     private void ObserveData()
@@ -140,7 +140,7 @@ internal sealed partial class NavigationPage : BasePage
 
     public void Navigate(NavigationBundle bundle)
     {
-        if (!Resumed)
+        if (!Started)
         {
             _pendingBundle = bundle;
             return;
@@ -213,19 +213,12 @@ internal sealed partial class NavigationPage : BasePage
 
     private void UpdateContentFramePlacement()
     {
-        DependencyObject parent = ContentFrame.Parent;
-        if (parent is Grid parentGrid)
+        bool success = false;
+        success = success || ContentGridNormal.Children.Remove(ContentFrame);
+        success = success || ContentGridImmersive.Children.Remove(ContentFrame);
+        if (!success)
         {
-            bool success = parentGrid.Children.Remove(ContentFrame);
-            if (!success)
-            {
-                Logger.F(TAG, "Failed to remove ContentFrame from parent panel.");
-                return;
-            }
-        }
-        else
-        {
-            Logger.F(TAG, $"Unrecognized ContentFrame's parent {parent}.");
+            Logger.F(TAG, "Failed to remove ContentFrame from parent panel.");
             return;
         }
 
