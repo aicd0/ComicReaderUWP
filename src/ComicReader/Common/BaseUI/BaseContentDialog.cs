@@ -4,6 +4,7 @@
 using System.Threading.Tasks;
 
 using ComicReader.Common.Utils;
+using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
@@ -25,6 +26,8 @@ public partial class BaseContentDialog : ContentDialog, ILifecycleOwner
 
         Loaded += OnLoadedInternal;
         Unloaded += OnUnloadedInternal;
+
+        MemoryLeakTracker.TrackObject(this);
     }
 
     public ILifecycle GetLifecycle()

@@ -219,6 +219,11 @@ internal sealed partial class DevToolsPage : BasePage
         });
     }
 
+    private void OnPrintMemoryLeakReportClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        SetResult(MemoryLeakTracker.GenerateReport());
+    }
+
     private void DeveloperModeToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         DebugUtils.DeveloperMode = DeveloperModeToggleSwitch.IsOn;
@@ -245,6 +250,7 @@ internal sealed partial class DevToolsPage : BasePage
             result = "Operation result shows here";
         }
 
+        result = $"{DateTimeOffset.Now:yyyy/M/d HH:mm:ss.fff}\n{result.TrimEnd()}";
         TbOperationResult.Text = result;
     }
 
