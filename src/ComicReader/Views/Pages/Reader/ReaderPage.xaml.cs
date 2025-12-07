@@ -180,6 +180,9 @@ internal sealed partial class ReaderPage : BasePage
         GetNavigationPageAbility().SetGridViewMode(false);
         ViewModel.ReloadReaderSettings();
         UpdateReaderUI();
+
+        // Take focus from sidebar
+        GetNavigationPageAbility().SetSidePaneOpen(false, force: false);
         MainReaderView.Focus(FocusState.Programmatic);
     }
 
