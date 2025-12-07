@@ -23,7 +23,8 @@ internal abstract class BasePage : Page, ILifecycleOwner
     private readonly PageLifecycleEventHandler _externalLifecycleHandler;
     private ILifecycle.State _externalLifecycleState = ILifecycle.State.Resumed;
 
-    private bool _isNavigated = false;
+    private bool _hasNavigatedTo = false;
+    private bool _hasNavigatedFrom = false;
     private bool _isLoaded = false;
     private NavigationBundle? _navigationBundle;
 
@@ -64,7 +65,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
             case NavigationMode.Back:
             case NavigationMode.Forward:
                 _navigationBundle = (NavigationBundle)e.Parameter;
-                _isNavigated = true;
+                _hasNavigatedTo = true;
                 UpdateLifecycleState();
                 break;
             case NavigationMode.Refresh:
@@ -81,7 +82,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
             case NavigationMode.New:
             case NavigationMode.Back:
             case NavigationMode.Forward:
-                _isNavigated = false;
+                _hasNavigatedFrom = true;
                 UpdateLifecycleState();
                 break;
             case NavigationMode.Refresh:
@@ -144,16 +145,17 @@ internal abstract class BasePage : Page, ILifecycleOwner
             return;
         }
 
-        ILifecycle.State finalState = _externalLifecycleState;
-
-        if (!_isNavigated)
+        ILifecycle.State finalState;
+        if (_hasNavigatedFrom)
         {
-            finalState = (ILifecycle.State)Math.Min((int)ILifecycle.State.Stopped, (int)finalState);
+            finalState = ILifecycle.State.Stopped;
         }
-
-        if (!_isLoaded)
+        else
         {
-            finalState = (ILifecycle.State)Math.Min((int)ILifecycle.State.Started, (int)finalState);
+            finalState = _hasNavigatedTo ?
+                (_isLoaded ? ILifecycle.State.Resumed : ILifecycle.State.Started) :
+                ILifecycle.State.Initialized;
+            finalState = (ILifecycle.State)Math.Min((int)_externalLifecycleState, (int)finalState);
         }
 
         _lifecycleManager.SetState(finalState);
