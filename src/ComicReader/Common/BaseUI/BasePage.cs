@@ -8,6 +8,7 @@ using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Actions.Utils;
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
+using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
@@ -44,6 +45,8 @@ internal abstract class BasePage : Page, ILifecycleOwner
 
         Loaded += OnLoadedInternal;
         Unloaded += OnUnloadedInternal;
+
+        MemoryLeakTracker.TrackObject(this);
     }
 
     public ILifecycle GetLifecycle()
