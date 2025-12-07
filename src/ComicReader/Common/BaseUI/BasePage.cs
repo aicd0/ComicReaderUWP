@@ -1,12 +1,13 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Actions.Utils;
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
-using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
@@ -17,30 +18,29 @@ namespace ComicReader.Common.BaseUI;
 
 internal abstract class BasePage : Page, ILifecycleOwner
 {
-    private const string TAG = nameof(BasePage);
+    private readonly SimpleLifecycleManager _lifecycleManager = new();
+    private readonly PageLifecycleEventHandler _externalLifecycleHandler;
+    private ILifecycle.State _externalLifecycleState = ILifecycle.State.Resumed;
 
-    private PageCommunicator? _communicator = null;
-    private readonly PageStopEventHandler _pageStopHandler;
-    private readonly SimpleLifecycle _lifecycle = new();
-
-    private bool _isStarted = false;
-    private bool _isResumed = false;
+    private bool _isNavigated = false;
     private bool _isLoaded = false;
+    private NavigationBundle? _navigationBundle;
 
     protected int WindowId { get; private set; } = 0;
-    public bool Started => _isStarted;
-    public bool Resumed => _isResumed;
+    public bool Started => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Started;
+    public bool Resumed => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Resumed;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
     public ActionHandler PageActionHandler { get; } = new();
 
     public BasePage()
     {
-        _pageStopHandler = delegate
+        _externalLifecycleHandler = state =>
         {
-            TryPause();
-            TryStop();
+            _externalLifecycleState = state;
+            UpdateLifecycleState();
         };
+        _lifecycleManager.Initialize(GetType().Name, new LifecycleHandler(this));
 
         Loaded += OnLoadedInternal;
         Unloaded += OnUnloadedInternal;
@@ -48,7 +48,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
 
     public ILifecycle GetLifecycle()
     {
-        return _lifecycle;
+        return _lifecycleManager.GetLifecycle();
     }
 
     protected sealed override void OnNavigatedTo(NavigationEventArgs e)
@@ -60,8 +60,9 @@ internal abstract class BasePage : Page, ILifecycleOwner
             case NavigationMode.New:
             case NavigationMode.Back:
             case NavigationMode.Forward:
-                TryStart(e.Parameter);
-                TryResume();
+                _navigationBundle = (NavigationBundle)e.Parameter;
+                _isNavigated = true;
+                UpdateLifecycleState();
                 break;
             case NavigationMode.Refresh:
                 break;
@@ -77,8 +78,8 @@ internal abstract class BasePage : Page, ILifecycleOwner
             case NavigationMode.New:
             case NavigationMode.Back:
             case NavigationMode.Forward:
-                TryPause();
-                TryStop();
+                _isNavigated = false;
+                UpdateLifecycleState();
                 break;
             case NavigationMode.Refresh:
                 break;
@@ -101,16 +102,9 @@ internal abstract class BasePage : Page, ILifecycleOwner
     {
     }
 
-    /// <summary>
-    /// Retrieves an ability of the specified type from the communicator. Must be called on the UI thread.
-    /// </summary>
-    /// <remarks>This method delegates the retrieval of the ability to the underlying communicator.  Ensure
-    /// that the communicator is properly initialized and supports the requested ability type.</remarks>
-    /// <typeparam name="T">The type of the ability to retrieve. Must be a reference type.</typeparam>
-    /// <returns>An instance of the specified ability type if available; otherwise, <see langword="null"/>.</returns>
     protected T? GetAbility<T>() where T : class
     {
-        return _communicator?.GetAbility<T>();
+        return _navigationBundle!.Communicator.GetAbility<T>();
     }
 
     protected IEventBus GetEventBus()
@@ -126,7 +120,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
         }
 
         _isLoaded = true;
-        TryResume();
+        UpdateLifecycleState();
     }
 
     private void OnUnloadedInternal(object sender, RoutedEventArgs e)
@@ -137,85 +131,84 @@ internal abstract class BasePage : Page, ILifecycleOwner
         }
 
         _isLoaded = false;
-        TryPause();
+        UpdateLifecycleState();
     }
 
-    private void TryStart(object p)
+    private void UpdateLifecycleState()
     {
-        if (_isStarted)
+        if (GetLifecycle().GetState() == ILifecycle.State.Stopped)
         {
             return;
         }
 
-        _isStarted = true;
-        LogLifecycleEvent("Start");
-        _lifecycle.SetState(ILifecycle.State.Started);
+        ILifecycle.State finalState = _externalLifecycleState;
 
-        if (p is not NavigationBundle bundle)
+        if (!_isNavigated)
         {
-            Logger.F(TAG, "Invalid navigation parameter type: " + (p?.GetType().FullName ?? "null"));
-            return;
+            finalState = (ILifecycle.State)Math.Min((int)ILifecycle.State.Stopped, (int)finalState);
         }
 
-        WindowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
-        if (WindowId < 0)
+        if (!_isLoaded)
         {
-            Logger.F(TAG, "Invalid window ID in navigation parameters: " + WindowId);
-            return;
+            finalState = (ILifecycle.State)Math.Min((int)ILifecycle.State.Started, (int)finalState);
         }
 
-        _communicator = bundle.Communicator;
-
-        // Register action handler components and providers
-        PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(WindowId));
-        ActionHandlerUtility.RegisterCommonProviders(PageActionHandler);
-
-        GetAbility<ICommonPageAbility>()?.RegisterPageStopHandler(_pageStopHandler);
-        DebugUtils.TrackError(() => OnStart(bundle.Bundle));
+        _lifecycleManager.SetState(finalState);
     }
 
-    private void TryResume()
+    private class LifecycleHandler(BasePage page) : SimpleLifecycleManager.ILifecycleHandler
     {
-        if (!_isStarted || !_isLoaded || _isResumed)
+        public void PreStart()
         {
-            return;
+            NavigationBundle bundle = page._navigationBundle!;
+
+            int windowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
+            if (windowId < 0)
+            {
+                throw new ArgumentException("Invalid window ID in navigation parameters: " + windowId);
+            }
+
+            page.WindowId = windowId;
+
+            // Register action handler components and providers
+            page.PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(windowId));
+            ActionHandlerUtility.RegisterCommonProviders(page.PageActionHandler);
+
+            page.GetAbility<ILifecycleAwareAbility>()!.RegisterPageLifecycleHandler(page._externalLifecycleHandler);
         }
 
-        _isResumed = true;
-        LogLifecycleEvent("Resume");
-        _lifecycle.SetState(ILifecycle.State.Resumed);
-        DebugUtils.TrackError(OnResume);
-    }
-
-    private void TryPause()
-    {
-        if (!_isResumed)
+        public void PostStart()
         {
-            return;
+            NavigationBundle bundle = page._navigationBundle!;
+            page.OnStart(bundle.Bundle);
         }
 
-        _isResumed = false;
-        LogLifecycleEvent("Pause");
-        _lifecycle.SetState(ILifecycle.State.Started);
-        DebugUtils.TrackError(OnPause);
-    }
-
-    private void TryStop()
-    {
-        if (_isResumed || !_isStarted)
+        public void PreResume()
         {
-            return;
         }
 
-        _isStarted = false;
-        _communicator?.GetAbility<ICommonPageAbility>()?.UnregisterPageStopHandler(_pageStopHandler);
-        LogLifecycleEvent("Stop");
-        _lifecycle.SetState(ILifecycle.State.Stopped);
-        DebugUtils.TrackError(OnStop);
-    }
+        public void PostResume()
+        {
+            page.OnResume();
+        }
 
-    private void LogLifecycleEvent(string eventName)
-    {
-        Logger.I(LogTag.N("PageLifecycle", GetType().Name), eventName);
+        public void PrePause()
+        {
+        }
+
+        public void PostPause()
+        {
+            page.OnPause();
+        }
+
+        public void PreStop()
+        {
+            page.GetAbility<ILifecycleAwareAbility>()!.UnregisterPageLifecycleHandler(page._externalLifecycleHandler);
+        }
+
+        public void PostStop()
+        {
+            page.OnStop();
+        }
     }
 }

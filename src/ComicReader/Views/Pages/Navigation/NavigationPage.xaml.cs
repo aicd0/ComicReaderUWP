@@ -35,18 +35,19 @@ internal sealed partial class NavigationPage : BasePage
     private NavigationBundle? _pendingBundle;
     private NavigationBundle? _currentBundle;
     private readonly NavigationPageAbility _ability;
+    private readonly LifecycleAwareAbility _lifecycleAbility = new();
+    private readonly LifecycleAwareAbility _sidePaneLifecycleAbility = new();
 
     private NavigationPageViewModel ViewModel { get; } = new();
 
     public NavigationPage()
     {
-        _ability = new(this);
-
         InitializeComponent();
 
+        _ability = new(this);
         Background = AppearanceManager.Instance.GetThemeBackground();
         RightSidePane.Initialize(new SidePaneHandler(this));
-        ViewModel.UpdateSidebarButton(NavigationPageSidePane.IsPaneOpen);
+        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen);
     }
 
     //
@@ -119,6 +120,9 @@ internal sealed partial class NavigationPage : BasePage
                 GetMainWindowAbility().ExitFullscreen();
             }
         });
+
+        _lifecycleAbility.Observe(this);
+        _sidePaneLifecycleAbility.Observe(this);
     }
 
     private void UpdateUI()
@@ -143,6 +147,7 @@ internal sealed partial class NavigationPage : BasePage
         }
 
         TransferAbility(bundle.Communicator);
+        bundle.Communicator.RegisterAbility<ILifecycleAwareAbility>(_lifecycleAbility);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
     }
 
@@ -301,7 +306,7 @@ internal sealed partial class NavigationPage : BasePage
     private void NavigationPageSidePane_PaneOpenedOrClosed(SplitView sender, object args)
     {
         bool opened = NavigationPageSidePane.IsPaneOpen;
-        ViewModel.UpdateSidebarButton(opened);
+        SyncSidebarOpenState(opened);
         KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
     }
 
@@ -326,6 +331,12 @@ internal sealed partial class NavigationPage : BasePage
         {
             NavigationPageSidePane.IsPaneOpen = false;
         }
+    }
+
+    private void SyncSidebarOpenState(bool opened)
+    {
+        ViewModel.UpdateSidebarButton(opened);
+        _sidePaneLifecycleAbility.SetCustomState("Pane", opened ? ILifecycle.State.Resumed : ILifecycle.State.Started);
     }
 
     //
@@ -445,7 +456,6 @@ internal sealed partial class NavigationPage : BasePage
 
     private void TransferAbility(PageCommunicator communicator)
     {
-        communicator.RegisterAbility(GetAbility<ICommonPageAbility>()!);
         communicator.RegisterAbility(GetAbility<IMainWindowAbility>()!);
         communicator.RegisterAbility(GetMainPageAbility());
         communicator.RegisterAbility<INavigationPageAbility>(_ability);
@@ -465,10 +475,11 @@ internal sealed partial class NavigationPage : BasePage
         public void TransferAbility(NavigationBundle bundle)
         {
             page.TransferAbility(bundle.Communicator);
+            bundle.Communicator.RegisterAbility<ILifecycleAwareAbility>(page._sidePaneLifecycleAbility);
         }
     }
 
-    private class NavigationPageAbility : INavigationPageAbility
+    private class NavigationPageAbility(NavigationPage parent) : INavigationPageAbility
     {
         private const string EVENT_LEAVING = "Leaving";
         private const string EVENT_REFRESH = "Refresh";
@@ -478,13 +489,8 @@ internal sealed partial class NavigationPage : BasePage
         private const string EVENT_READER_SETTINGS_CHANGED = "ReaderSettingsChanged";
         private const string EVENT_SEARCH_TEXT_CHANGED = "SearchTextChanged";
 
-        private readonly WeakReference<NavigationPage> _parent;
+        private readonly WeakReference<NavigationPage> _parent = new(parent);
         private readonly EventBus _eventBus = new();
-
-        public NavigationPageAbility(NavigationPage parent)
-        {
-            _parent = new WeakReference<NavigationPage>(parent);
-        }
 
         public void ClearSubscriptions()
         {

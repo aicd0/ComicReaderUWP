@@ -12,7 +12,7 @@ internal class PageCommunicator
 
     public void RegisterAbility<T>(T ability) where T : IPageAbility
     {
-        _abilities[typeof(T)] = ability;
+        _abilities.Add(typeof(T), ability);
     }
 
     public T? GetAbility<T>() where T : class

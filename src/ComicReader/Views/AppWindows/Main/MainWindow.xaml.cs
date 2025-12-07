@@ -190,7 +190,7 @@ internal sealed partial class MainWindow : Window
         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
             .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
         NavigationBundle bundle = AppRouter.Process(route)!;
-        bundle.Communicator.RegisterAbility<ICommonPageAbility>(Members._mainWindowAbility);
+        bundle.Communicator.RegisterAbility<ILifecycleAwareAbility>(Members._mainWindowAbility);
         bundle.Communicator.RegisterAbility<IMainWindowAbility>(Members._mainWindowAbility);
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
         Members._mainPage = (MainPage)PageFrame.Content;
@@ -246,7 +246,7 @@ internal sealed partial class MainWindow : Window
 
         // Close all tabs and dispatch page stopped event
         Members._mainPage!.CloseAllTabs();
-        Members._mainWindowAbility.DispatchPageStoppedEvent();
+        Members._mainWindowAbility.GetLifecycleAbility().SetCustomState("Window", ILifecycle.State.Stopped);
 
         // Unsubscribe window events
         UnsubscribeEvents();
@@ -384,21 +384,11 @@ internal sealed partial class MainWindow : Window
     // Page Ability
     //
 
-    private class MainWindowAbility(MainWindow window) : ICommonPageAbility, IMainWindowAbility
+    private class MainWindowAbility(MainWindow window) : IMainWindowAbility, ILifecycleAwareAbility
     {
         private readonly WeakReference<MainWindow> _windowRef = new(window);
+        private readonly LifecycleAwareAbility _lifecycleAbility = new();
         private readonly MutableLiveData<bool> _fullscreenChangeLiveData = new(false);
-        private PageStopEventHandler? _pageStopped;
-
-        public void RegisterPageStopHandler(PageStopEventHandler handler)
-        {
-            _pageStopped += handler;
-        }
-
-        public void UnregisterPageStopHandler(PageStopEventHandler handler)
-        {
-            _pageStopped -= handler;
-        }
 
         public void EnterFullscreen()
         {
@@ -418,15 +408,24 @@ internal sealed partial class MainWindow : Window
             });
         }
 
-        public void DispatchPageStoppedEvent()
-        {
-            _pageStopped?.Invoke();
-            _pageStopped = null;
-        }
-
         public void SendFullscreenChangedEvent(bool isFullscreen)
         {
             _fullscreenChangeLiveData.Emit(isFullscreen);
+        }
+
+        public void RegisterPageLifecycleHandler(PageLifecycleEventHandler handler)
+        {
+            _lifecycleAbility.RegisterPageLifecycleHandler(handler);
+        }
+
+        public void UnregisterPageLifecycleHandler(PageLifecycleEventHandler handler)
+        {
+            _lifecycleAbility.UnregisterPageLifecycleHandler(handler);
+        }
+
+        public LifecycleAwareAbility GetLifecycleAbility()
+        {
+            return _lifecycleAbility;
         }
 
         private MainWindow? GetWindow()

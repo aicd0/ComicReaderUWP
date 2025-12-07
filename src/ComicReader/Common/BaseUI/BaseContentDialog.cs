@@ -13,19 +13,23 @@ namespace ComicReader.Common.BaseUI;
 
 public partial class BaseContentDialog : ContentDialog, ILifecycleOwner
 {
-    private readonly SimpleLifecycle _lifecycle = new();
+    private readonly SimpleLifecycleManager _lifecycleManager = new();
+
+    private bool _isLoaded = false;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
 
     public BaseContentDialog()
     {
+        _lifecycleManager.Initialize(GetType().Name, new LifecycleHandler(this));
+
         Loaded += OnLoadedInternal;
         Unloaded += OnUnloadedInternal;
     }
 
     public ILifecycle GetLifecycle()
     {
-        return _lifecycle;
+        return _lifecycleManager.GetLifecycle();
     }
 
     public Task<ContentDialogResult> ShowAsync(int windowId)
@@ -44,8 +48,8 @@ public partial class BaseContentDialog : ContentDialog, ILifecycleOwner
             return;
         }
 
-        _lifecycle.SetState(ILifecycle.State.Resumed);
-        OnStart();
+        _isLoaded = true;
+        UpdateLifecycleState();
     }
 
     private void OnUnloadedInternal(object sender, RoutedEventArgs e)
@@ -55,6 +59,54 @@ public partial class BaseContentDialog : ContentDialog, ILifecycleOwner
             return;
         }
 
-        _lifecycle.SetState(ILifecycle.State.Stopped);
+        _isLoaded = false;
+        UpdateLifecycleState();
+    }
+
+    private void UpdateLifecycleState()
+    {
+        if (GetLifecycle().GetState() == ILifecycle.State.Stopped)
+        {
+            return;
+        }
+
+        ILifecycle.State finalState = _isLoaded ? ILifecycle.State.Resumed : ILifecycle.State.Stopped;
+        _lifecycleManager.SetState(finalState);
+    }
+
+    private class LifecycleHandler(BaseContentDialog dialog) : SimpleLifecycleManager.ILifecycleHandler
+    {
+        public void PreStart()
+        {
+        }
+
+        public void PostStart()
+        {
+            dialog.OnStart();
+        }
+
+        public void PreResume()
+        {
+        }
+
+        public void PostResume()
+        {
+        }
+
+        public void PrePause()
+        {
+        }
+
+        public void PostPause()
+        {
+        }
+
+        public void PreStop()
+        {
+        }
+
+        public void PostStop()
+        {
+        }
     }
 }
