@@ -4,16 +4,12 @@
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.SDK.Common.Utils;
-using ComicReader.ViewModels;
 using ComicReader.Views.Dialogs.EditTag;
 using ComicReader.Views.Dialogs.EditTagCategory;
 using ComicReader.Views.Pages.Main;
 using ComicReader.Views.Pages.Navigation;
 
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
 
 namespace ComicReader.Views.Pages.SidePane.Tags;
 
@@ -93,39 +89,9 @@ internal sealed partial class TagsPage : BasePage
     // Events
     //
 
-    private void TreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+    private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var item = (TagNodeViewModel)args.InvokedItem;
-        item.OnClick?.Invoke();
-    }
-
-    private async void TreeView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
-    {
-        if (args.OriginalSource is not FrameworkElement fe)
-        {
-            return;
-        }
-
-        if (fe.DataContext is not TagNodeViewModel viewModel)
-        {
-            return;
-        }
-
-        FlyoutBase? flyout = await viewModel.CreateContextFlyout();
-        if (flyout is null)
-        {
-            return;
-        }
-
-        if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
-        {
-            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
-        }
-        else
-        {
-            flyout.ShowAt(fe);
-        }
-
-        args.Handled = true;
+        string text = ((TextBox)sender).Text;
+        ViewModel.SetSearchText(text);
     }
 }

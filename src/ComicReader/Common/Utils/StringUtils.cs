@@ -111,7 +111,7 @@ class StringUtils
         return res.ToString();
     }
 
-    public static int QuickMatch(List<string> keywords, string str)
+    public static int FastMatch(IEnumerable<string> keywords, string str)
     {
         int totalSimilarity = 0;
         List<int> keywordIndices = new(8);
