@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
@@ -24,6 +25,8 @@ namespace ComicReader.Views.Pages.SidePane.FilterPresets;
 
 internal class FilterPresetsPageViewModel
 {
+    private const int SEARCH_DELAY = 200;
+
     public readonly MutableLiveData<DropDownButtonModel> FilterPresetDropDownLiveData = new();
 
     public ObservableCollection<TagNodeViewModel> DataSource { get; set; } = [];
@@ -31,6 +34,7 @@ internal class FilterPresetsPageViewModel
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ComicSearchEngine _searchEngine = new();
     private ComicFilterModel.ExternalFilterModel? _selectedFilter;
+    private bool _searchSubmitted = false;
 
     private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.Factory.NewQueue("FilterPresetsPageQueue");
     private int _updateComicSubmitted = 0;
@@ -44,6 +48,28 @@ internal class FilterPresetsPageViewModel
     public void UpdateComics()
     {
         ScheduleUpdateComics();
+    }
+
+    public void SetSearchText(string searchText)
+    {
+        searchText = searchText.Trim();
+        if (searchText == _searchEngine.SearchText)
+        {
+            return;
+        }
+
+        _searchEngine.SearchText = searchText;
+        if (_searchSubmitted)
+        {
+            return;
+        }
+
+        _searchSubmitted = true;
+        _ = Task.Delay(SEARCH_DELAY).ContinueWith(_ =>
+        {
+            _searchSubmitted = false;
+            _searchEngine.Update();
+        });
     }
 
     private void SetFilter(ComicFilterModel.ExternalFilterModel filter)
@@ -201,6 +227,11 @@ internal class FilterPresetsPageViewModel
                 DiffUtils.UpdateCollection(DataSource, dataSource, (x, y) => x.Title == y.Title, UpdateItem);
             });
         });
+    }
+
+    private static long GetTick()
+    {
+        return Environment.TickCount64;
     }
 
     public class DropDownButtonModel

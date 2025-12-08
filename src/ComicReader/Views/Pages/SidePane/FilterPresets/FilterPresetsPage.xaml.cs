@@ -106,4 +106,10 @@ internal sealed partial class FilterPresetsPage : BasePage
 
         args.Handled = true;
     }
+
+    private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        string text = ((TextBox)sender).Text;
+        ViewModel.SetSearchText(text);
+    }
 }
