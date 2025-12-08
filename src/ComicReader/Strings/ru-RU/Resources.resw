@@ -708,6 +708,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="SaveViewConfig" xml:space="preserve">
     <value>Сохранить конфигурацию представления</value>
   </data>
+  <data name="Search" xml:space="preserve">
+    <value>Искать</value>
+  </data>
   <data name="SearchResults" xml:space="preserve">
     <value>Результаты поиска</value>
   </data>

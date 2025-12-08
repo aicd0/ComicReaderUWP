@@ -708,6 +708,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="SaveViewConfig" xml:space="preserve">
     <value>뷰 구성 저장</value>
   </data>
+  <data name="Search" xml:space="preserve">
+    <value>검색하다</value>
+  </data>
   <data name="SearchResults" xml:space="preserve">
     <value>검색 결과</value>
   </data>
