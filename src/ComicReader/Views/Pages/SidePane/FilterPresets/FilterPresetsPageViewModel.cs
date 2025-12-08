@@ -229,11 +229,6 @@ internal class FilterPresetsPageViewModel
         });
     }
 
-    private static long GetTick()
-    {
-        return Environment.TickCount64;
-    }
-
     public class DropDownButtonModel
     {
         public string Name { get; set; } = string.Empty;

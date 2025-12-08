@@ -194,7 +194,7 @@ internal class ComicSearchEngine
                 if (remaining.Count > 0)
                 {
                     string matchText = (title1 + " " + title2).ToLowerInvariant();
-                    similarity = StringUtils.QuickMatch(remaining, matchText);
+                    similarity = StringUtils.FastMatch(remaining, matchText);
                     if (similarity < 1)
                     {
                         continue;

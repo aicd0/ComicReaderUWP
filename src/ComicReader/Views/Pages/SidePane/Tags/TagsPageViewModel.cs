@@ -26,6 +26,10 @@ namespace ComicReader.Views.Pages.SidePane.Tags;
 
 internal partial class TagsPageViewModel : INotifyPropertyChanged
 {
+    private const int SEARCH_DELAY = 200;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private bool _updatingTags = false;
     private bool _updatingTagsInvalidated = false;
@@ -34,8 +38,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
     public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
     public readonly MutableLiveData<string> EditTagCategoryLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<TagNodeViewModel> DataSource { get; set; } = [];
 
@@ -53,6 +55,9 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _searchText = string.Empty;
+    private bool _searchSubmitted = false;
+
     public void Initialize(ActionHandler actionHandler)
     {
         _actionHandler = actionHandler;
@@ -60,32 +65,75 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
     public void UpdateTags()
     {
+        CoroutineUtils.Start(ScheduleUpdateTags);
+    }
+
+    public void SetSearchText(string searchText)
+    {
+        searchText = searchText.Trim();
+        if (searchText == _searchText)
+        {
+            return;
+        }
+
+        _searchText = searchText;
+        if (_searchSubmitted)
+        {
+            return;
+        }
+
+        _searchSubmitted = true;
         CoroutineUtils.Start(async () =>
         {
-            if (_updatingTags)
-            {
-                _updatingTagsInvalidated = true;
-                return;
-            }
-
-            _updatingTags = true;
-            try
-            {
-                do
-                {
-                    _updatingTagsInvalidated = false;
-                    await UpdateTagsInternal();
-                }
-                while (_updatingTagsInvalidated);
-            }
-            finally
-            {
-                _updatingTags = false;
-            }
+            await Task.Delay(SEARCH_DELAY);
+            _searchSubmitted = false;
+            await ScheduleUpdateTags();
         });
     }
 
+    private async Task ScheduleUpdateTags()
+    {
+        if (_updatingTags)
+        {
+            _updatingTagsInvalidated = true;
+            return;
+        }
+
+        _updatingTags = true;
+        try
+        {
+            do
+            {
+                _updatingTagsInvalidated = false;
+                await UpdateTagsInternal();
+            }
+            while (_updatingTagsInvalidated);
+        }
+        finally
+        {
+            _updatingTags = false;
+        }
+    }
+
     private async Task UpdateTagsInternal()
+    {
+        List<TagNodeViewModel> dataSource = await GenerateNodeTree();
+
+        void UpdateItem(TagNodeViewModel from, TagNodeViewModel to)
+        {
+            from.Glyph = to.Glyph;
+            from.Description = to.Description;
+            from.CanExpand = to.CanExpand;
+            from.OnClick = to.OnClick;
+            from.OnRequestContextFlyoutAsync = to.OnRequestContextFlyoutAsync;
+            DiffUtils.UpdateCollection(from.Children, to.Children, (a, b) => a.Title == b.Title, UpdateItem);
+        }
+
+        DiffUtils.UpdateCollection(DataSource, dataSource, (x, y) => x.Title == y.Title, UpdateItem);
+        NoTagsVisible = dataSource.Count == 0;
+    }
+
+    private async Task<List<TagNodeViewModel>> GenerateNodeTree()
     {
         Dictionary<long, TagCateogryModel> tagCategoryMapper = [];
         await ComicData.Enqueue("UpdateTags", () =>
@@ -167,6 +215,12 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             }
         }
 
+        string[] keywords = string.IsNullOrEmpty(_searchText) ? [] : _searchText.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        bool MatchSearchText(string text)
+        {
+            return keywords.Length == 0 || StringUtils.FastMatch(keywords, text.ToLowerInvariant()) > 0;
+        }
+
         List<TagNodeViewModel> dataSource = [];
         List<string> tagCategories = [.. tagCategoryMap.Keys];
         tagCategories.Sort();
@@ -191,6 +245,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             foreach (string tag in tags)
             {
                 TagModel tagModel = tagMap[tag];
+                bool tagMatched = MatchSearchText(tag);
 
                 TagNodeViewModel tagNode = new()
                 {
@@ -208,6 +263,11 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 foreach (long comicId in tagModel.ComicIds)
                 {
                     if (!comicMap.TryGetValue(comicId, out ComicModel? comic))
+                    {
+                        continue;
+                    }
+
+                    if (!tagMatched && !MatchSearchText(comic.Title))
                     {
                         continue;
                     }
@@ -239,25 +299,22 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 }
 
                 tagNode.Description = $"({tagNode.Children.Count})";
-                tagCategoryNode.Children.Add(tagNode);
+
+                if (tagNode.Children.Count > 0 || tagMatched)
+                {
+                    tagCategoryNode.Children.Add(tagNode);
+                }
             }
 
             tagCategoryNode.Description = $"({tagCategoryNode.Children.Count})";
-            dataSource.Add(tagCategoryNode);
+
+            if (tagCategoryNode.Children.Count > 0)
+            {
+                dataSource.Add(tagCategoryNode);
+            }
         }
 
-        void UpdateItem(TagNodeViewModel from, TagNodeViewModel to)
-        {
-            from.Glyph = to.Glyph;
-            from.Description = to.Description;
-            from.CanExpand = to.CanExpand;
-            from.OnClick = to.OnClick;
-            from.OnRequestContextFlyoutAsync = to.OnRequestContextFlyoutAsync;
-            DiffUtils.UpdateCollection(from.Children, to.Children, (a, b) => a.Title == b.Title, UpdateItem);
-        }
-
-        DiffUtils.UpdateCollection(DataSource, dataSource, (x, y) => x.Title == y.Title, UpdateItem);
-        NoTagsVisible = dataSource.Count == 0;
+        return dataSource;
     }
 
     private List<BaseMenuFlyoutItemViewModel> CreateTagCategoryMenuItems(string tagCategory)
