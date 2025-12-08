@@ -1,5 +1,5 @@
 ﻿<base:BaseUserControl
-    x:Class="ComicReader.Views.Pages.Navigation.SidePane"
+    x:Class="ComicReader.Views.Pages.Main.SidePaneView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReader.Common.BaseUI"

@@ -8,16 +8,16 @@ using ComicReader.SDK.Common.KVStorage;
 
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReader.Views.Pages.Navigation;
+namespace ComicReader.Views.Pages.Main;
 
-internal sealed partial class SidePane : BaseUserControl
+internal sealed partial class SidePaneView : BaseUserControl
 {
     private const string FAVORITES = "Favorites";
     private const string HISTORY = "History";
     private const string TAGS = "Tags";
     private const string FILTER_PRESETS = "FilterPresets";
 
-    public delegate void PinStateChangedEventHandler(SidePane sender, bool pinned);
+    public delegate void PinStateChangedEventHandler(SidePaneView sender, bool pinned);
     public event PinStateChangedEventHandler? PinStateChanged;
 
     private readonly SidePaneViewModel ViewModel = new();
@@ -26,7 +26,7 @@ internal sealed partial class SidePane : BaseUserControl
 
     public bool Pinned { get; private set; } = false;
 
-    public SidePane()
+    public SidePaneView()
     {
         InitializeComponent();
     }

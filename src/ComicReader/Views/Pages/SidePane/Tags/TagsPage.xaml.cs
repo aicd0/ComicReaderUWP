@@ -7,7 +7,6 @@ using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.Dialogs.EditTag;
 using ComicReader.Views.Dialogs.EditTagCategory;
 using ComicReader.Views.Pages.Main;
-using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI.Xaml.Controls;
 

@@ -5,7 +5,6 @@ using ComicReader.Common.BaseUI;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.Views.Pages.DevTools;
 using ComicReader.Views.Pages.Main;
-using ComicReader.Views.Pages.Navigation;
 using ComicReader.Views.Pages.SidePane.Favorite;
 using ComicReader.Views.Pages.SidePane.FilterPresets;
 using ComicReader.Views.Pages.SidePane.History;

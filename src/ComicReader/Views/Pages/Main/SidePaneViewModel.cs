@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 using ComicReader.Common;
 
-namespace ComicReader.Views.Pages.Navigation;
+namespace ComicReader.Views.Pages.Main;
 
 internal partial class SidePaneViewModel : INotifyPropertyChanged
 {

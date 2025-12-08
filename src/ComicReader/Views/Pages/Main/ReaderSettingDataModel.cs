@@ -8,7 +8,7 @@ using ComicReader.Common;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 
-namespace ComicReader.Views.Pages.Navigation;
+namespace ComicReader.Views.Pages.Main;
 
 internal class ReaderSettingDataModel
 {

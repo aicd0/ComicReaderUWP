@@ -13,7 +13,6 @@ using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.AppWindows.Main;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
@@ -22,7 +21,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 
-namespace ComicReader.Views.Pages.Navigation;
+namespace ComicReader.Views.Pages.Main;
 
 internal sealed partial class NavigationPage : BasePage
 {
@@ -309,7 +308,7 @@ internal sealed partial class NavigationPage : BasePage
         KVDatabase.Default.SetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
     }
 
-    private void RightSidePane_PinStateChanged(SidePane sender, bool pinned)
+    private void RightSidePane_PinStateChanged(SidePaneView sender, bool pinned)
     {
         NavigationPageSidePane.DisplayMode = pinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
     }
@@ -458,7 +457,7 @@ internal sealed partial class NavigationPage : BasePage
     // Types
     //
 
-    private class SidePaneHandler(NavigationPage page) : SidePane.ISidePaneHandler
+    private class SidePaneHandler(NavigationPage page) : SidePaneView.ISidePaneHandler
     {
         public int GetWindowId()
         {

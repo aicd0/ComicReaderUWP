@@ -5,7 +5,7 @@ using ComicReader.Common.BaseUI;
 using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.Lifecycle;
 
-namespace ComicReader.Views.Pages.Navigation;
+namespace ComicReader.Views.Pages.Main;
 
 internal interface INavigationPageAbility : IPageAbility
 {

@@ -7,7 +7,7 @@ using System.ComponentModel;
 using ComicReader.Common;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
-using ComicReader.Views.Pages.Navigation;
+using ComicReader.Views.Pages.Main;
 
 namespace ComicReader.Views.Dialogs.EditReaderSettingPreset;
 

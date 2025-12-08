@@ -14,7 +14,6 @@ using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.AppWindows.Main;
-using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI;
 using Microsoft.UI.Windowing;

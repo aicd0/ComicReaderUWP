@@ -16,7 +16,6 @@ using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 using ComicReader.Views.Pages.Main;
-using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

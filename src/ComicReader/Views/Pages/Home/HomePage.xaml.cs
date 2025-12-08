@@ -20,7 +20,6 @@ using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
 using ComicReader.Views.Dialogs.EditFilter;
 using ComicReader.Views.Pages.Main;
-using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

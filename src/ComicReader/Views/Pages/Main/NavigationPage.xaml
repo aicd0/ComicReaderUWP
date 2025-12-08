@@ -1,5 +1,5 @@
 <base:BasePage
-    x:Class="ComicReader.Views.Pages.Navigation.NavigationPage"
+    x:Class="ComicReader.Views.Pages.Main.NavigationPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReader.Common.BaseUI"
@@ -8,7 +8,7 @@
     xmlns:cwc="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:navigation="using:ComicReader.Views.Pages.Navigation"
+    xmlns:navigation="using:ComicReader.Views.Pages.Main"
     xmlns:reader="using:ComicReader.Views.Pages.Reader"
     mc:Ignorable="d">
 
@@ -222,7 +222,7 @@
                 PanePlacement="Right">
                 <SplitView.Pane>
                     <Grid SizeChanged="NavigationPageSidePane_SizeChanged">
-                        <navigation:SidePane x:Name="RightSidePane" PinStateChanged="RightSidePane_PinStateChanged" />
+                        <navigation:SidePaneView x:Name="RightSidePane" PinStateChanged="RightSidePane_PinStateChanged" />
                         <Rectangle
                             Width="1"
                             HorizontalAlignment="Left"
