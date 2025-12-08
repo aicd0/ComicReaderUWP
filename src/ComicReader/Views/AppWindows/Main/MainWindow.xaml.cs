@@ -149,7 +149,22 @@ internal sealed partial class MainWindow : Window
     public void BringToFront()
     {
         var hWnd = new Windows.Win32.Foundation.HWND(WindowHandle);
-        PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
+
+        Windows.Win32.UI.WindowsAndMessaging.WINDOWPLACEMENT placement;
+        unsafe
+        {
+            placement = new()
+            {
+                length = (uint)sizeof(Windows.Win32.UI.WindowsAndMessaging.WINDOWPLACEMENT)
+            };
+        }
+
+        bool gotPlacement = PInvoke.GetWindowPlacement(hWnd, ref placement);
+        if (!gotPlacement || placement.showCmd == Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_SHOWMINIMIZED)
+        {
+            PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
+        }
+
         PInvoke.SetForegroundWindow(hWnd);
     }
 
