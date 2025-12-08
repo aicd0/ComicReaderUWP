@@ -6,9 +6,19 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 
+using ComicReader.Common;
+using ComicReader.Common.Actions;
+using ComicReader.Common.Actions.Providers;
+using ComicReader.Common.Services;
+using ComicReader.Helpers.MenuFlyoutHelpers;
+using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.ViewModels;
+
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReader.Views.Pages.Main;
 
@@ -26,6 +36,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         {
             _isFullscreen = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFullscreen)));
+            UpdateMoreMenuItems();
         }
     }
 
@@ -40,18 +51,251 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private readonly LogListener _logListener;
-    private bool _logStarted = false;
+    private bool _canGoBack = false;
+    public bool CanGoBack
+    {
+        get => _canGoBack;
+        set
+        {
+            _canGoBack = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanGoBack)));
+        }
+    }
+
+    private bool _canGoForward = false;
+    public bool CanGoForward
+    {
+        get => _canGoForward;
+        set
+        {
+            _canGoForward = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(_canGoForward)));
+        }
+    }
+
+    private bool _refreshing = false;
+    public bool Refreshing
+    {
+        get => _refreshing;
+        set
+        {
+            _refreshing = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Refreshing)));
+        }
+    }
+
+    private bool _isHomePage = false;
+    public bool IsHomePage
+    {
+        get => _isHomePage;
+        set
+        {
+            _isHomePage = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsHomePage)));
+        }
+    }
+
+    private string _sidebarButtonText = string.Empty;
+    public string SidebarButtonText
+    {
+        get => _sidebarButtonText;
+        set
+        {
+            _sidebarButtonText = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SidebarButtonText)));
+        }
+    }
+
+    private string _sidebarButtonGlyph = string.Empty;
+    public string SidebarButtonGlyph
+    {
+        get => _sidebarButtonGlyph;
+        set
+        {
+            _sidebarButtonGlyph = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SidebarButtonGlyph)));
+        }
+    }
+
+    private List<BaseMenuFlyoutItemViewModel> _moreButtonFlyoutItems = [];
+    public List<BaseMenuFlyoutItemViewModel> MoreButtonFlyoutItems
+    {
+        get => _moreButtonFlyoutItems;
+        set
+        {
+            _moreButtonFlyoutItems = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MoreButtonFlyout)));
+        }
+    }
+
+    public FlyoutBase? MoreButtonFlyout
+    {
+        get
+        {
+            if (MoreButtonFlyoutItems.Count == 0)
+            {
+                return null;
+            }
+
+            var flyout = new MenuFlyout()
+            {
+                Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
+            };
+
+            foreach (BaseMenuFlyoutItemViewModel item in MoreButtonFlyoutItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
+
+            return flyout;
+        }
+    }
+
+    private ActionHandler _actionHandler = ActionHandler.Dummy;
 
     public MainPageViewModel()
     {
         _logListener = new LogListener(this);
     }
 
+    public void Initialize(ActionHandler actionHandler)
+    {
+        _actionHandler = actionHandler;
+    }
+
     public void OnStop()
     {
         Logger.RemoveListener(_logListener);
     }
+
+    public void UpdateSidebarButton(bool opened)
+    {
+        if (opened)
+        {
+            SidebarButtonGlyph = "\uE89F";
+            SidebarButtonText = StringResourceProvider.Instance.CloseSidebar;
+        }
+        else
+        {
+            SidebarButtonGlyph = "\uE8A0";
+            SidebarButtonText = StringResourceProvider.Instance.OpenSidebar;
+        }
+    }
+
+    public void UpdateMoreMenuItems()
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewTab)
+        {
+            Glyph = "\uE8A5",
+            OnClick = () =>
+            {
+                var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
+                ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                    .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                    .AddParameter(OpenTabProvider.PARAM_NEW_TAB, "1")
+                    .Build();
+                _actionHandler.Handle(actionModel);
+            },
+        });
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewWindow)
+        {
+            Glyph = "\uE78B",
+            OnClick = () =>
+            {
+                var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
+                ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                    .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                    .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
+                    .Build();
+                _actionHandler.Handle(actionModel);
+            },
+        });
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
+
+        if (_isFullscreen)
+        {
+            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.ExitFullscreen)
+            {
+                Glyph = "\uE73F",
+                OnClick = () =>
+                {
+                    ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
+                        .AddParameter(FullscreenServiceProvider.PARAM_ENTER, "0")
+                        .Build();
+                    _actionHandler.Handle(actionModel);
+                },
+            });
+        }
+        else
+        {
+            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.EnterFullscreen)
+            {
+                Glyph = "\uE740",
+                OnClick = () =>
+                {
+                    ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
+                        .AddParameter(FullscreenServiceProvider.PARAM_ENTER, "1")
+                        .Build();
+                    _actionHandler.Handle(actionModel);
+                },
+            });
+        }
+
+        items.Add(new MenuFlyoutSeperatorViewModel());
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Settings)
+        {
+            Glyph = "\uE713",
+            OnClick = () =>
+            {
+                var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SETTING);
+                ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                    .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                    .AddParameter(OpenTabProvider.PARAM_NEW_TAB, "1")
+                    .Build();
+                _actionHandler.Handle(actionModel);
+            },
+        });
+
+        if (DebugUtils.DeveloperMode)
+        {
+            items.Add(new MenuFlyoutItemViewModel("Dev tools")
+            {
+                Glyph = "\uEC7A",
+                OnClick = () =>
+                {
+                    var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
+                    ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                        .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                        .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
+                        .Build();
+                    _actionHandler.Handle(actionModel);
+                },
+            });
+        }
+
+        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Exit)
+        {
+            OnClick = () =>
+            {
+                ApplicationService.StartShuttingDown();
+                Application.Current.Exit();
+            },
+        });
+
+        MoreButtonFlyoutItems = items;
+    }
+
+    //
+    // Logs
+    //
+
+    private readonly LogListener _logListener;
+    private bool _logStarted = false;
 
     public void SetLogStarted(bool started)
     {

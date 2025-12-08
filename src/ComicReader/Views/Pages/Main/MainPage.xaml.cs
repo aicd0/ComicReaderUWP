@@ -8,17 +8,21 @@ using System.Text.Json.Serialization;
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
+using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI;
+using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -36,17 +40,21 @@ internal sealed partial class MainPage : BasePage
     //
 
     private Grid? _tabContainerGrid;
-    private ContentPresenter? _tabContentPresenter;
     private Storyboard? _titleBarAnimation;
     private long _tabContainerGridOpacityListenerToken = 0;
+    private bool _contentPresenterLoaded = false;
 
     private readonly List<TabInfo> _tabs = [];
     private TabInfo? _currentTab;
     private int _nextTabId = 0;
 
+    private readonly MainPageAbilityForSidebar _abilityForSidebar;
+    private readonly NavigationPageAbility _navigationPageAbility;
+    private bool _immersiveMode = false;
     private bool _titleBarVisible = true;
     private double _rootTabHeight = 0;
     private double _navigationBarHeight = 0;
+    private bool _isFavorite = false;
 
     //
     // Properties
@@ -64,6 +72,11 @@ internal sealed partial class MainPage : BasePage
     public MainPage()
     {
         InitializeComponent();
+
+        _abilityForSidebar = new(this);
+        _navigationPageAbility = new(this);
+        RightSidePane.Initialize(new SidePaneHandler(this));
+        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen);
     }
 
     //
@@ -203,12 +216,25 @@ internal sealed partial class MainPage : BasePage
         titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
 
         OnscreenLogger.Initialize();
+        ViewModel.Initialize(PageActionHandler);
         ObserveData();
+    }
+
+    protected override void OnResume()
+    {
+        base.OnResume();
+
+        MainReaderSettingPanel.SetWindowId(WindowId);
+        ViewModel.UpdateMoreMenuItems();
+        NavigationPageSidePane.IsPaneOpen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false);
+        NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
+        RightSidePane.RestoreLastStatus();
     }
 
     protected override void OnStop()
     {
         base.OnStop();
+
         ViewModel.OnStop();
     }
 
@@ -217,21 +243,15 @@ internal sealed partial class MainPage : BasePage
         OnscreenLogger.Started.ObserveSticky(this, ViewModel.SetLogStarted);
         OnscreenLogger.Visible.ObserveSticky(this, ViewModel.SetLogVisibility);
 
-        GetEventBus().With<double>(EventId.RootTabHeightChange).ObserveSticky(this, delegate (double h)
+        ComicData.IsScanningLibrary.ObserveSticky(this, scanning =>
         {
-            _rootTabHeight = h;
-            GetEventBus().With<double>(EventId.TitleBarHeightChange).Emit(_rootTabHeight + _navigationBarHeight);
-            UpdateTopPadding();
-        });
-
-        GetEventBus().With<double>(EventId.NavigationBarHeightChange).ObserveSticky(this, delegate (double h)
-        {
-            _navigationBarHeight = h;
-            GetEventBus().With<double>(EventId.TitleBarHeightChange).Emit(_rootTabHeight + _navigationBarHeight);
+            ViewModel.Refreshing = scanning;
         });
 
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
+            TopTile.Opacity = opacity;
+            NavigationPageSidePane.Opacity = opacity;
             if (_tabContainerGrid != null)
             {
                 _tabContainerGrid.Opacity = opacity;
@@ -246,6 +266,8 @@ internal sealed partial class MainPage : BasePage
         {
             ViewModel.IsFullscreen = isFullscreen;
         });
+
+        _abilityForSidebar.GetLifecycleAbility().Observe(this);
     }
 
     //
@@ -316,46 +338,9 @@ internal sealed partial class MainPage : BasePage
             return true;
         }
 
+        TransferAbility(bundle.Communicator, tabInfo.Ability);
         var frame = (Frame)tabInfo.Item.Content;
-        if (bundle.PageTrait.HasNavigationBar())
-        {
-            // Ensure that the frame has a NavigationPage as its content
-            if (frame.Content is null || frame.Content.GetType() != typeof(NavigationPage))
-            {
-                Route navigationRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_NAVIGATION)
-                    .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
-                NavigationBundle? navigationPageBundle = AppRouter.Process(navigationRoute);
-                if (navigationPageBundle is not null)
-                {
-                    TransferAbility(navigationPageBundle.Communicator, tabInfo.Ability);
-                    if (!frame.Navigate(navigationPageBundle.PageTrait.GetPageType(), navigationPageBundle))
-                    {
-                        Logger.F(TAG, $"Failed to navigate to navigation page for tab ID {tabId}.");
-                    }
-                }
-                else
-                {
-                    Logger.F(TAG, $"Failed to process navigation route: {navigationRoute.Url}");
-                }
-            }
-
-            // If the frame's content is a NavigationPage, navigate to the new page
-            if (frame.Content is not null && frame.Content.GetType() == typeof(NavigationPage))
-            {
-                var contentPage = (NavigationPage)frame.Content!;
-                contentPage.Navigate(bundle);
-            }
-            else
-            {
-                Logger.F(TAG, $"Frame content is not a NavigationPage for tab ID {tabId}.");
-            }
-        }
-        else
-        {
-            TransferAbility(bundle.Communicator, tabInfo.Ability);
-            frame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-        }
-
+        frame.Navigate(bundle.PageTrait.GetPageType(), bundle);
         return true;
     }
 
@@ -367,7 +352,7 @@ internal sealed partial class MainPage : BasePage
             Content = new Frame()
         };
         int tabId = _nextTabId++;
-        var ability = new MainPageAbility(this, tabId);
+        var ability = new MainPageAbilityForTab(this, tabId);
         var tabInfo = new TabInfo(tabId, item)
         {
             CurrentPageTrait = bundle.PageTrait,
@@ -585,41 +570,63 @@ internal sealed partial class MainPage : BasePage
         TabInfo? currentTab = _currentTab;
         if (currentTab != null)
         {
-            IPageTrait pageTrait = currentTab.CurrentPageTrait;
-
-            if (!pageTrait.ImmersiveMode())
-            {
-                ShowOrHideTitleBar(true, transitionAnimation: false);
-            }
-
-            if (pageTrait.HideFullscreenButton())
-            {
-                FullscreenButtonGrid.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                FullscreenButtonGrid.Visibility = Visibility.Visible;
-            }
+            OnPageChangedInternal(currentTab);
         }
 
         App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
+    private void OnPageChangedInternal(TabInfo tabInfo)
+    {
+        IPageTrait pageTrait = tabInfo.CurrentPageTrait;
+
+        if (!pageTrait.ImmersiveMode())
+        {
+            ShowOrHideTitleBar(true, transitionAnimation: false);
+        }
+
+        if (pageTrait.HideFullscreenButton())
+        {
+            FullscreenButtonGrid.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            FullscreenButtonGrid.Visibility = Visibility.Visible;
+        }
+
+        _navigationPageAbility.SendLeavingEvent();
+        _navigationPageAbility.ClearSubscriptions();
+
+        bool isHomePage = tabInfo.CurrentPageTrait is HomePageTrait;
+        bool isReaderPage = tabInfo.CurrentPageTrait is ReaderPageTrait;
+        ViewModel.IsHomePage = isHomePage;
+        SearchBox.Visibility = isReaderPage ? Visibility.Collapsed : Visibility.Visible;
+        SpCenterButtons.Visibility = isReaderPage ? Visibility.Visible : Visibility.Collapsed;
+        SetSearchBox("");
+
+        bool immersiveMode = tabInfo.CurrentPageTrait.ImmersiveMode();
+        if (immersiveMode != _immersiveMode)
+        {
+            _immersiveMode = immersiveMode;
+            UpdateContentFramePlacement();
+            UpdateTopPadding();
+        }
+    }
+
     private void UpdateTopPadding()
     {
-        if (_currentTab == null || _tabContentPresenter == null)
+        if (_currentTab == null)
         {
             return;
         }
 
+        TopTile.Margin = new Thickness(0, _rootTabHeight, 0, 0);
         if (_currentTab.CurrentPageTrait.ImmersiveMode())
         {
-            _tabContentPresenter.Margin = new Thickness(0, 0, 0, 0);
             RootTabView.Background = (Brush)Application.Current.Resources["TitleBarBackground"];
         }
         else
         {
-            _tabContentPresenter.Margin = new Thickness(0, _rootTabHeight, 0, 0);
             RootTabView.Background = new SolidColorBrush(Colors.Transparent);
         }
     }
@@ -647,7 +654,16 @@ internal sealed partial class MainPage : BasePage
 
     private void OnTabContentPresenterLoaded(object sender, RoutedEventArgs e)
     {
-        _tabContentPresenter = sender as ContentPresenter;
+        if (_contentPresenterLoaded)
+        {
+            return;
+        }
+
+        _contentPresenterLoaded = true;
+        var tabContentPresenter = (ContentPresenter)sender;
+        var parent = (Grid)tabContentPresenter.Parent;
+        parent.Children.Remove(tabContentPresenter);
+        ContentGrid.Children.Add(tabContentPresenter);
     }
 
     //
@@ -705,6 +721,159 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
+    // Navigation
+    //
+
+    private bool GoBack()
+    {
+        Frame contentFrame = GetCurrentContentFrame();
+        if (!contentFrame.CanGoBack)
+        {
+            return false;
+        }
+
+        contentFrame.GoBack();
+        return true;
+    }
+
+    private bool GoForward()
+    {
+        Frame contentFrame = GetCurrentContentFrame();
+        if (contentFrame == null)
+        {
+            return false;
+        }
+
+        if (!contentFrame.CanGoForward)
+        {
+            return false;
+        }
+
+        contentFrame.GoForward();
+        return true;
+    }
+
+    private Frame GetCurrentContentFrame()
+    {
+        TabInfo tabInfo = _currentTab!;
+        return (Frame)tabInfo.Item.Content;
+    }
+
+    private void UpdateContentFramePlacement()
+    {
+        bool success = false;
+        success = success || ContentGridNormal.Children.Remove(ContentGrid);
+        success = success || ContentGridImmersive.Children.Remove(ContentGrid);
+        if (!success)
+        {
+            Logger.F(TAG, "Failed to remove ContentGrid from parent panel.");
+            return;
+        }
+
+        if (_immersiveMode)
+        {
+            ContentGridImmersive.Children.Add(ContentGrid);
+        }
+        else
+        {
+            ContentGridNormal.Children.Add(ContentGrid);
+        }
+    }
+
+    //
+    // Top tile
+    //
+
+    private void OnTopTileSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_navigationBarHeight == e.NewSize.Height)
+        {
+            return;
+        }
+
+        _navigationBarHeight = e.NewSize.Height;
+        GetEventBus().With<double>(EventId.TitleBarHeightChange).Emit(_rootTabHeight + _navigationBarHeight);
+    }
+
+    //
+    // Search box
+    //
+
+    public void SetSearchBox(string keywords)
+    {
+        SearchBox.Focus(FocusState.Programmatic);
+        SearchBox.Text = keywords;
+    }
+
+    private void OnSearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        _navigationPageAbility.SendSearchTextChangeEvent(sender.Text);
+    }
+
+    private void OnSearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        string queryText = args.QueryText;
+        if (queryText.Trim().Length == 0)
+        {
+            return;
+        }
+
+        if (DebugCommand.TryExecute(queryText))
+        {
+            return;
+        }
+
+        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
+            .WithParam(RouterConstants.ARG_KEYWORD, queryText);
+        _abilityForSidebar.OpenInCurrentTab(route);
+    }
+
+    //
+    // Sidebar
+    //
+
+    private void OnOpenSidebarClick(object sender, RoutedEventArgs e)
+    {
+        NavigationPageSidePane.IsPaneOpen = !NavigationPageSidePane.IsPaneOpen;
+    }
+
+    private void NavigationPageSidePane_PaneOpenedOrClosed(SplitView sender, object args)
+    {
+        bool opened = NavigationPageSidePane.IsPaneOpen;
+        SyncSidebarOpenState(opened);
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
+    }
+
+    private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        double newWidth = NavigationPageSidePane.OpenPaneLength;
+        KVDatabase.Default.SetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
+    }
+
+    private void RightSidePane_PinStateChanged(SidePaneView sender, bool pinned)
+    {
+        NavigationPageSidePane.DisplayMode = pinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
+    }
+
+    private void SetSidePaneOpen(bool open, bool force)
+    {
+        if (open)
+        {
+            NavigationPageSidePane.IsPaneOpen = true;
+        }
+        else if (force || !RightSidePane.Pinned)
+        {
+            NavigationPageSidePane.IsPaneOpen = false;
+        }
+    }
+
+    private void SyncSidebarOpenState(bool opened)
+    {
+        ViewModel.UpdateSidebarButton(opened);
+        _abilityForSidebar.GetLifecycleAbility().SetCustomState("Pane", opened ? ILifecycle.State.Resumed : ILifecycle.State.Started);
+    }
+
+    //
     // Fullscreen
     //
 
@@ -724,12 +893,120 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
+    // Buttons
+    //
+
+    private void OnGoBackClick(object sender, RoutedEventArgs e)
+    {
+        _ = GoBack();
+    }
+
+    private void OnGoForwardClick(object sender, RoutedEventArgs e)
+    {
+        _ = GoForward();
+    }
+
+    private void OnHomeClick(object sender, RoutedEventArgs e)
+    {
+        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
+        _abilityForSidebar.OpenInCurrentTab(route);
+    }
+
+    private void OnRefreshClick(object sender, RoutedEventArgs e)
+    {
+        _navigationPageAbility.SendRefreshEvent();
+    }
+
+    private void OnAddToFavoritesClick(object sender, RoutedEventArgs e)
+    {
+        SetIsFavorite(!_isFavorite);
+    }
+
+    private void OnComicInfoClick(object sender, RoutedEventArgs e)
+    {
+        _navigationPageAbility.SendExpandInfoPaneEvent();
+    }
+
+    private void SetIsFavorite(bool isFavorite)
+    {
+        _isFavorite = isFavorite;
+        FiFavoriteFilled.Visibility = isFavorite ? Visibility.Visible : Visibility.Collapsed;
+        FiFavoriteUnfilled.Visibility = isFavorite ? Visibility.Collapsed : Visibility.Visible;
+        string toolTip = isFavorite ? StringResourceProvider.Instance.RemoveFromFavorites :
+            StringResourceProvider.Instance.AddToFavorites;
+        ToolTipService.SetToolTip(AbbAddToFavorite, toolTip);
+        _navigationPageAbility.SendFavoriteChangedEvent(isFavorite);
+    }
+
+    private void AbtbPreviewButton_Checked(object sender, RoutedEventArgs e)
+    {
+        _navigationPageAbility.SendGridViewModeChangedEvent(true);
+    }
+
+    private void AbtbPreviewButton_Unchecked(object sender, RoutedEventArgs e)
+    {
+        _navigationPageAbility.SendGridViewModeChangedEvent(false);
+    }
+
+    private void MainReaderSettingPanel_DataChanged(ReaderSettingDataModel model)
+    {
+        _navigationPageAbility.SendReaderSettingsChangedEvent(model);
+    }
+
+    private void SetGridViewModeEnabled(bool enabled)
+    {
+        AbtbPreviewButton.IsChecked = enabled;
+    }
+
+    private void ReaderSettingFlyout_Closing(FlyoutBase sender, FlyoutBaseClosingEventArgs args)
+    {
+        args.Cancel = MainReaderSettingPanel.ActionInProgress;
+    }
+
+    //
+    // Pointer events
+    //
+
+    private PointerPoint? _lastPointerPoint;
+
+    private void OnPagePointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        _lastPointerPoint = e.GetCurrentPoint(sender as UIElement);
+    }
+
+    private void OnPagePointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (_lastPointerPoint == null)
+        {
+            return;
+        }
+
+        if (_lastPointerPoint.Properties.IsXButton1Pressed)
+        {
+            _ = GoBack();
+        }
+        else if (_lastPointerPoint.Properties.IsXButton2Pressed)
+        {
+            _ = GoForward();
+        }
+
+        _lastPointerPoint = null;
+    }
+
+    //
     // Size Change Events
     //
 
     private void OnTabContainerGridSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        GetEventBus().With<double>(EventId.RootTabHeightChange).Emit(e.NewSize.Height);
+        if (_rootTabHeight == e.NewSize.Height)
+        {
+            return;
+        }
+
+        _rootTabHeight = e.NewSize.Height;
+        GetEventBus().With<double>(EventId.TitleBarHeightChange).Emit(_rootTabHeight + _navigationBarHeight);
+        UpdateTopPadding();
     }
 
     //
@@ -792,33 +1069,33 @@ internal sealed partial class MainPage : BasePage
     // Page Ability
     //
 
+    private void TransferAbility(PageCommunicator communicator)
+    {
+        communicator.RegisterAbility<ILifecycleAwareAbility>(_abilityForSidebar);
+        communicator.RegisterAbility(GetMainWindowAbility());
+        communicator.RegisterAbility<IMainPageAbility>(_abilityForSidebar);
+        communicator.RegisterAbility<INavigationPageAbility>(_navigationPageAbility);
+    }
+
     private void TransferAbility(PageCommunicator communicator, MainPageAbility ability)
     {
         ability.GetLifecycleAbility().Observe(this);
         communicator.RegisterAbility<ILifecycleAwareAbility>(ability);
         communicator.RegisterAbility(GetMainWindowAbility());
         communicator.RegisterAbility<IMainPageAbility>(ability);
+        communicator.RegisterAbility<INavigationPageAbility>(_navigationPageAbility);
     }
 
-    private class MainPageAbility(MainPage parent, int tabId) : IMainPageAbility, ILifecycleAwareAbility
+    abstract class MainPageAbility(MainPage parent) : IMainPageAbility, ILifecycleAwareAbility
     {
         private const string EVENT_TAB_UNSELECTED = "TabUnselected";
 
-        private readonly WeakReference<MainPage> _parent = new(parent);
+        protected readonly WeakReference<MainPage> _parent = new(parent);
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
         private readonly EventBus _eventBus = new();
         private readonly MutableLiveData<bool> _titleBarVisibilityChangeLiveData = new(parent._titleBarVisible);
-        private readonly int _tabId = tabId;
 
-        public void OpenInCurrentTab(Route route)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            parent.LoadTabNoLock(_tabId, route, true);
-        }
+        public abstract void OpenInCurrentTab(Route route);
 
         public void OpenInNewTab(Route route)
         {
@@ -830,45 +1107,11 @@ internal sealed partial class MainPage : BasePage
             parent.OpenInNewTab(route);
         }
 
-        public void SetTitle(string title)
-        {
-            TabInfo? tab = GetTab();
-            if (tab == null)
-            {
-                return;
-            }
+        public abstract void SetTitle(string title);
 
-            tab.Item.Header = title;
-        }
+        public abstract void SetIcon(IconSource icon);
 
-        public void SetIcon(IconSource icon)
-        {
-            TabInfo? tab = GetTab();
-            if (tab == null)
-            {
-                return;
-            }
-
-            tab.Item.IconSource = icon;
-        }
-
-        public void SetCurrentPageInfo(string url, IPageTrait pageTrait)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            TabInfo? tab = parent.GetTabInfoNoLock(_tabId);
-            if (tab == null)
-            {
-                return;
-            }
-
-            tab.CurrentPageTrait = pageTrait;
-            tab.CurrentUrl = url;
-            parent.OnPageChanged();
-        }
+        public abstract void SetCurrentPageInfo(string url, IPageTrait pageTrait);
 
         public void RegisterTabUnselectedHandler(ILifecycleOwner owner, IMainPageAbility.TabUnselectedEventHandler handler)
         {
@@ -920,6 +1163,61 @@ internal sealed partial class MainPage : BasePage
         {
             return _lifecycleAbility;
         }
+    }
+
+    private class MainPageAbilityForTab(MainPage parent, int tabId) : MainPageAbility(parent)
+    {
+        private readonly int _tabId = tabId;
+
+        public override void OpenInCurrentTab(Route route)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.LoadTabNoLock(_tabId, route, true);
+        }
+
+        public override void SetTitle(string title)
+        {
+            TabInfo? tab = GetTab();
+            if (tab == null)
+            {
+                return;
+            }
+
+            tab.Item.Header = title;
+        }
+
+        public override void SetIcon(IconSource icon)
+        {
+            TabInfo? tab = GetTab();
+            if (tab == null)
+            {
+                return;
+            }
+
+            tab.Item.IconSource = icon;
+        }
+
+        public override void SetCurrentPageInfo(string url, IPageTrait pageTrait)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            TabInfo? tab = parent.GetTabInfoNoLock(_tabId);
+            if (tab == null)
+            {
+                return;
+            }
+
+            tab.CurrentPageTrait = pageTrait;
+            tab.CurrentUrl = url;
+            parent.OnPageChanged();
+        }
 
         private TabInfo? GetTab()
         {
@@ -932,9 +1230,226 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
+    private class MainPageAbilityForSidebar(MainPage parent) : MainPageAbility(parent)
+    {
+        public override void OpenInCurrentTab(Route route)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            TabInfo? tabInfo = parent._currentTab;
+            if (tabInfo is null)
+            {
+                return;
+            }
+
+            parent.LoadTabNoLock(tabInfo.Id, route, true);
+        }
+
+        public override void SetCurrentPageInfo(string url, IPageTrait pageTrait)
+        {
+            throw new InvalidOperationException();
+        }
+
+        public override void SetIcon(IconSource icon)
+        {
+            throw new InvalidOperationException();
+        }
+
+        public override void SetTitle(string title)
+        {
+            throw new InvalidOperationException();
+        }
+    }
+
+    private class NavigationPageAbility(MainPage parent) : INavigationPageAbility
+    {
+        private const string EVENT_LEAVING = "Leaving";
+        private const string EVENT_REFRESH = "Refresh";
+        private const string EVENT_EXPAND_INFO_PANE = "ExpandInfoPane";
+        private const string EVENT_FAVORITE_CHANGED = "FavoriteChanged";
+        private const string EVENT_GRID_VIEW_MODE_CHANGED = "GridViewModeChanged";
+        private const string EVENT_READER_SETTINGS_CHANGED = "ReaderSettingsChanged";
+        private const string EVENT_SEARCH_TEXT_CHANGED = "SearchTextChanged";
+
+        private readonly WeakReference<MainPage> _parent = new(parent);
+        private readonly EventBus _eventBus = new();
+
+        public void ClearSubscriptions()
+        {
+            _eventBus.Clear();
+        }
+
+        public void SetExternalComic(bool isExternal)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.AbbAddToFavorite.IsEnabled = !isExternal;
+        }
+
+        public void SetFavorite(bool isFavorite)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.SetIsFavorite(isFavorite);
+        }
+
+        public void SetGridViewMode(bool enabled)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.SetGridViewModeEnabled(enabled);
+        }
+
+        public void SetSidePaneOpen(bool open, bool force)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.SetSidePaneOpen(open, force: force);
+        }
+
+        public void SetReaderSettings(ComicModel comic)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.MainReaderSettingPanel.SetComic(comic);
+        }
+
+        public void SetSearchBox(string text)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.SetSearchBox(text);
+        }
+
+        public void RegisterLeavingHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
+        {
+            _eventBus.With<bool>(EVENT_LEAVING).Observe(owner, delegate
+            {
+                handler();
+            });
+        }
+
+        public void SendLeavingEvent()
+        {
+            _eventBus.With<bool>(EVENT_LEAVING).Emit(true);
+        }
+
+        public void RegisterRefreshHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
+        {
+            _eventBus.With<bool>(EVENT_REFRESH).Observe(owner, delegate
+            {
+                handler();
+            });
+        }
+
+        public void SendRefreshEvent()
+        {
+            _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
+        }
+
+        public void RegisterExpandInfoPaneHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
+        {
+            _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Observe(owner, delegate
+            {
+                handler();
+            });
+        }
+
+        public void SendExpandInfoPaneEvent()
+        {
+            _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Emit(true);
+        }
+
+        public void RegisterFavoriteChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.FavoriteChangedEventHandler handler)
+        {
+            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Observe(owner, delegate (bool isFavorite)
+            {
+                handler(isFavorite);
+            });
+        }
+
+        public void SendFavoriteChangedEvent(bool isFavorite)
+        {
+            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Emit(isFavorite);
+        }
+
+        public void RegisterGridViewModeChangedHandler(ILifecycleOwner owner, INavigationPageAbility.GridViewModeChangedEventHandler handler)
+        {
+            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Observe(owner, delegate (bool isGridViewMode)
+            {
+                handler(isGridViewMode);
+            });
+        }
+
+        public void SendGridViewModeChangedEvent(bool isGridViewMode)
+        {
+            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Emit(isGridViewMode);
+        }
+
+        public void RegisterReaderSettingsChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.ReaderSettingsChangedEventHandler handler)
+        {
+            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Observe(owner, delegate (ReaderSettingDataModel settings)
+            {
+                handler(settings);
+            });
+        }
+
+        public void SendReaderSettingsChangedEvent(ReaderSettingDataModel settings)
+        {
+            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Emit(settings.Clone());
+        }
+
+        public void RegisterSearchTextChangeHandler(ILifecycleOwner owner, INavigationPageAbility.SearchTextChangeEventHandler handler)
+        {
+            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Observe(owner, delegate (string text)
+            {
+                handler(text);
+            });
+        }
+
+        public void SendSearchTextChangeEvent(string text)
+        {
+            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Emit(text);
+        }
+    }
+
     //
     // Types
     //
+
+    private class SidePaneHandler(MainPage page) : SidePaneView.ISidePaneHandler
+    {
+        public int GetWindowId()
+        {
+            return page.WindowId;
+        }
+
+        public void TransferAbility(NavigationBundle bundle)
+        {
+            page.TransferAbility(bundle.Communicator);
+        }
+    }
 
     private class TabInfo(int id, TabViewItem item)
     {
