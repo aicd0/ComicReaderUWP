@@ -51,7 +51,7 @@ internal sealed partial class ReaderPage : BasePage
     // Variables
     //
 
-    private volatile bool _updatingProgress = false;
+    private bool _savingProgress = false;
 
     private bool _readerPointerEntered = true;
     private bool _bottomTileShowed = false;
@@ -97,7 +97,10 @@ internal sealed partial class ReaderPage : BasePage
         {
             ViewModel.SetPageIndex(MainReaderView.CurrentPageDisplay - 1);
             UpdatePage();
-            UpdateProgress(sender, save: !isIntermediate);
+            if (!isIntermediate)
+            {
+                CoroutineUtils.Start(SaveProgress);
+            }
 
             if (!reader.IsAutoScrolling)
             {
@@ -436,40 +439,49 @@ internal sealed partial class ReaderPage : BasePage
         PageIndicator.Text = currentPage.ToString() + " / " + reader.PageCount.ToString();
     }
 
-    public void UpdateProgress(ReaderView reader, bool save)
+    public async Task SaveProgress()
     {
-        double page = reader.CurrentPage;
-        if (page <= 0.0)
+        ComicModel? comic = ViewModel.Comic;
+        if (comic is null)
         {
             return;
         }
-        int progress;
-        if (reader.PageCount <= 0)
-        {
-            progress = 0;
-        }
-        else if (reader.IsLastPage)
-        {
-            progress = 100;
-        }
-        else
-        {
-            progress = (int)((float)page / reader.PageCount * 100);
-        }
-        progress = Math.Min(progress, 100);
 
-        if (save)
+        if (_savingProgress)
         {
-            if (_updatingProgress)
+            return;
+        }
+
+        _savingProgress = true;
+        try
+        {
+            ReaderView reader = MainReaderView;
+            double page = reader.CurrentPage;
+            if (page <= 0.0)
             {
                 return;
             }
-            _updatingProgress = true;
-            Task.Run(delegate
+
+            int progress;
+            if (reader.PageCount <= 0)
             {
-                ViewModel.Comic?.SaveProgressAsync(progress, page).Wait();
-                _updatingProgress = false;
-            });
+                progress = 0;
+            }
+            else if (reader.IsLastPage)
+            {
+                progress = 100;
+            }
+            else
+            {
+                progress = (int)((float)page / reader.PageCount * 100);
+            }
+
+            progress = Math.Min(progress, 100);
+            await comic.SaveProgressAsync(progress, page);
+        }
+        finally
+        {
+            _savingProgress = false;
         }
     }
 
