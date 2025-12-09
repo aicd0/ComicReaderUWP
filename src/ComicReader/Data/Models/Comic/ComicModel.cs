@@ -161,8 +161,9 @@ internal sealed class ComicModel
 
     public async Task SaveProgressAsync(int progress, double lastPosition)
     {
+        // This method is expected to be called frequently,
+        // so we don't dispatch events to save CPU resources
         await _internalModel.SaveProgressAsync(progress, lastPosition);
-        DispatchUpdateEvent();
     }
 
     public void SaveRating(int rating)
