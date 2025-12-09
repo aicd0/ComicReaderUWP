@@ -79,6 +79,7 @@ internal sealed partial class MainPage : BasePage
         _abilityForSidebar = new(this);
         RightSidePane.Initialize(new SidePaneHandler(this));
         SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen, initialSync: true);
+        ContentGrid.Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
     //
@@ -897,7 +898,11 @@ internal sealed partial class MainPage : BasePage
         ViewModel.UpdateSidebarButton(opened);
         _abilityForSidebar.GetLifecycleAbility().SetCustomState("Pane", opened ? ILifecycle.State.Resumed : ILifecycle.State.Started);
         DispatchRightOverlayWidthChangeEvent();
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
+
+        if (!initialSync)
+        {
+            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
+        }
     }
 
     //

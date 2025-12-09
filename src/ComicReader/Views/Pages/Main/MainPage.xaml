@@ -405,7 +405,6 @@
                 <Grid x:Name="ContentGridNormal">
                     <Grid
                         x:Name="ContentGrid"
-                        Background="Transparent"
                         PointerPressed="OnPagePointerPressed"
                         PointerReleased="OnPagePointerReleased" />
                 </Grid>
