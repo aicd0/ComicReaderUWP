@@ -88,9 +88,13 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
         }
 
         ObserverWrapper observerWrapper = new LifecycleObserverWrapper(this, owner, observer);
-        _observers[observer] = observerWrapper;
+        if (!options.StickyOnObserve)
+        {
+            observerWrapper.Version = _version;
+        }
 
-        if (options.StickyOnObserve && _version > 0)
+        _observers[observer] = observerWrapper;
+        if (observerWrapper.Version < _version)
         {
             DispatchValue(observerWrapper);
         }
