@@ -1377,7 +1377,7 @@ internal sealed partial class MainPage : BasePage
 
         public void RegisterFavoriteChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.FavoriteChangedEventHandler handler)
         {
-            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Observe(owner, delegate (bool isFavorite)
+            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).ObserveSticky(owner, delegate (bool isFavorite)
             {
                 handler(isFavorite);
             });
@@ -1416,7 +1416,7 @@ internal sealed partial class MainPage : BasePage
 
         public void RegisterGridViewModeChangedHandler(ILifecycleOwner owner, INavigationPageAbility.GridViewModeChangedEventHandler handler)
         {
-            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Observe(owner, delegate (bool isGridViewMode)
+            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).ObserveSticky(owner, delegate (bool isGridViewMode)
             {
                 handler(isGridViewMode);
             });
@@ -1455,7 +1455,7 @@ internal sealed partial class MainPage : BasePage
 
         public void RegisterSearchTextChangeHandler(ILifecycleOwner owner, INavigationPageAbility.SearchTextChangeEventHandler handler)
         {
-            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Observe(owner, delegate (string text)
+            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).ObserveSticky(owner, delegate (string text)
             {
                 handler(text);
             });
@@ -1494,7 +1494,7 @@ internal sealed partial class MainPage : BasePage
 
         public void RegisterReaderSettingsChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.ReaderSettingsChangedEventHandler handler)
         {
-            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Observe(owner, delegate (ReaderSettingDataModel settings)
+            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).ObserveSticky(owner, delegate (ReaderSettingDataModel settings)
             {
                 handler(settings);
             });
