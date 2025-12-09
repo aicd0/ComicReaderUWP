@@ -22,8 +22,6 @@ internal interface IMainPageAbility : IPageAbility
 
     void SetIcon(IconSource icon);
 
-    void SetCurrentPageInfo(string url, IPageTrait pageTrait);
-
     void RegisterTabUnselectedHandler(ILifecycleOwner owner, TabUnselectedEventHandler handler);
 
     void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);

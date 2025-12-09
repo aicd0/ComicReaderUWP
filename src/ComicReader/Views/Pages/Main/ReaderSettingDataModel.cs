@@ -54,6 +54,52 @@ internal class ReaderSettingDataModel
         }
     }
 
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        if (obj is not ReaderSettingDataModel other)
+        {
+            return false;
+        }
+
+        return PresetKey == other.PresetKey &&
+            PresetName == other.PresetName &&
+            OriginalSize == other.OriginalSize &&
+            IsVertical == other.IsVertical &&
+            IsLeftToRight == other.IsLeftToRight &&
+            IsVerticalContinuous == other.IsVerticalContinuous &&
+            IsHorizontalContinuous == other.IsHorizontalContinuous &&
+            VerticalPageArrangement == other.VerticalPageArrangement &&
+            HorizontalPageArrangement == other.HorizontalPageArrangement &&
+            PageGap == other.PageGap &&
+            AutoScrollSpeed == other.AutoScrollSpeed &&
+            IsContinuous == other.IsContinuous &&
+            PageArrangement == other.PageArrangement;
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(PresetKey);
+        hash.Add(PresetName);
+        hash.Add(OriginalSize);
+        hash.Add(IsVertical);
+        hash.Add(IsLeftToRight);
+        hash.Add(IsVerticalContinuous);
+        hash.Add(IsHorizontalContinuous);
+        hash.Add(VerticalPageArrangement);
+        hash.Add(HorizontalPageArrangement);
+        hash.Add(PageGap);
+        hash.Add(AutoScrollSpeed);
+        hash.Add(IsContinuous);
+        hash.Add(PageArrangement);
+        return hash.ToHashCode();
+    }
+
     public ReaderSettingDataModel Clone()
     {
         var clone = new ReaderSettingDataModel
@@ -190,5 +236,15 @@ internal class ReaderSettingDataModel
 
         model.PresetKey = presetKey;
         return model;
+    }
+
+    public static bool operator ==(ReaderSettingDataModel? left, ReaderSettingDataModel? right)
+    {
+        return EqualityComparer<ReaderSettingDataModel>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(ReaderSettingDataModel? left, ReaderSettingDataModel? right)
+    {
+        return !(left == right);
     }
 }

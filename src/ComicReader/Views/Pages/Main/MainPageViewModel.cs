@@ -69,7 +69,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         set
         {
             _canGoForward = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(_canGoForward)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanGoForward)));
         }
     }
 

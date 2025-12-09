@@ -26,6 +26,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Navigation;
 
 namespace ComicReader.Views.Pages.Main;
 
@@ -49,7 +50,6 @@ internal sealed partial class MainPage : BasePage
     private int _nextTabId = 0;
 
     private readonly MainPageAbilityForSidebar _abilityForSidebar;
-    private readonly NavigationPageAbility _navigationPageAbility;
     private bool _immersiveMode = false;
     private bool _titleBarVisible = true;
     private double _rootTabHeight = 0;
@@ -74,7 +74,6 @@ internal sealed partial class MainPage : BasePage
         InitializeComponent();
 
         _abilityForSidebar = new(this);
-        _navigationPageAbility = new(this);
         RightSidePane.Initialize(new SidePaneHandler(this));
         SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen);
     }
@@ -338,7 +337,7 @@ internal sealed partial class MainPage : BasePage
             return true;
         }
 
-        TransferAbility(bundle.Communicator, tabInfo.Ability);
+        TransferAbility(bundle.Communicator, tabInfo);
         var frame = (Frame)tabInfo.Item.Content;
         frame.Navigate(bundle.PageTrait.GetPageType(), bundle);
         return true;
@@ -346,19 +345,36 @@ internal sealed partial class MainPage : BasePage
 
     private int AddTabNoLock(NavigationBundle bundle)
     {
+        int tabId = _nextTabId++;
+        var frame = new Frame();
         var item = new TabViewItem
         {
             Header = StringResource.Untitled,
-            Content = new Frame()
+            Content = frame,
         };
-        int tabId = _nextTabId++;
-        var ability = new MainPageAbilityForTab(this, tabId);
-        var tabInfo = new TabInfo(tabId, item)
+        MainPageAbilityForTab ability = new(this, tabId);
+        NavigationPageAbility navigationBarAbility = new(this);
+        TabInfo tabInfo = new()
         {
+            Id = tabId,
+            Item = item,
+            Ability = ability,
+            NavigationBarAbility = navigationBarAbility,
             CurrentPageTrait = bundle.PageTrait,
             CurrentUrl = bundle.Url,
-            Ability = ability
         };
+        tabInfo.NavigatedHandler = (sender, e) =>
+        {
+            var newBundle = (NavigationBundle)e.Parameter;
+            tabInfo.NavigationBarAbility.ClearStates();
+            tabInfo.CurrentPageTrait = newBundle.PageTrait;
+            tabInfo.CurrentUrl = newBundle.Url;
+            if (_currentTab is not null && tabInfo.Id == _currentTab.Id)
+            {
+                OnPageChanged();
+            }
+        };
+        frame.Navigated += tabInfo.NavigatedHandler;
         _tabs.Add(tabInfo);
         RootTabView.TabItems.Add(item);
         return tabId;
@@ -399,6 +415,8 @@ internal sealed partial class MainPage : BasePage
 
     private void CloseTabInternalNoLock(TabInfo tabInfo)
     {
+        ((Frame)tabInfo.Item.Content).Navigated -= tabInfo.NavigatedHandler;
+        tabInfo.NavigatedHandler = null;
         tabInfo.Ability.GetLifecycleAbility().SetCustomState("Tab", ILifecycle.State.Stopped);
         _tabs.Remove(tabInfo);
         RootTabView.TabItems.Remove(tabInfo.Item);
@@ -565,12 +583,10 @@ internal sealed partial class MainPage : BasePage
 
     private void OnPageChanged()
     {
-        UpdateTopPadding();
-
-        TabInfo? currentTab = _currentTab;
-        if (currentTab != null)
+        TabInfo? tabInfo = _currentTab;
+        if (tabInfo is not null)
         {
-            OnPageChangedInternal(currentTab);
+            OnPageChangedInternal(tabInfo);
         }
 
         App.Instance.WindowManager.ScheduleSaveWindowStatus();
@@ -594,15 +610,11 @@ internal sealed partial class MainPage : BasePage
             FullscreenButtonGrid.Visibility = Visibility.Visible;
         }
 
-        _navigationPageAbility.SendLeavingEvent();
-        _navigationPageAbility.ClearSubscriptions();
-
         bool isHomePage = tabInfo.CurrentPageTrait is HomePageTrait;
         bool isReaderPage = tabInfo.CurrentPageTrait is ReaderPageTrait;
         ViewModel.IsHomePage = isHomePage;
         SearchBox.Visibility = isReaderPage ? Visibility.Collapsed : Visibility.Visible;
         SpCenterButtons.Visibility = isReaderPage ? Visibility.Visible : Visibility.Collapsed;
-        SetSearchBox("");
 
         bool immersiveMode = tabInfo.CurrentPageTrait.ImmersiveMode();
         if (immersiveMode != _immersiveMode)
@@ -611,17 +623,21 @@ internal sealed partial class MainPage : BasePage
             UpdateContentFramePlacement();
             UpdateTopPadding();
         }
+
+        ViewModel.CanGoBack = ((Frame)tabInfo.Item.Content).CanGoBack;
+        ViewModel.CanGoForward = ((Frame)tabInfo.Item.Content).CanGoForward;
+        tabInfo.NavigationBarAbility.RestoreStates();
     }
 
     private void UpdateTopPadding()
     {
-        if (_currentTab == null)
+        if (_currentTab is null)
         {
             return;
         }
 
         TopTile.Margin = new Thickness(0, _rootTabHeight, 0, 0);
-        if (_currentTab.CurrentPageTrait.ImmersiveMode())
+        if (_immersiveMode)
         {
             RootTabView.Background = (Brush)Application.Current.Resources["TitleBarBackground"];
         }
@@ -726,8 +742,8 @@ internal sealed partial class MainPage : BasePage
 
     private bool GoBack()
     {
-        Frame contentFrame = GetCurrentContentFrame();
-        if (!contentFrame.CanGoBack)
+        Frame? contentFrame = GetCurrentContentFrame();
+        if (contentFrame is null || !contentFrame.CanGoBack)
         {
             return false;
         }
@@ -738,25 +754,14 @@ internal sealed partial class MainPage : BasePage
 
     private bool GoForward()
     {
-        Frame contentFrame = GetCurrentContentFrame();
-        if (contentFrame == null)
-        {
-            return false;
-        }
-
-        if (!contentFrame.CanGoForward)
+        Frame? contentFrame = GetCurrentContentFrame();
+        if (contentFrame is null || !contentFrame.CanGoForward)
         {
             return false;
         }
 
         contentFrame.GoForward();
         return true;
-    }
-
-    private Frame GetCurrentContentFrame()
-    {
-        TabInfo tabInfo = _currentTab!;
-        return (Frame)tabInfo.Item.Content;
     }
 
     private void UpdateContentFramePlacement()
@@ -778,6 +783,30 @@ internal sealed partial class MainPage : BasePage
         {
             ContentGridNormal.Children.Add(ContentGrid);
         }
+    }
+
+    private Frame? GetCurrentContentFrame()
+    {
+        TabInfo? tabInfo = _currentTab;
+        if (tabInfo is null)
+        {
+            Logger.F(TAG, "GetCurrentContentFrame: Current tab not set.");
+            return null;
+        }
+
+        return (Frame)tabInfo.Item.Content;
+    }
+
+    private NavigationPageAbility? GetCurrentNavigationBarAbility()
+    {
+        TabInfo? tabInfo = _currentTab;
+        if (tabInfo is null)
+        {
+            Logger.F(TAG, "GetCurrentNavigationBarAbility: Current tab not set.");
+            return null;
+        }
+
+        return tabInfo.NavigationBarAbility;
     }
 
     //
@@ -807,7 +836,7 @@ internal sealed partial class MainPage : BasePage
 
     private void OnSearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        _navigationPageAbility.SendSearchTextChangeEvent(sender.Text);
+        GetCurrentNavigationBarAbility()?.SendSearchTextChangeEvent(sender.Text);
     }
 
     private void OnSearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
@@ -914,7 +943,7 @@ internal sealed partial class MainPage : BasePage
 
     private void OnRefreshClick(object sender, RoutedEventArgs e)
     {
-        _navigationPageAbility.SendRefreshEvent();
+        GetCurrentNavigationBarAbility()?.SendRefreshEvent();
     }
 
     private void OnAddToFavoritesClick(object sender, RoutedEventArgs e)
@@ -924,7 +953,7 @@ internal sealed partial class MainPage : BasePage
 
     private void OnComicInfoClick(object sender, RoutedEventArgs e)
     {
-        _navigationPageAbility.SendExpandInfoPaneEvent();
+        GetCurrentNavigationBarAbility()?.SendExpandInfoPaneEvent();
     }
 
     private void SetIsFavorite(bool isFavorite)
@@ -935,22 +964,22 @@ internal sealed partial class MainPage : BasePage
         string toolTip = isFavorite ? StringResourceProvider.Instance.RemoveFromFavorites :
             StringResourceProvider.Instance.AddToFavorites;
         ToolTipService.SetToolTip(AbbAddToFavorite, toolTip);
-        _navigationPageAbility.SendFavoriteChangedEvent(isFavorite);
+        GetCurrentNavigationBarAbility()?.SendFavoriteChangedEvent(isFavorite);
     }
 
     private void AbtbPreviewButton_Checked(object sender, RoutedEventArgs e)
     {
-        _navigationPageAbility.SendGridViewModeChangedEvent(true);
+        GetCurrentNavigationBarAbility()?.SendGridViewModeChangedEvent(true);
     }
 
     private void AbtbPreviewButton_Unchecked(object sender, RoutedEventArgs e)
     {
-        _navigationPageAbility.SendGridViewModeChangedEvent(false);
+        GetCurrentNavigationBarAbility()?.SendGridViewModeChangedEvent(false);
     }
 
     private void MainReaderSettingPanel_DataChanged(ReaderSettingDataModel model)
     {
-        _navigationPageAbility.SendReaderSettingsChangedEvent(model);
+        GetCurrentNavigationBarAbility()?.SendReaderSettingsChangedEvent(model);
     }
 
     private void SetGridViewModeEnabled(bool enabled)
@@ -1074,16 +1103,15 @@ internal sealed partial class MainPage : BasePage
         communicator.RegisterAbility<ILifecycleAwareAbility>(_abilityForSidebar);
         communicator.RegisterAbility(GetMainWindowAbility());
         communicator.RegisterAbility<IMainPageAbility>(_abilityForSidebar);
-        communicator.RegisterAbility<INavigationPageAbility>(_navigationPageAbility);
     }
 
-    private void TransferAbility(PageCommunicator communicator, MainPageAbility ability)
+    private void TransferAbility(PageCommunicator communicator, TabInfo tabInfo)
     {
-        ability.GetLifecycleAbility().Observe(this);
-        communicator.RegisterAbility<ILifecycleAwareAbility>(ability);
+        tabInfo.Ability.GetLifecycleAbility().Observe(this);
+        communicator.RegisterAbility<ILifecycleAwareAbility>(tabInfo.Ability);
         communicator.RegisterAbility(GetMainWindowAbility());
-        communicator.RegisterAbility<IMainPageAbility>(ability);
-        communicator.RegisterAbility<INavigationPageAbility>(_navigationPageAbility);
+        communicator.RegisterAbility<IMainPageAbility>(tabInfo.Ability);
+        communicator.RegisterAbility<INavigationPageAbility>(tabInfo.NavigationBarAbility);
     }
 
     abstract class MainPageAbility(MainPage parent) : IMainPageAbility, ILifecycleAwareAbility
@@ -1110,8 +1138,6 @@ internal sealed partial class MainPage : BasePage
         public abstract void SetTitle(string title);
 
         public abstract void SetIcon(IconSource icon);
-
-        public abstract void SetCurrentPageInfo(string url, IPageTrait pageTrait);
 
         public void RegisterTabUnselectedHandler(ILifecycleOwner owner, IMainPageAbility.TabUnselectedEventHandler handler)
         {
@@ -1201,24 +1227,6 @@ internal sealed partial class MainPage : BasePage
             tab.Item.IconSource = icon;
         }
 
-        public override void SetCurrentPageInfo(string url, IPageTrait pageTrait)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            TabInfo? tab = parent.GetTabInfoNoLock(_tabId);
-            if (tab == null)
-            {
-                return;
-            }
-
-            tab.CurrentPageTrait = pageTrait;
-            tab.CurrentUrl = url;
-            parent.OnPageChanged();
-        }
-
         private TabInfo? GetTab()
         {
             if (!_parent.TryGetTarget(out MainPage? parent))
@@ -1248,11 +1256,6 @@ internal sealed partial class MainPage : BasePage
             parent.LoadTabNoLock(tabInfo.Id, route, true);
         }
 
-        public override void SetCurrentPageInfo(string url, IPageTrait pageTrait)
-        {
-            throw new InvalidOperationException();
-        }
-
         public override void SetIcon(IconSource icon)
         {
             throw new InvalidOperationException();
@@ -1264,9 +1267,8 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    private class NavigationPageAbility(MainPage parent) : INavigationPageAbility
+    private class NavigationPageAbility : INavigationPageAbility
     {
-        private const string EVENT_LEAVING = "Leaving";
         private const string EVENT_REFRESH = "Refresh";
         private const string EVENT_EXPAND_INFO_PANE = "ExpandInfoPane";
         private const string EVENT_FAVORITE_CHANGED = "FavoriteChanged";
@@ -1274,13 +1276,49 @@ internal sealed partial class MainPage : BasePage
         private const string EVENT_READER_SETTINGS_CHANGED = "ReaderSettingsChanged";
         private const string EVENT_SEARCH_TEXT_CHANGED = "SearchTextChanged";
 
-        private readonly WeakReference<MainPage> _parent = new(parent);
+        private readonly WeakReference<MainPage> _parent;
         private readonly EventBus _eventBus = new();
+        private bool _isExternalComic = false;
+        private bool _isFavorite = false;
+        private bool _gridViewMode = false;
+        private string _searchBoxText = string.Empty;
+        private ComicModel? _readerSettingComic = null;
+        private ReaderSettingDataModel? _readerSettings = null;
 
-        public void ClearSubscriptions()
+        public NavigationPageAbility(MainPage parent)
+        {
+            _parent = new(parent);
+            ClearStates();
+        }
+
+        public void ClearStates()
         {
             _eventBus.Clear();
+            _isExternalComic = false;
+            _isFavorite = false;
+            _gridViewMode = false;
+            _searchBoxText = string.Empty;
+            _readerSettingComic = null;
+            _readerSettings = null;
         }
+
+        public void RestoreStates()
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            SetExternalComicInternal(parent);
+            SetFavoriteInternal(parent);
+            SetGridViewModeInternal(parent);
+            SetSearchBoxInternal(parent);
+            SetReaderSettingsInternal(parent);
+        }
+
+        //
+        // External Comic Flag
+        //
 
         public void SetExternalComic(bool isExternal)
         {
@@ -1289,8 +1327,18 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.AbbAddToFavorite.IsEnabled = !isExternal;
+            _isExternalComic = isExternal;
+            SetExternalComicInternal(parent);
         }
+
+        private void SetExternalComicInternal(MainPage page)
+        {
+            page.AbbAddToFavorite.IsEnabled = !_isExternalComic;
+        }
+
+        //
+        // Favorite Flag
+        //
 
         public void SetFavorite(bool isFavorite)
         {
@@ -1299,8 +1347,37 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.SetIsFavorite(isFavorite);
+            _isFavorite = isFavorite;
+            SetFavoriteInternal(parent);
         }
+
+        public void RegisterFavoriteChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.FavoriteChangedEventHandler handler)
+        {
+            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Observe(owner, delegate (bool isFavorite)
+            {
+                handler(isFavorite);
+            });
+        }
+
+        public void SendFavoriteChangedEvent(bool isFavorite)
+        {
+            if (isFavorite == _isFavorite)
+            {
+                return;
+            }
+
+            _isFavorite = isFavorite;
+            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Emit(isFavorite);
+        }
+
+        private void SetFavoriteInternal(MainPage page)
+        {
+            page.SetIsFavorite(_isFavorite);
+        }
+
+        //
+        // Grid View Mode
+        //
 
         public void SetGridViewMode(bool enabled)
         {
@@ -1309,28 +1386,37 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.SetGridViewModeEnabled(enabled);
+            _gridViewMode = enabled;
+            SetGridViewModeInternal(parent);
         }
 
-        public void SetSidePaneOpen(bool open, bool force)
+        public void RegisterGridViewModeChangedHandler(ILifecycleOwner owner, INavigationPageAbility.GridViewModeChangedEventHandler handler)
         {
-            if (!_parent.TryGetTarget(out MainPage? parent))
+            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Observe(owner, delegate (bool isGridViewMode)
+            {
+                handler(isGridViewMode);
+            });
+        }
+
+        public void SendGridViewModeChangedEvent(bool isGridViewMode)
+        {
+            if (isGridViewMode == _gridViewMode)
             {
                 return;
             }
 
-            parent.SetSidePaneOpen(open, force: force);
+            _gridViewMode = isGridViewMode;
+            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Emit(isGridViewMode);
         }
 
-        public void SetReaderSettings(ComicModel comic)
+        private void SetGridViewModeInternal(MainPage page)
         {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            parent.MainReaderSettingPanel.SetComic(comic);
+            page.SetGridViewModeEnabled(_gridViewMode);
         }
+
+        //
+        // Search Box
+        //
 
         public void SetSearchBox(string text)
         {
@@ -1339,21 +1425,81 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.SetSearchBox(text);
+            _searchBoxText = text;
+            SetSearchBoxInternal(parent);
         }
 
-        public void RegisterLeavingHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
+        public void RegisterSearchTextChangeHandler(ILifecycleOwner owner, INavigationPageAbility.SearchTextChangeEventHandler handler)
         {
-            _eventBus.With<bool>(EVENT_LEAVING).Observe(owner, delegate
+            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Observe(owner, delegate (string text)
             {
-                handler();
+                handler(text);
             });
         }
 
-        public void SendLeavingEvent()
+        public void SendSearchTextChangeEvent(string text)
         {
-            _eventBus.With<bool>(EVENT_LEAVING).Emit(true);
+            if (text == _searchBoxText)
+            {
+                return;
+            }
+
+            _searchBoxText = text;
+            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Emit(text);
         }
+
+        private void SetSearchBoxInternal(MainPage page)
+        {
+            page.SetSearchBox(_searchBoxText);
+        }
+
+        //
+        // Reader Settings
+        //
+
+        public void SetReaderSettings(ComicModel comic)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            _readerSettingComic = comic;
+            SetReaderSettingsInternal(parent);
+        }
+
+        public void RegisterReaderSettingsChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.ReaderSettingsChangedEventHandler handler)
+        {
+            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Observe(owner, delegate (ReaderSettingDataModel settings)
+            {
+                handler(settings);
+            });
+        }
+
+        public void SendReaderSettingsChangedEvent(ReaderSettingDataModel settings)
+        {
+            if (_readerSettings is not null && settings == _readerSettings)
+            {
+                return;
+            }
+
+            _readerSettings = settings.Clone();
+            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Emit(_readerSettings);
+        }
+
+        private void SetReaderSettingsInternal(MainPage page)
+        {
+            if (_readerSettingComic is null)
+            {
+                return;
+            }
+
+            page.MainReaderSettingPanel.SetComic(_readerSettingComic);
+        }
+
+        //
+        // Refresh
+        //
 
         public void RegisterRefreshHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
         {
@@ -1368,6 +1514,10 @@ internal sealed partial class MainPage : BasePage
             _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
         }
 
+        //
+        // Comic Info Pane
+        //
+
         public void RegisterExpandInfoPaneHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
         {
             _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Observe(owner, delegate
@@ -1381,56 +1531,18 @@ internal sealed partial class MainPage : BasePage
             _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Emit(true);
         }
 
-        public void RegisterFavoriteChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.FavoriteChangedEventHandler handler)
+        //
+        // Misc
+        //
+
+        public void SetSidePaneOpen(bool open, bool force)
         {
-            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Observe(owner, delegate (bool isFavorite)
+            if (!_parent.TryGetTarget(out MainPage? parent))
             {
-                handler(isFavorite);
-            });
-        }
+                return;
+            }
 
-        public void SendFavoriteChangedEvent(bool isFavorite)
-        {
-            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Emit(isFavorite);
-        }
-
-        public void RegisterGridViewModeChangedHandler(ILifecycleOwner owner, INavigationPageAbility.GridViewModeChangedEventHandler handler)
-        {
-            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Observe(owner, delegate (bool isGridViewMode)
-            {
-                handler(isGridViewMode);
-            });
-        }
-
-        public void SendGridViewModeChangedEvent(bool isGridViewMode)
-        {
-            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Emit(isGridViewMode);
-        }
-
-        public void RegisterReaderSettingsChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.ReaderSettingsChangedEventHandler handler)
-        {
-            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Observe(owner, delegate (ReaderSettingDataModel settings)
-            {
-                handler(settings);
-            });
-        }
-
-        public void SendReaderSettingsChangedEvent(ReaderSettingDataModel settings)
-        {
-            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Emit(settings.Clone());
-        }
-
-        public void RegisterSearchTextChangeHandler(ILifecycleOwner owner, INavigationPageAbility.SearchTextChangeEventHandler handler)
-        {
-            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Observe(owner, delegate (string text)
-            {
-                handler(text);
-            });
-        }
-
-        public void SendSearchTextChangeEvent(string text)
-        {
-            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Emit(text);
+            parent.SetSidePaneOpen(open, force: force);
         }
     }
 
@@ -1451,13 +1563,15 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    private class TabInfo(int id, TabViewItem item)
+    private class TabInfo
     {
-        public TabViewItem Item { get; } = item;
-        public int Id { get; } = id;
-        public required MainPageAbility Ability { get; set; }
+        public required int Id { init; get; }
+        public required TabViewItem Item { init; get; }
+        public required MainPageAbility Ability { init; get; }
+        public required NavigationPageAbility NavigationBarAbility { init; get; }
         public required string CurrentUrl { get; set; }
         public required IPageTrait CurrentPageTrait { get; set; }
+        public NavigatedEventHandler? NavigatedHandler { get; set; }
     }
 
     public class LastTabStatusJsonModel

@@ -27,8 +27,6 @@ internal interface INavigationPageAbility : IPageAbility
 
     void SetSearchBox(string text);
 
-    void RegisterLeavingHandler(ILifecycleOwner owner, CommonEventHandler handler);
-
     void RegisterRefreshHandler(ILifecycleOwner owner, CommonEventHandler handler);
 
     void RegisterExpandInfoPaneHandler(ILifecycleOwner owner, CommonEventHandler handler);

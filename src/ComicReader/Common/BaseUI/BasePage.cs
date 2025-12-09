@@ -55,6 +55,11 @@ internal abstract class BasePage : Page, ILifecycleOwner
         return _lifecycleManager.GetLifecycle();
     }
 
+    protected sealed override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        base.OnNavigatingFrom(e);
+    }
+
     protected sealed override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);

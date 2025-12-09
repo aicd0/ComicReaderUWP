@@ -176,7 +176,6 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnResume();
 
-        GetNavigationPageAbility().SetGridViewMode(false);
         ViewModel.ReloadReaderSettings();
         UpdateReaderUI();
 
