@@ -287,7 +287,7 @@ internal sealed partial class ReaderPage : BasePage
             GetNavigationPageAbility().SetExternalComic(isExternal);
         });
 
-        ViewModel.ReaderStatusLiveData.Observe(this, delegate (ReaderStatusInfo info)
+        ViewModel.ReaderStatusLiveData.ObserveSticky(this, delegate (ReaderStatusInfo info)
         {
             string readerStatusText = info.Description;
             if (string.IsNullOrEmpty(readerStatusText))
@@ -309,23 +309,23 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        ViewModel.ReaderSettingLiveData.Observe(this, comic =>
+        ViewModel.ReaderSettingLiveData.ObserveSticky(this, comic =>
         {
             GetNavigationPageAbility().SetReaderSettings(comic);
         });
 
-        ViewModel.ComicDescriptionLiveData.Observe(this, description =>
+        ViewModel.ComicDescriptionLiveData.ObserveSticky(this, description =>
         {
             FillRichTextInlines(TbComicDescription.Inlines, description);
             TbComicDescription.Visibility = TbComicDescription.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         });
 
-        ViewModel.IsFavoriteLiveData.Observe(this, isFavorite =>
+        ViewModel.IsFavoriteLiveData.ObserveSticky(this, isFavorite =>
         {
             GetNavigationPageAbility().SetFavorite(isFavorite);
         });
 
-        ViewModel.CompletionStateLiveData.Observe(this, completionStatus =>
+        ViewModel.CompletionStateLiveData.ObserveSticky(this, completionStatus =>
         {
             switch (completionStatus)
             {
@@ -359,7 +359,7 @@ internal sealed partial class ReaderPage : BasePage
             MarkAsFinishedButton.IsChecked = completionStatus == ComicCompletionStatusEnum.Completed;
         });
 
-        ViewModel.ReaderLoadingInfoLiveData.Observe(this, info =>
+        ViewModel.ReaderLoadingInfoLiveData.ObserveSticky(this, info =>
         {
             MainReaderView.SetConfigurationDatabase(new ReaderConfigDatabase());
             MainReaderView.SetCurrentPage(info.InitialPage);
