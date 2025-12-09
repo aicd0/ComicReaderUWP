@@ -194,9 +194,10 @@
 
     <Grid>
 
-        <!--  Content and Overlays  -->
+        <!--  Content (immersive mode)  -->
         <Grid x:Name="ContentGridImmersive" />
 
+        <!--  Navigation Bar & Sidebar  -->
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

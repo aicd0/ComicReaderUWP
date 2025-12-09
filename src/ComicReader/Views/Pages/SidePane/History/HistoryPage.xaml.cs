@@ -33,14 +33,13 @@ internal sealed partial class HistoryPage : BasePage
     {
         base.OnStart(bundle);
 
+        _ = Update();
         ObserveData();
     }
 
     protected override void OnResume()
     {
         base.OnResume();
-
-        _ = Update();
     }
 
     private void ObserveData()

@@ -595,8 +595,24 @@ internal sealed partial class MainPage : BasePage
     private void OnPageChangedInternal(TabInfo tabInfo)
     {
         IPageTrait pageTrait = tabInfo.CurrentPageTrait;
+        bool immersiveMode = pageTrait.ImmersiveMode();
+        bool isHomePage = pageTrait is HomePageTrait;
+        bool isReaderPage = pageTrait is ReaderPageTrait;
 
-        if (!pageTrait.ImmersiveMode())
+        ViewModel.IsHomePage = isHomePage;
+        ViewModel.CanGoBack = ((Frame)tabInfo.Item.Content).CanGoBack;
+        ViewModel.CanGoForward = ((Frame)tabInfo.Item.Content).CanGoForward;
+        SearchBox.Visibility = isReaderPage ? Visibility.Collapsed : Visibility.Visible;
+        SpCenterButtons.Visibility = isReaderPage ? Visibility.Visible : Visibility.Collapsed;
+
+        if (immersiveMode != _immersiveMode)
+        {
+            _immersiveMode = immersiveMode;
+            UpdateContentFramePlacement();
+            UpdateTopPadding();
+        }
+
+        if (!immersiveMode)
         {
             ShowOrHideTitleBar(true, transitionAnimation: false);
         }
@@ -610,22 +626,6 @@ internal sealed partial class MainPage : BasePage
             FullscreenButtonGrid.Visibility = Visibility.Visible;
         }
 
-        bool isHomePage = tabInfo.CurrentPageTrait is HomePageTrait;
-        bool isReaderPage = tabInfo.CurrentPageTrait is ReaderPageTrait;
-        ViewModel.IsHomePage = isHomePage;
-        SearchBox.Visibility = isReaderPage ? Visibility.Collapsed : Visibility.Visible;
-        SpCenterButtons.Visibility = isReaderPage ? Visibility.Visible : Visibility.Collapsed;
-
-        bool immersiveMode = tabInfo.CurrentPageTrait.ImmersiveMode();
-        if (immersiveMode != _immersiveMode)
-        {
-            _immersiveMode = immersiveMode;
-            UpdateContentFramePlacement();
-            UpdateTopPadding();
-        }
-
-        ViewModel.CanGoBack = ((Frame)tabInfo.Item.Content).CanGoBack;
-        ViewModel.CanGoForward = ((Frame)tabInfo.Item.Content).CanGoForward;
         tabInfo.NavigationBarAbility.RestoreStates();
     }
 
