@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
@@ -30,8 +29,6 @@ internal sealed partial class DevToolsPage : BasePage
     public DevToolsPage()
     {
         InitializeComponent();
-
-        Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
     //
