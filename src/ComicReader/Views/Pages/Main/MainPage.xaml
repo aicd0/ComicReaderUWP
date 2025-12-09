@@ -18,7 +18,6 @@
 
     <Page.Resources>
         <ResourceDictionary>
-
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/AppBarButton.xaml" />
                 <ResourceDictionary Source="/Styles/AppBarToggleButton.xaml" />
@@ -173,7 +172,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-
         </ResourceDictionary>
     </Page.Resources>
 
@@ -193,7 +191,6 @@
     </Page.KeyboardAccelerators>
 
     <Grid>
-
         <!--  Content (immersive mode)  -->
         <Grid x:Name="ContentGridImmersive" />
 
@@ -485,7 +482,5 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-
     </Grid>
-
 </base:BasePage>
