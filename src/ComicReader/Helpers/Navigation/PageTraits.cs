@@ -27,11 +27,6 @@ internal class DefaultPageTrait : IPageTrait
         return _pageType;
     }
 
-    public bool HasNavigationBar()
-    {
-        return false;
-    }
-
     public bool ImmersiveMode()
     {
         return false;
@@ -55,11 +50,6 @@ internal class HomePageTrait : IPageTrait
     public Type GetPageType()
     {
         return typeof(HomePage);
-    }
-
-    public bool HasNavigationBar()
-    {
-        return true;
     }
 
     public bool ImmersiveMode()
@@ -97,11 +87,6 @@ internal class SearchPageTrait : IPageTrait
         return typeof(SearchPage);
     }
 
-    public bool HasNavigationBar()
-    {
-        return true;
-    }
-
     public bool ImmersiveMode()
     {
         return false;
@@ -137,11 +122,6 @@ internal class ReaderPageTrait : IPageTrait
         return typeof(ReaderPage);
     }
 
-    public bool HasNavigationBar()
-    {
-        return true;
-    }
-
     public bool ImmersiveMode()
     {
         return true;
@@ -175,11 +155,6 @@ internal class SettingPageTrait : IPageTrait
     public Type GetPageType()
     {
         return typeof(SettingPage);
-    }
-
-    public bool HasNavigationBar()
-    {
-        return false;
     }
 
     public bool ImmersiveMode()

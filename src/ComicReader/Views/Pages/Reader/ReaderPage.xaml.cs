@@ -24,7 +24,6 @@ using ComicReader.Views.AppWindows.Main;
 using ComicReader.Views.Dialogs.EditComicInfo;
 using ComicReader.Views.Dialogs.EditTag;
 using ComicReader.Views.Pages.Main;
-using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
@@ -177,7 +176,6 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnResume();
 
-        GetNavigationPageAbility().SetGridViewMode(false);
         ViewModel.ReloadReaderSettings();
         UpdateReaderUI();
 

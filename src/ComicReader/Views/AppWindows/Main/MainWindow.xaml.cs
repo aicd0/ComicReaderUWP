@@ -168,6 +168,16 @@ internal sealed partial class MainWindow : Window
         PInvoke.SetForegroundWindow(hWnd);
     }
 
+    public void EnterFullscreen()
+    {
+        EnterOrExitFullscreen(true);
+    }
+
+    public void ExitFullscreen()
+    {
+        EnterOrExitFullscreen(false);
+    }
+
     //
     // Event Handlers
     //

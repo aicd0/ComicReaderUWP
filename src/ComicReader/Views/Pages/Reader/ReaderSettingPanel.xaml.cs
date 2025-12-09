@@ -10,7 +10,7 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.Views.Dialogs.EditReaderSettingPreset;
-using ComicReader.Views.Pages.Navigation;
+using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

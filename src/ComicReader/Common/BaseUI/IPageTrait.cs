@@ -9,8 +9,6 @@ internal interface IPageTrait
 {
     Type GetPageType();
 
-    bool HasNavigationBar();
-
     bool ImmersiveMode();
 
     bool HideFullscreenButton();

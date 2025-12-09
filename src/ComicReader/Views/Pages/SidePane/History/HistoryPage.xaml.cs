@@ -16,7 +16,6 @@ using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 using ComicReader.Views.Pages.Main;
-using ComicReader.Views.Pages.Navigation;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -34,14 +33,13 @@ internal sealed partial class HistoryPage : BasePage
     {
         base.OnStart(bundle);
 
+        _ = Update();
         ObserveData();
     }
 
     protected override void OnResume()
     {
         base.OnResume();
-
-        _ = Update();
     }
 
     private void ObserveData()

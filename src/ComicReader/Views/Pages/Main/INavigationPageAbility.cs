@@ -5,7 +5,7 @@ using ComicReader.Common.BaseUI;
 using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.Lifecycle;
 
-namespace ComicReader.Views.Pages.Navigation;
+namespace ComicReader.Views.Pages.Main;
 
 internal interface INavigationPageAbility : IPageAbility
 {
@@ -26,8 +26,6 @@ internal interface INavigationPageAbility : IPageAbility
     void SetSidePaneOpen(bool open, bool force);
 
     void SetSearchBox(string text);
-
-    void RegisterLeavingHandler(ILifecycleOwner owner, CommonEventHandler handler);
 
     void RegisterRefreshHandler(ILifecycleOwner owner, CommonEventHandler handler);
 
