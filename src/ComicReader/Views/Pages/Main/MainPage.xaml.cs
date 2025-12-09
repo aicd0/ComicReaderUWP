@@ -44,17 +44,20 @@ internal sealed partial class MainPage : BasePage
     private Storyboard? _titleBarAnimation;
     private long _tabContainerGridOpacityListenerToken = 0;
     private bool _contentPresenterLoaded = false;
+    private bool _immersiveMode = false;
+    private bool _titleBarVisible = true;
+    private bool _isFavorite = false;
+    private double _rootTabHeight = 0;
+    private double _navigationBarHeight = 0;
+    private double _sidePaneWidth = 0;
+    private bool _sidePaneOpened = false;
+    private bool _sidePanePinned = false;
 
     private readonly List<TabInfo> _tabs = [];
     private TabInfo? _currentTab;
     private int _nextTabId = 0;
 
     private readonly MainPageAbilityForSidebar _abilityForSidebar;
-    private bool _immersiveMode = false;
-    private bool _titleBarVisible = true;
-    private double _rootTabHeight = 0;
-    private double _navigationBarHeight = 0;
-    private bool _isFavorite = false;
 
     //
     // Properties
@@ -75,7 +78,7 @@ internal sealed partial class MainPage : BasePage
 
         _abilityForSidebar = new(this);
         RightSidePane.Initialize(new SidePaneHandler(this));
-        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen);
+        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen, initialSync: true);
     }
 
     //
@@ -225,7 +228,7 @@ internal sealed partial class MainPage : BasePage
 
         MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
-        NavigationPageSidePane.IsPaneOpen = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false);
+        SetSidePaneOpenState(KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false), force: true);
         NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
         RightSidePane.RestoreLastStatus();
     }
@@ -609,7 +612,9 @@ internal sealed partial class MainPage : BasePage
         {
             _immersiveMode = immersiveMode;
             UpdateContentFramePlacement();
-            UpdateTopPadding();
+            RootTabView.Background = _immersiveMode ?
+                (Brush)Application.Current.Resources["TitleBarBackground"] :
+                new SolidColorBrush(Colors.Transparent);
         }
 
         if (!immersiveMode)
@@ -627,24 +632,6 @@ internal sealed partial class MainPage : BasePage
         }
 
         tabInfo.NavigationBarAbility.RestoreStates();
-    }
-
-    private void UpdateTopPadding()
-    {
-        if (_currentTab is null)
-        {
-            return;
-        }
-
-        TopTile.Margin = new Thickness(0, _rootTabHeight, 0, 0);
-        if (_immersiveMode)
-        {
-            RootTabView.Background = (Brush)Application.Current.Resources["TitleBarBackground"];
-        }
-        else
-        {
-            RootTabView.Background = new SolidColorBrush(Colors.Transparent);
-        }
     }
 
     private void OnTabContainerGridLoaded(object sender, RoutedEventArgs e)
@@ -810,21 +797,6 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
-    // Top tile
-    //
-
-    private void OnTopTileSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        if (_navigationBarHeight == e.NewSize.Height)
-        {
-            return;
-        }
-
-        _navigationBarHeight = e.NewSize.Height;
-        GetEventBus().With<double>(EventId.TitleBarHeightChange).Emit(_rootTabHeight + _navigationBarHeight);
-    }
-
-    //
     // Search box
     //
 
@@ -863,29 +835,41 @@ internal sealed partial class MainPage : BasePage
 
     private void OnOpenSidebarClick(object sender, RoutedEventArgs e)
     {
-        NavigationPageSidePane.IsPaneOpen = !NavigationPageSidePane.IsPaneOpen;
+        SetSidePaneOpenState(!_sidePaneOpened, force: true);
     }
 
     private void NavigationPageSidePane_PaneOpenedOrClosed(SplitView sender, object args)
     {
-        bool opened = NavigationPageSidePane.IsPaneOpen;
-        SyncSidebarOpenState(opened);
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
+        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen);
+    }
+
+    private void RightSidePane_PinStateChanged(SidePaneView sender, bool pinned)
+    {
+        _sidePanePinned = pinned;
+        NavigationPageSidePane.DisplayMode = pinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
+        DispatchRightOverlayWidthChangeEvent();
     }
 
     private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         double newWidth = NavigationPageSidePane.OpenPaneLength;
+        if (_sidePaneWidth == newWidth)
+        {
+            return;
+        }
+
+        _sidePaneWidth = newWidth;
+        DispatchRightOverlayWidthChangeEvent();
         KVDatabase.Default.SetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
     }
 
-    private void RightSidePane_PinStateChanged(SidePaneView sender, bool pinned)
+    private void SetSidePaneOpenState(bool open, bool force)
     {
-        NavigationPageSidePane.DisplayMode = pinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
-    }
+        if (open == _sidePaneOpened)
+        {
+            return;
+        }
 
-    private void SetSidePaneOpen(bool open, bool force)
-    {
         if (open)
         {
             NavigationPageSidePane.IsPaneOpen = true;
@@ -894,12 +878,26 @@ internal sealed partial class MainPage : BasePage
         {
             NavigationPageSidePane.IsPaneOpen = false;
         }
+        else
+        {
+            return;
+        }
+
+        SyncSidebarOpenState(open);
     }
 
-    private void SyncSidebarOpenState(bool opened)
+    private void SyncSidebarOpenState(bool opened, bool initialSync = false)
     {
+        if (!initialSync && opened == _sidePaneOpened)
+        {
+            return;
+        }
+
+        _sidePaneOpened = opened;
         ViewModel.UpdateSidebarButton(opened);
         _abilityForSidebar.GetLifecycleAbility().SetCustomState("Pane", opened ? ILifecycle.State.Resumed : ILifecycle.State.Started);
+        DispatchRightOverlayWidthChangeEvent();
+        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
     }
 
     //
@@ -1034,8 +1032,29 @@ internal sealed partial class MainPage : BasePage
         }
 
         _rootTabHeight = e.NewSize.Height;
-        GetEventBus().With<double>(EventId.TitleBarHeightChange).Emit(_rootTabHeight + _navigationBarHeight);
-        UpdateTopPadding();
+        TopTile.Margin = new Thickness(0, _rootTabHeight, 0, 0);
+        DispatchTopOverlayHeightChangeEvent();
+    }
+
+    private void OnTopTileSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_navigationBarHeight == e.NewSize.Height)
+        {
+            return;
+        }
+
+        _navigationBarHeight = e.NewSize.Height;
+        DispatchTopOverlayHeightChangeEvent();
+    }
+
+    private void DispatchTopOverlayHeightChangeEvent()
+    {
+        GetEventBus().With<double>(EventId.TopOverlayHeight).Emit(_rootTabHeight + _navigationBarHeight);
+    }
+
+    private void DispatchRightOverlayWidthChangeEvent()
+    {
+        GetEventBus().With<double>(EventId.RightOverlayWidth).Emit(_sidePaneOpened && _sidePanePinned ? _sidePaneWidth : 0);
     }
 
     //
@@ -1542,7 +1561,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.SetSidePaneOpen(open, force: force);
+            parent.SetSidePaneOpenState(open, force: force);
         }
     }
 

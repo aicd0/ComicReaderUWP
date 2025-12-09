@@ -1241,7 +1241,11 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        _gestureRecognizer.ProcessMoveEvents(e.GetIntermediatePoints(_gestureReference));
+        if (_pointerDown)
+        {
+            IList<PointerPoint> points = e.GetIntermediatePoints(_gestureReference);
+            _gestureRecognizer.ProcessMoveEvents(points);
+        }
 
         if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppModel.AutomaticallyHideCursor)
         {

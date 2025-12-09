@@ -208,10 +208,19 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.ReloadComicInfo();
         });
 
-        GetEventBus().With<double>(EventId.TitleBarHeightChange).ObserveSticky(this, delegate (double h)
+        GetEventBus().With<double>(EventId.TopOverlayHeight).ObserveSticky(this, h =>
         {
-            TitleBarArea.Height = h;
-            PreviewTitleBarPlaceHolder.Height = h;
+            Thickness margin = PreviewGridView.Margin;
+            margin.Top = h;
+            PreviewGridView.Margin = margin;
+            InfoPane.Margin = new Thickness(0, h, 0, 0);
+        });
+
+        GetEventBus().With<double>(EventId.RightOverlayWidth).ObserveSticky(this, w =>
+        {
+            Thickness margin = PreviewGridView.Margin;
+            margin.Right = w;
+            PreviewGridView.Margin = margin;
         });
 
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
@@ -410,8 +419,7 @@ internal sealed partial class ReaderPage : BasePage
         bool previewVisible = isWorking && _gridViewModeEnabled;
         bool readerVisible = isWorking && !previewVisible;
 
-        GGridView.IsHitTestVisible = previewVisible;
-        GGridView.Opacity = previewVisible ? 1 : 0;
+        PreviewGridView.Visibility = previewVisible ? Visibility.Visible : Visibility.Collapsed;
         GMainSection.Visibility = previewVisible ? Visibility.Collapsed : Visibility.Visible;
         MainReaderView.SetVisibility(readerVisible);
     }
