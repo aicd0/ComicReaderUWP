@@ -283,7 +283,7 @@
                     <RichTextBlock Margin="0,8,0,0" IsTextSelectionEnabled="False">
                         <Paragraph>
                             <Run x:Name="ContributionRunBeforeLink" />
-                            <Hyperlink NavigateUri="https://github.com/aicd0/ComicReader">
+                            <Hyperlink NavigateUri="https://github.com/aicd0/ComicReaderUWP">
                                 <Run Text="GitHub" />
                             </Hyperlink>
                             <Run x:Name="ContributionRunAfterLink" />
@@ -303,7 +303,7 @@
                     <Grid Height="8" />
                     <RichTextBlock HorizontalAlignment="Left" IsTextSelectionEnabled="False">
                         <Paragraph>
-                            <Hyperlink NavigateUri="https://github.com/aicd0/ComicReader/blob/develop/docs/PrivacyPolicy.md">
+                            <Hyperlink NavigateUri="https://github.com/aicd0/ComicReaderUWP/blob/develop/docs/PrivacyPolicy.md">
                                 <Run x:Uid="PrivacyPolicy" />
                             </Hyperlink>
                         </Paragraph>
