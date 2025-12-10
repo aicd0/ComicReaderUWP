@@ -60,11 +60,6 @@ internal sealed partial class FavoritePage : BasePage
         return GetAbility<IMainPageAbility>()!;
     }
 
-    private INavigationPageAbility GetNavigationPageAbility()
-    {
-        return GetAbility<INavigationPageAbility>()!;
-    }
-
     // utilities
     private void Update()
     {
@@ -316,7 +311,7 @@ internal sealed partial class FavoritePage : BasePage
                     Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
                         .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
                     GetMainPageAbility().OpenInCurrentTab(route);
-                    GetNavigationPageAbility().SetSidePaneOpen(false, force: false);
+                    GetMainPageAbility().SetSidePaneOpen(false, force: false);
                 }
             }
         });

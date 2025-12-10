@@ -27,4 +27,6 @@ internal interface IMainPageAbility : IPageAbility
     void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);
 
     void ShowOrHideTitleBar(bool show);
+
+    void SetSidePaneOpen(bool open, bool force);
 }

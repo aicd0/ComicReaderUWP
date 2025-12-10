@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Services;
@@ -46,6 +47,8 @@ internal class InitTaskManager(Application application)
         {
             DebugUtils.CaptureFatalError(e.Message, e.Exception);
         };
+        SynchronizationContext.SetSynchronizationContext(
+            new AppSynchronizationContext(SynchronizationContext.Current!));
 
         // Register services
         ServiceManager.RegisterService<IApplicationService>(new ApplicationService());

@@ -183,7 +183,7 @@ internal sealed partial class ReaderPage : BasePage
         UpdateReaderUI();
 
         // Take focus from sidebar
-        GetNavigationPageAbility().SetSidePaneOpen(false, force: false);
+        GetMainPageAbility().SetSidePaneOpen(false, force: false);
         MainReaderView.Focus(FocusState.Programmatic);
     }
 
@@ -259,7 +259,7 @@ internal sealed partial class ReaderPage : BasePage
             if (InfoPane != null)
             {
                 InfoPane.IsPaneOpen = true;
-                GetNavigationPageAbility().SetSidePaneOpen(false, force: true);
+                GetMainPageAbility().SetSidePaneOpen(false, force: true);
             }
         });
 

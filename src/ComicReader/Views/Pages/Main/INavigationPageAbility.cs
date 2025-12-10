@@ -23,8 +23,6 @@ internal interface INavigationPageAbility : IPageAbility
 
     void SetGridViewMode(bool enabled);
 
-    void SetSidePaneOpen(bool open, bool force);
-
     void SetSearchBox(string text);
 
     void RegisterRefreshHandler(ILifecycleOwner owner, CommonEventHandler handler);
