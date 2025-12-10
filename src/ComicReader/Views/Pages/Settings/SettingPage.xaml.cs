@@ -108,7 +108,7 @@ internal sealed partial class SettingPage : BasePage
     {
         C0.Run(async delegate
         {
-            var uri = new Uri(@"https://github.com/aicd0/ComicReader/issues/new/choose");
+            var uri = new Uri(@"https://github.com/aicd0/ComicReaderUWP/issues/new/choose");
             await Windows.System.Launcher.LaunchUriAsync(uri);
         });
     }
