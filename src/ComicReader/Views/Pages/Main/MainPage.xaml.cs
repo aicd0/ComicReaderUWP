@@ -78,7 +78,6 @@ internal sealed partial class MainPage : BasePage
 
         _abilityForSidebar = new(this);
         RightSidePane.Initialize(new SidePaneHandler(this));
-        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen, initialSync: true);
         ContentGrid.Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
@@ -221,6 +220,7 @@ internal sealed partial class MainPage : BasePage
         OnscreenLogger.Initialize();
         ViewModel.Initialize(PageActionHandler);
         ObserveData();
+        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen, initialSync: true);
     }
 
     protected override void OnResume()
