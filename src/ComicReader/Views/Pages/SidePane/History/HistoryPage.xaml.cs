@@ -108,18 +108,13 @@ internal sealed partial class HistoryPage : BasePage
                 GetMainPageAbility().OpenInCurrentTab(route);
             }
 
-            GetNavigationPageAbility().SetSidePaneOpen(false, force: false);
+            GetMainPageAbility().SetSidePaneOpen(false, force: false);
         }
     }
 
     private IMainPageAbility GetMainPageAbility()
     {
         return GetAbility<IMainPageAbility>()!;
-    }
-
-    private INavigationPageAbility GetNavigationPageAbility()
-    {
-        return GetAbility<INavigationPageAbility>()!;
     }
 
     private void DeleteItem(HistoryItemViewModel item)

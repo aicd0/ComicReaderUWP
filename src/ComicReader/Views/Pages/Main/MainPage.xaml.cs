@@ -1209,6 +1209,16 @@ internal sealed partial class MainPage : BasePage
             _lifecycleAbility.UnregisterPageLifecycleHandler(handler);
         }
 
+        public void SetSidePaneOpen(bool open, bool force)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.SetSidePaneOpenState(open, force: force);
+        }
+
         public LifecycleAwareAbility GetLifecycleAbility()
         {
             return _lifecycleAbility;
@@ -1553,20 +1563,6 @@ internal sealed partial class MainPage : BasePage
         public void SendExpandInfoPaneEvent()
         {
             _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Emit(true);
-        }
-
-        //
-        // Misc
-        //
-
-        public void SetSidePaneOpen(bool open, bool force)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            parent.SetSidePaneOpenState(open, force: force);
         }
     }
 
