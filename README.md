@@ -14,7 +14,7 @@ Prerequisites:
 - Install the [XAML Styler](https://marketplace.visualstudio.com/items?itemName=TeamXavalon.XAMLStyler2022) Visual Studio extension.
 - Get the code:
     ```
-    git clone https://github.com/aicd0/ComicReaderUWP.git
+    git clone git@github.com:aicd0/ComicReaderUWP.git
     ```
 - Open [ComicReaderUWP.sln](src/ComicReaderUWP.sln) in Visual Studio to build and run the Comic Reader UWP app.
 
