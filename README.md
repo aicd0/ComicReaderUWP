@@ -3,7 +3,7 @@ The Comic Reader UWP is a modern Windows app written in C#. The app provided bas
 
 Comic Reader UWP irregularly ships with new features and bug fixes. You can get the latest version of Comic Reader UWP in the [Microsoft Store](https://www.microsoft.com/store/apps/9NS9FG32DCP5).
 
-![Comic Reader UWP Screenshot](docs/Images/ComicReaderScreenshot.png)
+![Comic Reader UWP Screenshot](docs/Images/ComicReaderUWPScreenshot.png)
 
 ## Getting started
 Prerequisites:
@@ -14,7 +14,7 @@ Prerequisites:
 - Install the [XAML Styler](https://marketplace.visualstudio.com/items?itemName=TeamXavalon.XAMLStyler2022) Visual Studio extension.
 - Get the code:
     ```
-    git clone https://github.com/aicd0/ComicReaderUWP.git
+    git clone git@github.com:aicd0/ComicReaderUWP.git
     ```
 - Open [ComicReaderUWP.sln](src/ComicReaderUWP.sln) in Visual Studio to build and run the Comic Reader UWP app.
 
