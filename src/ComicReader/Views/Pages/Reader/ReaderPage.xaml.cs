@@ -51,12 +51,7 @@ internal sealed partial class ReaderPage : BasePage
     // Variables
     //
 
-    private bool _savingProgress = false;
-
-    private bool _readerPointerEntered = true;
-    private bool _bottomTileShowed = false;
-    private bool _bottomTileHold = false;
-    private long _bottomTileTargetHideTime = -1;
+    private ReaderPageViewModel ViewModel { get; set; } = new();
 
     private bool _gridViewModeEnabled = false;
     private bool GridViewModeEnabled
@@ -70,7 +65,12 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    private ReaderPageViewModel ViewModel { get; set; } = new();
+    private bool _savingProgress = false;
+    private bool _restoreSidebar = false;
+    private bool _readerPointerEntered = true;
+    private bool _bottomTileShowed = false;
+    private bool _bottomTileHold = false;
+    private long _bottomTileTargetHideTime = -1;
 
     //
     // Constructor
@@ -183,7 +183,7 @@ internal sealed partial class ReaderPage : BasePage
         UpdateReaderUI();
 
         // Take focus from sidebar
-        GetMainPageAbility().SetSidePaneOpen(false, force: false);
+        GetMainPageAbility().SetSidePaneOpenState(false, force: false);
         MainReaderView.Focus(FocusState.Programmatic);
     }
 
@@ -256,11 +256,9 @@ internal sealed partial class ReaderPage : BasePage
 
         GetNavigationPageAbility().RegisterExpandInfoPaneHandler(this, delegate
         {
-            if (InfoPane != null)
-            {
-                InfoPane.IsPaneOpen = true;
-                GetMainPageAbility().SetSidePaneOpen(false, force: true);
-            }
+            InfoPane.IsPaneOpen = true;
+            _restoreSidebar = GetMainPageAbility().GetSidePaneOpenState();
+            GetMainPageAbility().SetSidePaneOpenState(false, force: true);
         });
 
         GetNavigationPageAbility().RegisterReaderSettingsChangedEventHandler(this, delegate (ReaderSettingDataModel setting)
@@ -722,6 +720,15 @@ internal sealed partial class ReaderPage : BasePage
         var item = args.Item as ReaderImagePreviewViewModel;
         var viewHolder = args.ItemContainer.ContentTemplateRoot as ReaderPreviewImage;
         viewHolder?.SetModel(item, args.InRecycleQueue);
+    }
+
+    private void InfoPane_PaneClosed(SplitView sender, object args)
+    {
+        if (_restoreSidebar)
+        {
+            _restoreSidebar = false;
+            GetMainPageAbility().SetSidePaneOpenState(true, force: false);
+        }
     }
 
     //

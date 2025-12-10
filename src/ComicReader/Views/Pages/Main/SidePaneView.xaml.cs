@@ -1,6 +1,8 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
+
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Helpers.Navigation;
@@ -23,6 +25,8 @@ internal sealed partial class SidePaneView : BaseUserControl
     private readonly SidePaneViewModel ViewModel = new();
 
     private ISidePaneHandler? _handler = null;
+    private readonly Dictionary<string, object> _pageCache = [];
+    private string _currentItem = string.Empty;
 
     public bool Pinned { get; private set; } = false;
 
@@ -63,7 +67,25 @@ internal sealed partial class SidePaneView : BaseUserControl
             return;
         }
 
+        object? currentPage = ContentFrame.Content;
+        if (currentPage is not null)
+        {
+            _pageCache[_currentItem] = currentPage;
+        }
+
         string item = viewItem.Name;
+        if (item == _currentItem)
+        {
+            return;
+        }
+
+        ContentFrame.Content = null;
+        _currentItem = item;
+        if (_pageCache.TryGetValue(item, out object? pageCache))
+        {
+            ContentFrame.Content = pageCache;
+            return;
+        }
 
         Route route = item switch
         {
@@ -78,7 +100,6 @@ internal sealed partial class SidePaneView : BaseUserControl
         NavigationBundle bundle = AppRouter.Process(route)!;
         _handler.TransferAbility(bundle);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-
         KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
     }
 

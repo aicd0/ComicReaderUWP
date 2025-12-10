@@ -28,5 +28,7 @@ internal interface IMainPageAbility : IPageAbility
 
     void ShowOrHideTitleBar(bool show);
 
-    void SetSidePaneOpen(bool open, bool force);
+    bool GetSidePaneOpenState();
+
+    void SetSidePaneOpenState(bool open, bool force);
 }

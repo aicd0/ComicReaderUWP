@@ -78,7 +78,6 @@ internal sealed partial class MainPage : BasePage
 
         _abilityForSidebar = new(this);
         RightSidePane.Initialize(new SidePaneHandler(this));
-        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen, initialSync: true);
         ContentGrid.Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
@@ -221,6 +220,7 @@ internal sealed partial class MainPage : BasePage
         OnscreenLogger.Initialize();
         ViewModel.Initialize(PageActionHandler);
         ObserveData();
+        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen, initialSync: true);
     }
 
     protected override void OnResume()
@@ -229,9 +229,13 @@ internal sealed partial class MainPage : BasePage
 
         MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
-        SetSidePaneOpenState(KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false), force: true);
         NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
         RightSidePane.RestoreLastStatus();
+
+        if (_sidePanePinned && KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false))
+        {
+            SetSidePaneOpenState(true, force: true);
+        }
     }
 
     protected override void OnStop()
@@ -1209,7 +1213,17 @@ internal sealed partial class MainPage : BasePage
             _lifecycleAbility.UnregisterPageLifecycleHandler(handler);
         }
 
-        public void SetSidePaneOpen(bool open, bool force)
+        public bool GetSidePaneOpenState()
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return false;
+            }
+
+            return parent._sidePaneOpened;
+        }
+
+        public void SetSidePaneOpenState(bool open, bool force)
         {
             if (!_parent.TryGetTarget(out MainPage? parent))
             {
