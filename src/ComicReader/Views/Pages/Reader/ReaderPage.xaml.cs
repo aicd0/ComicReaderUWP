@@ -39,13 +39,10 @@ namespace ComicReader.Views.Pages.Reader;
 
 internal sealed partial class ReaderPage : BasePage
 {
-    //
-    // Constants
-    //
-
     private const string TAG = nameof(ReaderPage);
     private const string KEY_TIP_SHOWN = "ReaderTipShown";
     private const string REGEX_URL = @"https?:\/\/[a-zA-Z0-9\-._~%]+(?:\.[a-zA-Z0-9\-._~%]+)+(?:\/[^\s]*)?";
+    private const int SAVE_PREOGRESS_INTERVAL = 500;
 
     //
     // Variables
@@ -65,7 +62,6 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    private bool _savingProgress = false;
     private bool _restoreSidebar = false;
     private bool _readerPointerEntered = true;
     private bool _bottomTileShowed = false;
@@ -97,14 +93,15 @@ internal sealed partial class ReaderPage : BasePage
         {
             ViewModel.SetPageIndex(MainReaderView.CurrentPageDisplay - 1);
             UpdatePage();
-            if (!isIntermediate)
-            {
-                CoroutineUtils.Start(SaveProgress);
-            }
 
             if (!reader.IsAutoScrolling)
             {
                 BottomTileSetHold(false);
+            }
+
+            if (!isIntermediate)
+            {
+                SaveProgress();
             }
         };
 
@@ -365,37 +362,72 @@ internal sealed partial class ReaderPage : BasePage
         });
     }
 
-    private async Task<ComicModel?> GetTargetComic(PageBundle bundle)
+    //
+    // Progress
+    //
+
+    private bool _savingProgress = false;
+    private bool _saveProgressInvalidated = false;
+
+    public void SaveProgress()
     {
-        if (!long.TryParse(bundle.GetString(RouterConstants.ARG_COMIC_ID, "-1"), out long comicId))
+        if (_savingProgress)
         {
-            comicId = -1;
+            _saveProgressInvalidated = true;
+            return;
         }
 
-        if (comicId > 0)
+        CoroutineUtils.Start(async () =>
         {
-            ComicModel? comic = await ComicModel.FromId(comicId, "GetTargetComic");
-            if (comic is not null)
+            _savingProgress = true;
+            try
             {
-                return comic;
-            }
-        }
+                do
+                {
+                    _saveProgressInvalidated = false;
 
-        string location = bundle.GetString(RouterConstants.ARG_COMIC_LOCATION, string.Empty);
-        if (!string.IsNullOrEmpty(location))
-        {
-            ComicModel? comic = await GetComicFromLocation(location);
-            if (comic is not null)
+                    ComicModel? comic = ViewModel.Comic;
+                    if (comic is null)
+                    {
+                        continue;
+                    }
+
+                    ReaderView reader = MainReaderView;
+                    double page = reader.CurrentPage;
+                    if (page <= 0.0)
+                    {
+                        continue;
+                    }
+
+                    int progress;
+                    if (reader.PageCount <= 0)
+                    {
+                        progress = 0;
+                    }
+                    else if (reader.IsLastPage)
+                    {
+                        progress = 100;
+                    }
+                    else
+                    {
+                        progress = (int)((float)page / reader.PageCount * 100);
+                    }
+
+                    progress = Math.Min(progress, 100);
+                    await comic.SaveProgressAsync(progress, page);
+                    await Task.Delay(SAVE_PREOGRESS_INTERVAL);
+                }
+                while (_saveProgressInvalidated);
+            }
+            finally
             {
-                return comic;
+                _savingProgress = false;
             }
-        }
-
-        return null;
+        });
     }
 
     //
-    // Reader Settings
+    // Reader
     //
 
     private void ApplyReaderSettings(ReaderSettingDataModel readerSettingModel)
@@ -409,10 +441,6 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetAutoScrollSpeed(readerSettingModel.AutoScrollSpeed);
         reader.SetPageGap(readerSettingModel.PageGap);
     }
-
-    //
-    // UI
-    //
 
     private void UpdateReaderUI()
     {
@@ -430,60 +458,9 @@ internal sealed partial class ReaderPage : BasePage
 
     private void UpdatePage()
     {
-        if (PageIndicator == null)
-        {
-            return;
-        }
-
         ReaderView reader = MainReaderView;
         int currentPage = reader.CurrentPageDisplay;
         PageIndicator.Text = currentPage.ToString() + " / " + reader.PageCount.ToString();
-    }
-
-    public async Task SaveProgress()
-    {
-        ComicModel? comic = ViewModel.Comic;
-        if (comic is null)
-        {
-            return;
-        }
-
-        if (_savingProgress)
-        {
-            return;
-        }
-
-        _savingProgress = true;
-        try
-        {
-            ReaderView reader = MainReaderView;
-            double page = reader.CurrentPage;
-            if (page <= 0.0)
-            {
-                return;
-            }
-
-            int progress;
-            if (reader.PageCount <= 0)
-            {
-                progress = 0;
-            }
-            else if (reader.IsLastPage)
-            {
-                progress = 100;
-            }
-            else
-            {
-                progress = (int)((float)page / reader.PageCount * 100);
-            }
-
-            progress = Math.Min(progress, 100);
-            await comic.SaveProgressAsync(progress, page);
-        }
-        finally
-        {
-            _savingProgress = false;
-        }
     }
 
     //
@@ -768,6 +745,35 @@ internal sealed partial class ReaderPage : BasePage
         return inside;
     }
 
+    private static async Task<ComicModel?> GetTargetComic(PageBundle bundle)
+    {
+        if (!long.TryParse(bundle.GetString(RouterConstants.ARG_COMIC_ID, "-1"), out long comicId))
+        {
+            comicId = -1;
+        }
+
+        if (comicId > 0)
+        {
+            ComicModel? comic = await ComicModel.FromId(comicId, "GetTargetComic");
+            if (comic is not null)
+            {
+                return comic;
+            }
+        }
+
+        string location = bundle.GetString(RouterConstants.ARG_COMIC_LOCATION, string.Empty);
+        if (!string.IsNullOrEmpty(location))
+        {
+            ComicModel? comic = await GetComicFromLocation(location);
+            if (comic is not null)
+            {
+                return comic;
+            }
+        }
+
+        return null;
+    }
+
     private static async Task<ComicModel?> GetComicFromLocation(string location)
     {
         if (File.Exists(location))
@@ -857,7 +863,7 @@ internal sealed partial class ReaderPage : BasePage
     [GeneratedRegex(REGEX_URL, RegexOptions.None)]
     private static partial Regex URL_REGEX();
 
-    private void FillRichTextInlines(InlineCollection inlines, string richText)
+    private static void FillRichTextInlines(InlineCollection inlines, string richText)
     {
         inlines.Clear();
 
@@ -928,7 +934,7 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     //
-    // Classes
+    // Types
     //
 
     public enum ReaderStatusEnum
