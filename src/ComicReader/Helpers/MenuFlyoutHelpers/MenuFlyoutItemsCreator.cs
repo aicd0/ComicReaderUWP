@@ -222,19 +222,7 @@ internal static class MenuFlyoutItemsCreator
         if (canSelect)
         {
             result.Add(new MenuFlyoutSeperatorViewModel());
-
-            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Select)
-            {
-                Glyph = "\uE762",
-                OnClick = () =>
-                {
-                    ActionModel actionModel = ActionModel.Builder.Create(CustomActionProvider.NAME)
-                        .AddParameter(CustomActionProvider.PARAM_SOURCE, CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU)
-                        .AddParameter(CustomActionProvider.PARAM_NAME, CUSTOM_ACTION_NAME_SELECT)
-                        .Build();
-                    actionHandler.Handle(actionModel);
-                },
-            });
+            result.Add(CreateSelectMenuItem(actionHandler));
         }
 
         return result;
@@ -245,6 +233,22 @@ internal static class MenuFlyoutItemsCreator
         List<TagLinkModel.LinkModel> links = await GetTagLinks(tagCategory, tag);
         links.Sort((a, b) => a.Name.CompareTo(b.Name));
         return CreateLinkMenuItems(actionHandler, links);
+    }
+
+    public static BaseMenuFlyoutItemViewModel CreateSelectMenuItem(ActionHandler actionHandler)
+    {
+        return new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Select)
+        {
+            Glyph = "\uE762",
+            OnClick = () =>
+            {
+                ActionModel actionModel = ActionModel.Builder.Create(CustomActionProvider.NAME)
+                    .AddParameter(CustomActionProvider.PARAM_SOURCE, CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU)
+                    .AddParameter(CustomActionProvider.PARAM_NAME, CUSTOM_ACTION_NAME_SELECT)
+                    .Build();
+                actionHandler.Handle(actionModel);
+            },
+        };
     }
 
     private static List<BaseMenuFlyoutItemViewModel> CreateSendToWindowMenuItems(string url, ActionHandler actionHandler)

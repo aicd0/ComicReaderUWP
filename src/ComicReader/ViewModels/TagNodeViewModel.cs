@@ -74,8 +74,6 @@ internal partial class TagNodeViewModel : BaseViewModel, INotifyPropertyChanged
         }
     }
 
-    public ObservableCollection<TagNodeViewModel> Children { get; } = [];
-
     private Action? _onClick;
     public Action? OnClick
     {
@@ -87,16 +85,18 @@ internal partial class TagNodeViewModel : BaseViewModel, INotifyPropertyChanged
         }
     }
 
-    public Func<Task<List<BaseMenuFlyoutItemViewModel>>>? OnRequestContextFlyoutAsync { get; set; }
+    public ObservableCollection<TagNodeViewModel> Children { get; } = [];
+    public object? DataContext { get; set; }
+    public Func<IEnumerable<TagNodeViewModel>, Task<List<BaseMenuFlyoutItemViewModel>>>? RequestContextFlyoutAsync { get; set; }
 
-    public async Task<FlyoutBase?> CreateContextFlyout()
+    public async Task<FlyoutBase?> CreateContextFlyout(IEnumerable<TagNodeViewModel> selectedItems)
     {
-        if (OnRequestContextFlyoutAsync is null)
+        if (RequestContextFlyoutAsync is null)
         {
             return null;
         }
 
-        List<BaseMenuFlyoutItemViewModel> menuFlyoutItems = await OnRequestContextFlyoutAsync();
+        List<BaseMenuFlyoutItemViewModel> menuFlyoutItems = await RequestContextFlyoutAsync(selectedItems);
         if (menuFlyoutItems.Count == 0)
         {
             return null;

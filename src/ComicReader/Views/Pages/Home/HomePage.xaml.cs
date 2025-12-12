@@ -61,7 +61,7 @@ internal sealed partial class HomePage : BasePage
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
 
-        PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(this)));
+        PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(ViewModel)));
 
         ObserveData();
         ViewModel.Initialize(PageActionHandler);
@@ -517,11 +517,8 @@ internal sealed partial class HomePage : BasePage
     // Types
     //
 
-    private class CustomActionHandler(HomePage page) : CustomActionProvider.IHandler
+    private class CustomActionHandler(HomePageViewModel viewModel) : CustomActionProvider.IHandler
     {
-        private readonly WeakReference<HomePage> _pageRef = new(page);
-        private readonly HomePageViewModel _viewModel = page.ViewModel;
-
         public void Handle(string source, string name, IReadOnlyList<string> args)
         {
             bool handled = true;
@@ -531,7 +528,7 @@ internal sealed partial class HomePage : BasePage
                     switch (name)
                     {
                         case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
-                            _viewModel.SetSelectionMode(true);
+                            viewModel.SetSelectionMode(true);
                             break;
                         default:
                             handled = false;

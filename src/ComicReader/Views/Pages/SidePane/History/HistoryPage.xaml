@@ -52,9 +52,17 @@
 
                         <Grid.ContextFlyout>
                             <MenuFlyout>
-                                <MenuFlyoutItem Click="OnOpenInNewTabClicked" Text="{x:Bind StringResource.OpenInNewTab}" />
+                                <MenuFlyoutItem Click="OnOpenInNewTabClicked" Text="{x:Bind StringResource.OpenInNewTab}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8A5;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
                                 <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Click="OnDeleteItemClicked" Text="{x:Bind StringResource.Delete}" />
+                                <MenuFlyoutItem Click="OnDeleteItemClicked" Text="{x:Bind StringResource.Delete}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE74D;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
                             </MenuFlyout>
                         </Grid.ContextFlyout>
 

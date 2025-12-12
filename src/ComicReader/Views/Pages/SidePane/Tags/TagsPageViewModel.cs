@@ -30,10 +30,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private ActionHandler _actionHandler = ActionHandler.Dummy;
-    private bool _updatingTags = false;
-    private bool _updatingTagsInvalidated = false;
-
     public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
     public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
     public readonly MutableLiveData<string> EditTagCategoryLiveData = new();
@@ -55,6 +51,20 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool _selectionMode = false;
+    public bool SelectionMode
+    {
+        get => _selectionMode;
+        set
+        {
+            _selectionMode = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectionMode)));
+        }
+    }
+
+    private ActionHandler _actionHandler = ActionHandler.Dummy;
+    private bool _updatingTags = false;
+    private bool _updatingTagsInvalidated = false;
     private string _searchText = string.Empty;
     private bool _searchSubmitted = false;
 
@@ -125,7 +135,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             from.Description = to.Description;
             from.CanExpand = to.CanExpand;
             from.OnClick = to.OnClick;
-            from.OnRequestContextFlyoutAsync = to.OnRequestContextFlyoutAsync;
+            from.RequestContextFlyoutAsync = to.RequestContextFlyoutAsync;
             DiffUtils.UpdateCollection(from.Children, to.Children, (a, b) => a.Title == b.Title, UpdateItem);
         }
 
@@ -135,7 +145,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
     private async Task<List<TagNodeViewModel>> GenerateNodeTree()
     {
-        Dictionary<long, TagCateogryModel> tagCategoryMapper = [];
+        Dictionary<long, TagCateogryEntry> tagCategoryMapper = [];
         await ComicData.Enqueue("UpdateTags", () =>
         {
             {
@@ -162,7 +172,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 {
                     string content = contentToken.GetValue();
                     long categoryId = categoryIdToken.GetValue();
-                    if (tagCategoryMapper.TryGetValue(categoryId, out TagCateogryModel? tagCategoryModel))
+                    if (tagCategoryMapper.TryGetValue(categoryId, out TagCateogryEntry? tagCategoryModel))
                     {
                         tagCategoryModel.Tags.Add(content);
                     }
@@ -172,16 +182,16 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             return true;
         });
 
-        Dictionary<string, Dictionary<string, TagModel>> tagCategoryMap = [];
-        TagModel PutTag(string tagCategory, string tag)
+        Dictionary<string, Dictionary<string, TagEntry>> tagCategoryMap = [];
+        TagEntry PutTag(string tagCategory, string tag)
         {
-            if (!tagCategoryMap.TryGetValue(tagCategory, out Dictionary<string, TagModel>? tags))
+            if (!tagCategoryMap.TryGetValue(tagCategory, out Dictionary<string, TagEntry>? tags))
             {
                 tags = [];
                 tagCategoryMap[tagCategory] = tags;
             }
 
-            if (!tags.TryGetValue(tag, out TagModel? tagModel))
+            if (!tags.TryGetValue(tag, out TagEntry? tagModel))
             {
                 tagModel = new();
                 tags[tag] = tagModel;
@@ -191,11 +201,11 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         }
 
         HashSet<long> requestingComicIds = [];
-        foreach (TagCateogryModel tagCategoryModel in tagCategoryMapper.Values)
+        foreach (TagCateogryEntry tagCategoryModel in tagCategoryMapper.Values)
         {
             foreach (string tag in tagCategoryModel.Tags)
             {
-                TagModel tagModel = PutTag(tagCategoryModel.Name, tag);
+                TagEntry tagModel = PutTag(tagCategoryModel.Name, tag);
                 tagModel.ComicIds.Add(tagCategoryModel.ComicId);
                 requestingComicIds.Add(tagCategoryModel.ComicId);
             }
@@ -226,41 +236,47 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         tagCategories.Sort();
         foreach (string tagCategory in tagCategories)
         {
-            Dictionary<string, TagModel> tagMap = tagCategoryMap[tagCategory];
+            Dictionary<string, TagEntry> tagMap = tagCategoryMap[tagCategory];
             List<string> tags = [.. tagMap.Keys];
             tags.Sort();
 
+            TagCateogryModel tagCategoryModel = new(tagCategory);
             TagNodeViewModel tagCategoryNode = new()
             {
+                DataContext = tagCategoryModel,
                 Title = tagCategory,
                 CanExpand = true,
                 Expanded = true,
-                OnRequestContextFlyoutAsync = () =>
+                RequestContextFlyoutAsync = selectedItems =>
                 {
-                    List<BaseMenuFlyoutItemViewModel> result = CreateTagCategoryMenuItems(tagCategory);
+                    IEnumerable<TagCateogryModel> selectedModels = selectedItems.Where(x => x.DataContext is TagCateogryModel).Select(x => (TagCateogryModel)x.DataContext!);
+                    List<BaseMenuFlyoutItemViewModel> result = CreateTagCategoryMenuItems(tagCategoryModel, selectedModels);
                     return Task.FromResult(result);
                 },
             };
 
             foreach (string tag in tags)
             {
-                TagModel tagModel = tagMap[tag];
+                TagEntry tagEntry = tagMap[tag];
                 bool tagMatched = MatchSearchText(tag);
 
+                TagModel tagModel = new(tagCategory, tag);
                 TagNodeViewModel tagNode = new()
                 {
+                    DataContext = tagModel,
                     Glyph = "\uE8EC",
                     Title = tag,
                     CanExpand = true,
                     Expanded = false,
-                    OnRequestContextFlyoutAsync = () =>
+                    RequestContextFlyoutAsync = selectedItems =>
                     {
-                        return CreateTagMenuItems(tagCategory, tag);
+                        IEnumerable<TagModel> selectedModels = selectedItems.Where(x => x.DataContext is TagModel).Select(x => (TagModel)x.DataContext!);
+                        return CreateTagMenuItems(tagModel, selectedModels);
                     },
                 };
 
                 List<TagNodeViewModel> tagChildren = [];
-                foreach (long comicId in tagModel.ComicIds)
+                foreach (long comicId in tagEntry.ComicIds)
                 {
                     if (!comicMap.TryGetValue(comicId, out ComicModel? comic))
                     {
@@ -274,6 +290,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
                     TagNodeViewModel comicNode = new()
                     {
+                        DataContext = comic,
                         Glyph = "\uE8B9",
                         Title = comic.Title,
                         CanExpand = false,
@@ -283,9 +300,10 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                                 .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
                             OpenInCurrentTabLiveData.Emit(route);
                         },
-                        OnRequestContextFlyoutAsync = () =>
+                        RequestContextFlyoutAsync = selectedItems =>
                         {
-                            return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler);
+                            IEnumerable<ComicModel> selectedComics = selectedItems.Where(x => x.DataContext is ComicModel).Select(x => (ComicModel)x.DataContext!);
+                            return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler, selectedComics, canSelect: !SelectionMode);
                         },
                     };
 
@@ -317,15 +335,21 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         return dataSource;
     }
 
-    private List<BaseMenuFlyoutItemViewModel> CreateTagCategoryMenuItems(string tagCategory)
+    private List<BaseMenuFlyoutItemViewModel> CreateTagCategoryMenuItems(TagCateogryModel primaryItem, IEnumerable<TagCateogryModel> selectedItems)
     {
+        if (!selectedItems.Any(x => x.Name == primaryItem.Name))
+        {
+            selectedItems = [primaryItem];
+        }
+
         List<BaseMenuFlyoutItemViewModel> items = [];
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
+            Glyph = "\uE70F",
             OnClick = () =>
             {
-                EditTagCategoryLiveData.Emit(tagCategory);
+                EditTagCategoryLiveData.Emit(primaryItem.Name);
             },
         });
 
@@ -333,31 +357,51 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
+            Glyph = "\uE74D",
             OnClick = () =>
             {
-                _ = TagCategoryInfoModel.Delete(tagCategory);
+                CoroutineUtils.Start(async () =>
+                {
+                    foreach (TagCateogryModel item in selectedItems)
+                    {
+                        await TagCategoryInfoModel.Delete(item.Name);
+                    }
+                });
             },
         });
+
+        if (!SelectionMode)
+        {
+            items.Add(new MenuFlyoutSeperatorViewModel());
+            items.Add(MenuFlyoutItemsCreator.CreateSelectMenuItem(_actionHandler));
+        }
 
         return items;
     }
 
-    private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagMenuItems(string tagCategory, string tag)
+    private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagMenuItems(TagModel primaryItem, IEnumerable<TagModel> selectedItems)
     {
+        if (!selectedItems.Any(x => x.Name == primaryItem.Name))
+        {
+            selectedItems = [primaryItem];
+        }
+
         List<BaseMenuFlyoutItemViewModel> items = [];
 
         items.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Links)
         {
-            Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(tagCategory, tag, _actionHandler),
+            Glyph = "\uE71B",
+            Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(primaryItem.CategoryName, primaryItem.Name, _actionHandler),
         });
 
         items.Add(new MenuFlyoutSeperatorViewModel());
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
+            Glyph = "\uE70F",
             OnClick = () =>
             {
-                EditTagLiveData.Emit(new(tagCategory, tag));
+                EditTagLiveData.Emit(new(primaryItem.CategoryName, primaryItem.Name));
             },
         });
 
@@ -365,24 +409,48 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
+            Glyph = "\uE74D",
             OnClick = () =>
             {
-                _ = TagInfoModel.Delete(tagCategory, tag);
+                CoroutineUtils.Start(async () =>
+                {
+                    foreach (TagModel item in selectedItems)
+                    {
+                        await TagInfoModel.Delete(item.CategoryName, item.Name);
+                    }
+                });
             },
         });
+
+        if (!SelectionMode)
+        {
+            items.Add(new MenuFlyoutSeperatorViewModel());
+            items.Add(MenuFlyoutItemsCreator.CreateSelectMenuItem(_actionHandler));
+        }
 
         return items;
     }
 
-    private class TagCateogryModel(string name, long comicId)
+    private class TagCateogryEntry(string name, long comicId)
     {
         public string Name { get; } = name;
         public long ComicId { get; } = comicId;
         public HashSet<string> Tags { get; } = [];
     }
 
-    private class TagModel
+    private class TagEntry
     {
         public HashSet<long> ComicIds { get; } = [];
+    }
+
+    private class TagCateogryModel(string name)
+    {
+        public string Name { get; } = name;
+    }
+
+    private class TagModel(string categoryName, string name)
+    {
+        public string CategoryName { get; } = categoryName;
+        public string Name { get; } = name;
     }
 }

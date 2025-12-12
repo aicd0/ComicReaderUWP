@@ -1,9 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 
 using ComicReader.Common;
@@ -45,7 +42,7 @@ internal sealed partial class SearchPage : BasePage
     {
         base.OnStart(bundle);
 
-        PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(this)));
+        PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(ViewModel)));
 
         _keyword = bundle.GetString(RouterConstants.ARG_KEYWORD, "");
 
@@ -104,15 +101,14 @@ internal sealed partial class SearchPage : BasePage
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
     {
-        var item = args.Item as ComicItemViewModel;
-        var viewHolder = args.ItemContainer.ContentTemplateRoot as ComicItemHorizontal;
-
+        var viewHolder = (ComicItemHorizontal)args.ItemContainer.ContentTemplateRoot;
         if (args.InRecycleQueue)
         {
             viewHolder.Unbind();
         }
         else
         {
+            var item = (ComicItemViewModel)args.Item;
             viewHolder.Bind(item);
         }
     }
@@ -193,23 +189,20 @@ internal sealed partial class SearchPage : BasePage
 
     private IMainPageAbility GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>();
+        return GetAbility<IMainPageAbility>()!;
     }
 
     private INavigationPageAbility GetNavigationPageAbility()
     {
-        return GetAbility<INavigationPageAbility>();
+        return GetAbility<INavigationPageAbility>()!;
     }
 
     //
     // Types
     //
 
-    private class CustomActionHandler(SearchPage page) : CustomActionProvider.IHandler
+    private class CustomActionHandler(SearchPageViewModel viewModel) : CustomActionProvider.IHandler
     {
-        private readonly WeakReference<SearchPage> _pageRef = new(page);
-        private readonly SearchPageViewModel _viewModel = page.ViewModel;
-
         public void Handle(string source, string name, IReadOnlyList<string> args)
         {
             bool handled = true;
@@ -219,7 +212,7 @@ internal sealed partial class SearchPage : BasePage
                     switch (name)
                     {
                         case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
-                            _viewModel.SetSelectMode(true);
+                            viewModel.SetSelectMode(true);
                             break;
                         default:
                             handled = false;
