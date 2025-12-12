@@ -1369,6 +1369,9 @@ internal partial class ReaderView : UserControl
         else if (velocity < -1.0)
         {
             MoveFrameByUser("MoveToNextPageUsingManipulation", 1);
+
+            // Page turning in seperate mode starts auto scrolling
+            StartAutoScrolling();
         }
     }
 
@@ -1812,12 +1815,6 @@ internal partial class ReaderView : UserControl
     private void MoveFrameByUser(string reason, int increment)
     {
         MoveFrameInternal(reason, ScrollSource.User, increment);
-
-        if (!_isContinuous && increment > 0)
-        {
-            // Page turning in seperate mode starts auto scrolling
-            StartAutoScrolling();
-        }
     }
 
     private void MoveFrameInternal(string reason, ScrollSource source, int increment)
