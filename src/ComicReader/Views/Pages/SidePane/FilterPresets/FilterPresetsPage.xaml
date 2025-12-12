@@ -38,7 +38,10 @@
                 </DropDownButton.Content>
             </DropDownButton>
         </StackPanel>
-        <controls:SimpleTreeView Grid.Row="1" DataSource="{x:Bind ViewModel.DataSource}" />
+        <controls:SimpleTreeView
+            Grid.Row="1"
+            DataSource="{x:Bind ViewModel.DataSource}"
+            SelectionMode="{x:Bind ViewModel.SelectionMode, Mode=TwoWay}" />
     </Grid>
 
 </base:BasePage>

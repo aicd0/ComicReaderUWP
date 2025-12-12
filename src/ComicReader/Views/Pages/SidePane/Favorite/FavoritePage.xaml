@@ -30,12 +30,32 @@
                         <MenuFlyoutItem
                             Click="OpenInNewTabClick"
                             Text="{x:Bind StringResource.OpenInNewTab}"
-                            Visibility="{x:Bind IsItem, Mode=OneWay}" />
-                        <MenuFlyoutItem x:Uid="MenuFlyoutCreateNewFolder" Click="NewFolderClick" />
-                        <MenuFlyoutItem x:Uid="MenuFlyoutSortByName" Click="SortByNameClick" />
-                        <MenuFlyoutItem x:Uid="MenuFlyoutRename" Click="RenameClick" />
+                            Visibility="{x:Bind IsItem, Mode=OneWay}">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE8A5;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Uid="MenuFlyoutCreateNewFolder" Click="NewFolderClick">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE8F4;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Uid="MenuFlyoutSortByName" Click="SortByNameClick">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE8CB;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Uid="MenuFlyoutRename" Click="RenameClick">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE8AC;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
                         <MenuFlyoutSeparator />
-                        <MenuFlyoutItem Click="DeleteClick" Text="{x:Bind StringResource.Delete}" />
+                        <MenuFlyoutItem Click="DeleteClick" Text="{x:Bind StringResource.Delete}">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE74D;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
                     </MenuFlyout>
                 </muxc:TreeViewItem.ContextFlyout>
                 <Grid>
@@ -118,8 +138,16 @@
             PointerPressed="MainTreeViewBackgroundPressed">
             <muxc:TreeView.ContextFlyout>
                 <MenuFlyout>
-                    <MenuFlyoutItem x:Uid="MenuFlyoutCreateNewFolder" Click="RootNewFolderClick" />
-                    <MenuFlyoutItem x:Uid="MenuFlyoutSortByName" Click="RootSortByNameClick" />
+                    <MenuFlyoutItem x:Uid="MenuFlyoutCreateNewFolder" Click="RootNewFolderClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE8F4;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem x:Uid="MenuFlyoutSortByName" Click="RootSortByNameClick">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE8CB;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
                 </MenuFlyout>
             </muxc:TreeView.ContextFlyout>
         </muxc:TreeView>

@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,13 +25,26 @@ using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Pages.SidePane.FilterPresets;
 
-internal class FilterPresetsPageViewModel
+internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 {
     private const int SEARCH_DELAY = 200;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public readonly MutableLiveData<DropDownButtonModel> FilterPresetDropDownLiveData = new();
 
     public ObservableCollection<TagNodeViewModel> DataSource { get; set; } = [];
+
+    public bool _selectionMode = false;
+    public bool SelectionMode
+    {
+        get => _selectionMode;
+        set
+        {
+            _selectionMode = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectionMode)));
+        }
+    }
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ComicSearchEngine _searchEngine = new();
@@ -159,6 +174,7 @@ internal class FilterPresetsPageViewModel
             {
                 return new()
                 {
+                    DataContext = comic,
                     Glyph = "\uE8B9",
                     Title = comic.Title,
                     CanExpand = false,
@@ -172,9 +188,10 @@ internal class FilterPresetsPageViewModel
                             .Build();
                         _actionHandler.Handle(actionModel);
                     },
-                    OnRequestContextFlyoutAsync = () =>
+                    RequestContextFlyoutAsync = selectedItems =>
                     {
-                        return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler);
+                        IEnumerable<ComicModel> selectedComics = selectedItems.Where(x => x.DataContext is ComicModel).Select(x => (ComicModel)x.DataContext!);
+                        return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler, selectedComics, canSelect: !SelectionMode);
                     },
                 };
             }
@@ -191,6 +208,10 @@ internal class FilterPresetsPageViewModel
                         CanExpand = true,
                         Expanded = false,
                         Description = item.Description,
+                        RequestContextFlyoutAsync = selectedItems =>
+                        {
+                            return Task.FromResult(CreateGroupMenuItems());
+                        }
                     };
 
                     List<TagNodeViewModel> nodeChildren = [];
@@ -220,13 +241,25 @@ internal class FilterPresetsPageViewModel
                     from.Description = to.Description;
                     from.CanExpand = to.CanExpand;
                     from.OnClick = to.OnClick;
-                    from.OnRequestContextFlyoutAsync = to.OnRequestContextFlyoutAsync;
+                    from.RequestContextFlyoutAsync = to.RequestContextFlyoutAsync;
                     DiffUtils.UpdateCollection(from.Children, to.Children, (a, b) => a.Title == b.Title, UpdateItem);
                 }
 
                 DiffUtils.UpdateCollection(DataSource, dataSource, (x, y) => x.Title == y.Title, UpdateItem);
             });
         });
+    }
+
+    private List<BaseMenuFlyoutItemViewModel> CreateGroupMenuItems()
+    {
+        List<BaseMenuFlyoutItemViewModel> items = [];
+
+        if (!SelectionMode)
+        {
+            items.Add(MenuFlyoutItemsCreator.CreateSelectMenuItem(_actionHandler));
+        }
+
+        return items;
     }
 
     public class DropDownButtonModel

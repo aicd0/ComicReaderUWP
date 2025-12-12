@@ -24,7 +24,8 @@
                 AllowDrop="False"
                 AutomationProperties.Name="{x:Bind Title}"
                 IsExpanded="{x:Bind Expanded, Mode=TwoWay}"
-                ItemsSource="{x:Bind Children}">
+                ItemsSource="{x:Bind Children}"
+                Tapped="TreeViewItem_Tapped">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -73,9 +74,13 @@
     </base:BaseUserControl.Resources>
 
     <muxc:TreeView
+        x:Name="MainTreeView"
+        CanDragItems="False"
+        CanReorderItems="False"
         ContextRequested="TreeView_ContextRequested"
         ItemInvoked="TreeView_ItemInvoked"
         ItemTemplate="{StaticResource NormalTemplate}"
-        ItemsSource="{x:Bind DataSource, Mode=OneWay}" />
+        ItemsSource="{x:Bind DataSource, Mode=OneWay}"
+        Tapped="TreeView_Tapped" />
 
 </base:BaseUserControl>

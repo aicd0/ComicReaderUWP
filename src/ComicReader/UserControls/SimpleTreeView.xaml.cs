@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -18,7 +19,7 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ObservableCollection<TagNodeViewModel> _dataSource { get; set; } = [];
+    public ObservableCollection<TagNodeViewModel> _dataSource = [];
     public ObservableCollection<TagNodeViewModel> DataSource
     {
         get => _dataSource;
@@ -26,6 +27,25 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
         {
             _dataSource = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DataSource)));
+        }
+    }
+
+    public bool SelectionMode
+    {
+        get { return (bool)GetValue(SelectionModeProperty); }
+        set { SetValue(SelectionModeProperty, value); }
+    }
+    public static readonly DependencyProperty SelectionModeProperty =
+        DependencyProperty.Register(nameof(SelectionMode), typeof(bool), typeof(SimpleTreeView), new PropertyMetadata(false, OnSelectionModeChanged));
+
+    private static void OnSelectionModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var self = (SimpleTreeView)d;
+        bool selectionMode = self.SelectionMode;
+        self.MainTreeView.SelectionMode = selectionMode ? TreeViewSelectionMode.Multiple : TreeViewSelectionMode.Single;
+        if (selectionMode)
+        {
+            self.MainTreeView.SelectedItems.Clear();
         }
     }
 
@@ -42,8 +62,19 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
 
     private void TreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
     {
+        SelectionMode = false;
         var item = (TagNodeViewModel)args.InvokedItem;
         item.OnClick?.Invoke();
+    }
+
+    private void TreeView_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        SelectionMode = false;
+    }
+
+    private void TreeViewItem_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        e.Handled = true;
     }
 
     private async void TreeView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
@@ -58,7 +89,13 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
             return;
         }
 
-        FlyoutBase? flyout = await viewModel.CreateContextFlyout();
+        List<TagNodeViewModel> selectedItems = [];
+        foreach (object? item in MainTreeView.SelectedItems)
+        {
+            selectedItems.Add((TagNodeViewModel)item);
+        }
+
+        FlyoutBase? flyout = await viewModel.CreateContextFlyout(selectedItems);
         if (flyout is null)
         {
             return;
