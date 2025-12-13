@@ -18,6 +18,7 @@ using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 using ComicReader.Views.AppWindows.Main;
@@ -33,7 +34,6 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 
 using Windows.Storage;
-using Windows.Win32;
 
 namespace ComicReader.Views.Pages.Reader;
 
@@ -661,10 +661,15 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         _readerPointerEntered = false;
-        if (IsPointerInsideWindow())
+
+        // Post detection to allow routed event to be dispatched to root
+        MainThreadUtils.PostInMainThread(() =>
         {
-            ShowBottomTile();
-        }
+            if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow())
+            {
+                ShowBottomTile();
+            }
+        });
     }
 
     private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)
@@ -726,24 +731,6 @@ internal sealed partial class ReaderPage : BasePage
     private INavigationPageAbility GetNavigationPageAbility()
     {
         return GetAbility<INavigationPageAbility>()!;
-    }
-
-    private bool IsPointerInsideWindow()
-    {
-        MainWindow? window = App.Instance.WindowManager.GetWindow(WindowId);
-        if (window is null)
-        {
-            return true;
-        }
-
-        Windows.Win32.Foundation.HWND hWnd = new(window.WindowHandle);
-        PInvoke.GetCursorPos(out System.Drawing.Point pos);
-        PInvoke.ScreenToClient(hWnd, ref pos);
-        PInvoke.GetClientRect(hWnd, out Windows.Win32.Foundation.RECT rect);
-        bool inside =
-            pos.X >= rect.left && pos.X < rect.right &&
-            pos.Y >= rect.top && pos.Y < rect.bottom;
-        return inside;
     }
 
     private static async Task<ComicModel?> GetTargetComic(PageBundle bundle)

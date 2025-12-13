@@ -187,16 +187,53 @@ internal sealed partial class MainWindow : Window
 
     private void SubscribeEvents()
     {
-        PageFrame.Loaded += OnPageFrameLoaded;
         Closed += OnWindowClosed;
         SizeChanged += OnWindowSizeChanged;
+        PageFrame.Loaded += OnPageFrameLoaded;
+        PageFrame.PointerEntered += OnPageFramePointerEntered;
+        PageFrame.PointerExited += OnPageFramePointerExited;
     }
 
     private void UnsubscribeEvents()
     {
-        PageFrame.Loaded -= OnPageFrameLoaded;
         Closed -= OnWindowClosed;
         SizeChanged -= OnWindowSizeChanged;
+        PageFrame.Loaded -= OnPageFrameLoaded;
+        PageFrame.PointerEntered -= OnPageFramePointerEntered;
+        PageFrame.PointerExited -= OnPageFramePointerExited;
+    }
+
+    private void OnWindowClosed(object sender, WindowEventArgs args)
+    {
+        bool isLastWindow = App.Instance.WindowManager.GetAllWindowInfo().Count == 1;
+        if (isLastWindow)
+        {
+            ApplicationService.StartShuttingDown();
+        }
+
+        // Mark the end of the window lifecycle
+        Alive = false;
+
+        // Close all tabs and dispatch page stopped event
+        Members._mainPage!.CloseAllTabs();
+        Members._mainWindowAbility.GetLifecycleAbility().SetCustomState("Window", ILifecycle.State.Stopped);
+
+        // Unsubscribe window events
+        UnsubscribeEvents();
+
+        // Unregister message loop
+        UnregisterMessageLoop();
+
+        // Unregister window from WindowManager
+        App.Instance.WindowManager.UnregisterWindow(WindowId);
+
+        // Dereference all members
+        _members = null;
+        PageFrame.Content = null;
+        PageFrame = null;
+        WindowHandle = IntPtr.Zero;
+
+        App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
     private void OnWindowSizeChanged(object sender, WindowSizeChangedEventArgs args)
@@ -258,37 +295,14 @@ internal sealed partial class MainWindow : Window
         LaunchPerformanceTracker.MarkTabRestored();
     }
 
-    private void OnWindowClosed(object sender, WindowEventArgs args)
+    private void OnPageFramePointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        bool isLastWindow = App.Instance.WindowManager.GetAllWindowInfo().Count == 1;
-        if (isLastWindow)
-        {
-            ApplicationService.StartShuttingDown();
-        }
+        Members._pointerInWindow = true;
+    }
 
-        // Mark the end of the window lifecycle
-        Alive = false;
-
-        // Close all tabs and dispatch page stopped event
-        Members._mainPage!.CloseAllTabs();
-        Members._mainWindowAbility.GetLifecycleAbility().SetCustomState("Window", ILifecycle.State.Stopped);
-
-        // Unsubscribe window events
-        UnsubscribeEvents();
-
-        // Unregister message loop
-        UnregisterMessageLoop();
-
-        // Unregister window from WindowManager
-        App.Instance.WindowManager.UnregisterWindow(WindowId);
-
-        // Dereference all members
-        _members = null;
-        PageFrame.Content = null;
-        PageFrame = null;
-        WindowHandle = IntPtr.Zero;
-
-        App.Instance.WindowManager.ScheduleSaveWindowStatus();
+    private void OnPageFramePointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        Members._pointerInWindow = false;
     }
 
     //
@@ -415,6 +429,11 @@ internal sealed partial class MainWindow : Window
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
         private readonly MutableLiveData<bool> _fullscreenChangeLiveData = new(false);
 
+        public bool PointerInWindow()
+        {
+            return GetWindow()?.Members?._pointerInWindow ?? false;
+        }
+
         public void EnterFullscreen()
         {
             GetWindow()?.EnterOrExitFullscreen(true);
@@ -479,6 +498,7 @@ internal sealed partial class MainWindow : Window
         public readonly MainWindowAbility _mainWindowAbility = new(window);
         public bool _fullscreen = false;
         public bool _requestRestorePlacement = false;
+        public bool _pointerInWindow = false;
         public WindowPlacementManager _windowPlacementManager = new(window);
     }
 
