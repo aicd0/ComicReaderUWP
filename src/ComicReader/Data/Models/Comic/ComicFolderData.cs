@@ -221,6 +221,7 @@ internal partial class ComicFolderData : ComicData
         return new ComicFolderData(directory, true)
         {
             _imageFiles = imageFiles,
+            Title1 = Path.GetFileName(directory),
         };
     }
 

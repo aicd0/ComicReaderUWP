@@ -272,11 +272,13 @@ internal sealed class ComicModel
         {
             return _idPool.GetOrAdd(model.Id, model);
         }
+
         if (!model.IsExternal)
         {
             // This should never happen, as all comics in the database should have an ID.
             Logger.AssertNotReachHere("C1A98069CD40CC1A");
         }
+
         return _locationPool.GetOrAdd(model.Location, model);
     }
 
@@ -290,11 +292,13 @@ internal sealed class ComicModel
         {
             return model;
         }
+
         ComicData? comicData = await ComicData.FromId(id, taskName);
         if (comicData == null)
         {
             return null;
         }
+
         return ReplaceWithExisting(comicData);
     }
 
