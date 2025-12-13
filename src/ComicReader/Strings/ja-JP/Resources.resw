@@ -764,18 +764,15 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>タグを適切に使うことで、ライブラリを整理しやすくなります。例：
 カテゴリー1: タグ1, タグ2, タグ3
-カテゴリー2: タグ4, タグ5
-…</value>
+カテゴリー2: タグ4, タグ5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
     <value>（このドキュメントは機械翻訳されている場合があります）
 
 特殊変数：
 
-{%tag}                  - タグ名に置換
-{%tag_category}         - タグカテゴリに置換
-{%tag_escaped}          - エスケープされたタグ名に置換
-{%tag_category_escaped} - エスケープされたタグカテゴリに置換</value>
+{%tag}          - エスケープされたタグ名に置換
+{%tag_category} - エスケープされたタグカテゴリに置換</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>ラベル</value>

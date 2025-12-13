@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -63,6 +64,17 @@ internal class TagLinkModel
     {
         public string Name { get; set; } = string.Empty;
         public string Link { get; set; } = string.Empty;
+
+        public void ReplaceTagVariables(string tagCategory, string tag)
+        {
+            string tagEscaped = Uri.EscapeDataString(tag);
+            string tagCategoryEscaped = Uri.EscapeDataString(tagCategory);
+            Link = Link
+                .Replace("{%tag}", tagEscaped)
+                .Replace("{%tag_category}", tagCategoryEscaped)
+                .Replace("{%tag_escaped}", tagEscaped)
+                .Replace("{%tag_category_escaped}", tagCategoryEscaped);
+        }
     }
 
     public string Serialize()
