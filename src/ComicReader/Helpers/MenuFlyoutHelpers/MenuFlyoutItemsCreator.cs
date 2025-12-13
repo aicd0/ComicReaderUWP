@@ -230,7 +230,31 @@ internal static class MenuFlyoutItemsCreator
 
     public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagLinkMenuItems(string tagCategory, string tag, ActionHandler actionHandler)
     {
-        List<TagLinkModel.LinkModel> links = await GetTagLinks(tagCategory, tag);
+        Dictionary<string, TagLinkModel.LinkModel> linkMap = [];
+
+        TagCategoryInfoModel? tagCategoryInfo = await TagCategoryInfoModel.Get(tagCategory);
+        if (tagCategoryInfo is not null)
+        {
+            var linkModel = TagLinkModel.Parse(tagCategoryInfo.GetExt(TagCategoryInfoExt.LINKS));
+            foreach (TagLinkModel.LinkModel item in linkModel.Links)
+            {
+                item.ReplaceTagVariables(tagCategory, tag);
+                linkMap[item.Name] = item;
+            }
+        }
+
+        TagInfoModel? tagInfo = await TagInfoModel.Get(tagCategory, tag);
+        if (tagInfo is not null)
+        {
+            var linkModel = TagLinkModel.Parse(tagInfo.GetExt(TagInfoExt.LINKS));
+            foreach (TagLinkModel.LinkModel item in linkModel.Links)
+            {
+                item.ReplaceTagVariables(tagCategory, tag);
+                linkMap[item.Name] = item;
+            }
+        }
+
+        List<TagLinkModel.LinkModel> links = [.. linkMap.Values];
         links.Sort((a, b) => a.Name.CompareTo(b.Name));
         return CreateLinkMenuItems(actionHandler, links);
     }
@@ -308,63 +332,49 @@ internal static class MenuFlyoutItemsCreator
 
     private static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicLinkMenuItems(ComicModel comic, ActionHandler actionHandler)
     {
-        List<TagLinkModel.LinkModel> links = [];
+        Dictionary<string, TagLinkModel.LinkModel> linkMap = [];
+
+        foreach (ComicData.TagData tagData in comic.Tags)
+        {
+            string tagCategory = tagData.Name;
+            TagCategoryInfoModel? tagCategoryInfo = await TagCategoryInfoModel.Get(tagCategory);
+            List<TagLinkModel.LinkModel> tagCategoryLinks = tagCategoryInfo is null ? [] :
+                TagLinkModel.Parse(tagCategoryInfo.GetExt(TagCategoryInfoExt.LINKS)).Links;
+            foreach (string tag in tagData.Tags)
+            {
+                TagInfoModel? tagInfo = await TagInfoModel.Get(tagCategory, tag);
+                if (tagInfo is not null)
+                {
+                    foreach (TagLinkModel.LinkModel item in tagCategoryLinks)
+                    {
+                        item.Name = $"{item.Name} ({tag})";
+                        item.ReplaceTagVariables(tagCategory, tag);
+                        linkMap[item.Name] = item;
+                    }
+
+                    var linkModel = TagLinkModel.Parse(tagInfo.GetExt(TagInfoExt.LINKS));
+                    foreach (TagLinkModel.LinkModel item in linkModel.Links)
+                    {
+                        item.Name = $"{item.Name} ({tag})";
+                        item.ReplaceTagVariables(tagCategory, tag);
+                        linkMap[item.Name] = item;
+                    }
+                }
+            }
+        }
 
         {
             string? linkJson = comic.GetExt(ComicExt.LINKS);
             var linkModel = TagLinkModel.Parse(linkJson);
-            linkModel.Links.Sort((a, b) => a.Name.CompareTo(b.Name));
-            links.AddRange(linkModel.Links);
-        }
-
-        foreach (ComicData.TagData tagData in comic.Tags)
-        {
-            foreach (string tag in tagData.Tags)
+            foreach (TagLinkModel.LinkModel item in linkModel.Links)
             {
-                List<TagLinkModel.LinkModel> tagLinks = await GetTagLinks(tagData.Name, tag);
-                foreach (TagLinkModel.LinkModel link in tagLinks)
-                {
-                    link.Name = $"{link.Name} ({tag})";
-                }
-
-                tagLinks.Sort((a, b) => a.Name.CompareTo(b.Name));
-                links.AddRange(tagLinks);
+                linkMap[item.Name] = item;
             }
         }
 
+        List<TagLinkModel.LinkModel> links = [.. linkMap.Values];
+        links.Sort((a, b) => a.Name.CompareTo(b.Name));
         return CreateLinkMenuItems(actionHandler, links);
-    }
-
-    private static async Task<List<TagLinkModel.LinkModel>> GetTagLinks(string tagCategory, string tag)
-    {
-        TagCategoryInfoModel? tagCategoryInfo = await TagCategoryInfoModel.Get(tagCategory);
-        TagInfoModel? tagInfo = await TagInfoModel.Get(tagCategory, tag);
-        List<TagLinkModel.LinkModel> links = [];
-
-        if (tagCategoryInfo != null)
-        {
-            var linkModel = TagLinkModel.Parse(tagCategoryInfo.GetExt(TagCategoryInfoExt.LINKS));
-            links.AddRange(linkModel.Links);
-        }
-
-        if (tagInfo != null)
-        {
-            var linkModel = TagLinkModel.Parse(tagInfo.GetExt(TagInfoExt.LINKS));
-            links.AddRange(linkModel.Links);
-        }
-
-        foreach (TagLinkModel.LinkModel link in links)
-        {
-            string tagEscaped = Uri.EscapeDataString(tag);
-            string tagCategoryEscaped = Uri.EscapeDataString(tagCategory);
-            link.Link = link.Link
-                .Replace("{%tag}", tag)
-                .Replace("{%tag_category}", tagCategory)
-                .Replace("{%tag_escaped}", tagEscaped)
-                .Replace("{%tag_category_escaped}", tagCategoryEscaped);
-        }
-
-        return links;
     }
 
     private static List<BaseMenuFlyoutItemViewModel> CreateLinkMenuItems(ActionHandler actionHandler, List<TagLinkModel.LinkModel> links)

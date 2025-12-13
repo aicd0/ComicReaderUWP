@@ -764,18 +764,15 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>Die richtige Verwendung von Tags erleichtert die Organisation Ihrer Bibliothek. Beispiel:
 Kategorie 1: Tag 1, Tag 2, Tag 3
-Kategorie 2: Tag 4, Tag 5
-...</value>
+Kategorie 2: Tag 4, Tag 5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
     <value>(Dieses Dokument kann maschinell übersetzt sein.)
 
 Spezielle Variablen:
 
-{%tag}                  – Ersetzt durch Tag-Name
-{%tag_category}         – Ersetzt durch Tag-Kategorie
-{%tag_escaped}          – Ersetzt durch Escape-Tag-Name
-{%tag_category_escaped} – Ersetzt durch Escape-Tag-Kategorie</value>
+{%tag}          – Ersetzt durch Escape-Tag-Name
+{%tag_category} – Ersetzt durch Escape-Tag-Kategorie</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>Schlagwörter</value>

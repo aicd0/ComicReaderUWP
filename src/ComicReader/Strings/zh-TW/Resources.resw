@@ -764,18 +764,15 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>為漫畫添加標籤可以使您的倉庫更易於管理，例如：
 類別1: 標籤1, 標籤2, 標籤3
-類別2: 標籤4, 標籤5
-…</value>
+類別2: 標籤4, 標籤5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
     <value>（本文檔可能由機器翻譯）
 
 特殊變數：
 
-{%tag}                  - 替換為標籤名稱
-{%tag_category}         - 替換為標籤類別
-{%tag_escaped}          - 替換為轉義標籤名稱
-{%tag_category_escaped} - 替換為轉義標籤類別</value>
+{%tag}          - 替換為轉義標籤名稱
+{%tag_category} - 替換為轉義標籤類別</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>標籤</value>

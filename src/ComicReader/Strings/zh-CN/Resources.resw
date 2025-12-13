@@ -764,18 +764,15 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>为漫画添加标签可以使您的仓库更易于管理，例如：
 类别1: 标签1, 标签2, 标签3
-类别2: 标签4, 标签5
-...</value>
+类别2: 标签4, 标签5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
     <value>（本文档可能由机器翻译）
 
 特殊变量：
 
-{%tag}                  - 替换为标签名称
-{%tag_category}         - 替换为标签类别
-{%tag_escaped}          - 替换为转义标签名称
-{%tag_category_escaped} - 替换为转义标签类别</value>
+{%tag}          - 替换为转义标签名称
+{%tag_category} - 替换为转义标签类别</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>标签</value>
