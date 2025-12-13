@@ -188,6 +188,7 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnStop();
 
+        MainReaderView.Destory();
         ViewModel.CloseComicConnection();
     }
 
