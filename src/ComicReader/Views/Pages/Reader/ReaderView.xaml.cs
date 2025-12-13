@@ -54,7 +54,8 @@ internal partial class ReaderView : UserControl
     // Variables
     //
 
-    private bool _isLoaded;
+    private bool _isLoaded = false;
+    private bool _isDestoryed = false;
     private ReaderState _state = ReaderState.Idle;
     private bool _isVertical = true;
     private bool _isContinuous = true;
@@ -146,6 +147,24 @@ internal partial class ReaderView : UserControl
     public bool IsLastPage => PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1;
     public bool IsVertical => _isVertical;
     public bool IsAutoScrolling => _isAutoScrolling;
+
+    public void Destory()
+    {
+        if (_isDestoryed)
+        {
+            return;
+        }
+
+        _isDestoryed = true;
+        UpdateLoadedState();
+        _dataModelSession.Next();
+    }
+
+    public void StartLoadingImages(IEnumerable<IImageSource> images)
+    {
+        _originalDataModel = [.. images];
+        Reload(_originalDataModel);
+    }
 
     public void SetIsVertical(bool isVertical)
     {
@@ -256,12 +275,6 @@ internal partial class ReaderView : UserControl
         _internalDB = configDatabase is null ? null : new(configDatabase);
     }
 
-    public void StartLoadingImages(IEnumerable<IImageSource> images)
-    {
-        _originalDataModel = [.. images];
-        Reload(_originalDataModel);
-    }
-
     //
     // Loader
     //
@@ -271,7 +284,7 @@ internal partial class ReaderView : UserControl
 
     private void Reload(List<IImageSource> images)
     {
-        if (images.Count == 0)
+        if (images.Count == 0 || _isDestoryed)
         {
             return;
         }
@@ -866,6 +879,11 @@ internal partial class ReaderView : UserControl
 
     private void UpdateImages(string reason)
     {
+        if (!ComicLoaded)
+        {
+            return;
+        }
+
         int frame = PageToFrame(CurrentPageInt, out _, out _);
         int preloadWindowBegin = Math.Max(frame - PRELOAD_FRAMES_BEFORE, 0);
         int preloadWindowEnd = Math.Min(frame + PRELOAD_FRAMES_AFTER, FrameDataSource.Count - 1);
@@ -979,22 +997,22 @@ internal partial class ReaderView : UserControl
         bool viewLoaded = IsLoaded;
         bool lvLoaded = LvReader != null && LvReader.IsLoaded;
         bool svLoaded = SvReader != null && SvReader.IsLoaded;
-        bool isLoaded = viewLoaded && lvLoaded && svLoaded;
+        bool isLoaded = viewLoaded && lvLoaded && svLoaded && !_isDestoryed;
 
         if (_isLoaded == isLoaded)
         {
             return;
         }
-        _isLoaded = isLoaded;
 
+        _isLoaded = isLoaded;
         if (isLoaded)
         {
             UpdateUI();
             UpdateLoader("Loaded");
+            UpdateImages("Loaded");
         }
         else
         {
-            _dataModelSession.Next();
             _imagePool.Cancel();
             DisposeCursor();
             StopAutoScrolling();
