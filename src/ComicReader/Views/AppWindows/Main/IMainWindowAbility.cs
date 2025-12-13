@@ -10,6 +10,8 @@ internal interface IMainWindowAbility : IPageAbility
 {
     public delegate void FullscreenChangedEventHandler(bool isFullscreen);
 
+    bool PointerInWindow();
+
     void EnterFullscreen();
 
     void ExitFullscreen();
