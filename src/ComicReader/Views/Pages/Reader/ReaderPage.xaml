@@ -162,7 +162,6 @@
         <SplitView
             x:Name="InfoPane"
             Grid.Row="1"
-            Margin="0,0,-2,0"
             DisplayMode="Overlay"
             PaneBackground="{ThemeResource FlyoutPresenterBackground}"
             PaneClosed="InfoPane_PaneClosed"

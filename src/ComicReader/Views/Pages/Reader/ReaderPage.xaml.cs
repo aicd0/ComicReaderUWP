@@ -214,7 +214,7 @@ internal sealed partial class ReaderPage : BasePage
             Thickness margin = PreviewGridView.Margin;
             margin.Top = h;
             PreviewGridView.Margin = margin;
-            InfoPane.Margin = new Thickness(0, h, 0, 0);
+            InfoPane.Margin = new Thickness(0, h, -2, 0);
         });
 
         GetEventBus().With<double>(EventId.RightOverlayWidth).ObserveSticky(this, w =>
