@@ -38,6 +38,7 @@ internal sealed partial class DevToolsPage : BasePage
     protected override void OnStart(PageBundle bundle)
     {
         base.OnStart(bundle);
+
         GetMainPageAbility().SetTitle("Dev tools");
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Repair });
     }
@@ -45,6 +46,7 @@ internal sealed partial class DevToolsPage : BasePage
     protected override void OnResume()
     {
         base.OnResume();
+
         SetResult(null);
         RestoreConfig();
     }
@@ -75,6 +77,7 @@ internal sealed partial class DevToolsPage : BasePage
             SetResult(ex.ToString());
             return;
         }
+
         SetResult("Successfully applied");
         RestoreConfig();
     }

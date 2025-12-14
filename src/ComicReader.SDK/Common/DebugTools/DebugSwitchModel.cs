@@ -105,6 +105,8 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 
     private void UpdateConfig(JsonModel model)
     {
+        model.ConsoleWhitelist?.Sort();
+
         _config = model;
         InvalidateCache();
     }

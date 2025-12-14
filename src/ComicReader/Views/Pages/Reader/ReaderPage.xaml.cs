@@ -179,9 +179,16 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.ReloadReaderSettings();
         UpdateReaderUI();
 
-        // Take focus from sidebar
+        // Ensure focus on ReaderView
         GetMainPageAbility().SetSidePaneOpenState(false, force: false);
-        MainReaderView.Focus(FocusState.Programmatic);
+        MainThreadUtils.PostInMainThread(() =>
+        {
+            bool successful = MainReaderView.Focus(FocusState.Programmatic);
+            if (!successful)
+            {
+                Logger.E(TAG, $"Failed to acquire focus for ReaderView");
+            }
+        }, Microsoft.UI.Dispatching.DispatcherQueuePriority.Low);
     }
 
     protected override void OnStop()
