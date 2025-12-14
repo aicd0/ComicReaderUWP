@@ -178,10 +178,6 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.ReloadReaderSettings();
         UpdateReaderUI();
-
-        // Ensure focus on ReaderView
-        GetMainPageAbility().SetSidePaneOpenState(false, force: false);
-        TryFocus(MainReaderView);
     }
 
     protected override void OnStop()
@@ -455,6 +451,11 @@ internal sealed partial class ReaderPage : BasePage
 
         GMainSection.Visibility = previewVisible ? Visibility.Collapsed : Visibility.Visible;
         MainReaderView.SetVisibility(readerVisible);
+        if (readerVisible)
+        {
+            GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
+            TryFocus(MainReaderView);
+        }
     }
 
     private void UpdatePage()
