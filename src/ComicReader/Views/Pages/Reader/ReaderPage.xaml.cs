@@ -181,14 +181,7 @@ internal sealed partial class ReaderPage : BasePage
 
         // Ensure focus on ReaderView
         GetMainPageAbility().SetSidePaneOpenState(false, force: false);
-        MainThreadUtils.PostInMainThread(() =>
-        {
-            bool successful = MainReaderView.Focus(FocusState.Programmatic);
-            if (!successful)
-            {
-                Logger.E(TAG, $"Failed to acquire focus for ReaderView");
-            }
-        }, Microsoft.UI.Dispatching.DispatcherQueuePriority.Low);
+        TryFocus(MainReaderView);
     }
 
     protected override void OnStop()
@@ -738,6 +731,33 @@ internal sealed partial class ReaderPage : BasePage
     private INavigationPageAbility GetNavigationPageAbility()
     {
         return GetAbility<INavigationPageAbility>()!;
+    }
+
+    private static void TryFocus(UIElement element)
+    {
+        void helper(int attempts)
+        {
+            attempts++;
+            if (element.Focus(FocusState.Programmatic))
+            {
+                Logger.I(TAG, $"Acquired focus for {element.GetType().Name} after {attempts} attempts");
+                return;
+            }
+
+            if (attempts >= 10)
+            {
+                Logger.E(TAG, $"Failed to acquired focus for {element.GetType().Name} after {attempts} attempts");
+                return;
+            }
+
+            MainThreadUtils.PostInMainThreadAsync(async () =>
+            {
+                await Task.Delay(1);
+                helper(attempts);
+            }, Microsoft.UI.Dispatching.DispatcherQueuePriority.Low);
+        }
+
+        helper(0);
     }
 
     private static async Task<ComicModel?> GetTargetComic(PageBundle bundle)
