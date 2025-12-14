@@ -707,6 +707,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="SaveViewConfig" xml:space="preserve">
     <value>ビュー構成を保存</value>
   </data>
+  <data name="ScanOnLaunch" xml:space="preserve">
+    <value>起動時にスキャン</value>
+  </data>
   <data name="Search" xml:space="preserve">
     <value>検索する</value>
   </data>

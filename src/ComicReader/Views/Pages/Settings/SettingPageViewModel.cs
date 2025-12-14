@@ -49,6 +49,17 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _scanOnLaunch = true;
+    public bool ScanOnLaunch
+    {
+        get => _scanOnLaunch;
+        set
+        {
+            _scanOnLaunch = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ScanOnLaunch)));
+        }
+    }
+
     private bool _removeUnreachableComics = true;
     public bool RemoveUnreachableComics
     {
@@ -364,6 +375,14 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         });
     }
 
+    public void SetScanOnLaunch(bool scanOnLaunch)
+    {
+        _scanOnLaunch = scanOnLaunch;
+        AppSettingsModel.ExternalModel model = GetSettingsModel();
+        model.ScanOnLaunch = scanOnLaunch;
+        AppSettingsModel.Instance.UpdateModel(model);
+    }
+
     public void SetRemoveUnreachableComics(bool removeUnreachableComics)
     {
         _removeUnreachableComics = removeUnreachableComics;
@@ -538,6 +557,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         CoroutineUtils.Start(async () =>
         {
             bool hasHistory = !await ComicHistoryItemModel.IsEmptyAsync();
+            bool scanOnLaunch = model.ScanOnLaunch;
             bool removeUnreachableComics = model.RemoveUnreachableComics;
             bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
             bool restoreLastReadingPosition = model.RestoreLastReadingPosition;
@@ -546,6 +566,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             _ = MainThreadUtils.RunInMainThread(() =>
             {
                 IsClearHistoryEnabled = hasHistory;
+                ScanOnLaunch = scanOnLaunch;
                 RemoveUnreachableComics = removeUnreachableComics;
                 PromptBeforeRemovingComics = promptBeforeRemovingComics;
                 HistorySaveBrowsingHistory = saveBrowsingHistory;

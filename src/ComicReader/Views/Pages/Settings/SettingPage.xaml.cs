@@ -130,6 +130,15 @@ internal sealed partial class SettingPage : BasePage
         GetMainPageAbility().OpenInNewTab(route);
     }
 
+    private void ScanOnLaunchCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            ViewModel.SetScanOnLaunch(isChecked.Value);
+        }
+    }
+
     private void RemoveUnreachableCheckBox_Click(object sender, RoutedEventArgs e)
     {
         bool? isChecked = ((CheckBox)sender).IsChecked;

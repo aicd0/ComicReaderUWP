@@ -137,6 +137,7 @@ public class StringResourceProvider
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");
     public string SaveViewConfig => GetResourceString("SaveViewConfig");
+    public string ScanOnLaunch => GetResourceString("ScanOnLaunch");
     public string Search => GetResourceString("Search");
     public string SearchResults => GetResourceString("SearchResults");
     public string SearchResultsOf => GetResourceString("SearchResultsOf");

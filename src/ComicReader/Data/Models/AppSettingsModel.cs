@@ -100,6 +100,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         [JsonPropertyName("ComicFolders")]
         public List<string?>? ComicFolders { get; set; }
 
+        [JsonPropertyName("ScanOnLaunch")]
+        public bool? ScanOnLaunch { get; set; }
+
         [JsonPropertyName("RemoveUnreachableComics")]
         public bool? RemoveUnreachableComics { get; set; }
 
@@ -164,6 +167,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     public class ExternalModel
     {
         public List<string> ComicFolders { get; set; } = [];
+        public bool ScanOnLaunch { get; set; }
         public bool RemoveUnreachableComics { get; set; }
         public bool PromptBeforeRemovingComics { get; set; }
         public bool RestoreLastReadingPosition { get; set; }
@@ -178,6 +182,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         {
             ExternalModel externalModel = new()
             {
+                ScanOnLaunch = model.ScanOnLaunch ?? true,
                 RemoveUnreachableComics = model.RemoveUnreachableComics ?? true,
                 PromptBeforeRemovingComics = model.PromptBeforeRemovingComics ?? true,
                 RestoreLastReadingPosition = model.RestoreLastReadingPosition ?? true,
@@ -237,6 +242,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public void To(JsonModel model)
         {
             model.ComicFolders = [.. ComicFolders];
+            model.ScanOnLaunch = ScanOnLaunch;
             model.RemoveUnreachableComics = RemoveUnreachableComics;
             model.RestoreLastReadingPosition = RestoreLastReadingPosition;
             model.PromptBeforeRemovingComics = PromptBeforeRemovingComics;
