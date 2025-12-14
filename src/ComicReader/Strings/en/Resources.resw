@@ -709,6 +709,9 @@ The evaluation will be performed in the following order:
   <data name="SaveViewConfig" xml:space="preserve">
     <value>Save view configuration</value>
   </data>
+  <data name="ScanOnLaunch" xml:space="preserve">
+    <value>Scan on launch</value>
+  </data>
   <data name="Search" xml:space="preserve">
     <value>Search</value>
   </data>

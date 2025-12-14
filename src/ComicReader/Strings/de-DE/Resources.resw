@@ -707,6 +707,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="SaveViewConfig" xml:space="preserve">
     <value>Ansichtskonfiguration speichern</value>
   </data>
+  <data name="ScanOnLaunch" xml:space="preserve">
+    <value>Beim Start scannen</value>
+  </data>
   <data name="Search" xml:space="preserve">
     <value>Suchen</value>
   </data>

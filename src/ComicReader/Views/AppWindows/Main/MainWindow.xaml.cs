@@ -9,6 +9,7 @@ using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.InitTask;
 using ComicReader.Common.Services;
+using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
@@ -287,9 +288,12 @@ internal sealed partial class MainWindow : Window
                 DebugUtils.ReportLastCrash();
             }
 
-            // Update comic library
-            // We delay this operation to here because it might involve dialog display which requires an active window
-            ComicModel.UpdateAllComics("InitOnAppLaunchInternal");
+            if (AppSettingsModel.Instance.GetModel().ScanOnLaunch)
+            {
+                // Update comic library
+                // We delay this operation to here because it might involve dialog display which requires an active window
+                ComicModel.UpdateAllComics("InitOnAppLaunchInternal");
+            }
         }
 
         LaunchPerformanceTracker.MarkTabRestored();

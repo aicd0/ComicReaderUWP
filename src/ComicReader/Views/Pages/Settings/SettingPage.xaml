@@ -56,8 +56,12 @@
                             <StackPanel Orientation="Vertical">
                                 <Button x:Uid="ChooseLocationButton" Click="ChooseLocationsClick" />
                                 <CheckBox
-                                    x:Uid="RemoveUnreachableCheckBox"
                                     Margin="0,12,0,0"
+                                    Click="ScanOnLaunchCheckBox_Click"
+                                    Content="{x:Bind StringResource.ScanOnLaunch}"
+                                    IsChecked="{x:Bind ViewModel.ScanOnLaunch, Mode=OneWay}" />
+                                <CheckBox
+                                    x:Uid="RemoveUnreachableCheckBox"
                                     Click="RemoveUnreachableCheckBox_Click"
                                     IsChecked="{x:Bind ViewModel.RemoveUnreachableComics, Mode=OneWay}" />
                                 <CheckBox

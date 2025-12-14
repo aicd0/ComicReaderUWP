@@ -707,6 +707,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="SaveViewConfig" xml:space="preserve">
     <value>Enregistrer la configuration de la vue</value>
   </data>
+  <data name="ScanOnLaunch" xml:space="preserve">
+    <value>Analyser au démarrage</value>
+  </data>
   <data name="Search" xml:space="preserve">
     <value>Rechercher</value>
   </data>
