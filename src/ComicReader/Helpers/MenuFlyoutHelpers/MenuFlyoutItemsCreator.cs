@@ -342,16 +342,16 @@ internal static class MenuFlyoutItemsCreator
                 TagLinkModel.Parse(tagCategoryInfo.GetExt(TagCategoryInfoExt.LINKS)).Links;
             foreach (string tag in tagData.Tags)
             {
+                foreach (TagLinkModel.LinkModel item in tagCategoryLinks)
+                {
+                    item.Name = $"{item.Name} ({tag})";
+                    item.ReplaceTagVariables(tagCategory, tag);
+                    linkMap[item.Name] = item;
+                }
+
                 TagInfoModel? tagInfo = await TagInfoModel.Get(tagCategory, tag);
                 if (tagInfo is not null)
                 {
-                    foreach (TagLinkModel.LinkModel item in tagCategoryLinks)
-                    {
-                        item.Name = $"{item.Name} ({tag})";
-                        item.ReplaceTagVariables(tagCategory, tag);
-                        linkMap[item.Name] = item;
-                    }
-
                     var linkModel = TagLinkModel.Parse(tagInfo.GetExt(TagInfoExt.LINKS));
                     foreach (TagLinkModel.LinkModel item in linkModel.Links)
                     {
