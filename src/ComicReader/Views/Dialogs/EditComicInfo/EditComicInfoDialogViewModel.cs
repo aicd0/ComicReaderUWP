@@ -463,10 +463,11 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                 }
             }
         }
-        _commonTags = commonTags;
 
+        _commonTags = commonTags;
         StringBuilder sb = new();
-        foreach (KeyValuePair<TagWithId, HashSet<TagWithId>> pair in commonTags)
+        IEnumerable<KeyValuePair<TagWithId, HashSet<TagWithId>>> orderedCommonTags = commonTags.OrderBy(x => x.Key.Content.ToLowerInvariant());
+        foreach (KeyValuePair<TagWithId, HashSet<TagWithId>> pair in orderedCommonTags)
         {
             if (tagIdMode)
             {
@@ -476,9 +477,11 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             {
                 sb.Append(pair.Key.Content);
             }
+
             sb.Append(": ");
             bool first = true;
-            foreach (TagWithId tag in pair.Value)
+            IEnumerable<TagWithId> orderedTags = pair.Value.OrderBy(x => x.Content.ToLowerInvariant());
+            foreach (TagWithId tag in orderedTags)
             {
                 if (!first)
                 {
@@ -494,8 +497,10 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                     sb.Append(tag.Content);
                 }
             }
+
             sb.Append('\n');
         }
+
         _tags = ToStandardString(sb.ToString());
         TagTextLiveData.Emit(_tags);
     }

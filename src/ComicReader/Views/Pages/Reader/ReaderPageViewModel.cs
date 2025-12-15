@@ -482,7 +482,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         for (int i = 0; i < comic.Tags.Count; ++i)
         {
             ComicData.TagData tags = comic.Tags[i];
-            var tagCollectionModel = new TagCollectionViewModel(tags.Name);
+            List<TagViewModel> tagModels = [];
             foreach (string tag in tags.Tags)
             {
                 TagViewModel tagModel = new()
@@ -504,12 +504,20 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                     },
                 };
 
-                tagCollectionModel.Tags.Add(tagModel);
+                tagModels.Add(tagModel);
+            }
+
+            tagModels.Sort((a, b) => string.Compare(a.Tag, b.Tag, ignoreCase: true));
+            var tagCollectionModel = new TagCollectionViewModel(tags.Name);
+            foreach (TagViewModel tag in tagModels)
+            {
+                tagCollectionModel.Tags.Add(tag);
             }
 
             newCollection.Add(tagCollectionModel);
         }
 
+        newCollection.Sort((a, b) => string.Compare(a.Name, b.Name, ignoreCase: true));
         DiffUtils.UpdateCollection(ComicTags, newCollection, (x, y) => x.Name == y.Name, (x, y) =>
         {
             DiffUtils.UpdateCollection(x.Tags, y.Tags, (a, b) => a.Tag == b.Tag, (a, b) =>
