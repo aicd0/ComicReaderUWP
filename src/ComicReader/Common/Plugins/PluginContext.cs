@@ -9,6 +9,8 @@ namespace ComicReader.Common.Plugins;
 
 internal class PluginContext(IPlugin plugin) : IPluginContext
 {
+    public IPlugin Plugin => plugin;
+
     private readonly string _pluginName = plugin.Name;
 
     //

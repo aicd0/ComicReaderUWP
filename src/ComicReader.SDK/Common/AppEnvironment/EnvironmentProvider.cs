@@ -13,6 +13,7 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Plugins;
 
 using Windows.ApplicationModel;
 using Windows.Globalization;
@@ -63,6 +64,7 @@ public class EnvironmentProvider
         sb.SafeAppend("Portable", () => IsPortable());
         sb.SafeAppend("Process architecture", () => RuntimeInformation.ProcessArchitecture);
         sb.SafeAppend("Developer token", GetDeveloperToken);
+        sb.SafeAppend("Loaded plugins", GetLoadedPlugins);
         sb.SafeAppend("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
         sb.SafeAppend("Awake time", () => GetAwakeTime());
 
@@ -249,5 +251,24 @@ public class EnvironmentProvider
         }
 
         return results;
+    }
+
+    private static string GetLoadedPlugins()
+    {
+        StringBuilder sb = new("[");
+        bool first = true;
+        foreach (IPlugin plugin in ServiceManager.GetService<IApplicationService>().GetLoadedPlugins())
+        {
+            if (!first)
+            {
+                sb.Append(", ");
+            }
+
+            sb.Append(plugin.Name);
+            first = false;
+        }
+
+        sb.Append(']');
+        return sb.ToString();
     }
 }
