@@ -63,6 +63,7 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     private bool _restoreSidebar = false;
+    private bool _readerFocused = false;
     private bool _readerPointerEntered = true;
     private bool _bottomTileShowed = false;
     private bool _bottomTileHold = false;
@@ -451,8 +452,9 @@ internal sealed partial class ReaderPage : BasePage
 
         GMainSection.Visibility = previewVisible ? Visibility.Collapsed : Visibility.Visible;
         MainReaderView.SetVisibility(readerVisible);
-        if (readerVisible)
+        if (!_readerFocused && readerVisible)
         {
+            _readerFocused = true;
             GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
             TryFocus(MainReaderView);
         }
