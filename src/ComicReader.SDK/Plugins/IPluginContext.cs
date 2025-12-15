@@ -3,9 +3,7 @@
 
 namespace ComicReader.SDK.Plugins;
 
-public interface IPlugin
+public interface IPluginContext
 {
-    string Name { get; }
-
-    void Initialize(IPluginContext context);
+    void RegisterBeforeComicUpdatingHandler(IBeforeComicUpdatingHandler handler);
 }

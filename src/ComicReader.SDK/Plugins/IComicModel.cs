@@ -3,9 +3,10 @@
 
 namespace ComicReader.SDK.Plugins;
 
-public interface IPlugin
+public interface IComicModel
 {
-    string Name { get; }
+    string Description { get; }
+    int Rating { get; }
 
-    void Initialize(IPluginContext context);
+    void SetRating(int rating);
 }

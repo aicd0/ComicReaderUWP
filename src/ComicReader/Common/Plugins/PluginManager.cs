@@ -21,8 +21,8 @@ internal class PluginManager
     public readonly static PluginManager Instance = new();
 
     private int _pluginLoaded = 0;
-    private int _pluginInitialized = 0;
-    private readonly List<IPlugin> _plugins = [];
+    private volatile bool _pluginInitialized = false;
+    private readonly Dictionary<string, PluginContext> _plugins = [];
 
     private PluginManager() { }
 
@@ -40,20 +40,28 @@ internal class PluginManager
         {
             if (LoadPlugin(pluginFile))
             {
-                Logger.I(TAG, $"Loaded plugin '{Path.GetFileName(pluginFile)}'");
+                Logger.I(TAG, $"Loaded assembly '{Path.GetFileName(pluginFile)}'");
             }
             else
             {
-                Logger.E(TAG, $"Failed to load plugin '{Path.GetFileName(pluginFile)}'");
+                Logger.E(TAG, $"Failed to load assembly '{Path.GetFileName(pluginFile)}'");
             }
         }
 
-        foreach (IPlugin plugin in _plugins)
+        _pluginInitialized = true;
+    }
+
+    public IEnumerable<PluginContext> GetAllPluginContext()
+    {
+        if (!_pluginInitialized)
         {
-            plugin.Initialize();
+            yield break;
         }
 
-        Interlocked.Exchange(ref _pluginInitialized, 1);
+        foreach (PluginContext context in _plugins.Values)
+        {
+            yield return context;
+        }
     }
 
     private bool LoadPlugin(string pluginFile)
@@ -91,7 +99,16 @@ internal class PluginManager
 
         foreach (IPlugin plugin in plugins)
         {
-            _plugins.Add(plugin);
+            string name = plugin.Name;
+            if (_plugins.ContainsKey(name))
+            {
+                throw new InvalidOperationException($"Duplicated plugin name: '{name}'");
+            }
+
+            PluginContext context = new(plugin);
+            _plugins.Add(name, context);
+            plugin.Initialize(context);
+            Logger.I(TAG, $"Loaded plugin '{name}'");
         }
 
         return true;

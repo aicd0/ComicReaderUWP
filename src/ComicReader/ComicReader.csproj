@@ -25,7 +25,7 @@
     <PublishProfile>win10-$(Platform).pubxml</PublishProfile>
     <CreateMSIXPackage>False</CreateMSIXPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageCertificateThumbprint>43226C3B45DA957B723C3488B61DDE63234A2E3F</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>B281688F59280FA5BA39CD538EE74EE1426EA1A9</PackageCertificateThumbprint>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <PackageCertificateKeyFile>ComicReader_TemporaryKey.pfx</PackageCertificateKeyFile>
     <Nullable>enable</Nullable>

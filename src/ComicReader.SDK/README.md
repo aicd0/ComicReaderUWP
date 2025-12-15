@@ -1,1 +1,1 @@
-This is the plugin SDK for Comic Reader UWP app.
+# Plugin SDK for Comic Reader UWP
