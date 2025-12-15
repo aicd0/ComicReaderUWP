@@ -55,8 +55,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         }
     }
 
-    private int _rating = -1;
-    public int Rating
+    private string _rating = string.Empty;
+    public string Rating
     {
         get => _rating;
         set
@@ -154,7 +154,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     private readonly ReaderImageViewModel _image = new();
     public ReaderImageViewModel Image => _image;
 
-    public bool IsRatingVisible => Rating != -1;
+    public bool IsRatingVisible => !string.IsNullOrEmpty(Rating);
     public bool IsRead => CompletionState == ComicCompletionStatusEnum.Completed;
     public bool IsReading => CompletionState == ComicCompletionStatusEnum.Started;
     public bool IsUnread => CompletionState == ComicCompletionStatusEnum.NotStarted;
@@ -170,7 +170,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     {
         Comic = comic;
         _title = Comic.Title;
-        _rating = comic.Rating;
+        int rating = comic.Rating;
+        _rating = rating >= 0 ? Math.Round(rating * 0.05F, 1, MidpointRounding.AwayFromZero).ToString("0.#") : string.Empty;
         _isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
         _isHidden = comic.Hidden;
         _completionState = comic.CompletionState;

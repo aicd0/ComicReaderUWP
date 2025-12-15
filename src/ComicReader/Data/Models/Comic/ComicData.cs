@@ -711,6 +711,7 @@ internal abstract class ComicData
 
     public void SaveRating(int rating)
     {
+        rating = Math.Clamp(rating, -1, 100);
         Rating = rating;
 
         _ = Enqueue("SaveRating", delegate
@@ -728,7 +729,7 @@ internal abstract class ComicData
 
     public async Task SaveProgressAsync(int progress, double last_position)
     {
-        Progress = progress;
+        Progress = Math.Clamp(progress, -1, 100);
         LastPosition = last_position;
 
         await Enqueue("SaveProgress", delegate

@@ -8,6 +8,30 @@ namespace ComicReader.Data.Models;
 
 static class AppModel
 {
+    public static bool AntiAliasingEnabled
+    {
+        get
+        {
+            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
+        }
+        set
+        {
+            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, value);
+        }
+    }
+
+    public static bool AutomaticallyHideCursor
+    {
+        get
+        {
+            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
+        }
+        set
+        {
+            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, value);
+        }
+    }
+
     public static int DefaultArchiveCodePage
     {
         get
@@ -20,15 +44,15 @@ static class AppModel
         }
     }
 
-    public static bool AntiAliasingEnabled
+    public static bool RatingPercentageEnabled
     {
         get
         {
-            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
+            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
         }
         set
         {
-            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, value);
+            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, value);
         }
     }
 
@@ -53,18 +77,6 @@ static class AppModel
         set
         {
             KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, value);
-        }
-    }
-
-    public static bool AutomaticallyHideCursor
-    {
-        get
-        {
-            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
-        }
-        set
-        {
-            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, value);
         }
     }
 }

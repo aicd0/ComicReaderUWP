@@ -123,6 +123,12 @@ internal sealed class ComicModel
         DispatchUpdateEvent();
     }
 
+    public void SetRating(int rating)
+    {
+        _internalModel.SaveRating(rating);
+        DispatchUpdateEvent();
+    }
+
     public void SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
     {
         _internalModel.SetTags(tags);
@@ -164,12 +170,6 @@ internal sealed class ComicModel
         // This method is expected to be called frequently,
         // so we don't dispatch events to save CPU resources
         await _internalModel.SaveProgressAsync(progress, lastPosition);
-    }
-
-    public void SaveRating(int rating)
-    {
-        _internalModel.SaveRating(rating);
-        DispatchUpdateEvent();
     }
 
     public async Task SaveHiddenAsync(bool hidden)

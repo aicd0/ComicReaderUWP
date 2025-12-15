@@ -465,7 +465,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         if (!comic.IsExternal)
         {
-            Rating = comic.Rating;
+            int rating = comic.Rating;
+            Rating = rating >= 0 ? rating * 0.05F : -1.0;
         }
     }
 

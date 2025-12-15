@@ -13,7 +13,7 @@ namespace ComicReader.Data;
 
 public static class SqlDatabaseManager
 {
-    public const int DATABASE_VERSION = 6;
+    public const int DATABASE_VERSION = 7;
 
     private const string TAG = nameof(SqlDatabaseManager);
 
@@ -85,27 +85,22 @@ public static class SqlDatabaseManager
             case 1:
                 goto case DATABASE_VERSION;
             case 2:
-                {
-                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN image_aspect_ratios");
-                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN cover_file_name");
-                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCoverCacheKey.Name} TEXT DEFAULT ''");
-                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnDescription.Name} TEXT DEFAULT ''");
-                }
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN image_aspect_ratios");
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN cover_file_name");
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCoverCacheKey.Name} TEXT DEFAULT ''");
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnDescription.Name} TEXT DEFAULT ''");
                 goto case 3;
             case 3:
-                {
-                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCompletionState.Name} INTEGER NOT NULL DEFAULT 0");
-                }
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCompletionState.Name} INTEGER NOT NULL DEFAULT 0");
                 goto case 4;
             case 4:
-                {
-                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnExt.Name} TEXT DEFAULT ''");
-                }
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnExt.Name} TEXT DEFAULT ''");
                 goto case 5;
             case 5:
-                {
-                    ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnPageCount.Name} INTEGER NOT NULL DEFAULT -1");
-                }
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnPageCount.Name} INTEGER NOT NULL DEFAULT -1");
+                goto case 6;
+            case 6:
+                ExecuteCommand(MainDatabase, $"UPDATE {comicTable} SET {ComicTable.ColumnRating.Name} = {ComicTable.ColumnRating.Name} * 20 WHERE {ComicTable.ColumnRating.Name} >= 0");
                 goto case DATABASE_VERSION;
             case DATABASE_VERSION:
                 break;

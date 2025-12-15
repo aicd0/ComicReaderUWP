@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -153,20 +152,23 @@ internal class ComicPropertyModel
             {
                 name = title[0].ToString().ToUpper();
             }
+
             return name;
         }
 
         string GetProgressGroupName(ComicModel comic)
         {
-            int progress = Math.Min(Math.Max(comic.Progress, 0), 100);
+            int progress = comic.Progress;
             if (progress < 10)
             {
                 return "<10%";
             }
+
             if (progress >= 100)
             {
                 return "100%";
             }
+
             return $"{progress / 10 * 10}%";
         }
 
@@ -178,21 +180,25 @@ internal class ComicPropertyModel
                 string name = StringResourceProvider.Instance.Ungrouped;
                 return [name];
             }
+
             return [.. tagData.Tags];
         }
 
         string GetRatingGroupName(ComicModel comic)
         {
             int rating = comic.Rating;
-            if (rating >= 5)
-            {
-                return "5";
-            }
-            if (rating <= 0)
+            if (rating < 0)
             {
                 return StringResourceProvider.Instance.NoRating;
             }
-            return rating.ToString();
+
+            int level = Math.Min(rating, 99) / 10;
+            if (level <= 0)
+            {
+                return "<0.5";
+            }
+
+            return (level * 0.5F).ToString("0.#");
         }
 
         string GetPagesGroupName(ComicModel comic)
@@ -260,11 +266,11 @@ internal class ComicPropertyModel
             PropertyTypeEnum.Title => new ComicGroupSorter(x => [GetTitleGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, List<string>>(
                 x => StringUtils.SmartFileNameKeySelector(x.GroupName), IdSelector, comparer: StringUtils.SmartFileNameComparer)),
             PropertyTypeEnum.Progress => new ComicGroupSorter(x => [GetProgressGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => Math.Clamp(x.Items[0].Progress, 0, 100), IdSelector)),
+                x => x.Items[0].Progress, IdSelector)),
             PropertyTypeEnum.Tag => new ComicGroupSorter(GetTagGroupNames, new GroupSorter<GroupSortingKeySelectorParams, List<string>>(
                 x => StringUtils.SmartFileNameKeySelector(x.GroupName), IdSelector, comparer: StringUtils.SmartFileNameComparer)),
             PropertyTypeEnum.Rating => new ComicGroupSorter(x => [GetRatingGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => Math.Clamp(x.Items[0].Rating, 0, 5), IdSelector)),
+                x => x.Items[0].Rating, IdSelector)),
             PropertyTypeEnum.CompletionState => new ComicGroupSorter(x => [GetCompletionStatusGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
                 x => GetCompletionStatusGroupSortingKey(x.Items[0]), IdSelector)),
             PropertyTypeEnum.LastReadTime => new ComicGroupSorter(x => [GetLastReadTimeGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, long>(
@@ -431,8 +437,8 @@ internal class ComicPropertyModel
                 {
                     PropertyTypeEnum.Title => comic.Title.Length,
                     PropertyTypeEnum.Tag => sortingProperty.Name.Length,
-                    PropertyTypeEnum.Progress => Math.Clamp(comic.Progress, 0, 100),
-                    PropertyTypeEnum.Rating => comic.Rating > 0 ? comic.Rating : null,
+                    PropertyTypeEnum.Progress => Math.Max(comic.Progress, 0),
+                    PropertyTypeEnum.Rating => comic.Rating >= 0 ? comic.Rating * 0.05 : null,
                     PropertyTypeEnum.CompletionState => (int)comic.CompletionState,
                     PropertyTypeEnum.LastReadTime => comic.LastVisit != DateTimeOffset.MinValue ? comic.LastVisit.ToUnixTimeMilliseconds() : null,
                     PropertyTypeEnum.Pages => comic.PageCount > 0 ? comic.PageCount : null,
@@ -442,61 +448,7 @@ internal class ComicPropertyModel
 
             string NumberToString(double value)
             {
-                // If the value is an integer, return as is
-                if (value == Math.Truncate(value))
-                {
-                    return value.ToString(CultureInfo.InvariantCulture);
-                }
-
-                // Use "G17" to get the full precision, then trim to at most 2 digits after decimal
-                string str = value.ToString("G17", CultureInfo.InvariantCulture);
-
-                int dotIndex = str.IndexOf('.');
-                if (dotIndex < 0)
-                {
-                    return str;
-                }
-
-                // Find the end of the valid digits after decimal
-                int endIndex = dotIndex + 1;
-                int digits = 0;
-                while (endIndex < str.Length && digits < 2)
-                {
-                    char c = str[endIndex];
-                    if (char.IsDigit(c))
-                    {
-                        digits++;
-                    }
-
-                    endIndex++;
-                }
-
-                // If there are more digits, trim
-                if (endIndex < str.Length)
-                {
-                    str = str[..endIndex];
-                }
-
-                // Remove trailing zeros after decimal
-                if (digits > 0)
-                {
-                    // Remove trailing zeros, but keep at least one digit after decimal
-                    int lastNonZero = str.Length - 1;
-                    while (lastNonZero > dotIndex + 1 && str[lastNonZero] == '0')
-                    {
-                        lastNonZero--;
-                    }
-
-                    str = str.Substring(0, lastNonZero + 1);
-                }
-
-                // Remove trailing decimal point if no digits after
-                if (str.EndsWith('.'))
-                {
-                    str = str[..^1];
-                }
-
-                return str;
+                return Math.Round(value, 2, MidpointRounding.AwayFromZero).ToString("0.##");
             }
 
             int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetSHA256Int(x.GroupName);
