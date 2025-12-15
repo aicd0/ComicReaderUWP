@@ -10,18 +10,20 @@ using System.IO;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
+using ComicReader.Common.Plugins;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Plugins;
 
 using Windows.Storage;
 
 namespace ComicReader.Data.Models.Comic;
 
-internal sealed class ComicModel
+internal sealed class ComicModel : IComicModel
 {
-    private const string TAG = nameof(ComicModel);
+    private static bool _dispatchingUpdateEvent = false;
 
     private readonly ComicData _internalModel;
 
@@ -232,54 +234,31 @@ internal sealed class ComicModel
         }
     }
 
-    private static void StartProcess(EventRecorder er, string fileName, string arguments)
+    //
+    // Helpers
+    //
+
+    private void DispatchUpdateEvent()
     {
+        if (_dispatchingUpdateEvent)
+        {
+            return;
+        }
+
+        _dispatchingUpdateEvent = true;
         try
         {
-            Process.Start(fileName, arguments);
+            foreach (PluginContext plugin in PluginManager.Instance.GetAllPluginContext())
+            {
+                plugin.DispatchBeforeComicUpdatingEvent(this);
+            }
         }
-        catch (Win32Exception ex)
+        finally
         {
-            er.SetError(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            er.SetError(ex, fatal: true);
-        }
-    }
-
-    //
-    // Pool
-    //
-
-    private static readonly ConcurrentWeakPool<long, ComicModel> _idPool = new();
-    private static readonly ConcurrentWeakPool<string, ComicModel> _locationPool = new();
-
-    private static bool TryGetExisting(long id, [MaybeNullWhen(false)] out ComicModel model)
-    {
-        return _idPool.TryGetValue(id, out model);
-    }
-
-    private static bool TryGetExisting(string location, [MaybeNullWhen(false)] out ComicModel model)
-    {
-        return _locationPool.TryGetValue(location, out model);
-    }
-
-    private static ComicModel ReplaceWithExisting(ComicData comicData)
-    {
-        var model = new ComicModel(comicData);
-        if (comicData.Id >= 0)
-        {
-            return _idPool.GetOrAdd(model.Id, model);
+            _dispatchingUpdateEvent = false;
         }
 
-        if (!model.IsExternal)
-        {
-            // This should never happen, as all comics in the database should have an ID.
-            Logger.AssertNotReachHere("C1A98069CD40CC1A");
-        }
-
-        return _locationPool.GetOrAdd(model.Location, model);
+        GlobalEvent.Instance.ComicUpdated.Emit(0);
     }
 
     //
@@ -392,7 +371,7 @@ internal sealed class ComicModel
     }
 
     //
-    // Utilities
+    // Static Utilities
     //
 
     public static void UpdateAllComics(string reason)
@@ -418,8 +397,57 @@ internal sealed class ComicModel
         });
     }
 
-    private static void DispatchUpdateEvent()
+    //
+    // Pool
+    //
+
+    private static readonly ConcurrentWeakPool<long, ComicModel> _idPool = new();
+    private static readonly ConcurrentWeakPool<string, ComicModel> _locationPool = new();
+
+    private static bool TryGetExisting(long id, [MaybeNullWhen(false)] out ComicModel model)
     {
-        GlobalEvent.Instance.ComicUpdated.Emit(0);
+        return _idPool.TryGetValue(id, out model);
+    }
+
+    private static bool TryGetExisting(string location, [MaybeNullWhen(false)] out ComicModel model)
+    {
+        return _locationPool.TryGetValue(location, out model);
+    }
+
+    private static ComicModel ReplaceWithExisting(ComicData comicData)
+    {
+        var model = new ComicModel(comicData);
+        if (comicData.Id >= 0)
+        {
+            return _idPool.GetOrAdd(model.Id, model);
+        }
+
+        if (!model.IsExternal)
+        {
+            // This should never happen, as all comics in the database should have an ID.
+            Logger.AssertNotReachHere("C1A98069CD40CC1A");
+        }
+
+        return _locationPool.GetOrAdd(model.Location, model);
+    }
+
+    //
+    // Static Helpers
+    //
+
+    private static void StartProcess(EventRecorder er, string fileName, string arguments)
+    {
+        try
+        {
+            Process.Start(fileName, arguments);
+        }
+        catch (Win32Exception ex)
+        {
+            er.SetError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            er.SetError(ex, fatal: true);
+        }
     }
 }

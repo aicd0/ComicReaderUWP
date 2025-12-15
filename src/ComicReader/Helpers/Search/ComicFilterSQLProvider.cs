@@ -99,18 +99,22 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
         {
             throw new ExpressionException("Variable path is empty");
         }
+
         if (path.Count == 1)
         {
             return CreateHasCondition(path[0]);
         }
+
         if (path.Count == 2)
         {
             return CreateHasCondition(path[0], path[1]);
         }
+
         if (path.Count == 3)
         {
             return CreateHasCondition(path[0], path[1], path[2]);
         }
+
         throw new ExpressionException($"Invalid variable path '{ToVariableName(path)}'");
     }
 
@@ -120,14 +124,17 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
         {
             throw new ExpressionException("Variable path is empty");
         }
+
         if (left.Count == 1)
         {
             return CreateCondition(left[0], conditionCreator);
         }
+
         if (left.Count == 2)
         {
             return CreateCondition(left[0], left[1], conditionCreator);
         }
+
         throw new ExpressionException($"Invalid variable path '{ToVariableName(left)}'");
     }
 
@@ -145,7 +152,7 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
                 NotNullAndEmptyCondition(ComicTable.ColumnTitle1),
                 NotNullAndEmptyCondition(ComicTable.ColumnTitle2),
             ]),
-            ComicSQLProviderUtils.VAR_RATING => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnRating), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThan),
+            ComicSQLProviderUtils.VAR_RATING => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnRating), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThanOrEqual),
             ComicSQLProviderUtils.VAR_TITLE1 => NotNullAndEmptyCondition(ComicTable.ColumnTitle1),
             ComicSQLProviderUtils.VAR_TITLE2 => NotNullAndEmptyCondition(ComicTable.ColumnTitle2),
             ComicSQLProviderUtils.VAR_PROGRESS => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnProgress), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThanOrEqual),
