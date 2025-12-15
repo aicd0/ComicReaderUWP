@@ -52,14 +52,21 @@
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="Wrap"
                 ToolTipService.ToolTip="{x:Bind Item.Title, Mode=OneWay}" />
-            <Viewbox
-                Height="12"
-                Margin="0,2,0,0"
+            <StackPanel
                 HorizontalAlignment="Left"
                 VerticalAlignment="Bottom"
+                Opacity="0.6"
+                Orientation="Horizontal"
                 Visibility="{x:Bind Item.IsRatingVisible, Mode=OneWay}">
-                <controls:ReadonlyRatingView Height="20" PlaceholderValue="{x:Bind Item.Rating, Mode=OneWay}" />
-            </Viewbox>
+                <TextBlock
+                    FontSize="12"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind Item.Rating, Mode=OneWay}" />
+                <FontIcon
+                    Margin="4,1,0,0"
+                    FontSize="9"
+                    Glyph="&#xE735;" />
+            </StackPanel>
             <TextBlock
                 FontSize="12"
                 FontWeight="SemiLight"

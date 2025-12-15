@@ -632,7 +632,8 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnRatingControlValueChanged(RatingControl sender, object args)
     {
-        ViewModel.Comic?.SaveRating((int)sender.Value);
+        int value = (int)sender.Value;
+        ViewModel.Comic?.SetRating(value < 1 ? -1 : value * 20);
     }
 
     private void OnDirectoryTapped(object sender, TappedRoutedEventArgs e)

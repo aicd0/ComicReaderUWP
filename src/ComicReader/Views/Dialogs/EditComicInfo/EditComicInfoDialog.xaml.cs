@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 using ComicReader.Common.BaseUI;
 using ComicReader.Data.Models.Comic;
@@ -139,6 +140,30 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
         ViewModel.SetDescription(((TextBox)sender).Text);
     }
 
+    private void RatingTextBox_BeforeTextChanging(TextBox sender, TextBoxBeforeTextChangingEventArgs args)
+    {
+        string text = args.NewText;
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        if (!RatingRegex().IsMatch(text))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    private void RatingTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        ViewModel.SetRating(((TextBox)sender).Text);
+    }
+
+    private void RatingPercentageCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SetRatingPercentageEnabled(((CheckBox)sender).IsChecked ?? false);
+    }
+
     private void TagTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         ViewModel.SetTags(((TextBox)sender).Text);
@@ -164,4 +189,11 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
     {
         ViewModel.SetTagIdMode(((CheckBox)sender).IsChecked == true);
     }
+
+    //
+    // Misc
+    //
+
+    [GeneratedRegex(@"^\d*\.?\d*$")]
+    private static partial Regex RatingRegex();
 }

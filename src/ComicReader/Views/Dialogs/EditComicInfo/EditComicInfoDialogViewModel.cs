@@ -5,10 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
+using ComicReader.Common;
 using ComicReader.Common.Localization;
+using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.SDK.Common.Lifecycle;
@@ -20,20 +23,6 @@ namespace ComicReader.Views.Dialogs.EditComicInfo;
 internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    private readonly List<ComicModel> _comics = [];
-    private string _title1 = string.Empty;
-    private string _title2 = string.Empty;
-    private string _description = string.Empty;
-    private string _tags = string.Empty;
-    private bool _tagDiffMode = true;
-    private bool _tagIdMode = false;
-    private bool _title1Changed = false;
-    private bool _title2Changed = false;
-    private bool _descriptionChanged = false;
-    private bool _tagsChanged = false;
-    private Dictionary<TagWithId, HashSet<TagWithId>> _commonTags = [];
-    private List<TagLinkModel.LinkModel> _commonLinks = [];
 
     public MutableLiveData<string> Title1TextLiveData = new();
     public MutableLiveData<string> Title2TextLiveData = new();
@@ -55,7 +44,68 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _ratingChanged = false;
+    public bool RatingChanged
+    {
+        get => _ratingChanged;
+        set
+        {
+            _ratingChanged = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RatingLabel)));
+        }
+    }
+
+    public string RatingLabel
+    {
+        get
+        {
+            string text = StringResourceProvider.Instance.Rating;
+            if (RatingChanged)
+            {
+                text += " *";
+            }
+
+            return text;
+        }
+    }
+
+    private string _rating = string.Empty;
+    public string Rating
+    {
+        get => _rating;
+        set
+        {
+            _rating = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rating)));
+        }
+    }
+
+    private bool _ratingPercentageEnabled = true;
+    public bool RatingPercentageEnabled
+    {
+        get => _ratingPercentageEnabled;
+        set
+        {
+            _ratingPercentageEnabled = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RatingPercentageEnabled)));
+        }
+    }
+
     public ObservableCollection<LinkItemViewModel> Links { get; } = [];
+
+    private readonly List<ComicModel> _comics = [];
+    private string _title1 = string.Empty;
+    private string _title2 = string.Empty;
+    private string _description = string.Empty;
+    private string _tags = string.Empty;
+    private bool _tagDiffMode = true;
+    private bool _tagIdMode = false;
+    private bool _title1Changed = false;
+    private bool _title2Changed = false;
+    private bool _descriptionChanged = false;
+    private bool _tagsChanged = false;
+    private Dictionary<TagWithId, HashSet<TagWithId>> _commonTags = [];
+    private List<TagLinkModel.LinkModel> _commonLinks = [];
 
     public void Initialize(IEnumerable<ComicModel> comics)
     {
@@ -74,15 +124,45 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         _description = ToStandardString(ExtractCommonValue((comic) => comic.Description, string.Empty));
         DescriptionTextLiveData.Emit(_description);
 
+        string commonRating = ExtractCommonValue(comic => comic.Rating.ToString(), string.Empty);
+        Rating = commonRating == "-1" ? string.Empty : commonRating;
+        SetRatingPercentageEnabled(AppModel.RatingPercentageEnabled);
+
         InitializeTags(_tagIdMode);
         InitializeLinks();
     }
 
     public void Save()
     {
+        // Rating
+        int rating = -1;
+        if (_ratingChanged)
+        {
+            if (string.IsNullOrEmpty(_rating))
+            {
+                rating = -1;
+            }
+            else if (float.TryParse(_rating, out float ratingFloat))
+            {
+                if (_ratingPercentageEnabled)
+                {
+                    rating = Math.Clamp((int)ratingFloat, 0, 100);
+                }
+                else
+                {
+                    rating = Math.Clamp((int)Math.Round(ratingFloat * 20F, MidpointRounding.AwayFromZero), 0, 100);
+                }
+            }
+            else
+            {
+                _ratingChanged = false;
+            }
+        }
+
+        // Tags
         List<KeyValuePair<TagWithId, List<TagWithId>>> newTags = ParseTagString(_tags, _tagIdMode);
 
-        // Resolve links differences
+        // Links
         List<TagLinkModel.LinkModel> DiffLink(List<TagLinkModel.LinkModel> linksA, List<TagLinkModel.LinkModel> linksB)
         {
             List<TagLinkModel.LinkModel> diff = [];
@@ -131,6 +211,11 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                 if (_descriptionChanged)
                 {
                     comic.SetDescription(_description);
+                }
+
+                if (_ratingChanged)
+                {
+                    comic.SetRating(rating);
                 }
 
                 if (_tagsChanged)
@@ -188,6 +273,76 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         DescriptionChangedLiveData.Emit(true);
     }
 
+    public void SetRating(string ratingText)
+    {
+        float? ParseRating(string input)
+        {
+            input = input.Trim();
+            if (string.IsNullOrEmpty(input))
+            {
+                return null;
+            }
+
+            if (input == ".")
+            {
+                return 0F;
+            }
+
+            if (input.StartsWith('.'))
+            {
+                input = "0" + input;
+            }
+
+            if (float.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(ratingText))
+        {
+            RatingChanged = true;
+            _rating = string.Empty;
+            return;
+        }
+
+        float? rating = ParseRating(ratingText);
+        if (rating.HasValue)
+        {
+            RatingChanged = true;
+            _rating = rating.Value.ToString();
+        }
+        else
+        {
+            RatingChanged = false;
+        }
+    }
+
+    public void SetRatingPercentageEnabled(bool enabled)
+    {
+        if (_ratingPercentageEnabled == enabled)
+        {
+            return;
+        }
+
+        RatingPercentageEnabled = enabled;
+        AppModel.RatingPercentageEnabled = enabled;
+
+        if (!string.IsNullOrEmpty(_rating) && float.TryParse(_rating, out float ratingFloat))
+        {
+            if (enabled)
+            {
+                Rating = Math.Clamp((int)Math.Round(ratingFloat * 20F, MidpointRounding.AwayFromZero), 0, 100).ToString();
+            }
+            else
+            {
+                Rating = Math.Clamp(Math.Round(ratingFloat * 0.05F, 2, MidpointRounding.AwayFromZero), 0F, 5F).ToString("0.##");
+            }
+        }
+    }
+
     public void SetTags(string text)
     {
         text = ToStandardString(text);
@@ -232,6 +387,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                 break;
             }
         }
+
         return lastValue;
     }
 
