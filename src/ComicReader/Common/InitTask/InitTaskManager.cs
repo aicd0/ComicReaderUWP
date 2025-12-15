@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 
 using ComicReader.Common.Imaging;
+using ComicReader.Common.Plugins;
 using ComicReader.Common.Services;
 using ComicReader.Data;
 using ComicReader.Data.Models;
@@ -92,6 +93,9 @@ internal class InitTaskManager(Application application)
 
         // Initialize focus tracker
         FocusTracker.Initialize();
+
+        // Load plugins
+        PluginManager.Instance.LoadPlugins();
     }
 
     private void InitializeAppTheme()
