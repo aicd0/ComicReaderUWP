@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.SDK.Common.ServiceManagement;
+using ComicReader.SDK.Plugins;
 
 namespace ComicReader.SDK.Tests.Common;
 
@@ -57,5 +58,10 @@ internal class ApplicationService : IApplicationService
     public bool IsShuttingDown()
     {
         return false;
+    }
+
+    public IEnumerable<IPlugin> GetLoadedPlugins()
+    {
+        yield break;
     }
 }

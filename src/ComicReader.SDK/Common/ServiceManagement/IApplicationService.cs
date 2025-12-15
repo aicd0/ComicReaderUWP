@@ -1,6 +1,8 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReader.SDK.Plugins;
+
 namespace ComicReader.SDK.Common.ServiceManagement;
 
 public interface IApplicationService : IService
@@ -16,4 +18,6 @@ public interface IApplicationService : IService
     string GetEnvironmentDebugInfo();
 
     bool IsShuttingDown();
+
+    IEnumerable<IPlugin> GetLoadedPlugins();
 }
