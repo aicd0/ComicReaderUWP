@@ -63,7 +63,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private bool _restoreSidebar = false;
     private bool _readerFocused = false;
-    private bool _readerPointerEntered = true;
+    private bool _readerPointerEntered = false;
     private bool _bottomTileShowed = false;
     private bool _bottomTileHold = false;
     private long _bottomTileTargetHideTime = -1;
@@ -505,8 +505,8 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled ||
-            ViewModel.ReaderStatusLiveData.GetValue()?.Status != ReaderStatusEnum.Working)
+        bool readerWorking = ViewModel.ReaderStatusLiveData.GetValue()?.Status == ReaderStatusEnum.Working;
+        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || !_readerPointerEntered || !readerWorking)
         {
             return;
         }
