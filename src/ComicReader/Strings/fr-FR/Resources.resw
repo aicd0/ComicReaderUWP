@@ -584,14 +584,14 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="OK" xml:space="preserve">
     <value>D'ACCORD</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Ouvrir dans l'explorateur de fichiers</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Ouvrir dans un nouvel onglet</value>
-  </data>
-  <data name="OpenRandomComic" xml:space="preserve">
-    <value>Ouvrir une bande dessinée au hasard</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Ouvrir la barre latérale</value>
@@ -640,6 +640,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Confirmer avant de supprimer les bandes dessinées</value>
+  </data>
+  <data name="RandomComic" xml:space="preserve">
+    <value>Bande dessinée aléatoire</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>score</value>

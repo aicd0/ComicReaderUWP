@@ -25,10 +25,11 @@ internal static class MenuFlyoutItemsCreator
     public const string CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU = "ComicItemMenu";
     public const string CUSTOM_ACTION_NAME_SELECT = "Select";
 
-    public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateMenuItems(
+    public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicMenuItems(
         ComicModel primaryComic,
         ActionHandler actionHandler,
         IEnumerable<ComicModel>? selectedComics = null,
+        bool canOpenInCurrentTab = false,
         bool canEdit = true,
         bool canSelect = false)
     {
@@ -50,6 +51,22 @@ internal static class MenuFlyoutItemsCreator
         }
 
         List<BaseMenuFlyoutItemViewModel> result = [];
+
+        if (canOpenInCurrentTab)
+        {
+            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Open)
+            {
+                Glyph = "\uE8B9",
+                OnClick = () =>
+                {
+                    ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                        .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
+                        .AddParameter(OpenTabProvider.PARAM_NEW_TAB, "0")
+                        .Build();
+                    actionHandler.Handle(actionModel);
+                },
+            });
+        }
 
         result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInNewTab)
         {
@@ -273,6 +290,47 @@ internal static class MenuFlyoutItemsCreator
                 actionHandler.Handle(actionModel);
             },
         };
+    }
+
+    public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicGroupMenuItems(ActionHandler actionHandler,
+        ComicModel? randomComic, Action expandAllHandler, Action collapseAllHandler,
+        IList<BaseMenuFlyoutItemViewModel>? customItems = null)
+    {
+        List<BaseMenuFlyoutItemViewModel> result = [];
+
+        if (randomComic is not null)
+        {
+            result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.RandomComic)
+            {
+                Glyph = "\uE8B1",
+                Items = await CreateComicMenuItems(randomComic, actionHandler, canOpenInCurrentTab: true),
+            });
+        }
+
+        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.ExpandAll)
+        {
+            Glyph = "\uECCD",
+            OnClick = expandAllHandler,
+        });
+
+        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.CollapseAll)
+        {
+            Glyph = "\uF165",
+            OnClick = collapseAllHandler,
+        });
+
+        if (customItems is not null && customItems.Count > 0)
+        {
+            result.Add(new MenuFlyoutSeperatorViewModel());
+            foreach (BaseMenuFlyoutItemViewModel item in customItems)
+            {
+                result.Add(item);
+            }
+        }
+
+        result.Add(new MenuFlyoutSeperatorViewModel());
+        result.Add(CreateSelectMenuItem(actionHandler));
+        return result;
     }
 
     private static List<BaseMenuFlyoutItemViewModel> CreateSendToWindowMenuItems(string url, ActionHandler actionHandler)

@@ -584,14 +584,14 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Öffnen</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Im Datei-Explorer öffnen</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>In neuem Tab öffnen</value>
-  </data>
-  <data name="OpenRandomComic" xml:space="preserve">
-    <value>Öffne einen zufälligen Comic</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Seitenleiste öffnen</value>
@@ -640,6 +640,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Vor dem Entfernen von Comics bestätigen</value>
+  </data>
+  <data name="RandomComic" xml:space="preserve">
+    <value>Zufälliger comic</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>Punktzahl</value>

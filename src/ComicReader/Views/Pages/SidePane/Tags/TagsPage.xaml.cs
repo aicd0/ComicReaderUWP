@@ -88,11 +88,6 @@ internal sealed partial class TagsPage : BasePage
         return GetAbility<IMainPageAbility>()!;
     }
 
-    private INavigationPageAbility GetNavigationPageAbility()
-    {
-        return GetAbility<INavigationPageAbility>()!;
-    }
-
     //
     // Events
     //
@@ -118,7 +113,7 @@ internal sealed partial class TagsPage : BasePage
                     switch (name)
                     {
                         case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
-                            viewModel.SelectionMode = true;
+                            viewModel.SelectionMode = !viewModel.SelectionMode;
                             break;
                         default:
                             handled = false;

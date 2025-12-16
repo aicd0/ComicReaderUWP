@@ -212,7 +212,7 @@ internal sealed partial class SearchPage : BasePage
                     switch (name)
                     {
                         case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
-                            viewModel.SetSelectMode(true);
+                            viewModel.SetSelectMode(!viewModel.IsSelectMode);
                             break;
                         default:
                             handled = false;

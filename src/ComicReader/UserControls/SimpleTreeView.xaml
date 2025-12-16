@@ -17,13 +17,13 @@
         <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
 
-        <DataTemplate x:Key="NormalTemplate" x:DataType="vm:TagNodeViewModel">
+        <DataTemplate x:Key="NormalTemplate" x:DataType="vm:SimpleTreeViewNodeModel">
             <muxc:TreeViewItem
                 HorizontalContentAlignment="Stretch"
                 VerticalContentAlignment="Stretch"
                 AllowDrop="False"
                 AutomationProperties.Name="{x:Bind Title}"
-                IsExpanded="{x:Bind Expanded, Mode=TwoWay}"
+                IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
                 ItemsSource="{x:Bind Children}"
                 Tapped="TreeViewItem_Tapped">
                 <Grid>
@@ -40,12 +40,12 @@
                                 Margin="0,2,0,0"
                                 FontSize="14"
                                 Glyph="{x:Bind Glyph, Mode=OneWay}"
-                                Visibility="{x:Bind Expanded, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
+                                Visibility="{x:Bind IsExpanded, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
                             <FontIcon
                                 Margin="0,2,0,0"
                                 FontSize="14"
                                 Glyph="{x:Bind Glyph, Mode=OneWay}"
-                                Visibility="{x:Bind Expanded, Mode=OneWay}" />
+                                Visibility="{x:Bind IsExpanded, Mode=OneWay}" />
                         </Grid>
                         <FontIcon
                             Margin="0,2,0,0"

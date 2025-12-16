@@ -305,6 +305,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             return;
         }
+
         IsSelectMode = enabled;
         ComicItemSelectionMode = enabled ? ListViewSelectionMode.Multiple : ListViewSelectionMode.None;
         if (enabled)
@@ -602,7 +603,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     model.OnRequestContextFlyoutAsync = () =>
                     {
                         List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [item];
-                        return MenuFlyoutItemsCreator.CreateMenuItems(item, _actionHandler,
+                        return MenuFlyoutItemsCreator.CreateComicMenuItems(item, _actionHandler,
                             selectedComics: selectedComics, canSelect: true);
                     };
                     model.UpdateProgress(true);

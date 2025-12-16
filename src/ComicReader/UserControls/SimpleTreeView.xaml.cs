@@ -19,8 +19,8 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ObservableCollection<TagNodeViewModel> _dataSource = [];
-    public ObservableCollection<TagNodeViewModel> DataSource
+    public ObservableCollection<SimpleTreeViewNodeModel> _dataSource = [];
+    public ObservableCollection<SimpleTreeViewNodeModel> DataSource
     {
         get => _dataSource;
         set
@@ -63,8 +63,8 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
     private void TreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
     {
         SelectionMode = false;
-        var item = (TagNodeViewModel)args.InvokedItem;
-        item.OnClick?.Invoke();
+        var item = (SimpleTreeViewNodeModel)args.InvokedItem;
+        item.Clicked?.Invoke();
     }
 
     private void TreeView_Tapped(object sender, TappedRoutedEventArgs e)
@@ -84,15 +84,15 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
             return;
         }
 
-        if (fe.DataContext is not TagNodeViewModel viewModel)
+        if (fe.DataContext is not SimpleTreeViewNodeModel viewModel)
         {
             return;
         }
 
-        List<TagNodeViewModel> selectedItems = [];
+        List<SimpleTreeViewNodeModel> selectedItems = [];
         foreach (object? item in MainTreeView.SelectedItems)
         {
-            selectedItems.Add((TagNodeViewModel)item);
+            selectedItems.Add((SimpleTreeViewNodeModel)item);
         }
 
         FlyoutBase? flyout = await viewModel.CreateContextFlyout(selectedItems);

@@ -107,9 +107,9 @@ public class StringResourceProvider
     public string NoTagsHint => GetResourceString("NoTagsHint");
     public string None => GetResourceString("None");
     public string OK => GetResourceString("OK");
+    public string Open => GetResourceString("Open");
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
-    public string OpenRandomComic => GetResourceString("OpenRandomComic");
     public string OpenSidebar => GetResourceString("OpenSidebar");
     public string OpenUserDataFolder => GetResourceString("OpenUserDataFolder");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
@@ -125,6 +125,7 @@ public class StringResourceProvider
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
     public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");
+    public string RandomComic => GetResourceString("RandomComic");
     public string Rating => GetResourceString("Rating");
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");
