@@ -224,7 +224,6 @@ internal sealed partial class ReaderPage : BasePage
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
             BottomGrid.Opacity = opacity;
-            FullscreenButtonGrid.Opacity = opacity;
         });
 
         GetMainPageAbility().RegisterTitleBarVisibilityChangedHandler(this, delegate (bool visible)
@@ -692,16 +691,6 @@ internal sealed partial class ReaderPage : BasePage
         KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_TIPS, KEY_TIP_SHOWN, true);
     }
 
-    private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)
-    {
-        GetMainWindowAbility().EnterFullscreen();
-    }
-
-    private void OnBackToWindowBtClicked(object sender, RoutedEventArgs e)
-    {
-        GetMainWindowAbility().ExitFullscreen();
-    }
-
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
     {
         var item = args.Item as ReaderImagePreviewViewModel;
@@ -709,8 +698,14 @@ internal sealed partial class ReaderPage : BasePage
         viewHolder?.SetModel(item, args.InRecycleQueue);
     }
 
+    private void InfoPane_PaneOpening(SplitView sender, object args)
+    {
+        GetNavigationPageAbility().SetFullscreenButtonVisible(false);
+    }
+
     private void InfoPane_PaneClosed(SplitView sender, object args)
     {
+        GetNavigationPageAbility().SetFullscreenButtonVisible(true);
         if (_restoreSidebar)
         {
             _restoreSidebar = false;

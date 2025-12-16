@@ -104,29 +104,6 @@
                     FontWeight="SemiBold"
                     Text="- / -" />
             </Grid>
-
-            <!--  Fullscreen button  -->
-            <Grid
-                x:Name="FullscreenButtonGrid"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom">
-                <Button
-                    Click="OnFullscreenBtClicked"
-                    Style="{StaticResource ReaderFullscreenButtonStyle}"
-                    Visibility="{x:Bind ViewModel.IsFullscreen, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}">
-                    <Button.Content>
-                        <FontIcon Glyph="&#xE740;" />
-                    </Button.Content>
-                </Button>
-                <Button
-                    Click="OnBackToWindowBtClicked"
-                    Style="{StaticResource ReaderFullscreenButtonStyle}"
-                    Visibility="{x:Bind ViewModel.IsFullscreen, Mode=OneWay}">
-                    <Button.Content>
-                        <FontIcon Glyph="&#xE73F;" />
-                    </Button.Content>
-                </Button>
-            </Grid>
         </Grid>
 
         <!--  Preview Grid View  -->
@@ -165,6 +142,7 @@
             DisplayMode="Overlay"
             PaneBackground="{ThemeResource FlyoutPresenterBackground}"
             PaneClosed="InfoPane_PaneClosed"
+            PaneOpening="InfoPane_PaneOpening"
             PanePlacement="Right">
 
             <!--  Information Pane  -->
