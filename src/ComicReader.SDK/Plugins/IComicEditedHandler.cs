@@ -3,7 +3,7 @@
 
 namespace ComicReader.SDK.Plugins;
 
-public interface IBeforeComicUpdatingHandler
+public interface IComicEditedHandler
 {
-    void OnComicUpdating(IComicModel comic);
+    void ComicEdited(IComicModel comic);
 }

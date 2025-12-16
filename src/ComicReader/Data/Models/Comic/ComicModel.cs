@@ -10,7 +10,6 @@ using System.IO;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
-using ComicReader.Common.Plugins;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
@@ -23,8 +22,6 @@ namespace ComicReader.Data.Models.Comic;
 
 internal sealed class ComicModel : IComicModel
 {
-    private static bool _dispatchingUpdateEvent = false;
-
     private readonly ComicData _internalModel;
 
     private ComicModel(ComicData comicData)
@@ -235,33 +232,6 @@ internal sealed class ComicModel : IComicModel
     }
 
     //
-    // Helpers
-    //
-
-    private void DispatchUpdateEvent()
-    {
-        if (_dispatchingUpdateEvent)
-        {
-            return;
-        }
-
-        _dispatchingUpdateEvent = true;
-        try
-        {
-            foreach (PluginContext plugin in PluginManager.Instance.GetAllPluginContext())
-            {
-                plugin.DispatchBeforeComicUpdatingEvent(this);
-            }
-        }
-        finally
-        {
-            _dispatchingUpdateEvent = false;
-        }
-
-        GlobalEvent.Instance.ComicUpdated.Emit(0);
-    }
-
-    //
     // Creators
     //
 
@@ -449,5 +419,10 @@ internal sealed class ComicModel : IComicModel
         {
             er.SetError(ex, fatal: true);
         }
+    }
+
+    private static void DispatchUpdateEvent()
+    {
+        GlobalEvent.Instance.ComicUpdated.Emit(0);
     }
 }

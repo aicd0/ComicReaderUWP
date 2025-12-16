@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Localization;
+using ComicReader.Common.Plugins;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
@@ -238,6 +239,14 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             }
 
             await Task.WhenAll(tasks);
+
+            foreach (ComicModel comic in _comics)
+            {
+                foreach (PluginContext plugin in PluginManager.Instance.GetAllPluginContext())
+                {
+                    plugin.DispatchComicEditedEvent(comic);
+                }
+            }
         }));
     }
 
