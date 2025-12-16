@@ -627,15 +627,6 @@ internal sealed partial class MainPage : BasePage
             ShowOrHideTitleBar(true, transitionAnimation: false);
         }
 
-        if (pageTrait.HideFullscreenButton())
-        {
-            FullscreenButtonGrid.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            FullscreenButtonGrid.Visibility = Visibility.Visible;
-        }
-
         tabInfo.NavigationBarAbility.RestoreStates();
     }
 
@@ -1330,6 +1321,7 @@ internal sealed partial class MainPage : BasePage
         private bool _isFavorite = false;
         private bool _gridViewMode = false;
         private string _searchBoxText = string.Empty;
+        private bool _fullscreenButtonVisible = true;
         private ComicModel? _readerSettingComic = null;
         private ReaderSettingDataModel? _readerSettings = null;
 
@@ -1346,6 +1338,7 @@ internal sealed partial class MainPage : BasePage
             _isFavorite = false;
             _gridViewMode = false;
             _searchBoxText = string.Empty;
+            _fullscreenButtonVisible = true;
             _readerSettingComic = null;
             _readerSettings = null;
         }
@@ -1361,6 +1354,7 @@ internal sealed partial class MainPage : BasePage
             SetFavoriteInternal(parent);
             SetGridViewModeInternal(parent);
             SetSearchBoxInternal(parent);
+            SetFullscreenButtonVisibleInternal(parent);
             SetReaderSettingsInternal(parent);
         }
 
@@ -1499,6 +1493,26 @@ internal sealed partial class MainPage : BasePage
         private void SetSearchBoxInternal(MainPage page)
         {
             page.SetSearchBox(_searchBoxText);
+        }
+
+        //
+        // Fullscreen Button
+        //
+
+        public void SetFullscreenButtonVisible(bool visible)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            _fullscreenButtonVisible = visible;
+            SetFullscreenButtonVisibleInternal(parent);
+        }
+
+        private void SetFullscreenButtonVisibleInternal(MainPage page)
+        {
+            page.FullscreenButtonGrid.Visibility = _fullscreenButtonVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
         //
