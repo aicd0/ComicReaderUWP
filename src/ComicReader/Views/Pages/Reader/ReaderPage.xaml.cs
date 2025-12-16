@@ -18,7 +18,6 @@ using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
-using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 using ComicReader.Views.AppWindows.Main;
@@ -269,7 +268,7 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.EditTagLiveData.Observe(this, pair =>
         {
             var dialog = new EditTagDialog(pair.Key, pair.Value);
-            _ = dialog.ShowAsync(WindowId);
+            CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
         });
 
         ViewModel.IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
@@ -411,7 +410,7 @@ internal sealed partial class ReaderPage : BasePage
                     }
 
                     progress = Math.Min(progress, 100);
-                    await comic.SaveProgressAsync(progress, page);
+                    await comic.SetProgress(progress, page);
                     await Task.Delay(SAVE_PREOGRESS_INTERVAL);
                 }
                 while (_saveProgressInvalidated);
@@ -653,7 +652,7 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         var dialog = new EditComicInfoDialog([comic]);
-        _ = dialog.ShowAsync(WindowId);
+        CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
     }
 
     private void OnReaderPointerExited(object sender, PointerRoutedEventArgs e)
@@ -666,7 +665,7 @@ internal sealed partial class ReaderPage : BasePage
         _readerPointerEntered = false;
 
         // Post detection to allow routed event to be dispatched to root
-        MainThreadUtils.PostInMainThread(() =>
+        CoroutineUtils.PostInMainThread(() =>
         {
             if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow())
             {
@@ -749,7 +748,7 @@ internal sealed partial class ReaderPage : BasePage
                 return;
             }
 
-            MainThreadUtils.PostInMainThreadAsync(async () =>
+            CoroutineUtils.PostInMainThreadAsync(async () =>
             {
                 await Task.Delay(1);
                 helper(attempts);

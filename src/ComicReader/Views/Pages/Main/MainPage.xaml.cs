@@ -13,7 +13,6 @@ using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
-using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.AppWindows.Main;
 
@@ -87,7 +86,7 @@ internal sealed partial class MainPage : BasePage
 
     public void OpenInNewTab(Route route)
     {
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             LoadTabNoLock(-1, route, true);
         });
@@ -95,7 +94,7 @@ internal sealed partial class MainPage : BasePage
 
     public void OpenInCurrentTab(Route route)
     {
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             TabInfo? tab = _currentTab;
             if (tab is not null)
@@ -175,7 +174,7 @@ internal sealed partial class MainPage : BasePage
             }
         }
 
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             if (model is not null)
             {
@@ -247,6 +246,11 @@ internal sealed partial class MainPage : BasePage
 
     private void ObserveData()
     {
+        BusyStateManager.Busy.ObserveSticky(this, busy =>
+        {
+            ViewModel.IsBusy = busy;
+        });
+
         OnscreenLogger.Started.ObserveSticky(this, ViewModel.SetLogStarted);
         OnscreenLogger.Visible.ObserveSticky(this, ViewModel.SetLogVisibility);
 
@@ -925,12 +929,12 @@ internal sealed partial class MainPage : BasePage
 
     private void OnGoBackClick(object sender, RoutedEventArgs e)
     {
-        _ = GoBack();
+        GoBack();
     }
 
     private void OnGoForwardClick(object sender, RoutedEventArgs e)
     {
-        _ = GoForward();
+        GoForward();
     }
 
     private void OnHomeClick(object sender, RoutedEventArgs e)
@@ -1010,11 +1014,11 @@ internal sealed partial class MainPage : BasePage
 
         if (_lastPointerPoint.Properties.IsXButton1Pressed)
         {
-            _ = GoBack();
+            GoBack();
         }
         else if (_lastPointerPoint.Properties.IsXButton2Pressed)
         {
-            _ = GoForward();
+            GoForward();
         }
 
         _lastPointerPoint = null;
@@ -1104,7 +1108,7 @@ internal sealed partial class MainPage : BasePage
 
     private void DispatchToAllTabs(Action<MainPageAbility> action)
     {
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             foreach (TabInfo tab in _tabs)
             {

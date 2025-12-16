@@ -105,8 +105,9 @@ class WindowManager
         }
 
         _saveWindowStatusScheduled = true;
-        Task.Delay(500).ContinueWith(delegate
+        CoroutineUtils.Start(async () =>
         {
+            await Task.Delay(500);
             _saveWindowStatusScheduled = false;
             if (_windowStatusLocked)
             {

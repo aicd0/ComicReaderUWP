@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Utils;
+using ComicReader.SDK.Common.Utils;
 
 namespace ComicReader.Common.Actions.Providers;
 
@@ -31,7 +32,7 @@ internal class MessageDialogProvider : IActionProvider
             .SetTitle(title)
             .SetContent(message)
             .Build();
-        _ = DialogUtils.EnqueueDialogAsync(mainWindowCom.WindowId, options);
+        CoroutineUtils.Start(() => DialogUtils.EnqueueDialogAsync(mainWindowCom.WindowId, options));
         context.SetSuccess();
     }
 }

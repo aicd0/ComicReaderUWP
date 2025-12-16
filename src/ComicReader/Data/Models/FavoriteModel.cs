@@ -116,6 +116,7 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
         {
             return;
         }
+
         bool Helper(List<JsonNodeModel> e)
         {
             bool updated = false;
@@ -135,8 +136,10 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
                     updated = true;
                 }
             }
+
             return updated;
         }
+
         bool updated = Write(model => Helper(model.Children));
         if (updated)
         {
@@ -181,6 +184,7 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
         {
             return;
         }
+
         bool updated = Write(delegate (JsonModel model)
         {
             bool updated = false;
@@ -202,6 +206,7 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
             }
             return updated;
         });
+
         if (updated)
         {
             Save();

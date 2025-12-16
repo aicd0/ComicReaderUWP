@@ -8,5 +8,5 @@ public interface IComicModel
     string Description { get; }
     int Rating { get; }
 
-    void SetRating(int rating);
+    Task SetRating(int rating);
 }

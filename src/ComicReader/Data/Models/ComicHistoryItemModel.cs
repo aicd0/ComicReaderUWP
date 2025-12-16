@@ -73,7 +73,7 @@ internal class ComicHistoryItemModel
 
     public static async Task AddAsync(long id, string title, bool suppressEvent = false)
     {
-        _ = await Enqueue("AddAsync", () =>
+        await Enqueue("AddAsync", () =>
         {
             DeleteCommand deleteCommand = DeleteCommand.Create(ComicHistoryTable.Instance)
                 .AppendCondition(ComicHistoryTable.ColumnComicId, id);
@@ -112,7 +112,7 @@ internal class ComicHistoryItemModel
 
     public static async Task ClearAsync(bool suppressEvent = false)
     {
-        _ = await Enqueue("ClearAsync", () =>
+        await Enqueue("ClearAsync", () =>
         {
             var deleteCommand = DeleteCommand.Create(ComicHistoryTable.Instance);
             deleteCommand.Execute();

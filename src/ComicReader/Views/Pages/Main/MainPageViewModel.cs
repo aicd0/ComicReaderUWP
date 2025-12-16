@@ -13,7 +13,7 @@ using ComicReader.Common.Services;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -27,6 +27,17 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<LogItemViewModel> LogItems { get; } = [];
+
+    private bool _isBusy = false;
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            _isBusy = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsBusy)));
+        }
+    }
 
     private bool _isFullscreen = false;
     public bool IsFullscreen
@@ -189,7 +200,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewTab)
         {
             Glyph = "\uE8A5",
-            OnClick = () =>
+            Click = () =>
             {
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
@@ -203,7 +214,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewWindow)
         {
             Glyph = "\uE78B",
-            OnClick = () =>
+            Click = () =>
             {
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
@@ -221,7 +232,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.ExitFullscreen)
             {
                 Glyph = "\uE73F",
-                OnClick = () =>
+                Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
                         .AddParameter(FullscreenServiceProvider.PARAM_ENTER, "0")
@@ -235,7 +246,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.EnterFullscreen)
             {
                 Glyph = "\uE740",
-                OnClick = () =>
+                Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
                         .AddParameter(FullscreenServiceProvider.PARAM_ENTER, "1")
@@ -250,7 +261,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Settings)
         {
             Glyph = "\uE713",
-            OnClick = () =>
+            Click = () =>
             {
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SETTING);
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
@@ -266,7 +277,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             items.Add(new MenuFlyoutItemViewModel("Dev tools")
             {
                 Glyph = "\uEC7A",
-                OnClick = () =>
+                Click = () =>
                 {
                     var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
@@ -280,7 +291,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Exit)
         {
-            OnClick = () =>
+            Click = () =>
             {
                 ApplicationService.StartShuttingDown();
                 Application.Current.Exit();
@@ -333,7 +344,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     private void AppendLog(string message)
     {
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             LogItemViewModel item = new()
             {

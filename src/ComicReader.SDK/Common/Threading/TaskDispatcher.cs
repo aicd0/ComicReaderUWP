@@ -42,32 +42,35 @@ public abstract class TaskDispatcher : ITaskDispatcher
             Log(_submitTag, $"task={taskName},running={runningCount},pending={pendingCount}");
         }
 
-        SubmitInternal(delegate
+        SubmitInternal(() =>
         {
-            long startTime = GetCurrentMilliseconds();
-            {
-                long since0 = GetCurrentMilliseconds() - submitTime;
-                int pendingCount = Interlocked.Decrement(ref _pendingTaskCount);
-                int runningCount = Interlocked.Increment(ref _runningTaskCount);
-                Log(_startTag, $"task={taskName},since0={since0},running={runningCount},pending={pendingCount}");
-            }
-
             try
             {
-                action();
+                long startTime = GetCurrentMilliseconds();
+                {
+                    long since0 = GetCurrentMilliseconds() - submitTime;
+                    int pendingCount = Interlocked.Decrement(ref _pendingTaskCount);
+                    int runningCount = Interlocked.Increment(ref _runningTaskCount);
+                    Log(_startTag, $"task={taskName},since0={since0},running={runningCount},pending={pendingCount}");
+                }
+
+                try
+                {
+                    action();
+                }
+                finally
+                {
+                    int pendingCount = _pendingTaskCount;
+                    int runningCount = Interlocked.Decrement(ref _runningTaskCount);
+                    long time = GetCurrentMilliseconds();
+                    long since0 = time - submitTime;
+                    long since1 = time - startTime;
+                    Log(_endTag, $"task={taskName},since0={since0},since1={since1},running={runningCount},pending={pendingCount}");
+                }
             }
             catch (Exception e)
             {
                 DebugUtils.CaptureFatalError($"Task '{taskName}' throwed an exception.", e);
-            }
-            finally
-            {
-                int pendingCount = _pendingTaskCount;
-                int runningCount = Interlocked.Decrement(ref _runningTaskCount);
-                long time = GetCurrentMilliseconds();
-                long since0 = time - submitTime;
-                long since1 = time - startTime;
-                Log(_endTag, $"task={taskName},since0={since0},since1={since1},running={runningCount},pending={pendingCount}");
             }
         });
     }

@@ -4,6 +4,7 @@
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.ServiceManagement;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.AppWindows.Main;
 
 namespace ComicReader.Common.Services;
@@ -23,7 +24,7 @@ internal class DebugService : IDebugService
                 e.Cancel = true;
             })
             .Build();
-        _ = DialogUtils.EnqueueDialogAsync(options);
+        CoroutineUtils.Start(() => DialogUtils.EnqueueDialogAsync(options));
     }
 
     public bool HandleDebugCommand(string command)

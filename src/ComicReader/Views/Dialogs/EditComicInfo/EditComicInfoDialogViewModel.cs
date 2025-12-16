@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Localization;
@@ -15,7 +16,7 @@ using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.SDK.Common.Lifecycle;
-using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Dialogs.EditComicInfo;
@@ -194,28 +195,29 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         List<TagLinkModel.LinkModel> addedLinks = DiffLink(newLinks, oldLinks);
         List<TagLinkModel.LinkModel> removedLinks = DiffLink(oldLinks, newLinks);
 
-        TaskDispatcher.DefaultQueue.Submit("ContentDialogPrimaryButtonClick", delegate
+        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
         {
+            List<Task> tasks = [];
             foreach (ComicModel comic in _comics)
             {
                 if (_title1Changed)
                 {
-                    comic.SetTitle1(_title1);
+                    tasks.Add(comic.SetTitle1(_title1));
                 }
 
                 if (_title2Changed)
                 {
-                    comic.SetTitle2(_title2);
+                    tasks.Add(comic.SetTitle2(_title2));
                 }
 
                 if (_descriptionChanged)
                 {
-                    comic.SetDescription(_description);
+                    tasks.Add(comic.SetDescription(_description));
                 }
 
                 if (_ratingChanged)
                 {
-                    comic.SetRating(rating);
+                    tasks.Add(comic.SetRating(rating));
                 }
 
                 if (_tagsChanged)
@@ -226,15 +228,17 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                         comicTags[tagData.Name] = [.. tagData.Tags];
                     }
 
-                    comic.SetTags(MergeTags(comicTags, _commonTags, newTags, _tagDiffMode, _tagIdMode));
+                    tasks.Add(comic.SetTags(MergeTags(comicTags, _commonTags, newTags, _tagDiffMode, _tagIdMode)));
                 }
 
                 if (addedLinks.Count + removedLinks.Count > 0)
                 {
-                    MergeLinks(comic, addedLinks, removedLinks);
+                    tasks.Add(MergeLinks(comic, addedLinks, removedLinks));
                 }
             }
-        });
+
+            await Task.WhenAll(tasks);
+        }));
     }
 
     public void SetTitle1(string text)
@@ -870,7 +874,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         });
     }
 
-    private void MergeLinks(ComicModel comic, List<TagLinkModel.LinkModel> addedLinks, List<TagLinkModel.LinkModel> removedLinks)
+    private async Task MergeLinks(ComicModel comic, List<TagLinkModel.LinkModel> addedLinks, List<TagLinkModel.LinkModel> removedLinks)
     {
         string? linkJson = comic.GetExt(ComicExt.LINKS);
         var linkModel = TagLinkModel.Parse(linkJson);
@@ -919,7 +923,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         if (newLinkJson != linkJson)
         {
             comic.SetExt(ComicExt.LINKS, newLinkJson);
-            comic.FlushExt();
+            await comic.FlushExt();
         }
     }
 

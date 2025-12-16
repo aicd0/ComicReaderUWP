@@ -144,11 +144,11 @@ internal sealed partial class FavoritePage : BasePage
     {
         if (item.Parent != null)
         {
-            _ = item.Parent.Children.Remove(item);
+            item.Parent.Children.Remove(item);
         }
         else
         {
-            _ = DataSource.Remove(item);
+            DataSource.Remove(item);
         }
 
         Save();
@@ -261,16 +261,12 @@ internal sealed partial class FavoritePage : BasePage
     // events
     private void MainTreeViewBackgroundPressed(object sender, PointerRoutedEventArgs e)
     {
-        C0.Run(async delegate
-        {
-            await ResetItems();
-        });
+        CoroutineUtils.Start(ResetItems);
     }
 
     private void MainTreeViewItemPressed(object sender, PointerRoutedEventArgs e)
     {
-        // right-click
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             var item = (Microsoft.UI.Xaml.Controls.TreeViewItem)sender;
             var ctx = (FavoriteItemViewModel)item.DataContext;
@@ -287,8 +283,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void MainTreeViewItemInvoked(Microsoft.UI.Xaml.Controls.TreeView sender, Microsoft.UI.Xaml.Controls.TreeViewItemInvokedEventArgs e)
     {
-        // left-click
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             var item = (FavoriteItemViewModel)e.InvokedItem;
 
@@ -340,7 +335,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void RenameTextBoxKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             if (e.Key == Windows.System.VirtualKey.Enter)
             {
@@ -410,7 +405,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void OpenInNewTabClick(object sender, RoutedEventArgs e)
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             var item = (FavoriteItemViewModel)((MenuFlyoutItem)sender).DataContext;
             ComicModel? comic = await ComicModel.FromId(item.Id, "FavoriteOpenInNewTabLoadComic");

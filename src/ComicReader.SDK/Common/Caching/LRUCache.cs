@@ -192,8 +192,9 @@ public class LRUCache(string directoryPath, long maxSize)
             _flushLock.ReleaseReaderLock();
         }
 
-        Task.Delay(1000).ContinueWith(delegate
+        CoroutineUtils.Start(async () =>
         {
+            await Task.Delay(1000);
             IDictionary<string, long> pendingFlushKeys;
             _flushLock.AcquireWriterLock(-1);
             try

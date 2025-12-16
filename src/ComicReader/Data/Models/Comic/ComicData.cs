@@ -17,6 +17,7 @@ using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Data.SqlHelpers;
 
 using Microsoft.UI.Xaml.Controls;
@@ -403,9 +404,9 @@ internal abstract class ComicData
         }
     }
 
-    public void FlushExt()
+    public async Task FlushExt()
     {
-        _ = Enqueue("FlushExt", () =>
+        await Enqueue("FlushExt", () =>
         {
             SaveNoLock(() =>
             {
@@ -418,10 +419,10 @@ internal abstract class ComicData
         });
     }
 
-    public void SetTitle1(string title)
+    public async Task SetTitle1(string title)
     {
         Title1 = title;
-        _ = Enqueue("SetTitle1", () =>
+        await Enqueue("SetTitle1", () =>
         {
             SaveNoLock(() =>
             {
@@ -434,10 +435,10 @@ internal abstract class ComicData
         });
     }
 
-    public void SetTitle2(string title)
+    public async Task SetTitle2(string title)
     {
         Title2 = title;
-        _ = Enqueue("SetTitle2", () =>
+        await Enqueue("SetTitle2", () =>
         {
             SaveNoLock(() =>
             {
@@ -450,10 +451,10 @@ internal abstract class ComicData
         });
     }
 
-    public void SetDescription(string description)
+    public async Task SetDescription(string description)
     {
         Description = description;
-        _ = Enqueue("SetDescription", () =>
+        await Enqueue("SetDescription", () =>
         {
             SaveNoLock(() =>
             {
@@ -466,7 +467,7 @@ internal abstract class ComicData
         });
     }
 
-    public void SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
+    public async Task SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
     {
         List<TagData> newTags = [];
         foreach (KeyValuePair<string, HashSet<string>> pair in tags)
@@ -499,8 +500,7 @@ internal abstract class ComicData
         }
 
         Tags = newTags;
-
-        _ = Enqueue("SetTags", () =>
+        await Enqueue("SetTags", () =>
         {
             SaveNoLock(() =>
             {
@@ -510,10 +510,10 @@ internal abstract class ComicData
         });
     }
 
-    public void SetLocation(string location)
+    public async Task SetLocation(string location)
     {
         Location = location;
-        _ = Enqueue("SetLocation", () =>
+        await Enqueue("SetLocation", () =>
         {
             SaveNoLock(() =>
             {
@@ -526,7 +526,24 @@ internal abstract class ComicData
         });
     }
 
-    private void SetPageCount(int pageCount)
+    public async Task SetRating(int rating)
+    {
+        rating = Math.Clamp(rating, -1, 100);
+        Rating = rating;
+        await Enqueue("SaveRating", delegate
+        {
+            SaveNoLock(delegate
+            {
+                UpdateCommand.Create(ComicTable.Instance)
+                    .AppendColumn(ComicTable.ColumnRating, GetColumnValue(ComicTable.ColumnRating))
+                    .AppendCondition(ComicTable.ColumnId, Id)
+                    .Execute();
+            });
+            return true;
+        });
+    }
+
+    private async Task SetPageCount(int pageCount)
     {
         if (PageCount == pageCount)
         {
@@ -534,7 +551,7 @@ internal abstract class ComicData
         }
 
         PageCount = pageCount;
-        _ = Enqueue("SetPageCount", () =>
+        await Enqueue("SetPageCount", () =>
         {
             SaveNoLock(() =>
             {
@@ -564,7 +581,7 @@ internal abstract class ComicData
             int pageCount = connection.GetImageCount();
             if (pageCount > 0)
             {
-                SetPageCount(pageCount);
+                await SetPageCount(pageCount);
             }
             else
             {
@@ -709,24 +726,6 @@ internal abstract class ComicData
         });
     }
 
-    public void SaveRating(int rating)
-    {
-        rating = Math.Clamp(rating, -1, 100);
-        Rating = rating;
-
-        _ = Enqueue("SaveRating", delegate
-        {
-            SaveNoLock(delegate
-            {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnRating, GetColumnValue(ComicTable.ColumnRating))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
-            return true;
-        });
-    }
-
     public async Task SaveProgressAsync(int progress, double last_position)
     {
         Progress = Math.Clamp(progress, -1, 100);
@@ -751,7 +750,7 @@ internal abstract class ComicData
         LastVisit = DateTimeOffset.Now;
         Progress = Math.Max(Progress, 0);
 
-        _ = Enqueue("SetAsRead", delegate
+        CoroutineUtils.Start(() => Enqueue("SetAsRead", delegate
         {
             SaveNoLock(delegate
             {
@@ -762,14 +761,14 @@ internal abstract class ComicData
                     .Execute();
             });
             return true;
-        });
+        }));
     }
 
     public void SetCoverCacheKey(string key)
     {
         CoverCacheKey = key;
 
-        _ = Enqueue("SetCoverCacheKey", delegate
+        CoroutineUtils.Start(() => Enqueue("SetCoverCacheKey", delegate
         {
             SaveNoLock(delegate
             {
@@ -779,7 +778,7 @@ internal abstract class ComicData
                     .Execute();
             });
             return true;
-        });
+        }));
     }
 
     public void SetAsDefaultInfo()

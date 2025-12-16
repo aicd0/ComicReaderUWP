@@ -102,44 +102,44 @@ internal sealed class ComicModel : IComicModel
         DispatchUpdateEvent();
     }
 
-    public void FlushExt()
+    public async Task FlushExt()
     {
-        _internalModel.FlushExt();
+        await _internalModel.FlushExt();
     }
 
-    public void SetTitle1(string title)
+    public async Task SetTitle1(string title)
     {
-        _internalModel.SetTitle1(title);
+        await _internalModel.SetTitle1(title);
         DispatchUpdateEvent();
     }
 
-    public void SetTitle2(string title)
+    public async Task SetTitle2(string title)
     {
-        _internalModel.SetTitle2(title);
+        await _internalModel.SetTitle2(title);
         DispatchUpdateEvent();
     }
 
-    public void SetDescription(string description)
+    public async Task SetDescription(string description)
     {
-        _internalModel.SetDescription(description);
+        await _internalModel.SetDescription(description);
         DispatchUpdateEvent();
     }
 
-    public void SetRating(int rating)
+    public async Task SetRating(int rating)
     {
-        _internalModel.SaveRating(rating);
+        await _internalModel.SetRating(rating);
         DispatchUpdateEvent();
     }
 
-    public void SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
+    public async Task SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
     {
-        _internalModel.SetTags(tags);
+        await _internalModel.SetTags(tags);
         DispatchUpdateEvent();
     }
 
     public async Task SetCompletionStateToNotStarted()
     {
-        await SaveProgressAsync(-1, 0);
+        await SetProgress(-1, 0);
         await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.NotStarted);
         DispatchUpdateEvent();
     }
@@ -167,22 +167,22 @@ internal sealed class ComicModel : IComicModel
         DispatchUpdateEvent();
     }
 
-    public async Task SaveProgressAsync(int progress, double lastPosition)
+    public async Task SetProgress(int progress, double lastPosition)
     {
         // This method is expected to be called frequently,
         // so we don't dispatch events to save CPU resources
         await _internalModel.SaveProgressAsync(progress, lastPosition);
     }
 
-    public async Task SaveHiddenAsync(bool hidden)
+    public async Task SetHidden(bool hidden)
     {
         await _internalModel.SaveHiddenAsync(hidden);
         DispatchUpdateEvent();
     }
 
-    public void SetLocation(string location)
+    public async Task SetLocation(string location)
     {
-        _internalModel.SetLocation(location);
+        await _internalModel.SetLocation(location);
     }
 
     //

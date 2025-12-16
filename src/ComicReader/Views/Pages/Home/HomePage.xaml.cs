@@ -8,7 +8,6 @@ using System.Linq;
 using ComicReader.Common;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
@@ -415,17 +414,17 @@ internal sealed partial class HomePage : BasePage
 
     private void EditFilterButton_Click(object sender, RoutedEventArgs e)
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             var dialog = new EditFilterDialog(await ViewModel.GetFilter());
-            _ = await dialog.ShowAsync(WindowId);
+            await dialog.ShowAsync(WindowId);
             ViewModel.Refresh(filters: true);
         });
     }
 
     private void AddNewFolder()
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             StorageFolder? folder = await FilePickerUtils.PickFolder(WindowId);
             if (folder == null)

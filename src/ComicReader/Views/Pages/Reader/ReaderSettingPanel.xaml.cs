@@ -145,7 +145,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         try
         {
             var dialog = new EditReaderSettingPresetDialog(_comic);
-            _ = await dialog.ShowAsync(_windowId);
+            await dialog.ShowAsync(_windowId);
         }
         finally
         {
@@ -279,7 +279,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
             items.Add(new MenuFlyoutToggleItemViewModel(preset.Item1)
             {
                 IsChecked = _model.PresetKey == presetKey,
-                OnClick = () =>
+                Click = () =>
                 {
                     if (presetKey != _model.PresetKey && _comic is not null)
                     {

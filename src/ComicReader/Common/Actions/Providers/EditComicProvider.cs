@@ -54,7 +54,7 @@ internal class EditComicProvider : IActionProvider
             if (comics.Count > 0)
             {
                 var dialog = new EditComicInfoDialog(comics);
-                _ = dialog.ShowAsync(mainWindowCom.WindowId);
+                CoroutineUtils.Start(() => dialog.ShowAsync(mainWindowCom.WindowId));
             }
 
             context.SetSuccess();

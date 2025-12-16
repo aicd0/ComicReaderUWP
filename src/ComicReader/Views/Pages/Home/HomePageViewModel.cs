@@ -20,6 +20,7 @@ using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
 
@@ -269,8 +270,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
         else
         {
-            _ = Task.Delay(timeRemain).ContinueWith((_) =>
+            CoroutineUtils.Start(async () =>
             {
+                await Task.Delay(timeRemain);
                 _lastSearchTime = GetTick();
                 ScheduleUpdateComics();
             });
@@ -376,10 +378,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     public void ApplyOperationToSelection(ComicOperationType operationType)
     {
         List<ComicItemViewModel> selectedItems = [.. _selectedComicItems];
-        _sharedDispatcher.Submit("ApplyOperationToSelection", delegate
+        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
         {
-            BatchApplyOperation(operationType, selectedItems);
-        });
+            await BatchApplyOperation(operationType, selectedItems);
+        }));
     }
 
     /// <summary>
@@ -619,7 +621,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         });
     }
 
-    private void BatchApplyOperation(ComicOperationType operationType, List<ComicItemViewModel> models)
+    public static async Task BatchApplyOperation(ComicOperationType operationType, List<ComicItemViewModel> models)
     {
         switch (operationType)
         {
@@ -642,46 +644,31 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             case ComicOperationType.Hide:
                 {
                     List<ComicItemViewModel> items = models.FindAll(x => !x.IsHide);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SaveHiddenAsync(true).Wait();
-                    }
+                    await Task.WhenAll(items.Select(x => x.Comic.SetHidden(true)));
                 }
                 break;
             case ComicOperationType.Unhide:
                 {
                     List<ComicItemViewModel> items = models.FindAll(x => x.IsHide);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SaveHiddenAsync(false).Wait();
-                    }
+                    await Task.WhenAll(items.Select(x => x.Comic.SetHidden(false)));
                 }
                 break;
             case ComicOperationType.MarkAsRead:
                 {
                     List<ComicItemViewModel> items = models.FindAll(x => !x.IsRead);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SetCompletionStateToCompleted().Wait();
-                    }
+                    await Task.WhenAll(items.Select(x => x.Comic.SetCompletionStateToCompleted()));
                 }
                 break;
             case ComicOperationType.MarkAsReading:
                 {
                     List<ComicItemViewModel> items = models.FindAll(x => !x.IsReading);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SetCompletionStateToStarted().Wait();
-                    }
+                    await Task.WhenAll(items.Select(x => x.Comic.SetCompletionStateToStarted()));
                 }
                 break;
             case ComicOperationType.MarkAsUnread:
                 {
                     List<ComicItemViewModel> items = models.FindAll(x => !x.IsUnread);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SetCompletionStateToNotStarted().Wait();
-                    }
+                    await Task.WhenAll(items.Select(x => x.Comic.SetCompletionStateToNotStarted()));
                 }
                 break;
             default:
@@ -800,7 +787,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             Items = _viewTypes.ConvertAll(x => new MenuFlyoutToggleItemViewModel(ViewTypeToDisplayName(x))
             {
                 IsChecked = x == lastFilter.ViewType,
-                OnClick = () =>
+                Click = () =>
                 {
                     SelectViewType(x);
                 },
@@ -833,7 +820,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             Name = lastFilterName,
             Items = filters.ConvertAll(x => new MenuFlyoutItemViewModel(x.Name)
             {
-                OnClick = () => SelectFilterPreset(x.Name),
+                Click = () => SelectFilterPreset(x.Name),
             }),
         };
 
@@ -909,7 +896,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             }
         }
 
-        await MainThreadUtils.RunInMainThread(delegate
+        await MainThreadUtils.RunInMainThread(() =>
         {
             bool ComicComparer(ComicItemViewModel x, ComicItemViewModel y) => x.Comic.Id == y.Comic.Id;
             void ComicUpdater(ComicItemViewModel x, ComicItemViewModel y) => x.Update(y);
@@ -1007,7 +994,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.None)
         {
             IsChecked = selectedProperty is null,
-            OnClick = () =>
+            Click = () =>
             {
                 SelectSortOrGroup(filter =>
                 {
@@ -1110,7 +1097,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             items.Add(new MenuFlyoutToggleItemViewModel(GetOrderMethodDisplayName(orderMethod))
             {
                 IsChecked = orderMethod == selectedMethod,
-                OnClick = () =>
+                Click = () =>
                 {
                     clickHandler(orderMethod);
                 },
@@ -1155,7 +1142,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             items.Add(new MenuFlyoutToggleItemViewModel(GetFunctionDisplayName(function))
             {
                 IsChecked = function == sortingFunction,
-                OnClick = () =>
+                Click = () =>
                 {
                     clickHandler(function, null);
                 }
@@ -1216,7 +1203,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 items.Add(new MenuFlyoutToggleItemViewModel(p.DisplayName)
                 {
                     IsChecked = p.Equals(selectedProperty),
-                    OnClick = () =>
+                    Click = () =>
                     {
                         clickHandler(p);
                     }
@@ -1232,7 +1219,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 subItems.Add(new MenuFlyoutToggleItemViewModel(p.DisplayName)
                 {
                     IsChecked = p.Equals(selectedProperty),
-                    OnClick = () =>
+                    Click = () =>
                     {
                         clickHandler(p);
                     }

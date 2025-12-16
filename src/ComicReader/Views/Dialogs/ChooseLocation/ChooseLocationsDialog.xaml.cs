@@ -4,10 +4,10 @@
 using System.Collections.ObjectModel;
 
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -63,7 +63,7 @@ public sealed partial class ChooseLocationsDialog : BaseContentDialog
 
     private void AddNewPointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             if (!IsPrimaryButtonEnabled)
             {

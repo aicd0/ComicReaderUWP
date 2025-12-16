@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI.Xaml;
@@ -23,7 +23,7 @@ internal class DialogUtils
     public static Task<ContentDialogResult> EnqueueDialogAsync(DialogOptions options)
     {
         TaskCompletionSource<ContentDialogResult> resultSource = new();
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             MainWindow? window = App.Instance.WindowManager.GetActiveWindow() ?? App.Instance.WindowManager.GetAnyWindow();
             if (window is null)
@@ -43,7 +43,7 @@ internal class DialogUtils
     public static Task<ContentDialogResult> EnqueueDialogAsync(int windowId, DialogOptions options)
     {
         TaskCompletionSource<ContentDialogResult> resultSource = new();
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             ContentDialog dialog = CreateDialog(options);
             EnqueueDialogInternal(resultSource, windowId, dialog);
@@ -55,7 +55,7 @@ internal class DialogUtils
     public static Task<ContentDialogResult> EnqueueDialogAsync(int windowId, ContentDialog dialog)
     {
         TaskCompletionSource<ContentDialogResult> resultSource = new();
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             EnqueueDialogInternal(resultSource, windowId, dialog);
         });

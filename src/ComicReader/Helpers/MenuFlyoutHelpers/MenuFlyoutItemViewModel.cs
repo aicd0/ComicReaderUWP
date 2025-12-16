@@ -12,7 +12,7 @@ internal class MenuFlyoutItemViewModel(string text) : BaseMenuFlyoutItemViewMode
     public string Text { get; set; } = text;
     public string? Glyph { get; set; }
     public bool IsEnabled { get; set; } = true;
-    public Action? OnClick { get; set; }
+    public Action? Click { get; set; }
 
     protected override MenuFlyoutItemBase CreateMenuFlyoutItemInternal()
     {
@@ -26,9 +26,9 @@ internal class MenuFlyoutItemViewModel(string text) : BaseMenuFlyoutItemViewMode
             IsEnabled = IsEnabled,
         };
 
-        if (OnClick != null)
+        if (Click != null)
         {
-            item.Click += (sender, args) => OnClick.Invoke();
+            item.Click += (sender, args) => Click.Invoke();
         }
 
         return item;

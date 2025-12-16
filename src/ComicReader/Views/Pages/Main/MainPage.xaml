@@ -453,6 +453,14 @@
             </Button>
         </Grid>
 
+        <!--  Busy indicator  -->
+        <Grid Background="{ThemeResource BusyBackground}" Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay}">
+            <ProgressRing
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+        </Grid>
+
         <!--  Logs  -->
         <ListView
             x:Name="LogListView"
