@@ -28,10 +28,12 @@ public class EnvironmentProvider
     public static EnvironmentProvider Instance { get; } = new();
 
     private readonly object _lock = new();
-    private string _deviceId = string.Empty;
-    private string _appLanguageTag = string.Empty;
-    private readonly DateTimeOffset _launchTime;
     private string _additionalDebugInformation = string.Empty;
+    private string _appLanguageTag = string.Empty;
+    private string _deviceId = string.Empty;
+    private string _hostVersion = string.Empty;
+    private readonly DateTimeOffset _launchTime;
+    private string _sdkVersion = string.Empty;
 
     private EnvironmentProvider()
     {
@@ -49,30 +51,77 @@ public class EnvironmentProvider
 
     public void AppendDebugText(StringBuilder sb)
     {
-        sb.SafeAppend("OS build", DeviceInformationHelper.Instance.GetOsBuild);
-        sb.SafeAppend("OS version", DeviceInformationHelper.Instance.GetOsVersion);
-        sb.SafeAppend("OS architecture", () => RuntimeInformation.OSArchitecture);
-        sb.SafeAppend("Installed system language", GetInstalledSystemLanguage);
-        sb.SafeAppend("Current system language", GetCurrentSystemLanguage);
+        sb.SafeAppend("Awake time", () => GetAwakeTime());
+        sb.SafeAppend("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
         sb.SafeAppend("Current app language", GetCurrentAppLanguage);
+        sb.SafeAppend("Current system language", GetCurrentSystemLanguage);
+        sb.SafeAppend("Developer token", GetDeveloperToken);
         sb.SafeAppend("Device ID", GetDeviceId);
         sb.SafeAppend("Device model", DeviceInformationHelper.Instance.GetDeviceModel);
+        sb.SafeAppend("Host version", GetHostVersion);
+        sb.SafeAppend("Installed system language", GetInstalledSystemLanguage);
+        sb.SafeAppend("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
+        sb.SafeAppend("Loaded plugins", GetLoadedPlugins);
         sb.SafeAppend("OEM name", DeviceInformationHelper.Instance.GetDeviceOemName);
-        sb.SafeAppend("Processor count", () => Environment.ProcessorCount);
-        sb.SafeAppend("Version name", GetVersionName);
-        sb.SafeAppend("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
+        sb.SafeAppend("OS architecture", () => RuntimeInformation.OSArchitecture);
+        sb.SafeAppend("OS build", DeviceInformationHelper.Instance.GetOsBuild);
+        sb.SafeAppend("OS version", DeviceInformationHelper.Instance.GetOsVersion);
         sb.SafeAppend("Portable", () => IsPortable());
         sb.SafeAppend("Process architecture", () => RuntimeInformation.ProcessArchitecture);
-        sb.SafeAppend("Developer token", GetDeveloperToken);
-        sb.SafeAppend("Loaded plugins", GetLoadedPlugins);
-        sb.SafeAppend("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
-        sb.SafeAppend("Awake time", () => GetAwakeTime());
+        sb.SafeAppend("Processor count", () => Environment.ProcessorCount);
+        sb.SafeAppend("SDK version", GetSDKVersion);
 
         if (_additionalDebugInformation.Length > 0)
         {
             sb.Append(_additionalDebugInformation);
             sb.Append('\n');
         }
+    }
+
+    public string GetHostVersion()
+    {
+        if (!string.IsNullOrEmpty(_hostVersion))
+        {
+            return _hostVersion;
+        }
+
+        string hostVersion;
+        if (IsPortable())
+        {
+            Version? version = Assembly.GetEntryAssembly()?.GetName().Version;
+            if (version == null)
+            {
+                return "0.0.0.0";
+            }
+
+            hostVersion = $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+        }
+        else
+        {
+            PackageVersion version = Package.Current.Id.Version;
+            hostVersion = $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+        }
+
+        _hostVersion = hostVersion;
+        return hostVersion;
+    }
+
+    public string GetSDKVersion()
+    {
+        if (!string.IsNullOrEmpty(_sdkVersion))
+        {
+            return _sdkVersion;
+        }
+
+        Version? version = Assembly.GetAssembly(typeof(IPlugin))?.GetName().Version;
+        if (version is null)
+        {
+            return "0.0.0.0";
+        }
+
+        string sdkVersion = $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+        _sdkVersion = sdkVersion;
+        return sdkVersion;
     }
 
     public string GetDeviceId()
@@ -166,7 +215,7 @@ public class EnvironmentProvider
     {
         List<string> info = [];
         info.Add(GetDeviceId());
-        info.Add(GetVersionName());
+        info.Add(GetHostVersion());
         string combined = string.Join('-', info);
         byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
         return Convert.ToHexString(hash)[..8];
@@ -182,35 +231,17 @@ public class EnvironmentProvider
         return DateTimeOffset.Now - _launchTime;
     }
 
-    public static Dictionary<string, string> GetEnvironmentTags()
+    public Dictionary<string, string> GetEnvironmentTags()
     {
         Dictionary<string, string> tags = [];
-        tags["cr-version-name"] = GetVersionName();
-        tags["cr-portable"] = IsPortable() ? "true" : "false";
         tags["cr-device-id"] = Instance.GetDeviceId();
-        tags["cr-lang-installed"] = GetInstalledSystemLanguage();
-        tags["cr-lang-current"] = GetCurrentSystemLanguage();
+        tags["cr-host-version"] = GetHostVersion();
         tags["cr-lang-app"] = Instance.GetCurrentAppLanguage();
+        tags["cr-lang-current"] = GetCurrentSystemLanguage();
+        tags["cr-lang-installed"] = GetInstalledSystemLanguage();
+        tags["cr-portable"] = IsPortable() ? "true" : "false";
+        tags["cr-sdk-version"] = GetSDKVersion();
         return tags;
-    }
-
-    public static string GetVersionName()
-    {
-        if (IsPortable())
-        {
-            Version? version = Assembly.GetEntryAssembly()?.GetName().Version;
-            if (version == null)
-            {
-                return "0.0.0.0";
-            }
-
-            return $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
-        }
-        else
-        {
-            PackageVersion version = Package.Current.Id.Version;
-            return $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
-        }
     }
 
     public static string GetInstalledSystemLanguage()
