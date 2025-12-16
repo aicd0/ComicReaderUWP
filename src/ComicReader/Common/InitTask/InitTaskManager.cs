@@ -68,7 +68,7 @@ internal class InitTaskManager(Application application)
             RegisterExitHandler();
 
             // Initialize Sentry
-            SentryManager.Initialize(Properties.SentryDsn, EnvironmentProvider.GetEnvironmentTags());
+            SentryManager.Initialize(Properties.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
 
             // Initialize app language
             InitializeAppLanguage();

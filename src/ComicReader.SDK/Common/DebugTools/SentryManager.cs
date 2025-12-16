@@ -35,7 +35,7 @@ public static class SentryManager
             o.CacheDirectoryPath = StorageLocation.LocalCacheFolderPath;
             o.Distribution = EnvironmentProvider.IsPortable() ? "portable" : "packaged";
             o.Dsn = dsn;
-            o.Release = EnvironmentProvider.GetVersionName();
+            o.Release = EnvironmentProvider.Instance.GetHostVersion();
 
             foreach (KeyValuePair<string, string> tag in tags)
             {

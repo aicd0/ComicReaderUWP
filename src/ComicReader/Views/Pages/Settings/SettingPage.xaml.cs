@@ -214,7 +214,7 @@ internal sealed partial class SettingPage : BasePage
     private void UpdateAbout()
     {
         string appName = StringResourceProvider.Instance.AppDisplayName;
-        AboutBuildVersionControl.Text = appName + " " + EnvironmentProvider.GetVersionName();
+        AboutBuildVersionControl.Text = appName + " " + EnvironmentProvider.Instance.GetHostVersion();
 
         string author = "aicd0";
         string aboutCopyright = StringResourceProvider.Instance.AboutCopyright;
