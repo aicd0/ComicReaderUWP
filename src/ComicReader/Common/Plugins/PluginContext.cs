@@ -14,23 +14,23 @@ internal class PluginContext(IPlugin plugin) : IPluginContext
     private readonly string _pluginName = plugin.Name;
 
     //
-    // Before Comic Updating Handlers
+    // Comic Edited Handlers
     //
 
-    private IBeforeComicUpdatingHandler? _beforeComicUpdatingHandlers = null;
+    private IComicEditedHandler? _comicEditedHandlers = null;
 
-    public void RegisterBeforeComicUpdatingHandler(IBeforeComicUpdatingHandler handler)
+    public void RegisterComicEditedHandler(IComicEditedHandler handler)
     {
-        if (_beforeComicUpdatingHandlers is not null)
+        if (_comicEditedHandlers is not null)
         {
             throw new InvalidOperationException($"Already registered: '{_pluginName}'");
         }
 
-        _beforeComicUpdatingHandlers = handler;
+        _comicEditedHandlers = handler;
     }
 
-    public void DispatchBeforeComicUpdatingEvent(IComicModel comic)
+    public void DispatchComicEditedEvent(IComicModel comic)
     {
-        _beforeComicUpdatingHandlers?.OnComicUpdating(comic);
+        _comicEditedHandlers?.ComicEdited(comic);
     }
 }

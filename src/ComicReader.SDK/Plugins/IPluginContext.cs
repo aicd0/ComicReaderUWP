@@ -5,5 +5,5 @@ namespace ComicReader.SDK.Plugins;
 
 public interface IPluginContext
 {
-    void RegisterBeforeComicUpdatingHandler(IBeforeComicUpdatingHandler handler);
+    void RegisterComicEditedHandler(IComicEditedHandler handler);
 }
