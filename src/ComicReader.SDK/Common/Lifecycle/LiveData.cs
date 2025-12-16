@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 
 namespace ComicReader.SDK.Common.Lifecycle;
@@ -51,7 +50,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
 
     protected void EmitInternal(T value)
     {
-        _ = MainThreadUtils.RunInMainThread(delegate
+        CoroutineUtils.RunInMainThread(delegate
         {
             _value = value;
             _version++;

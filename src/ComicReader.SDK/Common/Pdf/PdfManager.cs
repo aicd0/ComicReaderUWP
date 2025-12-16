@@ -5,6 +5,7 @@ using System.Drawing;
 
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 
 using PdfiumViewer;
 
@@ -146,11 +147,11 @@ public static class PdfManager
                 _wrapper.UseCount--;
             }
 
-            _ = Enqueue(delegate
+            CoroutineUtils.Start(() => Enqueue(delegate
             {
                 lock (_lock)
                 {
-                    List<string> keys = new(_cache.Keys);
+                    List<string> keys = [.. _cache.Keys];
                     foreach (string key in keys)
                     {
                         PdfWrapper cache = _cache[key];
@@ -164,7 +165,7 @@ public static class PdfManager
                     }
                 }
                 return true;
-            }, "Clean");
+            }, "Clean"));
         }
 
         public int GetPageCount()

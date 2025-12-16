@@ -25,6 +25,7 @@ using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -210,20 +211,23 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         if (comic.CompletionState != completionState && !comic.IsExternal)
         {
-            switch (completionState)
+            CoroutineUtils.Start(async () =>
             {
-                case ComicCompletionStatusEnum.NotStarted:
-                    _ = comic.SetCompletionStateToNotStarted();
-                    break;
-                case ComicCompletionStatusEnum.Started:
-                    _ = comic.SetCompletionStateToStarted();
-                    break;
-                case ComicCompletionStatusEnum.Completed:
-                    _ = comic.SetCompletionStateToCompleted();
-                    break;
-                default:
-                    break;
-            }
+                switch (completionState)
+                {
+                    case ComicCompletionStatusEnum.NotStarted:
+                        await comic.SetCompletionStateToNotStarted();
+                        break;
+                    case ComicCompletionStatusEnum.Started:
+                        await comic.SetCompletionStateToStarted();
+                        break;
+                    case ComicCompletionStatusEnum.Completed:
+                        await comic.SetCompletionStateToCompleted();
+                        break;
+                    default:
+                        break;
+                }
+            });
         }
 
         CompletionStateLiveData.Emit(comic.CompletionState);
@@ -332,7 +336,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             categoryTags.Add(tag);
         }
 
-        comic.SetTags(tags);
+        CoroutineUtils.Start(() => comic.SetTags(tags));
     }
 
     private async Task LoadComicInternal(ComicModel comic)
@@ -361,7 +365,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             await comic.SetCompletionStateToAtLeastStarted();
             if (AppModel.SaveBrowsingHistory)
             {
-                _ = ComicHistoryItemModel.AddAsync(comic.Id, comic.Title1);
+                await ComicHistoryItemModel.AddAsync(comic.Id, comic.Title1);
             }
         }
 
@@ -545,7 +549,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
             Glyph = "\uE70F",
-            OnClick = () =>
+            Click = () =>
             {
                 EditTagLiveData.Emit(new(tagCategory, tag));
             },
@@ -556,22 +560,25 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
             Glyph = "\uE74D",
-            OnClick = () =>
+            Click = () =>
             {
-                ComicModel? comic = _comic;
-                if (comic == null)
+                CoroutineUtils.Start(async () =>
                 {
-                    return;
-                }
-
-                Dictionary<string, HashSet<string>> tags = comic.TagsCopy;
-                if (tags.TryGetValue(tagCategory, out HashSet<string>? tagSet))
-                {
-                    if (tagSet.Remove(tag))
+                    ComicModel? comic = _comic;
+                    if (comic == null)
                     {
-                        comic.SetTags(tags);
+                        return;
                     }
-                }
+
+                    Dictionary<string, HashSet<string>> tags = comic.TagsCopy;
+                    if (tags.TryGetValue(tagCategory, out HashSet<string>? tagSet))
+                    {
+                        if (tagSet.Remove(tag))
+                        {
+                            await comic.SetTags(tags);
+                        }
+                    }
+                });
             },
         });
 
@@ -628,7 +635,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             }
 
             string imageDescription = imageDescriptionSb.ToString();
-            MainThreadUtils.RunInMainThread(() =>
+            CoroutineUtils.RunInMainThread(() =>
             {
                 ImageDescription = imageDescription;
             });

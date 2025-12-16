@@ -17,6 +17,7 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.Helpers.Navigation;
 using ComicReader.Helpers.Search;
+using ComicReader.SDK.Common.Utils;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
@@ -57,7 +58,7 @@ internal static class MenuFlyoutItemsCreator
             result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Open)
             {
                 Glyph = "\uE8B9",
-                OnClick = () =>
+                Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                         .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
@@ -71,7 +72,7 @@ internal static class MenuFlyoutItemsCreator
         result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInNewTab)
         {
             Glyph = "\uE8A5",
-            OnClick = () =>
+            Click = () =>
             {
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                     .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
@@ -110,7 +111,7 @@ internal static class MenuFlyoutItemsCreator
                 result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.RemoveFromFavorites)
                 {
                     Glyph = "\uE8D9",
-                    OnClick = () =>
+                    Click = () =>
                     {
                         List<ComicModel> items = [.. selectedComics];
                         FavoriteModel.Instance.BatchRemoveWithId(items.ConvertAll(x => x.Id));
@@ -122,7 +123,7 @@ internal static class MenuFlyoutItemsCreator
                 result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.AddToFavorites)
                 {
                     Glyph = "\uE734",
-                    OnClick = () =>
+                    Click = () =>
                     {
                         List<ComicModel> items = [.. selectedComics];
                         FavoriteModel.Instance.BatchAdd(items.ConvertAll(x => new FavoriteModel.FavoriteItem
@@ -143,36 +144,36 @@ internal static class MenuFlyoutItemsCreator
                 groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusUnread)
                 {
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.NotStarted,
-                    OnClick = async () =>
+                    Click = () =>
                     {
-                        foreach (ComicModel comic in selectedComics)
+                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
                         {
-                            await comic.SetCompletionStateToNotStarted();
-                        }
+                            await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToNotStarted()));
+                        }));
                     },
                 });
 
                 groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusReading)
                 {
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Started,
-                    OnClick = async () =>
+                    Click = () =>
                     {
-                        foreach (ComicModel comic in selectedComics)
+                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
                         {
-                            await comic.SetCompletionStateToStarted();
-                        }
+                            await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToStarted()));
+                        }));
                     },
                 });
 
                 groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusFinished)
                 {
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Completed,
-                    OnClick = async () =>
+                    Click = () =>
                     {
-                        foreach (ComicModel comic in selectedComics)
+                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
                         {
-                            await comic.SetCompletionStateToCompleted();
-                        }
+                            await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToCompleted()));
+                        }));
                     },
                 });
 
@@ -184,12 +185,12 @@ internal static class MenuFlyoutItemsCreator
                 result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Unhide)
                 {
                     Glyph = "\uE7B3",
-                    OnClick = async () =>
+                    Click = () =>
                     {
-                        foreach (ComicModel comic in selectedComics)
+                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
                         {
-                            await comic.SaveHiddenAsync(false);
-                        }
+                            await Task.WhenAll(selectedComics.Select(x => x.SetHidden(false)));
+                        }));
                     },
                 });
             }
@@ -198,12 +199,12 @@ internal static class MenuFlyoutItemsCreator
                 result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Hide)
                 {
                     Glyph = "\uED1A",
-                    OnClick = async () =>
+                    Click = () =>
                     {
-                        foreach (ComicModel comic in selectedComics)
+                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
                         {
-                            await comic.SaveHiddenAsync(true);
-                        }
+                            await Task.WhenAll(selectedComics.Select(x => x.SetHidden(true)));
+                        }));
                     },
                 });
             }
@@ -211,7 +212,7 @@ internal static class MenuFlyoutItemsCreator
             result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
             {
                 Glyph = "\uE70F",
-                OnClick = () =>
+                Click = () =>
                 {
                     List<ComicModel> items = [.. selectedComics];
                     string idList = string.Join(',', items.ConvertAll(x => x.Id.ToString()));
@@ -228,7 +229,7 @@ internal static class MenuFlyoutItemsCreator
         result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInFileExplorer)
         {
             Glyph = "\uE838",
-            OnClick = () =>
+            Click = () =>
             {
                 var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
                 primaryComic.ShowInFileExplorer(er);
@@ -281,7 +282,7 @@ internal static class MenuFlyoutItemsCreator
         return new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Select)
         {
             Glyph = "\uE762",
-            OnClick = () =>
+            Click = () =>
             {
                 ActionModel actionModel = ActionModel.Builder.Create(CustomActionProvider.NAME)
                     .AddParameter(CustomActionProvider.PARAM_SOURCE, CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU)
@@ -310,13 +311,13 @@ internal static class MenuFlyoutItemsCreator
         result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.ExpandAll)
         {
             Glyph = "\uECCD",
-            OnClick = expandAllHandler,
+            Click = expandAllHandler,
         });
 
         result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.CollapseAll)
         {
             Glyph = "\uF165",
-            OnClick = collapseAllHandler,
+            Click = collapseAllHandler,
         });
 
         if (customItems is not null && customItems.Count > 0)
@@ -361,7 +362,7 @@ internal static class MenuFlyoutItemsCreator
 
             items.Add(new MenuFlyoutItemViewModel(name)
             {
-                OnClick = () =>
+                Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                         .AddParameter(OpenTabProvider.PARAM_URL, url)
@@ -375,7 +376,7 @@ internal static class MenuFlyoutItemsCreator
 
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewWindow)
         {
-            OnClick = () =>
+            Click = () =>
             {
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                     .AddParameter(OpenTabProvider.PARAM_URL, url)
@@ -444,11 +445,11 @@ internal static class MenuFlyoutItemsCreator
             {
                 items.Add(new MenuFlyoutItemViewModel(link.Name)
                 {
-                    OnClick = () =>
+                    Click = () =>
                     {
                         if (StringUtils.TryNormalizeWebUrl(link.Link, out Uri? uri))
                         {
-                            _ = Windows.System.Launcher.LaunchUriAsync(uri);
+                            CoroutineUtils.Start(async () => await Windows.System.Launcher.LaunchUriAsync(uri));
                         }
                         else
                         {
@@ -488,7 +489,7 @@ internal static class MenuFlyoutItemsCreator
                 string name = $"{pair.Tag} ({pair.Category})";
                 items.Add(new MenuFlyoutItemViewModel(name)
                 {
-                    OnClick = () =>
+                    Click = () =>
                     {
                         string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(pair.Category)}\"=\"{ExpressionUtils.EscapeString(pair.Tag)}\"";
                         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)

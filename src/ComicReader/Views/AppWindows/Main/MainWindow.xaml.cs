@@ -14,7 +14,6 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
-using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.Pages.Main;
 
@@ -239,7 +238,7 @@ internal sealed partial class MainWindow : Window
 
     private void OnWindowSizeChanged(object sender, WindowSizeChangedEventArgs args)
     {
-        MainThreadUtils.PostInMainThread(() =>
+        CoroutineUtils.PostInMainThread(() =>
         {
             DispatchFullscreenChangeEvent(IsFullScreen());
         });

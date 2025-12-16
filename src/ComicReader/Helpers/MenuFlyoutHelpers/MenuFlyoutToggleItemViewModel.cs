@@ -11,7 +11,7 @@ internal class MenuFlyoutToggleItemViewModel(string text) : BaseMenuFlyoutItemVi
 {
     public string Text { get; set; } = text;
     public bool IsChecked { get; set; } = false;
-    public Action? OnClick { get; set; }
+    public Action? Click { get; set; }
 
     protected override MenuFlyoutItemBase CreateMenuFlyoutItemInternal()
     {
@@ -21,9 +21,9 @@ internal class MenuFlyoutToggleItemViewModel(string text) : BaseMenuFlyoutItemVi
             IsChecked = IsChecked,
         };
 
-        if (OnClick is not null)
+        if (Click is not null)
         {
-            item.Click += (sender, args) => OnClick.Invoke();
+            item.Click += (sender, args) => Click.Invoke();
         }
 
         return item;

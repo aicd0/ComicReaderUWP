@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using ComicReader.Common;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.SDK.Common.Utils;
 
 namespace ComicReader.Views.Pages.Main;
 
@@ -148,7 +149,7 @@ internal class ReaderSettingDataModel
         comic.SetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT, HorizontalPageArrangement.ToString());
         comic.SetExt(ComicExt.PAGE_GAP, PageGap.ToString());
         comic.SetExt(ComicExt.AUTO_SCROLL_SPEED, AutoScrollSpeed.ToString());
-        comic.FlushExt();
+        CoroutineUtils.Start(comic.FlushExt);
     }
 
     public static ReaderSettingDataModel FromComic(ComicModel comic)

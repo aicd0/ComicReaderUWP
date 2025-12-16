@@ -485,7 +485,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         {
             ClearCacheInternal();
             string size = GetCacheSize();
-            _ = MainThreadUtils.RunInMainThread(() =>
+            CoroutineUtils.RunInMainThread(() =>
             {
                 IsClearingCache = false;
                 CacheSize = size;
@@ -535,7 +535,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             selectedIndex = 0;
         }
 
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             Encodings = encodings;
             DefaultArchiveCodePageIndex = selectedIndex;
@@ -544,7 +544,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     private void UpdateReaderSettings()
     {
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             TransitionAnimation = AppModel.TransitionAnimation;
             AntiAliasingEnabled = AppModel.AntiAliasingEnabled;
@@ -563,7 +563,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             bool restoreLastReadingPosition = model.RestoreLastReadingPosition;
             bool saveBrowsingHistory = AppModel.SaveBrowsingHistory;
 
-            _ = MainThreadUtils.RunInMainThread(() =>
+            await MainThreadUtils.RunInMainThread(() =>
             {
                 IsClearHistoryEnabled = hasHistory;
                 ScanOnLaunch = scanOnLaunch;
@@ -588,7 +588,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             backgroundIndex = 0;
         }
 
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             Backgrounds = backgrounds;
             BackgroundIndex = backgroundIndex;
@@ -628,7 +628,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             selectedIndex = 0;
         }
 
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             Languages = languages;
             LanguageIndex = selectedIndex;
@@ -660,7 +660,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             appearance = AppSettingsModel.AppearanceSetting.UseSystemSetting;
         }
 
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             // Reset first to avoid triggering the change event
             _appearanceLightChecked = appearance == AppSettingsModel.AppearanceSetting.Light;
@@ -712,7 +712,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusFinished)).Append(finishedComicCount.ToString("#,#0", CultureInfo.InvariantCulture));
         string statisticText = sb.ToString();
 
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             StatisticText = statisticText;
         });
@@ -721,7 +721,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     private void UpdateCacheSize()
     {
         string size = GetCacheSize();
-        _ = MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             CacheSize = size;
         });
@@ -729,7 +729,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     public void UpdateOtherSettings()
     {
-        MainThreadUtils.RunInMainThread(() =>
+        CoroutineUtils.RunInMainThread(() =>
         {
             DebugMode = DebugUtils.DebugMode;
         });

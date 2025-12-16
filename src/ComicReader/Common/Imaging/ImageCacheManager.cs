@@ -15,6 +15,7 @@ using ComicReader.SDK.Common.Caching;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -272,7 +273,7 @@ internal static class ImageCacheManager
             return;
         }
 
-        _ = MainThreadUtils.PostInMainThreadAsync(async delegate
+        CoroutineUtils.PostInMainThreadAsync(async () =>
         {
             long startTime = GetCurrentTick();
             Interlocked.Exchange(ref sPostMainThreadTask, 0);

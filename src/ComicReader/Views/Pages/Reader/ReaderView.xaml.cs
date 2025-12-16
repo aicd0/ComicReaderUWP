@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.Imaging;
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.SDK.Common.DebugTools;
@@ -361,7 +360,7 @@ internal partial class ReaderView : UserControl
 
                 List<PengingImageItem> pendingListCopy = [.. pendingList];
                 pendingList.Clear();
-                _ = MainThreadUtils.RunInMainThread(delegate
+                CoroutineUtils.RunInMainThread(() =>
                 {
                     if (token.IsCancellationRequested)
                     {
@@ -1451,7 +1450,7 @@ internal partial class ReaderView : UserControl
 
             _tapPending = true;
             _tapCancelled = false;
-            C0.Run(async delegate
+            CoroutineUtils.Start(async () =>
             {
                 await Task.Delay(100);
                 _tapPending = false;
@@ -2735,10 +2734,13 @@ internal partial class ReaderView : UserControl
         Logger.I(LogTag.N(TAG, tag), string.Join(',', values));
     }
 
-    private static void PostToCurrentThread(Action<Task> action, int delayMilliseconds = 0)
+    private static void PostToCurrentThread(Action action, int delayMilliseconds = 0)
     {
-        var context = TaskScheduler.FromCurrentSynchronizationContext();
-        _ = Task.Delay(delayMilliseconds + 1).ContinueWith(action, context);
+        CoroutineUtils.Start(async () =>
+        {
+            await Task.Delay(delayMilliseconds + 1);
+            action();
+        });
     }
 
     private static long GetTick()

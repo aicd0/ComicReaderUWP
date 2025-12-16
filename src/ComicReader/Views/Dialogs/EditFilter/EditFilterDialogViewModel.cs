@@ -15,6 +15,7 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Data.SqlHelpers;
 using ComicReader.ViewModels;
 
@@ -66,7 +67,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
 
     public void Initialize(ComicFilterModel.ExternalFilterModel filter)
     {
-        _ = InitializeAsync(filter);
+        CoroutineUtils.Start(() => InitializeAsync(filter));
     }
 
     public void UpdateName(string name)

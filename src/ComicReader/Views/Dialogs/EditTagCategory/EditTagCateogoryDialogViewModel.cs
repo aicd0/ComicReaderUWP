@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
+using ComicReader.Common;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.Utils;
@@ -117,7 +118,7 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
             return;
         }
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
         {
             if (!IsSameCategory)
             {
@@ -127,9 +128,9 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
             if (_tagCategoryInfoModel != null)
             {
                 _tagCategoryInfoModel.SetExt(TagCategoryInfoExt.LINKS, GetSerializedLinks());
-                _tagCategoryInfoModel.FlushExt();
+                await _tagCategoryInfoModel.FlushExt();
             }
-        });
+        }));
     }
 
     private void UpdateSaveButtonStates()

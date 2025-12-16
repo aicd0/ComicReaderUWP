@@ -73,9 +73,9 @@ internal class TagInfoModel
         TagInfoDatabase.DispatchTagInfoUpdateEvents();
     }
 
-    public void FlushExt()
+    public async Task FlushExt()
     {
-        _ = TagInfoDatabase.Enqueue("FlushExt", () =>
+        await TagInfoDatabase.Enqueue("FlushExt", () =>
         {
             SaveNoLock(this);
             return true;
@@ -314,6 +314,7 @@ internal class TagInfoModel
             return true;
         });
 
+        List<Task> tasks = [];
         List<ComicModel> comics = await ComicModel.BatchFromId("DeleteTag", comicIds);
         foreach (ComicModel comic in comics)
         {
@@ -321,10 +322,11 @@ internal class TagInfoModel
             if (comicTags.TryGetValue(tagCategory, out HashSet<string>? tags))
             {
                 tags.Remove(tag);
-                comic.SetTags(comicTags);
+                tasks.Add(comic.SetTags(comicTags));
             }
         }
 
+        await Task.WhenAll(tasks);
         TagInfoDatabase.DispatchTagInfoUpdateEvents();
     }
 
@@ -371,6 +373,7 @@ internal class TagInfoModel
             return true;
         });
 
+        List<Task> tasks = [];
         List<ComicModel> comics = await ComicModel.BatchFromId("RenameTag", comicIds);
         foreach (ComicModel comic in comics)
         {
@@ -385,10 +388,11 @@ internal class TagInfoModel
                 }
 
                 newTags.Add(newTag);
-                comic.SetTags(comicTags);
+                tasks.Add(comic.SetTags(comicTags));
             }
         }
 
+        await Task.WhenAll(tasks);
         TagInfoDatabase.DispatchTagInfoUpdateEvents();
     }
 

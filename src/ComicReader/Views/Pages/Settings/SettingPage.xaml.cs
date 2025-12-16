@@ -6,7 +6,6 @@ using System.Text;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
@@ -15,22 +14,17 @@ using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.Views.Dialogs.ChooseLocation;
 using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-using Windows.Storage;
-
-using Windows.System;
-
 namespace ComicReader.Views.Pages.Settings;
 
 internal sealed partial class SettingPage : BasePage
 {
-    private const string TAG = nameof(SettingPage);
-
     private SettingPageViewModel ViewModel { get; } = new();
 
     public SettingPage()
@@ -66,7 +60,7 @@ internal sealed partial class SettingPage : BasePage
             return;
         }
 
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             if (debugMode)
             {
@@ -91,7 +85,7 @@ internal sealed partial class SettingPage : BasePage
 
     private void ChooseLocationsClick(object sender, RoutedEventArgs e)
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             var dialog = new ChooseLocationsDialog(WindowId);
             await dialog.ShowAsync(WindowId);
@@ -100,13 +94,13 @@ internal sealed partial class SettingPage : BasePage
 
     private void OnHistoryClearAllClicked(object sender, RoutedEventArgs e)
     {
-        _ = ComicHistoryItemModel.ClearAsync();
+        CoroutineUtils.Start(() => ComicHistoryItemModel.ClearAsync());
         ViewModel.IsClearHistoryEnabled = false;
     }
 
     private void OnSendFeedbackButtonClicked(object sender, RoutedEventArgs e)
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             var uri = new Uri(@"https://github.com/aicd0/ComicReaderUWP/issues/new/choose");
             await Windows.System.Launcher.LaunchUriAsync(uri);
@@ -187,8 +181,8 @@ internal sealed partial class SettingPage : BasePage
         var er = EventRecorder.Create("OnOpenUserDataFolderClick");
         try
         {
-            StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(path);
-            await Launcher.LaunchFolderAsync(folder);
+            Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
+            await Windows.System.Launcher.LaunchFolderAsync(folder);
         }
         catch (Exception ex)
         {

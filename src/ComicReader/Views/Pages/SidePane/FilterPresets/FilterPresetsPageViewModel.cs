@@ -21,6 +21,7 @@ using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Pages.SidePane.FilterPresets;
@@ -100,8 +101,9 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         }
 
         _searchSubmitted = true;
-        _ = Task.Delay(SEARCH_DELAY).ContinueWith(_ =>
+        CoroutineUtils.Start(async () =>
         {
+            await Task.Delay(SEARCH_DELAY);
             _searchSubmitted = false;
             _searchEngine.Update();
         });
@@ -184,7 +186,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             Items = filters.ConvertAll(x => new MenuFlyoutToggleItemViewModel(x.Name)
             {
                 IsChecked = x.Name == selectedFilter.Name,
-                OnClick = () =>
+                Click = () =>
                 {
                     SetFilter(x);
                 }
@@ -269,7 +271,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                 }
             }
 
-            MainThreadUtils.RunInMainThread(() =>
+            CoroutineUtils.RunInMainThread(() =>
             {
                 void UpdateItem(SimpleTreeViewNodeModel from, SimpleTreeViewNodeModel to)
                 {

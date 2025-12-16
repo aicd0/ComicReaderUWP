@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
+using ComicReader.Common;
 using ComicReader.Common.Actions;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
@@ -14,8 +14,10 @@ using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
+using ComicReader.SDK.Common.Utils;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
+using ComicReader.Views.Pages.Home;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -287,30 +289,13 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         return selection;
     }
 
-    public void ApplyOperationToComic(ComicOperationType operationType, ComicItemViewModel item)
-    {
-        List<ComicItemViewModel> selection = GetSelection(item);
-        _sharedDispatcher.Submit("ApplyOperationToComic", () =>
-        {
-            BatchApplyOperation(operationType, selection);
-            MainThreadUtils.RunInMainThread(() =>
-            {
-                UpdateCommandBarButtonStates();
-            });
-        });
-    }
-
     public void ApplyOperationToComicSelection(ComicOperationType operationType)
     {
         List<ComicItemViewModel> selectedItems = [.. _selectedItems];
-        _sharedDispatcher.Submit("ApplyOperationToComicSelection", () =>
+        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
         {
-            BatchApplyOperation(operationType, selectedItems);
-            MainThreadUtils.RunInMainThread(() =>
-            {
-                UpdateCommandBarButtonStates();
-            });
-        });
+            await HomePageViewModel.BatchApplyOperation(operationType, selectedItems);
+        }));
     }
 
     private void UpdateCommandBarButtonStates()
@@ -370,76 +355,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         IsCommandBarMarkAsUnreadEnabled = markAsUnreadEnabled;
     }
 
-    private void BatchApplyOperation(ComicOperationType operationType, List<ComicItemViewModel> models)
-    {
-        switch (operationType)
-        {
-            case ComicOperationType.Favorite:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => !x.IsFavorite);
-                    FavoriteModel.Instance.BatchAdd(items.ConvertAll(x => new FavoriteModel.FavoriteItem
-                    {
-                        Id = x.Comic.Id,
-                        Title = x.Comic.Title,
-                    }));
-                }
-                break;
-            case ComicOperationType.Unfavorite:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => x.IsFavorite);
-                    FavoriteModel.Instance.BatchRemoveWithId(items.ConvertAll(x => x.Comic.Id));
-                }
-                break;
-            case ComicOperationType.Hide:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => !x.IsHide);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SaveHiddenAsync(true).Wait();
-                    }
-                }
-                break;
-            case ComicOperationType.Unhide:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => x.IsHide);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SaveHiddenAsync(false).Wait();
-                    }
-                }
-                break;
-            case ComicOperationType.MarkAsRead:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => !x.IsRead);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SetCompletionStateToCompleted().Wait();
-                    }
-                }
-                break;
-            case ComicOperationType.MarkAsReading:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => !x.IsReading);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SetCompletionStateToStarted().Wait();
-                    }
-                }
-                break;
-            case ComicOperationType.MarkAsUnread:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => !x.IsUnread);
-                    foreach (ComicItemViewModel item in items)
-                    {
-                        item.Comic.SetCompletionStateToNotStarted().Wait();
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
     private void OnSearchResult(IReadOnlyList<ComicModel> comics)
     {
         _sharedDispatcher.Submit("OnSearchResult", () =>
@@ -469,7 +384,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 newItems.Add(item);
             }
 
-            MainThreadUtils.RunInMainThread(() =>
+            CoroutineUtils.RunInMainThread(() =>
             {
                 bool ComicComparer(ComicItemViewModel x, ComicItemViewModel y) => x.Comic.Id == y.Comic.Id;
                 void ComicUpdater(ComicItemViewModel x, ComicItemViewModel y) => x.Update(y);
@@ -477,6 +392,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 IsLoading = false;
                 DiffUtils.UpdateCollection(SearchResults, newItems, ComicComparer, ComicUpdater);
                 UpdateUI();
+                UpdateCommandBarButtonStates();
             });
         });
     }

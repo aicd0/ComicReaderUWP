@@ -60,7 +60,7 @@ internal partial class ComicFolderData : ComicData
 
     protected override Task<bool> MoveToLocationInternal(string newLocation)
     {
-        return CoroutineUtils.CreateTask("MoveToLocationInternal", TaskDispatcher.LongRunningThreadPool, () =>
+        return CoroutineUtils.CreateTaskAsync("MoveToLocationInternal", TaskDispatcher.LongRunningThreadPool, async () =>
         {
             string sourceDir = Location;
             string targetDir = newLocation;
@@ -80,7 +80,7 @@ internal partial class ComicFolderData : ComicData
             }
 
             List<long> affectingComicIds = [];
-            Enqueue("MoveLocation", () =>
+            await Enqueue("MoveLocation", () =>
             {
                 SelectCommand command = SelectCommand.Create(ComicTable.Instance)
                     .AppendCondition(new LikeCondition(ComicTable.ColumnLocation, sourceDir + "%"));
@@ -92,7 +92,7 @@ internal partial class ComicFolderData : ComicData
                 }
 
                 return true;
-            }).Wait();
+            });
 
             List<ComicModel> affectingComics = ComicModel.BatchFromId("MoveLocation", affectingComicIds).Result;
 
@@ -135,7 +135,7 @@ internal partial class ComicFolderData : ComicData
 
                 string relativePath = Path.GetRelativePath(sourceDir, comic.Location);
                 string newComicPath = relativePath == "." ? targetDir : Path.Combine(targetDir, relativePath);
-                comic.SetLocation(newComicPath);
+                await comic.SetLocation(newComicPath);
             }
 
             return true;

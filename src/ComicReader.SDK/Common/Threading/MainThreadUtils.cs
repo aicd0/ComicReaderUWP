@@ -16,55 +16,48 @@ public static class MainThreadUtils
         _mainDispatcherQueue = dispatcherQueue;
     }
 
-    public static Task RunInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    public static async Task RunInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        return RunInMainThread(action, priority, true);
+        await RunInMainThread(action, priority, true);
     }
 
-    public static Task PostInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    public static async Task PostInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        return RunInMainThread(action, priority, false);
+        await RunInMainThread(action, priority, false);
     }
 
-    public static Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    public static async Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        return RunInMainThreadAsync(action, priority, true);
+        await RunInMainThreadAsync(action, priority, true);
     }
 
-    public static Task PostInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    public static async Task PostInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        return RunInMainThreadAsync(action, priority, false);
+        await RunInMainThreadAsync(action, priority, false);
     }
 
-    private static Task RunInMainThread(Action action, DispatcherQueuePriority priority, bool runImmediatelyIfPossible)
+    private static async Task RunInMainThread(Action action, DispatcherQueuePriority priority, bool runImmediatelyIfPossible)
     {
         if (TestSettings.UseCurrentThreadAsMainThread)
         {
             action();
-            return Task.CompletedTask;
+            return;
         }
 
         DispatcherQueue? dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
-            try
-            {
-                action();
-                return Task.CompletedTask;
-            }
-            catch (Exception e)
-            {
-                return Task.FromException(e);
-            }
+            action();
+            return;
         }
 
-        var taskCompletionSource = new TaskCompletionSource<object?>();
+        var taskCompletionSource = new TaskCompletionSource<bool>();
         bool success = dispatcher.TryEnqueue(priority, delegate
         {
             try
             {
                 action();
-                taskCompletionSource.SetResult(null);
+                taskCompletionSource.SetResult(true);
             }
             catch (Exception e)
             {
@@ -77,36 +70,31 @@ public static class MainThreadUtils
             throw new InvalidOperationException("Failed to enqueue the operation");
         }
 
-        return taskCompletionSource.Task;
+        await taskCompletionSource.Task;
     }
 
-    private static Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority, bool runImmediatelyIfPossible)
+    private static async Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority, bool runImmediatelyIfPossible)
     {
         if (TestSettings.UseCurrentThreadAsMainThread)
         {
-            return action();
+            await action();
+            return;
         }
 
         DispatcherQueue? dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
-            try
-            {
-                return action();
-            }
-            catch (Exception e)
-            {
-                return Task.FromException(e);
-            }
+            await action();
+            return;
         }
 
-        var taskCompletionSource = new TaskCompletionSource<object?>();
+        var taskCompletionSource = new TaskCompletionSource<bool>();
         bool success = dispatcher.TryEnqueue(priority, async delegate
         {
             try
             {
                 await action();
-                taskCompletionSource.SetResult(null);
+                taskCompletionSource.SetResult(true);
             }
             catch (Exception e)
             {
@@ -119,7 +107,7 @@ public static class MainThreadUtils
             throw new InvalidOperationException("Failed to enqueue the operation");
         }
 
-        return taskCompletionSource.Task;
+        await taskCompletionSource.Task;
     }
 
     public static bool IsMainThread()

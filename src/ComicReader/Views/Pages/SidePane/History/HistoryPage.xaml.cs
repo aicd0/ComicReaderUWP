@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 using ComicReader.Common;
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Legacy;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
@@ -33,7 +32,7 @@ internal sealed partial class HistoryPage : BasePage
     {
         base.OnStart(bundle);
 
-        _ = Update();
+        CoroutineUtils.Start(Update);
         ObserveData();
     }
 
@@ -46,7 +45,7 @@ internal sealed partial class HistoryPage : BasePage
     {
         GlobalEvent.Instance.HistoryUpdated.Observe(this, delegate
         {
-            _ = Update();
+            CoroutineUtils.Start(Update);
         });
     }
 
@@ -119,7 +118,7 @@ internal sealed partial class HistoryPage : BasePage
 
     private void DeleteItem(HistoryItemViewModel item)
     {
-        _ = ComicHistoryItemModel.RemoveAsync(item.Id, suppressEvent: true);
+        CoroutineUtils.Start(() => ComicHistoryItemModel.RemoveAsync(item.Id, suppressEvent: true));
         var source = (ObservableCollection<HistoryGroupViewModel>)HistorySource.Source;
 
         for (int i = 0; i < source.Count; ++i)
@@ -150,7 +149,7 @@ internal sealed partial class HistoryPage : BasePage
     // events
     private void OnOpenInNewTabClicked(object sender, RoutedEventArgs e)
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             var item = (HistoryItemViewModel)((MenuFlyoutItem)sender).DataContext;
             await OpenItem(item, true);
@@ -165,7 +164,7 @@ internal sealed partial class HistoryPage : BasePage
 
     private void MainListViewItemClick(object sender, ItemClickEventArgs e)
     {
-        C0.Run(async delegate
+        CoroutineUtils.Start(async () =>
         {
             var item = (HistoryItemViewModel)e.ClickedItem;
             await OpenItem(item, false);

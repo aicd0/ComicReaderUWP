@@ -345,7 +345,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
             Glyph = "\uE70F",
-            OnClick = () =>
+            Click = () =>
             {
                 EditTagCategoryLiveData.Emit(primaryCategory.Name);
             },
@@ -354,15 +354,12 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
             Glyph = "\uE74D",
-            OnClick = () =>
+            Click = () =>
             {
-                CoroutineUtils.Start(async () =>
+                CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
                 {
-                    foreach (TagCateogryModel item in selectedCategories)
-                    {
-                        await TagCategoryInfoModel.Delete(item.Name);
-                    }
-                });
+                    await Task.WhenAll(selectedCategories.Select(x => TagCategoryInfoModel.Delete(x.Name)));
+                }));
             },
         });
 
@@ -396,7 +393,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
             Glyph = "\uE70F",
-            OnClick = () =>
+            Click = () =>
             {
                 EditTagLiveData.Emit(new(primaryTag.CategoryName, primaryTag.Name));
             },
@@ -405,15 +402,12 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
         {
             Glyph = "\uE74D",
-            OnClick = () =>
+            Click = () =>
             {
-                CoroutineUtils.Start(async () =>
+                CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
                 {
-                    foreach (TagModel item in selectedTags)
-                    {
-                        await TagInfoModel.Delete(item.CategoryName, item.Name);
-                    }
-                });
+                    await Task.WhenAll(selectedTags.Select(x => TagInfoModel.Delete(x.CategoryName, x.Name)));
+                }));
             },
         });
 

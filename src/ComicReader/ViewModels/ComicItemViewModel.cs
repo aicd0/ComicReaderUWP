@@ -134,30 +134,13 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         }
     }
 
-    private ComicCompletionStatusEnum _completionState = ComicCompletionStatusEnum.NotStarted;
-    public ComicCompletionStatusEnum CompletionState
-    {
-        get => _completionState;
-        set
-        {
-            if (_completionState != value)
-            {
-                _completionState = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CompletionState)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRead)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsReading)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsUnread)));
-            }
-        }
-    }
-
     private readonly ReaderImageViewModel _image = new();
     public ReaderImageViewModel Image => _image;
 
     public bool IsRatingVisible => !string.IsNullOrEmpty(Rating);
-    public bool IsRead => CompletionState == ComicCompletionStatusEnum.Completed;
-    public bool IsReading => CompletionState == ComicCompletionStatusEnum.Started;
-    public bool IsUnread => CompletionState == ComicCompletionStatusEnum.NotStarted;
+    public bool IsRead => Comic.CompletionState == ComicCompletionStatusEnum.Completed;
+    public bool IsReading => Comic.CompletionState == ComicCompletionStatusEnum.Started;
+    public bool IsUnread => Comic.CompletionState == ComicCompletionStatusEnum.NotStarted;
 
     public Action? OnClick { get; set; }
     public Func<Task<List<BaseMenuFlyoutItemViewModel>>>? OnRequestContextFlyoutAsync { get; set; }
@@ -174,7 +157,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         _rating = rating >= 0 ? Math.Round(rating * 0.05F, 1, MidpointRounding.AwayFromZero).ToString("0.#") : string.Empty;
         _isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
         _isHidden = comic.Hidden;
-        _completionState = comic.CompletionState;
         _pageCount = comic.PageCount > 0 ? $"{comic.PageCount}P" : string.Empty;
     }
 
@@ -202,7 +184,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         Rating = item.Rating;
         IsFavorite = item.IsFavorite;
         IsHide = item.IsHide;
-        CompletionState = item.CompletionState;
         PageCount = item.PageCount;
 
         Progress = item.Progress;

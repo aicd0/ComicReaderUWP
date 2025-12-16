@@ -6,68 +6,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Windows.Security.Cryptography;
-using Windows.Storage.Streams;
 
 namespace ComicReader.Common.Legacy;
-
-internal class C0
-{
-    public static void Run(Action action)
-    {
-        action();
-    }
-
-    public static async Task WaitFor(Func<bool> signal, int timeout_milliseconds = -1)
-    {
-        DateTimeOffset start_time = DateTimeOffset.Now;
-
-        await Task.Run(delegate
-        {
-            var sw = new SpinWait();
-
-            while (!signal())
-            {
-                if (timeout_milliseconds >= 0)
-                {
-                    TimeSpan time_elapsed = DateTimeOffset.Now - start_time;
-
-                    if ((int)time_elapsed.TotalMilliseconds > timeout_milliseconds)
-                    {
-                        break;
-                    }
-                }
-
-                sw.SpinOnce();
-            }
-        });
-    }
-
-    public static IBuffer GetBufferFromString(string text)
-    {
-        if (text.Length == 0)
-        {
-            return new Windows.Storage.Streams.Buffer(0);
-        }
-        else
-        {
-            return CryptographicBuffer.ConvertStringToBinary(
-                text, BinaryStringEncoding.Utf8);
-        }
-    }
-
-    public static Stream GetStreamFromString(string text)
-    {
-        IBuffer buffer = GetBufferFromString(text);
-        return buffer.AsStream();
-    }
-}
 
 interface IC1<out T> { }
 public class C1<T> : IC1<T>

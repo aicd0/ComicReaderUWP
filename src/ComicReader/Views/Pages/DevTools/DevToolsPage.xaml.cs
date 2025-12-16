@@ -9,7 +9,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
@@ -89,7 +88,7 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void OnSyncFileNameClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        C0.Run(async () =>
+        CoroutineUtils.Start(async () =>
         {
             List<long> ids = [];
             await ComicData.Enqueue("SyncFileName", delegate
@@ -212,10 +211,8 @@ internal sealed partial class DevToolsPage : BasePage
                 .SetPrimaryButtonText("Primary")
                 .SetSecondaryButtonText("Secondary")
                 .Build();
-            _ = DialogUtils.EnqueueDialogAsync(options).ContinueWith(t =>
-            {
-                SetResult($"Show dialog result: {t.Result}");
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+            ContentDialogResult result = await DialogUtils.EnqueueDialogAsync(options);
+            SetResult($"Show dialog result: {result}");
         });
     }
 

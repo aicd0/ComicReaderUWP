@@ -45,7 +45,7 @@ internal partial class ComicArchiveData : ComicData
             _archive = archive,
         };
 
-        _ = await comic.ReloadImageFiles();
+        await comic.ReloadImageFiles();
         return comic;
     }
 
