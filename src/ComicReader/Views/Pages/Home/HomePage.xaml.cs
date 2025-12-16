@@ -13,7 +13,6 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
-using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.UserControls.ComicItemView;
@@ -453,64 +452,31 @@ internal sealed partial class HomePage : BasePage
     // More actions
     //
 
-    private void CollapseAllButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.CollapseAllGroups();
-    }
-
-    private void ExpandAllButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ExpandAllGroups();
-    }
-
-    private void OpenRandomComicButton_Click(object sender, RoutedEventArgs e)
-    {
-        ComicModel? comic = ViewModel.GetRandomComic();
-        if (comic == null)
-        {
-            return;
-        }
-
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-        GetMainPageAbility().OpenInCurrentTab(route);
-    }
-
-    private async void OpenRandomComicButton_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    private async void MoreButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement fe)
         {
             return;
         }
 
-        ComicModel? comic = ViewModel.GetRandomComic();
-        if (comic is null)
-        {
-            return;
-        }
-
-        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler, canEdit: false);
+        ComicModel? randomComic = ViewModel.GetRandomComic();
+        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
+            PageActionHandler, randomComic, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
         if (menuItems.Count == 0)
         {
             return;
         }
 
-        var flyout = new MenuFlyout();
+        MenuFlyout flyout = new()
+        {
+            Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
+        };
         foreach (BaseMenuFlyoutItemViewModel item in menuItems)
         {
             flyout.Items.Add(item.CreateMenuFlyoutItem());
         }
 
-        if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
-        {
-            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
-        }
-        else
-        {
-            flyout.ShowAt(fe);
-        }
-
-        args.Handled = true;
+        flyout.ShowAt(fe);
     }
 
     //
@@ -528,7 +494,7 @@ internal sealed partial class HomePage : BasePage
                     switch (name)
                     {
                         case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
-                            viewModel.SetSelectionMode(true);
+                            viewModel.SetSelectionMode(!viewModel.IsSelectMode);
                             break;
                         default:
                             handled = false;

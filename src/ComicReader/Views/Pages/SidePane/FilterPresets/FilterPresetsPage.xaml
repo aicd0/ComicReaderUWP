@@ -25,18 +25,34 @@
                 HorizontalAlignment="Stretch"
                 PlaceholderText="{x:Bind StringResource.Search}"
                 TextChanged="SearchTextBox_TextChanged" />
-            <DropDownButton
-                x:Name="FilterPresetDropDownButton"
-                Margin="0,6,0,0"
-                HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Left">
-                <DropDownButton.Content>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon FontSize="16" Glyph="&#xE71C;" />
-                        <TextBlock x:Name="FilterPresetDropDownTextBlock" TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
-                </DropDownButton.Content>
-            </DropDownButton>
+            <Grid Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <DropDownButton
+                    x:Name="FilterPresetDropDownButton"
+                    Grid.Column="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left">
+                    <DropDownButton.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="16" Glyph="&#xE71C;" />
+                            <TextBlock x:Name="FilterPresetDropDownTextBlock" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                    </DropDownButton.Content>
+                </DropDownButton>
+                <Button
+                    Grid.Column="1"
+                    Width="32"
+                    Margin="4,0,0,0"
+                    Padding="0"
+                    VerticalAlignment="Stretch"
+                    Click="MoreButton_Click"
+                    ToolTipService.ToolTip="{x:Bind StringResource.More}">
+                    <FontIcon FontSize="16" Glyph="&#xE712;" />
+                </Button>
+            </Grid>
         </StackPanel>
         <controls:SimpleTreeView
             Grid.Row="1"

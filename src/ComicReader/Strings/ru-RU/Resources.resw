@@ -585,14 +585,14 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="OK" xml:space="preserve">
     <value>ХОРОШО</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Открыть в проводнике</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Открыть в новой вкладке</value>
-  </data>
-  <data name="OpenRandomComic" xml:space="preserve">
-    <value>Откройте случайный комикс</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Открыть боковую панель</value>
@@ -641,6 +641,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Запрашивать подтверждение перед удалением комиксов</value>
+  </data>
+  <data name="RandomComic" xml:space="preserve">
+    <value>Случайный комикс</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>Рейтинг</value>

@@ -584,14 +584,14 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="OK" xml:space="preserve">
     <value>わかりました</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>開く</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>エクスプローラーで開く</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>新しいタブで開く</value>
-  </data>
-  <data name="OpenRandomComic" xml:space="preserve">
-    <value>ランダムにコミックを開く</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>サイドバーを開く</value>
@@ -640,6 +640,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>マンガを削除する前に確認</value>
+  </data>
+  <data name="RandomComic" xml:space="preserve">
+    <value>ランダムコミック</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>スコア</value>

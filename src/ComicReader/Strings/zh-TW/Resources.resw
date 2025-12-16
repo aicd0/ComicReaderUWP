@@ -584,14 +584,14 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="OK" xml:space="preserve">
     <value>好的</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>打開</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>在資源管理器中開啟</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>在新分頁中開啟</value>
-  </data>
-  <data name="OpenRandomComic" xml:space="preserve">
-    <value>開啟隨機漫畫</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>打開側邊欄</value>
@@ -640,6 +640,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>移除漫畫前提示</value>
+  </data>
+  <data name="RandomComic" xml:space="preserve">
+    <value>隨機漫畫</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>評分</value>

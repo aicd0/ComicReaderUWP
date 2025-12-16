@@ -616,7 +616,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateMenuItems(comic, PageActionHandler);
+        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(comic, PageActionHandler);
         if (menuItems.Count == 0)
         {
             return;

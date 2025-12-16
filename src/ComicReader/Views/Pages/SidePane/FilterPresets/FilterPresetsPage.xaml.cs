@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using ComicReader.Common;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
+using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
 
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
@@ -82,6 +84,33 @@ internal sealed partial class FilterPresetsPage : BasePage
         ViewModel.SetSearchText(text);
     }
 
+    private async void MoreButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        ComicModel? randomComic = ViewModel.GetRandomComic();
+        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
+            PageActionHandler, randomComic, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
+        if (menuItems.Count == 0)
+        {
+            return;
+        }
+
+        MenuFlyout flyout = new()
+        {
+            Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
+        };
+        foreach (BaseMenuFlyoutItemViewModel item in menuItems)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        flyout.ShowAt(fe);
+    }
+
     //
     // Types
     //
@@ -97,7 +126,7 @@ internal sealed partial class FilterPresetsPage : BasePage
                     switch (name)
                     {
                         case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
-                            viewModel.SelectionMode = true;
+                            viewModel.SelectionMode = !viewModel.SelectionMode;
                             break;
                         default:
                             handled = false;

@@ -462,7 +462,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 item.OnRequestContextFlyoutAsync = () =>
                 {
                     List<ComicItemViewModel> selection = GetSelection(item);
-                    return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler,
+                    return MenuFlyoutItemsCreator.CreateComicMenuItems(comic, _actionHandler,
                         selectedComics: selection.ConvertAll(x => x.Comic), canSelect: true);
                 };
                 item.UpdateProgress(false);

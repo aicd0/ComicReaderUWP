@@ -33,7 +33,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
     public readonly MutableLiveData<DropDownButtonModel> FilterPresetDropDownLiveData = new();
 
-    public ObservableCollection<TagNodeViewModel> DataSource { get; set; } = [];
+    public ObservableCollection<SimpleTreeViewNodeModel> DataSource { get; set; } = [];
 
     public bool _selectionMode = false;
     public bool SelectionMode
@@ -65,6 +65,26 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         ScheduleUpdateComics();
     }
 
+    public ComicModel? GetRandomComic()
+    {
+        List<ComicModel> comics = [];
+        foreach (SimpleTreeViewNodeModel node in DataSource)
+        {
+            foreach (ComicModel comic in node.CollectDataContext<ComicModel>())
+            {
+                comics.Add(comic);
+            }
+        }
+
+        if (comics.Count == 0)
+        {
+            return null;
+        }
+
+        int index = Random.Shared.Next(comics.Count);
+        return comics[index];
+    }
+
     public void SetSearchText(string searchText)
     {
         searchText = searchText.Trim();
@@ -85,6 +105,22 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             _searchSubmitted = false;
             _searchEngine.Update();
         });
+    }
+
+    public void ExpandAllGroups()
+    {
+        foreach (SimpleTreeViewNodeModel node in DataSource)
+        {
+            node.ExpandAll();
+        }
+    }
+
+    public void CollapseAllGroups()
+    {
+        foreach (SimpleTreeViewNodeModel node in DataSource)
+        {
+            node.CollapseAll();
+        }
     }
 
     private void SetFilter(ComicFilterModel.ExternalFilterModel filter)
@@ -169,8 +205,8 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             ComicPropertyModel sortBy = filter.SortBy;
             ComicPropertyModel? groupBy = filter.GroupBy;
 
-            List<TagNodeViewModel> dataSource = [];
-            TagNodeViewModel ComicToNode(ComicModel comic)
+            List<SimpleTreeViewNodeModel> dataSource = [];
+            SimpleTreeViewNodeModel ComicToNode(ComicModel comic)
             {
                 return new()
                 {
@@ -178,7 +214,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                     Glyph = "\uE8B9",
                     Title = comic.Title,
                     CanExpand = false,
-                    OnClick = () =>
+                    Clicked = () =>
                     {
                         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
                             .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
@@ -188,10 +224,10 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                             .Build();
                         _actionHandler.Handle(actionModel);
                     },
-                    RequestContextFlyoutAsync = selectedItems =>
+                    RequestContextMenuItemsAsync = (primary, selection) =>
                     {
-                        IEnumerable<ComicModel> selectedComics = selectedItems.Where(x => x.DataContext is ComicModel).Select(x => (ComicModel)x.DataContext!);
-                        return MenuFlyoutItemsCreator.CreateMenuItems(comic, _actionHandler, selectedComics, canSelect: !SelectionMode);
+                        IEnumerable<ComicModel> selectedComics = selection.Where(x => x.DataContext is ComicModel).Select(x => (ComicModel)x.DataContext!);
+                        return MenuFlyoutItemsCreator.CreateComicMenuItems(comic, _actionHandler, selectedComics, canSelect: !SelectionMode);
                     },
                 };
             }
@@ -202,19 +238,19 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                     filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty);
                 foreach (ComicPropertyModel.GroupItem<ComicModel> item in groupItems)
                 {
-                    TagNodeViewModel groupNode = new()
+                    SimpleTreeViewNodeModel groupNode = new()
                     {
                         Title = item.Name,
                         CanExpand = true,
-                        Expanded = false,
+                        IsExpanded = false,
                         Description = item.Description,
-                        RequestContextFlyoutAsync = selectedItems =>
+                        RequestContextMenuItemsAsync = (primary, selection) =>
                         {
-                            return Task.FromResult(CreateGroupMenuItems());
-                        }
+                            return CreateGroupMenuItems(primary);
+                        },
                     };
 
-                    List<TagNodeViewModel> nodeChildren = [];
+                    List<SimpleTreeViewNodeModel> nodeChildren = [];
                     List<ComicModel> sorted = sortBy.SortComics(item.Items, x => x, filter.ComicOrderMethod);
                     foreach (ComicModel comic in sorted)
                     {
@@ -235,13 +271,13 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
             MainThreadUtils.RunInMainThread(() =>
             {
-                void UpdateItem(TagNodeViewModel from, TagNodeViewModel to)
+                void UpdateItem(SimpleTreeViewNodeModel from, SimpleTreeViewNodeModel to)
                 {
                     from.Glyph = to.Glyph;
                     from.Description = to.Description;
                     from.CanExpand = to.CanExpand;
-                    from.OnClick = to.OnClick;
-                    from.RequestContextFlyoutAsync = to.RequestContextFlyoutAsync;
+                    from.Clicked = to.Clicked;
+                    from.RequestContextMenuItemsAsync = to.RequestContextMenuItemsAsync;
                     DiffUtils.UpdateCollection(from.Children, to.Children, (a, b) => a.Title == b.Title, UpdateItem);
                 }
 
@@ -250,16 +286,12 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private List<BaseMenuFlyoutItemViewModel> CreateGroupMenuItems()
+    private Task<List<BaseMenuFlyoutItemViewModel>> CreateGroupMenuItems(SimpleTreeViewNodeModel node)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
-
-        if (!SelectionMode)
-        {
-            items.Add(MenuFlyoutItemsCreator.CreateSelectMenuItem(_actionHandler));
-        }
-
-        return items;
+        List<ComicModel> comics = [.. node.CollectDataContext<ComicModel>()];
+        ComicModel? randomComic = comics.Count > 0 ? comics[Random.Shared.Next(comics.Count)] : null;
+        return MenuFlyoutItemsCreator.CreateComicGroupMenuItems(_actionHandler, randomComic,
+            node.ExpandAll, node.CollapseAll);
     }
 
     public class DropDownButtonModel

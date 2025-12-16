@@ -586,14 +586,14 @@ The evaluation will be performed in the following order:
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Open in File Explorer</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Open in new tab</value>
-  </data>
-  <data name="OpenRandomComic" xml:space="preserve">
-    <value>Open a random comic</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Open sidebar</value>
@@ -642,6 +642,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Prompt before removing comics</value>
+  </data>
+  <data name="RandomComic" xml:space="preserve">
+    <value>Random comic</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>Rating</value>

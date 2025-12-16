@@ -316,29 +316,9 @@
                         Width="32"
                         Padding="0"
                         VerticalAlignment="Stretch"
-                        Click="OpenRandomComicButton_Click"
-                        ContextRequested="OpenRandomComicButton_ContextRequested"
-                        IsEnabled="{x:Bind ViewModel.LibraryEmptyVisible, Mode=OneWay, Converter={StaticResource BooleanNegationConverter}}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.OpenRandomComic}">
-                        <FontIcon FontSize="16" Glyph="&#xE8B1;" />
-                    </Button>
-                    <Button
-                        Width="32"
-                        Padding="0"
-                        VerticalAlignment="Stretch"
-                        Click="CollapseAllButton_Click"
-                        IsEnabled="{x:Bind ViewModel.IsCollapseAllEnabled, Mode=OneWay}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.CollapseAll}">
-                        <FontIcon FontSize="16" Glyph="&#xF165;" />
-                    </Button>
-                    <Button
-                        Width="32"
-                        Padding="0"
-                        VerticalAlignment="Stretch"
-                        Click="ExpandAllButton_Click"
-                        IsEnabled="{x:Bind ViewModel.IsExpandAllEnabled, Mode=OneWay}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.ExpandAll}">
-                        <FontIcon FontSize="16" Glyph="&#xECCD;" />
+                        Click="MoreButton_Click"
+                        ToolTipService.ToolTip="{x:Bind StringResource.More}">
+                        <FontIcon FontSize="16" Glyph="&#xE712;" />
                     </Button>
                 </StackPanel>
             </Grid>

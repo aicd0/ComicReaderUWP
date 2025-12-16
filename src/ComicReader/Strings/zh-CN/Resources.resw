@@ -584,14 +584,14 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="OK" xml:space="preserve">
     <value>好的</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>打开</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>在资源管理器中打开</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>在新选项卡中打开</value>
-  </data>
-  <data name="OpenRandomComic" xml:space="preserve">
-    <value>打开随机漫画</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>打开侧边栏</value>
@@ -640,6 +640,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>移除漫画前提示</value>
+  </data>
+  <data name="RandomComic" xml:space="preserve">
+    <value>随机漫画</value>
   </data>
   <data name="Rating" xml:space="preserve">
     <value>评分</value>
