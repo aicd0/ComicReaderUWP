@@ -353,7 +353,7 @@ Ausdrucksreferenz
 %title                    - Titel 1 oder Titel 2 abgleichen.
 %title1                   - Titel 1 abgleichen.
 %title2                   - Titel 2 abgleichen.
-%rating                   - Bewertung abgleichen. Beispiel: 4 steht für 4 Sterne, 0 für keine Bewertung.
+%rating                   - Bewertung abgleichen. Beispiel: 100 steht für 5 Sterne, -1 für keine Bewertung.
 %completion_state         - Status der Comic-Vervollständigung (0 - Ungelesen, 1 - Lesen, 2 - Abgeschlossen).
 %progress                 - Lesefortschritt in Prozent. Beispiel: 50 steht für 50 %.
 %page_count               - Seitenanzahl.

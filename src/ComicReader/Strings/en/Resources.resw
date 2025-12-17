@@ -353,7 +353,7 @@ Expression Reference
 %title              - Match title 1 or title 2.
 %title1             - Match title 1.
 %title2             - Match title 2.
-%rating             - Match rating. For example: 4 represents 4 stars, 0 represents no rating.
+%rating             - Match rating. For example: 100 represents 5 stars, -1 represents no rating.
 %completion_state   - Comic completion state (0 - Unread, 1 - Reading, 2 - Completed).
 %progress           - reading progress, in percentage. For example: 50 represents 50%.
 %page_count         - Total pages.

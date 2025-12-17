@@ -353,7 +353,7 @@ Referencia de expresiones
 %title               - Coincidir con el título 1 o el título 2.
 %title1              - Coincidir con el título 1.
 %title2              - Coincidir con el título 2.
-%rating              - Coincidir con la calificación. Por ejemplo: 4 representa 4 estrellas, 0 representa ninguna calificación.
+%rating              - Coincidir con la calificación. Por ejemplo: 100 representa 5 estrellas, -1 representa ninguna calificación.
 %completion_state    - Estado de finalización del cómic (0 - Sin leer, 1 - Leyendo, 2 - Completado).
 %progress            - Progreso de lectura, en porcentaje. Por ejemplo: 50 representa el 50%.
 %page_count          - Páginas totales.
