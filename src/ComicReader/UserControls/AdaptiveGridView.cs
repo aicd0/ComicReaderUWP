@@ -119,7 +119,7 @@ public partial class AdaptiveGridView : GridView
             _needContainerMarginForLayout = true;
         }
 
-        return ((containerWidth - 2.0) / columns) - itemMargin.Left - itemMargin.Right;
+        return ((containerWidth - 35.0) / columns) - itemMargin.Left - itemMargin.Right;
     }
 
     /// <summary>
