@@ -544,8 +544,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(tagCategory, tag, _actionHandler),
         });
 
-        items.Add(new MenuFlyoutSeperatorViewModel());
-
         items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
         {
             Glyph = "\uE70F",
