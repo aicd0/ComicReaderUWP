@@ -93,7 +93,7 @@
                 x:Name="ComicGridView"
                 Grid.Row="0"
                 Margin="0,0,-1,0"
-                Padding="35,10"
+                Padding="35,10,0,10"
                 ContainerContentChanging="OnAdaptiveGridViewContainerContentChanging"
                 Loaded="ComicGridView_Loaded"
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
