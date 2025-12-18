@@ -7,7 +7,7 @@
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <PackageId>ComicReaderUWP.SDK</PackageId>
-    <Version>1.0.3.0</Version>
+    <Version>1.0.4.0</Version>
     <Authors>aicd0</Authors>
     <Description>Plugin SDK for Comic Reader UWP</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -15,7 +15,7 @@
   </PropertyGroup>
 	
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\"/>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 	
   <ItemGroup>

@@ -615,14 +615,14 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(comic, PageActionHandler);
+        List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(comic, PageActionHandler);
         if (menuItems.Count == 0)
         {
             return;
         }
 
         var flyout = new MenuFlyout();
-        foreach (BaseMenuFlyoutItemViewModel item in menuItems)
+        foreach (BaseMenuFlyoutItemModel item in menuItems)
         {
             flyout.Items.Add(item.CreateMenuFlyoutItem());
         }

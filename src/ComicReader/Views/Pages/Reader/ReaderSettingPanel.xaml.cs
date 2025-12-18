@@ -272,11 +272,11 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         presets.Sort((a, b) => StringComparer.CurrentCultureIgnoreCase.Compare(a.Item1, b.Item1));
         presets.Add(new Tuple<string, string>(StringResource.Custom, ReaderSettingDataModel.PRESET_KEY_CUSTOM));
 
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        List<BaseMenuFlyoutItemModel> items = [];
         foreach (Tuple<string, string> preset in presets)
         {
             string presetKey = preset.Item2;
-            items.Add(new MenuFlyoutToggleItemViewModel(preset.Item1)
+            items.Add(new ToggleMenuFlyoutItemModel(preset.Item1)
             {
                 IsChecked = _model.PresetKey == presetKey,
                 Click = () =>
@@ -295,7 +295,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         }
 
         var flyout = new MenuFlyout();
-        foreach (BaseMenuFlyoutItemViewModel item in items)
+        foreach (BaseMenuFlyoutItemModel item in items)
         {
             flyout.Items.Add(item.CreateMenuFlyoutItem());
         }

@@ -67,7 +67,7 @@ internal sealed partial class FilterPresetsPage : BasePage
 
             var menuFlyout = (MenuFlyout)flyout;
             menuFlyout.Items.Clear();
-            foreach (BaseMenuFlyoutItemViewModel item in model.Items)
+            foreach (BaseMenuFlyoutItemModel item in model.Items)
             {
                 menuFlyout.Items.Add(item.CreateMenuFlyoutItem());
             }
@@ -92,7 +92,7 @@ internal sealed partial class FilterPresetsPage : BasePage
         }
 
         ComicModel? randomComic = ViewModel.GetRandomComic();
-        List<BaseMenuFlyoutItemViewModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
+        List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
             PageActionHandler, randomComic, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
         if (menuItems.Count == 0)
         {
@@ -103,7 +103,7 @@ internal sealed partial class FilterPresetsPage : BasePage
         {
             Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
         };
-        foreach (BaseMenuFlyoutItemViewModel item in menuItems)
+        foreach (BaseMenuFlyoutItemModel item in menuItems)
         {
             flyout.Items.Add(item.CreateMenuFlyoutItem());
         }

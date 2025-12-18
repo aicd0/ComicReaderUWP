@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Linq;
 using ComicReader.Common;
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
+using ComicReader.Common.Plugins;
 using ComicReader.Common.Services;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
@@ -128,8 +130,8 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private List<BaseMenuFlyoutItemViewModel> _moreButtonFlyoutItems = [];
-    public List<BaseMenuFlyoutItemViewModel> MoreButtonFlyoutItems
+    private List<BaseMenuFlyoutItemModel> _moreButtonFlyoutItems = [];
+    public List<BaseMenuFlyoutItemModel> MoreButtonFlyoutItems
     {
         get => _moreButtonFlyoutItems;
         set
@@ -153,7 +155,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                 Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
             };
 
-            foreach (BaseMenuFlyoutItemViewModel item in MoreButtonFlyoutItems)
+            foreach (BaseMenuFlyoutItemModel item in MoreButtonFlyoutItems)
             {
                 flyout.Items.Add(item.CreateMenuFlyoutItem());
             }
@@ -195,9 +197,13 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     public void UpdateMoreMenuItems()
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        var pluginItems = PluginManager.Instance.GetAllPluginContext()
+            .SelectMany(ctx => ctx.GetMainPageMoreMenuItems())
+            .ToImmutableList();
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewTab)
+        List<BaseMenuFlyoutItemModel> items = [];
+
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.NewTab)
         {
             Glyph = "\uE8A5",
             Click = () =>
@@ -211,7 +217,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             },
         });
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewWindow)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.NewWindow)
         {
             Glyph = "\uE78B",
             Click = () =>
@@ -225,11 +231,11 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             },
         });
 
-        items.Add(new MenuFlyoutSeperatorViewModel());
+        items.Add(new SeparatorMenuFlyoutItemModel());
 
         if (_isFullscreen)
         {
-            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.ExitFullscreen)
+            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.ExitFullscreen)
             {
                 Glyph = "\uE73F",
                 Click = () =>
@@ -243,7 +249,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
         else
         {
-            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.EnterFullscreen)
+            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.EnterFullscreen)
             {
                 Glyph = "\uE740",
                 Click = () =>
@@ -256,9 +262,15 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             });
         }
 
-        items.Add(new MenuFlyoutSeperatorViewModel());
+        if (pluginItems.Count > 0)
+        {
+            items.Add(new SeparatorMenuFlyoutItemModel());
+            items.AddRange(pluginItems);
+        }
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Settings)
+        items.Add(new SeparatorMenuFlyoutItemModel());
+
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Settings)
         {
             Glyph = "\uE713",
             Click = () =>
@@ -274,7 +286,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
         if (DebugUtils.DeveloperMode)
         {
-            items.Add(new MenuFlyoutItemViewModel("Dev tools")
+            items.Add(new SimpleMenuFlyoutItemModel("Dev tools")
             {
                 Glyph = "\uEC7A",
                 Click = () =>
@@ -289,7 +301,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             });
         }
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Exit)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Exit)
         {
             Click = () =>
             {

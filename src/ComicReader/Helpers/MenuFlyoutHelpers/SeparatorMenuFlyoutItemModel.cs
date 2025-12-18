@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
-internal class MenuFlyoutSeperatorViewModel : BaseMenuFlyoutItemViewModel
+internal class SeparatorMenuFlyoutItemModel : BaseMenuFlyoutItemModel
 {
     protected override MenuFlyoutItemBase CreateMenuFlyoutItemInternal()
     {

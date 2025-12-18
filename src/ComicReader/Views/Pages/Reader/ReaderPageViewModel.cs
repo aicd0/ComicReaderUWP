@@ -534,17 +534,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         HasAnyTags = ComicTags.Count > 0;
     }
 
-    private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagContextMenuItems(string tagCategory, string tag)
+    private async Task<List<BaseMenuFlyoutItemModel>> CreateTagContextMenuItems(string tagCategory, string tag)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        List<BaseMenuFlyoutItemModel> items = [];
 
-        items.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Links)
+        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Links)
         {
             Glyph = "\uE71B",
             Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(tagCategory, tag, _actionHandler),
         });
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
         {
             Glyph = "\uE70F",
             Click = () =>
@@ -553,9 +553,9 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             },
         });
 
-        items.Add(new MenuFlyoutSeperatorViewModel());
+        items.Add(new SeparatorMenuFlyoutItemModel());
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Delete)
         {
             Glyph = "\uE74D",
             Click = () =>
