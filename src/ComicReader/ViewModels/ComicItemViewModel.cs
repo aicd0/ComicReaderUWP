@@ -207,7 +207,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         {
             if (compat)
             {
-                Progress = Comic.Progress.ToString() + "%";
+                Progress = Math.Clamp(Comic.Progress, 0, 100).ToString() + "%";
             }
             else
             {
