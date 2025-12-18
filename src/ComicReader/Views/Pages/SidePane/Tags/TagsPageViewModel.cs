@@ -326,9 +326,9 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         return dataSource;
     }
 
-    private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagCategoryMenuItems(SimpleTreeViewNodeModel primary, IEnumerable<SimpleTreeViewNodeModel> selection)
+    private async Task<List<BaseMenuFlyoutItemModel>> CreateTagCategoryMenuItems(SimpleTreeViewNodeModel primary, IEnumerable<SimpleTreeViewNodeModel> selection)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        List<BaseMenuFlyoutItemModel> items = [];
 
         if (primary.DataContext is not TagCateogryModel primaryCategory)
         {
@@ -342,7 +342,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             selectedCategories = [primaryCategory];
         }
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
         {
             Glyph = "\uE70F",
             Click = () =>
@@ -351,7 +351,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             },
         });
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Delete)
         {
             Glyph = "\uE74D",
             Click = () =>
@@ -369,9 +369,9 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             primary.ExpandAll, primary.CollapseAll, customItems: items);
     }
 
-    private async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagMenuItems(SimpleTreeViewNodeModel primary, IEnumerable<SimpleTreeViewNodeModel> selection)
+    private async Task<List<BaseMenuFlyoutItemModel>> CreateTagMenuItems(SimpleTreeViewNodeModel primary, IEnumerable<SimpleTreeViewNodeModel> selection)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        List<BaseMenuFlyoutItemModel> items = [];
 
         if (primary.DataContext is not TagModel primaryTag)
         {
@@ -384,13 +384,13 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             selectedTags = [primaryTag];
         }
 
-        items.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Links)
+        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Links)
         {
             Glyph = "\uE71B",
             Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(primaryTag.CategoryName, primaryTag.Name, _actionHandler),
         });
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
         {
             Glyph = "\uE70F",
             Click = () =>
@@ -399,7 +399,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             },
         });
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Delete)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Delete)
         {
             Glyph = "\uE74D",
             Click = () =>

@@ -77,9 +77,19 @@ internal class PluginManager
             return false;
         }
 
-        IEnumerable<Type> pluginTypes = assembly
-            .GetTypes()
-            .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsAbstract);
+        IEnumerable<Type> pluginTypes;
+        try
+        {
+            pluginTypes = assembly
+                .GetTypes()
+                .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsAbstract);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+            return false;
+        }
+
         List<IPlugin> plugins = [];
         foreach (Type pluginType in pluginTypes)
         {

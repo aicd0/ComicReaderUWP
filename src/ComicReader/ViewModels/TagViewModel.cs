@@ -29,7 +29,7 @@ internal partial class TagViewModel : INotifyPropertyChanged
     }
 
     public Action? OnClicked { get; set; }
-    public Func<Task<List<BaseMenuFlyoutItemViewModel>>>? OnRequestContextFlyoutAsync { get; set; }
+    public Func<Task<List<BaseMenuFlyoutItemModel>>>? OnRequestContextFlyoutAsync { get; set; }
 
     public async Task<FlyoutBase?> CreateContextFlyout()
     {
@@ -38,14 +38,14 @@ internal partial class TagViewModel : INotifyPropertyChanged
             return null;
         }
 
-        List<BaseMenuFlyoutItemViewModel> menuFlyoutItems = await OnRequestContextFlyoutAsync();
+        List<BaseMenuFlyoutItemModel> menuFlyoutItems = await OnRequestContextFlyoutAsync();
         if (menuFlyoutItems.Count == 0)
         {
             return null;
         }
 
         var flyout = new MenuFlyout();
-        foreach (BaseMenuFlyoutItemViewModel item in menuFlyoutItems)
+        foreach (BaseMenuFlyoutItemModel item in menuFlyoutItems)
         {
             flyout.Items.Add(item.CreateMenuFlyoutItem());
         }

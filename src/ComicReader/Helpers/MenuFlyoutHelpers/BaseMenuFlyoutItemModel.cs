@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
-internal abstract class BaseMenuFlyoutItemViewModel
+internal abstract class BaseMenuFlyoutItemModel
 {
     public MenuFlyoutItemBase CreateMenuFlyoutItem()
     {

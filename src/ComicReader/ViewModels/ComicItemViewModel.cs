@@ -143,7 +143,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     public bool IsUnread => Comic.CompletionState == ComicCompletionStatusEnum.NotStarted;
 
     public Action? OnClick { get; set; }
-    public Func<Task<List<BaseMenuFlyoutItemViewModel>>>? OnRequestContextFlyoutAsync { get; set; }
+    public Func<Task<List<BaseMenuFlyoutItemModel>>>? OnRequestContextFlyoutAsync { get; set; }
 
     //
     // Constructors
@@ -207,7 +207,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         {
             if (compat)
             {
-                Progress = Comic.Progress.ToString() + "%";
+                Progress = Math.Clamp(Comic.Progress, 0, 100).ToString() + "%";
             }
             else
             {
@@ -224,14 +224,14 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
             return null;
         }
 
-        List<BaseMenuFlyoutItemViewModel> menuFlyoutItems = await OnRequestContextFlyoutAsync();
+        List<BaseMenuFlyoutItemModel> menuFlyoutItems = await OnRequestContextFlyoutAsync();
         if (menuFlyoutItems.Count == 0)
         {
             return null;
         }
 
         var flyout = new MenuFlyout();
-        foreach (BaseMenuFlyoutItemViewModel item in menuFlyoutItems)
+        foreach (BaseMenuFlyoutItemModel item in menuFlyoutItems)
         {
             flyout.Items.Add(item.CreateMenuFlyoutItem());
         }

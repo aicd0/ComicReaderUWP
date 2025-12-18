@@ -14,7 +14,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Data.SqlHelpers;
-using ComicReader.SDK.Plugins;
+using ComicReader.SDK.Plugins.Comic;
 
 using Windows.Storage;
 
@@ -229,6 +229,32 @@ internal sealed class ComicModel : IComicModel
         {
             er.SetError($"Path does not exist: {fileExplorerPath}");
         }
+    }
+
+    //
+    // IComicModel Implementation
+    //
+
+    string IComicModel.Description => Description;
+
+    int IComicModel.Rating => Rating;
+
+    Task IComicModel.SetRating(int rating)
+    {
+        return SetRating(rating);
+    }
+
+    async Task IComicModel.SetCompletionStatus(CompletionStatusEnum status)
+    {
+        ComicCompletionStatusEnum convertedStatus = status switch
+        {
+            CompletionStatusEnum.NotStarted => ComicCompletionStatusEnum.NotStarted,
+            CompletionStatusEnum.Started => ComicCompletionStatusEnum.Started,
+            CompletionStatusEnum.Completed => ComicCompletionStatusEnum.Completed,
+            _ => throw new ArgumentOutOfRangeException(nameof(status), "Invalid CompletionStatusEnum value."),
+        };
+        await _internalModel.SaveCompletionState(convertedStatus);
+        DispatchUpdateEvent();
     }
 
     //

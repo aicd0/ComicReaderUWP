@@ -183,7 +183,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         DropDownButtonModel filterPresetDropdown = new()
         {
             Name = selectedFilter.Name,
-            Items = filters.ConvertAll(x => new MenuFlyoutToggleItemViewModel(x.Name)
+            Items = filters.ConvertAll(x => new ToggleMenuFlyoutItemModel(x.Name)
             {
                 IsChecked = x.Name == selectedFilter.Name,
                 Click = () =>
@@ -288,7 +288,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private Task<List<BaseMenuFlyoutItemViewModel>> CreateGroupMenuItems(SimpleTreeViewNodeModel node)
+    private Task<List<BaseMenuFlyoutItemModel>> CreateGroupMenuItems(SimpleTreeViewNodeModel node)
     {
         List<ComicModel> comics = [.. node.CollectDataContext<ComicModel>()];
         ComicModel? randomComic = comics.Count > 0 ? comics[Random.Shared.Next(comics.Count)] : null;
@@ -299,6 +299,6 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
     public class DropDownButtonModel
     {
         public string Name { get; set; } = string.Empty;
-        public IEnumerable<BaseMenuFlyoutItemViewModel> Items { get; set; } = [];
+        public IEnumerable<BaseMenuFlyoutItemModel> Items { get; set; } = [];
     }
 }

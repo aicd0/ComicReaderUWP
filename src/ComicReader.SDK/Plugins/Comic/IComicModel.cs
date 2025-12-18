@@ -1,12 +1,15 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-namespace ComicReader.SDK.Plugins;
+namespace ComicReader.SDK.Plugins.Comic;
 
 public interface IComicModel
 {
     string Description { get; }
+
     int Rating { get; }
 
     Task SetRating(int rating);
+
+    Task SetCompletionStatus(CompletionStatusEnum status);
 }

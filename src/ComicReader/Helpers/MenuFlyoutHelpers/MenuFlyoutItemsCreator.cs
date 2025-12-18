@@ -26,7 +26,7 @@ internal static class MenuFlyoutItemsCreator
     public const string CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU = "ComicItemMenu";
     public const string CUSTOM_ACTION_NAME_SELECT = "Select";
 
-    public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicMenuItems(
+    public static async Task<List<BaseMenuFlyoutItemModel>> CreateComicMenuItems(
         ComicModel primaryComic,
         ActionHandler actionHandler,
         IEnumerable<ComicModel>? selectedComics = null,
@@ -51,11 +51,11 @@ internal static class MenuFlyoutItemsCreator
             primaryComicRoute.WithParam(RouterConstants.ARG_COMIC_ID, primaryComic.Id.ToString());
         }
 
-        List<BaseMenuFlyoutItemViewModel> result = [];
+        List<BaseMenuFlyoutItemModel> result = [];
 
         if (canOpenInCurrentTab)
         {
-            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Open)
+            result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Open)
             {
                 Glyph = "\uE8B9",
                 Click = () =>
@@ -69,7 +69,7 @@ internal static class MenuFlyoutItemsCreator
             });
         }
 
-        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInNewTab)
+        result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.OpenInNewTab)
         {
             Glyph = "\uE8A5",
             Click = () =>
@@ -81,21 +81,21 @@ internal static class MenuFlyoutItemsCreator
             },
         });
 
-        result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.SendToWindow)
+        result.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.SendToWindow)
         {
             Glyph = "\uE78B",
             Items = CreateSendToWindowMenuItems(primaryComicRoute.Url, actionHandler),
         });
 
-        result.Add(new MenuFlyoutSeperatorViewModel());
+        result.Add(new SeparatorMenuFlyoutItemModel());
 
-        result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Links)
+        result.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Links)
         {
             Glyph = "\uE71B",
             Items = await CreateComicLinkMenuItems(primaryComic, actionHandler),
         });
 
-        result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.Tags)
+        result.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Tags)
         {
             Glyph = "\uE8EC",
             Items = CreateComicTagMenuItems(primaryComic, actionHandler),
@@ -103,12 +103,12 @@ internal static class MenuFlyoutItemsCreator
 
         if (canEdit && !selectedComics.All(i => i.IsExternal))
         {
-            result.Add(new MenuFlyoutSeperatorViewModel());
+            result.Add(new SeparatorMenuFlyoutItemModel());
 
             bool isFavorite = FavoriteModel.Instance.FromId(primaryComic.Id) != null;
             if (isFavorite)
             {
-                result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.RemoveFromFavorites)
+                result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.RemoveFromFavorites)
                 {
                     Glyph = "\uE8D9",
                     Click = () =>
@@ -120,7 +120,7 @@ internal static class MenuFlyoutItemsCreator
             }
             else
             {
-                result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.AddToFavorites)
+                result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.AddToFavorites)
                 {
                     Glyph = "\uE734",
                     Click = () =>
@@ -136,12 +136,12 @@ internal static class MenuFlyoutItemsCreator
             }
 
             {
-                MenuFlyoutSubItemViewModel groupItem = new(StringResourceProvider.Instance.SetCompletionState)
+                SubItemMenuFlyoutItemModel groupItem = new(StringResourceProvider.Instance.SetCompletionState)
                 {
                     Glyph = "\uE7C1",
                 };
 
-                groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusUnread)
+                groupItem.Items.Add(new ToggleMenuFlyoutItemModel(StringResourceProvider.Instance.CompletionStatusUnread)
                 {
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.NotStarted,
                     Click = () =>
@@ -153,7 +153,7 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
 
-                groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusReading)
+                groupItem.Items.Add(new ToggleMenuFlyoutItemModel(StringResourceProvider.Instance.CompletionStatusReading)
                 {
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Started,
                     Click = () =>
@@ -165,7 +165,7 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
 
-                groupItem.Items.Add(new MenuFlyoutToggleItemViewModel(StringResourceProvider.Instance.CompletionStatusFinished)
+                groupItem.Items.Add(new ToggleMenuFlyoutItemModel(StringResourceProvider.Instance.CompletionStatusFinished)
                 {
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Completed,
                     Click = () =>
@@ -182,7 +182,7 @@ internal static class MenuFlyoutItemsCreator
 
             if (primaryComic.Hidden)
             {
-                result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Unhide)
+                result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Unhide)
                 {
                     Glyph = "\uE7B3",
                     Click = () =>
@@ -196,7 +196,7 @@ internal static class MenuFlyoutItemsCreator
             }
             else
             {
-                result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Hide)
+                result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Hide)
                 {
                     Glyph = "\uED1A",
                     Click = () =>
@@ -209,7 +209,7 @@ internal static class MenuFlyoutItemsCreator
                 });
             }
 
-            result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Edit)
+            result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
             {
                 Glyph = "\uE70F",
                 Click = () =>
@@ -224,9 +224,9 @@ internal static class MenuFlyoutItemsCreator
             });
         }
 
-        result.Add(new MenuFlyoutSeperatorViewModel());
+        result.Add(new SeparatorMenuFlyoutItemModel());
 
-        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.OpenInFileExplorer)
+        result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.OpenInFileExplorer)
         {
             Glyph = "\uE838",
             Click = () =>
@@ -239,14 +239,14 @@ internal static class MenuFlyoutItemsCreator
 
         if (canSelect)
         {
-            result.Add(new MenuFlyoutSeperatorViewModel());
+            result.Add(new SeparatorMenuFlyoutItemModel());
             result.Add(CreateSelectMenuItem(actionHandler));
         }
 
         return result;
     }
 
-    public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateTagLinkMenuItems(string tagCategory, string tag, ActionHandler actionHandler)
+    public static async Task<List<BaseMenuFlyoutItemModel>> CreateTagLinkMenuItems(string tagCategory, string tag, ActionHandler actionHandler)
     {
         Dictionary<string, TagLinkModel.LinkModel> linkMap = [];
 
@@ -277,9 +277,9 @@ internal static class MenuFlyoutItemsCreator
         return CreateLinkMenuItems(actionHandler, links);
     }
 
-    public static BaseMenuFlyoutItemViewModel CreateSelectMenuItem(ActionHandler actionHandler)
+    public static BaseMenuFlyoutItemModel CreateSelectMenuItem(ActionHandler actionHandler)
     {
-        return new MenuFlyoutItemViewModel(StringResourceProvider.Instance.Select)
+        return new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Select)
         {
             Glyph = "\uE762",
             Click = () =>
@@ -293,28 +293,28 @@ internal static class MenuFlyoutItemsCreator
         };
     }
 
-    public static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicGroupMenuItems(ActionHandler actionHandler,
+    public static async Task<List<BaseMenuFlyoutItemModel>> CreateComicGroupMenuItems(ActionHandler actionHandler,
         ComicModel? randomComic, Action expandAllHandler, Action collapseAllHandler,
-        IList<BaseMenuFlyoutItemViewModel>? customItems = null)
+        IList<BaseMenuFlyoutItemModel>? customItems = null)
     {
-        List<BaseMenuFlyoutItemViewModel> result = [];
+        List<BaseMenuFlyoutItemModel> result = [];
 
         if (randomComic is not null)
         {
-            result.Add(new MenuFlyoutSubItemViewModel(StringResourceProvider.Instance.RandomComic)
+            result.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.RandomComic)
             {
                 Glyph = "\uE8B1",
                 Items = await CreateComicMenuItems(randomComic, actionHandler, canOpenInCurrentTab: true),
             });
         }
 
-        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.ExpandAll)
+        result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.ExpandAll)
         {
             Glyph = "\uECCD",
             Click = expandAllHandler,
         });
 
-        result.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.CollapseAll)
+        result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.CollapseAll)
         {
             Glyph = "\uF165",
             Click = collapseAllHandler,
@@ -322,21 +322,21 @@ internal static class MenuFlyoutItemsCreator
 
         if (customItems is not null && customItems.Count > 0)
         {
-            result.Add(new MenuFlyoutSeperatorViewModel());
-            foreach (BaseMenuFlyoutItemViewModel item in customItems)
+            result.Add(new SeparatorMenuFlyoutItemModel());
+            foreach (BaseMenuFlyoutItemModel item in customItems)
             {
                 result.Add(item);
             }
         }
 
-        result.Add(new MenuFlyoutSeperatorViewModel());
+        result.Add(new SeparatorMenuFlyoutItemModel());
         result.Add(CreateSelectMenuItem(actionHandler));
         return result;
     }
 
-    private static List<BaseMenuFlyoutItemViewModel> CreateSendToWindowMenuItems(string url, ActionHandler actionHandler)
+    private static List<BaseMenuFlyoutItemModel> CreateSendToWindowMenuItems(string url, ActionHandler actionHandler)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        List<BaseMenuFlyoutItemModel> items = [];
 
         int currentWindowId = -1;
         if (actionHandler.TryGetComponent<IMainWindowComponent>(out IMainWindowComponent? mainWindowCom))
@@ -360,7 +360,7 @@ internal static class MenuFlyoutItemsCreator
                 name += $" ({title})";
             }
 
-            items.Add(new MenuFlyoutItemViewModel(name)
+            items.Add(new SimpleMenuFlyoutItemModel(name)
             {
                 Click = () =>
                 {
@@ -374,7 +374,7 @@ internal static class MenuFlyoutItemsCreator
             });
         }
 
-        items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.NewWindow)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.NewWindow)
         {
             Click = () =>
             {
@@ -389,7 +389,7 @@ internal static class MenuFlyoutItemsCreator
         return items;
     }
 
-    private static async Task<List<BaseMenuFlyoutItemViewModel>> CreateComicLinkMenuItems(ComicModel comic, ActionHandler actionHandler)
+    private static async Task<List<BaseMenuFlyoutItemModel>> CreateComicLinkMenuItems(ComicModel comic, ActionHandler actionHandler)
     {
         Dictionary<string, TagLinkModel.LinkModel> linkMap = [];
 
@@ -436,14 +436,14 @@ internal static class MenuFlyoutItemsCreator
         return CreateLinkMenuItems(actionHandler, links);
     }
 
-    private static List<BaseMenuFlyoutItemViewModel> CreateLinkMenuItems(ActionHandler actionHandler, List<TagLinkModel.LinkModel> links)
+    private static List<BaseMenuFlyoutItemModel> CreateLinkMenuItems(ActionHandler actionHandler, List<TagLinkModel.LinkModel> links)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        List<BaseMenuFlyoutItemModel> items = [];
         if (links.Count > 0)
         {
             foreach (TagLinkModel.LinkModel link in links)
             {
-                items.Add(new MenuFlyoutItemViewModel(link.Name)
+                items.Add(new SimpleMenuFlyoutItemModel(link.Name)
                 {
                     Click = () =>
                     {
@@ -465,7 +465,7 @@ internal static class MenuFlyoutItemsCreator
         }
         else
         {
-            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
+            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.None)
             {
                 IsEnabled = false,
             });
@@ -474,9 +474,9 @@ internal static class MenuFlyoutItemsCreator
         return items;
     }
 
-    private static List<BaseMenuFlyoutItemViewModel> CreateComicTagMenuItems(ComicModel comic, ActionHandler actionHandler)
+    private static List<BaseMenuFlyoutItemModel> CreateComicTagMenuItems(ComicModel comic, ActionHandler actionHandler)
     {
-        List<BaseMenuFlyoutItemViewModel> items = [];
+        List<BaseMenuFlyoutItemModel> items = [];
         var tags = comic.Tags
             .SelectMany(tagData => tagData.Tags.Select(tag => (Category: tagData.Name, Tag: tag)))
             .OrderBy(t => t.Category)
@@ -487,7 +487,7 @@ internal static class MenuFlyoutItemsCreator
             foreach ((string Category, string Tag) pair in tags)
             {
                 string name = $"{pair.Tag} ({pair.Category})";
-                items.Add(new MenuFlyoutItemViewModel(name)
+                items.Add(new SimpleMenuFlyoutItemModel(name)
                 {
                     Click = () =>
                     {
@@ -504,7 +504,7 @@ internal static class MenuFlyoutItemsCreator
         }
         else
         {
-            items.Add(new MenuFlyoutItemViewModel(StringResourceProvider.Instance.None)
+            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.None)
             {
                 IsEnabled = false,
             });

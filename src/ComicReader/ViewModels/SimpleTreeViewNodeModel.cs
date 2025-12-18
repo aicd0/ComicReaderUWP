@@ -77,7 +77,7 @@ internal partial class SimpleTreeViewNodeModel : BaseViewModel, INotifyPropertyC
     public ObservableCollection<SimpleTreeViewNodeModel> Children { get; } = [];
     public object? DataContext { get; set; }
     public Action? Clicked { get; set; }
-    public Func<SimpleTreeViewNodeModel, IEnumerable<SimpleTreeViewNodeModel>, Task<List<BaseMenuFlyoutItemViewModel>>>? RequestContextMenuItemsAsync { get; set; }
+    public Func<SimpleTreeViewNodeModel, IEnumerable<SimpleTreeViewNodeModel>, Task<List<BaseMenuFlyoutItemModel>>>? RequestContextMenuItemsAsync { get; set; }
 
     public async Task<FlyoutBase?> CreateContextFlyout(IEnumerable<SimpleTreeViewNodeModel> selectedItems)
     {
@@ -86,14 +86,14 @@ internal partial class SimpleTreeViewNodeModel : BaseViewModel, INotifyPropertyC
             return null;
         }
 
-        List<BaseMenuFlyoutItemViewModel> menuFlyoutItems = await RequestContextMenuItemsAsync(this, selectedItems);
+        List<BaseMenuFlyoutItemModel> menuFlyoutItems = await RequestContextMenuItemsAsync(this, selectedItems);
         if (menuFlyoutItems.Count == 0)
         {
             return null;
         }
 
         var flyout = new MenuFlyout();
-        foreach (BaseMenuFlyoutItemViewModel item in menuFlyoutItems)
+        foreach (BaseMenuFlyoutItemModel item in menuFlyoutItems)
         {
             flyout.Items.Add(item.CreateMenuFlyoutItem());
         }
