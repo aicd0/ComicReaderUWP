@@ -8,6 +8,10 @@ namespace ComicReader.SDK.Plugins;
 
 public interface IPluginContext
 {
+    Task<IComicModel?> GetComicById(long id);
+
+    Task<IEnumerable<long>> SearchComics(string filterExpression);
+
     void RegisterMainPageMoreMenuItem(IMenuItem item);
 
     void RegisterComicEditedHandler(IComicEditedHandler handler);
