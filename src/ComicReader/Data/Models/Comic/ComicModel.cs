@@ -239,6 +239,11 @@ internal sealed class ComicModel : IComicModel
 
     int IComicModel.Rating => Rating;
 
+    Task IComicModel.SetDescription(string description)
+    {
+        return SetDescription(description);
+    }
+
     Task IComicModel.SetRating(int rating)
     {
         return SetRating(rating);
