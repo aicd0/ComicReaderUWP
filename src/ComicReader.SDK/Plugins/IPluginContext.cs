@@ -3,7 +3,7 @@
 
 using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Plugins.Comic;
-using ComicReader.SDK.Plugins.Menu;
+using ComicReader.SDK.Plugins.Common;
 
 namespace ComicReader.SDK.Plugins;
 
@@ -15,7 +15,9 @@ public interface IPluginContext
 
     Task<IEnumerable<long>> SearchComics(string filterExpression);
 
-    void RegisterMainPageMoreMenuItem(IMenuItem item);
+    void SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator);
 
-    void RegisterComicEditedHandler(IComicEditedHandler handler);
+    void SetComicMenuItemCreator(IComicMenuItemCreator? creator);
+
+    void SetComicEditedHandler(IComicEditedHandler? handler);
 }

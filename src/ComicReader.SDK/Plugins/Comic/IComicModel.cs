@@ -9,6 +9,8 @@ public interface IComicModel
 
     int Rating { get; }
 
+    Task SetDescription(string description);
+
     Task SetRating(int rating);
 
     Task SetCompletionStatus(CompletionStatusEnum status);
