@@ -72,24 +72,44 @@ internal class PluginContext(IPlugin plugin) : IPluginContext
     // Main Page More Menu Items
     //
 
-    private readonly List<IMenuItem> _mainPageMoreMenuItems = [];
+    private ICommonMenuItemCreator? _mainPageMoreMenuItemCreator = null;
 
-    public void RegisterMainPageMoreMenuItem(IMenuItem? item)
+    public void SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator)
     {
-        ArgumentNullException.ThrowIfNull(item);
-
-        lock (_mainPageMoreMenuItems)
-        {
-            _mainPageMoreMenuItems.Add(item);
-        }
+        _mainPageMoreMenuItemCreator = creator;
     }
 
     public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems()
     {
-        lock (_mainPageMoreMenuItems)
+        ICommonMenuItemCreator? creator = _mainPageMoreMenuItemCreator;
+        if (creator is null)
         {
-            return [.. _mainPageMoreMenuItems.Select(CreateHostMenuFlyoutItem)];
+            return [];
         }
+
+        return [.. creator.CreateMenuItems().Select(CreateHostMenuFlyoutItem)];
+    }
+
+    //
+    // Comic Menu Items
+    //
+
+    private IComicMenuItemCreator? _comicMenuItemCreator = null;
+
+    public void SetComicMenuItemCreator(IComicMenuItemCreator? creator)
+    {
+        _comicMenuItemCreator = creator;
+    }
+
+    public IReadOnlyList<BaseMenuFlyoutItemModel> GetComicMenuItems(IComicModel primary, IEnumerable<IComicModel> selection)
+    {
+        IComicMenuItemCreator? creator = _comicMenuItemCreator;
+        if (creator is null)
+        {
+            return [];
+        }
+
+        return [.. creator.CreateMenuItems(primary, selection).Select(CreateHostMenuFlyoutItem)];
     }
 
     //
@@ -98,15 +118,8 @@ internal class PluginContext(IPlugin plugin) : IPluginContext
 
     private IComicEditedHandler? _comicEditedHandlers = null;
 
-    public void RegisterComicEditedHandler(IComicEditedHandler? handler)
+    public void SetComicEditedHandler(IComicEditedHandler? handler)
     {
-        ArgumentNullException.ThrowIfNull(handler);
-
-        if (_comicEditedHandlers is not null)
-        {
-            throw new InvalidOperationException($"Already registered: '{_pluginName}'");
-        }
-
         _comicEditedHandlers = handler;
     }
 

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,6 +12,7 @@ using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.Expression;
+using ComicReader.Common.Plugins;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
@@ -27,12 +29,8 @@ internal static class MenuFlyoutItemsCreator
     public const string CUSTOM_ACTION_NAME_SELECT = "Select";
 
     public static async Task<List<BaseMenuFlyoutItemModel>> CreateComicMenuItems(
-        ComicModel primaryComic,
-        ActionHandler actionHandler,
-        IEnumerable<ComicModel>? selectedComics = null,
-        bool canOpenInCurrentTab = false,
-        bool canEdit = true,
-        bool canSelect = false)
+        ComicModel primaryComic, ActionHandler actionHandler, IEnumerable<ComicModel>? selectedComics = null,
+        bool canOpenInCurrentTab = false, bool canEdit = true, bool canSelect = false)
     {
         // If primaryComic is not in selectedComics, ignore selectedComics and use only primaryComic.
         selectedComics ??= [primaryComic];
@@ -51,11 +49,15 @@ internal static class MenuFlyoutItemsCreator
             primaryComicRoute.WithParam(RouterConstants.ARG_COMIC_ID, primaryComic.Id.ToString());
         }
 
-        List<BaseMenuFlyoutItemModel> result = [];
+        var pluginItems = PluginManager.Instance.GetAllPluginContext()
+            .SelectMany(ctx => ctx.GetComicMenuItems(primaryComic, selectedComics))
+            .ToImmutableList();
+
+        List<BaseMenuFlyoutItemModel> items = [];
 
         if (canOpenInCurrentTab)
         {
-            result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Open)
+            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Open)
             {
                 Glyph = "\uE8B9",
                 Click = () =>
@@ -69,7 +71,7 @@ internal static class MenuFlyoutItemsCreator
             });
         }
 
-        result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.OpenInNewTab)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.OpenInNewTab)
         {
             Glyph = "\uE8A5",
             Click = () =>
@@ -81,21 +83,21 @@ internal static class MenuFlyoutItemsCreator
             },
         });
 
-        result.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.SendToWindow)
+        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.SendToWindow)
         {
             Glyph = "\uE78B",
             Items = CreateSendToWindowMenuItems(primaryComicRoute.Url, actionHandler),
         });
 
-        result.Add(new SeparatorMenuFlyoutItemModel());
+        items.Add(new SeparatorMenuFlyoutItemModel());
 
-        result.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Links)
+        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Links)
         {
             Glyph = "\uE71B",
             Items = await CreateComicLinkMenuItems(primaryComic, actionHandler),
         });
 
-        result.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Tags)
+        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Tags)
         {
             Glyph = "\uE8EC",
             Items = CreateComicTagMenuItems(primaryComic, actionHandler),
@@ -103,12 +105,12 @@ internal static class MenuFlyoutItemsCreator
 
         if (canEdit && !selectedComics.All(i => i.IsExternal))
         {
-            result.Add(new SeparatorMenuFlyoutItemModel());
+            items.Add(new SeparatorMenuFlyoutItemModel());
 
             bool isFavorite = FavoriteModel.Instance.FromId(primaryComic.Id) != null;
             if (isFavorite)
             {
-                result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.RemoveFromFavorites)
+                items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.RemoveFromFavorites)
                 {
                     Glyph = "\uE8D9",
                     Click = () =>
@@ -120,7 +122,7 @@ internal static class MenuFlyoutItemsCreator
             }
             else
             {
-                result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.AddToFavorites)
+                items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.AddToFavorites)
                 {
                     Glyph = "\uE734",
                     Click = () =>
@@ -177,12 +179,12 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
 
-                result.Add(groupItem);
+                items.Add(groupItem);
             }
 
             if (primaryComic.Hidden)
             {
-                result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Unhide)
+                items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Unhide)
                 {
                     Glyph = "\uE7B3",
                     Click = () =>
@@ -196,7 +198,7 @@ internal static class MenuFlyoutItemsCreator
             }
             else
             {
-                result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Hide)
+                items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Hide)
                 {
                     Glyph = "\uED1A",
                     Click = () =>
@@ -209,7 +211,7 @@ internal static class MenuFlyoutItemsCreator
                 });
             }
 
-            result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
+            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
             {
                 Glyph = "\uE70F",
                 Click = () =>
@@ -224,9 +226,9 @@ internal static class MenuFlyoutItemsCreator
             });
         }
 
-        result.Add(new SeparatorMenuFlyoutItemModel());
+        items.Add(new SeparatorMenuFlyoutItemModel());
 
-        result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.OpenInFileExplorer)
+        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.OpenInFileExplorer)
         {
             Glyph = "\uE838",
             Click = () =>
@@ -237,13 +239,19 @@ internal static class MenuFlyoutItemsCreator
             },
         });
 
-        if (canSelect)
+        if (pluginItems.Count > 0)
         {
-            result.Add(new SeparatorMenuFlyoutItemModel());
-            result.Add(CreateSelectMenuItem(actionHandler));
+            items.Add(new SeparatorMenuFlyoutItemModel());
+            items.AddRange(pluginItems);
         }
 
-        return result;
+        if (canSelect)
+        {
+            items.Add(new SeparatorMenuFlyoutItemModel());
+            items.Add(CreateSelectMenuItem(actionHandler));
+        }
+
+        return items;
     }
 
     public static async Task<List<BaseMenuFlyoutItemModel>> CreateTagLinkMenuItems(string tagCategory, string tag, ActionHandler actionHandler)
