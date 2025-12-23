@@ -169,7 +169,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
         if (selectedFilter is null)
         {
-            string? lastFilterName = KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET);
+            string? lastFilterName = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET);
             if (!string.IsNullOrEmpty(lastFilterName))
             {
                 selectedFilter = filters.Find(x => x.Name == lastFilterName);
@@ -178,7 +178,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
         selectedFilter ??= filters[0];
         _selectedFilter = selectedFilter;
-        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET, selectedFilter.Name);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET, selectedFilter.Name);
 
         DropDownButtonModel filterPresetDropdown = new()
         {

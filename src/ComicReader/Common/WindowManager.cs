@@ -132,7 +132,7 @@ class WindowManager
     public void RestoreWindowStatus()
     {
         WindowStatusModel? model = null;
-        string? serialized = KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS);
+        string? serialized = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS);
         if (!string.IsNullOrEmpty(serialized))
         {
             try
@@ -179,7 +179,7 @@ class WindowManager
             });
 
             string serialized = JsonSerializer.Serialize(model);
-            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS, serialized);
+            KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS, serialized);
         });
     }
 

@@ -147,7 +147,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.Initialize(PageActionHandler);
 
-        bool tipShown = KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_TIPS).GetValueOrDefault(KEY_TIP_SHOWN, false);
+        bool tipShown = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).GetValueOrDefault(KEY_TIP_SHOWN, false);
         if (!tipShown)
         {
             ReaderTip.IsOpen = !tipShown;
@@ -687,7 +687,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
     {
-        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(KEY_TIP_SHOWN, true);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(KEY_TIP_SHOWN, true);
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
@@ -967,12 +967,12 @@ internal sealed partial class ReaderPage : BasePage
     {
         public string? ReadConfiguration(string key)
         {
-            return KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).GetValue<string>(key);
+            return KVStore.App.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).GetValue<string>(key);
         }
 
         public void WriteConfiguration(string key, string value)
         {
-            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).Set(key, value);
+            KVStore.App.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).Set(key, value);
         }
     }
 }

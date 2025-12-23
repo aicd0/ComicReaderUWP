@@ -42,7 +42,7 @@ public static class KVStore
     // Predefined Databases
     //
 
-    public static IKVDatabase Default => GetDatabase("lib");
+    public static IKVDatabase App => GetDatabase("app");
     internal static IKVDatabase Sdk => GetDatabase("sdk");
 
     public static IKVDatabase Plugin(string pluginName)

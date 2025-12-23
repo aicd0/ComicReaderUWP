@@ -47,13 +47,13 @@ internal sealed partial class SidePaneView : BaseUserControl
 
     public void RestoreLastStatus()
     {
-        string lastSidePaneItem = KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
+        string lastSidePaneItem = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
         if (!NavigateToItem(lastSidePaneItem))
         {
             NavigateToItem(FAVORITES);
         }
 
-        bool pinned = KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
+        bool pinned = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
         SetPinState(pinned);
     }
 
@@ -101,14 +101,14 @@ internal sealed partial class SidePaneView : BaseUserControl
         NavigationBundle bundle = AppRouter.Process(route)!;
         _handler.TransferAbility(bundle);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
     }
 
     private void PinButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         bool pinned = !Pinned;
         SetPinState(pinned);
-        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
     }
 
     //

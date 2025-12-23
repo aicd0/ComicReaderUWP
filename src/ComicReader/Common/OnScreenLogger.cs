@@ -29,8 +29,8 @@ internal static class OnscreenLogger
         }
 
         _initialize = true;
-        SetLogVisibility(KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, false));
-        SetLogStarted(KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_LOG_STARTED, true));
+        SetLogVisibility(KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, false));
+        SetLogStarted(KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_LOG_STARTED, true));
     }
 
     public static void StartOrPause()
@@ -58,7 +58,7 @@ internal static class OnscreenLogger
         }
 
         _logStarted = started;
-        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_LOG_STARTED, started);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_LOG_STARTED, started);
         _started.Emit(started);
     }
 
@@ -75,7 +75,7 @@ internal static class OnscreenLogger
         }
 
         _logVisible = visible;
-        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, visible);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, visible);
         _visible.Emit(visible);
     }
 }

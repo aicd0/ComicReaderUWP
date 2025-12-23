@@ -228,10 +228,10 @@ internal sealed partial class MainPage : BasePage
 
         MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
-        NavigationPageSidePane.OpenPaneLength = KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<double>(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
+        NavigationPageSidePane.OpenPaneLength = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<double>(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
         RightSidePane.RestoreLastStatus();
 
-        if (_sidePanePinned && KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false))
+        if (_sidePanePinned && KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false))
         {
             SetSidePaneOpenState(true, force: true);
         }
@@ -860,7 +860,7 @@ internal sealed partial class MainPage : BasePage
 
         _sidePaneWidth = newWidth;
         DispatchRightOverlayWidthChangeEvent();
-        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
     }
 
     private void SetSidePaneOpenState(bool open, bool force)
@@ -900,7 +900,7 @@ internal sealed partial class MainPage : BasePage
 
         if (!initialSync)
         {
-            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
+            KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
         }
     }
 
