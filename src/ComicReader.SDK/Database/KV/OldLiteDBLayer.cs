@@ -48,11 +48,15 @@ internal partial class OldLiteDBLayer(string prefix) : IDatabaseLayer
 
     private partial class KVCollection(string fileName) : IKVCollection, IDisposable
     {
-        private readonly Lazy<LiteDatabase> _db = new(() =>
+        private readonly Lazy<LiteDatabase?> _db = new(() =>
         {
             string databaseFolder = Path.Combine(StorageLocation.LocalFolderPath, "database_kv");
             string databasePath = Path.Combine(databaseFolder, fileName);
-            Directory.CreateDirectory(databaseFolder);
+            if (!File.Exists(databasePath))
+            {
+                return null;
+            }
+
             return new LiteDatabase(databasePath);
         });
 
@@ -60,13 +64,20 @@ internal partial class OldLiteDBLayer(string prefix) : IDatabaseLayer
         {
             if (_db.IsValueCreated)
             {
-                _db.Value.Dispose();
+                _db.Value?.Dispose();
             }
         }
 
         public bool TryGet<T>(string key, [NotNullWhen(true)] out T? value)
         {
-            ILiteCollection<KVPair> col = _db.Value.GetCollection<KVPair>(DEFAULT_COLLECTION);
+            LiteDatabase? db = _db.Value;
+            if (db is null)
+            {
+                value = default;
+                return false;
+            }
+
+            ILiteCollection<KVPair> col = db.GetCollection<KVPair>(DEFAULT_COLLECTION);
             KVPair pair = col.FindById(key);
             if (pair is null)
             {
@@ -126,9 +137,15 @@ internal partial class OldLiteDBLayer(string prefix) : IDatabaseLayer
 
         public void Set<T>(string key, T? value)
         {
+            LiteDatabase? db = _db.Value;
+            if (db is null)
+            {
+                return;
+            }
+
             if (value is null)
             {
-                _db.Value.GetCollection<KVPair>(DEFAULT_COLLECTION).Delete(key);
+                db.GetCollection<KVPair>(DEFAULT_COLLECTION).Delete(key);
                 return;
             }
 
