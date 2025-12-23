@@ -8,7 +8,7 @@ using System.Text;
 using ComicReader.Common.Expression;
 using ComicReader.Common.Expression.Filter.Sql;
 using ComicReader.Data.Tables;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 
 namespace ComicReader.Helpers.Search;
 

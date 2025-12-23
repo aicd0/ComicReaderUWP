@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 using ComicReader.Common.Expression.Filter.Parser;
 using ComicReader.Common.Expression.Filter.Tokens;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 
 namespace ComicReader.Common.Expression.Filter.Sql;
 

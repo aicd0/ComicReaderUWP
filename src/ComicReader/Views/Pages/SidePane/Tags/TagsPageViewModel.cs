@@ -19,7 +19,7 @@ using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Pages.SidePane.Tags;

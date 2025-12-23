@@ -5,7 +5,7 @@
 
 using System.Text;
 
-namespace ComicReader.SDK.Data.SqlHelpers;
+namespace ComicReader.SDK.Database.SqlHelpers;
 
 public class UpdateCommand
 {

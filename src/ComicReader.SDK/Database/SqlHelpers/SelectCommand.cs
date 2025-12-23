@@ -5,7 +5,7 @@ using System.Text;
 
 using Microsoft.Data.Sqlite;
 
-namespace ComicReader.SDK.Data.SqlHelpers;
+namespace ComicReader.SDK.Database.SqlHelpers;
 
 public partial class SelectCommand
 {

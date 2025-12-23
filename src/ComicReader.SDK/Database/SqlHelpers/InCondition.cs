@@ -4,7 +4,7 @@
 using System.Collections;
 using System.Text;
 
-namespace ComicReader.SDK.Data.SqlHelpers;
+namespace ComicReader.SDK.Database.SqlHelpers;
 
 public class InCondition : ICondition
 {

@@ -4,7 +4,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using ComicReader.SDK.Data;
+using ComicReader.SDK.Database;
 
 namespace ComicReader.SDK.Common.DebugTools;
 

@@ -3,7 +3,7 @@
 
 using Microsoft.Data.Sqlite;
 
-namespace ComicReader.SDK.Data.SqlHelpers;
+namespace ComicReader.SDK.Database.SqlHelpers;
 
 public sealed class SqlDatabase : IDisposable
 {

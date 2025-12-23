@@ -8,7 +8,7 @@ using ComicReader.SDK.Common.Storage;
 using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
 
-namespace ComicReader.SDK.Data;
+namespace ComicReader.SDK.Database;
 
 internal class SimpleConfigDatabase
 {

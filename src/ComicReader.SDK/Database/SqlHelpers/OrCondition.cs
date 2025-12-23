@@ -3,13 +3,13 @@
 
 using System.Text;
 
-namespace ComicReader.SDK.Data.SqlHelpers;
+namespace ComicReader.SDK.Database.SqlHelpers;
 
-public class AndCondition : ICondition
+public class OrCondition : ICondition
 {
     private readonly List<ICondition> _conditions;
 
-    public AndCondition(IEnumerable<ICondition> conditions)
+    public OrCondition(IEnumerable<ICondition> conditions)
     {
         _conditions = [.. conditions];
     }
@@ -18,12 +18,7 @@ public class AndCondition : ICondition
     {
         if (_conditions.Count == 0)
         {
-            return "TRUE";
-        }
-
-        if (_conditions.Count == 1)
-        {
-            return _conditions[0].GetExpression(command);
+            return "FALSE";
         }
 
         StringBuilder sb = new();
@@ -31,11 +26,10 @@ public class AndCondition : ICondition
         {
             if (i > 0)
             {
-                sb.Append(" AND ");
+                sb.Append(" OR ");
             }
             sb.Append('(').Append(_conditions[i].GetExpression(command)).Append(')');
         }
-
         return sb.ToString();
     }
 }

@@ -9,7 +9,7 @@ using ComicReader.Common;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.Utils;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Dialogs.EditTagCategory;

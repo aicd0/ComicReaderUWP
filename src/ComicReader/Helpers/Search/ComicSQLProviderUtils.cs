@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReader.Data.Tables;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 
 namespace ComicReader.Helpers.Search;
 
