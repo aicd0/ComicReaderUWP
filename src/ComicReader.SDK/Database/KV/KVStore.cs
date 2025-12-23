@@ -21,14 +21,15 @@ public static class KVStore
         sDatabases.Clear();
     }
 
-    internal static IKVDatabase GetDatabase(string name)
+    internal static IKVDatabase GetDatabase(string name, string? legacyName = null)
     {
         if (sDatabases.TryGetValue(name, out IDatabaseLayer? database))
         {
             return database;
         }
 
-        database = new CacheLayer(new LiteDBLayer(name, fallbackLayer: new OldLiteDBLayer(name)));
+        legacyName ??= name;
+        database = new CacheLayer(new LiteDBLayer(name, fallbackLayer: new OldLiteDBLayer(legacyName)));
         if (sDatabases.TryAdd(name, database))
         {
             return database;
@@ -42,7 +43,7 @@ public static class KVStore
     // Predefined Databases
     //
 
-    public static IKVDatabase App => GetDatabase("app");
+    public static IKVDatabase App => GetDatabase("app", legacyName: "lib");
     internal static IKVDatabase Sdk => GetDatabase("sdk");
 
     public static IKVDatabase Plugin(string pluginName)
