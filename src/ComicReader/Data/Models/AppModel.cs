@@ -2,7 +2,8 @@
 // Licensed under the MIT License.
 
 using ComicReader.Common.Constants;
-using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 
 namespace ComicReader.Data.Models;
 
@@ -12,11 +13,11 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
+            return KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
         }
         set
         {
-            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, value);
+            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, value);
         }
     }
 
@@ -24,11 +25,11 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
+            return KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
         }
         set
         {
-            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, value);
+            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, value);
         }
     }
 
@@ -36,11 +37,11 @@ static class AppModel
     {
         get
         {
-            return (int)KVDatabase.Default.GetLong(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
+            return (int)KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<long>(DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
         }
         set
         {
-            KVDatabase.Default.SetLong(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, value);
+            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set<long>(DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, value);
         }
     }
 
@@ -48,11 +49,11 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
+            return KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
         }
         set
         {
-            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, value);
+            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, value);
         }
     }
 
@@ -60,11 +61,11 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
+            return KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
         }
         set
         {
-            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, value);
+            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, value);
         }
     }
 
@@ -72,11 +73,11 @@ static class AppModel
     {
         get
         {
-            return KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, true);
+            return KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, true);
         }
         set
         {
-            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, value);
+            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, value);
         }
     }
 }

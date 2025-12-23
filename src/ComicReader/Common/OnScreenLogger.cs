@@ -3,8 +3,9 @@
 
 using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 
 namespace ComicReader.Common;
 
@@ -28,8 +29,8 @@ internal static class OnscreenLogger
         }
 
         _initialize = true;
-        SetLogVisibility(KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, false));
-        SetLogStarted(KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_STARTED, true));
+        SetLogVisibility(KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, false));
+        SetLogStarted(KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_LOG_STARTED, true));
     }
 
     public static void StartOrPause()
@@ -57,7 +58,7 @@ internal static class OnscreenLogger
         }
 
         _logStarted = started;
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_STARTED, started);
+        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_LOG_STARTED, started);
         _started.Emit(started);
     }
 
@@ -74,7 +75,7 @@ internal static class OnscreenLogger
         }
 
         _logVisible = visible;
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, visible);
+        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, visible);
         _visible.Emit(visible);
     }
 }

@@ -17,8 +17,8 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 using ComicReader.ViewModels;
 using ComicReader.Views.AppWindows.Main;
 using ComicReader.Views.Dialogs.EditComicInfo;
@@ -147,7 +147,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.Initialize(PageActionHandler);
 
-        bool tipShown = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_TIPS, KEY_TIP_SHOWN, false);
+        bool tipShown = KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_TIPS).GetValueOrDefault(KEY_TIP_SHOWN, false);
         if (!tipShown)
         {
             ReaderTip.IsOpen = !tipShown;
@@ -687,7 +687,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
     {
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_TIPS, KEY_TIP_SHOWN, true);
+        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(KEY_TIP_SHOWN, true);
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
@@ -967,12 +967,12 @@ internal sealed partial class ReaderPage : BasePage
     {
         public string? ReadConfiguration(string key)
         {
-            return KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_READER_STATE, key);
+            return KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).GetValue<string>(key);
         }
 
         public void WriteConfiguration(string key, string value)
         {
-            KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_READER_STATE, key, value);
+            KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).Set(key, value);
         }
     }
 }

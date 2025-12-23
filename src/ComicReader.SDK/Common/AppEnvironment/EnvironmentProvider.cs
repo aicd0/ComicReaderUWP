@@ -10,9 +10,9 @@ using System.Text;
 
 using ComicReader.SDK.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 using ComicReader.SDK.Plugins;
 
 using Windows.ApplicationModel;
@@ -132,7 +132,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        deviceId = KVDatabase.Sdk.With(DatabaseEntry.KV_LIB_MAIN).GetString(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID);
+        deviceId = KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID);
         if (!string.IsNullOrEmpty(deviceId))
         {
             _deviceId = deviceId;
@@ -156,7 +156,7 @@ public class EnvironmentProvider
             }
 
             _deviceId = deviceId;
-            KVDatabase.Sdk.With(DatabaseEntry.KV_LIB_MAIN).SetString(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID, deviceId);
+            KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID, deviceId);
         }
 
         return deviceId;

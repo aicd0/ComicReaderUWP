@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Database.KV;
 using ComicReader.SDK.Plugins.Comic;
 using ComicReader.SDK.Plugins.Common;
 
@@ -9,7 +9,7 @@ namespace ComicReader.SDK.Plugins;
 
 public interface IPluginContext
 {
-    KVDatabaseMethod GetKVDatabase();
+    IKVDatabase GetKVDatabase();
 
     Task<IComicModel?> GetComicById(long id);
 

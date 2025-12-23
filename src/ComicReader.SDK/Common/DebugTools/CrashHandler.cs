@@ -4,9 +4,10 @@
 using System.Text;
 
 using ComicReader.SDK.Common.Constants;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Storage;
+using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 
 namespace ComicReader.SDK.Common.DebugTools;
 
@@ -47,7 +48,7 @@ internal static class CrashHandler
             using StreamWriter writer = new(filePath, true, Encoding.UTF8);
             writer.Write(crashReport);
             Logger.Flush();
-            KVDatabase.Sdk.SetString(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT, crashReport);
+            KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT, crashReport);
         }
         catch (Exception ex)
         {
@@ -67,13 +68,13 @@ internal static class CrashHandler
 
     public static void ReportLastCrash()
     {
-        string? crashReport = KVDatabase.Sdk.With(DatabaseEntry.KV_LIB_MAIN).GetString(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT);
+        string? crashReport = KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT);
         if (string.IsNullOrEmpty(crashReport))
         {
             return;
         }
 
-        KVDatabase.Sdk.With(DatabaseEntry.KV_LIB_MAIN).SetString(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT, string.Empty);
+        KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT, string.Empty);
         ServiceManager.GetService<IDebugService>().OnCrashReport(crashReport);
     }
 

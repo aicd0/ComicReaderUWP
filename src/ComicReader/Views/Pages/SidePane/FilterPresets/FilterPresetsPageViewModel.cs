@@ -18,10 +18,10 @@ using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Algorithm;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Pages.SidePane.FilterPresets;
@@ -169,7 +169,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
         if (selectedFilter is null)
         {
-            string? lastFilterName = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET);
+            string? lastFilterName = KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET);
             if (!string.IsNullOrEmpty(lastFilterName))
             {
                 selectedFilter = filters.Find(x => x.Name == lastFilterName);
@@ -178,7 +178,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
         selectedFilter ??= filters[0];
         _selectedFilter = selectedFilter;
-        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET, selectedFilter.Name);
+        KVStore.Default.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_FILTER_PRESET, selectedFilter.Name);
 
         DropDownButtonModel filterPresetDropdown = new()
         {

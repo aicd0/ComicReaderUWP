@@ -5,8 +5,9 @@ using System.Security.Cryptography;
 
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.Constants;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.ServiceManagement;
+using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 
 namespace ComicReader.SDK.Common.DebugTools;
 
@@ -30,7 +31,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
         {
             if (!_unlockedDeveloperMode.HasValue)
             {
-                string? token = KVDatabase.Sdk.GetString(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN);
+                string? token = KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN);
                 bool tokenValid = token != null && ParseCommand(token) != null;
                 _unlockedDeveloperMode = tokenValid;
             }
@@ -49,7 +50,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
 
         // Enable developer mode
         _unlockedDeveloperMode = true;
-        KVDatabase.Sdk.SetString(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
+        KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
         DebugUtils.DeveloperMode = true;
 
         return ProcessCommand(parsedCommand);

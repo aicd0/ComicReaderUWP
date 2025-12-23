@@ -1,36 +1,22 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Text;
-
 using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.Database.KV;
 
 namespace ComicReader.SDK.Common.Utils;
 
 public static class Extensions
 {
+    //
+    // Lifecycle
+    //
+
     private static readonly ObserveOptions sObserveOptionDefault = new();
     private static readonly ObserveOptions sObserveOptionSticky = new()
     {
         StickyOnObserve = true,
     };
-
-    public static void SafeAppend(this StringBuilder sb, string category, Func<object?> func)
-    {
-        string value;
-        try
-        {
-            value = func()?.ToString() ?? "[null]";
-        }
-        catch (Exception)
-        {
-            return;
-        }
-        sb.Append(category);
-        sb.Append(": ");
-        sb.Append(value);
-        sb.Append('\n');
-    }
 
     public static bool IsStarted(this ILifecycle.State state)
     {
@@ -57,5 +43,29 @@ public static class Extensions
         {
             _action(value);
         }
+    }
+
+    //
+    // KV
+    //
+
+    public static T? GetValue<T>(this IKVCollection collection, string key)
+    {
+        if (collection.TryGet(key, out T? value))
+        {
+            return value;
+        }
+
+        return default;
+    }
+
+    public static T GetValueOrDefault<T>(this IKVCollection collection, string key, T defaultValue)
+    {
+        if (collection.TryGet(key, out T? value) && value is not null)
+        {
+            return value;
+        }
+
+        return defaultValue;
     }
 }

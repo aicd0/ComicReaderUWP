@@ -12,8 +12,8 @@ using ComicReader.Data.Tables;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.KV;
 using ComicReader.SDK.Plugins;
 using ComicReader.SDK.Plugins.Comic;
 using ComicReader.SDK.Plugins.Common;
@@ -33,9 +33,9 @@ internal class PluginContext(IPlugin plugin) : IPluginContext
     // Database API
     //
 
-    public KVDatabaseMethod GetKVDatabase()
+    public IKVDatabase GetKVDatabase()
     {
-        return KVDatabase.Plugin(_pluginName);
+        return KVStore.Plugin(_pluginName);
     }
 
     //
