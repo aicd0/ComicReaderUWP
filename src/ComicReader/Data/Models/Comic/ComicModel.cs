@@ -13,7 +13,7 @@ using ComicReader.Common;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 using ComicReader.SDK.Plugins.Comic;
 
 using Windows.Storage;

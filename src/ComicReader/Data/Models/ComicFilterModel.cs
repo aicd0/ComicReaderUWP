@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 using ComicReader.Common;
-using ComicReader.SDK.Data;
+using ComicReader.SDK.Database;
 
 namespace ComicReader.Data.Models;
 

@@ -11,9 +11,9 @@ using ComicReader.Common.Constants;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
-using ComicReader.SDK.Common.KVStorage;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI;
@@ -228,10 +228,10 @@ internal sealed partial class MainPage : BasePage
 
         MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
-        NavigationPageSidePane.OpenPaneLength = KVDatabase.Default.GetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
+        NavigationPageSidePane.OpenPaneLength = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<double>(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
         RightSidePane.RestoreLastStatus();
 
-        if (_sidePanePinned && KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false))
+        if (_sidePanePinned && KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false))
         {
             SetSidePaneOpenState(true, force: true);
         }
@@ -860,7 +860,7 @@ internal sealed partial class MainPage : BasePage
 
         _sidePaneWidth = newWidth;
         DispatchRightOverlayWidthChangeEvent();
-        KVDatabase.Default.SetDouble(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
     }
 
     private void SetSidePaneOpenState(bool open, bool force)
@@ -900,7 +900,7 @@ internal sealed partial class MainPage : BasePage
 
         if (!initialSync)
         {
-            KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
+            KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
         }
     }
 

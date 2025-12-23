@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 
 namespace ComicReader.Common.Expression.Filter.Sql;
 

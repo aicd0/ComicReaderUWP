@@ -8,7 +8,7 @@ Comic Reader UWP irregularly ships with new features and bug fixes. You can get 
 ## Getting started
 Prerequisites:
 - Your computer must be running Windows 10, version 22H2 or newer. Windows 11 is recommended.
-- Install the latest version of [Visual Studio](https://developer.microsoft.com/en-us/windows/downloads) (the free community edition is sufficient).
+- Install the latest version of [Visual Studio](https://visualstudio.microsoft.com/downloads/) (the free community edition is sufficient).
   - Install the ".NET desktop development" and "WinUI application development" workloads.
   - Install the latest Windows 11 SDK.
 - Install the [XAML Styler](https://marketplace.visualstudio.com/items?itemName=TeamXavalon.XAMLStyler2022) Visual Studio extension.

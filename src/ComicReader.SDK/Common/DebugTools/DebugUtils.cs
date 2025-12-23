@@ -2,7 +2,8 @@
 // Licensed under the MIT License.
 
 using ComicReader.SDK.Common.Constants;
-using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 
 namespace ComicReader.SDK.Common.DebugTools;
 
@@ -23,7 +24,7 @@ public static class DebugUtils
         {
             if (!_debugMode.HasValue)
             {
-                _debugMode = KVDatabase.Sdk.GetBoolean(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEBUG_MODE, DebugBuild);
+                _debugMode = KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValueOrDefault(DatabaseEntry.KV_KEY_MAIN_DEBUG_MODE, DebugBuild);
             }
 
             return _debugMode.Value;
@@ -36,7 +37,7 @@ public static class DebugUtils
             }
 
             _debugMode = value;
-            KVDatabase.Sdk.SetBoolean(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEBUG_MODE, value);
+            KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEBUG_MODE, value);
         }
     }
 
@@ -51,7 +52,7 @@ public static class DebugUtils
         {
             if (!_developerMode.HasValue)
             {
-                _developerMode = UnlockedDeveloperMode && KVDatabase.Sdk.GetBoolean(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE, true);
+                _developerMode = UnlockedDeveloperMode && KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValueOrDefault(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE, true);
             }
 
             return _developerMode.Value;
@@ -64,7 +65,7 @@ public static class DebugUtils
             }
 
             _developerMode = value;
-            KVDatabase.Sdk.SetBoolean(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE, value);
+            KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE, value);
         }
     }
 
@@ -75,7 +76,7 @@ public static class DebugUtils
         {
             if (!_sentryEnabled.HasValue)
             {
-                _sentryEnabled = !UnlockedDeveloperMode || KVDatabase.Sdk.GetBoolean(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_SENTRY_ENABLED, true);
+                _sentryEnabled = !UnlockedDeveloperMode || KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValueOrDefault(DatabaseEntry.KV_KEY_MAIN_SENTRY_ENABLED, true);
             }
 
             return _sentryEnabled.Value;
@@ -88,7 +89,7 @@ public static class DebugUtils
             }
 
             _sentryEnabled = value;
-            KVDatabase.Sdk.SetBoolean(DatabaseEntry.KV_LIB_MAIN, DatabaseEntry.KV_KEY_MAIN_SENTRY_ENABLED, value);
+            KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_SENTRY_ENABLED, value);
         }
     }
 

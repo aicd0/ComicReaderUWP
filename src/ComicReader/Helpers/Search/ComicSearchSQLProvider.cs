@@ -4,7 +4,7 @@
 using ComicReader.Common.Expression;
 using ComicReader.Common.Expression.Search.Sql;
 using ComicReader.Data.Tables;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 
 namespace ComicReader.Helpers.Search;
 

@@ -21,7 +21,7 @@ using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 
 using Windows.Globalization;
 

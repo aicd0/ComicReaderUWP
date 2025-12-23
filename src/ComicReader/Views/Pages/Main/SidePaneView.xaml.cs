@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Helpers.Navigation;
-using ComicReader.SDK.Common.KVStorage;
+using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Database.KV;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -46,13 +47,13 @@ internal sealed partial class SidePaneView : BaseUserControl
 
     public void RestoreLastStatus()
     {
-        string lastSidePaneItem = KVDatabase.Default.GetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
+        string lastSidePaneItem = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
         if (!NavigateToItem(lastSidePaneItem))
         {
             NavigateToItem(FAVORITES);
         }
 
-        bool pinned = KVDatabase.Default.GetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
+        bool pinned = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
         SetPinState(pinned);
     }
 
@@ -100,14 +101,14 @@ internal sealed partial class SidePaneView : BaseUserControl
         NavigationBundle bundle = AppRouter.Process(route)!;
         _handler.TransferAbility(bundle);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-        KVDatabase.Default.SetString(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
     }
 
     private void PinButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         bool pinned = !Pinned;
         SetPinState(pinned);
-        KVDatabase.Default.SetBoolean(DatabaseEntry.KV_LIB_APP, DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
     }
 
     //

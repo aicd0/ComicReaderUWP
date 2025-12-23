@@ -16,7 +16,7 @@ using ComicReader.Data.Tables;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
-using ComicReader.SDK.Data.SqlHelpers;
+using ComicReader.SDK.Database.SqlHelpers;
 using ComicReader.ViewModels;
 
 namespace ComicReader.Views.Dialogs.EditFilter;
