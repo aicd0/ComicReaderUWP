@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.DataModels;
 
 namespace ComicReader.Common.Actions.Providers;
 
@@ -28,7 +29,7 @@ internal class MessageDialogProvider : IActionProvider
 
         string title = parameters[PARAM_TITLE] ?? "Untitled";
         string message = parameters[PARAM_MESSAGE] ?? "(no message provided)";
-        DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+        DialogOptions options = new DialogOptions.Builder()
             .SetTitle(title)
             .SetContent(message)
             .Build();
