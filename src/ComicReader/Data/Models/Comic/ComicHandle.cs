@@ -26,13 +26,13 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Data.Models.Comic;
 
-internal abstract class ComicData
+internal abstract class ComicHandle
 {
     //
     // Constants
     //
 
-    private const string TAG = nameof(ComicData);
+    private const string TAG = nameof(ComicHandle);
     private const int COVER_INDEX = 0;
 
     //
@@ -59,7 +59,7 @@ internal abstract class ComicData
         return await taskResult.Task;
     }
 
-    public static async Task<ComicData?> FromId(long id, string taskName)
+    public static async Task<ComicHandle?> FromId(long id, string taskName)
     {
         return await Enqueue(taskName, delegate
         {
@@ -67,7 +67,7 @@ internal abstract class ComicData
         });
     }
 
-    public static async Task<ComicData?> FromLocation(string location, string taskName)
+    public static async Task<ComicHandle?> FromLocation(string location, string taskName)
     {
         return await Enqueue(taskName, delegate
         {
@@ -75,7 +75,7 @@ internal abstract class ComicData
         });
     }
 
-    public static async Task<List<ComicData>> BatchFromId(IEnumerable<long> ids, string taskName)
+    public static async Task<List<ComicHandle>> BatchFromId(IEnumerable<long> ids, string taskName)
     {
         return await Enqueue(taskName, delegate
         {
@@ -83,17 +83,18 @@ internal abstract class ComicData
         });
     }
 
-    private static ComicData? FromIdNoLock(long id)
+    private static ComicHandle? FromIdNoLock(long id)
     {
-        List<ComicData> result = BatchFromIdNoLock([id]);
+        List<ComicHandle> result = BatchFromIdNoLock([id]);
         if (result.Count == 0)
         {
             return null;
         }
+
         return result[0];
     }
 
-    private static List<ComicData> BatchFromIdNoLock(IEnumerable<long> ids)
+    private static List<ComicHandle> BatchFromIdNoLock(IEnumerable<long> ids)
     {
         {
             bool isEmpty = true;
@@ -108,7 +109,7 @@ internal abstract class ComicData
             }
         }
 
-        Dictionary<long, ComicData> comics = new(ids.Count());
+        Dictionary<long, ComicHandle> comics = new(ids.Count());
         foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
         {
             SelectCommand command = SelectCommand.Create(ComicTable.Instance)
@@ -148,7 +149,7 @@ internal abstract class ComicData
                 int pageCount = pageCountToken.GetValue();
                 string extJson = extToken.GetValue();
 
-                ComicData? comic = FromDatabase(type, location);
+                ComicHandle? comic = FromDatabase(type, location);
                 if (comic == null)
                 {
                     continue;
@@ -242,7 +243,7 @@ internal abstract class ComicData
             Dictionary<long, List<TagData>> comicTags = [];
             foreach (TagTempData tagCategory in tagCategories.Values)
             {
-                if (comics.TryGetValue(tagCategory.ComicId, out ComicData? comic))
+                if (comics.TryGetValue(tagCategory.ComicId, out ComicHandle? comic))
                 {
                     TagData tagData = new(tagCategory.Name, tagCategory.Tags);
                     if (!comicTags.TryGetValue(tagCategory.ComicId, out List<TagData>? tags))
@@ -255,7 +256,7 @@ internal abstract class ComicData
             }
             foreach (KeyValuePair<long, List<TagData>> pair in comicTags)
             {
-                if (comics.TryGetValue(pair.Key, out ComicData? comic))
+                if (comics.TryGetValue(pair.Key, out ComicHandle? comic))
                 {
                     comic.Tags = pair.Value;
                 }
@@ -265,7 +266,7 @@ internal abstract class ComicData
         return [.. comics.Values];
     }
 
-    private static ComicData? FromLocationNoLock(string location)
+    private static ComicHandle? FromLocationNoLock(string location)
     {
         SelectCommand command = SelectCommand.Create(ComicTable.Instance)
             .AppendCondition(ComicTable.ColumnLocation, location)
@@ -282,16 +283,16 @@ internal abstract class ComicData
         return FromIdNoLock(comicId);
     }
 
-    private static ComicData? FromDatabase(ComicType type, string location)
+    private static ComicHandle? FromDatabase(ComicType type, string location)
     {
         switch (type)
         {
             case ComicType.Folder:
-                return ComicFolderData.FromDatabase(location);
+                return FolderComicHandle.FromDatabase(location);
             case ComicType.Archive:
-                return ComicArchiveData.FromDatabase(location);
+                return ArchiveComicHandle.FromDatabase(location);
             case ComicType.PDF:
-                return ComicPdfData.FromDatabase(location);
+                return PdfComicHandle.FromDatabase(location);
             default:
                 Logger.AssertNotReachHere("419CBCB3E803A525");
                 return null;
@@ -313,7 +314,6 @@ internal abstract class ComicData
     //
 
     private readonly ConcurrentDictionary<string, string> _ext = [];
-    private bool _imageUpdated = false;
 
     //
     // Properties
@@ -370,7 +370,7 @@ internal abstract class ComicData
     // Constructor
     //
 
-    protected ComicData(ComicType type, bool is_external)
+    protected ComicHandle(ComicType type, bool is_external)
     {
         Id = -1;
         Type = type;
@@ -578,17 +578,10 @@ internal abstract class ComicData
             return null;
         }
 
+        bool connectionValid;
         try
         {
-            int pageCount = connection.GetImageCount();
-            if (pageCount > 0)
-            {
-                await SetPageCount(pageCount);
-            }
-            else
-            {
-                Logger.F(TAG, "OpenComicAsync: Comic has zero images.");
-            }
+            connectionValid = await InitializeConnection(connection);
         }
         catch
         {
@@ -596,7 +589,34 @@ internal abstract class ComicData
             throw;
         }
 
+        if (!connectionValid)
+        {
+            connection.Dispose();
+            return null;
+        }
+
         return new ComicConnectionWrapper(connection);
+    }
+
+    private async Task<bool> InitializeConnection(IComicConnection connection)
+    {
+        int pageCount = connection.GetImageCount();
+        if (pageCount <= 0)
+        {
+            Logger.F(TAG, "OpenComicAsync: Comic has zero images");
+            return false;
+        }
+
+        await SetPageCount(pageCount);
+
+        // Refresh cover cache key
+        string newCoverCacheKey = connection.GetImageCacheKey(COVER_INDEX);
+        if (!string.IsNullOrEmpty(newCoverCacheKey) && CoverCacheKey != newCoverCacheKey)
+        {
+            SetCoverCacheKey(newCoverCacheKey);
+        }
+
+        return true;
     }
 
     //
@@ -647,9 +667,9 @@ internal abstract class ComicData
         ];
     });
 
-    private static readonly Lazy<IReadOnlyDictionary<string, Func<ComicData, object>>> _columnValueEvaluator = new(() =>
+    private static readonly Lazy<IReadOnlyDictionary<string, Func<ComicHandle, object>>> _columnValueEvaluator = new(() =>
     {
-        Dictionary<string, Func<ComicData, object>> evaluators = [];
+        Dictionary<string, Func<ComicHandle, object>> evaluators = [];
         evaluators[ComicTable.ColumnId.Name] = i => TypeAssert.AssertLong(i.Id);
         evaluators[ComicTable.ColumnType.Name] = i => TypeAssert.AssertLong((long)i.Type);
         evaluators[ComicTable.ColumnLocation.Name] = i => TypeAssert.AssertString(i.Location);
@@ -670,7 +690,7 @@ internal abstract class ComicData
 
     private object GetColumnValue(IColumnTypeless column)
     {
-        Func<ComicData, object> evaluator = _columnValueEvaluator.Value[column.Name];
+        Func<ComicHandle, object> evaluator = _columnValueEvaluator.Value[column.Name];
         return evaluator(this);
     }
 
@@ -819,52 +839,7 @@ internal abstract class ComicData
         Tags = [defaultTag];
     }
 
-    public async Task<bool> LoadImageFiles()
-    {
-        if (_imageUpdated)
-        {
-            return true;
-        }
-
-        if (!await ReloadImages())
-        {
-            return false;
-        }
-
-        _imageUpdated = true;
-
-        using IComicConnection? connection = await OpenComicAsync();
-        if (connection == null)
-        {
-            return false;
-        }
-
-        if (connection.GetImageCount() == 0)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    public async Task<bool> ReloadImageFiles()
-    {
-        _imageUpdated = false;
-        bool success = await LoadImageFiles();
-        if (success)
-        {
-            // Refresh cover cache key
-            string newCoverCacheKey = GetImageCacheKey(COVER_INDEX);
-            if (!string.IsNullOrEmpty(newCoverCacheKey) && CoverCacheKey != newCoverCacheKey)
-            {
-                SetCoverCacheKey(newCoverCacheKey);
-            }
-        }
-
-        return success;
-    }
-
-    public string GetCoverImageCacheKey()
+    public async Task<string> GetCoverImageCacheKey()
     {
         string coverCacheKey = CoverCacheKey;
         if (!string.IsNullOrEmpty(coverCacheKey))
@@ -872,12 +847,13 @@ internal abstract class ComicData
             return coverCacheKey;
         }
 
-        if (!LoadImageFiles().Result)
+        using IComicConnection? connection = await OpenComicAsync();
+        if (connection is null || connection.GetImageCount() == 0)
         {
             return string.Empty;
         }
 
-        coverCacheKey = GetImageCacheKey(COVER_INDEX);
+        coverCacheKey = connection.GetImageCacheKey(COVER_INDEX);
         SetCoverCacheKey(coverCacheKey);
         return coverCacheKey;
     }
@@ -906,12 +882,6 @@ internal abstract class ComicData
             }
         });
     }
-
-    public abstract string GetImageCacheKey(int index);
-
-    public abstract int GetImageSignature(int index);
-
-    protected abstract Task<bool> ReloadImages();
 
     private void InternalSaveTagsNoLock(bool removeOld = true)
     {
@@ -1097,7 +1067,7 @@ internal abstract class ComicData
                     {
                         foreach (UpdateItemInfo info in queue)
                         {
-                            ComicData? comic = FromDatabase(info.ItemType, info.Location);
+                            ComicHandle? comic = FromDatabase(info.ItemType, info.Location);
                             if (comic is null)
                             {
                                 continue;

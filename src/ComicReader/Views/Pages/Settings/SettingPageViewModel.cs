@@ -369,7 +369,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             });
         });
 
-        ComicData.IsScanningLibrary.ObserveSticky(owner, (bool isScanning) =>
+        ComicHandle.IsScanningLibrary.ObserveSticky(owner, (bool isScanning) =>
         {
             IsRescanning = isScanning;
         });
@@ -692,7 +692,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         long unreadComicCount = 0;
         long readingComicCount = 0;
         long finishedComicCount = 0;
-        ComicData.Enqueue("SettingPage#UpdateStatistis", () =>
+        ComicHandle.Enqueue("SettingPage#UpdateStatistis", () =>
         {
             comicCount = QueryComicCount();
             unreadComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.NotStarted));

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common;
-using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.DebugTools;
@@ -17,45 +16,42 @@ using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.SqlHelpers;
 
 using Windows.Storage;
-using Windows.Storage.Search;
 using Windows.Storage.Streams;
 
 namespace ComicReader.Data.Models.Comic;
 
-internal partial class ComicFolderData : ComicData
+internal partial class FolderComicHandle : ComicHandle
 {
-    private const string TAG = nameof(ComicFolderData);
+    private const string TAG = nameof(FolderComicHandle);
 
-    private StorageFolder? _folder;
-    private List<StorageFile> _imageFiles = [];
+    public static ComicHandle FromDatabase(string location)
+    {
+        return new FolderComicHandle(location, false);
+    }
+
+    public static ComicHandle? FromExternal(string directory, List<StorageFile> imageFiles)
+    {
+        if (imageFiles.Count == 0)
+        {
+            return null;
+        }
+
+        return new FolderComicHandle(directory, true)
+        {
+            _imageFiles = [.. imageFiles
+                .OrderBy(x => StringUtils.SmartFileNameKeySelector(x.DisplayName), StringUtils.SmartFileNameComparer)
+                .Select(x => x.Path)],
+            Title1 = Path.GetFileName(directory),
+        };
+    }
 
     public override bool IsEditable => !IsExternal;
 
-    private ComicFolderData(string location, bool external) : base(ComicType.Folder, external)
+    private List<string> _imageFiles = [];
+
+    private FolderComicHandle(string location, bool external) : base(ComicType.Folder, external)
     {
         Location = location;
-    }
-
-    public override string GetImageCacheKey(int index)
-    {
-        if (index < 0 || index >= _imageFiles.Count)
-        {
-            Logger.F(TAG, "GetImageCacheKey");
-            return string.Empty;
-        }
-
-        return _imageFiles[index].Path;
-    }
-
-    public override int GetImageSignature(int index)
-    {
-        if (index < 0 || index >= _imageFiles.Count)
-        {
-            Logger.F(TAG, "GetImageSignature");
-            return 0;
-        }
-
-        return FileUtils.GetFileHashCode(_imageFiles[index]);
     }
 
     protected override Task<bool> MoveToLocationInternal(string newLocation)
@@ -144,90 +140,34 @@ internal partial class ComicFolderData : ComicData
 
     protected override async Task<IComicConnection?> OpenComicConnection()
     {
-        await LoadImageFiles();
+        if (!await ReloadImages())
+        {
+            return null;
+        }
+
         return new FolderComicConnection(_imageFiles);
     }
 
-    protected override async Task<bool> ReloadImages()
+    private async Task<bool> ReloadImages()
     {
         if (IsExternal)
         {
-            return true;
+            return _imageFiles.Count > 0;
         }
 
-        StorageFolder? folder = await GetFolder();
-        if (folder is null)
-        {
-            return false;
-        }
-
-        Logger.I(TAG, $"Retrieving images in '{Location}'...");
-        var queryOptions = new QueryOptions
-        {
-            FolderDepth = FolderDepth.Shallow,
-            IndexerOption = IndexerOption.DoNotUseIndexer, // The results from UseIndexerWhenAvailable are incomplete
-        };
-
-        foreach (string type in AppInfoProvider.SupportedImageExtensions)
-        {
-            queryOptions.FileTypeFilter.Add(type);
-        }
-
-        StorageFileQueryResult query = folder.CreateFileQueryWithOptions(queryOptions);
-        IReadOnlyList<StorageFile> imageFiles = await query.GetFilesAsync();
-
-        // Sort by display name
-        _imageFiles = [.. imageFiles.OrderBy(x => StringUtils.SmartFileNameKeySelector(x.DisplayName), StringUtils.SmartFileNameComparer)];
-        Logger.I(TAG, $"{imageFiles.Count} images added.");
-        return true;
+        _imageFiles = [.. Directory.GetFiles(Location)
+            .Where(file =>
+            {
+                string extension = Path.GetExtension(file);
+                return AppInfoProvider.IsSupportedImageExtension(extension);
+            })
+            .OrderBy(file => StringUtils.SmartFileNameKeySelector(Path.GetFileNameWithoutExtension(file)), StringUtils.SmartFileNameComparer)];
+        return _imageFiles.Count > 0;
     }
 
-    private async Task<StorageFolder?> GetFolder()
+    private partial class FolderComicConnection(IEnumerable<string> imageFiles) : IComicConnection
     {
-        StorageFolder? folder = _folder;
-        if (folder != null)
-        {
-            return folder;
-        }
-
-        if (Location == null)
-        {
-            return null;
-        }
-
-        folder = await Storage.TryGetFolder(Location);
-        if (folder == null)
-        {
-            return null;
-        }
-
-        _folder = folder;
-        return folder;
-    }
-
-    public static ComicData FromDatabase(string location)
-    {
-        return new ComicFolderData(location, false);
-    }
-
-    public static ComicData? FromExternal(string directory, List<StorageFile> imageFiles)
-    {
-        if (imageFiles.Count == 0)
-        {
-            return null;
-        }
-
-        imageFiles = [.. imageFiles.OrderBy(x => StringUtils.SmartFileNameKeySelector(x.DisplayName), StringUtils.SmartFileNameComparer)];
-        return new ComicFolderData(directory, true)
-        {
-            _imageFiles = imageFiles,
-            Title1 = Path.GetFileName(directory),
-        };
-    }
-
-    private partial class FolderComicConnection(IEnumerable<StorageFile> imageFiles) : IComicConnection
-    {
-        private readonly IReadOnlyList<StorageFile> _imageFiles = [.. imageFiles];
+        private readonly IReadOnlyList<string> _imageFiles = [.. imageFiles];
 
         public void Dispose()
         {
@@ -246,19 +186,20 @@ internal partial class ComicFolderData : ComicData
                 return null;
             }
 
-            StorageFile imageFile = _imageFiles[index];
+            string imageFile = _imageFiles[index];
             try
             {
-                return await imageFile.OpenAsync(FileAccessMode.Read);
+                StorageFile file = await StorageFile.GetFileFromPathAsync(imageFile);
+                return await file.OpenAsync(FileAccessMode.Read);
             }
             catch (FileNotFoundException)
             {
-                Logger.I(TAG, $"File not found: {imageFile.Path}");
+                Logger.I(TAG, $"File not found: {imageFile}");
                 return null;
             }
             catch (Exception e)
             {
-                Logger.F(TAG, $"Cannot open '{imageFile.Path}'.", e);
+                Logger.F(TAG, $"Cannot open '{imageFile}'.", e);
                 return null;
             }
         }
@@ -271,8 +212,30 @@ internal partial class ComicFolderData : ComicData
                 return string.Empty;
             }
 
-            StorageFile imageFile = _imageFiles[index];
-            return imageFile.Name;
+            string imageFile = _imageFiles[index];
+            return Path.GetFileName(imageFile);
+        }
+
+        public string GetImageCacheKey(int index)
+        {
+            if (index < 0 || index >= _imageFiles.Count)
+            {
+                Logger.F(TAG, "GetImageCacheKey");
+                return string.Empty;
+            }
+
+            return _imageFiles[index];
+        }
+
+        public int GetImageSignature(int index)
+        {
+            if (index < 0 || index >= _imageFiles.Count)
+            {
+                Logger.F(TAG, "GetImageSignature");
+                return 0;
+            }
+
+            return FileUtils.GetFileHashCode(_imageFiles[index]);
         }
     }
 }

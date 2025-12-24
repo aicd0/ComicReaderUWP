@@ -10,9 +10,13 @@ namespace ComicReader.Data.Models.Comic;
 
 internal interface IComicConnection : IDisposable
 {
-    public int GetImageCount();
+    int GetImageCount();
 
-    public Task<IRandomAccessStream?> GetImageStream(int index);
+    Task<IRandomAccessStream?> GetImageStream(int index);
 
-    public string GetImageName(int index);
+    string GetImageName(int index);
+
+    string GetImageCacheKey(int index);
+
+    int GetImageSignature(int index);
 }

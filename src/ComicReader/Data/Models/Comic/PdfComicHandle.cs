@@ -19,88 +19,32 @@ using Windows.Storage.Streams;
 
 namespace ComicReader.Data.Models.Comic;
 
-internal class ComicPdfData : ComicData
+internal partial class PdfComicHandle : ComicHandle
 {
-    private const string TAG = nameof(ComicPdfData);
+    private const string TAG = nameof(PdfComicHandle);
 
-    private StorageFile? _pdfFile;
-
-    public override bool IsEditable => !IsExternal;
-
-    private ComicPdfData(bool is_external) :
-        base(ComicType.PDF, is_external)
-    { }
-
-    public static ComicData FromDatabase(string location)
+    public static ComicHandle FromDatabase(string location)
     {
-        return new ComicPdfData(false)
+        return new PdfComicHandle(false)
         {
             Location = location,
         };
     }
 
-    public static async Task<ComicData> FromExternal(StorageFile file)
+    public static ComicHandle FromExternal(StorageFile file)
     {
-        var comic = new ComicPdfData(true)
+        var comic = new PdfComicHandle(true)
         {
             Title1 = file.DisplayName,
             Location = file.Path,
         };
 
-        await comic.ReloadImageFiles();
         return comic;
     }
 
-    private async Task<StorageFile?> GetFile()
-    {
-        StorageFile? file = _pdfFile;
-        if (file != null)
-        {
-            return file;
-        }
+    public override bool IsEditable => !IsExternal;
 
-        if (string.IsNullOrEmpty(Location))
-        {
-            return null;
-        }
-
-        string basePath = ArchiveAccess.GetBasePath(Location, false);
-        file = await Storage.TryGetFile(basePath);
-        if (file == null)
-        {
-            return null;
-        }
-
-        _pdfFile = file;
-        return file;
-    }
-
-    protected override async Task<bool> ReloadImages()
-    {
-        StorageFile? file = await GetFile();
-        if (file is null)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    public override string GetImageCacheKey(int index)
-    {
-        StorageFile? file = _pdfFile;
-        if (file == null)
-        {
-            return string.Empty;
-        }
-
-        return file.Path + ":" + index.ToString();
-    }
-
-    public override int GetImageSignature(int index)
-    {
-        return FileUtils.GetFileHashCode(_pdfFile);
-    }
+    private PdfComicHandle(bool is_external) : base(ComicType.PDF, is_external) { }
 
     protected override async Task<IComicConnection?> OpenComicConnection()
     {
@@ -116,26 +60,36 @@ internal class ComicPdfData : ComicData
             return null;
         }
 
-        return new PdfComicConnection(connection);
+        return new PdfComicConnection(file.Path, connection);
     }
 
-    private class PdfComicConnection : IComicConnection
+    private async Task<StorageFile?> GetFile()
     {
-        private readonly PdfManager.IPdfConnection _connection;
-
-        public PdfComicConnection(PdfManager.IPdfConnection connection)
+        if (string.IsNullOrEmpty(Location))
         {
-            _connection = connection;
+            return null;
         }
 
+        string basePath = ArchiveAccess.GetBasePath(Location, false);
+        StorageFile? file = await Storage.TryGetFile(basePath);
+        if (file is null)
+        {
+            return null;
+        }
+
+        return file;
+    }
+
+    private partial class PdfComicConnection(string pdfPath, PdfManager.IPdfConnection connection) : IComicConnection
+    {
         public void Dispose()
         {
-            _connection.Dispose();
+            connection.Dispose();
         }
 
         public int GetImageCount()
         {
-            return _connection.GetPageCount();
+            return connection.GetPageCount();
         }
 
         public string GetImageName(int index)
@@ -148,9 +102,9 @@ internal class ComicPdfData : ComicData
             MemoryStream? memoryStream = new();
             try
             {
-                SizeF size = _connection.GetPageSize(index);
+                SizeF size = connection.GetPageSize(index);
                 CalculatePageSize(size.Width, size.Height, out int width, out int height);
-                using Image? image = await _connection.Render(index, width, height);
+                using Image? image = await connection.Render(index, width, height);
                 if (image == null)
                 {
                     return null;
@@ -166,7 +120,17 @@ internal class ComicPdfData : ComicData
             return memoryStream?.AsRandomAccessStream();
         }
 
-        private void CalculatePageSize(float originWidth, float originHeight, out int width, out int height)
+        public string GetImageCacheKey(int index)
+        {
+            return pdfPath + ":" + index.ToString();
+        }
+
+        public int GetImageSignature(int index)
+        {
+            return FileUtils.GetFileHashCode(pdfPath);
+        }
+
+        private static void CalculatePageSize(float originWidth, float originHeight, out int width, out int height)
         {
             int defaultWidth = 764;
             int defaultHeight = 1080;

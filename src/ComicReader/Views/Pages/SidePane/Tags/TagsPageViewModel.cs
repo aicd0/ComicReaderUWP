@@ -146,7 +146,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
     private async Task<List<SimpleTreeViewNodeModel>> GenerateNodeTree()
     {
         Dictionary<long, TagCateogryEntry> tagCategoryMapper = [];
-        await ComicData.Enqueue("UpdateTags", () =>
+        await ComicHandle.Enqueue("UpdateTags", () =>
         {
             {
                 var command = SelectCommand.Create(TagCategoryTable.Instance);

@@ -166,7 +166,7 @@ internal class ComicSearchEngine
         }
 
         var matches = new List<Match>();
-        await ComicData.Enqueue("SearchComics", delegate
+        await ComicHandle.Enqueue("SearchComics", delegate
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);

@@ -22,7 +22,6 @@ using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Algorithm;
-using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
@@ -372,13 +371,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         LoadReaderSettings();
         LoadComicInfo();
 
-        if (!comic.IsExternal && !await comic.ReloadImageFiles())
-        {
-            Logger.I(TAG, "Failed to load images of '" + comic.Location + "'. ");
-            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
-            return;
-        }
-
         IComicConnection? connection = await comic.OpenComicAsync();
         if (connection is null)
         {
@@ -392,7 +384,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         var images = new List<IImageSource>();
         for (int i = 0; i < connection.GetImageCount(); ++i)
         {
-            images.Add(new ComicImageSource(comic, connection, i));
+            images.Add(new ComicImageSource(connection, i));
         }
 
         if (images.Count == 0)
@@ -413,7 +405,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             {
                 Image = new SimpleImageView.Model
                 {
-                    Source = new ComicImageSource(comic, connection, i),
+                    Source = new ComicImageSource(connection, i),
                     Width = previewWidth,
                     Height = previewHeight,
                     Dispatcher = _loadPreviewDispatcher,
@@ -485,7 +477,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         List<TagCollectionViewModel> newCollection = [];
         for (int i = 0; i < comic.Tags.Count; ++i)
         {
-            ComicData.TagData tags = comic.Tags[i];
+            ComicHandle.TagData tags = comic.Tags[i];
             List<TagViewModel> tagModels = [];
             foreach (string tag in tags.Tags)
             {
@@ -602,7 +594,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
 
         string imageName = comicConnection.GetImageName(pageIndex);
-        var imageSource = new ComicImageSource(comic, comicConnection, pageIndex);
+        var imageSource = new ComicImageSource(comicConnection, pageIndex);
         TaskDispatcher.DefaultQueue.Submit("LoadImageMeta", () =>
         {
             ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(imageSource);

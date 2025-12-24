@@ -55,7 +55,7 @@ internal class PluginContext(IPlugin plugin) : IPluginContext
     {
         ICondition? filterCondition = ParseFilterExpression(filterExpression) ?? throw new InvalidExpressionException();
         List<long> ids = [];
-        await ComicData.Enqueue("SearchComics", delegate
+        await ComicHandle.Enqueue("SearchComics", delegate
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
