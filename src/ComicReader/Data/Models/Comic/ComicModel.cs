@@ -196,18 +196,6 @@ internal sealed class ComicModel : IComicModel
         return _internalModel.ReloadImageFiles();
     }
 
-    public async Task MoveToLocation(string newLocation)
-    {
-        string oldLocation = Location;
-        bool success = await _internalModel.MoveToLocation(newLocation);
-        if (success)
-        {
-            _locationPool.TryRemove(oldLocation, out _);
-            _locationPool.GetOrAdd(newLocation, this);
-            DispatchUpdateEvent();
-        }
-    }
-
     public void ShowInFileExplorer(EventRecorder er)
     {
         string fileExplorerPath = _internalModel.FileExplorerPath;
@@ -235,9 +223,47 @@ internal sealed class ComicModel : IComicModel
     // IComicModel Implementation
     //
 
+    long IComicModel.Id => Id;
+
+    string IComicModel.Location => Location;
+
+    int IComicModel.PageCount => PageCount;
+
+    string IComicModel.Title1 => Title1;
+
+    string IComicModel.Title2 => Title2;
+
     string IComicModel.Description => Description;
 
     int IComicModel.Rating => Rating;
+
+    IReadOnlyList<IComicTagCategory> IComicModel.Tags => Tags;
+
+    bool IComicModel.IsHidden => Hidden;
+
+    CompletionStatusEnum IComicModel.CompletionStatus
+    {
+        get
+        {
+            return CompletionState switch
+            {
+                ComicCompletionStatusEnum.NotStarted => CompletionStatusEnum.NotStarted,
+                ComicCompletionStatusEnum.Started => CompletionStatusEnum.Started,
+                ComicCompletionStatusEnum.Completed => CompletionStatusEnum.Completed,
+                _ => throw new ArgumentOutOfRangeException(nameof(CompletionState), "Invalid ComicCompletionStatusEnum value."),
+            };
+        }
+    }
+
+    Task IComicModel.SetTitle1(string title)
+    {
+        return SetTitle1(title);
+    }
+
+    Task IComicModel.SetTitle2(string title)
+    {
+        return SetTitle2(title);
+    }
 
     Task IComicModel.SetDescription(string description)
     {
@@ -247,6 +273,16 @@ internal sealed class ComicModel : IComicModel
     Task IComicModel.SetRating(int rating)
     {
         return SetRating(rating);
+    }
+
+    Task IComicModel.SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
+    {
+        return SetTags(tags);
+    }
+
+    Task IComicModel.SetHidden(bool isHidden)
+    {
+        return SetHidden(isHidden);
     }
 
     async Task IComicModel.SetCompletionStatus(CompletionStatusEnum status)
@@ -260,6 +296,20 @@ internal sealed class ComicModel : IComicModel
         };
         await _internalModel.SaveCompletionState(convertedStatus);
         DispatchUpdateEvent();
+    }
+
+    async Task<bool> IComicModel.MoveToLocation(string location)
+    {
+        string oldLocation = Location;
+        bool success = await _internalModel.MoveToLocation(location);
+        if (success)
+        {
+            _locationPool.TryRemove(oldLocation, out _);
+            _locationPool.GetOrAdd(location, this);
+            DispatchUpdateEvent();
+        }
+
+        return success;
     }
 
     //

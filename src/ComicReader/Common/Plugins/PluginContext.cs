@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Expression;
+using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;
 using ComicReader.Helpers.MenuFlyoutHelpers;
@@ -14,10 +15,13 @@ using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Database.KV;
 using ComicReader.SDK.Database.SqlHelpers;
+using ComicReader.SDK.DataModels;
 using ComicReader.SDK.Plugins;
 using ComicReader.SDK.Plugins.Comic;
 using ComicReader.SDK.Plugins.Common;
 using ComicReader.SDK.Plugins.Menu;
+
+using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Common.Plugins;
 
@@ -66,6 +70,20 @@ internal class PluginContext(IPlugin plugin) : IPluginContext
         });
 
         return ids;
+    }
+
+    //
+    // Common UI
+    //
+
+    public Task WithBusyState(Func<Task> action)
+    {
+        return BusyStateManager.WithBusyState(action);
+    }
+
+    public Task<ContentDialogResult> EnqueueDialogAsync(DialogOptions options)
+    {
+        return DialogUtils.EnqueueDialogAsync(options);
     }
 
     //

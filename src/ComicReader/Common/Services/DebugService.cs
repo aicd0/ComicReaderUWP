@@ -5,6 +5,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.ServiceManagement;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.DataModels;
 using ComicReader.Views.AppWindows.Main;
 
 namespace ComicReader.Common.Services;
@@ -13,7 +14,7 @@ internal class DebugService : IDebugService
 {
     public void OnCrashReport(string info)
     {
-        DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+        DialogOptions options = new DialogOptions.Builder()
             .SetTitle(StringResourceProvider.Instance.UnhandledExceptionTitle)
             .SetContent(StringResourceProvider.Instance.UnhandledExceptionContent.Replace("$info", info), selectable: true)
             .SetPrimaryButtonText(StringResourceProvider.Instance.OK)

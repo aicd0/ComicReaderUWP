@@ -15,6 +15,7 @@ using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.DataModels;
 using ComicReader.Views.Dialogs.ChooseLocation;
 using ComicReader.Views.Pages.Main;
 
@@ -64,7 +65,7 @@ internal sealed partial class SettingPage : BasePage
         {
             if (debugMode)
             {
-                DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+                DialogOptions options = new DialogOptions.Builder()
                     .SetTitle(StringResourceProvider.Instance.Warning)
                     .SetContent(StringResourceProvider.Instance.DebugModeWarning)
                     .SetPrimaryButtonText(StringResourceProvider.Instance.Proceed)

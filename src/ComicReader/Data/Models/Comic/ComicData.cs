@@ -19,6 +19,8 @@ using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.SqlHelpers;
+using ComicReader.SDK.DataModels;
+using ComicReader.SDK.Plugins.Comic;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -1149,7 +1151,7 @@ internal abstract class ComicData
                 string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
                     .Replace("$count", locationRemoved.Count.ToString())
                     .Replace("$comics", string.Join('\n', locationRemoved));
-                DialogUtils.DialogOptions options = new DialogUtils.DialogOptions.Builder()
+                DialogOptions options = new DialogOptions.Builder()
                     .SetTitle(StringResourceProvider.Instance.Warning)
                     .SetContent(promptContent)
                     .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
@@ -1199,10 +1201,18 @@ internal abstract class ComicData
         public ComicType ItemType;
     };
 
-    internal class TagData(string name, IEnumerable<string> tags)
+    internal class TagData(string name, IEnumerable<string> tags) : IComicTagCategory
     {
         public readonly string Name = name;
         public readonly IReadOnlySet<string> Tags = (HashSet<string>)[.. tags];
+
+        //
+        // IComicTagCategory Implementation
+        //
+
+        string IComicTagCategory.Name => Name;
+
+        IReadOnlySet<string> IComicTagCategory.Tags => Tags;
     };
 
     private class TagTempData
