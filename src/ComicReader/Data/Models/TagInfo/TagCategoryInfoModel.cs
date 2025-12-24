@@ -252,7 +252,7 @@ internal class TagCategoryInfoModel
         });
 
         List<long> comicIds = [];
-        await ComicData.Enqueue("RenameTagCategory", () =>
+        await ComicHandle.Enqueue("RenameTagCategory", () =>
         {
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnName, oldName);
@@ -303,7 +303,7 @@ internal class TagCategoryInfoModel
         });
 
         HashSet<long> comicIds = [];
-        await ComicData.Enqueue("DeleteTag", () =>
+        await ComicHandle.Enqueue("DeleteTag", () =>
         {
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnName, name);

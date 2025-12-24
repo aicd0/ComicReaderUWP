@@ -401,7 +401,7 @@ internal static class MenuFlyoutItemsCreator
     {
         Dictionary<string, TagLinkModel.LinkModel> linkMap = [];
 
-        foreach (ComicData.TagData tagData in comic.Tags)
+        foreach (ComicHandle.TagData tagData in comic.Tags)
         {
             string tagCategory = tagData.Name;
             TagCategoryInfoModel? tagCategoryInfo = await TagCategoryInfoModel.Get(tagCategory);

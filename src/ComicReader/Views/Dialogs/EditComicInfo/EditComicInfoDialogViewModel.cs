@@ -224,7 +224,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                 if (_tagsChanged)
                 {
                     Dictionary<string, HashSet<string>> comicTags = [];
-                    foreach (ComicData.TagData tagData in comic.Tags)
+                    foreach (ComicHandle.TagData tagData in comic.Tags)
                     {
                         comicTags[tagData.Name] = [.. tagData.Tags];
                     }
@@ -416,7 +416,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         {
             ComicModel comic = _comics[i];
             Dictionary<TagWithId, HashSet<TagWithId>> comicTags = [];
-            foreach (ComicData.TagData tagData in comic.Tags)
+            foreach (ComicHandle.TagData tagData in comic.Tags)
             {
                 HashSet<TagWithId> tags = [];
                 foreach (string tag in tagData.Tags)

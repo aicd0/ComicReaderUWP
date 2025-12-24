@@ -254,7 +254,7 @@ internal sealed partial class MainPage : BasePage
         OnscreenLogger.Started.ObserveSticky(this, ViewModel.SetLogStarted);
         OnscreenLogger.Visible.ObserveSticky(this, ViewModel.SetLogVisibility);
 
-        ComicData.IsScanningLibrary.ObserveSticky(this, scanning =>
+        ComicHandle.IsScanningLibrary.ObserveSticky(this, scanning =>
         {
             ViewModel.Refreshing = scanning;
         });

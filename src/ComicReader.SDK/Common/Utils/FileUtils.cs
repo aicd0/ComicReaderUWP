@@ -3,8 +3,6 @@
 
 using ComicReader.SDK.Common.DebugTools;
 
-using Windows.Storage;
-
 namespace ComicReader.SDK.Common.Utils;
 
 public static class FileUtils
@@ -57,23 +55,12 @@ public static class FileUtils
         return size;
     }
 
-    public static int GetFileHashCode(StorageFile? file)
+    public static int GetFileHashCode(string path)
     {
-        if (file == null)
-        {
-            return 0;
-        }
-
         try
         {
-            var fileInfo = new FileInfo(file.Path);
-            unchecked
-            {
-                int hash = 17;
-                hash = hash * 23 + fileInfo.LastWriteTime.GetHashCode();
-                hash = hash * 23 + fileInfo.Length.GetHashCode();
-                return hash;
-            }
+            var fileInfo = new FileInfo(path);
+            return HashCode.Combine(fileInfo.LastWriteTime, fileInfo.Length);
         }
         catch (FileNotFoundException)
         {

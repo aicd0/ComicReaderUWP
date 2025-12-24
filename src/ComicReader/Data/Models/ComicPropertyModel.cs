@@ -100,7 +100,7 @@ internal class ComicPropertyModel
     {
         string GetConcatenatedTag(ComicModel comic)
         {
-            ComicData.TagData? tagData = comic.Tags.FirstOrDefault(tag => tag.Name == Name);
+            ComicHandle.TagData? tagData = comic.Tags.FirstOrDefault(tag => tag.Name == Name);
             if (tagData == null)
             {
                 return string.Empty;
@@ -174,7 +174,7 @@ internal class ComicPropertyModel
 
         IEnumerable<string> GetTagGroupNames(ComicModel comic)
         {
-            ComicData.TagData? tagData = comic.Tags.FirstOrDefault(tag => tag.Name == Name);
+            ComicHandle.TagData? tagData = comic.Tags.FirstOrDefault(tag => tag.Name == Name);
             if (tagData == null || tagData.Tags.Count == 0)
             {
                 string name = StringResourceProvider.Instance.Ungrouped;

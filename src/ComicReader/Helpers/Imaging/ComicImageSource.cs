@@ -10,9 +10,8 @@ using Windows.Storage.Streams;
 
 namespace ComicReader.Helpers.Imaging;
 
-internal class ComicImageSource(ComicModel comic, IComicConnection connection, int index) : IImageSource
+internal class ComicImageSource(IComicConnection connection, int index) : IImageSource
 {
-    private readonly ComicModel _comic = comic;
     private readonly IComicConnection _connection = connection;
     private readonly int _index = index;
 
@@ -23,12 +22,12 @@ internal class ComicImageSource(ComicModel comic, IComicConnection connection, i
 
     public string GetUri()
     {
-        return _comic.GetImageCacheKey(_index);
+        return _connection.GetImageCacheKey(_index);
     }
 
     public string GetContentFingerprint()
     {
-        int fingerprint = _comic.GetImageSignature(_index);
+        int fingerprint = _connection.GetImageSignature(_index);
         if (fingerprint == 0)
         {
             return string.Empty;

@@ -22,9 +22,9 @@ namespace ComicReader.Data.Models.Comic;
 
 internal sealed class ComicModel : IComicModel
 {
-    private readonly ComicData _internalModel;
+    private readonly ComicHandle _internalModel;
 
-    private ComicModel(ComicData comicData)
+    private ComicModel(ComicHandle comicData)
     {
         _internalModel = comicData;
     }
@@ -33,7 +33,7 @@ internal sealed class ComicModel : IComicModel
     // Getters
     //
 
-    public string CoverImageCacheKey => _internalModel.GetCoverImageCacheKey();
+    public string CoverImageCacheKey => _internalModel.GetCoverImageCacheKey().Result;
     public string Description => _internalModel.Description;
     public bool Hidden => _internalModel.Hidden;
     public long Id => _internalModel.Id;
@@ -44,7 +44,7 @@ internal sealed class ComicModel : IComicModel
     public int Progress => _internalModel.Progress;
     public DateTimeOffset LastVisit => _internalModel.LastVisit;
     public int Rating => _internalModel.Rating;
-    public IReadOnlyList<ComicData.TagData> Tags => _internalModel.Tags;
+    public IReadOnlyList<ComicHandle.TagData> Tags => _internalModel.Tags;
     public string Title => _internalModel.Title;
     public string Title1 => _internalModel.Title1;
     public string Title2 => _internalModel.Title2;
@@ -56,7 +56,7 @@ internal sealed class ComicModel : IComicModel
         get
         {
             Dictionary<string, HashSet<string>> tagsCopy = [];
-            foreach (ComicData.TagData tagData in _internalModel.Tags)
+            foreach (ComicHandle.TagData tagData in _internalModel.Tags)
             {
                 if (!tagsCopy.TryGetValue(tagData.Name, out HashSet<string>? tagSet))
                 {
@@ -77,16 +77,6 @@ internal sealed class ComicModel : IComicModel
     public string? GetExt(string key)
     {
         return _internalModel.GetExt(key);
-    }
-
-    public string GetImageCacheKey(int index)
-    {
-        return _internalModel.GetImageCacheKey(index);
-    }
-
-    public int GetImageSignature(int index)
-    {
-        return _internalModel.GetImageSignature(index);
     }
 
     //
@@ -189,11 +179,6 @@ internal sealed class ComicModel : IComicModel
     public Task<IComicConnection?> OpenComicAsync()
     {
         return _internalModel.OpenComicAsync();
-    }
-
-    public Task<bool> ReloadImageFiles()
-    {
-        return _internalModel.ReloadImageFiles();
     }
 
     public void ShowInFileExplorer(EventRecorder er)
@@ -323,7 +308,7 @@ internal sealed class ComicModel : IComicModel
             return model;
         }
 
-        ComicData? comicData = await ComicData.FromId(id, taskName);
+        ComicHandle? comicData = await ComicHandle.FromId(id, taskName);
         if (comicData == null)
         {
             return null;
@@ -339,7 +324,7 @@ internal sealed class ComicModel : IComicModel
             return model;
         }
 
-        ComicData? comicData = await ComicData.FromLocation(location, taskName);
+        ComicHandle? comicData = await ComicHandle.FromLocation(location, taskName);
         if (comicData == null)
         {
             return null;
@@ -350,16 +335,16 @@ internal sealed class ComicModel : IComicModel
 
     public static async Task<ComicModel?> FromFile(StorageFile file)
     {
-        ComicData? comic = null;
+        ComicHandle? comic = null;
         if (AppInfoProvider.IsSupportedDocumentExtension(file.FileType))
         {
-            comic = await ComicData.FromLocation(file.Path, "ComicModelFromFileDocument");
+            comic = await ComicHandle.FromLocation(file.Path, "ComicModelFromFileDocument");
             if (comic == null)
             {
                 switch (file.FileType.ToLower())
                 {
                     case ".pdf":
-                        comic = await ComicPdfData.FromExternal(file);
+                        comic = PdfComicHandle.FromExternal(file);
                         break;
                     default:
                         break;
@@ -368,8 +353,8 @@ internal sealed class ComicModel : IComicModel
         }
         else if (AppInfoProvider.IsSupportedArchiveExtension(file.FileType))
         {
-            comic = await ComicData.FromLocation(file.Path, "ComicModelFromFileArchive");
-            comic ??= await ComicArchiveData.FromExternal(file);
+            comic = await ComicHandle.FromLocation(file.Path, "ComicModelFromFileArchive");
+            comic ??= ArchiveComicHandle.FromExternal(file);
         }
 
         if (comic == null)
@@ -382,7 +367,7 @@ internal sealed class ComicModel : IComicModel
 
     public static ComicModel? FromImageFiles(string directory, List<StorageFile> imageFiles)
     {
-        ComicData? comic = ComicFolderData.FromExternal(directory, imageFiles);
+        ComicHandle? comic = FolderComicHandle.FromExternal(directory, imageFiles);
         if (comic is null)
         {
             return null;
@@ -411,8 +396,8 @@ internal sealed class ComicModel : IComicModel
 
         if (requestingIds.Count > 0)
         {
-            List<ComicData> requestResults = await ComicData.BatchFromId(requestingIds, taskName);
-            foreach (ComicData result in requestResults)
+            List<ComicHandle> requestResults = await ComicHandle.BatchFromId(requestingIds, taskName);
+            foreach (ComicHandle result in requestResults)
             {
                 results.Add(ReplaceWithExisting(result));
             }
@@ -427,12 +412,12 @@ internal sealed class ComicModel : IComicModel
 
     public static void UpdateAllComics(string reason)
     {
-        ComicData.UpdateAllComics(reason);
+        ComicHandle.UpdateAllComics(reason);
     }
 
     public static Task<List<string>> GetAllTagCategories()
     {
-        return ComicData.Enqueue<List<string>>("GetAllTagCategories", () =>
+        return ComicHandle.Enqueue<List<string>>("GetAllTagCategories", () =>
         {
             HashSet<string> tags = [];
             var command = SelectCommand.Create(TagCategoryTable.Instance);
@@ -465,7 +450,7 @@ internal sealed class ComicModel : IComicModel
         return _locationPool.TryGetValue(location, out model);
     }
 
-    private static ComicModel ReplaceWithExisting(ComicData comicData)
+    private static ComicModel ReplaceWithExisting(ComicHandle comicData)
     {
         var model = new ComicModel(comicData);
         if (comicData.Id >= 0)

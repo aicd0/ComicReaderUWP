@@ -10,7 +10,7 @@ namespace ComicReader.Data.Models.Comic;
 
 internal sealed partial class ComicConnectionWrapper(IComicConnection connection) : IComicConnection
 {
-    private bool _disposed = false;
+    private volatile bool _disposed = false;
     private readonly IComicConnection _connection = connection;
 
     void IDisposable.Dispose()
@@ -52,5 +52,25 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
         }
 
         return _connection.GetImageName(index);
+    }
+
+    string IComicConnection.GetImageCacheKey(int index)
+    {
+        if (_disposed)
+        {
+            return string.Empty;
+        }
+
+        return _connection.GetImageCacheKey(index);
+    }
+
+    int IComicConnection.GetImageSignature(int index)
+    {
+        if (_disposed)
+        {
+            return 0;
+        }
+
+        return _connection.GetImageSignature(index);
     }
 }

@@ -17,36 +17,53 @@ using Windows.Storage.Streams;
 
 namespace ComicReader.Data.Models.Comic;
 
-internal partial class ComicArchiveData : ComicData
+internal partial class ArchiveComicHandle : ComicHandle
 {
-    private const string TAG = nameof(ComicArchiveData);
+    private const string TAG = nameof(ArchiveComicHandle);
 
-    private StorageFile? _archive;
-    private List<string> _entries = [];
-
-    public override bool IsEditable => !IsExternal;
-    public override string FileExplorerPath => ArchiveAccess.GetBasePath(Location, false);
-
-    private ComicArchiveData(string location, bool external) : base(ComicType.Archive, external)
+    public static ComicHandle FromDatabase(string location)
     {
-        Location = location;
+        return new ArchiveComicHandle(location, false);
     }
 
-    public static ComicData FromDatabase(string location)
+    public static ComicHandle FromExternal(StorageFile archive)
     {
-        return new ComicArchiveData(location, false);
-    }
-
-    public static async Task<ComicData> FromExternal(StorageFile archive)
-    {
-        var comic = new ComicArchiveData(archive.Path, true)
+        var comic = new ArchiveComicHandle(archive.Path, true)
         {
             Title1 = archive.DisplayName,
             _archive = archive,
         };
 
-        await comic.ReloadImageFiles();
         return comic;
+    }
+
+    public override bool IsEditable => !IsExternal;
+    public override string FileExplorerPath => ArchiveAccess.GetBasePath(Location, false);
+
+    private StorageFile? _archive;
+    private List<string> _entries = [];
+
+    private ArchiveComicHandle(string location, bool external) : base(ComicType.Archive, external)
+    {
+        Location = location;
+    }
+
+    protected override async Task<IComicConnection?> OpenComicConnection()
+    {
+        if (!await ReloadImages())
+        {
+            return null;
+        }
+
+        StorageFile? archive = _archive;
+        if (archive is null)
+        {
+            Logger.AssertNotReachHere("");
+            return null;
+        }
+
+        List<string> entries = IsExternal ? _entries : [.. _entries.Select(GetSubPathFromFilename)];
+        return new ArchiveComicConnection(this, archive, entries);
     }
 
     private async Task<StorageFile?> GetArchive()
@@ -87,7 +104,7 @@ internal partial class ComicArchiveData : ComicData
         }
     }
 
-    protected override async Task<bool> ReloadImages()
+    private async Task<bool> ReloadImages()
     {
         StorageFile? archive = await GetArchive();
         if (archive is null)
@@ -147,46 +164,7 @@ internal partial class ComicArchiveData : ComicData
         return true;
     }
 
-    public override string GetImageCacheKey(int index)
-    {
-        StorageFile? archive = _archive;
-        if (archive == null)
-        {
-            Logger.AssertNotReachHere("");
-            return string.Empty;
-        }
-
-        if (index >= _entries.Count)
-        {
-            Logger.AssertNotReachHere("");
-            return string.Empty;
-        }
-
-        string subPath = IsExternal ? _entries[index] : GetSubPathFromFilename(_entries[index]);
-        return archive.Path + ArchiveAccess.FileSeperator + subPath;
-    }
-
-    public override int GetImageSignature(int index)
-    {
-        return FileUtils.GetFileHashCode(_archive);
-    }
-
-    protected override async Task<IComicConnection?> OpenComicConnection()
-    {
-        await LoadImageFiles();
-
-        StorageFile? archive = _archive;
-        if (archive == null)
-        {
-            Logger.AssertNotReachHere("");
-            return null;
-        }
-
-        List<string> entries = IsExternal ? _entries : [.. _entries.Select(GetSubPathFromFilename)];
-        return new ArchiveComicConnection(archive, entries);
-    }
-
-    private partial class ArchiveComicConnection(StorageFile archiveFile, List<string> entries) : IComicConnection
+    private partial class ArchiveComicConnection(ArchiveComicHandle comic, StorageFile archiveFile, List<string> entries) : IComicConnection
     {
         private readonly StorageFile _archiveFile = archiveFile;
         private readonly List<string> _entries = entries;
@@ -229,6 +207,30 @@ internal partial class ComicArchiveData : ComicData
             }
 
             return _entries[index];
+        }
+
+        public string GetImageCacheKey(int index)
+        {
+            StorageFile? archive = _archiveFile;
+            if (archive == null)
+            {
+                Logger.AssertNotReachHere("");
+                return string.Empty;
+            }
+
+            if (index >= _entries.Count)
+            {
+                Logger.AssertNotReachHere("");
+                return string.Empty;
+            }
+
+            string subPath = comic.IsExternal ? _entries[index] : comic.GetSubPathFromFilename(_entries[index]);
+            return archive.Path + ArchiveAccess.FileSeperator + subPath;
+        }
+
+        public int GetImageSignature(int index)
+        {
+            return FileUtils.GetFileHashCode(_archiveFile.Path);
         }
     }
 }
