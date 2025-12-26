@@ -16,7 +16,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
-namespace ComicReader.Views.Pages.Reader;
+namespace ComicReader.UserControls.ReaderSettings;
 
 internal sealed partial class ReaderSettingPanel : BaseUserControl
 {

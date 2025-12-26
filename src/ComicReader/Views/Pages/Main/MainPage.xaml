@@ -11,7 +11,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:primitiveContract7Present="using:Microsoft.UI.Xaml.Controls.Primitives?IsApiContractPresent(Windows.Foundation.UniversalApiContract,7)"
-    xmlns:reader="using:ComicReader.Views.Pages.Reader"
+    xmlns:readersettingscontrol="using:ComicReader.UserControls.ReaderSettings"
     xmlns:vm="using:ComicReader.ViewModels"
     KeyboardAcceleratorPlacementMode="Hidden"
     mc:Ignorable="d">
@@ -348,7 +348,7 @@
                                         <Setter Property="MaxWidth" Value="1000" />
                                     </Style>
                                 </Flyout.FlyoutPresenterStyle>
-                                <reader:ReaderSettingPanel x:Name="MainReaderSettingPanel" DataChanged="MainReaderSettingPanel_DataChanged" />
+                                <readersettingscontrol:ReaderSettingPanel x:Name="MainReaderSettingPanel" DataChanged="MainReaderSettingPanel_DataChanged" />
                             </Flyout>
                         </AppBarButton.Flyout>
                     </AppBarButton>

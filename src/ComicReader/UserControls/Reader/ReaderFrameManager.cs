@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 using Microsoft.UI.Xaml;
 
-namespace ComicReader.Views.Pages.Reader;
+namespace ComicReader.UserControls.Reader;
 
 internal class ReaderFrameManager
 {

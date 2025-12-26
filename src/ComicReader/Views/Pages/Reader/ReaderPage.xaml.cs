@@ -19,6 +19,7 @@ using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.KV;
+using ComicReader.UserControls.Reader;
 using ComicReader.ViewModels;
 using ComicReader.Views.AppWindows.Main;
 using ComicReader.Views.Dialogs.EditComicInfo;

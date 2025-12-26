@@ -8,7 +8,7 @@ using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReader.Views.Pages.Reader;
+namespace ComicReader.UserControls.Reader;
 
 internal sealed partial class ReaderFrame : UserControl
 {

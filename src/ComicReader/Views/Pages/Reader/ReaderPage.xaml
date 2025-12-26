@@ -12,6 +12,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:reader="using:ComicReader.Views.Pages.Reader"
+    xmlns:readercontrol="using:ComicReader.UserControls.Reader"
     xmlns:vm="using:ComicReader.ViewModels"
     mc:Ignorable="d">
 
@@ -68,7 +69,7 @@
             <!--  Reader  -->
             <Grid PointerEntered="OnReaderPointerEntered" PointerExited="OnReaderPointerExited">
                 <Grid x:Name="ManipulationReference" />
-                <reader:ReaderView x:Name="MainReaderView" />
+                <readercontrol:ReaderView x:Name="MainReaderView" />
             </Grid>
 
             <!--  Tips  -->

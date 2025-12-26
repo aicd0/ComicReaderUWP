@@ -25,7 +25,7 @@ using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 
-namespace ComicReader.Views.Pages.Reader;
+namespace ComicReader.UserControls.Reader;
 
 internal partial class ReaderView : UserControl
 {

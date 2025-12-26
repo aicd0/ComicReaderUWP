@@ -11,7 +11,7 @@ using ComicReader.SDK.Common.DebugTools;
 
 using Microsoft.UI.Input;
 
-namespace ComicReader.Views.Pages.Reader;
+namespace ComicReader.UserControls.Reader;
 
 internal class ReaderGestureRecognizer
 {

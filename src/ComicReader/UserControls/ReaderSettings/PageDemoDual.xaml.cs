@@ -5,28 +5,42 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 
-namespace ComicReader.Views.Pages.Reader;
+namespace ComicReader.UserControls.ReaderSettings;
 
-public sealed partial class PageDemoSingle : UserControl
+public sealed partial class PageDemoDual : UserControl
 {
-    public PageDemoSingle()
+    public PageDemoDual()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
-    public string Header
+    public string HeaderL
     {
         get
         {
-            return (string)GetValue(HeaderProperty);
+            return (string)GetValue(HeaderLProperty);
         }
         set
         {
-            SetValue(HeaderProperty, value);
+            SetValue(HeaderLProperty, value);
         }
     }
-    public static readonly DependencyProperty HeaderProperty =
-        DependencyProperty.Register(nameof(Header), typeof(string), typeof(PageDemoSingle), new PropertyMetadata(null));
+    public static readonly DependencyProperty HeaderLProperty =
+        DependencyProperty.Register(nameof(HeaderL), typeof(string), typeof(PageDemoDual), new PropertyMetadata(null));
+
+    public string HeaderR
+    {
+        get
+        {
+            return (string)GetValue(HeaderRProperty);
+        }
+        set
+        {
+            SetValue(HeaderRProperty, value);
+        }
+    }
+    public static readonly DependencyProperty HeaderRProperty =
+        DependencyProperty.Register(nameof(HeaderR), typeof(string), typeof(PageDemoDual), new PropertyMetadata(null));
 
     private bool m_IsHighlight = false;
     public bool IsHighlight

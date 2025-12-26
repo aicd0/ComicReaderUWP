@@ -14,7 +14,7 @@ using ComicReader.SDK.Common.Threading;
 
 using Microsoft.UI.Xaml.Media.Imaging;
 
-namespace ComicReader.Views.Pages.Reader;
+namespace ComicReader.UserControls.Reader;
 
 internal class ReaderImagePool
 {
