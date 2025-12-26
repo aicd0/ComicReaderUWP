@@ -287,6 +287,12 @@ $comics</value>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff-Modus</value>
   </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Deaktivieren</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Deaktiviert</value>
+  </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>Haftungsausschluss</value>
   </data>
@@ -301,6 +307,12 @@ $comics</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Voreinstellung bearbeiten</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Aktivieren</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Aktiviert</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Vollbildmodus aktivieren</value>
@@ -593,6 +605,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="OpenInNewTab" xml:space="preserve">
     <value>In neuem Tab öffnen</value>
   </data>
+  <data name="OpenPluginsFolder" xml:space="preserve">
+    <value>Plugin-Ordner öffnen</value>
+  </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Seitenleiste öffnen</value>
   </data>
@@ -628,6 +643,12 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Pin" xml:space="preserve">
     <value>Anheften</value>
+  </data>
+  <data name="PluginSettingsDescription" xml:space="preserve">
+    <value>Plugins verwalten und konfigurieren</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>Plugins</value>
   </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>Datenschutzrichtlinie</value>

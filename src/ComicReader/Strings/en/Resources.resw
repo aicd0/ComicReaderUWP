@@ -287,6 +287,12 @@ $comics</value>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff mode</value>
   </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>Disclaimer</value>
   </data>
@@ -301,6 +307,12 @@ $comics</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Edit preset</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Enter fullscreen</value>
@@ -595,6 +607,9 @@ The evaluation will be performed in the following order:
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Open in new tab</value>
   </data>
+  <data name="OpenPluginsFolder" xml:space="preserve">
+    <value>Open plugins folder</value>
+  </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Open sidebar</value>
   </data>
@@ -630,6 +645,12 @@ The evaluation will be performed in the following order:
   </data>
   <data name="Pin" xml:space="preserve">
     <value>Pin</value>
+  </data>
+  <data name="PluginSettingsDescription" xml:space="preserve">
+    <value>Manage and configure plugins</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>Plugins</value>
   </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>Privacy Policy</value>

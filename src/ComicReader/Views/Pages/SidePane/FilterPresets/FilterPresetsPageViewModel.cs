@@ -183,8 +183,9 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         DropDownButtonModel filterPresetDropdown = new()
         {
             Name = selectedFilter.Name,
-            Items = filters.ConvertAll(x => new ToggleMenuFlyoutItemModel(x.Name)
+            Items = filters.ConvertAll(x => new ToggleMenuFlyoutItemModel()
             {
+                Text = x.Name,
                 IsChecked = x.Name == selectedFilter.Name,
                 Click = () =>
                 {

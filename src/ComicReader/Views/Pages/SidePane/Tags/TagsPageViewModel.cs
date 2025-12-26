@@ -342,8 +342,9 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             selectedCategories = [primaryCategory];
         }
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Edit,
             Glyph = "\uE70F",
             Click = () =>
             {
@@ -351,8 +352,9 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             },
         });
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Delete)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Delete,
             Glyph = "\uE74D",
             Click = () =>
             {
@@ -384,14 +386,16 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             selectedTags = [primaryTag];
         }
 
-        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Links)
+        items.Add(new SubItemMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Links,
             Glyph = "\uE71B",
             Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(primaryTag.CategoryName, primaryTag.Name, _actionHandler),
         });
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Edit,
             Glyph = "\uE70F",
             Click = () =>
             {
@@ -399,8 +403,9 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             },
         });
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Delete)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Delete,
             Glyph = "\uE74D",
             Click = () =>
             {

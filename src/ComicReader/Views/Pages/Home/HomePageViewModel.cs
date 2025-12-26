@@ -784,8 +784,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         var viewTypeDropDown = new DropDownButtonModel
         {
             Name = StringResourceProvider.Instance.ViewType,
-            Items = _viewTypes.ConvertAll(x => new ToggleMenuFlyoutItemModel(ViewTypeToDisplayName(x))
+            Items = _viewTypes.ConvertAll(x => new ToggleMenuFlyoutItemModel()
             {
+                Text = ViewTypeToDisplayName(x),
                 IsChecked = x == lastFilter.ViewType,
                 Click = () =>
                 {
@@ -795,12 +796,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         };
 
         List<ComicPropertyModel> properties = await ComicPropertyModel.GetProperties();
-        var sortByDropDown = new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Sort)
+        var sortByDropDown = new SubItemMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Sort,
             Items = CreateSortByMenuItems(properties, lastFilter.SortBy, lastFilter.ComicOrderMethod),
         };
-        var groupByDropDown = new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Group)
+        var groupByDropDown = new SubItemMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Group,
             Items = CreateGroupByMenuItems(properties, lastFilter.GroupBy, lastFilter.GroupOrderMethod, lastFilter.GroupSortingFunction, lastFilter.GroupSortingProperty),
         };
         var sortAndGroupDropDown = new DropDownButtonModel
@@ -818,8 +821,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         var filterPresetDropDown = new DropDownButtonModel
         {
             Name = lastFilterName,
-            Items = filters.ConvertAll(x => new SimpleMenuFlyoutItemModel(x.Name)
+            Items = filters.ConvertAll(x => new SimpleMenuFlyoutItemModel()
             {
+                Text = x.Name,
                 Click = () => SelectFilterPreset(x.Name),
             }),
         };
@@ -991,8 +995,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     {
         List<BaseMenuFlyoutItemModel> items = [];
 
-        items.Add(new ToggleMenuFlyoutItemModel(StringResourceProvider.Instance.None)
+        items.Add(new ToggleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.None,
             IsChecked = selectedProperty is null,
             Click = () =>
             {
@@ -1041,8 +1046,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 });
             }));
 
-            items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.SortingFunction)
+            items.Add(new SubItemMenuFlyoutItemModel()
             {
+                Text = StringResourceProvider.Instance.SortingFunction,
                 Items = CreateSortingFunctionMenuItems(properties, sortingFunction, sortingProperty, (f, p) =>
                 {
                     SelectSortOrGroup(filter =>
@@ -1094,8 +1100,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         List<BaseMenuFlyoutItemModel> items = [];
         foreach (ComicFilterModel.OrderMethodEnum orderMethod in orderMethods)
         {
-            items.Add(new ToggleMenuFlyoutItemModel(GetOrderMethodDisplayName(orderMethod))
+            items.Add(new ToggleMenuFlyoutItemModel()
             {
+                Text = GetOrderMethodDisplayName(orderMethod),
                 IsChecked = orderMethod == selectedMethod,
                 Click = () =>
                 {
@@ -1139,8 +1146,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         foreach (ComicFilterModel.FunctionTypeEnum function in simpleFunctions)
         {
-            items.Add(new ToggleMenuFlyoutItemModel(GetFunctionDisplayName(function))
+            items.Add(new ToggleMenuFlyoutItemModel()
             {
+                Text = GetFunctionDisplayName(function),
                 IsChecked = function == sortingFunction,
                 Click = () =>
                 {
@@ -1155,8 +1163,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 clickHandler(function, p);
             });
-            items.Add(new SubItemMenuFlyoutItemModel(GetFunctionDisplayName(function))
+            items.Add(new SubItemMenuFlyoutItemModel()
             {
+                Text = GetFunctionDisplayName(function),
                 Items = subItems,
             });
         }
@@ -1200,8 +1209,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             foreach (ComicPropertyModel p in plainProperties)
             {
-                items.Add(new ToggleMenuFlyoutItemModel(p.DisplayName)
+                items.Add(new ToggleMenuFlyoutItemModel()
                 {
+                    Text = p.DisplayName,
                     IsChecked = p.Equals(selectedProperty),
                     Click = () =>
                     {
@@ -1216,8 +1226,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             List<BaseMenuFlyoutItemModel> subItems = [];
             foreach (ComicPropertyModel p in kvp.Value)
             {
-                subItems.Add(new ToggleMenuFlyoutItemModel(p.DisplayName)
+                subItems.Add(new ToggleMenuFlyoutItemModel()
                 {
+                    Text = p.DisplayName,
                     IsChecked = p.Equals(selectedProperty),
                     Click = () =>
                     {
@@ -1226,8 +1237,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 });
             }
 
-            items.Add(new SubItemMenuFlyoutItemModel(kvp.Key)
+            items.Add(new SubItemMenuFlyoutItemModel()
             {
+                Text = kvp.Key,
                 Items = subItems,
             });
         }

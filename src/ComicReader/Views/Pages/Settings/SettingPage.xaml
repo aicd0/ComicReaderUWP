@@ -51,7 +51,7 @@
                     <settings:SettingExpander
                         x:Uid="ImageLocationExpander"
                         Glyph="&#xEB9F;"
-                        IsExpanded="True">
+                        IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
                             <StackPanel Orientation="Vertical">
                                 <Button x:Uid="ChooseLocationButton" Click="ChooseLocationsClick" />
@@ -100,7 +100,7 @@
                     <settings:SettingExpander
                         x:Uid="ReaderExpander"
                         Glyph="&#xE736;"
-                        IsExpanded="True">
+                        IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
                             <StackPanel Orientation="Vertical">
                                 <TextBlock x:Uid="TransitionAnimation" Style="{StaticResource SettingsPageBodyTextBlock}" />
@@ -129,7 +129,7 @@
                         x:Uid="HistoryExpander"
                         Glyph="&#xE81C;"
                         Header="{x:Bind StringResource.History}"
-                        IsExpanded="True">
+                        IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
                             <StackPanel Orientation="Vertical">
                                 <Button
@@ -149,7 +149,7 @@
                     <settings:SettingExpander
                         x:Uid="AppearanceExpander"
                         Glyph="&#xE790;"
-                        IsExpanded="True">
+                        IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
                             <StackPanel Orientation="Vertical">
                                 <TextBlock
@@ -179,7 +179,7 @@
                     <settings:SettingExpander
                         x:Uid="LanguageExpander"
                         Glyph="&#xF2B7;"
-                        IsExpanded="True">
+                        IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
                             <StackPanel Orientation="Vertical">
                                 <TextBlock
@@ -201,7 +201,7 @@
                     <settings:SettingExpander
                         x:Uid="KeyboardShortcutsExpander"
                         Glyph="&#xE92E;"
-                        IsExpanded="True">
+                        IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -223,11 +223,22 @@
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>
 
+                    <!--  Plugins  -->
+                    <settings:SettingExpander
+                        Detail="{x:Bind StringResource.PluginSettingsDescription}"
+                        Glyph="&#xE74C;"
+                        Header="{x:Bind StringResource.Plugins}"
+                        IsExpanded="False">
+                        <settings:SettingExpander.InnerContent>
+                            <settings:PluginSettingsView x:Name="PluginSettingsSection" />
+                        </settings:SettingExpander.InnerContent>
+                    </settings:SettingExpander>
+
                     <!--  Advanced  -->
                     <settings:SettingExpander
                         x:Uid="AdvancedExpander"
                         Glyph="&#xEC7A;"
-                        IsExpanded="True">
+                        IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
                             <StackPanel Orientation="Vertical">
                                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">

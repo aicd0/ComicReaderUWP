@@ -44,6 +44,7 @@ internal sealed partial class SettingPage : BasePage
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Setting });
 
         ViewModel.Initialize(this);
+        PluginSettingsSection.Initialize(PageActionHandler);
         UpdateFeedback();
         UpdateAbout();
         UpdateDebugInformation();

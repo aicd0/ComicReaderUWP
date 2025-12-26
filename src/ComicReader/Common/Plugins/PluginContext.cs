@@ -25,13 +25,37 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Common.Plugins;
 
-internal class PluginContext(IPlugin plugin) : IPluginContext
+internal class PluginContext(IPlugin plugin, string assemblyPath) : IPluginContext
 {
     private const string TAG = nameof(PluginContext);
 
-    public IPlugin Plugin => plugin;
+    public string Name => _pluginName;
+    public string AssemblyPath => assemblyPath;
+    public PluginStatusEnum Status { get; private set; } = PluginStatusEnum.NotInitialized;
+    public string Publisher => plugin.Publisher;
+    public string Version => $"{plugin.MajorVersion}.{plugin.MinorVersion}";
 
     private readonly string _pluginName = plugin.Name;
+
+    //
+    // Internal API
+    //
+
+    public void Initialize()
+    {
+        try
+        {
+            plugin.Initialize(this);
+        }
+        catch (Exception ex)
+        {
+            Logger.E(TAG, $"Failed to initialize plugin: {_pluginName}", ex);
+            Status = PluginStatusEnum.Error;
+            return;
+        }
+
+        Status = PluginStatusEnum.Initialized;
+    }
 
     //
     // Database API
@@ -154,20 +178,23 @@ internal class PluginContext(IPlugin plugin) : IPluginContext
     {
         return item switch
         {
-            SimpleMenuItem simpleMenuItem => new SimpleMenuFlyoutItemModel(simpleMenuItem.Text)
+            SimpleMenuItem simpleMenuItem => new SimpleMenuFlyoutItemModel()
             {
+                Text = simpleMenuItem.Text,
                 Glyph = simpleMenuItem.Glyph,
                 IsEnabled = simpleMenuItem.IsEnabled,
                 Click = simpleMenuItem.Click,
             },
             SeparatorMenuItem => new SeparatorMenuFlyoutItemModel(),
-            ToggleMenuItem toggleMenuItem => new ToggleMenuFlyoutItemModel(toggleMenuItem.Text)
+            ToggleMenuItem toggleMenuItem => new ToggleMenuFlyoutItemModel()
             {
+                Text = toggleMenuItem.Text,
                 IsChecked = toggleMenuItem.IsChecked,
                 Click = toggleMenuItem.Click,
             },
-            SubItemMenuItem subItemMenuItem => new SubItemMenuFlyoutItemModel(subItemMenuItem.Text)
+            SubItemMenuItem subItemMenuItem => new SubItemMenuFlyoutItemModel()
             {
+                Text = subItemMenuItem.Text,
                 Glyph = subItemMenuItem.Glyph,
                 Items = [.. subItemMenuItem.Items.Select(CreateHostMenuFlyoutItem)],
             },

@@ -2,17 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using ComicReader.Common.Plugins;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.ServiceManagement;
-using ComicReader.SDK.Plugins;
 
 using Windows.Storage;
 
@@ -192,14 +189,6 @@ internal class ApplicationService : IApplicationService
     public bool IsShuttingDown()
     {
         return _shuttingDown;
-    }
-
-    public IEnumerable<IPlugin> GetLoadedPlugins()
-    {
-        foreach (PluginContext context in PluginManager.Instance.GetAllPluginContext())
-        {
-            yield return context.Plugin;
-        }
     }
 
     private class ConfigJsonModel

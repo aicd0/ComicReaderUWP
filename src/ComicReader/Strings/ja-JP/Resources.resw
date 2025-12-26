@@ -287,6 +287,12 @@ $comics</value>
   <data name="DiffMode" xml:space="preserve">
     <value>差分モード</value>
   </data>
+  <data name="Disable" xml:space="preserve">
+    <value>無効にする</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>無効</value>
+  </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>免責事項</value>
   </data>
@@ -301,6 +307,12 @@ $comics</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>プリセットを編集</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>有効にする</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>有効</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>全画面表示</value>
@@ -593,6 +605,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="OpenInNewTab" xml:space="preserve">
     <value>新しいタブで開く</value>
   </data>
+  <data name="OpenPluginsFolder" xml:space="preserve">
+    <value>プラグインフォルダーを開く</value>
+  </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>サイドバーを開く</value>
   </data>
@@ -628,6 +643,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Pin" xml:space="preserve">
     <value>ピン留めする</value>
+  </data>
+  <data name="PluginSettingsDescription" xml:space="preserve">
+    <value>プラグインの管理と設定</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>プラグイン</value>
   </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>プライバシーポリシー</value>

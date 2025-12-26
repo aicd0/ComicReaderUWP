@@ -7,5 +7,11 @@ public interface IPlugin
 {
     string Name { get; }
 
+    string Publisher { get; }
+
+    int MajorVersion { get; }
+
+    int MinorVersion { get; }
+
     void Initialize(IPluginContext context);
 }
