@@ -2,9 +2,9 @@
     x:Class="ComicReader.Views.Pages.Home.HomePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:adaptivegrid="using:ComicReader.UserControls.AdaptiveGrid"
     xmlns:base="using:ComicReader.Common.BaseUI"
     xmlns:comicitemview="using:ComicReader.UserControls.ComicItemView"
-    xmlns:controls="using:ComicReader.UserControls"
     xmlns:converters="using:ComicReader.Converters"
     xmlns:cw="using:CommunityToolkit.WinUI"
     xmlns:cwc="using:CommunityToolkit.WinUI.Controls"
@@ -89,7 +89,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <controls:AdaptiveGridView
+            <adaptivegrid:AdaptiveGridView
                 x:Name="ComicGridView"
                 Grid.Row="0"
                 Margin="0,0,-1,0"
@@ -104,7 +104,7 @@
                 Style="{StaticResource HomePageAdaptiveGridViewStyle}"
                 Tapped="ComicGridView_Tapped"
                 Unloaded="ComicGridView_Unloaded">
-                <controls:AdaptiveGridView.GroupStyle>
+                <adaptivegrid:AdaptiveGridView.GroupStyle>
                     <GroupStyle HeaderContainerStyle="{StaticResource ComicGroupHeaderContainerStyle}">
                         <GroupStyle.HeaderTemplate>
                             <DataTemplate x:DataType="vm:ComicGroupViewModel">
@@ -136,13 +136,13 @@
                             </DataTemplate>
                         </GroupStyle.HeaderTemplate>
                     </GroupStyle>
-                </controls:AdaptiveGridView.GroupStyle>
-                <controls:AdaptiveGridView.ItemsPanel>
+                </adaptivegrid:AdaptiveGridView.GroupStyle>
+                <adaptivegrid:AdaptiveGridView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsWrapGrid AreStickyGroupHeadersEnabled="False" Orientation="Horizontal" />
                     </ItemsPanelTemplate>
-                </controls:AdaptiveGridView.ItemsPanel>
-                <controls:AdaptiveGridView.Header>
+                </adaptivegrid:AdaptiveGridView.ItemsPanel>
+                <adaptivegrid:AdaptiveGridView.Header>
                     <StackPanel Orientation="Vertical">
                         <Grid Height="52" />
                         <Grid
@@ -178,8 +178,8 @@
                             </RichTextBlock>
                         </Grid>
                     </StackPanel>
-                </controls:AdaptiveGridView.Header>
-            </controls:AdaptiveGridView>
+                </adaptivegrid:AdaptiveGridView.Header>
+            </adaptivegrid:AdaptiveGridView>
 
             <!--  Command Bar  -->
             <Grid

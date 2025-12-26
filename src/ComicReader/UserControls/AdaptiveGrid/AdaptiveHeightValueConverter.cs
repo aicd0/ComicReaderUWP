@@ -13,7 +13,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 
-namespace ComicReader.UserControls;
+namespace ComicReader.UserControls.AdaptiveGrid;
 
 internal class AdaptiveHeightValueConverter(int maxRows) : IValueConverter
 {
