@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 
+using ComicReader.Common.Localization;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;

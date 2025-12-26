@@ -3,7 +3,7 @@
 
 using System.ComponentModel;
 
-using ComicReader.Common;
+using ComicReader.Common.Localization;
 
 namespace ComicReader.Views.Pages.Main;
 

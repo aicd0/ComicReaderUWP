@@ -6,7 +6,7 @@ using ComicReader.Data.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Misc;
 
 internal class AppearanceManager
 {

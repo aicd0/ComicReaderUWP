@@ -7,9 +7,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 
-using ComicReader.Common;
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
+using ComicReader.Common.Localization;
 using ComicReader.Common.Plugins;
 using ComicReader.Common.Services;
 using ComicReader.Helpers.MenuFlyoutHelpers;

@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 
 using ComicReader.Common.Imaging;
+using ComicReader.Common.Misc;
 using ComicReader.Common.Plugins;
 using ComicReader.Common.Services;
 using ComicReader.Data;

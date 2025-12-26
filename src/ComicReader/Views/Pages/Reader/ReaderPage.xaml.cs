@@ -7,12 +7,13 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
 using ComicReader.Common.Legacy;
+using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;

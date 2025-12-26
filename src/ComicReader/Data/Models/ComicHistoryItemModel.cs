@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
+using ComicReader.Common.Misc;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Database.SqlHelpers;
 

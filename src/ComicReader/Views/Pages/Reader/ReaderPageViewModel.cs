@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.Expression;

@@ -8,9 +8,10 @@ using System.Text.RegularExpressions;
 
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Providers;
+using ComicReader.Common.Localization;
 using ComicReader.SDK.Common.DebugTools;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Misc;
 
 internal partial class EventRecorder
 {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReader.Common.Localization;
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.ServiceManagement;

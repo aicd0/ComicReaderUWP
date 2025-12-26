@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-using ComicReader.Common;
+using ComicReader.Common.Localization;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.Utils;

@@ -6,9 +6,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.InitTask;
 using ComicReader.Common.Legacy;
+using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;

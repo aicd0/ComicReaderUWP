@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-using ComicReader.Common;
 using ComicReader.Common.Actions;
+using ComicReader.Common.Localization;
 using ComicReader.Common.Plugins;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.Algorithm;

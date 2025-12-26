@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Misc;
 
 public class AppInfoProvider
 {

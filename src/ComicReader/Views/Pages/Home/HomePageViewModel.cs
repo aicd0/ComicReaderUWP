@@ -9,8 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Actions;
+using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;

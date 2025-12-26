@@ -4,8 +4,9 @@
 using System;
 using System.Text;
 
-using ComicReader.Common;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;

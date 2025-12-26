@@ -3,7 +3,7 @@
 
 using Microsoft.Windows.ApplicationModel.Resources;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Localization;
 
 public class StringResourceProvider
 {

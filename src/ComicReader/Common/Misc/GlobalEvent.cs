@@ -6,7 +6,7 @@ using System;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Lifecycle.Utils;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Misc;
 
 internal class GlobalEvent
 {

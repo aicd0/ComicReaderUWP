@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Misc;
 
 internal static class BusyStateManager
 {

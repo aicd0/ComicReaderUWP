@@ -16,7 +16,7 @@ using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.KV;
 using ComicReader.Views.AppWindows.Main;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Misc;
 
 class WindowManager
 {

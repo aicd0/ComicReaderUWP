@@ -5,9 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Constants;
+using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;

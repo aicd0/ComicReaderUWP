@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Imaging;
+using ComicReader.Common.Localization;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models;
 using ComicReader.SDK.Common.DebugTools;

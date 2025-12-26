@@ -5,7 +5,7 @@ using ComicReader.SDK.Common.DebugTools;
 
 using Microsoft.UI.Xaml.Input;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Misc;
 
 internal static class FocusTracker
 {

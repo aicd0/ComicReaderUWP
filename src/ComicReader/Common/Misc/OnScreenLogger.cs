@@ -7,7 +7,7 @@ using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.KV;
 
-namespace ComicReader.Common;
+namespace ComicReader.Common.Misc;
 
 internal static class OnscreenLogger
 {

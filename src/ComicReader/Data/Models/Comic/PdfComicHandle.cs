@@ -7,8 +7,8 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Legacy;
+using ComicReader.Common.Localization;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Pdf;

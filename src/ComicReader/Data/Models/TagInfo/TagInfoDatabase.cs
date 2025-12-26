@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
+using ComicReader.Common.Misc;
 
 namespace ComicReader.Data.Models.TagInfo;
 

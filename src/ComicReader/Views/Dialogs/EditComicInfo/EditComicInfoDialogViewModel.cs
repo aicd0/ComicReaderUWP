@@ -10,8 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Common.Plugins;
 using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;

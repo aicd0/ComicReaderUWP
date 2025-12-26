@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using ComicReader.Common.Localization;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.DataModels;
