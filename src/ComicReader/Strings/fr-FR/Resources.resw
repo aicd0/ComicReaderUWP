@@ -287,6 +287,12 @@ $comics</value>
   <data name="DiffMode" xml:space="preserve">
     <value>Mode différentiel</value>
   </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Désactiver</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Désactivé</value>
+  </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>Clause de non-responsabilité</value>
   </data>
@@ -301,6 +307,12 @@ $comics</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Modifier le préréglage</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Activer</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Activé</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Entrer en plein écran</value>
@@ -593,6 +605,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Ouvrir dans un nouvel onglet</value>
   </data>
+  <data name="OpenPluginsFolder" xml:space="preserve">
+    <value>Ouvrir le dossier des plugins</value>
+  </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Ouvrir la barre latérale</value>
   </data>
@@ -628,6 +643,12 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="Pin" xml:space="preserve">
     <value>Épingler</value>
+  </data>
+  <data name="PluginSettingsDescription" xml:space="preserve">
+    <value>Gérer et configurer les extensions</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>Extensions</value>
   </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>politique de confidentialité</value>

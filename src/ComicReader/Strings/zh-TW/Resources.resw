@@ -287,6 +287,12 @@ $comics</value>
   <data name="DiffMode" xml:space="preserve">
     <value>差異模式</value>
   </data>
+  <data name="Disable" xml:space="preserve">
+    <value>停用</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>已停用</value>
+  </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>免責聲明</value>
   </data>
@@ -301,6 +307,12 @@ $comics</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>編輯預設</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>啟用</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>已啟用</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>進入全螢幕</value>
@@ -593,6 +605,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="OpenInNewTab" xml:space="preserve">
     <value>在新分頁中開啟</value>
   </data>
+  <data name="OpenPluginsFolder" xml:space="preserve">
+    <value>打開外掛資料夾</value>
+  </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>打開側邊欄</value>
   </data>
@@ -628,6 +643,12 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="Pin" xml:space="preserve">
     <value>固定</value>
+  </data>
+  <data name="PluginSettingsDescription" xml:space="preserve">
+    <value>管理與設定外掛程式</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>外掛程式</value>
   </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>隱私權策略</value>

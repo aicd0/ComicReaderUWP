@@ -530,14 +530,16 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     {
         List<BaseMenuFlyoutItemModel> items = [];
 
-        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Links)
+        items.Add(new SubItemMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Links,
             Glyph = "\uE71B",
             Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(tagCategory, tag, _actionHandler),
         });
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Edit,
             Glyph = "\uE70F",
             Click = () =>
             {
@@ -547,8 +549,9 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         items.Add(new SeparatorMenuFlyoutItemModel());
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Delete)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Delete,
             Glyph = "\uE74D",
             Click = () =>
             {

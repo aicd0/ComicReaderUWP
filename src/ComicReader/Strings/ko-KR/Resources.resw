@@ -287,6 +287,12 @@ $comics</value>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff 모드</value>
   </data>
+  <data name="Disable" xml:space="preserve">
+    <value>비활성화</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>비활성화됨</value>
+  </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>부인 성명</value>
   </data>
@@ -301,6 +307,12 @@ $comics</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>프리셋 편집</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>활성화</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>활성화됨</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>전체 화면으로 전환</value>
@@ -594,6 +606,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="OpenInNewTab" xml:space="preserve">
     <value>새 탭에서 열기</value>
   </data>
+  <data name="OpenPluginsFolder" xml:space="preserve">
+    <value>플러그인 폴더 열기</value>
+  </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>사이드바 열기</value>
   </data>
@@ -629,6 +644,12 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Pin" xml:space="preserve">
     <value>고정</value>
+  </data>
+  <data name="PluginSettingsDescription" xml:space="preserve">
+    <value>플러그인 관리 및 구성</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>플러그인</value>
   </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>개인정보 보호정책</value>

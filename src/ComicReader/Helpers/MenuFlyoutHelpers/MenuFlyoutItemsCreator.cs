@@ -49,7 +49,7 @@ internal static class MenuFlyoutItemsCreator
             primaryComicRoute.WithParam(RouterConstants.ARG_COMIC_ID, primaryComic.Id.ToString());
         }
 
-        var pluginItems = PluginManager.Instance.GetAllPluginContext()
+        var pluginItems = PluginManager.Instance.GetActivePlugins()
             .SelectMany(ctx => ctx.GetComicMenuItems(primaryComic, selectedComics))
             .ToImmutableList();
 
@@ -57,8 +57,9 @@ internal static class MenuFlyoutItemsCreator
 
         if (canOpenInCurrentTab)
         {
-            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Open)
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
+                Text = StringResourceProvider.Instance.Open,
                 Glyph = "\uE8B9",
                 Click = () =>
                 {
@@ -71,8 +72,9 @@ internal static class MenuFlyoutItemsCreator
             });
         }
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.OpenInNewTab)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.OpenInNewTab,
             Glyph = "\uE8A5",
             Click = () =>
             {
@@ -83,22 +85,25 @@ internal static class MenuFlyoutItemsCreator
             },
         });
 
-        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.SendToWindow)
+        items.Add(new SubItemMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.SendToWindow,
             Glyph = "\uE78B",
             Items = CreateSendToWindowMenuItems(primaryComicRoute.Url, actionHandler),
         });
 
         items.Add(new SeparatorMenuFlyoutItemModel());
 
-        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Links)
+        items.Add(new SubItemMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Links,
             Glyph = "\uE71B",
             Items = await CreateComicLinkMenuItems(primaryComic, actionHandler),
         });
 
-        items.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.Tags)
+        items.Add(new SubItemMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Tags,
             Glyph = "\uE8EC",
             Items = CreateComicTagMenuItems(primaryComic, actionHandler),
         });
@@ -110,8 +115,9 @@ internal static class MenuFlyoutItemsCreator
             bool isFavorite = FavoriteModel.Instance.FromId(primaryComic.Id) != null;
             if (isFavorite)
             {
-                items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.RemoveFromFavorites)
+                items.Add(new SimpleMenuFlyoutItemModel()
                 {
+                    Text = StringResourceProvider.Instance.RemoveFromFavorites,
                     Glyph = "\uE8D9",
                     Click = () =>
                     {
@@ -122,8 +128,9 @@ internal static class MenuFlyoutItemsCreator
             }
             else
             {
-                items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.AddToFavorites)
+                items.Add(new SimpleMenuFlyoutItemModel()
                 {
+                    Text = StringResourceProvider.Instance.AddToFavorites,
                     Glyph = "\uE734",
                     Click = () =>
                     {
@@ -138,13 +145,15 @@ internal static class MenuFlyoutItemsCreator
             }
 
             {
-                SubItemMenuFlyoutItemModel groupItem = new(StringResourceProvider.Instance.SetCompletionState)
+                SubItemMenuFlyoutItemModel groupItem = new()
                 {
+                    Text = StringResourceProvider.Instance.SetCompletionState,
                     Glyph = "\uE7C1",
                 };
 
-                groupItem.Items.Add(new ToggleMenuFlyoutItemModel(StringResourceProvider.Instance.CompletionStatusUnread)
+                groupItem.Items.Add(new ToggleMenuFlyoutItemModel()
                 {
+                    Text = StringResourceProvider.Instance.CompletionStatusUnread,
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.NotStarted,
                     Click = () =>
                     {
@@ -155,8 +164,9 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
 
-                groupItem.Items.Add(new ToggleMenuFlyoutItemModel(StringResourceProvider.Instance.CompletionStatusReading)
+                groupItem.Items.Add(new ToggleMenuFlyoutItemModel()
                 {
+                    Text = StringResourceProvider.Instance.CompletionStatusReading,
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Started,
                     Click = () =>
                     {
@@ -167,8 +177,9 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
 
-                groupItem.Items.Add(new ToggleMenuFlyoutItemModel(StringResourceProvider.Instance.CompletionStatusFinished)
+                groupItem.Items.Add(new ToggleMenuFlyoutItemModel()
                 {
+                    Text = StringResourceProvider.Instance.CompletionStatusFinished,
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Completed,
                     Click = () =>
                     {
@@ -184,8 +195,9 @@ internal static class MenuFlyoutItemsCreator
 
             if (primaryComic.Hidden)
             {
-                items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Unhide)
+                items.Add(new SimpleMenuFlyoutItemModel()
                 {
+                    Text = StringResourceProvider.Instance.Unhide,
                     Glyph = "\uE7B3",
                     Click = () =>
                     {
@@ -198,8 +210,9 @@ internal static class MenuFlyoutItemsCreator
             }
             else
             {
-                items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Hide)
+                items.Add(new SimpleMenuFlyoutItemModel()
                 {
+                    Text = StringResourceProvider.Instance.Hide,
                     Glyph = "\uED1A",
                     Click = () =>
                     {
@@ -211,8 +224,9 @@ internal static class MenuFlyoutItemsCreator
                 });
             }
 
-            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Edit)
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
+                Text = StringResourceProvider.Instance.Edit,
                 Glyph = "\uE70F",
                 Click = () =>
                 {
@@ -228,8 +242,9 @@ internal static class MenuFlyoutItemsCreator
 
         items.Add(new SeparatorMenuFlyoutItemModel());
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.OpenInFileExplorer)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.OpenInFileExplorer,
             Glyph = "\uE838",
             Click = () =>
             {
@@ -287,8 +302,9 @@ internal static class MenuFlyoutItemsCreator
 
     public static BaseMenuFlyoutItemModel CreateSelectMenuItem(ActionHandler actionHandler)
     {
-        return new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Select)
+        return new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Select,
             Glyph = "\uE762",
             Click = () =>
             {
@@ -309,21 +325,24 @@ internal static class MenuFlyoutItemsCreator
 
         if (randomComic is not null)
         {
-            result.Add(new SubItemMenuFlyoutItemModel(StringResourceProvider.Instance.RandomComic)
+            result.Add(new SubItemMenuFlyoutItemModel()
             {
+                Text = StringResourceProvider.Instance.RandomComic,
                 Glyph = "\uE8B1",
                 Items = await CreateComicMenuItems(randomComic, actionHandler, canOpenInCurrentTab: true),
             });
         }
 
-        result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.ExpandAll)
+        result.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.ExpandAll,
             Glyph = "\uECCD",
             Click = expandAllHandler,
         });
 
-        result.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.CollapseAll)
+        result.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.CollapseAll,
             Glyph = "\uF165",
             Click = collapseAllHandler,
         });
@@ -368,8 +387,9 @@ internal static class MenuFlyoutItemsCreator
                 name += $" ({title})";
             }
 
-            items.Add(new SimpleMenuFlyoutItemModel(name)
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
+                Text = name,
                 Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
@@ -382,8 +402,9 @@ internal static class MenuFlyoutItemsCreator
             });
         }
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.NewWindow)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.NewWindow,
             Click = () =>
             {
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
@@ -451,8 +472,9 @@ internal static class MenuFlyoutItemsCreator
         {
             foreach (TagLinkModel.LinkModel link in links)
             {
-                items.Add(new SimpleMenuFlyoutItemModel(link.Name)
+                items.Add(new SimpleMenuFlyoutItemModel()
                 {
+                    Text = link.Name,
                     Click = () =>
                     {
                         if (StringUtils.TryNormalizeWebUrl(link.Link, out Uri? uri))
@@ -473,8 +495,9 @@ internal static class MenuFlyoutItemsCreator
         }
         else
         {
-            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.None)
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
+                Text = StringResourceProvider.Instance.None,
                 IsEnabled = false,
             });
         }
@@ -495,8 +518,9 @@ internal static class MenuFlyoutItemsCreator
             foreach ((string Category, string Tag) pair in tags)
             {
                 string name = $"{pair.Tag} ({pair.Category})";
-                items.Add(new SimpleMenuFlyoutItemModel(name)
+                items.Add(new SimpleMenuFlyoutItemModel()
                 {
+                    Text = name,
                     Click = () =>
                     {
                         string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(pair.Category)}\"=\"{ExpressionUtils.EscapeString(pair.Tag)}\"";
@@ -512,8 +536,9 @@ internal static class MenuFlyoutItemsCreator
         }
         else
         {
-            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.None)
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
+                Text = StringResourceProvider.Instance.None,
                 IsEnabled = false,
             });
         }

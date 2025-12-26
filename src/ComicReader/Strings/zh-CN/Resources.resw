@@ -287,6 +287,12 @@ $comics</value>
   <data name="DiffMode" xml:space="preserve">
     <value>差异模式</value>
   </data>
+  <data name="Disable" xml:space="preserve">
+    <value>禁用</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>已禁用</value>
+  </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>免责声明</value>
   </data>
@@ -301,6 +307,12 @@ $comics</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>编辑预设</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>已启用</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>进入全屏</value>
@@ -593,6 +605,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="OpenInNewTab" xml:space="preserve">
     <value>在新选项卡中打开</value>
   </data>
+  <data name="OpenPluginsFolder" xml:space="preserve">
+    <value>打开插件文件夹</value>
+  </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>打开侧边栏</value>
   </data>
@@ -628,6 +643,12 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="Pin" xml:space="preserve">
     <value>固定</value>
+  </data>
+  <data name="PluginSettingsDescription" xml:space="preserve">
+    <value>管理和配置插件</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>插件</value>
   </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>隐私策略</value>

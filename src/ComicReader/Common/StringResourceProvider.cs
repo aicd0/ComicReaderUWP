@@ -55,9 +55,13 @@ public class StringResourceProvider
     public string Description => GetResourceString("Description");
     public string DevAppDisplayName => GetResourceString("DevAppDisplayName");
     public string DiffMode => GetResourceString("DiffMode");
+    public string Disable => GetResourceString("Disable");
+    public string Disabled => GetResourceString("Disabled");
     public string Done => GetResourceString("Done");
     public string Edit => GetResourceString("Edit");
     public string EditPreset => GetResourceString("EditPreset");
+    public string Enable => GetResourceString("Enable");
+    public string Enabled => GetResourceString("Enabled");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
     public string EnterNewTags => GetResourceString("EnterNewTags");
     public string EnterNewTagsHint => GetResourceString("EnterNewTagsHint");
@@ -110,6 +114,7 @@ public class StringResourceProvider
     public string Open => GetResourceString("Open");
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
+    public string OpenPluginsFolder => GetResourceString("OpenPluginsFolder");
     public string OpenSidebar => GetResourceString("OpenSidebar");
     public string OpenUserDataFolder => GetResourceString("OpenUserDataFolder");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
@@ -122,6 +127,8 @@ public class StringResourceProvider
     public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
     public string PageN => GetResourceString("PageN");
     public string Pin => GetResourceString("Pin");
+    public string PluginSettingsDescription => GetResourceString("PluginSettingsDescription");
+    public string Plugins => GetResourceString("Plugins");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
     public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");

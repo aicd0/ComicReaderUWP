@@ -276,8 +276,9 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         foreach (Tuple<string, string> preset in presets)
         {
             string presetKey = preset.Item2;
-            items.Add(new ToggleMenuFlyoutItemModel(preset.Item1)
+            items.Add(new ToggleMenuFlyoutItemModel()
             {
+                Text = preset.Item1,
                 IsChecked = _model.PresetKey == presetKey,
                 Click = () =>
                 {

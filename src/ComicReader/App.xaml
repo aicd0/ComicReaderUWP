@@ -24,16 +24,17 @@
                             <SolidColorBrush x:Key="ForegroundGrey1" Color="#404040" />
                             <SolidColorBrush x:Key="ForegroundGrey2" Color="#858585" />
                             <SolidColorBrush x:Key="HistoryGroupHeaderBackground" Color="#404040" />
+                            <SolidColorBrush x:Key="HomeHeaderBackground" Color="#282828" />
                             <SolidColorBrush x:Key="ImagePlaceHolderBackground" Color="#505050" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#505050" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#555555" />
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#000000" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#60FFFFFF" />
-                            <SolidColorBrush x:Key="HomeHeaderBackground" Color="#282828" />
+                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#000000" />
+                            <SolidColorBrush x:Key="SettingsListViewBackground" Color="#10000000" />
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#000000" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#282828" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#505050" />
-                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#000000" />
                             <muxm:AcrylicBrush
                                 x:Key="TitleBarBackground"
                                 FallbackColor="#202020"
@@ -54,16 +55,17 @@
                             <SolidColorBrush x:Key="ForegroundGrey1" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ForegroundGrey2" Color="#858585" />
                             <SolidColorBrush x:Key="HistoryGroupHeaderBackground" Color="#DADADA" />
+                            <SolidColorBrush x:Key="HomeHeaderBackground" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="ImagePlaceHolderBackground" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#D0D0D0" />
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#30000000" />
-                            <SolidColorBrush x:Key="HomeHeaderBackground" Color="#FAF8FC" />
+                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="SettingsListViewBackground" Color="#80FFFFFF" />
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#DADADA" />
-                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#FFFFFF" />
                             <muxm:AcrylicBrush
                                 x:Key="TitleBarBackground"
                                 FallbackColor="#FFFFFF"
@@ -84,16 +86,17 @@
                             <SolidColorBrush x:Key="ForegroundGrey1" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ForegroundGrey2" Color="#858585" />
                             <SolidColorBrush x:Key="HistoryGroupHeaderBackground" Color="#DADADA" />
+                            <SolidColorBrush x:Key="HomeHeaderBackground" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="ImagePlaceHolderBackground" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#505050" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#555555" />
                             <SolidColorBrush x:Key="NavigationPageTopTileBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="PageDemoBrush" Color="#000000" />
-                            <SolidColorBrush x:Key="HomeHeaderBackground" Color="#FAF8FC" />
+                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#FFFFFF" />
+                            <SolidColorBrush x:Key="SettingsListViewBackground" Color="#FFFFFF" />
                             <SolidColorBrush x:Key="SidePaneBorderBrush" Color="#E6E3EA" />
                             <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Color="#FAF8FC" />
                             <SolidColorBrush x:Key="TagButtonBackground" Color="#DADADA" />
-                            <SolidColorBrush x:Key="ReaderFullscreenBackground" Color="#FFFFFF" />
                             <SolidColorBrush x:Key="TitleBarBackground" Color="#FFFFFF" />
                             <SolidColorBrush x:Key="TipBackground" Color="#DADADA" />
                         </ResourceDictionary>

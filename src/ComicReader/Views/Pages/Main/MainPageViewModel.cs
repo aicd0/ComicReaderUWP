@@ -197,14 +197,15 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     public void UpdateMoreMenuItems()
     {
-        var pluginItems = PluginManager.Instance.GetAllPluginContext()
+        var pluginItems = PluginManager.Instance.GetActivePlugins()
             .SelectMany(ctx => ctx.GetMainPageMoreMenuItems())
             .ToImmutableList();
 
         List<BaseMenuFlyoutItemModel> items = [];
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.NewTab)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.NewTab,
             Glyph = "\uE8A5",
             Click = () =>
             {
@@ -217,8 +218,9 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             },
         });
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.NewWindow)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.NewWindow,
             Glyph = "\uE78B",
             Click = () =>
             {
@@ -235,8 +237,9 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
         if (_isFullscreen)
         {
-            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.ExitFullscreen)
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
+                Text = StringResourceProvider.Instance.ExitFullscreen,
                 Glyph = "\uE73F",
                 Click = () =>
                 {
@@ -249,8 +252,9 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
         else
         {
-            items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.EnterFullscreen)
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
+                Text = StringResourceProvider.Instance.EnterFullscreen,
                 Glyph = "\uE740",
                 Click = () =>
                 {
@@ -270,8 +274,9 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
         items.Add(new SeparatorMenuFlyoutItemModel());
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Settings)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Settings,
             Glyph = "\uE713",
             Click = () =>
             {
@@ -286,8 +291,9 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
         if (DebugUtils.DeveloperMode)
         {
-            items.Add(new SimpleMenuFlyoutItemModel("Dev tools")
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
+                Text = "Dev tools",
                 Glyph = "\uEC7A",
                 Click = () =>
                 {
@@ -301,8 +307,9 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             });
         }
 
-        items.Add(new SimpleMenuFlyoutItemModel(StringResourceProvider.Instance.Exit)
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.Exit,
             Click = () =>
             {
                 ApplicationService.StartShuttingDown();

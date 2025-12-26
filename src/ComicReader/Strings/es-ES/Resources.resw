@@ -287,6 +287,12 @@ $comics</value>
   <data name="DiffMode" xml:space="preserve">
     <value>Modo diferencial</value>
   </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Deshabilitar</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Deshabilitado</value>
+  </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>Descargo de responsabilidad</value>
   </data>
@@ -301,6 +307,12 @@ $comics</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Editar ajuste preestablecido</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Habilitar</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Habilitado</value>
   </data>
   <data name="EnterFullscreen" xml:space="preserve">
     <value>Entrar en pantalla completa</value>
@@ -593,6 +605,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Abrir en nueva pestaña</value>
   </data>
+  <data name="OpenPluginsFolder" xml:space="preserve">
+    <value>Abrir carpeta de plugins</value>
+  </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Abrir la barra lateral</value>
   </data>
@@ -628,6 +643,12 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="Pin" xml:space="preserve">
     <value>Fijar</value>
+  </data>
+  <data name="PluginSettingsDescription" xml:space="preserve">
+    <value>Administrar y configurar complementos</value>
+  </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>Complementos</value>
   </data>
   <data name="PrivacyPolicy.Text" xml:space="preserve">
     <value>política de privacidad</value>

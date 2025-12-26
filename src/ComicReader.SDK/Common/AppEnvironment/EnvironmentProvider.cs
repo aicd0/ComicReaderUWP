@@ -61,7 +61,6 @@ public class EnvironmentProvider
         sb.SafeAppend("Host version", GetHostVersion);
         sb.SafeAppend("Installed system language", GetInstalledSystemLanguage);
         sb.SafeAppend("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
-        sb.SafeAppend("Loaded plugins", GetLoadedPlugins);
         sb.SafeAppend("OEM name", DeviceInformationHelper.Instance.GetDeviceOemName);
         sb.SafeAppend("OS architecture", () => RuntimeInformation.OSArchitecture);
         sb.SafeAppend("OS build", DeviceInformationHelper.Instance.GetOsBuild);
@@ -282,24 +281,5 @@ public class EnvironmentProvider
         }
 
         return results;
-    }
-
-    private static string GetLoadedPlugins()
-    {
-        StringBuilder sb = new("[");
-        bool first = true;
-        foreach (IPlugin plugin in ServiceManager.GetService<IApplicationService>().GetLoadedPlugins())
-        {
-            if (!first)
-            {
-                sb.Append(", ");
-            }
-
-            sb.Append(plugin.Name);
-            first = false;
-        }
-
-        sb.Append(']');
-        return sb.ToString();
     }
 }

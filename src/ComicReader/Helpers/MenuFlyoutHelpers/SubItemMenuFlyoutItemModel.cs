@@ -7,9 +7,9 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Helpers.MenuFlyoutHelpers;
 
-internal class SubItemMenuFlyoutItemModel(string text) : BaseMenuFlyoutItemModel
+internal class SubItemMenuFlyoutItemModel() : BaseMenuFlyoutItemModel
 {
-    public string Text { get; set; } = text;
+    public required string Text { get; set; }
     public string? Glyph { get; set; }
     public List<BaseMenuFlyoutItemModel> Items { get; set; } = [];
 

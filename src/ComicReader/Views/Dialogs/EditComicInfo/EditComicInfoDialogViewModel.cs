@@ -242,7 +242,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
 
             foreach (ComicModel comic in _comics)
             {
-                foreach (PluginContext plugin in PluginManager.Instance.GetAllPluginContext())
+                foreach (PluginContext plugin in PluginManager.Instance.GetActivePlugins())
                 {
                     plugin.DispatchComicEditedEvent(comic);
                 }
