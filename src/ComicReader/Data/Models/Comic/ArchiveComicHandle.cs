@@ -230,7 +230,7 @@ internal partial class ArchiveComicHandle : ComicHandle
 
         public int GetImageSignature(int index)
         {
-            return FileUtils.GetFileHashCode(_archiveFile.Path);
+            return FileUtils.GetFileSignature(_archiveFile.Path);
         }
     }
 }

@@ -2,8 +2,9 @@
 // Licensed under the MIT License.
 
 using System.Collections.Concurrent;
-using System.Security.Cryptography;
 using System.Text;
+
+using ComicReader.SDK.Common.Utils;
 
 namespace ComicReader.SDK.Database.KV;
 
@@ -49,8 +50,8 @@ public static class KVStore
     public static IKVDatabase Plugin(string pluginName)
     {
         byte[] bytes = Encoding.UTF8.GetBytes(pluginName);
-        byte[] hash = SHA256.HashData(bytes);
-        string hashString = Convert.ToHexString(hash)[..8].ToLower();
+        byte[] hash = HashUtils.GetXxHash64(bytes);
+        string hashString = Convert.ToHexString(hash)[..8].ToLowerInvariant();
         return GetDatabase($"plugin_{hashString}");
     }
 }

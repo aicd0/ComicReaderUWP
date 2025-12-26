@@ -235,7 +235,7 @@ internal partial class FolderComicHandle : ComicHandle
                 return 0;
             }
 
-            return FileUtils.GetFileHashCode(_imageFiles[index]);
+            return FileUtils.GetFileSignature(_imageFiles[index]);
         }
     }
 }

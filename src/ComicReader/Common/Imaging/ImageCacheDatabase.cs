@@ -5,14 +5,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Utils;
 
 using Microsoft.Data.Sqlite;
 
@@ -121,9 +119,8 @@ internal class ImageCacheDatabase(string databaseFilePath)
 
     private static string ToHashedKey(string key)
     {
-        return string.Concat(SHA256.HashData(Encoding.UTF8.GetBytes(key))
-            .Select(item => item.ToString("x2"))
-            .Take(16));
+        byte[] hash = HashUtils.GetXxHash64(key);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
     private SqliteConnection? GetConnectionNoLock()
