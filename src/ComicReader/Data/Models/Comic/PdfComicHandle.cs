@@ -125,9 +125,9 @@ internal partial class PdfComicHandle : ComicHandle
             return pdfPath + ":" + index.ToString();
         }
 
-        public int GetImageSignature(int index)
+        public string GetImageSignature(int index)
         {
-            return FileUtils.GetFileHashCode(pdfPath);
+            return FileUtils.GetFileSignature(pdfPath);
         }
 
         private static void CalculatePageSize(float originWidth, float originHeight, out int width, out int height)

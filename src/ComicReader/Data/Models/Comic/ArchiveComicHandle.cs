@@ -228,9 +228,9 @@ internal partial class ArchiveComicHandle : ComicHandle
             return archive.Path + ArchiveAccess.FileSeperator + subPath;
         }
 
-        public int GetImageSignature(int index)
+        public string GetImageSignature(int index)
         {
-            return FileUtils.GetFileHashCode(_archiveFile.Path);
+            return FileUtils.GetFileSignature(_archiveFile.Path);
         }
     }
 }

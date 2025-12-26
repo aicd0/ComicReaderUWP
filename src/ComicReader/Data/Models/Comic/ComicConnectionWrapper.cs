@@ -64,11 +64,11 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
         return _connection.GetImageCacheKey(index);
     }
 
-    int IComicConnection.GetImageSignature(int index)
+    string IComicConnection.GetImageSignature(int index)
     {
         if (_disposed)
         {
-            return 0;
+            return string.Empty;
         }
 
         return _connection.GetImageSignature(index);

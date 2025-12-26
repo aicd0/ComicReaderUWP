@@ -14,6 +14,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
+using ComicReader.SDK.Common.Utils;
 
 namespace ComicReader.Data.Models.Misc;
 
@@ -121,7 +122,7 @@ internal class ComicPropertyModel
             };
         }
 
-        int IdSelector(ComicModel x) => HashUtils.GetSHA256Int(x.Id);
+        int IdSelector(ComicModel x) => HashUtils.GetXxHash64Int(x.Id);
 
         return Type switch
         {
@@ -259,7 +260,7 @@ internal class ComicPropertyModel
             return lastReadTime.ToString("D", EnvironmentProvider.Instance.GetCurrentAppLanguageInfo());
         }
 
-        int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetSHA256Int(x.GroupName);
+        int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetXxHash64Int(x.GroupName);
 
         return Type switch
         {
@@ -451,7 +452,7 @@ internal class ComicPropertyModel
                 return Math.Round(value, 2, MidpointRounding.AwayFromZero).ToString("0.##");
             }
 
-            int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetSHA256Int(x.GroupName);
+            int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetXxHash64Int(x.GroupName);
 
             return sortingFunction switch
             {

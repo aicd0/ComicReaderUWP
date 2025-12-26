@@ -1,6 +1,8 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Buffers.Binary;
+
 using ComicReader.SDK.Common.DebugTools;
 
 namespace ComicReader.SDK.Common.Utils;
@@ -55,21 +57,27 @@ public static class FileUtils
         return size;
     }
 
-    public static int GetFileHashCode(string path)
+    public static string GetFileSignature(string path)
     {
+        FileInfo fileInfo;
         try
         {
-            var fileInfo = new FileInfo(path);
-            return HashCode.Combine(fileInfo.LastWriteTime, fileInfo.Length);
+            fileInfo = new(path);
         }
         catch (FileNotFoundException)
         {
-            return 0;
+            return string.Empty;
         }
         catch (Exception e)
         {
             Logger.F(TAG, "GetFileHashCode", e);
-            return 0;
+            return string.Empty;
         }
+
+        Span<byte> buffer = stackalloc byte[16];
+        BinaryPrimitives.WriteInt64LittleEndian(buffer[..8], fileInfo.LastWriteTimeUtc.Ticks);
+        BinaryPrimitives.WriteInt64LittleEndian(buffer[8..], fileInfo.Length);
+        byte[] hash = HashUtils.GetXxHash64(buffer);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }

@@ -18,5 +18,5 @@ internal interface IComicConnection : IDisposable
 
     string GetImageCacheKey(int index);
 
-    int GetImageSignature(int index);
+    string GetImageSignature(int index);
 }

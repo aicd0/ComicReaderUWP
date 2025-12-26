@@ -227,15 +227,15 @@ internal partial class FolderComicHandle : ComicHandle
             return _imageFiles[index];
         }
 
-        public int GetImageSignature(int index)
+        public string GetImageSignature(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)
             {
                 Logger.F(TAG, "GetImageSignature");
-                return 0;
+                return string.Empty;
             }
 
-            return FileUtils.GetFileHashCode(_imageFiles[index]);
+            return FileUtils.GetFileSignature(_imageFiles[index]);
         }
     }
 }
