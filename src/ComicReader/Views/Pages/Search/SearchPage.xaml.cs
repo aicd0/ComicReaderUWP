@@ -3,9 +3,10 @@
 
 using System.Collections.Generic;
 
-using ComicReader.Common;
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;

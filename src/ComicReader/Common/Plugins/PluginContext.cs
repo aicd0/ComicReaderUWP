@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Expression;
+using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Tables;

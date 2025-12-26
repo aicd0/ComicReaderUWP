@@ -4,7 +4,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-using ComicReader.Common;
+using ComicReader.Common.Misc;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;

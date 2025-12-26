@@ -10,10 +10,11 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-using ComicReader.Common;
 using ComicReader.Common.Imaging;
-using ComicReader.Data.Models;
+using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;

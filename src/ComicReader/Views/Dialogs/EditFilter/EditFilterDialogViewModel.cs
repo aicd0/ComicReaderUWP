@@ -6,12 +6,12 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Expression;
 using ComicReader.Common.Expression.Filter;
 using ComicReader.Common.Expression.Filter.Sql;
-using ComicReader.Data.Models;
+using ComicReader.Common.Localization;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.Data.Tables;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Lifecycle;

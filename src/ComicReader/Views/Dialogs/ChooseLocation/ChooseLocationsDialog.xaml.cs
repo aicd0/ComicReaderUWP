@@ -5,8 +5,8 @@ using System.Collections.ObjectModel;
 
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Utils;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
 

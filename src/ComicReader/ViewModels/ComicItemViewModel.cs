@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
-using ComicReader.Data.Models;
+using ComicReader.Common.Localization;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 
 using Microsoft.UI.Xaml.Controls;

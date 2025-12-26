@@ -6,6 +6,7 @@ using System;
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Actions.Utils;
+using ComicReader.Common.Localization;
 using ComicReader.Common.Utils;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;

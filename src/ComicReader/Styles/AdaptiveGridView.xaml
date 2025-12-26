@@ -1,9 +1,9 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:ComicReader.UserControls">
+    xmlns:adaptivegrid="using:ComicReader.UserControls.AdaptiveGrid">
 
-    <Style x:Key="HomePageAdaptiveGridViewStyle" TargetType="controls:AdaptiveGridView">
+    <Style x:Key="HomePageAdaptiveGridViewStyle" TargetType="adaptivegrid:AdaptiveGridView">
         <Setter Property="Padding" Value="0,0,0,10" />
         <Setter Property="IsTabStop" Value="False" />
         <Setter Property="TabNavigation" Value="Once" />
@@ -31,7 +31,7 @@
         </Setter>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="controls:AdaptiveGridView">
+                <ControlTemplate TargetType="adaptivegrid:AdaptiveGridView">
                     <Border
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"

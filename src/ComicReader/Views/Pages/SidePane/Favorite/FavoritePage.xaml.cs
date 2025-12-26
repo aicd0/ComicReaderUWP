@@ -6,12 +6,13 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Legacy;
+using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Utils;

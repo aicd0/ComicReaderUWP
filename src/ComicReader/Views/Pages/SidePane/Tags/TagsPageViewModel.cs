@@ -8,8 +8,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-using ComicReader.Common;
 using ComicReader.Common.Actions;
+using ComicReader.Common.Localization;
+using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
