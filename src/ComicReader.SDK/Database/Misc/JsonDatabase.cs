@@ -8,7 +8,7 @@ using System.Text.Json;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 
-namespace ComicReader.SDK.Database;
+namespace ComicReader.SDK.Database.Misc;
 
 public abstract class JsonDatabase<T>(string fileName) where T : class
 {
