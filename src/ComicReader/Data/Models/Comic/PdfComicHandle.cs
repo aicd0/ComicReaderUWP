@@ -125,7 +125,7 @@ internal partial class PdfComicHandle : ComicHandle
             return pdfPath + ":" + index.ToString();
         }
 
-        public int GetImageSignature(int index)
+        public string GetImageSignature(int index)
         {
             return FileUtils.GetFileSignature(pdfPath);
         }

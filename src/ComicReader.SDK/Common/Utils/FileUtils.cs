@@ -57,7 +57,7 @@ public static class FileUtils
         return size;
     }
 
-    public static int GetFileSignature(string path)
+    public static string GetFileSignature(string path)
     {
         FileInfo fileInfo;
         try
@@ -66,17 +66,18 @@ public static class FileUtils
         }
         catch (FileNotFoundException)
         {
-            return 0;
+            return string.Empty;
         }
         catch (Exception e)
         {
             Logger.F(TAG, "GetFileHashCode", e);
-            return 0;
+            return string.Empty;
         }
 
         Span<byte> buffer = stackalloc byte[16];
         BinaryPrimitives.WriteInt64LittleEndian(buffer[..8], fileInfo.LastWriteTimeUtc.Ticks);
         BinaryPrimitives.WriteInt64LittleEndian(buffer[8..], fileInfo.Length);
-        return HashUtils.GetXxHash64Int(buffer);
+        byte[] hash = HashUtils.GetXxHash64(buffer);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }

@@ -27,12 +27,6 @@ internal class ComicImageSource(IComicConnection connection, int index) : IImage
 
     public string GetContentFingerprint()
     {
-        int fingerprint = _connection.GetImageSignature(_index);
-        if (fingerprint == 0)
-        {
-            return string.Empty;
-        }
-
-        return fingerprint.ToString();
+        return _connection.GetImageSignature(_index);
     }
 }
