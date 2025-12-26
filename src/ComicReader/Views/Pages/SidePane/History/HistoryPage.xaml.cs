@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.Misc;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.Utils;

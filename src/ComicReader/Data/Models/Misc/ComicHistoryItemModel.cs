@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Misc;
+using ComicReader.Data.Misc;
 using ComicReader.Data.Tables;
 using ComicReader.SDK.Database.SqlHelpers;
 
-namespace ComicReader.Data.Models;
+namespace ComicReader.Data.Models.Misc;
 
 internal class ComicHistoryItemModel
 {

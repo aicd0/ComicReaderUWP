@@ -9,7 +9,7 @@ using ComicReader.Common.Localization;
 using ComicReader.Common.Misc;
 using ComicReader.SDK.Database;
 
-namespace ComicReader.Data.Models;
+namespace ComicReader.Data.Models.Misc;
 
 class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 {

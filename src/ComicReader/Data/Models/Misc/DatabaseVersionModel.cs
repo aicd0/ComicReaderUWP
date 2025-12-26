@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 using ComicReader.SDK.Database;
 
-namespace ComicReader.Data.Models;
+namespace ComicReader.Data.Models.Misc;
 
 class DatabaseVersionModel : JsonDatabase<DatabaseVersionModel.JsonModel>
 {

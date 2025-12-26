@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 
 using ComicReader.Common.Localization;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.SDK.Common.Utils;
 
 namespace ComicReader.Views.Pages.Main;

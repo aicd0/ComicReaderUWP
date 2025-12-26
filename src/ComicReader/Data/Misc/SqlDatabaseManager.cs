@@ -9,7 +9,7 @@ using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Database.SqlHelpers;
 
-namespace ComicReader.Data;
+namespace ComicReader.Data.Misc;
 
 public static class SqlDatabaseManager
 {

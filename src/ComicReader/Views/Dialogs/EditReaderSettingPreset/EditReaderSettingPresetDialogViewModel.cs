@@ -5,8 +5,8 @@ using System;
 using System.ComponentModel;
 
 using ComicReader.Common.Localization;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.Views.Pages.Main;
 
 namespace ComicReader.Views.Dialogs.EditReaderSettingPreset;

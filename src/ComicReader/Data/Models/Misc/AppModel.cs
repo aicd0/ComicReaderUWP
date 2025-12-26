@@ -5,7 +5,7 @@ using ComicReader.Common.Constants;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.KV;
 
-namespace ComicReader.Data.Models;
+namespace ComicReader.Data.Models.Misc;
 
 static class AppModel
 {

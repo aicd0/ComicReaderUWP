@@ -5,11 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using ComicReader.Data.Models;
+using ComicReader.Data.Models.Misc;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
 
-namespace ComicReader.Data;
+namespace ComicReader.Data.Misc;
 
 class DatabaseUpgradeManager
 {

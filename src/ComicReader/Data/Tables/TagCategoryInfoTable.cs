@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReader.Data.Misc;
 using ComicReader.SDK.Database.SqlHelpers;
 
 namespace ComicReader.Data.Tables;

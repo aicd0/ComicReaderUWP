@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Utils;
+using ComicReader.Data.Models.Misc;
 using ComicReader.SDK.Common.DebugTools;
 
 using Windows.Storage;

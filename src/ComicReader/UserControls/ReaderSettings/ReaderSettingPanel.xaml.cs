@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 
 using ComicReader.Common.BaseUI;
-using ComicReader.Data.Models;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.Views.Dialogs.EditReaderSettingPreset;

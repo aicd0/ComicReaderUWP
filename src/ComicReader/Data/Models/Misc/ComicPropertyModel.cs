@@ -15,7 +15,7 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 
-namespace ComicReader.Data.Models;
+namespace ComicReader.Data.Models.Misc;
 
 internal class ComicPropertyModel
 {

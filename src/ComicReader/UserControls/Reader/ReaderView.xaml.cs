@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using ComicReader.Common.Imaging;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Utils;
-using ComicReader.Data.Models;
+using ComicReader.Data.Models.Misc;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
