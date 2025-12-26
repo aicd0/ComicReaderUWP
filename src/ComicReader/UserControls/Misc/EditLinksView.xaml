@@ -1,5 +1,5 @@
 <UserControl
-    x:Class="ComicReader.UserControls.EditLinksView"
+    x:Class="ComicReader.UserControls.Misc.EditLinksView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:ComicReader.Converters"

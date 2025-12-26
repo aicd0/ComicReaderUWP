@@ -8,7 +8,7 @@ using ComicReader.ViewModels;
 
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReader.UserControls;
+namespace ComicReader.UserControls.Misc;
 
 internal sealed partial class EditLinksView : UserControl
 {

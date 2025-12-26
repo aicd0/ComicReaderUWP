@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 
 using Windows.Foundation;
 
-namespace ComicReader.UserControls;
+namespace ComicReader.UserControls.Misc;
 
 public sealed partial class ExtendedSearchBox : UserControl
 {

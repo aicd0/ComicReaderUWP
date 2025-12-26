@@ -13,7 +13,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 
-namespace ComicReader.UserControls;
+namespace ComicReader.UserControls.Misc;
 
 internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyChanged
 {

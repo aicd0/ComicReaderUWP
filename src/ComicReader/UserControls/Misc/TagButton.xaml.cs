@@ -7,7 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
-namespace ComicReader.UserControls;
+namespace ComicReader.UserControls.Misc;
 
 internal sealed partial class TagButton : UserControl
 {
