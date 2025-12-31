@@ -188,9 +188,9 @@ internal sealed partial class SearchPage : BasePage
     // Utilities
     //
 
-    private IMainPageAbility GetMainPageAbility()
+    private IMainPageAbilityForTab GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>()!;
+        return GetAbility<IMainPageAbilityForTab>()!;
     }
 
     private INavigationPageAbility GetNavigationPageAbility()

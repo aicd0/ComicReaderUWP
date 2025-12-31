@@ -86,11 +86,6 @@ internal sealed partial class HomePage : BasePage
             ComicModel.UpdateAllComics("HomePage#RefreshPage");
         });
 
-        ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
-        {
-            GetMainPageAbility().OpenInCurrentTab(route);
-        });
-
         ViewModel.FilterLiveData.ObserveSticky(this, UpdateFilters);
 
         ViewModel.GroupingEnabledLiveData.ObserveSticky(this, delegate (bool grouped)
@@ -399,9 +394,9 @@ internal sealed partial class HomePage : BasePage
     // Utilities
     //
 
-    private IMainPageAbility GetMainPageAbility()
+    private IMainPageAbilityForTab GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>()!;
+        return GetAbility<IMainPageAbilityForTab>()!;
     }
 
     private INavigationPageAbility GetNavigationPageAbility()

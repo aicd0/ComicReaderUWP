@@ -746,10 +746,11 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         try
         {
             AppSettingsModel.ExternalModel? model = _settingsModel;
-            if (model != null)
+            if (model is not null)
             {
                 return model;
             }
+
             LockCookie cookie = _lock.UpgradeToWriterLock(Timeout.Infinite);
             try
             {

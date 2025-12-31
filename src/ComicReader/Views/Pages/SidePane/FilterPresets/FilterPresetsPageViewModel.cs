@@ -223,7 +223,6 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                             .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
                         ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                             .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
-                            .AddParameter(OpenTabProvider.PARAM_NEW_TAB, "0")
                             .Build();
                         _actionHandler.Handle(actionModel);
                     },

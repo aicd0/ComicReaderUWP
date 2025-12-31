@@ -449,6 +449,12 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="FunctionSum" xml:space="preserve">
     <value>求和</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="GeneralSettingsDescription" xml:space="preserve">
+    <value>修改應用程式預設行為</value>
+  </data>
   <data name="GoBack" xml:space="preserve">
     <value>返回</value>
   </data>
@@ -474,7 +480,10 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
     <value>清除歷史記錄、啟用或停用歷史記錄</value>
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>首頁</value>
+    <value>主頁</value>
+  </data>
+  <data name="HomePageTapComicBehavior" xml:space="preserve">
+    <value>在主頁點擊漫畫時的行為</value>
   </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>橫向</value>
@@ -599,8 +608,14 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Open" xml:space="preserve">
     <value>打開</value>
   </data>
+  <data name="OpenInCurrentTab" xml:space="preserve">
+    <value>在目前的分頁中開啟</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>在資源管理器中開啟</value>
+  </data>
+  <data name="OpenInLastActiveReaderTab" xml:space="preserve">
+    <value>在上一個作用中的閱讀器分頁中開啟</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>在新分頁中開啟</value>

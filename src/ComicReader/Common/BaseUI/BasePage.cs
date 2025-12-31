@@ -7,10 +7,9 @@ using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Actions.Utils;
 using ComicReader.Common.Localization;
-using ComicReader.Common.Utils;
-using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -30,8 +29,8 @@ internal abstract class BasePage : Page, ILifecycleOwner
     private NavigationBundle? _navigationBundle;
 
     protected int WindowId { get; private set; } = 0;
-    public bool Started => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Started;
-    public bool Resumed => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Resumed;
+    public bool IsStarted => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Started;
+    public bool IsResumed => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Resumed;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
     public ActionHandler PageActionHandler { get; } = new();
@@ -173,8 +172,8 @@ internal abstract class BasePage : Page, ILifecycleOwner
         {
             NavigationBundle bundle = page._navigationBundle!;
 
-            int windowId = StringUtils.ParseInt(bundle.Bundle.GetString(RouterConstants.ARG_WINDOW_ID));
-            if (windowId < 0)
+            int windowId = page.GetAbility<IMainWindowAbility>()!.WindowId;
+            if (windowId <= 0)
             {
                 throw new ArgumentException("Invalid window ID in navigation parameters: " + windowId);
             }

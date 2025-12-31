@@ -449,6 +449,12 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="FunctionSum" xml:space="preserve">
     <value>Somme</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>Général</value>
+  </data>
+  <data name="GeneralSettingsDescription" xml:space="preserve">
+    <value>Modifier le comportement par défaut de l’application</value>
+  </data>
   <data name="GoBack" xml:space="preserve">
     <value>Retour</value>
   </data>
@@ -475,6 +481,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Maison</value>
+  </data>
+  <data name="HomePageTapComicBehavior" xml:space="preserve">
+    <value>Comportement lors du toucher d’une BD sur la page d’accueil</value>
   </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>Horizontal</value>
@@ -599,8 +608,14 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="Open" xml:space="preserve">
     <value>Ouvrir</value>
   </data>
+  <data name="OpenInCurrentTab" xml:space="preserve">
+    <value>Ouvrir dans l’onglet actuel</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Ouvrir dans l'explorateur de fichiers</value>
+  </data>
+  <data name="OpenInLastActiveReaderTab" xml:space="preserve">
+    <value>Ouvrir dans le dernier onglet de lecture actif</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Ouvrir dans un nouvel onglet</value>

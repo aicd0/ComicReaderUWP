@@ -19,7 +19,6 @@ internal static class RouterConstants
     public const string HOST_SIDE_PANE_FILTER_PRESETS = "side_pane_filter_presets";
     public const string HOST_DEV_TOOLS = "dev_tools";
 
-    public const string ARG_WINDOW_ID = "window_id";
     public const string ARG_COMIC_ID = "comic_id";
     public const string ARG_COMIC_LOCATION = "comic_location";
     public const string ARG_KEYWORD = "keyword";

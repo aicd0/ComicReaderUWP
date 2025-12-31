@@ -450,6 +450,12 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="FunctionSum" xml:space="preserve">
     <value>Сумма</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>Общие</value>
+  </data>
+  <data name="GeneralSettingsDescription" xml:space="preserve">
+    <value>Изменить поведение приложения по умолчанию</value>
+  </data>
   <data name="GoBack" xml:space="preserve">
     <value>Возвращаться</value>
   </data>
@@ -476,6 +482,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Дом</value>
+  </data>
+  <data name="HomePageTapComicBehavior" xml:space="preserve">
+    <value>Поведение при нажатии на комикс на главной странице</value>
   </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>Горизонтальный</value>
@@ -600,8 +609,14 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
   </data>
+  <data name="OpenInCurrentTab" xml:space="preserve">
+    <value>Открыть в текущей вкладке</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Открыть в проводнике</value>
+  </data>
+  <data name="OpenInLastActiveReaderTab" xml:space="preserve">
+    <value>Открыть в последней активной вкладке читалки</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Открыть в новой вкладке</value>

@@ -451,6 +451,12 @@ The evaluation will be performed in the following order:
   <data name="FunctionSum" xml:space="preserve">
     <value>Sum</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="GeneralSettingsDescription" xml:space="preserve">
+    <value>Change app default behavior</value>
+  </data>
   <data name="GoBack" xml:space="preserve">
     <value>Go back</value>
   </data>
@@ -477,6 +483,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Home</value>
+  </data>
+  <data name="HomePageTapComicBehavior" xml:space="preserve">
+    <value>Behavior when tapping a comic on the Home page</value>
   </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>Horizontal</value>
@@ -601,8 +610,14 @@ The evaluation will be performed in the following order:
   <data name="Open" xml:space="preserve">
     <value>Open</value>
   </data>
+  <data name="OpenInCurrentTab" xml:space="preserve">
+    <value>Open in current tab</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>Open in File Explorer</value>
+  </data>
+  <data name="OpenInLastActiveReaderTab" xml:space="preserve">
+    <value>Open in last active reader tab</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Open in new tab</value>

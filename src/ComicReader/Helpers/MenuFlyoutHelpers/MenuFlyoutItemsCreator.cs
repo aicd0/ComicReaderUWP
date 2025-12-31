@@ -66,7 +66,6 @@ internal static class MenuFlyoutItemsCreator
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                         .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
-                        .AddParameter(OpenTabProvider.PARAM_NEW_TAB, "0")
                         .Build();
                     actionHandler.Handle(actionModel);
                 },
@@ -81,6 +80,7 @@ internal static class MenuFlyoutItemsCreator
             {
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                     .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
+                    .AddParameter(OpenTabProvider.PARAM_TAB_ID, "-1")
                     .Build();
                 actionHandler.Handle(actionModel);
             },
@@ -396,7 +396,6 @@ internal static class MenuFlyoutItemsCreator
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                         .AddParameter(OpenTabProvider.PARAM_URL, url)
                         .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, windowId.ToString())
-                        .AddParameter(OpenTabProvider.PARAM_NEW_TAB, "0")
                         .Build();
                     actionHandler.Handle(actionModel);
                 }

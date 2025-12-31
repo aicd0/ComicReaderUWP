@@ -449,6 +449,12 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="FunctionSum" xml:space="preserve">
     <value>求和</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>通用</value>
+  </data>
+  <data name="GeneralSettingsDescription" xml:space="preserve">
+    <value>修改应用默认行为</value>
+  </data>
   <data name="GoBack" xml:space="preserve">
     <value>返回</value>
   </data>
@@ -475,6 +481,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>主页</value>
+  </data>
+  <data name="HomePageTapComicBehavior" xml:space="preserve">
+    <value>在主页点击漫画时的行为</value>
   </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>横向</value>
@@ -599,11 +608,17 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Open" xml:space="preserve">
     <value>打开</value>
   </data>
+  <data name="OpenInCurrentTab" xml:space="preserve">
+    <value>在当前标签页中打开</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>在资源管理器中打开</value>
   </data>
+  <data name="OpenInLastActiveReaderTab" xml:space="preserve">
+    <value>在上一个活动的阅读器标签页中打开</value>
+  </data>
   <data name="OpenInNewTab" xml:space="preserve">
-    <value>在新选项卡中打开</value>
+    <value>在新标签页中打开</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>打开插件文件夹</value>

@@ -45,6 +45,7 @@ internal sealed partial class SettingPage : BasePage
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Setting });
 
         ViewModel.Initialize(this);
+        GeneralSettingsSection.Initialize();
         PluginSettingsSection.Initialize(PageActionHandler);
         UpdateFeedback();
         UpdateAbout();
@@ -230,8 +231,8 @@ internal sealed partial class SettingPage : BasePage
     // Utilities
     //
 
-    private IMainPageAbility GetMainPageAbility()
+    private IMainPageAbilityForTab GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>()!;
+        return GetAbility<IMainPageAbilityForTab>()!;
     }
 }
