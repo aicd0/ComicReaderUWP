@@ -433,7 +433,7 @@ The evaluation will be performed in the following order:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Completed</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
+  <data name="Folders" xml:space="preserve">
     <value>Folders</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">

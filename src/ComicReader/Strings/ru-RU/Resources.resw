@@ -432,7 +432,7 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Завершено</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
+  <data name="Folders" xml:space="preserve">
     <value>Папки</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">

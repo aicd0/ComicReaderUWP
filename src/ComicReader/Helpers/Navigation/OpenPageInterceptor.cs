@@ -7,6 +7,7 @@ using ComicReader.Views.Pages.DevTools;
 using ComicReader.Views.Pages.Main;
 using ComicReader.Views.Pages.SidePane.Favorite;
 using ComicReader.Views.Pages.SidePane.FilterPresets;
+using ComicReader.Views.Pages.SidePane.Folders;
 using ComicReader.Views.Pages.SidePane.History;
 using ComicReader.Views.Pages.SidePane.Tags;
 
@@ -26,6 +27,7 @@ internal class OpenPageInterceptor : IRouterInterceptor
             RouterConstants.HOST_SIDE_PANE_FAVORITE => new DefaultPageTrait(typeof(FavoritePage)),
             RouterConstants.HOST_SIDE_PANE_HISTORY => new DefaultPageTrait(typeof(HistoryPage)),
             RouterConstants.HOST_SIDE_PANE_TAGS => new DefaultPageTrait(typeof(TagsPage)),
+            RouterConstants.HOST_SIDE_PANE_FOLDERS => new DefaultPageTrait(typeof(FoldersPage)),
             RouterConstants.HOST_SIDE_PANE_FILTER_PRESETS => new DefaultPageTrait(typeof(FilterPresetsPage)),
             RouterConstants.HOST_DEV_TOOLS => DebugUtils.DeveloperMode ? new DefaultPageTrait(typeof(DevToolsPage)) : null,
             _ => null,

@@ -83,6 +83,7 @@ public class StringResourceProvider
     public string FilterSettings => GetResourceString("FilterSettings");
     public string FilteredBy => GetResourceString("FilteredBy");
     public string FinishPercentage => GetResourceString("FinishPercentage");
+    public string Folders => GetResourceString("Folders");
     public string FunctionAverage => GetResourceString("FunctionAverage");
     public string FunctionItemCount => GetResourceString("FunctionItemCount");
     public string FunctionMax => GetResourceString("FunctionMax");

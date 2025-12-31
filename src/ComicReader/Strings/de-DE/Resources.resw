@@ -431,7 +431,7 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Abgeschlossen</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
+  <data name="Folders" xml:space="preserve">
     <value>Ordner</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">

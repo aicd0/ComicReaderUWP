@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -45,6 +46,17 @@ internal partial class PdfComicHandle : ComicHandle
     public override bool IsEditable => !IsExternal;
 
     private PdfComicHandle(bool is_external) : base(ComicType.PDF, is_external) { }
+
+    public override IReadOnlyList<string> GetFolderViewPath()
+    {
+        string? dirName = Path.GetDirectoryName(Location);
+        if (string.IsNullOrEmpty(dirName))
+        {
+            return [];
+        }
+
+        return dirName.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+    }
 
     protected override async Task<IComicConnection?> OpenComicConnection()
     {

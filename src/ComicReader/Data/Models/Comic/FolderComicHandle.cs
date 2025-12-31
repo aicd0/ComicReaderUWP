@@ -54,6 +54,17 @@ internal partial class FolderComicHandle : ComicHandle
         Location = location;
     }
 
+    public override IReadOnlyList<string> GetFolderViewPath()
+    {
+        string[] pieces = Location.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (pieces.Length == 0)
+        {
+            return pieces;
+        }
+
+        return pieces[..^1];
+    }
+
     protected override Task<bool> MoveToLocationInternal(string newLocation)
     {
         return CoroutineUtils.CreateTaskAsync("MoveToLocationInternal", TaskDispatcher.LongRunningThreadPool, async () =>

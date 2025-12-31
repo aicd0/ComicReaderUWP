@@ -431,7 +431,7 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Terminé</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
+  <data name="Folders" xml:space="preserve">
     <value>Dossiers</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">
