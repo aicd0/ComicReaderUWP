@@ -89,23 +89,52 @@ public abstract class TaskDispatcher : ITaskDispatcher
 
     private class QueueDispatcher(string name) : TaskDispatcher(name)
     {
-        private Task _queue = Task.Factory.StartNew(() => { });
+        private readonly ConcurrentQueue<Action> _queue = [];
+        private readonly object _lock = new();
+        private bool _postDequeueTask = false;
 
         protected override void SubmitInternal(Action action)
         {
-            lock (_queue)
+            _queue.Enqueue(action);
+            bool postDequeueTask;
+            lock (_lock)
             {
-                _queue = _queue.ContinueWith(delegate
+                postDequeueTask = !_postDequeueTask;
+                _postDequeueTask = true;
+            }
+
+            if (postDequeueTask)
+            {
+                Task.Run(Dequeue);
+            }
+        }
+
+        private void Dequeue()
+        {
+            while (true)
+            {
+                while (_queue.TryDequeue(out Action? action))
                 {
                     action();
-                }, TaskCreationOptions.PreferFairness, TaskScheduler.Default);
+                }
+
+                bool canExit;
+                lock (_lock)
+                {
+                    canExit = _queue.IsEmpty;
+                    _postDequeueTask = !canExit;
+                }
+
+                if (canExit)
+                {
+                    break;
+                }
             }
         }
     }
 
-    private class ThreadPoolDispatcher : TaskDispatcher, IDisposable
+    private class ThreadPoolDispatcher : TaskDispatcher
     {
-        private readonly CancellationTokenSource _source = new();
         private readonly TaskCreationOptions _creationOptions;
 
         public ThreadPoolDispatcher(string name, TaskCreationOptions creationOptions) : base(name)
@@ -115,12 +144,7 @@ public abstract class TaskDispatcher : ITaskDispatcher
 
         protected override void SubmitInternal(Action action)
         {
-            Task.Factory.StartNew(action, _source.Token, _creationOptions, TaskScheduler.Default);
-        }
-
-        public void Dispose()
-        {
-            _source.Dispose();
+            Task.Factory.StartNew(action, default, _creationOptions, TaskScheduler.Default);
         }
     }
 

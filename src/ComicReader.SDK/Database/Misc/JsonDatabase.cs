@@ -16,7 +16,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
 
     private readonly string _fileName = fileName;
     private readonly ReaderWriterLock _lock = new();
-    private volatile T _jsonModel;
+    private T _jsonModel;
     private readonly ITaskDispatcher _queue = TaskDispatcher.Factory.NewQueue($"{nameof(JsonDatabase<T>)}#{fileName}");
 
     private readonly JsonSerializerOptions _serializerOptions = new()
@@ -105,21 +105,6 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
             return;
         }
 
-        string json = SimpleConfigDatabase.Instance.TryGetConfig(_fileName);
-        T jsonModel = null;
-        if (json != null)
-        {
-            try
-            {
-                jsonModel = JsonSerializer.Deserialize<T>(json, _serializerOptions);
-            }
-            catch (JsonException ex)
-            {
-                Logger.F(TAG, nameof(Initialize), ex);
-            }
-        }
-        jsonModel ??= CreateModel();
-
         _lock.AcquireWriterLock(Timeout.Infinite);
         try
         {
@@ -127,6 +112,22 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
             {
                 return;
             }
+
+            string json = SimpleConfigDatabase.Instance.TryGetConfig(_fileName);
+            T jsonModel = null;
+            if (json != null)
+            {
+                try
+                {
+                    jsonModel = JsonSerializer.Deserialize<T>(json, _serializerOptions);
+                }
+                catch (JsonException ex)
+                {
+                    Logger.F(TAG, nameof(Initialize), ex);
+                }
+            }
+
+            jsonModel ??= CreateModel();
             _jsonModel = jsonModel;
         }
         finally

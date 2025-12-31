@@ -421,7 +421,7 @@ internal static class ImageCacheManager
                         byte[] outByteArray = new byte[cacheStream.Length];
                         cacheStream.Read(outByteArray, 0, outByteArray.Length);
                         string tempEntry = StringUtils.RandomFileName(16);
-                        using ILRUInputStream cacheFileStream = imageCache.Put(tempEntry);
+                        using ILRUInputStream? cacheFileStream = imageCache.Put(tempEntry);
                         if (cacheFileStream == null)
                         {
                             Logger.F(TAG, "TryCreateImageCache cacheFileStream is null");
