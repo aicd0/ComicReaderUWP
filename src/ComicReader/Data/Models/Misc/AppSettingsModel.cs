@@ -25,6 +25,30 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     }
 
     //
+    // Properties
+    //
+
+    public TapComicBehaviorEnum HomePageTapComicBehavior
+    {
+        get
+        {
+            return Read(model =>
+            {
+                return ConvertTapComicBehaviorFromJson(model.HomePageTapComicBehavior);
+            });
+        }
+        set
+        {
+            Write(model =>
+            {
+                model.HomePageTapComicBehavior = ConvertTapComicBehaviorToJson(value);
+                return true;
+            });
+            Save();
+        }
+    }
+
+    //
     // Getters
     //
 
@@ -92,43 +116,72 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     }
 
     //
+    // Helpers
+    //
+
+    private static string ConvertTapComicBehaviorToJson(TapComicBehaviorEnum behavior)
+    {
+        return behavior switch
+        {
+            TapComicBehaviorEnum.OpenInCurrentTab => "OpenInCurrentTab",
+            TapComicBehaviorEnum.OpenInNewTab => "OpenInNewTab",
+            TapComicBehaviorEnum.OpenInLastActiveReaderTab => "OpenInLastActiveReaderTab",
+            _ => "OpenInCurrentTab",
+        };
+    }
+
+    private static TapComicBehaviorEnum ConvertTapComicBehaviorFromJson(string? behavior)
+    {
+        return behavior switch
+        {
+            "OpenInCurrentTab" => TapComicBehaviorEnum.OpenInCurrentTab,
+            "OpenInNewTab" => TapComicBehaviorEnum.OpenInNewTab,
+            "OpenInLastActiveReaderTab" => TapComicBehaviorEnum.OpenInLastActiveReaderTab,
+            _ => TapComicBehaviorEnum.OpenInCurrentTab,
+        };
+    }
+
+    //
     // Types
     //
 
     public class JsonModel
     {
-        [JsonPropertyName("ComicFolders")]
-        public List<string?>? ComicFolders { get; set; }
-
-        [JsonPropertyName("ScanOnLaunch")]
-        public bool? ScanOnLaunch { get; set; }
-
-        [JsonPropertyName("RemoveUnreachableComics")]
-        public bool? RemoveUnreachableComics { get; set; }
-
-        [JsonPropertyName("PromptBeforeRemovingComics")]
-        public bool? PromptBeforeRemovingComics { get; set; }
-
-        [JsonPropertyName("RestoreLastReadingPosition")]
-        public bool? RestoreLastReadingPosition { get; set; }
-
-        [JsonPropertyName("Language")]
-        public string? Language { get; set; }
-
-        [JsonPropertyName("Theme")]
-        public int? Theme { get; set; }
-
         [JsonPropertyName("Background")]
         public string? Background { get; set; }
 
-        [JsonPropertyName("ReaderSettingPresets")]
-        public Dictionary<string, ReaderSettingJsonModel?>? ReaderSettingPresets { get; set; }
+        [JsonPropertyName("ComicFolders")]
+        public List<string?>? ComicFolders { get; set; }
+
+        [JsonPropertyName("ComicShuffleRandomSeed")]
+        public int? ComicShuffleRandomSeed { get; set; }
 
         [JsonPropertyName("DefaultReaderSettingPresetKey")]
         public string? DefaultReaderSettingPresetKey { get; set; }
 
-        [JsonPropertyName("ComicShuffleRandomSeed")]
-        public int? ComicShuffleRandomSeed { get; set; }
+        [JsonPropertyName("HomePageTapComicBehavior")]
+        public string? HomePageTapComicBehavior { get; set; }
+
+        [JsonPropertyName("Language")]
+        public string? Language { get; set; }
+
+        [JsonPropertyName("PromptBeforeRemovingComics")]
+        public bool? PromptBeforeRemovingComics { get; set; }
+
+        [JsonPropertyName("ReaderSettingPresets")]
+        public Dictionary<string, ReaderSettingJsonModel?>? ReaderSettingPresets { get; set; }
+
+        [JsonPropertyName("RemoveUnreachableComics")]
+        public bool? RemoveUnreachableComics { get; set; }
+
+        [JsonPropertyName("RestoreLastReadingPosition")]
+        public bool? RestoreLastReadingPosition { get; set; }
+
+        [JsonPropertyName("ScanOnLaunch")]
+        public bool? ScanOnLaunch { get; set; }
+
+        [JsonPropertyName("Theme")]
+        public int? Theme { get; set; }
     }
 
     public class ReaderSettingJsonModel
@@ -322,6 +375,13 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             }
             return null;
         }
+    }
+
+    public enum TapComicBehaviorEnum
+    {
+        OpenInCurrentTab,
+        OpenInNewTab,
+        OpenInLastActiveReaderTab,
     }
 
     public enum AppearanceSetting

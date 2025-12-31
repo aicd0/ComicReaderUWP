@@ -88,6 +88,8 @@ public class StringResourceProvider
     public string FunctionMax => GetResourceString("FunctionMax");
     public string FunctionMin => GetResourceString("FunctionMin");
     public string FunctionSum => GetResourceString("FunctionSum");
+    public string General => GetResourceString("General");
+    public string GeneralSettingsDescription => GetResourceString("GeneralSettingsDescription");
     public string GoBack => GetResourceString("GoBack");
     public string GoForward => GetResourceString("GoForward");
     public string Group => GetResourceString("Group");
@@ -95,6 +97,7 @@ public class StringResourceProvider
     public string Hide => GetResourceString("Hide");
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
+    public string HomePageTapComicBehavior => GetResourceString("HomePageTapComicBehavior");
     public string LastReadTime => GetResourceString("LastReadTime");
     public string LinkErrorContent => GetResourceString("LinkErrorContent");
     public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
@@ -112,7 +115,9 @@ public class StringResourceProvider
     public string None => GetResourceString("None");
     public string OK => GetResourceString("OK");
     public string Open => GetResourceString("Open");
+    public string OpenInCurrentTab => GetResourceString("OpenInCurrentTab");
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
+    public string OpenInLastActiveReaderTab => GetResourceString("OpenInLastActiveReaderTab");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenPluginsFolder => GetResourceString("OpenPluginsFolder");
     public string OpenSidebar => GetResourceString("OpenSidebar");

@@ -450,6 +450,12 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="FunctionSum" xml:space="preserve">
     <value>합집합</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>일반</value>
+  </data>
+  <data name="GeneralSettingsDescription" xml:space="preserve">
+    <value>앱 기본 동작 변경</value>
+  </data>
   <data name="GoBack" xml:space="preserve">
     <value>돌아가기</value>
   </data>
@@ -476,6 +482,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>집</value>
+  </data>
+  <data name="HomePageTapComicBehavior" xml:space="preserve">
+    <value>홈 화면에서 만화를 탭했을 때의 동작</value>
   </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>수평의</value>
@@ -600,8 +609,14 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Open" xml:space="preserve">
     <value>열기</value>
   </data>
+  <data name="OpenInCurrentTab" xml:space="preserve">
+    <value>현재 탭에서 열기</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>파일 탐색기에서 열기</value>
+  </data>
+  <data name="OpenInLastActiveReaderTab" xml:space="preserve">
+    <value>마지막으로 활성화된 리더 탭에서 열기</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>새 탭에서 열기</value>

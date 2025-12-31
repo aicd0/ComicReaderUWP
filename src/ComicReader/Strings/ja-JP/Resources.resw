@@ -449,6 +449,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="FunctionSum" xml:space="preserve">
     <value>和</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="GeneralSettingsDescription" xml:space="preserve">
+    <value>アプリのデフォルト動作を変更</value>
+  </data>
   <data name="GoBack" xml:space="preserve">
     <value>戻る</value>
   </data>
@@ -475,6 +481,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>家</value>
+  </data>
+  <data name="HomePageTapComicBehavior" xml:space="preserve">
+    <value>ホーム画面で漫画をタップしたときの動作</value>
   </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>水平</value>
@@ -599,8 +608,14 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Open" xml:space="preserve">
     <value>開く</value>
   </data>
+  <data name="OpenInCurrentTab" xml:space="preserve">
+    <value>現在のタブで開く</value>
+  </data>
   <data name="OpenInFileExplorer" xml:space="preserve">
     <value>エクスプローラーで開く</value>
+  </data>
+  <data name="OpenInLastActiveReaderTab" xml:space="preserve">
+    <value>最後に使用したリーダータブで開く</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>新しいタブで開く</value>

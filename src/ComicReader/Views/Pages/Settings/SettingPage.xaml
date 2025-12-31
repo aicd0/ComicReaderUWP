@@ -47,6 +47,17 @@
                     Orientation="Vertical"
                     Spacing="5">
 
+                    <!--  General  -->
+                    <settings:SettingExpander
+                        Detail="{x:Bind StringResource.GeneralSettingsDescription}"
+                        Glyph="&#xE713;"
+                        Header="{x:Bind StringResource.General}"
+                        IsExpanded="False">
+                        <settings:SettingExpander.InnerContent>
+                            <settings:GeneralSettingsView x:Name="GeneralSettingsSection" />
+                        </settings:SettingExpander.InnerContent>
+                    </settings:SettingExpander>
+
                     <!--  Image Source  -->
                     <settings:SettingExpander
                         x:Uid="ImageLocationExpander"
