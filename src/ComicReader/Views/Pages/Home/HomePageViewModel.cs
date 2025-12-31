@@ -511,6 +511,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 if (filterSettings is not null)
                 {
                     filterSettings.LastFilter = filter.Clone();
+                    ComicFilterModel.Instance.UpdateModel(filterSettings);
                 }
 
                 UpdateUrl();
@@ -533,6 +534,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 if (filterSettings is not null)
                 {
                     filterSettings.LastFilter = filter.Clone();
+                    ComicFilterModel.Instance.UpdateModel(filterSettings);
                 }
 
                 UpdateUrl();
@@ -560,6 +562,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             }
 
             filterSettings.LastFilter = filter;
+            ComicFilterModel.Instance.UpdateModel(filterSettings);
             _filterModel = null;
             ScheduleUpdateFilters(false);
         });
@@ -867,6 +870,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         List<ComicFilterModel.ExternalFilterModel> filters;
         ComicFilterModel.ExternalFilterModel? filter = _filterModel;
         {
+            bool settingsChanged = false;
             ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
             if (reloadFromDatabase || filterSettings is null)
             {
@@ -879,18 +883,23 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 filters = [ComicFilterModel.ExternalFilterModel.FromDefault()];
                 filterSettings.Filters = filters;
+                settingsChanged = true;
             }
 
             filters.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
 
-            ComicFilterModel.ExternalFilterModel lastFilter = filterSettings.LastFilter ?? filters[0].Clone();
-            filterSettings.LastFilter = lastFilter;
+            ComicFilterModel.ExternalFilterModel? lastFilter = filterSettings.LastFilter;
+            if (lastFilter is null)
+            {
+                lastFilter = filters[0].Clone();
+                filterSettings.LastFilter = lastFilter;
+                settingsChanged = true;
+            }
 
-            ComicPropertyModel sortBy = lastFilter.SortBy;
-            sortBy ??= new();
-            lastFilter.SortBy = sortBy;
-
-            ComicFilterModel.Instance.UpdateModel(filterSettings);
+            if (settingsChanged)
+            {
+                ComicFilterModel.Instance.UpdateModel(filterSettings);
+            }
 
             if (filter is not null && reloadFromDatabase && !filter.Modified)
             {
