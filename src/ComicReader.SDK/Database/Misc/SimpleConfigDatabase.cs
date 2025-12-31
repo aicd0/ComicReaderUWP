@@ -76,7 +76,7 @@ internal class SimpleConfigDatabase
         using ILRUInputStream? stream = lruCache.Put(key);
         if (stream is null)
         {
-            Logger.F(TAG, "Failed to aquire input stream.");
+            Logger.F(TAG, "Failed to acquire input stream.");
             return;
         }
 
