@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 
 using ComicReader.SDK.Common.DebugTools;
@@ -26,7 +24,7 @@ public class LRUCache(string directoryPath, long maxSize)
     private readonly long _maxSize = maxSize;
     private readonly LRUCacheDatabase _database = new(Path.Combine(directoryPath, DATABASE_FILE_NAME));
     private readonly ReaderWriterLock _flushLock = new();
-    private volatile StorageFolder _folder = null;
+    private volatile StorageFolder? _folder = null;
     private volatile ConcurrentDictionary<string, long> _pendingFlushKeys = [];
     private int _postFlushTask = 0;
 
@@ -35,13 +33,13 @@ public class LRUCache(string directoryPath, long maxSize)
         _database.Clear();
     }
 
-    public ILRUInputStream Put(string key)
+    public ILRUInputStream? Put(string key)
     {
         ArgumentNullException.ThrowIfNull(key, nameof(key));
 
         string hashedKey = ToHashedKey(key);
         CacheEntry entry = _entries.GetOrAdd(hashedKey, key => new CacheEntry(this, key));
-        ILRUInputStream stream = entry.StartWrite();
+        ILRUInputStream? stream = entry.StartWrite();
         if (stream != null)
         {
             AddPendingFlushKey(key);
@@ -50,13 +48,13 @@ public class LRUCache(string directoryPath, long maxSize)
         return stream;
     }
 
-    public ILRUOutputStream Get(string key)
+    public ILRUOutputStream? Get(string key)
     {
         ArgumentNullException.ThrowIfNull(key, nameof(key));
 
         string hashedKey = ToHashedKey(key);
         CacheEntry entry = _entries.GetOrAdd(hashedKey, key => new CacheEntry(this, key));
-        ILRUOutputStream stream = entry.StartRead();
+        ILRUOutputStream? stream = entry.StartRead();
         if (stream != null)
         {
             AddPendingFlushKey(key);
@@ -124,7 +122,12 @@ public class LRUCache(string directoryPath, long maxSize)
                 batch[key] = file;
             }
 
-            Dictionary<string, long> result = _database.BatchQuery(batch.Keys);
+            Dictionary<string, long>? result = _database.BatchQuery(batch.Keys);
+            if (result is null)
+            {
+                return;
+            }
+
             foreach (KeyValuePair<string, long> pair in result)
             {
                 if (pair.Value < 0)
@@ -214,7 +217,7 @@ public class LRUCache(string directoryPath, long maxSize)
 
     private StorageFolder GetFolder()
     {
-        StorageFolder folder = _folder;
+        StorageFolder? folder = _folder;
         if (folder != null)
         {
             return folder;
@@ -240,15 +243,17 @@ public class LRUCache(string directoryPath, long maxSize)
             _status = Status.Empty;
         }
 
-        public ILRUInputStream StartWrite()
+        public ILRUInputStream? StartWrite()
         {
             _lock.AcquireWriterLock(-1);
             try
             {
                 if (_status == Status.Dirty || _readerCount > 0)
                 {
+                    Logger.F(TAG, "Other read/write operation in progress.");
                     return null;
                 }
+
                 _status = Status.Dirty;
             }
             finally
@@ -257,7 +262,7 @@ public class LRUCache(string directoryPath, long maxSize)
             }
 
             string dirtyFileName = GetDirtyFileName(_key);
-            StorageFile file = null;
+            StorageFile? file = null;
             try
             {
                 file = _cache.GetFolder().CreateFileAsync(dirtyFileName, CreationCollisionOption.ReplaceExisting).AsTask().Result;
@@ -266,13 +271,14 @@ public class LRUCache(string directoryPath, long maxSize)
             {
                 Logger.F(TAG, nameof(StartWrite), e);
             }
+
             if (file == null)
             {
                 SwitchToEmptyState();
                 return null;
             }
 
-            IRandomAccessStream stream = null;
+            IRandomAccessStream? stream = null;
             try
             {
                 stream = file.OpenAsync(FileAccessMode.ReadWrite).AsTask().Result;
@@ -281,6 +287,7 @@ public class LRUCache(string directoryPath, long maxSize)
             {
                 Logger.F(TAG, nameof(StartWrite), e);
             }
+
             if (stream == null)
             {
                 SwitchToEmptyState();
@@ -293,7 +300,7 @@ public class LRUCache(string directoryPath, long maxSize)
         public void EndWrite()
         {
             string dirtyFileName = GetDirtyFileName(_key);
-            StorageFile file = null;
+            StorageFile? file = null;
             try
             {
                 file = _cache.GetFolder().GetFileAsync(dirtyFileName).AsTask().Result;
@@ -332,7 +339,7 @@ public class LRUCache(string directoryPath, long maxSize)
             }
         }
 
-        public ILRUOutputStream StartRead()
+        public ILRUOutputStream? StartRead()
         {
             _lock.AcquireWriterLock(-1);
             try
@@ -343,7 +350,7 @@ public class LRUCache(string directoryPath, long maxSize)
                 }
 
                 string filePath = Path.Combine(_cache._directoryPath, GetCleanFileName(_key));
-                IRandomAccessStream stream = null;
+                IRandomAccessStream? stream = null;
                 try
                 {
                     var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);

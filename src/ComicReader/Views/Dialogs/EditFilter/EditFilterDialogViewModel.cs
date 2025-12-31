@@ -155,20 +155,22 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
     public void Save()
     {
         ComicFilterModel.ExternalFilterModel? filter = _filter;
-        if (filter == null)
+        if (filter is null)
         {
             return;
         }
+
         RemoveFilter(filter.Name);
         filter.Name = _name ?? "";
+        filter.Modified = false;
         OverwriteFilter(filter);
 
         ComicFilterModel.ExternalModel? model = _filterModel;
-        if (model == null)
+        if (model is null)
         {
             return;
         }
-        model.LastFilterModified = false;
+
         model.LastFilter = filter.Clone();
         ComicFilterModel.Instance.UpdateModel(model);
     }
@@ -176,20 +178,22 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
     public void SaveAsNew()
     {
         ComicFilterModel.ExternalFilterModel? filter = _filter;
-        if (filter == null)
+        if (filter is null)
         {
             return;
         }
+
         filter = filter.Clone();
         filter.Name = _name ?? "";
+        filter.Modified = false;
         OverwriteFilter(filter);
 
         ComicFilterModel.ExternalModel? model = _filterModel;
-        if (model == null)
+        if (model is null)
         {
             return;
         }
-        model.LastFilterModified = false;
+
         model.LastFilter = filter.Clone();
         ComicFilterModel.Instance.UpdateModel(model);
     }
@@ -197,18 +201,19 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
     public void Delete()
     {
         ComicFilterModel.ExternalFilterModel? filter = _filter;
-        if (filter == null)
+        if (filter is null)
         {
             return;
         }
+
         RemoveFilter(filter.Name);
 
         ComicFilterModel.ExternalModel? model = _filterModel;
-        if (model == null)
+        if (model is null)
         {
             return;
         }
-        model.LastFilterModified = false;
+
         model.LastFilter = null;
         ComicFilterModel.Instance.UpdateModel(model);
     }
@@ -284,20 +289,22 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
     private ComicFilterModel.ExternalFilterModel? FindFilter(string name)
     {
         ComicFilterModel.ExternalModel? filterModel = _filterModel;
-        if (filterModel == null)
+        if (filterModel is null)
         {
             return null;
         }
+
         return filterModel.Filters.Find(x => x.Name == name);
     }
 
     private void OverwriteFilter(ComicFilterModel.ExternalFilterModel filter)
     {
         ComicFilterModel.ExternalModel? filterModel = _filterModel;
-        if (filterModel == null)
+        if (filterModel is null)
         {
             return;
         }
+
         RemoveFilter(filter.Name);
         filterModel.Filters.Add(filter);
     }
@@ -305,12 +312,13 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
     private void RemoveFilter(string name)
     {
         ComicFilterModel.ExternalModel? filterModel = _filterModel;
-        if (filterModel == null)
+        if (filterModel is null)
         {
             return;
         }
+
         ComicFilterModel.ExternalFilterModel? oldFilter = filterModel.Filters.Find(x => x.Name == name);
-        if (oldFilter != null)
+        if (oldFilter is not null)
         {
             filterModel.Filters.Remove(oldFilter);
         }

@@ -35,11 +35,12 @@ internal class SimpleConfigDatabase
             return null;
         }
 
-        ILRUOutputStream stream = lruCache.Get(key);
-        if (stream == null)
+        ILRUOutputStream? stream = lruCache.Get(key);
+        if (stream is null)
         {
             return null;
         }
+
         using DataReader reader = new(stream);
         string value;
         try
@@ -50,6 +51,7 @@ internal class SimpleConfigDatabase
                 Logger.AssertNotReachHere("7EFEE0FD9C031188");
                 return null;
             }
+
             IBuffer buffer = reader.ReadBuffer(bytesLoaded);
             value = CryptographicBuffer.ConvertBinaryToString(BinaryStringEncoding.Utf8, buffer);
         }
@@ -58,6 +60,7 @@ internal class SimpleConfigDatabase
             Logger.F(TAG, nameof(TryGetConfig), ex);
             return null;
         }
+
         return value;
     }
 
@@ -70,12 +73,13 @@ internal class SimpleConfigDatabase
         }
 
         IBuffer buffer = CryptographicBuffer.ConvertStringToBinary(value, BinaryStringEncoding.Utf8);
-        using ILRUInputStream stream = lruCache.Put(key);
-        if (stream == null)
+        using ILRUInputStream? stream = lruCache.Put(key);
+        if (stream is null)
         {
-            Logger.AssertNotReachHere("F36118EDF506473B");
+            Logger.F(TAG, "Failed to acquire input stream.");
             return;
         }
+
         try
         {
             stream.WriteAsync(buffer).Wait();
