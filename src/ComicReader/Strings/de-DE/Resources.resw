@@ -581,6 +581,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="NewWindow" xml:space="preserve">
     <value>Neues Fenster</value>
   </data>
+  <data name="NoComicsHint" xml:space="preserve">
+    <value>Deine Comics werden hier angezeigt</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Ihre Favoriten erscheinen hier</value>
   </data>

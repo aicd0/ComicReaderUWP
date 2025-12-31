@@ -581,6 +581,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="NewWindow" xml:space="preserve">
     <value>Nueva ventana</value>
   </data>
+  <data name="NoComicsHint" xml:space="preserve">
+    <value>Tus cómics aparecerán aquí</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Tus favoritos aparecen aquí</value>
   </data>

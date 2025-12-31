@@ -21,6 +21,13 @@
             HorizontalAlignment="Stretch"
             PlaceholderText="{x:Bind StringResource.Search}"
             TextChanged="SearchTextBox_TextChanged" />
+        <TextBlock
+            Grid.Row="1"
+            Margin="0,10"
+            HorizontalAlignment="Center"
+            FontWeight="SemiBold"
+            Text="{x:Bind StringResource.NoComicsHint}"
+            Visibility="{x:Bind ViewModel.NoComicsVisible, Mode=OneWay}" />
         <controls:SimpleTreeView
             Grid.Row="1"
             DataSource="{x:Bind ViewModel.DataSource}"

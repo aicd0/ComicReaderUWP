@@ -583,6 +583,9 @@ The evaluation will be performed in the following order:
   <data name="NewWindow" xml:space="preserve">
     <value>New window</value>
   </data>
+  <data name="NoComicsHint" xml:space="preserve">
+    <value>Your comics appear here</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Your favorites appears here</value>
   </data>

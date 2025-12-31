@@ -42,6 +42,20 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _noComicsVisible = false;
+    public bool NoComicsVisible
+    {
+        get => _noComicsVisible;
+        set
+        {
+            if (_noComicsVisible != value)
+            {
+                _noComicsVisible = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NoComicsVisible)));
+            }
+        }
+    }
+
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.Factory.NewQueue("FilterPresetsPageQueue");
     private readonly ComicSearchEngine _searchEngine = new();
@@ -104,6 +118,7 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
             CoroutineUtils.RunInMainThread(() =>
             {
                 DiffUtils.UpdateCollection(DataSource, dataSource, (x, y) => x.Title == y.Title, UpdateItem);
+                NoComicsVisible = DataSource.Count == 0;
             });
         });
     }
