@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Actions;
+using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Misc;
 using ComicReader.Data.Models.Comic;
@@ -24,6 +25,7 @@ using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
+using ComicReader.Views.Pages.Reader;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -35,7 +37,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
     public readonly MutableLiveData<FilterModel> FilterLiveData = new();
     public readonly MutableLiveData<bool> GroupingEnabledLiveData = new();
     public readonly MutableLiveData<ComicFilterModel.ViewTypeEnum> ViewTypeLiveData = new();
@@ -353,6 +354,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     break;
                 }
             }
+
             if (contained)
             {
                 selection.AddRange(_selectedComicItems);
@@ -366,6 +368,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             selection.Add(triggerItem);
         }
+
         return selection;
     }
 
@@ -595,19 +598,62 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     {
                         OnClick = () =>
                         {
-                            if (!IsSelectMode)
+                            if (IsSelectMode)
                             {
-                                Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                                    .WithParam(RouterConstants.ARG_COMIC_ID, item.Id.ToString());
-                                OpenInCurrentTabLiveData.Emit(route);
+                                return;
+                            }
+
+                            AppSettingsModel.TapComicBehaviorEnum behavior = AppSettingsModel.Instance.HomePageTapComicBehavior;
+                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                                .WithParam(RouterConstants.ARG_COMIC_ID, item.Id.ToString());
+                            switch (behavior)
+                            {
+                                case AppSettingsModel.TapComicBehaviorEnum.OpenInCurrentTab:
+                                    {
+                                        ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                                            .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                                            .Build();
+                                        _actionHandler.Handle(actionModel);
+                                    }
+                                    break;
+                                case AppSettingsModel.TapComicBehaviorEnum.OpenInNewTab:
+                                    {
+                                        ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                                            .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                                            .AddParameter(OpenTabProvider.PARAM_TAB_ID, "-1")
+                                            .Build();
+                                        _actionHandler.Handle(actionModel);
+                                    }
+                                    break;
+                                case AppSettingsModel.TapComicBehaviorEnum.OpenInLastActiveReaderTab:
+                                    {
+                                        IReadOnlyList<Tuple<int, int>> activeReaderTabs = ReaderPage.ActiveTabs;
+                                        if (activeReaderTabs.Count == 0)
+                                        {
+                                            goto case AppSettingsModel.TapComicBehaviorEnum.OpenInNewTab;
+                                        }
+
+                                        int windowId = activeReaderTabs[activeReaderTabs.Count - 1].Item1;
+                                        int tabId = activeReaderTabs[activeReaderTabs.Count - 1].Item2;
+                                        ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+                                            .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                                            .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, windowId.ToString())
+                                            .AddParameter(OpenTabProvider.PARAM_TAB_ID, tabId.ToString())
+                                            .Build();
+                                        _actionHandler.Handle(actionModel);
+                                    }
+                                    break;
+                                default:
+                                    Logger.F(TAG, $"Unknown enum value {behavior}");
+                                    goto case AppSettingsModel.TapComicBehaviorEnum.OpenInCurrentTab;
                             }
                         },
-                    };
-                    model.OnRequestContextFlyoutAsync = () =>
-                    {
-                        List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [item];
-                        return MenuFlyoutItemsCreator.CreateComicMenuItems(item, _actionHandler,
-                            selectedComics: selectedComics, canSelect: true);
+                        OnRequestContextFlyoutAsync = () =>
+                        {
+                            List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [item];
+                            return MenuFlyoutItemsCreator.CreateComicMenuItems(item, _actionHandler,
+                                selectedComics: selectedComics, canSelect: true);
+                        },
                     };
                     model.UpdateProgress(true);
                     _comicItems.Add(model);

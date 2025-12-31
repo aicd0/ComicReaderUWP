@@ -15,6 +15,7 @@ using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.KV;
 using ComicReader.Views.AppWindows.Main;
+using ComicReader.Views.Pages.Main;
 
 namespace ComicReader.Common.Misc;
 
@@ -22,14 +23,14 @@ class WindowManager
 {
     private const string TAG = nameof(WindowManager);
 
-    private int _nextWindowId = 0;
+    private int _highestWindowId = 0;
     private readonly ConcurrentDictionary<int, WindowWrapper> _windows = [];
     private bool _saveWindowStatusScheduled = false;
     private bool _windowStatusLocked = false;
 
     public int RegisterWindow(MainWindow window)
     {
-        int windowId = Interlocked.Increment(ref _nextWindowId);
+        int windowId = Interlocked.Increment(ref _highestWindowId);
         WindowWrapper wrapper = new(window);
         bool success = _windows.TryAdd(windowId, wrapper);
         Logger.Assert(success, "B62A8795DA9036E2");
@@ -91,7 +92,11 @@ class WindowManager
         Dictionary<int, string> result = [];
         foreach (KeyValuePair<int, WindowWrapper> pair in _windows)
         {
-            result[pair.Key] = pair.Value.Window.FriendlyTitle;
+            MainPage.ITabInfo? tabInfo = pair.Value.Window.CurrentTab;
+            if (tabInfo is not null)
+            {
+                result[pair.Key] = tabInfo.Title;
+            }
         }
 
         return result;

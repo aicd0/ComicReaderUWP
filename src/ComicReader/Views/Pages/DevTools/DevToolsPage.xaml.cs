@@ -114,9 +114,9 @@ internal sealed partial class DevToolsPage : BasePage
     // Utilities
     //
 
-    private IMainPageAbility GetMainPageAbility()
+    private IMainPageAbilityForTab GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>()!;
+        return GetAbility<IMainPageAbilityForTab>()!;
     }
 
     private void SetResult(string? result)

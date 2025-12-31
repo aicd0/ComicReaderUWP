@@ -45,6 +45,9 @@ internal sealed partial class ReaderPage : BasePage
     private const string REGEX_URL = @"https?:\/\/[a-zA-Z0-9\-._~%]+(?:\.[a-zA-Z0-9\-._~%]+)+(?:\/[^\s]*)?";
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
+    // Must be accessed on UI thread
+    public static IReadOnlyList<Tuple<int, int>> ActiveTabs { get; private set; } = [];
+
     //
     // Variables
     //
@@ -104,6 +107,7 @@ internal sealed partial class ReaderPage : BasePage
             if (!isIntermediate)
             {
                 SaveProgress();
+                AddToActiveTabs();
             }
         };
 
@@ -172,6 +176,7 @@ internal sealed partial class ReaderPage : BasePage
         });
 
         ObserveData();
+        AddToActiveTabs();
     }
 
     protected override void OnResume()
@@ -180,12 +185,14 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.ReloadReaderSettings();
         UpdateReaderUI();
+        AddToActiveTabs();
     }
 
     protected override void OnStop()
     {
         base.OnStop();
 
+        RemoveFromActiveTabs();
         MainReaderView.Destory();
         ViewModel.CloseComicConnection();
     }
@@ -723,14 +730,65 @@ internal sealed partial class ReaderPage : BasePage
         return GetAbility<IMainWindowAbility>()!;
     }
 
-    private IMainPageAbility GetMainPageAbility()
+    private IMainPageAbilityForTab GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>()!;
+        return GetAbility<IMainPageAbilityForTab>()!;
     }
 
     private INavigationPageAbility GetNavigationPageAbility()
     {
         return GetAbility<INavigationPageAbility>()!;
+    }
+
+    private void AddToActiveTabs()
+    {
+        if (!IsStarted)
+        {
+            return;
+        }
+
+        int windowId = WindowId;
+        int tabId = GetMainPageAbility().TabId;
+
+        if (ActiveTabs.Count > 0)
+        {
+            Tuple<int, int> tab = ActiveTabs[ActiveTabs.Count - 1];
+            if (tab.Item1 == windowId && tab.Item2 == tabId)
+            {
+                return;
+            }
+        }
+
+        List<Tuple<int, int>> copy = [.. ActiveTabs];
+        for (int i = copy.Count - 1; i >= 0; i--)
+        {
+            Tuple<int, int> tab = copy[i];
+            if (tab.Item1 == windowId && tab.Item2 == tabId)
+            {
+                copy.RemoveAt(i);
+            }
+        }
+
+        copy.Add(new(windowId, tabId));
+        ActiveTabs = copy;
+    }
+
+    private void RemoveFromActiveTabs()
+    {
+        int windowId = WindowId;
+        int tabId = GetMainPageAbility().TabId;
+
+        List<Tuple<int, int>> copy = [.. ActiveTabs];
+        for (int i = copy.Count - 1; i >= 0; i--)
+        {
+            Tuple<int, int> tab = copy[i];
+            if (tab.Item1 == windowId && tab.Item2 == tabId)
+            {
+                copy.RemoveAt(i);
+            }
+        }
+
+        ActiveTabs = copy;
     }
 
     private static void TryFocus(UIElement element)

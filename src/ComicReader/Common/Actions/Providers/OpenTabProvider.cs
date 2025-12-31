@@ -12,8 +12,8 @@ internal class OpenTabProvider : IActionProvider
 {
     public const string NAME = "OpenTab";
     public const string PARAM_URL = "URL";
-    public const string PARAM_WINDOW_ID = "WindowID";
-    public const string PARAM_NEW_TAB = "NewTab";
+    public const string PARAM_WINDOW_ID = "WindowId";
+    public const string PARAM_TAB_ID = "TabId";
 
     public string Name => NAME;
 
@@ -45,14 +45,17 @@ internal class OpenTabProvider : IActionProvider
             return;
         }
 
-        string newTabString = parameters[PARAM_NEW_TAB] ?? "1";
-        if (newTabString != "0" && newTabString != "1")
+        string tabIdString = parameters[PARAM_TAB_ID] ?? string.Empty;
+        int tabId;
+        if (string.IsNullOrEmpty(tabIdString))
         {
-            context.SetError($"Invalid NewTab argument '{newTabString}'.");
+            tabId = -2;
+        }
+        else if (!int.TryParse(tabIdString, out tabId) || tabId < -1)
+        {
+            context.SetError($"'{tabIdString}' is not a valid tab ID.");
             return;
         }
-
-        bool newTab = newTabString == "1";
 
         if (windowId == -1)
         {
@@ -67,7 +70,12 @@ internal class OpenTabProvider : IActionProvider
                 return;
             }
 
-            window.OpenTab(url, newTab);
+            if (tabId == -2)
+            {
+                tabId = window.CurrentTab?.Id ?? -1;
+            }
+
+            window.OpenTab(url, tabId);
         }
 
         context.SetSuccess();

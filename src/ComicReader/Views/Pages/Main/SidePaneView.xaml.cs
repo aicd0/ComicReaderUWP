@@ -97,7 +97,6 @@ internal sealed partial class SidePaneView : BaseUserControl
             _ => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
         };
 
-        route.WithParam(RouterConstants.ARG_WINDOW_ID, _handler.GetWindowId().ToString());
         NavigationBundle bundle = AppRouter.Process(route)!;
         _handler.TransferAbility(bundle);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);

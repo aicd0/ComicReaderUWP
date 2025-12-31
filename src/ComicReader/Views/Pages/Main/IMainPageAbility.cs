@@ -5,8 +5,6 @@ using ComicReader.Common.BaseUI;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Lifecycle;
 
-using Microsoft.UI.Xaml.Controls;
-
 namespace ComicReader.Views.Pages.Main;
 
 internal interface IMainPageAbility : IPageAbility
@@ -17,10 +15,6 @@ internal interface IMainPageAbility : IPageAbility
     void OpenInCurrentTab(Route route);
 
     void OpenInNewTab(Route route);
-
-    void SetTitle(string title);
-
-    void SetIcon(IconSource icon);
 
     void RegisterTabUnselectedHandler(ILifecycleOwner owner, TabUnselectedEventHandler handler);
 

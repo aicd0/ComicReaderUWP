@@ -75,7 +75,7 @@ internal sealed partial class MainWindow : Window
     public IntPtr WindowHandle { get; private set; }
     public bool Alive { get; private set; } = false;
     public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle);
-    public string FriendlyTitle => Members._mainPage?.Title ?? string.Empty;
+    public MainPage.ITabInfo? CurrentTab => Members._mainPage?.CurrentTab;
 
     //
     // Constructors
@@ -83,14 +83,14 @@ internal sealed partial class MainWindow : Window
 
     private MainWindow(WindowStatusModel? windowStatus, bool restorePlacement)
     {
-        _members = new(this);
-        Members._requestWindowStatus = windowStatus;
-        Members._requestRestorePlacement = restorePlacement;
-
         InitializeComponent();
 
         WindowId = App.Instance.WindowManager.RegisterWindow(this);
         WindowHandle = WindowNative.GetWindowHandle(this);
+
+        _members = new(this);
+        Members._requestWindowStatus = windowStatus;
+        Members._requestRestorePlacement = restorePlacement;
 
         if (DebugUtils.DeveloperMode)
         {
@@ -108,7 +108,7 @@ internal sealed partial class MainWindow : Window
     // Public Methods
     //
 
-    public void OpenTab(string url, bool newTab)
+    public void OpenTab(string url, int tabId)
     {
         var route = Route.Create(url);
         MainPage? mainPage = Members._mainPage;
@@ -117,14 +117,10 @@ internal sealed partial class MainWindow : Window
             return;
         }
 
-        if (newTab)
+        CoroutineUtils.RunInMainThread(() =>
         {
-            mainPage.OpenInNewTab(route);
-        }
-        else
-        {
-            mainPage.OpenInCurrentTab(route);
-        }
+            mainPage.Open(route, tabId);
+        });
     }
 
     /// <summary>
@@ -249,8 +245,7 @@ internal sealed partial class MainWindow : Window
     private void OnPageFrameLoaded(object sender, RoutedEventArgs e)
     {
         // Load the main page
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN)
-            .WithParam(RouterConstants.ARG_WINDOW_ID, WindowId.ToString());
+        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN);
         NavigationBundle bundle = AppRouter.Process(route)!;
         bundle.Communicator.RegisterAbility<ILifecycleAwareAbility>(Members._mainWindowAbility);
         bundle.Communicator.RegisterAbility<IMainWindowAbility>(Members._mainWindowAbility);
@@ -426,11 +421,20 @@ internal sealed partial class MainWindow : Window
     // Page Ability
     //
 
-    private class MainWindowAbility(MainWindow window) : IMainWindowAbility, ILifecycleAwareAbility
+    private class MainWindowAbility : IMainWindowAbility, ILifecycleAwareAbility
     {
-        private readonly WeakReference<MainWindow> _windowRef = new(window);
+        private readonly int _windowId;
+        private readonly WeakReference<MainWindow> _windowRef;
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
         private readonly MutableLiveData<bool> _fullscreenChangeLiveData = new(false);
+
+        public MainWindowAbility(MainWindow window)
+        {
+            _windowId = window.WindowId;
+            _windowRef = new(window);
+        }
+
+        public int WindowId => _windowId;
 
         public bool PointerInWindow()
         {

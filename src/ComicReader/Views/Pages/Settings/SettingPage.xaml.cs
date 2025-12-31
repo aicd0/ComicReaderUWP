@@ -231,8 +231,8 @@ internal sealed partial class SettingPage : BasePage
     // Utilities
     //
 
-    private IMainPageAbility GetMainPageAbility()
+    private IMainPageAbilityForTab GetMainPageAbility()
     {
-        return GetAbility<IMainPageAbility>()!;
+        return GetAbility<IMainPageAbilityForTab>()!;
     }
 }

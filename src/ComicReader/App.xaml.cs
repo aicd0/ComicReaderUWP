@@ -67,7 +67,7 @@ public partial class App : Application
 
             if (route is not null)
             {
-                window.OpenTab(route.Url, true);
+                window.OpenTab(route.Url, -1);
             }
 
             window.BringToFront();
