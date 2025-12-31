@@ -56,9 +56,6 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         [JsonPropertyName("LastFilter")]
         public FilterModel? LastFilter { get; set; }
 
-        [JsonPropertyName("LastFilterModified")]
-        public bool? LastFilterModified { get; set; }
-
         [JsonPropertyName("Filters")]
         public List<FilterModel?>? Filters { get; set; } = new();
     }
@@ -67,6 +64,9 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
     {
         [JsonPropertyName("Name")]
         public string? Name { get; set; }
+
+        [JsonPropertyName("Modified")]
+        public bool? Modified { get; set; }
 
         [JsonPropertyName("SortBy")]
         public JsonNode? SortBy { get; set; }
@@ -107,7 +107,6 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
     public class ExternalModel
     {
         public ExternalFilterModel? LastFilter { get; set; }
-        public bool LastFilterModified { get; set; }
         public List<ExternalFilterModel> Filters { get; set; } = [];
 
         public static ExternalModel? From(JsonModel? model)
@@ -122,8 +121,8 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             {
                 foreach (FilterModel? filter in model.Filters)
                 {
-                    var externalFilter = ExternalFilterModel.From(filter);
-                    if (externalFilter != null)
+                    ExternalFilterModel? externalFilter = filter is null ? null : ExternalFilterModel.From(filter);
+                    if (externalFilter is not null)
                     {
                         filters.Add(externalFilter);
                     }
@@ -132,8 +131,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
             return new ExternalModel
             {
-                LastFilter = ExternalFilterModel.From(model.LastFilter),
-                LastFilterModified = model.LastFilterModified ?? false,
+                LastFilter = model.LastFilter is null ? null : ExternalFilterModel.From(model.LastFilter),
                 Filters = filters
             };
         }
@@ -141,7 +139,6 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         public void To(JsonModel model)
         {
             model.LastFilter = LastFilter?.To();
-            model.LastFilterModified = LastFilterModified;
             model.Filters = Filters?.ConvertAll(x => x?.To()) ?? [];
         }
     }
@@ -149,6 +146,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
     public class ExternalFilterModel
     {
         public string Name { get; set; } = "";
+        public bool Modified { get; set; } = false;
         public ComicPropertyModel SortBy { get; set; } = new();
         public OrderMethodEnum ComicOrderMethod { get; set; }
         public ComicPropertyModel? GroupBy { get; set; }
@@ -161,7 +159,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
         public ExternalFilterModel Clone()
         {
-            return From(To())!;
+            return From(To());
         }
 
         public FilterModel To()
@@ -169,6 +167,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             return new FilterModel
             {
                 Name = Name,
+                Modified = Modified,
                 SortBy = SortBy.ToJson(),
                 ComicOrderMethod = OrderMethodToString(ComicOrderMethod),
                 GroupBy = GroupBy?.ToJson(),
@@ -181,16 +180,12 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             };
         }
 
-        public static ExternalFilterModel? From(FilterModel? model)
+        public static ExternalFilterModel From(FilterModel model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-
             return new ExternalFilterModel
             {
                 Name = model.Name ?? "",
+                Modified = model.Modified ?? false,
                 SortBy = ComicPropertyModel.FromJson(model.SortBy) ?? new(),
                 ComicOrderMethod = string.IsNullOrEmpty(model.ComicOrderMethod) ?
                     (model.SortByAscending ?? false ? OrderMethodEnum.Ascending : OrderMethodEnum.Descending) :
@@ -212,6 +207,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             return new ExternalFilterModel
             {
                 Name = StringResourceProvider.Instance.Default,
+                Modified = false,
                 ViewType = ViewTypeEnum.Large,
                 SaveViewConfig = false,
                 SortBy = new(),

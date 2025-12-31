@@ -12,4 +12,6 @@ internal interface IMainPageAbilityForTab : IMainPageAbility
     void SetTitle(string title);
 
     void SetIcon(IconSource icon);
+
+    void SetUrl(string url);
 }

@@ -13,6 +13,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.Misc;
 using ComicReader.Helpers.MenuFlyoutHelpers;
+using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.UserControls.ComicItemView;
@@ -63,8 +64,7 @@ internal sealed partial class HomePage : BasePage
         PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(ViewModel)));
 
         ObserveData();
-        ViewModel.Initialize(PageActionHandler);
-        ViewModel.Refresh(filters: true, library: true);
+        ViewModel.Initialize(PageActionHandler, bundle.GetString(RouterConstants.ARG_FILTER_JSON));
     }
 
     private void ObserveData()
@@ -79,11 +79,21 @@ internal sealed partial class HomePage : BasePage
             ViewModel.Refresh(library: true);
         });
 
+        GlobalEvent.Instance.FilterUpdated.Observe(this, _ =>
+        {
+            ViewModel.Refresh(filters: true);
+        });
+
         GetNavigationPageAbility().RegisterSearchTextChangeHandler(this, ViewModel.SetSearchText);
 
         GetNavigationPageAbility().RegisterRefreshHandler(this, () =>
         {
             ComicModel.UpdateAllComics("HomePage#RefreshPage");
+        });
+
+        ViewModel.UrlLiveData.ObserveSticky(this, url =>
+        {
+            GetMainPageAbility().SetUrl(url);
         });
 
         ViewModel.FilterLiveData.ObserveSticky(this, UpdateFilters);
@@ -414,7 +424,10 @@ internal sealed partial class HomePage : BasePage
         {
             var dialog = new EditFilterDialog(await ViewModel.GetFilter());
             await dialog.ShowAsync(WindowId);
-            ViewModel.Refresh(filters: true);
+            if (dialog.HasMadeChanges)
+            {
+                ViewModel.Refresh(clearFilter: true);
+            }
         });
     }
 

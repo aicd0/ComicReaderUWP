@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,6 +38,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    public readonly MutableLiveData<string> UrlLiveData = new();
     public readonly MutableLiveData<FilterModel> FilterLiveData = new();
     public readonly MutableLiveData<bool> GroupingEnabledLiveData = new();
     public readonly MutableLiveData<ComicFilterModel.ViewTypeEnum> ViewTypeLiveData = new();
@@ -189,7 +191,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ComicSearchEngine _searchEngine = new();
-    private ComicFilterModel.ExternalModel _filterModel = new();
+    private ComicFilterModel.ExternalModel? _filterSettingsModel;
+    private ComicFilterModel.ExternalFilterModel? _filterModel;
     private readonly ReaderWriterLock _comicItemsLock = new();
     private readonly List<ComicItemViewModel> _comicItems = [];
     private readonly List<ComicItemViewModel> _selectedComicItems = [];
@@ -212,10 +215,31 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     /// <remarks>
     /// Must be called on the UI thread.
     /// </remarks>
-    public void Initialize(ActionHandler actionHandler)
+    public void Initialize(ActionHandler actionHandler, string? filterJson)
     {
         _actionHandler = actionHandler;
         _searchEngine.SetResultCallback(OnComicSearchResult);
+        _filterSettingsModel = ComicFilterModel.Instance.GetModel() ?? new();
+
+        ComicFilterModel.FilterModel? jsonModel = null;
+        if (!string.IsNullOrEmpty(filterJson))
+        {
+            try
+            {
+                jsonModel = JsonSerializer.Deserialize<ComicFilterModel.FilterModel>(filterJson);
+            }
+            catch (JsonException ex)
+            {
+                Logger.E(TAG, ex);
+            }
+        }
+
+        if (jsonModel is not null)
+        {
+            _filterModel = ComicFilterModel.ExternalFilterModel.From(jsonModel);
+        }
+
+        Refresh(filters: true, library: true);
     }
 
     /// <summary>
@@ -224,8 +248,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     /// <remarks>
     /// Must be called on the UI thread.
     /// </remarks>
-    public void Refresh(bool filters = false, bool library = false)
+    public void Refresh(bool clearFilter = false, bool filters = false, bool library = false)
     {
+        if (clearFilter)
+        {
+            _filterModel = null;
+            _filterInvalidated = true;
+        }
+
         if (filters)
         {
             _filterInvalidated = true;
@@ -236,13 +266,13 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             _comicInvalidated = true;
         }
 
-        if (filters)
+        if (_filterInvalidated)
         {
             ScheduleUpdateFilters(true);
             return;
         }
 
-        if (library)
+        if (_comicInvalidated)
         {
             ScheduleUpdateComics();
             return;
@@ -292,7 +322,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     {
         return await ThreadingUtils.Submit(_sharedDispatcher, "GetFilter", () =>
         {
-            return _filterModel?.LastFilter?.Clone() ?? new();
+            return _filterModel?.Clone() ?? ComicFilterModel.ExternalFilterModel.FromDefault();
         });
     }
 
@@ -467,16 +497,23 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit("SelectViewType", delegate
         {
             bool modified = false;
-            ComicFilterModel.ExternalFilterModel lastFilter = EnsureLastFilterNoLock();
-            if (lastFilter.ViewType != viewType)
+            ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
+            if (filter.ViewType != viewType)
             {
-                modified = lastFilter.SaveViewConfig;
-                lastFilter.ViewType = viewType;
+                modified = filter.SaveViewConfig;
+                filter.ViewType = viewType;
             }
 
             if (modified)
             {
-                _filterModel.LastFilterModified = true;
+                filter.Modified = true;
+                ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
+                if (filterSettings is not null)
+                {
+                    filterSettings.LastFilter = filter.Clone();
+                }
+
+                UpdateUrl();
             }
 
             ScheduleUpdateFilters(false);
@@ -487,12 +524,18 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     {
         _sharedDispatcher.Submit("SelectSortOrGroup", delegate
         {
-            ComicFilterModel.ExternalFilterModel lastFilter = EnsureLastFilterNoLock();
-            bool modified = handler(lastFilter);
-
+            ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
+            bool modified = handler(filter);
             if (modified)
             {
-                _filterModel.LastFilterModified = true;
+                filter.Modified = true;
+                ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
+                if (filterSettings is not null)
+                {
+                    filterSettings.LastFilter = filter.Clone();
+                }
+
+                UpdateUrl();
             }
 
             ScheduleUpdateFilters(false);
@@ -504,23 +547,41 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         name ??= "";
         _sharedDispatcher.Submit("SelectFilterPreset", delegate
         {
-            ComicFilterModel.ExternalFilterModel? filter = _filterModel.Filters.Find(x => x.Name == name);
-            if (filter == null)
+            ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
+            if (filterSettings is null)
             {
                 return;
             }
 
-            ComicFilterModel.ExternalFilterModel? lastFilter = _filterModel.LastFilter;
-            filter = filter.Clone();
-            _filterModel.LastFilter = filter;
-            if (lastFilter is not null && !filter.SaveViewConfig)
+            ComicFilterModel.ExternalFilterModel? filter = MergeFilterFromDatabase(name, filterSettings);
+            if (filter is null)
             {
-                filter.ViewType = lastFilter.ViewType;
+                return;
             }
 
-            _filterModel.LastFilterModified = false;
+            filterSettings.LastFilter = filter;
+            _filterModel = null;
             ScheduleUpdateFilters(false);
         });
+    }
+
+    private ComicFilterModel.ExternalFilterModel? MergeFilterFromDatabase(string name, ComicFilterModel.ExternalModel filterSettings)
+    {
+        ComicFilterModel.ExternalFilterModel? filter = filterSettings.Filters.Find(x => x.Name == name);
+        if (filter is null)
+        {
+            return null;
+        }
+
+        filter = filter.Clone();
+        ComicFilterModel.ExternalFilterModel? lastFilter = _filterModel;
+        if (lastFilter is not null && !filter.SaveViewConfig)
+        {
+            filter.ViewType = lastFilter.ViewType;
+        }
+
+        filter.Modified = false;
+        return filter;
     }
 
     //
@@ -802,96 +863,116 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     {
         Logger.I(TAG, "UpdateFiltersNoLock");
 
-        // Validate and save
-        if (reloadFromDatabase || _filterModel == null)
+        // Validate and save filter settings
+        List<ComicFilterModel.ExternalFilterModel> filters;
+        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
         {
-            _filterModel = ComicFilterModel.Instance.GetModel() ?? new();
+            ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
+            if (reloadFromDatabase || filterSettings is null)
+            {
+                filterSettings = ComicFilterModel.Instance.GetModel() ?? new();
+                _filterSettingsModel = filterSettings;
+            }
+
+            filters = filterSettings.Filters;
+            if (filters == null || filters.Count == 0)
+            {
+                filters = [ComicFilterModel.ExternalFilterModel.FromDefault()];
+                filterSettings.Filters = filters;
+            }
+
+            filters.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+
+            ComicFilterModel.ExternalFilterModel lastFilter = filterSettings.LastFilter ?? filters[0].Clone();
+            filterSettings.LastFilter = lastFilter;
+
+            ComicPropertyModel sortBy = lastFilter.SortBy;
+            sortBy ??= new();
+            lastFilter.SortBy = sortBy;
+
+            ComicFilterModel.Instance.UpdateModel(filterSettings);
+
+            if (filter is not null && reloadFromDatabase && !filter.Modified)
+            {
+                filter = MergeFilterFromDatabase(filter.Name, filterSettings);
+                _filterModel = filter;
+            }
+
+            if (filter is null)
+            {
+                filter = lastFilter;
+                _filterModel = lastFilter;
+                UpdateUrl();
+            }
         }
-
-        List<ComicFilterModel.ExternalFilterModel> filters = _filterModel.Filters;
-        if (filters == null || filters.Count == 0)
-        {
-            filters = [ComicFilterModel.ExternalFilterModel.FromDefault()];
-            _filterModel.Filters = filters;
-        }
-
-        filters.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
-
-        ComicFilterModel.ExternalFilterModel? lastFilter = _filterModel.LastFilter ?? filters[0].Clone();
-        _filterModel.LastFilter = lastFilter;
-
-        ComicPropertyModel sortBy = lastFilter.SortBy;
-        sortBy ??= new();
-        lastFilter.SortBy = sortBy;
-
-        ComicPropertyModel? groupBy = lastFilter.GroupBy;
-        ComicFilterModel.Instance.UpdateModel(_filterModel);
 
         // Update UI
-        var viewTypeDropDown = new DropDownButtonModel
         {
-            Name = StringResourceProvider.Instance.ViewType,
-            Items = _viewTypes.ConvertAll(x => new ToggleMenuFlyoutItemModel()
+            var viewTypeDropDown = new DropDownButtonModel
             {
-                Text = ViewTypeToDisplayName(x),
-                IsChecked = x == lastFilter.ViewType,
-                Click = () =>
+                Name = StringResourceProvider.Instance.ViewType,
+                Items = _viewTypes.ConvertAll(x => new ToggleMenuFlyoutItemModel()
                 {
-                    SelectViewType(x);
-                },
-            }),
-        };
+                    Text = ViewTypeToDisplayName(x),
+                    IsChecked = x == filter.ViewType,
+                    Click = () =>
+                    {
+                        SelectViewType(x);
+                    },
+                }),
+            };
 
-        List<ComicPropertyModel> properties = await ComicPropertyModel.GetProperties();
-        var sortByDropDown = new SubItemMenuFlyoutItemModel()
-        {
-            Text = StringResourceProvider.Instance.Sort,
-            Items = CreateSortByMenuItems(properties, lastFilter.SortBy, lastFilter.ComicOrderMethod),
-        };
-        var groupByDropDown = new SubItemMenuFlyoutItemModel()
-        {
-            Text = StringResourceProvider.Instance.Group,
-            Items = CreateGroupByMenuItems(properties, lastFilter.GroupBy, lastFilter.GroupOrderMethod, lastFilter.GroupSortingFunction, lastFilter.GroupSortingProperty),
-        };
-        var sortAndGroupDropDown = new DropDownButtonModel
-        {
-            Name = StringResourceProvider.Instance.Sort + " & " + StringResourceProvider.Instance.Group,
-            Items = [sortByDropDown, groupByDropDown],
-        };
+            List<ComicPropertyModel> properties = await ComicPropertyModel.GetProperties();
+            var sortByDropDown = new SubItemMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.Sort,
+                Items = CreateSortByMenuItems(properties, filter.SortBy, filter.ComicOrderMethod),
+            };
+            var groupByDropDown = new SubItemMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.Group,
+                Items = CreateGroupByMenuItems(properties, filter.GroupBy, filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty),
+            };
+            var sortAndGroupDropDown = new DropDownButtonModel
+            {
+                Name = StringResourceProvider.Instance.Sort + " & " + StringResourceProvider.Instance.Group,
+                Items = [sortByDropDown, groupByDropDown],
+            };
 
-        string lastFilterName = lastFilter.Name ?? "";
-        if (_filterModel.LastFilterModified)
-        {
-            lastFilterName += " *";
+            string lastFilterName = filter.Name ?? "";
+            if (filter.Modified)
+            {
+                lastFilterName += " *";
+            }
+
+            var filterPresetDropDown = new DropDownButtonModel
+            {
+                Name = lastFilterName,
+                Items = filters.ConvertAll(x => new SimpleMenuFlyoutItemModel()
+                {
+                    Text = x.Name,
+                    Click = () => SelectFilterPreset(x.Name),
+                }),
+            };
+
+            var uiModel = new FilterModel
+            {
+                ViewTypeDropDown = viewTypeDropDown,
+                SortAndGroupDropDown = sortAndGroupDropDown,
+                FilterPresetDropDown = filterPresetDropDown,
+            };
+            FilterLiveData.Emit(uiModel);
+            ViewTypeLiveData.Emit(filter.ViewType);
         }
 
-        var filterPresetDropDown = new DropDownButtonModel
-        {
-            Name = lastFilterName,
-            Items = filters.ConvertAll(x => new SimpleMenuFlyoutItemModel()
-            {
-                Text = x.Name,
-                Click = () => SelectFilterPreset(x.Name),
-            }),
-        };
-
-        var uiModel = new FilterModel
-        {
-            ViewTypeDropDown = viewTypeDropDown,
-            SortAndGroupDropDown = sortAndGroupDropDown,
-            FilterPresetDropDown = filterPresetDropDown,
-        };
-        FilterLiveData.Emit(uiModel);
-        ViewTypeLiveData.Emit(lastFilter.ViewType);
-
         // Update comics
-        if (_searchEngine.Expression == lastFilter.Expression)
+        if (_searchEngine.Expression == filter.Expression)
         {
             ScheduleDisplayComics();
         }
         else
         {
-            _searchEngine.Expression = lastFilter.Expression;
+            _searchEngine.Expression = filter.Expression;
             ScheduleUpdateComics();
         }
     }
@@ -921,8 +1002,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
         else
         {
-            ComicFilterModel.ExternalFilterModel filter = _filterModel.LastFilter
-                ?? ComicFilterModel.ExternalFilterModel.FromDefault();
+            ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
             ComicPropertyModel sortBy = filter.SortBy;
             ComicPropertyModel? groupBy = filter.GroupBy;
 
@@ -982,18 +1062,25 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         });
     }
 
+    private void UpdateUrl()
+    {
+        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
+        if (filter is null)
+        {
+            return;
+        }
+
+        ComicFilterModel.FilterModel jsonModel = filter.To();
+        string json = JsonSerializer.Serialize(jsonModel);
+        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME)
+            .WithParam(RouterConstants.ARG_FILTER_JSON, json);
+        UrlLiveData.Emit(route.Url);
+    }
+
     private List<ComicItemViewModel> SortComicItemsByProerty(IReadOnlyList<ComicItemViewModel> items,
         ComicPropertyModel property, ComicFilterModel.OrderMethodEnum orderMethod)
     {
         return property.SortComics(items, (x) => x.Comic, orderMethod);
-    }
-
-    private ComicFilterModel.ExternalFilterModel EnsureLastFilterNoLock()
-    {
-        ComicFilterModel.ExternalFilterModel filter = _filterModel.LastFilter
-            ?? ComicFilterModel.ExternalFilterModel.FromDefault();
-        _filterModel.LastFilter = filter;
-        return filter;
     }
 
     private List<BaseMenuFlyoutItemModel> CreateSortByMenuItems(List<ComicPropertyModel> properties,
@@ -1123,7 +1210,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return items;
     }
 
-    private List<BaseMenuFlyoutItemModel> CreateOrderMethodMenuItems(ComicFilterModel.OrderMethodEnum selectedMethod, Action<ComicFilterModel.OrderMethodEnum> clickHandler)
+    private static List<BaseMenuFlyoutItemModel> CreateOrderMethodMenuItems(ComicFilterModel.OrderMethodEnum selectedMethod, Action<ComicFilterModel.OrderMethodEnum> clickHandler)
     {
         string GetOrderMethodDisplayName(ComicFilterModel.OrderMethodEnum method)
         {
@@ -1161,7 +1248,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return items;
     }
 
-    private List<BaseMenuFlyoutItemModel> CreateSortingFunctionMenuItems(List<ComicPropertyModel> properties,
+    private static List<BaseMenuFlyoutItemModel> CreateSortingFunctionMenuItems(List<ComicPropertyModel> properties,
         ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty,
         Action<ComicFilterModel.FunctionTypeEnum, ComicPropertyModel?> clickHandler)
     {
@@ -1294,7 +1381,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return items;
     }
 
-    private string ViewTypeToDisplayName(ComicFilterModel.ViewTypeEnum viewType)
+    private static string ViewTypeToDisplayName(ComicFilterModel.ViewTypeEnum viewType)
     {
         return viewType switch
         {

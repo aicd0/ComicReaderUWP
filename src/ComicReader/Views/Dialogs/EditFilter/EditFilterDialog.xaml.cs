@@ -15,6 +15,8 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
 {
     public EditFilterDialogViewModel ViewModel = new();
 
+    public bool HasMadeChanges { get; private set; } = false;
+
     public EditFilterDialog(ComicFilterModel.ExternalFilterModel filter)
     {
         InitializeComponent();
@@ -99,18 +101,21 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
 
     private void DeleteButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        HasMadeChanges = true;
         ViewModel.Delete();
         Hide();
     }
 
     private void SaveButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        HasMadeChanges = true;
         ViewModel.Save();
         Hide();
     }
 
     private void SaveAsNewButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        HasMadeChanges = true;
         ViewModel.SaveAsNew();
         Hide();
     }

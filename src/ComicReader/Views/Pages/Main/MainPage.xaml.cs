@@ -1261,6 +1261,29 @@ internal sealed partial class MainPage : BasePage
             tab.Item.IconSource = icon;
         }
 
+        public void SetUrl(string url)
+        {
+            TabInfo? tab = GetTab();
+            if (tab == null)
+            {
+                return;
+            }
+
+            if (tab.CurrentUrl == url)
+            {
+                return;
+            }
+
+            if (!IsSameSource(tab.CurrentUrl, url))
+            {
+                Logger.F(TAG, $"Cannot set url to different source: {tab.CurrentUrl} -> {url}");
+                return;
+            }
+
+            tab.CurrentUrl = url;
+            App.Instance.WindowManager.ScheduleSaveWindowStatus();
+        }
+
         private TabInfo? GetTab()
         {
             if (!_parent.TryGetTarget(out MainPage? parent))
@@ -1269,6 +1292,23 @@ internal sealed partial class MainPage : BasePage
             }
 
             return parent.GetTabInfoNoLock(_tabId);
+        }
+
+        private static bool IsSameSource(string url1, string url2)
+        {
+            if (!Uri.TryCreate(url1, UriKind.Absolute, out Uri? uri1))
+            {
+                return false;
+            }
+
+            if (!Uri.TryCreate(url2, UriKind.Absolute, out Uri? uri2))
+            {
+                return false;
+            }
+
+            return string.Equals(uri1.Scheme, uri2.Scheme, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(uri1.Host, uri2.Host, StringComparison.OrdinalIgnoreCase)
+                && uri1.Port == uri2.Port;
         }
     }
 
