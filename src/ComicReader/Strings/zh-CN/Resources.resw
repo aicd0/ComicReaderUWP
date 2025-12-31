@@ -431,7 +431,7 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>已读$percentage%</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
+  <data name="Folders" xml:space="preserve">
     <value>文件夹</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">
@@ -580,6 +580,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="NewWindow" xml:space="preserve">
     <value>新窗口</value>
+  </data>
+  <data name="NoComicsHint" xml:space="preserve">
+    <value>你的漫画会显示在这里</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>您的收藏会显示在此处</value>

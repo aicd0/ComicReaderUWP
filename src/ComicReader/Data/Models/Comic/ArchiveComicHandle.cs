@@ -1,6 +1,7 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -46,6 +47,17 @@ internal partial class ArchiveComicHandle : ComicHandle
     private ArchiveComicHandle(string location, bool external) : base(ComicType.Archive, external)
     {
         Location = location;
+    }
+
+    public override IReadOnlyList<string> GetFolderViewPath()
+    {
+        string[] pieces = Location.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (pieces.Length == 0)
+        {
+            return pieces;
+        }
+
+        return pieces[..^1];
     }
 
     protected override async Task<IComicConnection?> OpenComicConnection()

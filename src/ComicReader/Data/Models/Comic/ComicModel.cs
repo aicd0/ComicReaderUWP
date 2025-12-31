@@ -50,6 +50,7 @@ internal sealed class ComicModel : IComicModel
     public string Title2 => _internalModel.Title2;
     public ComicCompletionStatusEnum CompletionState => _internalModel.CompletionState;
     public int PageCount => _internalModel.PageCount;
+    public IReadOnlyList<string> FolderViewPath => _internalModel.GetFolderViewPath();
 
     public Dictionary<string, HashSet<string>> TagsCopy
     {

@@ -431,8 +431,8 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>読み取り $percentage%</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
-    <value>フォルダ</value>
+  <data name="Folders" xml:space="preserve">
+    <value>フォルダー</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">
     <value>平均</value>
@@ -580,6 +580,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="NewWindow" xml:space="preserve">
     <value>新しいウィンドウ</value>
+  </data>
+  <data name="NoComicsHint" xml:space="preserve">
+    <value>あなたのコミックはここに表示されます</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>お気に入りはここに表示されます</value>

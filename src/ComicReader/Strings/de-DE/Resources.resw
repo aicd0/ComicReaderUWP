@@ -431,7 +431,7 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Abgeschlossen</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
+  <data name="Folders" xml:space="preserve">
     <value>Ordner</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">
@@ -580,6 +580,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="NewWindow" xml:space="preserve">
     <value>Neues Fenster</value>
+  </data>
+  <data name="NoComicsHint" xml:space="preserve">
+    <value>Deine Comics werden hier angezeigt</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Ihre Favoriten erscheinen hier</value>

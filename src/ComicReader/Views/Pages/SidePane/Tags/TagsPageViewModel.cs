@@ -232,14 +232,36 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             return keywords.Length == 0 || StringUtils.FastMatch(keywords, text.ToLowerInvariant()) > 0;
         }
 
+        SimpleTreeViewNodeModel ComicToNode(ComicModel comic)
+        {
+            return new()
+            {
+                DataContext = comic,
+                Glyph = "\uE8B9",
+                Title = comic.Title,
+                CanExpand = false,
+                Clicked = () =>
+                {
+                    Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+                        .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+                    OpenInCurrentTabLiveData.Emit(route);
+                },
+                RequestContextMenuItemsAsync = (primary, selection) =>
+                {
+                    IEnumerable<ComicModel> selectedComics = selection.Where(x => x.DataContext is ComicModel).Select(x => (ComicModel)x.DataContext!);
+                    return MenuFlyoutItemsCreator.CreateComicMenuItems(comic, _actionHandler, selectedComics, canSelect: !SelectionMode);
+                },
+            };
+        }
+
         List<SimpleTreeViewNodeModel> dataSource = [];
-        List<string> tagCategories = [.. tagCategoryMap.Keys];
-        tagCategories.Sort();
+        IEnumerable<string> tagCategories = tagCategoryMap.Keys
+            .OrderBy(StringUtils.SmartFileNameKeySelector, StringUtils.SmartFileNameComparer);
         foreach (string tagCategory in tagCategories)
         {
             Dictionary<string, TagEntry> tagMap = tagCategoryMap[tagCategory];
-            List<string> tags = [.. tagMap.Keys];
-            tags.Sort();
+            IEnumerable<string> tags = tagMap.Keys
+                .OrderBy(StringUtils.SmartFileNameKeySelector, StringUtils.SmartFileNameComparer);
 
             TagCateogryModel tagCategoryModel = new(tagCategory);
             SimpleTreeViewNodeModel tagCategoryNode = new()
@@ -267,43 +289,13 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                     RequestContextMenuItemsAsync = CreateTagMenuItems,
                 };
 
-                List<SimpleTreeViewNodeModel> tagChildren = [];
-                foreach (long comicId in tagEntry.ComicIds)
-                {
-                    if (!comicMap.TryGetValue(comicId, out ComicModel? comic))
-                    {
-                        continue;
-                    }
-
-                    if (!tagMatched && !MatchSearchText(comic.Title))
-                    {
-                        continue;
-                    }
-
-                    SimpleTreeViewNodeModel comicNode = new()
-                    {
-                        DataContext = comic,
-                        Glyph = "\uE8B9",
-                        Title = comic.Title,
-                        CanExpand = false,
-                        Clicked = () =>
-                        {
-                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                            OpenInCurrentTabLiveData.Emit(route);
-                        },
-                        RequestContextMenuItemsAsync = (primary, selection) =>
-                        {
-                            IEnumerable<ComicModel> selectedComics = selection.Where(x => x.DataContext is ComicModel).Select(x => (ComicModel)x.DataContext!);
-                            return MenuFlyoutItemsCreator.CreateComicMenuItems(comic, _actionHandler, selectedComics, canSelect: !SelectionMode);
-                        },
-                    };
-
-                    tagChildren.Add(comicNode);
-                }
-
-                IOrderedEnumerable<SimpleTreeViewNodeModel> tagChildrenSorted = tagChildren.OrderBy(x => StringUtils.SmartFileNameKeySelector(x.Title), StringUtils.SmartFileNameComparer);
-                foreach (SimpleTreeViewNodeModel child in tagChildrenSorted)
+                IEnumerable<SimpleTreeViewNodeModel> tagChildren = tagEntry.ComicIds
+                    .Where(comicMap.ContainsKey)
+                    .Select(x => comicMap[x])
+                    .Where(x => tagMatched || MatchSearchText(x.Title))
+                    .Select(ComicToNode)
+                    .OrderBy(x => StringUtils.SmartFileNameKeySelector(x.Title), StringUtils.SmartFileNameComparer);
+                foreach (SimpleTreeViewNodeModel child in tagChildren)
                 {
                     tagNode.Children.Add(child);
                 }

@@ -9,21 +9,19 @@ using ComicReader.Common.Misc;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
-using ComicReader.Views.Dialogs.EditTag;
-using ComicReader.Views.Dialogs.EditTagCategory;
 using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReader.Views.Pages.SidePane.Tags;
+namespace ComicReader.Views.Pages.SidePane.Folders;
 
-internal sealed partial class TagsPage : BasePage
+internal sealed partial class FoldersPage : BasePage
 {
-    private const string TAG = nameof(TagsPage);
+    private const string TAG = nameof(FoldersPage);
 
-    private readonly TagsPageViewModel ViewModel = new();
+    private readonly FoldersPageViewModel ViewModel = new();
 
-    public TagsPage()
+    public FoldersPage()
     {
         InitializeComponent();
     }
@@ -36,41 +34,14 @@ internal sealed partial class TagsPage : BasePage
 
         ObserveData();
         ViewModel.Initialize(PageActionHandler);
-        ViewModel.UpdateTags();
+        ViewModel.UpdateComics();
     }
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.TagInfoUpdated.Observe(this, delegate
-        {
-            ViewModel.UpdateTags();
-        });
-
         GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
         {
-            ViewModel.UpdateTags();
-        });
-
-        ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
-        {
-            GetMainPageAbility().OpenInCurrentTab(route);
-        });
-
-        ViewModel.OpenInNewTabLiveData.Observe(this, route =>
-        {
-            GetMainPageAbility().OpenInNewTab(route);
-        });
-
-        ViewModel.EditTagCategoryLiveData.Observe(this, tagCategory =>
-        {
-            var dialog = new EditTagCateogoryDialog(tagCategory);
-            CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
-        });
-
-        ViewModel.EditTagLiveData.Observe(this, pair =>
-        {
-            var dialog = new EditTagDialog(pair.Key, pair.Value);
-            CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
+            ViewModel.UpdateComics();
         });
     }
 
@@ -97,7 +68,7 @@ internal sealed partial class TagsPage : BasePage
     // Types
     //
 
-    private class CustomActionHandler(TagsPageViewModel viewModel) : CustomActionProvider.IHandler
+    private class CustomActionHandler(FoldersPageViewModel viewModel) : CustomActionProvider.IHandler
     {
         public void Handle(string source, string name, IReadOnlyList<string> args)
         {

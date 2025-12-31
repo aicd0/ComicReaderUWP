@@ -432,7 +432,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% 완료됨</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
+  <data name="Folders" xml:space="preserve">
     <value>폴더</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">
@@ -581,6 +581,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="NewWindow" xml:space="preserve">
     <value>새 창</value>
+  </data>
+  <data name="NoComicsHint" xml:space="preserve">
+    <value>여기에 내 만화가 표시됩니다</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>즐겨찾기가 여기에 표시됩니다</value>

@@ -644,6 +644,8 @@ internal abstract class ComicHandle
     // Abstract Methods
     //
 
+    public abstract IReadOnlyList<string> GetFolderViewPath();
+
     protected abstract Task<IComicConnection?> OpenComicConnection();
 
     //
@@ -825,7 +827,7 @@ internal abstract class ComicHandle
 
             if (Type != ComicType.Folder)
             {
-                sub_tags[sub_tags.Count - 1] = StringUtils.DisplayNameFromFilename(sub_tags[sub_tags.Count - 1]);
+                sub_tags[^1] = StringUtils.DisplayNameFromFilename(sub_tags[^1]);
             }
 
             tags.AddRange(sub_tags);

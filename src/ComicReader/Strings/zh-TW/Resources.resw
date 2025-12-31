@@ -431,7 +431,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>已讀$percentage%</value>
   </data>
-  <data name="FoldersHeader.Text" xml:space="preserve">
+  <data name="Folders" xml:space="preserve">
     <value>資料夾</value>
   </data>
   <data name="FunctionAverage" xml:space="preserve">
@@ -580,6 +580,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="NewWindow" xml:space="preserve">
     <value>新視窗</value>
+  </data>
+  <data name="NoComicsHint" xml:space="preserve">
+    <value>你的漫畫會顯示在這裡</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>您的收藏會顯示在此處</value>
