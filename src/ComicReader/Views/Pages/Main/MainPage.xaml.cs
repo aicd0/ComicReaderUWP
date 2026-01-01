@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
 
@@ -483,6 +484,23 @@ internal sealed partial class MainPage : BasePage
 
         lastSelectedTab?.Ability.SendTabUnselectedEvent();
         OnPageChanged();
+    }
+
+    private void RootTabView_TabDragCompleted(TabView sender, TabViewTabDragCompletedEventArgs args)
+    {
+        // Reorder tabs to match the actual order
+        var indexMap = RootTabView.TabItems
+            .Select((value, index) => new { value, index })
+            .ToDictionary(x => x.value, x => x.index);
+        List<TabInfo> reordered = [.. _tabs
+            .OrderBy(t => indexMap.TryGetValue(t.Item, out int idx) ? idx : int.MaxValue)];
+        _tabs.Clear();
+        foreach (TabInfo tab in reordered)
+        {
+            _tabs.Add(tab);
+        }
+
+        App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
     private void OnRootTabViewTabDragStarting(TabView sender, TabViewTabDragStartingEventArgs args)
