@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Misc;
@@ -22,17 +23,37 @@ namespace ComicReader.Data.Models.Comic;
 
 internal sealed class ComicModel : IComicModel
 {
+    private static int _highestObjectId = 0;
+
+    private readonly int _objectId;
     private readonly ComicHandle _internalModel;
 
     private ComicModel(ComicHandle comicData)
     {
+        _objectId = Interlocked.Increment(ref _highestObjectId);
         _internalModel = comicData;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not ComicModel comic)
+        {
+            return false;
+        }
+
+        return comic.ObjectId == ObjectId;
+    }
+
+    public override int GetHashCode()
+    {
+        return ObjectId.GetHashCode();
     }
 
     //
     // Getters
     //
 
+    public int ObjectId => _objectId;
     public string CoverImageCacheKey => _internalModel.GetCoverImageCacheKey().Result;
     public string Description => _internalModel.Description;
     public bool Hidden => _internalModel.Hidden;

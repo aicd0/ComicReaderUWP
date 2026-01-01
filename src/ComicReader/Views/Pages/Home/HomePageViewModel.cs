@@ -1041,8 +1041,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             bool ComicComparer(ComicItemViewModel x, ComicItemViewModel y) => x.Comic.Id == y.Comic.Id;
             void ComicUpdater(ComicItemViewModel x, ComicItemViewModel y) => x.Update(y);
 
-            LibraryEmptyVisible = isEmpty;
-
             if (comicsGrouped != null)
             {
                 // Disable ME as it's causing a native crash in Microsoft.ui.xaml.dll.
@@ -1059,11 +1057,17 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 }, disableME: true);
 
                 GroupingEnabledLiveData.Emit(true);
+                LibraryEmptyVisible = GroupedComicItems.Count == 0;
             }
             else if (comicsUngrouped != null)
             {
                 DiffUtils.UpdateCollection(UngroupedComicItems, comicsUngrouped, ComicComparer, ComicUpdater);
                 GroupingEnabledLiveData.Emit(false);
+                LibraryEmptyVisible = UngroupedComicItems.Count == 0;
+            }
+            else
+            {
+                Logger.F(TAG, "Shouldn't reach");
             }
 
             UpdateCollapseExpandGroupButtonStates();

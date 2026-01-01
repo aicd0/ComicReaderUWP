@@ -591,6 +591,7 @@ internal class ComicPropertyModel
                         group = [];
                         groupMap[name] = group;
                     }
+
                     group.Add(item);
                 }
             }
@@ -754,10 +755,10 @@ internal class ComicPropertyModel
     {
         public List<T> Sort<T>(IEnumerable<T> items, Func<T, ComicModel> selector, ComicFilterModel.OrderMethodEnum orderMethod)
         {
-            ILookup<ComicModel, T> lookup = items.ToLookup(t => selector(t));
+            ILookup<int, T> lookup = items.ToLookup(t => selector(t).ObjectId);
             IEnumerable<T> sorted = property
                 .SortItems(items.Select(x => selector(x)))
-                .SelectMany(t => lookup[t]);
+                .SelectMany(t => lookup[t.ObjectId]);
             return orderMethod switch
             {
                 ComicFilterModel.OrderMethodEnum.Ascending => [.. sorted],
@@ -771,10 +772,10 @@ internal class ComicPropertyModel
     {
         public List<T> Sort<T>(IEnumerable<T> items, Func<T, ComicGroup> selector, ComicFilterModel.OrderMethodEnum orderMethod, Action<T, string> keyBinder)
         {
-            ILookup<ComicGroup, T> lookup = items.ToLookup(t => selector(t));
+            ILookup<string, T> lookup = items.ToLookup(t => selector(t).GroupName);
             IEnumerable<T> sorted = property
                 .SortGroups(items.Select(x => selector(x)))
-                .SelectMany(t => lookup[t]);
+                .SelectMany(t => lookup[t.GroupName]);
             return orderMethod switch
             {
                 ComicFilterModel.OrderMethodEnum.Ascending => [.. sorted],
