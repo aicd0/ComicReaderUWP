@@ -40,7 +40,10 @@ internal class OpenPageInterceptor : IRouterInterceptor
             return false;
         }
 
-        navigationBundle = new NavigationBundle(pageTrait, route.Queries, route.Url);
+        navigationBundle = new NavigationBundle(route)
+        {
+            PageTrait = pageTrait,
+        };
         return true;
     }
 }

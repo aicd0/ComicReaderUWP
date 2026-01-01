@@ -6,9 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ComicReader.Common.BaseUI;
 
-internal class PageBundle(Dictionary<string, string> parameters)
+internal class PageBundle(IReadOnlyDictionary<string, string> parameters)
 {
-    private readonly Dictionary<string, string> _parameters = parameters;
+    private readonly IReadOnlyDictionary<string, string> _parameters = parameters;
 
     [return: NotNullIfNotNull(nameof(defaultValue))]
     public string? GetString(string key, string? defaultValue = null)

@@ -3,8 +3,6 @@
 
 using System.Collections.Generic;
 
-using ComicReader.Common.BaseUI;
-
 namespace ComicReader.Helpers.Navigation;
 
 internal static class AppRouter

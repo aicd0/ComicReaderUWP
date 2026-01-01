@@ -118,7 +118,7 @@ internal sealed partial class MainPage : BasePage
 
         foreach (TabInfo item in _tabs)
         {
-            model.Tabs.Add(new TabModel { Url = item.CurrentUrl });
+            model.Tabs.Add(new TabModel { Url = item.CurrentBundle.Url });
         }
 
         LastTabStatusJsonModel jsonModel = new()
@@ -303,7 +303,7 @@ internal sealed partial class MainPage : BasePage
         {
             foreach (TabInfo tab in _tabs)
             {
-                if (tab.CurrentUrl == bundle.Url)
+                if (tab.CurrentBundle.Url == bundle.Url)
                 {
                     if (select)
                     {
@@ -333,7 +333,7 @@ internal sealed partial class MainPage : BasePage
             RootTabView.SelectedItem = tabInfo.Item;
         }
 
-        if (!newTab && tabInfo.CurrentUrl == bundle.Url)
+        if (!newTab && tabInfo.CurrentBundle.Url == bundle.Url)
         {
             return true;
         }
@@ -361,15 +361,13 @@ internal sealed partial class MainPage : BasePage
             Item = item,
             Ability = ability,
             NavigationBarAbility = navigationBarAbility,
-            CurrentPageTrait = bundle.PageTrait,
-            CurrentUrl = bundle.Url,
+            CurrentBundle = bundle,
         };
         tabInfo.NavigatedHandler = (sender, e) =>
         {
             var newBundle = (NavigationBundle)e.Parameter;
             tabInfo.NavigationBarAbility.ClearStates();
-            tabInfo.CurrentPageTrait = newBundle.PageTrait;
-            tabInfo.CurrentUrl = newBundle.Url;
+            tabInfo.CurrentBundle = newBundle;
             if (_currentTab is not null && tabInfo.Id == _currentTab.Id)
             {
                 OnPageChanged();
@@ -505,7 +503,7 @@ internal sealed partial class MainPage : BasePage
 
         args.Data.Properties.Add("windowId", WindowId);
         args.Data.Properties.Add("tabId", draggingTab.Id);
-        args.Data.Properties.Add("url", draggingTab.CurrentUrl);
+        args.Data.Properties.Add("url", draggingTab.CurrentBundle.Url);
     }
 
     private void OnRootTabViewDrop(object sender, DragEventArgs e)
@@ -579,7 +577,7 @@ internal sealed partial class MainPage : BasePage
 
         _tabs.Remove(removingTab);
         RootTabView.TabItems.Remove(tab);
-        MainWindow.Open(url: removingTab.CurrentUrl);
+        MainWindow.Open(url: removingTab.CurrentBundle.Url);
     }
 
     private void OnPageChanged()
@@ -595,7 +593,7 @@ internal sealed partial class MainPage : BasePage
 
     private void OnPageChangedInternal(TabInfo tabInfo)
     {
-        IPageTrait pageTrait = tabInfo.CurrentPageTrait;
+        IPageTrait pageTrait = tabInfo.CurrentBundle.PageTrait;
         bool immersiveMode = pageTrait.ImmersiveMode();
         bool isHomePage = pageTrait is HomePageTrait;
         bool isReaderPage = pageTrait is ReaderPageTrait;
@@ -670,7 +668,7 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        if (!show && !_currentTab.CurrentPageTrait.ImmersiveMode())
+        if (!show && !_currentTab.CurrentBundle.PageTrait.ImmersiveMode())
         {
             // Only hide the title bar when the current page supports immersive mode.
             return;
@@ -1269,18 +1267,18 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            if (tab.CurrentUrl == url)
+            if (tab.CurrentBundle.Url == url)
             {
                 return;
             }
 
-            if (!IsSameSource(tab.CurrentUrl, url))
+            if (!IsSameSource(tab.CurrentBundle.Url, url))
             {
-                Logger.F(TAG, $"Cannot set url to different source: {tab.CurrentUrl} -> {url}");
+                Logger.F(TAG, $"Cannot set url to different source: {tab.CurrentBundle.Url} -> {url}");
                 return;
             }
 
-            tab.CurrentUrl = url;
+            tab.CurrentBundle.SetUrl(url);
             App.Instance.WindowManager.ScheduleSaveWindowStatus();
         }
 
@@ -1642,8 +1640,7 @@ internal sealed partial class MainPage : BasePage
         public required TabViewItem Item { init; get; }
         public required MainPageAbilityForTab Ability { init; get; }
         public required NavigationPageAbility NavigationBarAbility { init; get; }
-        public required string CurrentUrl { get; set; }
-        public required IPageTrait CurrentPageTrait { get; set; }
+        public required NavigationBundle CurrentBundle { get; set; }
         public NavigatedEventHandler? NavigatedHandler { get; set; }
 
         //
