@@ -422,6 +422,7 @@
             SelectionChanged="OnTabViewSelectionChanged"
             Style="{StaticResource MainPageTabViewStyle}"
             TabCloseRequested="OnTabCloseRequested"
+            TabDragCompleted="RootTabView_TabDragCompleted"
             TabDragStarting="OnRootTabViewTabDragStarting"
             TabDroppedOutside="OnRootTabViewTabDroppedOutside">
             <muxc:TabView.TabStripFooter>
