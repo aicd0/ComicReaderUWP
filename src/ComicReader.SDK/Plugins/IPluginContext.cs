@@ -5,6 +5,7 @@ using ComicReader.SDK.Database.KV;
 using ComicReader.SDK.DataModels;
 using ComicReader.SDK.Plugins.Comic;
 using ComicReader.SDK.Plugins.Common;
+using ComicReader.SDK.Plugins.Property;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -17,6 +18,8 @@ public interface IPluginContext
     Task<IComicModel?> GetComicById(long id);
 
     Task<IEnumerable<long>> SearchComics(string filterExpression);
+
+    void RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property);
 
     Task WithBusyState(Func<Task> action);
 

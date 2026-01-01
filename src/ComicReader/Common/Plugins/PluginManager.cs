@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using ComicReader.Common.Constants;
@@ -19,7 +20,7 @@ using ComicReader.SDK.Plugins;
 
 namespace ComicReader.Common.Plugins;
 
-internal class PluginManager
+internal partial class PluginManager
 {
     private const string TAG = nameof(PluginManager);
     private const string KEY_DISABLED_PLUGINS = "DisabledPlugins";
@@ -62,6 +63,12 @@ internal class PluginManager
             foreach (IPlugin plugin in plugins)
             {
                 string name = plugin.Name;
+                if (!PluginNameRegex().IsMatch(name))
+                {
+                    Logger.E(TAG, $"Invalid plugin name: '{name}'");
+                    continue;
+                }
+
                 if (_plugins.ContainsKey(name))
                 {
                     Logger.E(TAG, $"Duplicated plugin name: '{name}'");
@@ -94,6 +101,17 @@ internal class PluginManager
 
         _plugins.TryGetValue(pluginName, out PluginContext? context);
         return context;
+    }
+
+    public PluginContext? GetActivePlugin(string pluginName)
+    {
+        PluginContext? plugin = GetPlugin(pluginName);
+        if (plugin is null || plugin.Status != PluginStatusEnum.Initialized)
+        {
+            return null;
+        }
+
+        return plugin;
     }
 
     public IEnumerable<PluginContext> GetAllPlugins()
@@ -257,4 +275,7 @@ internal class PluginManager
     {
         _pluginsChanged.Emit(true);
     }
+
+    [GeneratedRegex(@"^[a-zA-Z0-9_]+$")]
+    private static partial Regex PluginNameRegex();
 }

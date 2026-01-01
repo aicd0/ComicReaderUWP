@@ -10,11 +10,14 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Localization;
+using ComicReader.Common.Plugins;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
+using ComicReader.SDK.Plugins.Comic;
+using ComicReader.SDK.Plugins.Property;
 
 namespace ComicReader.Data.Models.Misc;
 
@@ -28,6 +31,7 @@ internal class ComicPropertyModel
     private const string PROP_TYPE_COMPLETION_STATE = "CompletionState";
     private const string PROP_TYPE_LAST_READ_TIME = "LastReadTime";
     private const string PROP_TYPE_PAGES = "Pages";
+    private const string PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY = "PluginVirtualProperty";
 
     private static readonly List<PropertyTypeEnum> _properties = [
         PropertyTypeEnum.Title,
@@ -38,26 +42,76 @@ internal class ComicPropertyModel
         PropertyTypeEnum.Pages,
     ];
 
-    private PropertyTypeEnum Type { get; set; } = PropertyTypeEnum.Title;
-    private string Name { get; set; } = "";
+    private PropertyTypeEnum Type { get; init; } = PropertyTypeEnum.Title;
+    private string Name { get; init; } = string.Empty;
 
     public string DisplayGroupName => Type switch
     {
         PropertyTypeEnum.Tag => StringResourceProvider.Instance.Tag,
-        _ => "",
+        PropertyTypeEnum.PluginVirtualProperty => StringResourceProvider.Instance.Plugins,
+        _ => string.Empty,
     };
 
-    public string DisplayName => Type switch
+    private string _displayName = string.Empty;
+    public string DisplayName
     {
-        PropertyTypeEnum.Title => StringResourceProvider.Instance.Title,
-        PropertyTypeEnum.Progress => StringResourceProvider.Instance.Progress,
-        PropertyTypeEnum.Tag => Name,
-        PropertyTypeEnum.Rating => StringResourceProvider.Instance.Rating,
-        PropertyTypeEnum.CompletionState => StringResourceProvider.Instance.CompletionState,
-        PropertyTypeEnum.LastReadTime => StringResourceProvider.Instance.LastReadTime,
-        PropertyTypeEnum.Pages => StringResourceProvider.Instance.PageCount,
-        _ => "",
-    };
+        get
+        {
+            if (!string.IsNullOrEmpty(_displayName))
+            {
+                return _displayName;
+            }
+
+            return Type switch
+            {
+                PropertyTypeEnum.Title => StringResourceProvider.Instance.Title,
+                PropertyTypeEnum.Progress => StringResourceProvider.Instance.Progress,
+                PropertyTypeEnum.Tag => Name,
+                PropertyTypeEnum.Rating => StringResourceProvider.Instance.Rating,
+                PropertyTypeEnum.CompletionState => StringResourceProvider.Instance.CompletionState,
+                PropertyTypeEnum.LastReadTime => StringResourceProvider.Instance.LastReadTime,
+                PropertyTypeEnum.Pages => StringResourceProvider.Instance.PageCount,
+                _ => string.Empty,
+            };
+        }
+        set => _displayName = value;
+    }
+
+    private bool _pluginPropertyInitialized = false;
+    private IVirtualProperty<IComicModel>? _pluginProperty;
+    private IVirtualProperty<IComicModel>? PluginProperty
+    {
+        get
+        {
+            if (_pluginPropertyInitialized)
+            {
+                return _pluginProperty;
+            }
+
+            _pluginPropertyInitialized = true;
+            if (Type != PropertyTypeEnum.PluginVirtualProperty)
+            {
+                return null;
+            }
+
+            string[] pieces = Name.Split(':');
+            if (pieces.Length != 2)
+            {
+                return null;
+            }
+
+            string pluginName = pieces[0];
+            string propertyName = pieces[1];
+            PluginContext? plugin = PluginManager.Instance.GetActivePlugin(pluginName);
+            if (plugin is null)
+            {
+                return null;
+            }
+
+            _pluginProperty = plugin.GetAllComicVirtualProperties().FirstOrDefault(x => x.Name == propertyName);
+            return _pluginProperty;
+        }
+    }
 
     public override bool Equals(object? obj)
     {
@@ -65,6 +119,7 @@ internal class ComicPropertyModel
         {
             return Type == other.Type && Name == other.Name;
         }
+
         return false;
     }
 
@@ -85,7 +140,8 @@ internal class ComicPropertyModel
 
     public List<T> SortComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector, ComicFilterModel.OrderMethodEnum orderMethod)
     {
-        IItemSorter<ComicModel> sorter = GetComicItemSorter();
+        PluginProperty?.Initialize(items.Select(selector));
+        IItemSorter<ComicModel> sorter = GetComicItemSorter(orderMethod);
         return sorter.Sort(items, selector, orderMethod);
     }
 
@@ -93,12 +149,24 @@ internal class ComicPropertyModel
         ComicFilterModel.OrderMethodEnum orderMethod, ComicFilterModel.FunctionTypeEnum sortingFunction,
         ComicPropertyModel? sortingProperty)
     {
-        IComicGroupSorter sorter = GetComicGroupSorter();
-        return sorter.GroupComics(items, selector, orderMethod, sortingFunction, sortingProperty);
+        PluginProperty?.Initialize(items.Select(selector));
+        sortingProperty?.PluginProperty?.Initialize(items.Select(selector));
+        ComicGrouper grouper = GetComicGrouper(orderMethod);
+        return grouper.GroupComics(items, selector, orderMethod, sortingFunction, sortingProperty);
     }
 
-    private IItemSorter<ComicModel> GetComicItemSorter()
+    private IItemSorter<ComicModel> GetComicItemSorter(ComicFilterModel.OrderMethodEnum orderMethod)
     {
+        switch (orderMethod)
+        {
+            case ComicFilterModel.OrderMethodEnum.Shuffle:
+            case ComicFilterModel.OrderMethodEnum.ShuffleStable:
+                int IdSelector(ComicModel x) => HashUtils.GetXxHash64Int(x.Id);
+                return new RandomSorter<ComicModel>(IdSelector);
+            default:
+                break;
+        }
+
         string GetConcatenatedTag(ComicModel comic)
         {
             ComicHandle.TagData? tagData = comic.Tags.FirstOrDefault(tag => tag.Name == Name);
@@ -122,24 +190,40 @@ internal class ComicPropertyModel
             };
         }
 
-        int IdSelector(ComicModel x) => HashUtils.GetXxHash64Int(x.Id);
+        IItemSorter<ComicModel> GetFallbackSorter()
+        {
+            Logger.F(TAG, "Using fallback sorter.");
+            return new BasicItemSorter<ComicModel, long>(x => x.Id);
+        }
+
+        IItemSorter<ComicModel> GetPluginPropertySorter()
+        {
+            IVirtualProperty<IComicModel>? property = PluginProperty;
+            if (property is null)
+            {
+                return GetFallbackSorter();
+            }
+
+            return new PluginPropertyItemSorter(property);
+        }
 
         return Type switch
         {
-            PropertyTypeEnum.Title => new SimpleSorter<ComicModel, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(x.Title ?? StringResourceProvider.Instance.Untitled), IdSelector, comparer: StringUtils.SmartFileNameComparer),
-            PropertyTypeEnum.Progress => new SimpleSorter<ComicModel, int>(x => x.Progress, IdSelector),
-            PropertyTypeEnum.Tag => new SimpleSorter<ComicModel, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(GetConcatenatedTag(x)), IdSelector, comparer: StringUtils.SmartFileNameComparer),
-            PropertyTypeEnum.Rating => new SimpleSorter<ComicModel, int>(x => x.Rating, IdSelector),
-            PropertyTypeEnum.CompletionState => new SimpleSorter<ComicModel, int>(x => CompletionStateToComparable(x.CompletionState), IdSelector),
-            PropertyTypeEnum.LastReadTime => new SimpleSorter<ComicModel, long>(x => x.LastVisit.Ticks, IdSelector),
-            PropertyTypeEnum.Pages => new SimpleSorter<ComicModel, int>(x => x.PageCount, IdSelector),
-            _ => new SimpleSorter<ComicModel, long>(x => x.Id, IdSelector),
+            PropertyTypeEnum.Title => new BasicItemSorter<ComicModel, List<string>>(
+                x => StringUtils.SmartFileNameKeySelector(x.Title ?? StringResourceProvider.Instance.Untitled), keyComparer: StringUtils.SmartFileNameComparer),
+            PropertyTypeEnum.Progress => new BasicItemSorter<ComicModel, int>(x => x.Progress),
+            PropertyTypeEnum.Tag => new BasicItemSorter<ComicModel, List<string>>(
+                x => StringUtils.SmartFileNameKeySelector(GetConcatenatedTag(x)), keyComparer: StringUtils.SmartFileNameComparer),
+            PropertyTypeEnum.Rating => new BasicItemSorter<ComicModel, int>(x => x.Rating),
+            PropertyTypeEnum.CompletionState => new BasicItemSorter<ComicModel, int>(x => CompletionStateToComparable(x.CompletionState)),
+            PropertyTypeEnum.LastReadTime => new BasicItemSorter<ComicModel, long>(x => x.LastVisit.Ticks),
+            PropertyTypeEnum.Pages => new BasicItemSorter<ComicModel, int>(x => x.PageCount),
+            PropertyTypeEnum.PluginVirtualProperty => GetPluginPropertySorter(),
+            _ => GetFallbackSorter(),
         };
     }
 
-    private IComicGroupSorter GetComicGroupSorter()
+    private ComicGrouper GetComicGrouper(ComicFilterModel.OrderMethodEnum orderMethod)
     {
         string GetTitleGroupName(ComicModel comic)
         {
@@ -260,26 +344,81 @@ internal class ComicPropertyModel
             return lastReadTime.ToString("D", EnvironmentProvider.Instance.GetCurrentAppLanguageInfo());
         }
 
-        int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetXxHash64Int(x.GroupName);
+        IGroupSorter<ComicGroup, string> GetFallbackSorter()
+        {
+            Logger.F(TAG, "Using fallback sorter.");
+            return new BasicGroupSorter<ComicGroup, int>(x => 0);
+        }
+
+        IGroupSorter<ComicGroup, string> GetPluginPropertySorter()
+        {
+            IVirtualProperty<IComicModel>? property = PluginProperty;
+            if (property is null)
+            {
+                return GetFallbackSorter();
+            }
+
+            return new PluginPropertyGroupSorter(property);
+        }
+
+        IGroupSorter<ComicGroup, string> GetDefaultSorter()
+        {
+            switch (orderMethod)
+            {
+                case ComicFilterModel.OrderMethodEnum.Shuffle:
+                case ComicFilterModel.OrderMethodEnum.ShuffleStable:
+                    int IdSelector(ComicGroup x) => HashUtils.GetXxHash64Int(x.GroupName);
+                    return new RandomSorter<ComicGroup>(IdSelector);
+                default:
+                    break;
+            }
+
+            return Type switch
+            {
+                PropertyTypeEnum.Title => new BasicGroupSorter<ComicGroup, List<string>>(
+                    x => StringUtils.SmartFileNameKeySelector(x.GroupName), keyComparer: StringUtils.SmartFileNameComparer),
+                PropertyTypeEnum.Progress => new BasicGroupSorter<ComicGroup, int>(x => x.Items[0].Progress),
+                PropertyTypeEnum.Tag => new BasicGroupSorter<ComicGroup, List<string>>(
+                    x => StringUtils.SmartFileNameKeySelector(x.GroupName), keyComparer: StringUtils.SmartFileNameComparer),
+                PropertyTypeEnum.Rating => new BasicGroupSorter<ComicGroup, int>(x => x.Items[0].Rating),
+                PropertyTypeEnum.CompletionState => new BasicGroupSorter<ComicGroup, int>(x => GetCompletionStatusGroupSortingKey(x.Items[0])),
+                PropertyTypeEnum.LastReadTime => new BasicGroupSorter<ComicGroup, long>(x => x.Items[0].LastVisit.Ticks),
+                PropertyTypeEnum.Pages => new BasicGroupSorter<ComicGroup, int>(x => x.Items[0].PageCount),
+                PropertyTypeEnum.PluginVirtualProperty => GetPluginPropertySorter(),
+                _ => GetFallbackSorter(),
+            };
+        }
+
+        IGroupSorter<ComicGroup, string> defaultSorter = GetDefaultSorter();
+
+        ComicGrouper GetFallbackGrouper()
+        {
+            Logger.F(TAG, "Using fallback sorter.");
+            return new ComicGrouper(x => [new(StringResourceProvider.Instance.Ungrouped)], defaultSorter);
+        }
+
+        ComicGrouper GetPluginPropertyGrouper()
+        {
+            IVirtualProperty<IComicModel>? property = PluginProperty;
+            if (property is null)
+            {
+                return GetFallbackGrouper();
+            }
+
+            return new(property.GetGroupNames, defaultSorter);
+        }
 
         return Type switch
         {
-            PropertyTypeEnum.Title => new ComicGroupSorter(x => [GetTitleGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(x.GroupName), IdSelector, comparer: StringUtils.SmartFileNameComparer)),
-            PropertyTypeEnum.Progress => new ComicGroupSorter(x => [GetProgressGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => x.Items[0].Progress, IdSelector)),
-            PropertyTypeEnum.Tag => new ComicGroupSorter(GetTagGroupNames, new GroupSorter<GroupSortingKeySelectorParams, List<string>>(
-                x => StringUtils.SmartFileNameKeySelector(x.GroupName), IdSelector, comparer: StringUtils.SmartFileNameComparer)),
-            PropertyTypeEnum.Rating => new ComicGroupSorter(x => [GetRatingGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => x.Items[0].Rating, IdSelector)),
-            PropertyTypeEnum.CompletionState => new ComicGroupSorter(x => [GetCompletionStatusGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => GetCompletionStatusGroupSortingKey(x.Items[0]), IdSelector)),
-            PropertyTypeEnum.LastReadTime => new ComicGroupSorter(x => [GetLastReadTimeGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, long>(
-                x => x.Items[0].LastVisit.Ticks, IdSelector)),
-            PropertyTypeEnum.Pages => new ComicGroupSorter(x => [GetPagesGroupName(x)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => x.Items[0].PageCount, IdSelector)),
-            _ => new ComicGroupSorter(x => [new(StringResourceProvider.Instance.Ungrouped)], new GroupSorter<GroupSortingKeySelectorParams, int>(
-                x => 0, IdSelector)),
+            PropertyTypeEnum.Title => new ComicGrouper(x => [GetTitleGroupName(x)], defaultSorter),
+            PropertyTypeEnum.Progress => new ComicGrouper(x => [GetProgressGroupName(x)], defaultSorter),
+            PropertyTypeEnum.Tag => new ComicGrouper(GetTagGroupNames, defaultSorter),
+            PropertyTypeEnum.Rating => new ComicGrouper(x => [GetRatingGroupName(x)], defaultSorter),
+            PropertyTypeEnum.CompletionState => new ComicGrouper(x => [GetCompletionStatusGroupName(x)], defaultSorter),
+            PropertyTypeEnum.LastReadTime => new ComicGrouper(x => [GetLastReadTimeGroupName(x)], defaultSorter),
+            PropertyTypeEnum.Pages => new ComicGrouper(x => [GetPagesGroupName(x)], defaultSorter),
+            PropertyTypeEnum.PluginVirtualProperty => GetPluginPropertyGrouper(),
+            _ => GetFallbackGrouper(),
         };
     }
 
@@ -311,41 +450,6 @@ internal class ComicPropertyModel
         };
     }
 
-    private static string PropertyTypeToString(PropertyTypeEnum value)
-    {
-        return value switch
-        {
-            PropertyTypeEnum.Title => PROP_TYPE_TITLE,
-            PropertyTypeEnum.Progress => PROP_TYPE_PROGRESS,
-            PropertyTypeEnum.Tag => PROP_TYPE_TAG,
-            PropertyTypeEnum.Rating => PROP_TYPE_RATING,
-            PropertyTypeEnum.CompletionState => PROP_TYPE_COMPLETION_STATE,
-            PropertyTypeEnum.LastReadTime => PROP_TYPE_LAST_READ_TIME,
-            PropertyTypeEnum.Pages => PROP_TYPE_PAGES,
-            _ => PROP_TYPE_TITLE,
-        };
-    }
-
-    private static PropertyTypeEnum StringToPropertyType(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return PropertyTypeEnum.Title;
-        }
-
-        return value switch
-        {
-            PROP_TYPE_TITLE => PropertyTypeEnum.Title,
-            PROP_TYPE_PROGRESS => PropertyTypeEnum.Progress,
-            PROP_TYPE_TAG => PropertyTypeEnum.Tag,
-            PROP_TYPE_RATING => PropertyTypeEnum.Rating,
-            PROP_TYPE_COMPLETION_STATE => PropertyTypeEnum.CompletionState,
-            PROP_TYPE_LAST_READ_TIME => PropertyTypeEnum.LastReadTime,
-            PROP_TYPE_PAGES => PropertyTypeEnum.Pages,
-            _ => PropertyTypeEnum.Title,
-        };
-    }
-
     public static async Task<List<ComicPropertyModel>> GetProperties()
     {
         var properties = new List<ComicPropertyModel>();
@@ -369,7 +473,79 @@ internal class ComicPropertyModel
             }
         }
 
+        IEnumerable<PluginContext> plugins = PluginManager.Instance.GetActivePlugins();
+        foreach (PluginContext plugin in plugins)
+        {
+            string pluginName = plugin.Name;
+            IEnumerable<IVirtualProperty<IComicModel>> pluginProperties = plugin.GetAllComicVirtualProperties();
+            foreach (IVirtualProperty<IComicModel> property in pluginProperties)
+            {
+                properties.Add(new ComicPropertyModel
+                {
+                    Type = PropertyTypeEnum.PluginVirtualProperty,
+                    Name = $"{pluginName}:{property.Name}",
+                    DisplayName = property.DisplayName,
+                });
+            }
+        }
+
         return properties;
+    }
+
+    private static string PropertyTypeToString(PropertyTypeEnum value)
+    {
+        return value switch
+        {
+            PropertyTypeEnum.Title => PROP_TYPE_TITLE,
+            PropertyTypeEnum.Progress => PROP_TYPE_PROGRESS,
+            PropertyTypeEnum.Tag => PROP_TYPE_TAG,
+            PropertyTypeEnum.Rating => PROP_TYPE_RATING,
+            PropertyTypeEnum.CompletionState => PROP_TYPE_COMPLETION_STATE,
+            PropertyTypeEnum.LastReadTime => PROP_TYPE_LAST_READ_TIME,
+            PropertyTypeEnum.Pages => PROP_TYPE_PAGES,
+            PropertyTypeEnum.PluginVirtualProperty => PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY,
+            _ => PROP_TYPE_TITLE,
+        };
+    }
+
+    private static PropertyTypeEnum StringToPropertyType(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return PropertyTypeEnum.Title;
+        }
+
+        return value switch
+        {
+            PROP_TYPE_TITLE => PropertyTypeEnum.Title,
+            PROP_TYPE_PROGRESS => PropertyTypeEnum.Progress,
+            PROP_TYPE_TAG => PropertyTypeEnum.Tag,
+            PROP_TYPE_RATING => PropertyTypeEnum.Rating,
+            PROP_TYPE_COMPLETION_STATE => PropertyTypeEnum.CompletionState,
+            PROP_TYPE_LAST_READ_TIME => PropertyTypeEnum.LastReadTime,
+            PROP_TYPE_PAGES => PropertyTypeEnum.Pages,
+            PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY => PropertyTypeEnum.PluginVirtualProperty,
+            _ => PropertyTypeEnum.Title,
+        };
+    }
+
+    public class GroupItem<T>(List<T> items, string name)
+    {
+        public List<T> Items { get; } = items;
+        public string Name { get; } = name;
+        public string Description { get; set; } = string.Empty;
+    }
+
+    private enum PropertyTypeEnum
+    {
+        CompletionState,
+        Progress,
+        Rating,
+        Tag,
+        Title,
+        LastReadTime,
+        Pages,
+        PluginVirtualProperty,
     }
 
     private class JsonModel
@@ -381,24 +557,24 @@ internal class ComicPropertyModel
         public string? Name { get; set; }
     }
 
-    public class GroupItem<T>(List<T> items, string name)
+    private class ComicGroup(string groupName, List<ComicModel> items) : IItemGroup<IComicModel>
     {
-        public List<T> Items { get; } = items;
-        public string Name { get; } = name;
-        public string Description { get; set; } = string.Empty;
+        public string GroupName { get; } = groupName;
+        public IReadOnlyList<ComicModel> Items { get; } = items;
+
+        //
+        // IItemGroup<IComicModel> implementation
+        //
+
+        string IItemGroup<IComicModel>.Name => GroupName;
+
+        IReadOnlyList<IComicModel> IItemGroup<IComicModel>.Items => Items;
     }
 
-    private interface IComicGroupSorter
-    {
-        List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector,
-            ComicFilterModel.OrderMethodEnum orderMethod, ComicFilterModel.FunctionTypeEnum sortingFunction,
-            ComicPropertyModel? sortingProperty);
-    }
-
-    private class ComicGroupSorter(Func<ComicModel, IEnumerable<string>> groupNameSelector, IItemSorterWithKeyInfo<GroupSortingKeySelectorParams, string> defaultSorter) : IComicGroupSorter
+    private class ComicGrouper(Func<ComicModel, IEnumerable<string>> groupNameSelector, IGroupSorter<ComicGroup, string> defaultSorter)
     {
         private readonly Func<ComicModel, IEnumerable<string>> GroupNameSelector = groupNameSelector;
-        private readonly IItemSorterWithKeyInfo<GroupSortingKeySelectorParams, string> DefaultGroupSorter = defaultSorter;
+        private readonly IGroupSorter<ComicGroup, string> DefaultGroupSorter = defaultSorter;
 
         public List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector,
             ComicFilterModel.OrderMethodEnum orderMethod, ComicFilterModel.FunctionTypeEnum sortingFunction,
@@ -425,13 +601,36 @@ internal class ComicPropertyModel
                 comicGroups.Add(new(p.Value, p.Key));
             }
 
-            IItemSorterWithKeyInfo<GroupSortingKeySelectorParams, string> sorter = GetSorter(sortingFunction, sortingProperty);
-            return sorter.Sort(comicGroups, x => new(x.Name, x.Items.ConvertAll(y => selector(y))), orderMethod,
-                (m, t) => m.Description = string.IsNullOrEmpty(t) ? $"({m.Items.Count})" : $"({t})");
+            IGroupSorter<ComicGroup, string> sorter = GetSorter(orderMethod, sortingFunction, sortingProperty);
+            List<GroupItem<T>> sorted = sorter.Sort(comicGroups, x => new(x.Name, x.Items.ConvertAll(y => selector(y))), orderMethod, (m, t) =>
+            {
+                if (!string.IsNullOrEmpty(t))
+                {
+                    m.Description = $"({t})";
+                }
+            });
+
+            if (sorted.All(x => string.IsNullOrEmpty(x.Description)))
+            {
+                sorted.ForEach(x => x.Description = $"({x.Items.Count})");
+            }
+
+            return sorted;
         }
 
-        private IItemSorterWithKeyInfo<GroupSortingKeySelectorParams, string> GetSorter(ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty)
+        private IGroupSorter<ComicGroup, string> GetSorter(ComicFilterModel.OrderMethodEnum orderMethod,
+            ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty)
         {
+            switch (orderMethod)
+            {
+                case ComicFilterModel.OrderMethodEnum.Shuffle:
+                case ComicFilterModel.OrderMethodEnum.ShuffleStable:
+                    int IdSelector(ComicGroup x) => HashUtils.GetXxHash64Int(x.GroupName);
+                    return new RandomSorter<ComicGroup>(IdSelector);
+                default:
+                    break;
+            }
+
             double? PropertyToNumber(ComicModel comic)
             {
                 return sortingProperty?.Type switch
@@ -443,6 +642,7 @@ internal class ComicPropertyModel
                     PropertyTypeEnum.CompletionState => (int)comic.CompletionState,
                     PropertyTypeEnum.LastReadTime => comic.LastVisit != DateTimeOffset.MinValue ? comic.LastVisit.ToUnixTimeMilliseconds() : null,
                     PropertyTypeEnum.Pages => comic.PageCount > 0 ? comic.PageCount : null,
+                    PropertyTypeEnum.PluginVirtualProperty => sortingProperty.PluginProperty?.AsNumber(comic),
                     _ => null,
                 };
             }
@@ -452,22 +652,20 @@ internal class ComicPropertyModel
                 return Math.Round(value, 2, MidpointRounding.AwayFromZero).ToString("0.##");
             }
 
-            int IdSelector(GroupSortingKeySelectorParams x) => HashUtils.GetXxHash64Int(x.GroupName);
-
             return sortingFunction switch
             {
                 ComicFilterModel.FunctionTypeEnum.None => DefaultGroupSorter,
-                ComicFilterModel.FunctionTypeEnum.ItemCount => new GroupSorter<GroupSortingKeySelectorParams, int>(
-                    x => x.Items.Count, IdSelector, keyInfoConverter: x => x.ToString()),
-                ComicFilterModel.FunctionTypeEnum.Max => new GroupSorter<GroupSortingKeySelectorParams, double>(
-                    x => x.Items.Max(PropertyToNumber) ?? 0, IdSelector, keyInfoConverter: NumberToString),
-                ComicFilterModel.FunctionTypeEnum.Min => new GroupSorter<GroupSortingKeySelectorParams, double>(
-                    x => x.Items.Min(PropertyToNumber) ?? 0, IdSelector, keyInfoConverter: NumberToString),
-                ComicFilterModel.FunctionTypeEnum.Sum => new GroupSorter<GroupSortingKeySelectorParams, double>(
-                    x => x.Items.Sum(PropertyToNumber) ?? 0, IdSelector, keyInfoConverter: NumberToString),
-                ComicFilterModel.FunctionTypeEnum.Average => new GroupSorter<GroupSortingKeySelectorParams, double>(
-                    x => x.Items.Average(PropertyToNumber) ?? 0, IdSelector, keyInfoConverter: NumberToString),
-                _ => DefaultGroupSorter,
+                ComicFilterModel.FunctionTypeEnum.ItemCount => new BasicGroupSorter<ComicGroup, int>(
+                    x => x.Items.Count, keyInfoConverter: x => x.ToString()),
+                ComicFilterModel.FunctionTypeEnum.Max => new BasicGroupSorter<ComicGroup, double>(
+                    x => x.Items.Max(PropertyToNumber) ?? 0, keyInfoConverter: NumberToString),
+                ComicFilterModel.FunctionTypeEnum.Min => new BasicGroupSorter<ComicGroup, double>(
+                    x => x.Items.Min(PropertyToNumber) ?? 0, keyInfoConverter: NumberToString),
+                ComicFilterModel.FunctionTypeEnum.Sum => new BasicGroupSorter<ComicGroup, double>(
+                    x => x.Items.Sum(PropertyToNumber) ?? 0, keyInfoConverter: NumberToString),
+                ComicFilterModel.FunctionTypeEnum.Average => new BasicGroupSorter<ComicGroup, double>(
+                    x => x.Items.Average(PropertyToNumber) ?? 0, keyInfoConverter: NumberToString),
+                _ => throw new ArgumentOutOfRangeException(nameof(sortingFunction)),
             };
         }
     }
@@ -477,25 +675,24 @@ internal class ComicPropertyModel
         List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, ComicFilterModel.OrderMethodEnum orderMethod);
     }
 
-    private interface IItemSorterWithKeyInfo<K, M> : IItemSorter<K>
+    private interface IGroupSorter<K, M>
     {
         List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, ComicFilterModel.OrderMethodEnum orderMethod, Action<T, M> keyBinder);
     }
 
-    private class SimpleSorter<A, B>(Func<A, B> keySelector, Func<A, int> idSelector, IComparer<B>? comparer = null) : IItemSorter<A>
+    private class RandomSorter<K>(Func<K, int> idSelector) : IItemSorter<K>, IGroupSorter<K, string>
     {
-        protected IComparer<B> Comparer { get; } = comparer ?? Comparer<B>.Default;
-        protected Func<A, B> KeySelector { get; } = keySelector;
-        protected Func<A, int> IdSelector { get; } = idSelector;
+        protected Func<K, int> IdSelector { get; } = idSelector;
 
-        public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, ComicFilterModel.OrderMethodEnum orderMethod)
+        public List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, ComicFilterModel.OrderMethodEnum orderMethod, Action<T, string> keyBinder)
+        {
+            return Sort(items, selector, orderMethod);
+        }
+
+        public List<T> Sort<T>(IEnumerable<T> items, Func<T, K> selector, ComicFilterModel.OrderMethodEnum orderMethod)
         {
             switch (orderMethod)
             {
-                case ComicFilterModel.OrderMethodEnum.Ascending:
-                    return [.. items.OrderBy(x => KeySelector(selector(x)), Comparer)];
-                case ComicFilterModel.OrderMethodEnum.Descending:
-                    return [.. items.OrderByDescending(x => KeySelector(selector(x)), Comparer)];
                 case ComicFilterModel.OrderMethodEnum.Shuffle:
                     {
                         int salt = Random.Shared.Next();
@@ -508,15 +705,32 @@ internal class ComicPropertyModel
                         return [.. items.OrderBy(x => IdSelector(selector(x)) ^ salt)];
                     }
                 default:
-                    goto case ComicFilterModel.OrderMethodEnum.Ascending;
+                    throw new ArgumentOutOfRangeException(nameof(orderMethod));
             }
         }
     }
 
-    private class GroupSorter<A, B>(Func<A, B> keySelector, Func<A, int> idSelector, Func<B, string>? keyInfoConverter = null, IComparer<B>? comparer = null) :
-        SimpleSorter<A, B>(keySelector, idSelector, comparer), IItemSorterWithKeyInfo<A, string>
+    private class BasicItemSorter<A, B>(Func<A, B> keySelector, IComparer<B>? keyComparer = null) : IItemSorter<A>
     {
+        protected IComparer<B> KeyComparer { get; } = keyComparer ?? Comparer<B>.Default;
+        protected Func<A, B> KeySelector { get; } = keySelector;
+
+        public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, ComicFilterModel.OrderMethodEnum orderMethod)
+        {
+            return orderMethod switch
+            {
+                ComicFilterModel.OrderMethodEnum.Ascending => [.. items.OrderBy(x => KeySelector(selector(x)), KeyComparer)],
+                ComicFilterModel.OrderMethodEnum.Descending => [.. items.OrderByDescending(x => KeySelector(selector(x)), KeyComparer)],
+                _ => throw new ArgumentOutOfRangeException(nameof(orderMethod)),
+            };
+        }
+    }
+
+    private class BasicGroupSorter<A, B>(Func<A, B> keySelector, Func<B, string>? keyInfoConverter = null, IComparer<B>? keyComparer = null) : IGroupSorter<A, string>
+    {
+        protected Func<A, B> KeySelector { get; } = keySelector;
         private Func<B, string> KeyInfoConverter { get; } = keyInfoConverter ?? (_ => string.Empty);
+        protected IComparer<B> KeyComparer { get; } = keyComparer ?? Comparer<B>.Default;
 
         public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, ComicFilterModel.OrderMethodEnum orderMethod, Action<T, string> keyBinder)
         {
@@ -527,40 +741,46 @@ internal class ComicPropertyModel
                 return key;
             }
 
-            switch (orderMethod)
+            return orderMethod switch
             {
-                case ComicFilterModel.OrderMethodEnum.Ascending:
-                    return [.. items.OrderBy(GroupKeySelector, Comparer)];
-                case ComicFilterModel.OrderMethodEnum.Descending:
-                    return [.. items.OrderByDescending(GroupKeySelector, Comparer)];
-                case ComicFilterModel.OrderMethodEnum.Shuffle:
-                case ComicFilterModel.OrderMethodEnum.ShuffleStable:
-                    foreach (T item in items)
-                    {
-                        GroupKeySelector(item); // Bind the key info
-                    }
-
-                    return Sort(items, selector, orderMethod);
-                default:
-                    goto case ComicFilterModel.OrderMethodEnum.Ascending;
-            }
+                ComicFilterModel.OrderMethodEnum.Ascending => [.. items.OrderBy(GroupKeySelector, KeyComparer)],
+                ComicFilterModel.OrderMethodEnum.Descending => [.. items.OrderByDescending(GroupKeySelector, KeyComparer)],
+                _ => throw new ArgumentOutOfRangeException(nameof(orderMethod)),
+            };
         }
     }
 
-    private class GroupSortingKeySelectorParams(string groupName, List<ComicModel> items)
+    private class PluginPropertyItemSorter(IVirtualProperty<IComicModel> property) : IItemSorter<ComicModel>
     {
-        public string GroupName { get; } = groupName;
-        public List<ComicModel> Items { get; } = items;
+        public List<T> Sort<T>(IEnumerable<T> items, Func<T, ComicModel> selector, ComicFilterModel.OrderMethodEnum orderMethod)
+        {
+            ILookup<ComicModel, T> lookup = items.ToLookup(t => selector(t));
+            IEnumerable<T> sorted = property
+                .SortItems(items.Select(x => selector(x)))
+                .SelectMany(t => lookup[t]);
+            return orderMethod switch
+            {
+                ComicFilterModel.OrderMethodEnum.Ascending => [.. sorted],
+                ComicFilterModel.OrderMethodEnum.Descending => [.. sorted.Reverse()],
+                _ => throw new ArgumentOutOfRangeException(nameof(orderMethod)),
+            };
+        }
     }
 
-    private enum PropertyTypeEnum
+    private class PluginPropertyGroupSorter(IVirtualProperty<IComicModel> property) : IGroupSorter<ComicGroup, string>
     {
-        CompletionState,
-        Progress,
-        Rating,
-        Tag,
-        Title,
-        LastReadTime,
-        Pages,
+        public List<T> Sort<T>(IEnumerable<T> items, Func<T, ComicGroup> selector, ComicFilterModel.OrderMethodEnum orderMethod, Action<T, string> keyBinder)
+        {
+            ILookup<ComicGroup, T> lookup = items.ToLookup(t => selector(t));
+            IEnumerable<T> sorted = property
+                .SortGroups(items.Select(x => selector(x)))
+                .SelectMany(t => lookup[t]);
+            return orderMethod switch
+            {
+                ComicFilterModel.OrderMethodEnum.Ascending => [.. sorted],
+                ComicFilterModel.OrderMethodEnum.Descending => [.. sorted.Reverse()],
+                _ => throw new ArgumentOutOfRangeException(nameof(orderMethod)),
+            };
+        }
     }
 }
