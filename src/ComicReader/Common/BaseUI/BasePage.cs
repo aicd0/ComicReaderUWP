@@ -26,7 +26,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
     private bool _hasNavigatedTo = false;
     private bool _hasNavigatedFrom = false;
     private bool _isLoaded = false;
-    private NavigationBundle? _navigationBundle;
+    private INavigationBundle? _navigationBundle;
 
     protected int WindowId { get; private set; } = 0;
     public bool IsStarted => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Started;
@@ -69,7 +69,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
             case NavigationMode.New:
             case NavigationMode.Back:
             case NavigationMode.Forward:
-                _navigationBundle = (NavigationBundle)e.Parameter;
+                _navigationBundle = (INavigationBundle)e.Parameter;
                 _hasNavigatedTo = true;
                 UpdateLifecycleState();
                 break;
@@ -170,7 +170,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
     {
         public void PreStart()
         {
-            NavigationBundle bundle = page._navigationBundle!;
+            INavigationBundle bundle = page._navigationBundle!;
 
             int windowId = page.GetAbility<IMainWindowAbility>()!.WindowId;
             if (windowId <= 0)
@@ -189,7 +189,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
 
         public void PostStart()
         {
-            NavigationBundle bundle = page._navigationBundle!;
+            INavigationBundle bundle = page._navigationBundle!;
             page.OnStart(bundle.Bundle);
         }
 

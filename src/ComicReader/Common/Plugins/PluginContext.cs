@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Expression;
@@ -21,12 +22,13 @@ using ComicReader.SDK.Plugins;
 using ComicReader.SDK.Plugins.Comic;
 using ComicReader.SDK.Plugins.Common;
 using ComicReader.SDK.Plugins.Menu;
+using ComicReader.SDK.Plugins.Property;
 
 using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Common.Plugins;
 
-internal class PluginContext(IPlugin plugin, string assemblyPath) : IPluginContext
+internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPluginContext
 {
     private const string TAG = nameof(PluginContext);
 
@@ -96,6 +98,37 @@ internal class PluginContext(IPlugin plugin, string assemblyPath) : IPluginConte
 
         return ids;
     }
+
+    //
+    // Comic virtual property
+    //
+
+    private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
+
+    public void RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property)
+    {
+        ArgumentNullException.ThrowIfNull(property, nameof(property));
+
+        string name = property.Name;
+        if (string.IsNullOrEmpty(name) || !VirtualPropertyNameRegex().IsMatch(name))
+        {
+            Logger.F(TAG, $"({_pluginName}) RegisterComicVirtualProperty: Invalid name '{name}'");
+            return;
+        }
+
+        if (!_comicVirtualProperties.TryAdd(name, property))
+        {
+            Logger.F(TAG, $"({_pluginName}) RegisterComicVirtualProperty: Property '{name}' already registered");
+        }
+    }
+
+    public IEnumerable<IVirtualProperty<IComicModel>> GetAllComicVirtualProperties()
+    {
+        return _comicVirtualProperties.Values;
+    }
+
+    [GeneratedRegex(@"^[a-zA-Z0-9_]+$")]
+    private static partial Regex VirtualPropertyNameRegex();
 
     //
     // Common UI
