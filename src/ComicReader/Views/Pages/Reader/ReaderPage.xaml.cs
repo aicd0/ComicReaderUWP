@@ -453,12 +453,15 @@ internal sealed partial class ReaderPage : BasePage
         bool previewVisible = isWorking && _gridViewModeEnabled;
         bool readerVisible = isWorking && !previewVisible;
 
-        // Using Visibility.Collapsed here will prevent GridView from loading early
+        // Setting Visibility.Collapsed here prevents GridView from loading eagerly
         PreviewGridView.Opacity = previewVisible ? 1.0 : 0.0;
         PreviewGridView.IsHitTestVisible = previewVisible;
 
-        GMainSection.Visibility = previewVisible ? Visibility.Collapsed : Visibility.Visible;
+        // Setting Visibility.Collapsed here prevents ReaderView from locating target page offset
+        GMainSection.Opacity = readerVisible ? 1.0 : 0.0;
+        GMainSection.IsHitTestVisible = readerVisible;
         MainReaderView.SetVisibility(readerVisible);
+
         if (!_readerFocused && readerVisible)
         {
             _readerFocused = true;
