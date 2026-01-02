@@ -135,6 +135,7 @@ internal sealed partial class ReaderPage : BasePage
             if (isAutoScrolling)
             {
                 ViewModel.ReaderCommonStatus = StringResource.Auto;
+                BottomTileSetHold(false);
             }
             else
             {
@@ -458,8 +459,9 @@ internal sealed partial class ReaderPage : BasePage
         PreviewGridView.IsHitTestVisible = previewVisible;
 
         // Setting Visibility.Collapsed here prevents ReaderView from locating target page offset
-        GMainSection.Opacity = readerVisible ? 1.0 : 0.0;
-        GMainSection.IsHitTestVisible = readerVisible;
+        GMainSection.Opacity = previewVisible ? 0.0 : 1.0;
+        GMainSection.IsHitTestVisible = !previewVisible;
+
         MainReaderView.SetVisibility(readerVisible);
 
         if (!_readerFocused && readerVisible)
