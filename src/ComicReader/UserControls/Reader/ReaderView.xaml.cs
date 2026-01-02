@@ -14,16 +14,13 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-
-using Windows.Foundation;
-using Windows.System;
-using Windows.UI.Core;
 
 namespace ComicReader.UserControls.Reader;
 
@@ -93,7 +90,6 @@ internal partial class ReaderView : UserControl
     private ReaderViewInternalDatabase? _internalDB = null;
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
-    private bool _isViewChanging = false;
     private List<IImageSource> _originalDataModel = [];
     private readonly ITaskDispatcher _loadInfoDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadInfoQueue");
     private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
@@ -1043,6 +1039,9 @@ internal partial class ReaderView : UserControl
     // Scroll Event Handlers
     //
 
+    private bool _isViewChanging = false;
+    private long _lastFinalViewChangeTicks = 0;
+
     private void OnReaderScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
     {
         if (_isCommitting)
@@ -1051,8 +1050,14 @@ internal partial class ReaderView : UserControl
         }
 
         bool final = !e.IsIntermediate;
+        if (_isAutoScrolling && _isContinuous && GetTicks() - _lastFinalViewChangeTicks < 500)
+        {
+            final = false;
+        }
+
         if (final)
         {
+            _lastFinalViewChangeTicks = GetTicks();
             Log("ViewChanged",
                 $"Z={ZoomFactor}",
                 $"H={HorizontalOffset}",
@@ -1170,7 +1175,7 @@ internal partial class ReaderView : UserControl
         bool handled = true;
         switch (e.Key)
         {
-            case VirtualKey.Right:
+            case Windows.System.VirtualKey.Right:
                 if (!_isVertical && !_isLeftToRight)
                 {
                     MoveFrameByUser("JumpToPreviousPageUsingRightKey", -1);
@@ -1182,7 +1187,7 @@ internal partial class ReaderView : UserControl
 
                 break;
 
-            case VirtualKey.Left:
+            case Windows.System.VirtualKey.Left:
                 if (!_isVertical && !_isLeftToRight)
                 {
                     MoveFrameByUser("JumpToNextPageUsingLeftKey", 1);
@@ -1194,35 +1199,35 @@ internal partial class ReaderView : UserControl
 
                 break;
 
-            case VirtualKey.Up:
+            case Windows.System.VirtualKey.Up:
                 MoveFrameByUser("JumpToPerviousPageUsingUpKey", -1);
                 break;
 
-            case VirtualKey.Down:
+            case Windows.System.VirtualKey.Down:
                 MoveFrameByUser("JumpToNextPageUsingDownKey", 1);
                 break;
 
-            case VirtualKey.PageUp:
+            case Windows.System.VirtualKey.PageUp:
                 MoveFrameByUser("JumpToPerviousPageUsingPgUpKey", -1);
                 break;
 
-            case VirtualKey.PageDown:
+            case Windows.System.VirtualKey.PageDown:
                 MoveFrameByUser("JumpToNextPageUsingPgDownKey", 1);
                 break;
 
-            case VirtualKey.Home:
+            case Windows.System.VirtualKey.Home:
                 SetScrollViewer2("JumpToFirstPageUsingHomeKey", ScrollSource.User, page: 1);
                 break;
 
-            case VirtualKey.End:
+            case Windows.System.VirtualKey.End:
                 SetScrollViewer2("JumpToLastPageUsingEndKey", ScrollSource.User, page: PageCount);
                 break;
 
-            case VirtualKey.Space:
+            case Windows.System.VirtualKey.Space:
                 ToggleAutoScrolling();
                 break;
 
-            case VirtualKey.R:
+            case Windows.System.VirtualKey.R:
                 {
                     int page = Random.Shared.Next(Math.Max(1, PageCount)) + 1;
                     SetScrollViewer2("JumpToRandomPageUsingRKey", ScrollSource.User, page: page);
@@ -1294,8 +1299,8 @@ internal partial class ReaderView : UserControl
     private void OnReaderScrollViewerPointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
         // Ctrl key down indicates the user is zooming. In that case we shouldn't handle this event.
-        CoreVirtualKeyStates ctrlState = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control);
-        if (ctrlState.HasFlag(CoreVirtualKeyStates.Down))
+        Windows.UI.Core.CoreVirtualKeyStates ctrlState = InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control);
+        if (ctrlState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down))
         {
             return;
         }
@@ -1400,8 +1405,8 @@ internal partial class ReaderView : UserControl
         if (_isContinuous || _zoom > FORCE_CONTINUOUS_ZOOM_THRESHOLD)
         {
             // Continuous scrolling
-            CoreVirtualKeyStates menuState = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu);
-            bool verticalScrolling = !menuState.HasFlag(CoreVirtualKeyStates.Down);
+            Windows.UI.Core.CoreVirtualKeyStates menuState = InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Menu);
+            bool verticalScrolling = !menuState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
 
             if (verticalScrolling && !_isVertical)
             {
@@ -1526,58 +1531,63 @@ internal partial class ReaderView : UserControl
         _isAutoScrolling = true;
         Log("AutoScroll", $"Start velocity={velocityValue}");
         ReaderEventAutoScrollingChanged?.Invoke(this, true);
-        CoroutineUtils.Start(async () =>
+
+        DispatcherQueueTimer timer = MainThreadUtils.CreateTimer();
+        timer.Interval = TimeSpan.FromMilliseconds(16);
+
+        long lastTick = 0;
+        bool isContinuous = _isContinuous;
+        timer.Tick += (_, _) =>
         {
-            try
+            if (!_isAutoScrolling)
             {
-                long lastTime = GetTick();
-                bool isContinuous = _isContinuous;
-                while (true)
+                return;
+            }
+
+            if (_stopAutoScrollingRequested || _autoScrollSpeed <= 0 || isContinuous != _isContinuous)
+            {
+                timer.Stop();
+                _isAutoScrolling = false;
+                Log("AutoScroll", $"Stop");
+                ReaderEventAutoScrollingChanged?.Invoke(this, false);
+            }
+
+            long currentTime = GetTicks();
+            if (lastTick == 0)
+            {
+                lastTick = currentTime;
+                return;
+            }
+
+            int elapsed = (int)(currentTime - lastTick);
+            if (_isContinuous)
+            {
+                double delta = velocityValue * elapsed;
+                lastTick = currentTime;
+                SetScrollViewer1("AutoScroll", ScrollSource.Programmatic, parallelOffset: SCParallelOffsetFinal + delta);
+            }
+            else
+            {
+                double targetDelay = (double)AUTO_SCROLL_COMMON_INTERVAL / _autoScrollSpeed * AUTO_SCROLL_COMMON_SPEED;
+
+                int frameIndex = PageToFrame(SCCurrentPageFinal, out _, out _);
+                if (frameIndex >= 0 && frameIndex < FrameDataSource.Count)
                 {
-                    await Task.Delay(10);
-                    if (_stopAutoScrollingRequested || _autoScrollSpeed <= 0 || isContinuous != _isContinuous)
+                    ReaderFrameViewModel frame = FrameDataSource[frameIndex];
+                    if (frame.PageL != ReaderFrameViewModel.NO_PAGE && frame.PageR != ReaderFrameViewModel.NO_PAGE)
                     {
-                        break;
-                    }
-
-                    long currentTime = GetTick();
-                    int elapsed = (int)(currentTime - lastTime);
-                    if (_isContinuous)
-                    {
-                        double delta = velocityValue * elapsed;
-                        lastTime = currentTime;
-                        SetScrollViewer1("AutoScroll", ScrollSource.Programmatic, parallelOffset: SCParallelOffsetFinal + delta);
-                    }
-                    else
-                    {
-                        double targetDelay = (double)AUTO_SCROLL_COMMON_INTERVAL / _autoScrollSpeed * AUTO_SCROLL_COMMON_SPEED;
-
-                        int frameIndex = PageToFrame(SCCurrentPageFinal, out _, out _);
-                        if (frameIndex >= 0 && frameIndex < FrameDataSource.Count)
-                        {
-                            ReaderFrameViewModel frame = FrameDataSource[frameIndex];
-                            if (frame.PageL != ReaderFrameViewModel.NO_PAGE && frame.PageR != ReaderFrameViewModel.NO_PAGE)
-                            {
-                                targetDelay *= AUTO_SCROLL_DUAL_FRAME_MULTIPLIER;
-                            }
-                        }
-
-                        if (elapsed > targetDelay)
-                        {
-                            lastTime = currentTime;
-                            MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, 1);
-                        }
+                        targetDelay *= AUTO_SCROLL_DUAL_FRAME_MULTIPLIER;
                     }
                 }
-            }
-            finally
-            {
-                _isAutoScrolling = false;
-            }
 
-            Log("AutoScroll", $"Stop");
-            ReaderEventAutoScrollingChanged?.Invoke(this, false);
-        });
+                if (elapsed > targetDelay)
+                {
+                    lastTick = currentTime;
+                    MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, 1);
+                }
+            }
+        };
+        timer.Start();
     }
 
     private void StopAutoScrolling()
@@ -1601,7 +1611,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        long targetTime = GetTick() + delayMilliseconds;
+        long targetTime = GetTicks() + delayMilliseconds;
         if (_postHideCursor && targetTime >= _hideCursorTime)
         {
             _hideCursorTime = targetTime;
@@ -1617,7 +1627,7 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            long currentTime = GetTick();
+            long currentTime = GetTicks();
             if (currentTime >= _hideCursorTime)
             {
                 HideCursor();
@@ -2477,31 +2487,31 @@ internal partial class ReaderView : UserControl
         {
             return null;
         }
+
         ReaderFrameViewModel item = FrameDataSource[frame];
+        GeneralTransform frameTransform = container.TransformToVisual(ThisListView);
+        Windows.Foundation.Point framePosition = frameTransform.TransformPoint(new(0.0, 0.0));
 
-        GeneralTransform frame_transform = container.TransformToVisual(ThisListView);
-        Point frame_position = frame_transform.TransformPoint(new Point(0.0, 0.0));
+        double parallelOffset = IsVertical ? framePosition.Y : framePosition.X;
+        double perpendicularOffset = IsVertical ? framePosition.X : framePosition.Y;
 
-        double parallel_offset = IsVertical ? frame_position.Y : frame_position.X;
-        double perpendicular_offset = IsVertical ? frame_position.X : frame_position.Y;
+        bool leftToRight = _isLeftToRight;
 
-        bool left_to_right = _isLeftToRight;
-
-        if (!_isVertical && !left_to_right)
+        if (!_isVertical && !leftToRight)
         {
-            parallel_offset -= item.FrameMargin.Left + item.FrameWidth + item.FrameMargin.Right;
+            parallelOffset -= item.FrameMargin.Left + item.FrameWidth + item.FrameMargin.Right;
         }
 
         var result = new FrameOffsetData
         {
-            ParallelBegin = parallel_offset,
-            ParallelCenter = parallel_offset + (IsVertical ?
+            ParallelBegin = parallelOffset,
+            ParallelCenter = parallelOffset + (IsVertical ?
                 item.FrameMargin.Top + item.FrameHeight * 0.5 :
                 item.FrameMargin.Left + item.FrameWidth * 0.5),
-            ParallelEnd = parallel_offset + (IsVertical ?
+            ParallelEnd = parallelOffset + (IsVertical ?
                 item.FrameMargin.Top + item.FrameHeight + item.FrameMargin.Bottom :
                 item.FrameMargin.Left + item.FrameWidth + item.FrameMargin.Right),
-            PerpendicularCenter = perpendicular_offset + (IsVertical ?
+            PerpendicularCenter = perpendicularOffset + (IsVertical ?
                 item.FrameMargin.Left + item.FrameWidth * 0.5 :
                 item.FrameMargin.Top + item.FrameHeight * 0.5),
         };
@@ -2743,7 +2753,7 @@ internal partial class ReaderView : UserControl
         });
     }
 
-    private static long GetTick()
+    private static long GetTicks()
     {
         return Environment.TickCount64;
     }

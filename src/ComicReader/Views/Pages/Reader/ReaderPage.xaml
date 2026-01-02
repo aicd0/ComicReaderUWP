@@ -41,21 +41,29 @@
     </Page.Resources>
 
     <Grid>
-        <!--  Reader Section  -->
+        <!--  Reader section  -->
         <Grid x:Name="GMainSection">
 
-            <!--  Fullscreen Background  -->
+            <!--  Fullscreen background  -->
             <Rectangle
                 Fill="{ThemeResource ReaderFullscreenBackground}"
                 IsHitTestVisible="False"
                 Visibility="{x:Bind ViewModel.IsFullscreen, Mode=OneWay}" />
 
-            <!--  Reader Status  -->
+            <!--  Loading status  -->
             <TextBlock
                 x:Name="TbReaderStatus"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource ForegroundGrey2}" />
+
+            <!--  Reader  -->
+            <Grid PointerEntered="OnReaderPointerEntered" PointerExited="OnReaderPointerExited">
+                <Grid x:Name="ManipulationReference" />
+                <readercontrol:ReaderView x:Name="MainReaderView" />
+            </Grid>
+
+            <!--  Other status  -->
             <TextBlock
                 Margin="12,0,0,8"
                 HorizontalAlignment="Left"
@@ -65,12 +73,6 @@
                 Opacity="0.3"
                 Text="{x:Bind ViewModel.ReaderCommonStatus, Mode=OneWay}"
                 Visibility="{x:Bind ViewModel.ReaderCommonStatus, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
-
-            <!--  Reader  -->
-            <Grid PointerEntered="OnReaderPointerEntered" PointerExited="OnReaderPointerExited">
-                <Grid x:Name="ManipulationReference" />
-                <readercontrol:ReaderView x:Name="MainReaderView" />
-            </Grid>
 
             <!--  Tips  -->
             <muxc:InfoBar
@@ -84,7 +86,7 @@
                 IsOpen="False"
                 Severity="Informational" />
 
-            <!--  Bottom Tile  -->
+            <!--  Bottom tile  -->
             <Grid
                 x:Name="BottomGrid"
                 Height="48"
@@ -107,7 +109,7 @@
             </Grid>
         </Grid>
 
-        <!--  Preview Grid View  -->
+        <!--  Preview grid  -->
         <GridView
             x:Name="PreviewGridView"
             Grid.Row="1"
@@ -136,7 +138,7 @@
             </GridView.ItemsPanel>
         </GridView>
 
-        <!--  Info Pane  -->
+        <!--  Info pane  -->
         <SplitView
             x:Name="InfoPane"
             Grid.Row="1"
@@ -146,7 +148,6 @@
             PaneOpening="InfoPane_PaneOpening"
             PanePlacement="Right">
 
-            <!--  Information Pane  -->
             <SplitView.Pane>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -221,7 +222,7 @@
                                 </Paragraph>
                             </RichTextBlock>
 
-                            <!--  Image Description  -->
+                            <!--  Image description  -->
                             <TextBlock
                                 Margin="0,6,0,0"
                                 FontSize="13"

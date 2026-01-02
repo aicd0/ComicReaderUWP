@@ -16,6 +16,12 @@ public static class MainThreadUtils
         _mainDispatcherQueue = dispatcherQueue;
     }
 
+    public static DispatcherQueueTimer CreateTimer()
+    {
+        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
+        return dispatcher.CreateTimer();
+    }
+
     public static async Task RunInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
         await RunInMainThread(action, priority, true);
@@ -44,7 +50,7 @@ public static class MainThreadUtils
             return;
         }
 
-        DispatcherQueue? dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
+        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
             action();
@@ -81,7 +87,7 @@ public static class MainThreadUtils
             return;
         }
 
-        DispatcherQueue? dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
+        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
             await action();
