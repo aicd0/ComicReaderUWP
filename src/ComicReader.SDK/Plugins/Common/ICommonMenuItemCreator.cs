@@ -7,5 +7,5 @@ namespace ComicReader.SDK.Plugins.Common;
 
 public interface ICommonMenuItemCreator
 {
-    IEnumerable<IMenuItem> CreateMenuItems();
+    IEnumerable<IMenuItem> CreateMenuItems(IUIContext uiContext);
 }

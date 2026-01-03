@@ -5,8 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -46,21 +44,21 @@ internal partial class PluginManager
             return;
         }
 
-        LoadDisabledPlugins();
+        ReadDisabledPlugins();
         string pluginsDir = PluginsFolderPath;
         Directory.CreateDirectory(pluginsDir);
-        string[] pluginFiles = Directory.GetFiles(pluginsDir, "*.dll");
+        string[] pluginFiles = Directory.GetFiles(pluginsDir);
         foreach (string pluginFile in pluginFiles)
         {
-            List<IPlugin> plugins = LoadAssembly(pluginFile);
-            if (plugins.Count == 0)
+            PluginLoader.PluginFileLoadResult? result = PluginLoader.LoadPluginFile(pluginFile);
+            if (result is null || result.Plugins.Count == 0)
             {
                 Logger.E(TAG, $"Failed to load assembly '{Path.GetFileName(pluginFile)}'");
                 continue;
             }
 
             Logger.I(TAG, $"Loaded assembly '{pluginFile}'");
-            foreach (IPlugin plugin in plugins)
+            foreach (IPlugin plugin in result.Plugins)
             {
                 string name = plugin.Name;
                 if (!PluginNameRegex().IsMatch(name))
@@ -88,7 +86,7 @@ internal partial class PluginManager
         }
 
         _pluginInitialized = true;
-        SaveDisabledPlugins();
+        WriteDisabledPlugins();
         NotifyPluginsChanged();
     }
 
@@ -106,7 +104,7 @@ internal partial class PluginManager
     public PluginContext? GetActivePlugin(string pluginName)
     {
         PluginContext? plugin = GetPlugin(pluginName);
-        if (plugin is null || plugin.Status != PluginStatusEnum.Initialized)
+        if (plugin is null || !plugin.IsActive)
         {
             return null;
         }
@@ -136,7 +134,7 @@ internal partial class PluginManager
 
         foreach (PluginContext context in _plugins.Values)
         {
-            if (context.Status != PluginStatusEnum.Initialized)
+            if (!context.IsActive)
             {
                 continue;
             }
@@ -166,11 +164,11 @@ internal partial class PluginManager
             _disabledPlugins[pluginName] = true;
         }
 
-        SaveDisabledPlugins();
+        WriteDisabledPlugins();
         NotifyPluginsChanged();
     }
 
-    private void LoadDisabledPlugins()
+    private void ReadDisabledPlugins()
     {
         _disabledPlugins.Clear();
         string json = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_PLUGINS).GetValueOrDefault(KEY_DISABLED_PLUGINS, "[]");
@@ -196,7 +194,7 @@ internal partial class PluginManager
         }
     }
 
-    private void SaveDisabledPlugins()
+    private void WriteDisabledPlugins()
     {
         if (!_pluginInitialized)
         {
@@ -223,52 +221,6 @@ internal partial class PluginManager
         disabledPlugins.Sort();
         string json = System.Text.Json.JsonSerializer.Serialize(disabledPlugins);
         KVStore.App.GetCollection(DatabaseEntry.KV_LIB_PLUGINS).Set(KEY_DISABLED_PLUGINS, json);
-    }
-
-    private static List<IPlugin> LoadAssembly(string pluginFile)
-    {
-        Assembly assembly;
-        try
-        {
-            assembly = Assembly.LoadFrom(pluginFile);
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, e);
-            return [];
-        }
-
-        IEnumerable<Type> pluginTypes;
-        try
-        {
-            pluginTypes = assembly
-                .GetTypes()
-                .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsAbstract);
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, e);
-            return [];
-        }
-
-        List<IPlugin> plugins = [];
-        foreach (Type pluginType in pluginTypes)
-        {
-            IPlugin plugin;
-            try
-            {
-                plugin = (IPlugin)Activator.CreateInstance(pluginType)!;
-            }
-            catch (Exception e)
-            {
-                Logger.E(TAG, e);
-                continue;
-            }
-
-            plugins.Add(plugin);
-        }
-
-        return plugins;
     }
 
     private static void NotifyPluginsChanged()

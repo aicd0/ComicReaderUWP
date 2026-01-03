@@ -32,11 +32,29 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
 {
     private const string TAG = nameof(PluginContext);
 
+    public delegate void StatusChangedEventHandler(PluginStatusEnum newStatus);
+    public event StatusChangedEventHandler? StatusChanged;
+
     public string Name => _pluginName;
     public string AssemblyPath => assemblyPath;
-    public PluginStatusEnum Status { get; private set; } = PluginStatusEnum.NotInitialized;
     public string Publisher => plugin.Publisher;
     public string Version => $"{plugin.MajorVersion}.{plugin.MinorVersion}";
+
+    private PluginStatusEnum _status = PluginStatusEnum.NotInitialized;
+    public PluginStatusEnum Status
+    {
+        get => _status;
+        private set
+        {
+            if (_status != value)
+            {
+                _status = value;
+                StatusChanged?.Invoke(_status);
+            }
+        }
+    }
+
+    public bool IsActive => Status == PluginStatusEnum.Initialized;
 
     private readonly string _pluginName = plugin.Name;
 
@@ -46,25 +64,23 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
 
     public void Initialize()
     {
-        try
+        if (Status != PluginStatusEnum.NotInitialized)
         {
-            plugin.Initialize(this);
-        }
-        catch (Exception ex)
-        {
-            Logger.E(TAG, $"Failed to initialize plugin: {_pluginName}", ex);
-            Status = PluginStatusEnum.Error;
+            Logger.F(TAG, $"({_pluginName}) Initialize: Plugin already initialized or in error state");
             return;
         }
 
-        Status = PluginStatusEnum.Initialized;
+        if (SafeAction(() => plugin.Initialize(this)))
+        {
+            Status = PluginStatusEnum.Initialized;
+        }
     }
 
     //
     // Database API
     //
 
-    public IKVDatabase GetKVDatabase()
+    IKVDatabase IPluginContext.GetKVDatabase()
     {
         return KVStore.Plugin(_pluginName);
     }
@@ -73,12 +89,12 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
     // Comics API
     //
 
-    public async Task<IComicModel?> GetComicById(long id)
+    async Task<IComicModel?> IPluginContext.GetComicById(long id)
     {
         return await ComicModel.FromId(id, "PluginGetComicById");
     }
 
-    public async Task<IEnumerable<long>> SearchComics(string filterExpression)
+    async Task<IEnumerable<long>> IPluginContext.SearchComics(string filterExpression)
     {
         ICondition? filterCondition = ParseFilterExpression(filterExpression) ?? throw new InvalidExpressionException();
         List<long> ids = [];
@@ -105,7 +121,7 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
 
     private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
 
-    public void RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property)
+    void IPluginContext.RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property)
     {
         ArgumentNullException.ThrowIfNull(property, nameof(property));
 
@@ -124,6 +140,11 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
 
     public IEnumerable<IVirtualProperty<IComicModel>> GetAllComicVirtualProperties()
     {
+        if (!IsActive)
+        {
+            return [];
+        }
+
         return _comicVirtualProperties.Values;
     }
 
@@ -134,14 +155,29 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
     // Common UI
     //
 
-    public Task WithBusyState(Func<Task> action)
+    Task IPluginContext.WithBusyState(Func<Task> action)
     {
         return BusyStateManager.WithBusyState(action);
     }
 
-    public Task<ContentDialogResult> EnqueueDialogAsync(DialogOptions options)
+    Task<DialogResult> IPluginContext.EnqueueDialogAsync(DialogOptions options)
     {
         return DialogUtils.EnqueueDialogAsync(options);
+    }
+
+    Task<DialogResult> IPluginContext.EnqueueDialogAsync(int windowId, DialogOptions options)
+    {
+        return DialogUtils.EnqueueDialogAsync(windowId, options);
+    }
+
+    Task<DialogResult> IPluginContext.EnqueueDialogAsync(ContentDialog dialog)
+    {
+        return DialogUtils.EnqueueDialogAsync(dialog);
+    }
+
+    Task<DialogResult> IPluginContext.EnqueueDialogAsync(int windowId, ContentDialog dialog)
+    {
+        return DialogUtils.EnqueueDialogAsync(windowId, dialog);
     }
 
     //
@@ -150,20 +186,25 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
 
     private ICommonMenuItemCreator? _mainPageMoreMenuItemCreator = null;
 
-    public void SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator)
+    void IPluginContext.SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator)
     {
         _mainPageMoreMenuItemCreator = creator;
     }
 
-    public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems()
+    public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems(IUIContext uiContext)
     {
+        if (!IsActive)
+        {
+            return [];
+        }
+
         ICommonMenuItemCreator? creator = _mainPageMoreMenuItemCreator;
         if (creator is null)
         {
             return [];
         }
 
-        return [.. creator.CreateMenuItems().Select(CreateHostMenuFlyoutItem)];
+        return [.. SafeAction(() => creator.CreateMenuItems(uiContext), []).Select(CreateHostMenuFlyoutItem)];
     }
 
     //
@@ -172,20 +213,25 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
 
     private IComicMenuItemCreator? _comicMenuItemCreator = null;
 
-    public void SetComicMenuItemCreator(IComicMenuItemCreator? creator)
+    void IPluginContext.SetComicMenuItemCreator(IComicMenuItemCreator? creator)
     {
         _comicMenuItemCreator = creator;
     }
 
-    public IReadOnlyList<BaseMenuFlyoutItemModel> GetComicMenuItems(IComicModel primary, IEnumerable<IComicModel> selection)
+    public IReadOnlyList<BaseMenuFlyoutItemModel> GetComicMenuItems(IUIContext uiContext, IComicModel primary, IEnumerable<IComicModel> selection)
     {
+        if (!IsActive)
+        {
+            return [];
+        }
+
         IComicMenuItemCreator? creator = _comicMenuItemCreator;
         if (creator is null)
         {
             return [];
         }
 
-        return [.. creator.CreateMenuItems(primary, selection).Select(CreateHostMenuFlyoutItem)];
+        return [.. SafeAction(() => creator.CreateMenuItems(uiContext, primary, selection), []).Select(CreateHostMenuFlyoutItem)];
     }
 
     //
@@ -194,21 +240,65 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
 
     private IComicEditedHandler? _comicEditedHandlers = null;
 
-    public void SetComicEditedHandler(IComicEditedHandler? handler)
+    void IPluginContext.SetComicEditedHandler(IComicEditedHandler? handler)
     {
         _comicEditedHandlers = handler;
     }
 
     public void DispatchComicEditedEvent(IComicModel comic)
     {
-        _comicEditedHandlers?.ComicEdited(comic);
+        if (!IsActive)
+        {
+            return;
+        }
+
+        SafeAction(() => _comicEditedHandlers?.ComicEdited(comic));
     }
 
     //
     // Helpers
     //
 
-    private static BaseMenuFlyoutItemModel CreateHostMenuFlyoutItem(IMenuItem item)
+    private bool SafeAction(Action? action)
+    {
+        if (action is null)
+        {
+            return true;
+        }
+
+        try
+        {
+            action();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, $"({_pluginName}) SafeAction: Caught exception", ex);
+            Status = PluginStatusEnum.Error;
+            return false;
+        }
+    }
+
+    private T SafeAction<T>(Func<T>? action, T defaultValue)
+    {
+        if (action is null)
+        {
+            return defaultValue;
+        }
+
+        try
+        {
+            return action();
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, $"({_pluginName}) SafeAction: Unhandled plugin exception", ex);
+            Status = PluginStatusEnum.Error;
+            return defaultValue;
+        }
+    }
+
+    private BaseMenuFlyoutItemModel CreateHostMenuFlyoutItem(IMenuItem item)
     {
         return item switch
         {
@@ -217,14 +307,14 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
                 Text = simpleMenuItem.Text,
                 Glyph = simpleMenuItem.Glyph,
                 IsEnabled = simpleMenuItem.IsEnabled,
-                Click = simpleMenuItem.Click,
+                Click = () => SafeAction(simpleMenuItem.Click),
             },
             SeparatorMenuItem => new SeparatorMenuFlyoutItemModel(),
             ToggleMenuItem toggleMenuItem => new ToggleMenuFlyoutItemModel()
             {
                 Text = toggleMenuItem.Text,
                 IsChecked = toggleMenuItem.IsChecked,
-                Click = toggleMenuItem.Click,
+                Click = () => SafeAction(toggleMenuItem.Click),
             },
             SubItemMenuItem subItemMenuItem => new SubItemMenuFlyoutItemModel()
             {

@@ -23,7 +23,13 @@ public interface IPluginContext
 
     Task WithBusyState(Func<Task> action);
 
-    Task<ContentDialogResult> EnqueueDialogAsync(DialogOptions options);
+    Task<DialogResult> EnqueueDialogAsync(DialogOptions options);
+
+    Task<DialogResult> EnqueueDialogAsync(int windowId, DialogOptions options);
+
+    Task<DialogResult> EnqueueDialogAsync(ContentDialog dialog);
+
+    Task<DialogResult> EnqueueDialogAsync(int windowId, ContentDialog dialog);
 
     void SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator);
 

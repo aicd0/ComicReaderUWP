@@ -7,6 +7,7 @@ using ComicReader.Common.Localization;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
+using ComicReader.SDK.DataModels;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -36,9 +37,10 @@ public partial class BaseContentDialog : ContentDialog, ILifecycleOwner
         return _lifecycleManager.GetLifecycle();
     }
 
-    public Task<ContentDialogResult> ShowAsync(int windowId)
+    public async Task<ContentDialogResult> ShowAsync(int windowId)
     {
-        return DialogUtils.EnqueueDialogAsync(windowId, this);
+        DialogResult result = await DialogUtils.EnqueueDialogAsync(windowId, this);
+        return result.Result;
     }
 
     protected virtual void OnStart()

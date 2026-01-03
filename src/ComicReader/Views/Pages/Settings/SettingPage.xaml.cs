@@ -74,8 +74,8 @@ internal sealed partial class SettingPage : BasePage
                     .SetPrimaryButtonText(StringResourceProvider.Instance.Proceed)
                     .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
                     .Build();
-                ContentDialogResult result = await DialogUtils.EnqueueDialogAsync(WindowId, options);
-                if (result == ContentDialogResult.None)
+                DialogResult result = await DialogUtils.EnqueueDialogAsync(WindowId, options);
+                if (result.Result == ContentDialogResult.None)
                 {
                     ViewModel.DebugMode = false;
                     return;

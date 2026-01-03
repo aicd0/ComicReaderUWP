@@ -90,8 +90,8 @@ internal sealed partial class DevToolsPage : BasePage
                 .SetPrimaryButtonText("Primary")
                 .SetSecondaryButtonText("Secondary")
                 .Build();
-            ContentDialogResult result = await DialogUtils.EnqueueDialogAsync(options);
-            SetResult($"Show dialog result: {result}");
+            DialogResult result = await DialogUtils.EnqueueDialogAsync(options);
+            SetResult($"Show dialog result: {result.Result}");
         });
     }
 

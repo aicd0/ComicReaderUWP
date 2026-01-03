@@ -197,10 +197,6 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     public void UpdateMoreMenuItems()
     {
-        var pluginItems = PluginManager.Instance.GetActivePlugins()
-            .SelectMany(ctx => ctx.GetMainPageMoreMenuItems())
-            .ToImmutableList();
-
         List<BaseMenuFlyoutItemModel> items = [];
 
         items.Add(new SimpleMenuFlyoutItemModel()
@@ -266,10 +262,19 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             });
         }
 
-        if (pluginItems.Count > 0)
         {
-            items.Add(new SeparatorMenuFlyoutItemModel());
-            items.AddRange(pluginItems);
+            var uiContext = UIContext.Create(_actionHandler);
+            if (uiContext is not null)
+            {
+                var pluginItems = PluginManager.Instance.GetActivePlugins()
+                    .SelectMany(ctx => ctx.GetMainPageMoreMenuItems(uiContext))
+                    .ToImmutableList();
+                if (pluginItems.Count > 0)
+                {
+                    items.Add(new SeparatorMenuFlyoutItemModel());
+                    items.AddRange(pluginItems);
+                }
+            }
         }
 
         items.Add(new SeparatorMenuFlyoutItemModel());
