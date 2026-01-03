@@ -5,6 +5,9 @@ using Microsoft.UI.Xaml.Markup;
 
 namespace ComicReader.SDK.Plugins;
 
+/// <summary>
+/// https://github.com/microsoft/microsoft-ui-xaml/issues/6299
+/// </summary>
 public partial class PluginXamlMetadataProvider : IXamlMetadataProvider
 {
     private static List<IXamlMetadataProvider> _providers = [];
