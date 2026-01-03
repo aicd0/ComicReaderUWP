@@ -22,16 +22,16 @@ internal class DialogUtils
 
     private static readonly Dictionary<int, Queue<PendingDialogItem>> _windowDialogQueue = [];
 
-    public static Task<ContentDialogResult> EnqueueDialogAsync(DialogOptions options)
+    public static Task<DialogResult> EnqueueDialogAsync(DialogOptions options)
     {
-        TaskCompletionSource<ContentDialogResult> resultSource = new();
+        TaskCompletionSource<DialogResult> resultSource = new();
         CoroutineUtils.RunInMainThread(() =>
         {
             MainWindow? window = App.Instance.WindowManager.GetActiveWindow() ?? App.Instance.WindowManager.GetAnyWindow();
             if (window is null)
             {
                 Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found.");
-                resultSource.SetResult(ContentDialogResult.None);
+                resultSource.SetResult(DialogResult.FromFailure());
                 return;
             }
 
@@ -42,9 +42,9 @@ internal class DialogUtils
         return resultSource.Task;
     }
 
-    public static Task<ContentDialogResult> EnqueueDialogAsync(int windowId, DialogOptions options)
+    public static Task<DialogResult> EnqueueDialogAsync(int windowId, DialogOptions options)
     {
-        TaskCompletionSource<ContentDialogResult> resultSource = new();
+        TaskCompletionSource<DialogResult> resultSource = new();
         CoroutineUtils.RunInMainThread(() =>
         {
             ContentDialog dialog = CreateDialog(options);
@@ -54,9 +54,28 @@ internal class DialogUtils
         return resultSource.Task;
     }
 
-    public static Task<ContentDialogResult> EnqueueDialogAsync(int windowId, ContentDialog dialog)
+    public static Task<DialogResult> EnqueueDialogAsync(ContentDialog dialog)
     {
-        TaskCompletionSource<ContentDialogResult> resultSource = new();
+        TaskCompletionSource<DialogResult> resultSource = new();
+        CoroutineUtils.RunInMainThread(() =>
+        {
+            MainWindow? window = App.Instance.WindowManager.GetActiveWindow() ?? App.Instance.WindowManager.GetAnyWindow();
+            if (window is null)
+            {
+                Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found.");
+                resultSource.SetResult(DialogResult.FromFailure());
+                return;
+            }
+
+            EnqueueDialogInternal(resultSource, window.WindowId, dialog);
+        });
+
+        return resultSource.Task;
+    }
+
+    public static Task<DialogResult> EnqueueDialogAsync(int windowId, ContentDialog dialog)
+    {
+        TaskCompletionSource<DialogResult> resultSource = new();
         CoroutineUtils.RunInMainThread(() =>
         {
             EnqueueDialogInternal(resultSource, windowId, dialog);
@@ -65,14 +84,14 @@ internal class DialogUtils
         return resultSource.Task;
     }
 
-    private static void EnqueueDialogInternal(TaskCompletionSource<ContentDialogResult> resultSource, int windowId, ContentDialog dialog)
+    private static void EnqueueDialogInternal(TaskCompletionSource<DialogResult> resultSource, int windowId, ContentDialog dialog)
     {
         if (!_windowDialogQueue.TryGetValue(windowId, out Queue<PendingDialogItem>? queue))
         {
             if (App.Instance.WindowManager.GetWindow(windowId) is null)
             {
                 Logger.F(TAG, "EnqueueDialogAsync: Window not found.");
-                resultSource.SetResult(ContentDialogResult.None);
+                resultSource.SetResult(DialogResult.FromFailure());
                 return;
             }
 
@@ -105,7 +124,7 @@ internal class DialogUtils
             _windowDialogQueue.Remove(windowId);
             foreach (PendingDialogItem item in queueCopy)
             {
-                item.ResultSource.SetResult(ContentDialogResult.None);
+                item.ResultSource.SetResult(DialogResult.FromFailure());
             }
         }
 
@@ -136,7 +155,7 @@ internal class DialogUtils
                 Logger.F(TAG, ex);
             }
 
-            item.ResultSource.SetResult(result);
+            item.ResultSource.SetResult(DialogResult.FromSuccess(result));
             queue.Dequeue();
         }
     }
@@ -201,6 +220,6 @@ internal class DialogUtils
     private class PendingDialogItem
     {
         public required ContentDialog Dialog;
-        public required TaskCompletionSource<ContentDialogResult> ResultSource;
+        public required TaskCompletionSource<DialogResult> ResultSource;
     }
 }

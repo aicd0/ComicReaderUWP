@@ -1132,7 +1132,7 @@ internal abstract class ComicHandle
                     .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
                     .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
                     .Build();
-                proceed = DialogUtils.EnqueueDialogAsync(options).Result == ContentDialogResult.Primary;
+                proceed = DialogUtils.EnqueueDialogAsync(options).Result.Result == ContentDialogResult.Primary;
             }
 
             if (proceed)

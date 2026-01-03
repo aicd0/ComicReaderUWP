@@ -13,17 +13,25 @@ namespace ComicReader.SDK.Plugins;
 
 public interface IPluginContext
 {
+    string ResourceFolderPath { get; }
+
     IKVDatabase GetKVDatabase();
 
-    Task<IComicModel?> GetComicById(long id);
+    Task Busy(Func<Task> action);
+
+    Task<DialogResult> EnqueueDialogAsync(DialogOptions options);
+
+    Task<DialogResult> EnqueueDialogAsync(int windowId, DialogOptions options);
+
+    Task<DialogResult> EnqueueDialogAsync(ContentDialog dialog);
+
+    Task<DialogResult> EnqueueDialogAsync(int windowId, ContentDialog dialog);
+
+    Task<IComicModel?> GetComic(long id);
 
     Task<IEnumerable<long>> SearchComics(string filterExpression);
 
     void RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property);
-
-    Task WithBusyState(Func<Task> action);
-
-    Task<ContentDialogResult> EnqueueDialogAsync(DialogOptions options);
 
     void SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator);
 

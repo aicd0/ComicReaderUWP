@@ -59,7 +59,7 @@ internal partial class PluginSettingsViewModel : INotifyPropertyChanged
                 Version = plugin.Version,
                 Publisher = plugin.Publisher,
                 Status = PluginStatusToString(plugin.Status),
-                Location = plugin.AssemblyPath,
+                Location = plugin.PluginFilePath,
                 RequestOperationMenuItems = CreatePluginOperationMenuItems,
             });
         }
