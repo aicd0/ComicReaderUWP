@@ -35,6 +35,19 @@ internal static class PluginLoader
         try
         {
             Directory.Delete(extractDir, true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Ignore
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, e);
+            return null;
+        }
+
+        try
+        {
             Directory.CreateDirectory(extractDir);
             System.IO.Compression.ZipFile.ExtractToDirectory(pluginFile, extractDir);
         }
@@ -45,7 +58,10 @@ internal static class PluginLoader
         }
 
         string[] dllFiles = Directory.GetFiles(extractDir, "*.dll", SearchOption.TopDirectoryOnly);
-        PluginFileLoadResult finalResult = new();
+        PluginFileLoadResult finalResult = new()
+        {
+            ResourceFolderPath = extractDir,
+        };
         foreach (string dllFile in dllFiles)
         {
             PluginFileLoadResult? result = LoadDllPlugin(dllFile);
@@ -113,5 +129,6 @@ internal static class PluginLoader
     public class PluginFileLoadResult
     {
         public List<IPlugin> Plugins { get; init; } = [];
+        public string ResourceFolderPath { get; init; } = string.Empty;
     }
 }

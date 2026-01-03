@@ -73,7 +73,7 @@ internal partial class PluginManager
                     continue;
                 }
 
-                PluginContext context = new(plugin, pluginFile);
+                PluginContext context = new(plugin, pluginFile, result.ResourceFolderPath);
                 _plugins.Add(name, context);
                 if (_disabledPlugins.ContainsKey(name))
                 {

@@ -28,7 +28,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReader.Common.Plugins;
 
-internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPluginContext
+internal partial class PluginContext(IPlugin plugin, string pluginFilePath, string resourceFolderPath) : IPluginContext
 {
     private const string TAG = nameof(PluginContext);
 
@@ -36,9 +36,10 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
     public event StatusChangedEventHandler? StatusChanged;
 
     public string Name => _pluginName;
-    public string AssemblyPath => assemblyPath;
+    public string PluginFilePath => pluginFilePath;
     public string Publisher => plugin.Publisher;
     public string Version => $"{plugin.MajorVersion}.{plugin.MinorVersion}";
+    public bool IsActive => Status == PluginStatusEnum.Initialized;
 
     private PluginStatusEnum _status = PluginStatusEnum.NotInitialized;
     public PluginStatusEnum Status
@@ -54,9 +55,11 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
         }
     }
 
-    public bool IsActive => Status == PluginStatusEnum.Initialized;
-
     private readonly string _pluginName = plugin.Name;
+    private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
+    private ICommonMenuItemCreator? _mainPageMoreMenuItemCreator = null;
+    private IComicMenuItemCreator? _comicMenuItemCreator = null;
+    private IComicEditedHandler? _comicEditedHandlers = null;
 
     //
     // Internal API
@@ -76,20 +79,95 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
         }
     }
 
+    public IEnumerable<IVirtualProperty<IComicModel>> GetAllComicVirtualProperties()
+    {
+        if (!IsActive)
+        {
+            return [];
+        }
+
+        return _comicVirtualProperties.Values;
+    }
+
+    public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems(IUIContext uiContext)
+    {
+        if (!IsActive)
+        {
+            return [];
+        }
+
+        ICommonMenuItemCreator? creator = _mainPageMoreMenuItemCreator;
+        if (creator is null)
+        {
+            return [];
+        }
+
+        return [.. SafeAction(() => creator.CreateMenuItems(uiContext), []).Select(CreateHostMenuFlyoutItem)];
+    }
+
+    public IReadOnlyList<BaseMenuFlyoutItemModel> GetComicMenuItems(IUIContext uiContext, IComicModel primary, IEnumerable<IComicModel> selection)
+    {
+        if (!IsActive)
+        {
+            return [];
+        }
+
+        IComicMenuItemCreator? creator = _comicMenuItemCreator;
+        if (creator is null)
+        {
+            return [];
+        }
+
+        return [.. SafeAction(() => creator.CreateMenuItems(uiContext, primary, selection), []).Select(CreateHostMenuFlyoutItem)];
+    }
+
+    public void DispatchComicEditedEvent(IComicModel comic)
+    {
+        if (!IsActive)
+        {
+            return;
+        }
+
+        SafeAction(() => _comicEditedHandlers?.ComicEdited(comic));
+    }
+
     //
-    // Database API
+    // IPluginContext Implementation
     //
+
+    string IPluginContext.ResourceFolderPath => resourceFolderPath;
 
     IKVDatabase IPluginContext.GetKVDatabase()
     {
         return KVStore.Plugin(_pluginName);
     }
 
-    //
-    // Comics API
-    //
+    Task IPluginContext.Busy(Func<Task> action)
+    {
+        return BusyStateManager.WithBusyState(action);
+    }
 
-    async Task<IComicModel?> IPluginContext.GetComicById(long id)
+    Task<DialogResult> IPluginContext.EnqueueDialogAsync(DialogOptions options)
+    {
+        return DialogUtils.EnqueueDialogAsync(options);
+    }
+
+    Task<DialogResult> IPluginContext.EnqueueDialogAsync(int windowId, DialogOptions options)
+    {
+        return DialogUtils.EnqueueDialogAsync(windowId, options);
+    }
+
+    Task<DialogResult> IPluginContext.EnqueueDialogAsync(ContentDialog dialog)
+    {
+        return DialogUtils.EnqueueDialogAsync(dialog);
+    }
+
+    Task<DialogResult> IPluginContext.EnqueueDialogAsync(int windowId, ContentDialog dialog)
+    {
+        return DialogUtils.EnqueueDialogAsync(windowId, dialog);
+    }
+
+    async Task<IComicModel?> IPluginContext.GetComic(long id)
     {
         return await ComicModel.FromId(id, "PluginGetComicById");
     }
@@ -115,12 +193,6 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
         return ids;
     }
 
-    //
-    // Comic virtual property
-    //
-
-    private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
-
     void IPluginContext.RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property)
     {
         ArgumentNullException.ThrowIfNull(property, nameof(property));
@@ -138,121 +210,19 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
         }
     }
 
-    public IEnumerable<IVirtualProperty<IComicModel>> GetAllComicVirtualProperties()
-    {
-        if (!IsActive)
-        {
-            return [];
-        }
-
-        return _comicVirtualProperties.Values;
-    }
-
-    [GeneratedRegex(@"^[a-zA-Z0-9_]+$")]
-    private static partial Regex VirtualPropertyNameRegex();
-
-    //
-    // Common UI
-    //
-
-    Task IPluginContext.WithBusyState(Func<Task> action)
-    {
-        return BusyStateManager.WithBusyState(action);
-    }
-
-    Task<DialogResult> IPluginContext.EnqueueDialogAsync(DialogOptions options)
-    {
-        return DialogUtils.EnqueueDialogAsync(options);
-    }
-
-    Task<DialogResult> IPluginContext.EnqueueDialogAsync(int windowId, DialogOptions options)
-    {
-        return DialogUtils.EnqueueDialogAsync(windowId, options);
-    }
-
-    Task<DialogResult> IPluginContext.EnqueueDialogAsync(ContentDialog dialog)
-    {
-        return DialogUtils.EnqueueDialogAsync(dialog);
-    }
-
-    Task<DialogResult> IPluginContext.EnqueueDialogAsync(int windowId, ContentDialog dialog)
-    {
-        return DialogUtils.EnqueueDialogAsync(windowId, dialog);
-    }
-
-    //
-    // Main Page More Menu Items
-    //
-
-    private ICommonMenuItemCreator? _mainPageMoreMenuItemCreator = null;
-
     void IPluginContext.SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator)
     {
         _mainPageMoreMenuItemCreator = creator;
     }
-
-    public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems(IUIContext uiContext)
-    {
-        if (!IsActive)
-        {
-            return [];
-        }
-
-        ICommonMenuItemCreator? creator = _mainPageMoreMenuItemCreator;
-        if (creator is null)
-        {
-            return [];
-        }
-
-        return [.. SafeAction(() => creator.CreateMenuItems(uiContext), []).Select(CreateHostMenuFlyoutItem)];
-    }
-
-    //
-    // Comic Menu Items
-    //
-
-    private IComicMenuItemCreator? _comicMenuItemCreator = null;
 
     void IPluginContext.SetComicMenuItemCreator(IComicMenuItemCreator? creator)
     {
         _comicMenuItemCreator = creator;
     }
 
-    public IReadOnlyList<BaseMenuFlyoutItemModel> GetComicMenuItems(IUIContext uiContext, IComicModel primary, IEnumerable<IComicModel> selection)
-    {
-        if (!IsActive)
-        {
-            return [];
-        }
-
-        IComicMenuItemCreator? creator = _comicMenuItemCreator;
-        if (creator is null)
-        {
-            return [];
-        }
-
-        return [.. SafeAction(() => creator.CreateMenuItems(uiContext, primary, selection), []).Select(CreateHostMenuFlyoutItem)];
-    }
-
-    //
-    // Comic Edited Handlers
-    //
-
-    private IComicEditedHandler? _comicEditedHandlers = null;
-
     void IPluginContext.SetComicEditedHandler(IComicEditedHandler? handler)
     {
         _comicEditedHandlers = handler;
-    }
-
-    public void DispatchComicEditedEvent(IComicModel comic)
-    {
-        if (!IsActive)
-        {
-            return;
-        }
-
-        SafeAction(() => _comicEditedHandlers?.ComicEdited(comic));
     }
 
     //
@@ -352,4 +322,7 @@ internal partial class PluginContext(IPlugin plugin, string assemblyPath) : IPlu
 
         return condition;
     }
+
+    [GeneratedRegex(@"^[a-zA-Z0-9_]+$")]
+    private static partial Regex VirtualPropertyNameRegex();
 }
