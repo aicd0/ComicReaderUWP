@@ -58,6 +58,7 @@ internal partial class PluginManager
             }
 
             Logger.I(TAG, $"Loaded assembly '{pluginFile}'");
+            bool registeredXaml = false;
             foreach (IPlugin plugin in result.Plugins)
             {
                 string name = plugin.Name;
@@ -78,6 +79,12 @@ internal partial class PluginManager
                 if (_disabledPlugins.ContainsKey(name))
                 {
                     continue;
+                }
+
+                if (!registeredXaml)
+                {
+                    registeredXaml = true;
+                    PluginXamlMetadataProvider.AddProviders(result.XamlMetadataProviders);
                 }
 
                 context.Initialize();

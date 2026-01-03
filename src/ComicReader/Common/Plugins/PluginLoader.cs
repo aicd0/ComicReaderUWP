@@ -11,6 +11,8 @@ using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Plugins;
 
+using Microsoft.UI.Xaml.Markup;
+
 namespace ComicReader.Common.Plugins;
 
 internal static class PluginLoader
@@ -72,6 +74,7 @@ internal static class PluginLoader
             }
 
             finalResult.Plugins.AddRange(result.Plugins);
+            finalResult.XamlMetadataProviders.AddRange(result.XamlMetadataProviders);
         }
 
         return finalResult;
@@ -90,26 +93,37 @@ internal static class PluginLoader
             return null;
         }
 
-        IEnumerable<Type> pluginTypes;
+        List<IPlugin> plugins = CreateInstancesFromAssembly<IPlugin>(assembly);
+        List<IXamlMetadataProvider> xamlMetadataProviders = CreateInstancesFromAssembly<IXamlMetadataProvider>(assembly);
+        return new()
+        {
+            Plugins = plugins,
+            XamlMetadataProviders = xamlMetadataProviders,
+        };
+    }
+
+    private static List<T> CreateInstancesFromAssembly<T>(Assembly assembly) where T : class
+    {
+        IEnumerable<Type> types;
         try
         {
-            pluginTypes = assembly
+            types = assembly
                 .GetTypes()
-                .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsAbstract);
+                .Where(t => typeof(T).IsAssignableFrom(t) && !t.IsAbstract);
         }
         catch (Exception e)
         {
             Logger.E(TAG, e);
-            return null;
+            return [];
         }
 
-        List<IPlugin> plugins = [];
-        foreach (Type pluginType in pluginTypes)
+        List<T> instances = [];
+        foreach (Type type in types)
         {
-            IPlugin plugin;
+            T instance;
             try
             {
-                plugin = (IPlugin)Activator.CreateInstance(pluginType)!;
+                instance = (T)Activator.CreateInstance(type)!;
             }
             catch (Exception e)
             {
@@ -117,18 +131,16 @@ internal static class PluginLoader
                 continue;
             }
 
-            plugins.Add(plugin);
+            instances.Add(instance);
         }
 
-        return new()
-        {
-            Plugins = plugins,
-        };
+        return instances;
     }
 
     public class PluginFileLoadResult
     {
         public List<IPlugin> Plugins { get; init; } = [];
+        public List<IXamlMetadataProvider> XamlMetadataProviders { get; init; } = [];
         public string ResourceFolderPath { get; init; } = string.Empty;
     }
 }
