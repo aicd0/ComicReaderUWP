@@ -59,10 +59,13 @@ public static class FileUtils
 
     public static string GetFileSignature(string path)
     {
-        FileInfo fileInfo;
+        long lastWriteTimeTicks;
+        long length;
         try
         {
-            fileInfo = new(path);
+            FileInfo fileInfo = new(path);
+            lastWriteTimeTicks = fileInfo.LastWriteTimeUtc.Ticks;
+            length = fileInfo.Length;
         }
         catch (FileNotFoundException)
         {
@@ -75,8 +78,8 @@ public static class FileUtils
         }
 
         Span<byte> buffer = stackalloc byte[16];
-        BinaryPrimitives.WriteInt64LittleEndian(buffer[..8], fileInfo.LastWriteTimeUtc.Ticks);
-        BinaryPrimitives.WriteInt64LittleEndian(buffer[8..], fileInfo.Length);
+        BinaryPrimitives.WriteInt64LittleEndian(buffer[..8], lastWriteTimeTicks);
+        BinaryPrimitives.WriteInt64LittleEndian(buffer[8..], length);
         byte[] hash = HashUtils.GetXxHash64(buffer);
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
