@@ -166,7 +166,18 @@ internal partial class FolderComicHandle : ComicHandle
             return _imageFiles.Count > 0;
         }
 
-        _imageFiles = [.. Directory.GetFiles(Location)
+        IEnumerable<string> files;
+        try
+        {
+            files = Directory.GetFiles(Location);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, $"Cannot access folder '{Location}'", e);
+            return false;
+        }
+
+        _imageFiles = [.. files
             .Where(file =>
             {
                 string extension = Path.GetExtension(file);
