@@ -12,8 +12,6 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Misc;
 using ComicReader.SDK.Common.DebugTools;
 
-using Windows.Storage;
-
 namespace ComicReader.Data.Models.Comic;
 
 public class ArchiveAccess
@@ -52,7 +50,7 @@ public class ArchiveAccess
     {
         string base_path = GetBasePath(location, false);
         string sub_path = GetSubPath(location, false);
-        StorageFile? baseFile = await Storage.TryGetFile(base_path);
+        Windows.Storage.StorageFile? baseFile = await Storage.TryGetFile(base_path);
         if (baseFile == null)
         {
             return null;
@@ -61,7 +59,7 @@ public class ArchiveAccess
         return await TryGetFileStream(baseFile, sub_path);
     }
 
-    public static async Task<Stream?> TryGetFileStream(StorageFile baseFile, string subPath)
+    public static async Task<Stream?> TryGetFileStream(Windows.Storage.StorageFile baseFile, string subPath)
     {
         if (subPath.Length == 0)
         {
@@ -82,7 +80,7 @@ public class ArchiveAccess
         {
             await TryAccessArchiveStream(baseFile, subPath, async (stream) =>
             {
-                await stream.CopyToAsync(memStream);
+                stream.CopyTo(memStream);
                 memStream.Position = 0;
                 successful = true;
             });
@@ -99,7 +97,7 @@ public class ArchiveAccess
         return memStream;
     }
 
-    public static async Task TryAccessArchiveStream(StorageFile baseFile, string subPath, Func<Stream, Task> func)
+    public static async Task TryAccessArchiveStream(Windows.Storage.StorageFile baseFile, string subPath, Func<Stream, Task> func)
     {
         if (baseFile is null)
         {
@@ -127,16 +125,15 @@ public class ArchiveAccess
         }
     }
 
-    public static async Task TryGetSubFiles(StorageFile baseFile, string subPath, List<string> output)
+    public static async Task TryGetSubFiles(Windows.Storage.StorageFile baseFile, string subPath, List<string> output)
     {
-        await TryAccessDeepestArchive(baseFile, subPath,
-            async (stream, ctx) =>
+        await TryAccessDeepestArchive(baseFile, subPath, async (stream, ctx) =>
+        {
+            await Task.Run(() =>
             {
-                await Task.Run(() =>
-                {
-                    return TryGetFileEntries(stream, ctx.Extension, ctx.Entry, output);
-                });
+                return TryGetFileEntries(stream, ctx.Extension, ctx.Entry, output);
             });
+        });
     }
 
     private static int GetFileSeperatorIndex(string path, bool reverse)
@@ -171,7 +168,7 @@ public class ArchiveAccess
         public required string Extension;
     }
 
-    private static async Task TryAccessDeepestArchive(StorageFile baseFile, string subPath,
+    private static async Task TryAccessDeepestArchive(Windows.Storage.StorageFile baseFile, string subPath,
         Func<Stream, ArchiveAccessContext, Task> func)
     {
         string subBasePath = GetBasePath(subPath, reverse: true);
