@@ -129,7 +129,7 @@ internal static class ImageCacheManager
                 }
                 catch (Exception e)
                 {
-                    Logger.E(TAG, "GetImageMeta", e);
+                    Logger.F(TAG, "GetImageMeta#GetImageStream", e);
                 }
 
                 if (stream is null)
