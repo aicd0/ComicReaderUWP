@@ -71,6 +71,11 @@ internal class InitTaskManager(Application application)
             // Initialize Sentry
             SentryManager.Initialize(Properties.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
 
+            // Initialize database
+            DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
+            SqlDatabaseManager.Initialize();
+            DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
+
             // Initialize app language
             InitializeAppLanguage();
 
@@ -86,11 +91,6 @@ internal class InitTaskManager(Application application)
 
         // Initialize imaging service
         ImageCacheManager.Initialize(Path.Combine(StorageLocation.LocalCacheFolderPath, "image_cache"), clear: false);
-
-        // Initialize database
-        DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
-        SqlDatabaseManager.Initialize();
-        DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
 
         // Initialize focus tracker
         FocusTracker.Initialize();
