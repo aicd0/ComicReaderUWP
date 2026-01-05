@@ -216,8 +216,14 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>Размер кэша: $size</value>
   </data>
+  <data name="CloseLastTabBehavior" xml:space="preserve">
+    <value>Поведение при закрытии последней вкладки</value>
+  </data>
   <data name="CloseSidebar" xml:space="preserve">
     <value>Закрыть боковую панель</value>
+  </data>
+  <data name="CloseWindow" xml:space="preserve">
+    <value>Закрыть окно</value>
   </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>Свернуть все</value>
@@ -611,6 +617,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
+  </data>
+  <data name="OpenHomePage" xml:space="preserve">
+    <value>Открыть главную страницу</value>
   </data>
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Открыть в текущей вкладке</value>

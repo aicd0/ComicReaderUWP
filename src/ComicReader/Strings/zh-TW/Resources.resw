@@ -216,8 +216,14 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>快取大小：$size</value>
   </data>
+  <data name="CloseLastTabBehavior" xml:space="preserve">
+    <value>關閉最後一個分頁時的行為</value>
+  </data>
   <data name="CloseSidebar" xml:space="preserve">
     <value>關閉側邊欄</value>
+  </data>
+  <data name="CloseWindow" xml:space="preserve">
+    <value>關閉視窗</value>
   </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>折疊全部</value>
@@ -610,6 +616,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="Open" xml:space="preserve">
     <value>打開</value>
+  </data>
+  <data name="OpenHomePage" xml:space="preserve">
+    <value>開啟首頁</value>
   </data>
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>在目前的分頁中開啟</value>

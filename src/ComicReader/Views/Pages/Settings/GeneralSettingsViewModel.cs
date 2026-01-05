@@ -16,6 +16,28 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private List<CloseLastTabBehaviorEntry> _closeLastTabBehaviors = [];
+    public List<CloseLastTabBehaviorEntry> CloseLastTabBehaviors
+    {
+        get => _closeLastTabBehaviors;
+        set
+        {
+            _closeLastTabBehaviors = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CloseLastTabBehaviors)));
+        }
+    }
+
+    private int _closeLastTabBehaviorIndex = 0;
+    public int CloseLastTabBehaviorIndex
+    {
+        get => _closeLastTabBehaviorIndex;
+        set
+        {
+            _closeLastTabBehaviorIndex = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CloseLastTabBehaviorIndex)));
+        }
+    }
+
     private List<TapComicBehaviorEntry> _homePageTapComicBaheviors = [];
     public List<TapComicBehaviorEntry> HomePageTapComicBaheviors
     {
@@ -40,7 +62,25 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
     public void Initialize()
     {
+        UpdateCloseLastTabBehavior();
         UpdateHomePageTapComicBehavior();
+    }
+
+    public void SetCloseLastTabBehavior(int index)
+    {
+        if (index == _closeLastTabBehaviorIndex)
+        {
+            return;
+        }
+
+        if (index < 0 || index >= _closeLastTabBehaviors.Count)
+        {
+            Logger.F(TAG, "SetCloseLastTabBehavior: Index out of bounds.");
+            return;
+        }
+
+        _closeLastTabBehaviorIndex = index;
+        AppSettingsModel.Instance.CloseLastTabBehavior = _closeLastTabBehaviors[index].Behavior;
     }
 
     public void SetHomePageTapComicBehavior(int index)
@@ -58,6 +98,32 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
         _homePageTapComicBaheviorIndex = index;
         AppSettingsModel.Instance.HomePageTapComicBehavior = _homePageTapComicBaheviors[index].Behavior;
+    }
+
+    private void UpdateCloseLastTabBehavior()
+    {
+        AppSettingsModel.CloseLastTabBehaviorEnum behavior = AppSettingsModel.Instance.CloseLastTabBehavior;
+        List<CloseLastTabBehaviorEntry> entries = [
+            new(AppSettingsModel.CloseLastTabBehaviorEnum.CloseWindow),
+            new(AppSettingsModel.CloseLastTabBehaviorEnum.OpenHomePage),
+        ];
+        int selectedIndex = -1;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            if (behavior == entries[i].Behavior)
+            {
+                selectedIndex = i;
+                break;
+            }
+        }
+
+        if (selectedIndex < 0)
+        {
+            selectedIndex = 0;
+        }
+
+        CloseLastTabBehaviors = entries;
+        CloseLastTabBehaviorIndex = selectedIndex;
     }
 
     private void UpdateHomePageTapComicBehavior()
@@ -90,6 +156,24 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
     //
     // Types
     //
+
+    public class CloseLastTabBehaviorEntry(AppSettingsModel.CloseLastTabBehaviorEnum behavior)
+    {
+        public AppSettingsModel.CloseLastTabBehaviorEnum Behavior => behavior;
+
+        public string Name
+        {
+            get
+            {
+                return behavior switch
+                {
+                    AppSettingsModel.CloseLastTabBehaviorEnum.CloseWindow => StringResourceProvider.Instance.CloseWindow,
+                    AppSettingsModel.CloseLastTabBehaviorEnum.OpenHomePage => StringResourceProvider.Instance.OpenHomePage,
+                    _ => throw new InvalidEnumArgumentException(nameof(Behavior)),
+                };
+            }
+        }
+    }
 
     public class TapComicBehaviorEntry(AppSettingsModel.TapComicBehaviorEnum behavior)
     {

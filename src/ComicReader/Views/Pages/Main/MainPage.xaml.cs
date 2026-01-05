@@ -12,6 +12,7 @@ using ComicReader.Common.Constants;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Misc;
 using ComicReader.Data.Models.Comic;
+using ComicReader.Data.Models.Misc;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
@@ -455,6 +456,23 @@ internal sealed partial class MainPage : BasePage
             {
                 closingTabId = tabInfo.Id;
                 break;
+            }
+        }
+
+        if (_tabs.Count == 1)
+        {
+            switch (AppSettingsModel.Instance.CloseLastTabBehavior)
+            {
+                case AppSettingsModel.CloseLastTabBehaviorEnum.CloseWindow:
+                    break;
+                case AppSettingsModel.CloseLastTabBehaviorEnum.OpenHomePage:
+                    {
+                        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
+                        Open(route, -1);
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
