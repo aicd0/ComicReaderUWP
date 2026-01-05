@@ -279,41 +279,63 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <ScrollViewer
-        x:Name="SvReader"
-        HorizontalScrollBarVisibility="Hidden"
-        HorizontalScrollMode="Enabled"
-        Loaded="OnReaderScrollViewerLoadedOrUnloaded"
-        MaxZoomFactor="100000"
-        SizeChanged="OnReaderScrollViewerSizeChanged"
-        Style="{StaticResource ReaderScrollViewerStyle}"
-        Unloaded="OnReaderScrollViewerLoadedOrUnloaded"
-        VerticalScrollBarVisibility="Hidden"
-        ViewChanged="OnReaderScrollViewerViewChanged"
-        ZoomMode="Enabled">
-        <Grid
-            x:Name="GReader"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
-            IsHitTestVisible="False">
-            <ListView
-                x:Name="LvReader"
+    <Grid>
+        <ScrollViewer
+            x:Name="ContentScrollViewer"
+            HorizontalScrollBarVisibility="Hidden"
+            HorizontalScrollMode="Enabled"
+            Loaded="OnReaderScrollViewerLoadedOrUnloaded"
+            MaxZoomFactor="100000"
+            SizeChanged="OnReaderScrollViewerSizeChanged"
+            Style="{StaticResource ReaderScrollViewerStyle}"
+            Unloaded="OnReaderScrollViewerLoadedOrUnloaded"
+            VerticalScrollBarVisibility="Hidden"
+            ViewChanged="OnReaderScrollViewerViewChanged"
+            ZoomMode="Enabled">
+            <Grid
+                x:Name="ContentGrid"
+                HorizontalAlignment="Center"
                 VerticalAlignment="Top"
-                ContainerContentChanging="OnReaderContainerContentChanging"
-                ItemsSource="{x:Bind FrameDataSource, Mode=OneWay}"
-                Loaded="OnReaderListViewLoadedOrUnloaded"
-                PreviewKeyDown="OnReaderKeyDown"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                SelectionMode="None"
-                Unloaded="OnReaderListViewLoadedOrUnloaded">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="readercontrol:ReaderFrameViewModel">
-                        <readercontrol:ReaderFrame FlowDirection="LeftToRight" />
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </Grid>
-    </ScrollViewer>
+                IsHitTestVisible="False">
+                <ListView
+                    x:Name="ContentListView"
+                    VerticalAlignment="Top"
+                    ContainerContentChanging="OnReaderContainerContentChanging"
+                    ItemsSource="{x:Bind FrameDataSource, Mode=OneWay}"
+                    Loaded="OnReaderListViewLoadedOrUnloaded"
+                    PreviewKeyDown="OnReaderKeyDown"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                    SelectionMode="None"
+                    Unloaded="OnReaderListViewLoadedOrUnloaded">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="readercontrol:ReaderFrameViewModel">
+                            <readercontrol:ReaderFrame FlowDirection="LeftToRight" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </ScrollViewer>
+        <FontIcon
+            x:Name="MiddleButtonMarkerRectangle"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            FontSize="16"
+            Glyph="&#xECE9;"
+            Visibility="Collapsed">
+            <FontIcon.RenderTransform>
+                <TranslateTransform X="-8" Y="-8" />
+            </FontIcon.RenderTransform>
+        </FontIcon>
+        <TextBlock
+            x:Name="ReaderStatusTextBlock"
+            Margin="12,0,0,8"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            FontSize="16"
+            FontWeight="SemiLight"
+            Opacity="0.3"
+            Visibility="Collapsed" />
+    </Grid>
 
 </UserControl>

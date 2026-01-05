@@ -5,16 +5,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using ComicReader.Common.Constants;
 using ComicReader.Data.Models.Misc;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Storage;
+using ComicReader.SDK.Database.KV;
 
 namespace ComicReader.Data.Misc;
 
 class DatabaseUpgradeManager
 {
     private const string TAG = nameof(DatabaseUpgradeManager);
-    private const int VERSION = 1;
+    private const int VERSION = 2;
 
     public static DatabaseUpgradeManager Instance = new();
 
@@ -33,14 +35,15 @@ class DatabaseUpgradeManager
         switch (version)
         {
             case 0:
-                {
-                    string oldPath = Path.Combine(StorageLocation.LocalFolderPath, "database.db");
-                    string newPath = Path.Combine(StorageLocation.LocalFolderPath, "database_sql", "main.db");
-                    if (File.Exists(oldPath))
-                    {
-                        MoveFile(oldPath, newPath);
-                    }
-                }
+                MoveFile(Path.Combine(StorageLocation.LocalFolderPath, "database.db"), Path.Combine(StorageLocation.LocalFolderPath, "database_sql", "main.db"));
+                goto case 1;
+            case 1: // 2.8.1
+                MergeToDirectory(
+                    Path.Combine(StorageLocation.LocalFolderPath, "database_sql"),
+                    Path.Combine(StorageLocation.LocalFolderPath, "sqlite"));
+                MergeToDirectory(
+                    Path.Combine(StorageLocation.LocalFolderPath, "database_common"),
+                    Path.Combine(StorageLocation.LocalFolderPath, "configs"));
                 break;
             default:
                 break;
@@ -51,21 +54,22 @@ class DatabaseUpgradeManager
 
     public void UpgradeDatabaseAfterInitialization()
     {
-        DatabaseVersionModel.JsonModel databaseVersions = DatabaseVersionModel.Instance.GetModel();
+        DatabaseVersionModel.ExternalModel databaseVersions = DatabaseVersionModel.Instance.GetModel();
         if (databaseVersions == null)
         {
             return;
         }
 
-        List<Func<DatabaseVersionModel.JsonModel, bool>> tasks = [
-            UpgradeDatabaseVersions,
-            UpgradeComicDatabase,
+        List<Func<DatabaseVersionModel.ExternalModel, bool>> tasks = [
+            UpgradeVersionModel,
+            UpgradeKVStore,
+            UpgradeSqliteDatabase,
             UpgradeFavorites,
             UpgradeHistory,
             UpgradeAppSettings,
         ];
 
-        foreach (Func<DatabaseVersionModel.JsonModel, bool> task in tasks)
+        foreach (Func<DatabaseVersionModel.ExternalModel, bool> task in tasks)
         {
             if (task(databaseVersions))
             {
@@ -74,59 +78,79 @@ class DatabaseUpgradeManager
         }
     }
 
-    private bool UpgradeDatabaseVersions(DatabaseVersionModel.JsonModel versions)
+    private bool UpgradeVersionModel(DatabaseVersionModel.ExternalModel versions)
     {
-        if (versions.DatabaseVersionsVersion >= 1)
+        if (versions.Version >= DatabaseVersionModel.VERSION)
         {
             return false;
         }
 
-        versions.DatabaseVersionsVersion = 1;
+        versions.Version = DatabaseVersionModel.VERSION;
         return true;
     }
 
-    private bool UpgradeComicDatabase(DatabaseVersionModel.JsonModel versions)
+    private bool UpgradeKVStore(DatabaseVersionModel.ExternalModel versions)
     {
-        if (versions.ComicDatabaseVersion >= SqlDatabaseManager.DATABASE_VERSION)
+        if (versions.KVStoreVersion >= DatabaseVersionModel.KV_STORE_VERSION)
         {
             return false;
         }
 
-        SqlDatabaseManager.UpdateDatabase(versions.ComicDatabaseVersion);
-        versions.ComicDatabaseVersion = SqlDatabaseManager.DATABASE_VERSION;
+        switch (versions.KVStoreVersion)
+        {
+            case 0: // 2.8.1
+                KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, false);
+                break;
+            default:
+                break;
+        }
+
+        versions.KVStoreVersion = DatabaseVersionModel.KV_STORE_VERSION;
         return true;
     }
 
-    private bool UpgradeFavorites(DatabaseVersionModel.JsonModel versions)
+    private bool UpgradeSqliteDatabase(DatabaseVersionModel.ExternalModel versions)
     {
-        if (versions.FavoritesVersion >= 1)
+        if (versions.SqliteDatabaseVersion >= DatabaseVersionModel.SQLITE_DATABASE_VERSION)
         {
             return false;
         }
 
-        versions.FavoritesVersion = 1;
+        SqlDatabaseManager.UpdateDatabase(versions.SqliteDatabaseVersion);
+        versions.SqliteDatabaseVersion = DatabaseVersionModel.SQLITE_DATABASE_VERSION;
         return true;
     }
 
-    private bool UpgradeHistory(DatabaseVersionModel.JsonModel versions)
+    private bool UpgradeFavorites(DatabaseVersionModel.ExternalModel versions)
     {
-        if (versions.HistoryVersion >= 1)
+        if (versions.FavoritesVersion >= DatabaseVersionModel.FAVORITES_VERSION)
         {
             return false;
         }
 
-        versions.HistoryVersion = 1;
+        versions.FavoritesVersion = DatabaseVersionModel.FAVORITES_VERSION;
         return true;
     }
 
-    private bool UpgradeAppSettings(DatabaseVersionModel.JsonModel versions)
+    private bool UpgradeHistory(DatabaseVersionModel.ExternalModel versions)
     {
-        if (versions.AppSettingVersion >= 1)
+        if (versions.HistoryVersion >= DatabaseVersionModel.HISTORY_VERSION)
         {
             return false;
         }
 
-        versions.AppSettingVersion = 1;
+        versions.HistoryVersion = DatabaseVersionModel.HISTORY_VERSION;
+        return true;
+    }
+
+    private bool UpgradeAppSettings(DatabaseVersionModel.ExternalModel versions)
+    {
+        if (versions.AppSettingsVersion >= DatabaseVersionModel.APP_SETTING_VERSION)
+        {
+            return false;
+        }
+
+        versions.AppSettingsVersion = DatabaseVersionModel.APP_SETTING_VERSION;
         return true;
     }
 
@@ -135,7 +159,7 @@ class DatabaseUpgradeManager
         string versionFile = VersionFilePath;
         if (!File.Exists(versionFile))
         {
-            return 0;
+            return VERSION;
         }
 
         string versionContent;
@@ -146,7 +170,7 @@ class DatabaseUpgradeManager
         catch (Exception e)
         {
             Logger.E(TAG, e);
-            return 0;
+            return VERSION;
         }
 
         if (int.TryParse(versionContent, out int version))
@@ -154,22 +178,59 @@ class DatabaseUpgradeManager
             return version;
         }
 
-        return 0;
+        return VERSION;
     }
 
-    private static void MoveFile(string oldPath, string newPath)
+    private static void MergeToDirectory(string sourceDir, string destinationDir)
     {
-        if (File.Exists(newPath))
+        if (!Directory.Exists(sourceDir))
         {
-            throw new IOException("File already exists at the new path: " + newPath);
+            return;
         }
 
-        string? newDir = Path.GetDirectoryName(newPath);
+        Directory.CreateDirectory(destinationDir);
+
+        foreach (string sourceFile in Directory.GetFiles(sourceDir))
+        {
+            string fileName = Path.GetFileName(sourceFile);
+            string destFile = Path.Combine(destinationDir, fileName);
+
+            if (File.Exists(destFile))
+            {
+                throw new IOException($"File already exists: {destFile}");
+            }
+
+            File.Move(sourceFile, destFile);
+        }
+
+        foreach (string sourceSubDir in Directory.GetDirectories(sourceDir))
+        {
+            string dirName = Path.GetFileName(sourceSubDir);
+            string destSubDir = Path.Combine(destinationDir, dirName);
+            MergeToDirectory(sourceSubDir, destSubDir);
+        }
+
+        Directory.Delete(sourceDir);
+    }
+
+    private static void MoveFile(string sourceFile, string destinationFile)
+    {
+        if (!File.Exists(sourceFile))
+        {
+            return;
+        }
+
+        if (File.Exists(destinationFile))
+        {
+            throw new IOException("File already exists at the new path: " + destinationFile);
+        }
+
+        string? newDir = Path.GetDirectoryName(destinationFile);
         if (newDir != null && !Directory.Exists(newDir))
         {
             Directory.CreateDirectory(newDir);
         }
 
-        File.Move(oldPath, newPath);
+        File.Move(sourceFile, destinationFile);
     }
 }

@@ -115,7 +115,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
 
             string json = SimpleConfigDatabase.Instance.TryGetConfig(_fileName);
             T jsonModel = null;
-            if (json != null)
+            if (!string.IsNullOrEmpty(json))
             {
                 try
                 {

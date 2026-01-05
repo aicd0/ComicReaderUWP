@@ -41,7 +41,6 @@ namespace ComicReader.Views.Pages.Reader;
 internal sealed partial class ReaderPage : BasePage
 {
     private const string TAG = nameof(ReaderPage);
-    private const string KEY_TIP_SHOWN = "ReaderTipShown";
     private const string REGEX_URL = @"https?:\/\/[a-zA-Z0-9\-._~%]+(?:\.[a-zA-Z0-9\-._~%]+)+(?:\/[^\s]*)?";
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
@@ -134,12 +133,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             if (isAutoScrolling)
             {
-                ViewModel.ReaderCommonStatus = StringResource.Auto;
                 BottomTileSetHold(false);
-            }
-            else
-            {
-                ViewModel.ReaderCommonStatus = "";
             }
         };
     }
@@ -154,7 +148,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.Initialize(PageActionHandler);
 
-        bool tipShown = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).GetValueOrDefault(KEY_TIP_SHOWN, false);
+        bool tipShown = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).GetValueOrDefault(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, false);
         if (!tipShown)
         {
             ReaderTip.IsOpen = !tipShown;
@@ -701,7 +695,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
     {
-        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(KEY_TIP_SHOWN, true);
+        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, true);
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)

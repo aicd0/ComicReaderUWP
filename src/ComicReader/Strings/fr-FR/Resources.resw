@@ -710,11 +710,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="ReaderStatusLoading" xml:space="preserve">
     <value>Le lecteur est en cours de chargement</value>
   </data>
-  <data name="ReaderTip.Message" xml:space="preserve">
-    <value>Appuyez deux fois pour ajuster la largeur/hauteur</value>
-  </data>
-  <data name="ReaderTip.Title" xml:space="preserve">
-    <value>Conseil</value>
+  <data name="ReaderTipContent" xml:space="preserve">
+    <value>1. Appuyez deux fois pour ajuster à la largeur/hauteur.
+2. Définissez « Défilement automatique » sur une valeur supérieure à 0 pour activer le bouton central de la souris.</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Rafraîchir</value>
@@ -842,6 +840,9 @@ Variables spéciales :
   </data>
   <data name="ThemeUseSystemSetting.Content" xml:space="preserve">
     <value>Suivre les paramètres du système</value>
+  </data>
+  <data name="Tip" xml:space="preserve">
+    <value>Conseil</value>
   </data>
   <data name="Title" xml:space="preserve">
     <value>Titre</value>

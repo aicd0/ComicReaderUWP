@@ -710,11 +710,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="ReaderStatusLoading" xml:space="preserve">
     <value>阅读器加载中</value>
   </data>
-  <data name="ReaderTip.Message" xml:space="preserve">
-    <value>双击以适应当前图片宽/高</value>
-  </data>
-  <data name="ReaderTip.Title" xml:space="preserve">
-    <value>提示</value>
+  <data name="ReaderTipContent" xml:space="preserve">
+    <value>1. 双击以适应宽度/高度。
+2. 将“自动滚动”设置为大于 0 的值以启用鼠标中键。</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>刷新</value>
@@ -842,6 +840,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="ThemeUseSystemSetting.Content" xml:space="preserve">
     <value>跟随系统设置</value>
+  </data>
+  <data name="Tip" xml:space="preserve">
+    <value>提示</value>
   </data>
   <data name="Title" xml:space="preserve">
     <value>标题</value>

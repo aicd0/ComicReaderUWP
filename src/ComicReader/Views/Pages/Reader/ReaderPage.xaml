@@ -63,29 +63,6 @@
                 <readercontrol:ReaderView x:Name="MainReaderView" />
             </Grid>
 
-            <!--  Other status  -->
-            <TextBlock
-                Margin="12,0,0,8"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Bottom"
-                FontSize="16"
-                FontWeight="SemiLight"
-                Opacity="0.3"
-                Text="{x:Bind ViewModel.ReaderCommonStatus, Mode=OneWay}"
-                Visibility="{x:Bind ViewModel.ReaderCommonStatus, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
-
-            <!--  Tips  -->
-            <muxc:InfoBar
-                x:Name="ReaderTip"
-                x:Uid="ReaderTip"
-                Margin="10"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Bottom"
-                Background="{ThemeResource TipBackground}"
-                CloseButtonClick="OnReaderTipCloseButtonClick"
-                IsOpen="False"
-                Severity="Informational" />
-
             <!--  Bottom tile  -->
             <Grid
                 x:Name="BottomGrid"
@@ -107,6 +84,19 @@
                     FontWeight="SemiBold"
                     Text="- / -" />
             </Grid>
+
+            <!--  Tips  -->
+            <muxc:InfoBar
+                x:Name="ReaderTip"
+                Title="{x:Bind StringResource.Tip}"
+                Margin="10"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Background="{ThemeResource TipBackground}"
+                CloseButtonClick="OnReaderTipCloseButtonClick"
+                IsOpen="False"
+                Message="{x:Bind StringResource.ReaderTipContent}"
+                Severity="Informational" />
         </Grid>
 
         <!--  Preview grid  -->
