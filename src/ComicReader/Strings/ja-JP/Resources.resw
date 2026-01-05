@@ -216,8 +216,14 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>キャッシュサイズ: $size</value>
   </data>
+  <data name="CloseLastTabBehavior" xml:space="preserve">
+    <value>最後のタブを閉じたときの動作</value>
+  </data>
   <data name="CloseSidebar" xml:space="preserve">
     <value>サイドバーを閉じる</value>
+  </data>
+  <data name="CloseWindow" xml:space="preserve">
+    <value>ウィンドウを閉じる</value>
   </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>すべて折りたたむ</value>
@@ -610,6 +616,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Open" xml:space="preserve">
     <value>開く</value>
+  </data>
+  <data name="OpenHomePage" xml:space="preserve">
+    <value>ホームページを開く</value>
   </data>
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>現在のタブで開く</value>

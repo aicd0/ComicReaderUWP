@@ -216,8 +216,14 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>Tamaño de caché: $size</value>
   </data>
+  <data name="CloseLastTabBehavior" xml:space="preserve">
+    <value>Comportamiento al cerrar la última pestaña</value>
+  </data>
   <data name="CloseSidebar" xml:space="preserve">
     <value>Cerrar la barra lateral</value>
+  </data>
+  <data name="CloseWindow" xml:space="preserve">
+    <value>Cerrar ventana</value>
   </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>Contraer todo</value>
@@ -610,6 +616,9 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="Open" xml:space="preserve">
     <value>Abrir</value>
+  </data>
+  <data name="OpenHomePage" xml:space="preserve">
+    <value>Abrir página de inicio</value>
   </data>
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Abrir en la pestaña actual</value>

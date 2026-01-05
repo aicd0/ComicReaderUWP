@@ -35,7 +35,9 @@ public class StringResourceProvider
     public string Cancel => GetResourceString("Cancel");
     public string Category => GetResourceString("Category");
     public string ClearCacheDetail => GetResourceString("ClearCacheDetail");
+    public string CloseLastTabBehavior => GetResourceString("CloseLastTabBehavior");
     public string CloseSidebar => GetResourceString("CloseSidebar");
+    public string CloseWindow => GetResourceString("CloseWindow");
     public string CollapseAll => GetResourceString("CollapseAll");
     public string ComicInfo => GetResourceString("ComicInfo");
     public string ComicRemovalPromptContent => GetResourceString("ComicRemovalPromptContent");
@@ -117,6 +119,7 @@ public class StringResourceProvider
     public string None => GetResourceString("None");
     public string OK => GetResourceString("OK");
     public string Open => GetResourceString("Open");
+    public string OpenHomePage => GetResourceString("OpenHomePage");
     public string OpenInCurrentTab => GetResourceString("OpenInCurrentTab");
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInLastActiveReaderTab => GetResourceString("OpenInLastActiveReaderTab");

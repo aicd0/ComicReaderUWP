@@ -216,8 +216,14 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>Taille du cache : $size</value>
   </data>
+  <data name="CloseLastTabBehavior" xml:space="preserve">
+    <value>Comportement lors de la fermeture du dernier onglet</value>
+  </data>
   <data name="CloseSidebar" xml:space="preserve">
     <value>Fermer la barre latérale</value>
+  </data>
+  <data name="CloseWindow" xml:space="preserve">
+    <value>Fermer la fenêtre</value>
   </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>Réduire tout</value>
@@ -610,6 +616,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="Open" xml:space="preserve">
     <value>Ouvrir</value>
+  </data>
+  <data name="OpenHomePage" xml:space="preserve">
+    <value>Ouvrir la page d’accueil</value>
   </data>
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Ouvrir dans l’onglet actuel</value>

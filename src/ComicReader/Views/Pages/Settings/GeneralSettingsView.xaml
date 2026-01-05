@@ -24,18 +24,44 @@
     </base:BaseUserControl.Resources>
 
     <StackPanel Orientation="Vertical">
-        <StackPanel Orientation="Horizontal">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Style="{StaticResource SettingsPageBodyTextBlock}"
+                Text="{x:Bind StringResource.CloseLastTabBehavior}" />
+            <ComboBox
+                Grid.Row="0"
+                Grid.Column="2"
+                DisplayMemberPath="Name"
+                ItemsSource="{x:Bind ViewModel.CloseLastTabBehaviors, Mode=OneWay}"
+                SelectedIndex="{x:Bind ViewModel.CloseLastTabBehaviorIndex, Mode=OneWay}"
+                SelectionChanged="CloseLastTabBehaviorBehaviorComboBox_SelectionChanged" />
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="0"
                 VerticalAlignment="Center"
                 Style="{StaticResource SettingsPageBodyTextBlock}"
                 Text="{x:Bind StringResource.HomePageTapComicBehavior}" />
             <ComboBox
-                Margin="12,0,0,0"
+                Grid.Row="2"
+                Grid.Column="2"
                 DisplayMemberPath="Name"
                 ItemsSource="{x:Bind ViewModel.HomePageTapComicBaheviors, Mode=OneWay}"
                 SelectedIndex="{x:Bind ViewModel.HomePageTapComicBaheviorIndex, Mode=OneWay}"
                 SelectionChanged="HomePageTapComicBehaviorComboBox_SelectionChanged" />
-        </StackPanel>
+        </Grid>
     </StackPanel>
 
 </base:BaseUserControl>

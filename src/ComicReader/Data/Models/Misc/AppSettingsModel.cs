@@ -28,6 +28,26 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     // Properties
     //
 
+    public CloseLastTabBehaviorEnum CloseLastTabBehavior
+    {
+        get
+        {
+            return Read(model =>
+            {
+                return ConvertCloseLastTabBehaviorFromJson(model.CloseLastTabBehavior);
+            });
+        }
+        set
+        {
+            Write(model =>
+            {
+                model.CloseLastTabBehavior = ConvertCloseLastTabBehaviorToJson(value);
+                return true;
+            });
+            Save();
+        }
+    }
+
     public TapComicBehaviorEnum HomePageTapComicBehavior
     {
         get
@@ -119,6 +139,26 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     // Helpers
     //
 
+    private static string ConvertCloseLastTabBehaviorToJson(CloseLastTabBehaviorEnum behavior)
+    {
+        return behavior switch
+        {
+            CloseLastTabBehaviorEnum.CloseWindow => "CloseWindow",
+            CloseLastTabBehaviorEnum.OpenHomePage => "OpenHomePage",
+            _ => "CloseWindow",
+        };
+    }
+
+    private static CloseLastTabBehaviorEnum ConvertCloseLastTabBehaviorFromJson(string? behavior)
+    {
+        return behavior switch
+        {
+            "CloseWindow" => CloseLastTabBehaviorEnum.CloseWindow,
+            "OpenHomePage" => CloseLastTabBehaviorEnum.OpenHomePage,
+            _ => CloseLastTabBehaviorEnum.CloseWindow,
+        };
+    }
+
     private static string ConvertTapComicBehaviorToJson(TapComicBehaviorEnum behavior)
     {
         return behavior switch
@@ -149,6 +189,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         [JsonPropertyName("Background")]
         public string? Background { get; set; }
+
+        [JsonPropertyName("CloseLastTabBehavior")]
+        public string? CloseLastTabBehavior { get; set; }
 
         [JsonPropertyName("ComicFolders")]
         public List<string?>? ComicFolders { get; set; }
@@ -375,6 +418,12 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             }
             return null;
         }
+    }
+
+    public enum CloseLastTabBehaviorEnum
+    {
+        CloseWindow,
+        OpenHomePage,
     }
 
     public enum TapComicBehaviorEnum

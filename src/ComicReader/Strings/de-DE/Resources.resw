@@ -216,8 +216,14 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>Cache-Größe: $size</value>
   </data>
+  <data name="CloseLastTabBehavior" xml:space="preserve">
+    <value>Verhalten beim Schließen des letzten Tabs</value>
+  </data>
   <data name="CloseSidebar" xml:space="preserve">
     <value>Seitenleiste schließen</value>
+  </data>
+  <data name="CloseWindow" xml:space="preserve">
+    <value>Fenster schließen</value>
   </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>Alle ausblenden</value>
@@ -610,6 +616,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Open" xml:space="preserve">
     <value>Öffnen</value>
+  </data>
+  <data name="OpenHomePage" xml:space="preserve">
+    <value>Startseite öffnen</value>
   </data>
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Im aktuellen Tab öffnen</value>

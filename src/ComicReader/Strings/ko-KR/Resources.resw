@@ -216,8 +216,14 @@
   <data name="ClearCacheDetail" xml:space="preserve">
     <value>캐시 크기: $size</value>
   </data>
+  <data name="CloseLastTabBehavior" xml:space="preserve">
+    <value>마지막 탭을 닫을 때의 동작</value>
+  </data>
   <data name="CloseSidebar" xml:space="preserve">
     <value>사이드바 닫기</value>
+  </data>
+  <data name="CloseWindow" xml:space="preserve">
+    <value>창 닫기</value>
   </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>모두 접기</value>
@@ -611,6 +617,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Open" xml:space="preserve">
     <value>열기</value>
+  </data>
+  <data name="OpenHomePage" xml:space="preserve">
+    <value>홈페이지 열기</value>
   </data>
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>현재 탭에서 열기</value>
