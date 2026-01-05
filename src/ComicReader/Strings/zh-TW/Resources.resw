@@ -710,11 +710,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="ReaderStatusLoading" xml:space="preserve">
     <value>閱讀器載入中</value>
   </data>
-  <data name="ReaderTip.Message" xml:space="preserve">
-    <value>雙擊以適應當前圖片寬/高</value>
-  </data>
-  <data name="ReaderTip.Title" xml:space="preserve">
-    <value>提示</value>
+  <data name="ReaderTipContent" xml:space="preserve">
+    <value>1. 雙擊以符合寬度/高度。
+2. 將「自動捲動」設為大於 0 的數值以啟用滑鼠中鍵。</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>重新整理</value>
@@ -842,6 +840,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="ThemeUseSystemSetting.Content" xml:space="preserve">
     <value>跟隨系統設定</value>
+  </data>
+  <data name="Tip" xml:space="preserve">
+    <value>提示</value>
   </data>
   <data name="Title" xml:space="preserve">
     <value>標題</value>

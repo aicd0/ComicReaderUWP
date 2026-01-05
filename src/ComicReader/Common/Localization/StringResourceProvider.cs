@@ -146,6 +146,7 @@ public class StringResourceProvider
     public string Rating => GetResourceString("Rating");
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");
+    public string ReaderTipContent => GetResourceString("ReaderTipContent");
     public string Refresh => GetResourceString("Refresh");
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");
@@ -174,6 +175,7 @@ public class StringResourceProvider
     public string TagLinkTip => GetResourceString("TagLinkTip");
     public string Tags => GetResourceString("Tags");
     public string TextWithColon => GetResourceString("TextWithColon");
+    public string Tip => GetResourceString("Tip");
     public string Title => GetResourceString("Title");
     public string Title1 => GetResourceString("Title1");
     public string Title2 => GetResourceString("Title2");

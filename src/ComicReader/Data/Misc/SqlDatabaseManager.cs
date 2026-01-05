@@ -17,7 +17,7 @@ public static class SqlDatabaseManager
 
     private const string TAG = nameof(SqlDatabaseManager);
 
-    private static string DatabaseFolderPath => Path.Combine(StorageLocation.LocalFolderPath, "database_sql");
+    private static string DatabaseFolderPath => Path.Combine(StorageLocation.LocalFolderPath, "sqlite");
 
     private static bool _initialized = false;
 

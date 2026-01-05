@@ -40,6 +40,8 @@ internal partial class ReaderView : UserControl
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 1.05F;
     private const int PRELOAD_FRAMES_BEFORE = 10;
     private const int PRELOAD_FRAMES_AFTER = 10;
+    private const double AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_CONTINUOUS = 0.001;
+    private const double AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_SEPERATE = 0.0005;
     private const int AUTO_SCROLL_COMMON_SPEED = 20;
     private const int AUTO_SCROLL_COMMON_INTERVAL = 10000;
     private const double AUTO_SCROLL_DUAL_FRAME_MULTIPLIER = 1.8;
@@ -77,10 +79,7 @@ internal partial class ReaderView : UserControl
     private bool _isLastFrameLoaded = false;
     private bool _isLastFrameActionPerformed = false;
 
-    private bool _pointerDown = false;
     private double _maxLinearVelocity = 0.0;
-    private bool _tapPending = false;
-    private bool _tapCancelled = false;
     private bool _manipulationDisabled = false;
     private readonly UIElement _gestureReference;
     private readonly GestureHandler _gestureHandler;
@@ -499,22 +498,22 @@ internal partial class ReaderView : UserControl
         {
             _uiStateUpdatedVisibility = false;
             bool isVisible = _isVisible;
-            SvReader.IsEnabled = isVisible;
-            SvReader.IsHitTestVisible = isVisible;
-            SvReader.Opacity = isVisible ? 1 : 0;
+            ContentScrollViewer.IsEnabled = isVisible;
+            ContentScrollViewer.IsHitTestVisible = isVisible;
+            ContentScrollViewer.Opacity = isVisible ? 1 : 0;
         }
 
         if (_uiStateUpdatedOrientation)
         {
             _uiStateUpdatedOrientation = false;
             bool isVertical = _isVertical;
-            SvReader.VerticalScrollMode = isVertical ? ScrollMode.Enabled : ScrollMode.Disabled;
-            GReader.VerticalAlignment = isVertical ? VerticalAlignment.Top : VerticalAlignment.Center;
-            GReader.HorizontalAlignment = isVertical ? HorizontalAlignment.Center : HorizontalAlignment.Center;
-            LvReader.VerticalAlignment = isVertical ? VerticalAlignment.Top : VerticalAlignment.Center;
-            LvReader.HorizontalAlignment = isVertical ? HorizontalAlignment.Center : HorizontalAlignment.Center;
-            LvReader.ItemContainerStyle = (Style)Resources[isVertical ? "VerticalReaderListViewItemStyle" : "HorizontalReaderListViewItemStyle"];
-            LvReader.ItemsPanel = (ItemsPanelTemplate)Resources[isVertical ? "VerticalReaderListViewItemPanelTemplate" : "HorizontalReaderListViewItemPanelTemplate"];
+            ContentScrollViewer.VerticalScrollMode = isVertical ? ScrollMode.Enabled : ScrollMode.Disabled;
+            ContentGrid.VerticalAlignment = isVertical ? VerticalAlignment.Top : VerticalAlignment.Center;
+            ContentGrid.HorizontalAlignment = isVertical ? HorizontalAlignment.Center : HorizontalAlignment.Center;
+            ContentListView.VerticalAlignment = isVertical ? VerticalAlignment.Top : VerticalAlignment.Center;
+            ContentListView.HorizontalAlignment = isVertical ? HorizontalAlignment.Center : HorizontalAlignment.Center;
+            ContentListView.ItemContainerStyle = (Style)Resources[isVertical ? "VerticalReaderListViewItemStyle" : "HorizontalReaderListViewItemStyle"];
+            ContentListView.ItemsPanel = (ItemsPanelTemplate)Resources[isVertical ? "VerticalReaderListViewItemPanelTemplate" : "HorizontalReaderListViewItemPanelTemplate"];
 
             for (int i = 0; i < FrameDataSource.Count; ++i)
             {
@@ -529,11 +528,11 @@ internal partial class ReaderView : UserControl
             _uiStateUpdatedFlowDirection = false;
             if (_isVertical)
             {
-                SvReader.FlowDirection = FlowDirection.LeftToRight;
+                ContentScrollViewer.FlowDirection = FlowDirection.LeftToRight;
             }
             else
             {
-                SvReader.FlowDirection = _isLeftToRight ? FlowDirection.LeftToRight : FlowDirection.RightToLeft;
+                ContentScrollViewer.FlowDirection = _isLeftToRight ? FlowDirection.LeftToRight : FlowDirection.RightToLeft;
             }
         }
 
@@ -990,8 +989,8 @@ internal partial class ReaderView : UserControl
     private void UpdateLoadedState()
     {
         bool viewLoaded = IsLoaded;
-        bool lvLoaded = LvReader != null && LvReader.IsLoaded;
-        bool svLoaded = SvReader != null && SvReader.IsLoaded;
+        bool lvLoaded = ContentListView != null && ContentListView.IsLoaded;
+        bool svLoaded = ContentScrollViewer != null && ContentScrollViewer.IsLoaded;
         bool isLoaded = viewLoaded && lvLoaded && svLoaded && !_isDestoryed;
 
         if (_isLoaded == isLoaded)
@@ -1224,7 +1223,17 @@ internal partial class ReaderView : UserControl
                 break;
 
             case Windows.System.VirtualKey.Space:
-                ToggleAutoScrolling();
+                if (!_isMiddleButtonAutoScrolling)
+                {
+                    if (_isAutoScrolling)
+                    {
+                        StopAutoScrolling();
+                    }
+                    else
+                    {
+                        StartAutoScrolling();
+                    }
+                }
                 break;
 
             case Windows.System.VirtualKey.R:
@@ -1249,50 +1258,114 @@ internal partial class ReaderView : UserControl
     // Pointer Event Handlers
     //
 
-    private void OnReaderPointerCanceled(object sender, PointerRoutedEventArgs e)
+    private bool _pointerDown = false;
+    private PointerPoint? _initiatePointerPoint;
+
+    private void OnReaderPointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        _pointerDown = false;
-        PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
-        _gestureRecognizer.ProcessUpEvent(pointerPoint);
-        ((UIElement)sender).ReleasePointerCapture(e.Pointer);
-        if (!_gestureRecognizer.AutoProcessInertia)
-        {
-            _gestureRecognizer.CompleteGesture();
-        }
+        ((UIElement)sender).CapturePointer(e.Pointer);
+        OnReaderPointerEvent(PointerEventType.Pressed, e);
     }
 
     private void OnReaderPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (_pointerDown)
-        {
-            IList<PointerPoint> points = e.GetIntermediatePoints(_gestureReference);
-            _gestureRecognizer.ProcessMoveEvents(points);
-        }
-
         if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppModel.AutomaticallyHideCursor)
         {
             ShowCursor();
             HideCursorDelayed(3000);
         }
-    }
 
-    private void OnReaderPointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        _pointerDown = true;
-        ((UIElement)sender).CapturePointer(e.Pointer);
-        PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
-        _gestureRecognizer.ProcessDownEvent(pointerPoint);
+        OnReaderPointerEvent(PointerEventType.Moved, e);
     }
 
     private void OnReaderPointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        _pointerDown = false;
-        PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
-        _gestureRecognizer.ProcessUpEvent(pointerPoint);
         ((UIElement)sender).ReleasePointerCapture(e.Pointer);
-        if (!_gestureRecognizer.AutoProcessInertia)
+        OnReaderPointerEvent(PointerEventType.Released, e);
+    }
+
+    private void OnReaderPointerCanceled(object sender, PointerRoutedEventArgs e)
+    {
+        ((UIElement)sender).ReleasePointerCapture(e.Pointer);
+        OnReaderPointerEvent(PointerEventType.Cancelled, e);
+    }
+
+    private void OnReaderPointerEvent(PointerEventType type, PointerRoutedEventArgs e)
+    {
+        PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
+        switch (type)
         {
-            _gestureRecognizer.CompleteGesture();
+            case PointerEventType.Pressed:
+                _pointerDown = true;
+                _initiatePointerPoint = pointerPoint;
+                StopMiddleButtonAutoScrolling();
+                break;
+            case PointerEventType.Moved:
+                UpdateMiddleButtonAutoScrolling(pointerPoint.Position);
+                break;
+            case PointerEventType.Released:
+            case PointerEventType.Cancelled:
+                _pointerDown = false;
+                break;
+            default:
+                break;
+        }
+
+        if (_initiatePointerPoint is not null)
+        {
+            if (_initiatePointerPoint.Properties.IsMiddleButtonPressed)
+            {
+                switch (type)
+                {
+                    case PointerEventType.Pressed:
+                        StartMiddleButtonAutoScrolling(pointerPoint.Position);
+                        break;
+                    case PointerEventType.Moved:
+                    case PointerEventType.Released:
+                    case PointerEventType.Cancelled:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                switch (type)
+                {
+                    case PointerEventType.Pressed:
+                        _gestureRecognizer.ProcessDownEvent(pointerPoint);
+                        break;
+                    case PointerEventType.Moved:
+                        {
+                            IList<PointerPoint> points = e.GetIntermediatePoints(_gestureReference);
+                            _gestureRecognizer.ProcessMoveEvents(points);
+                        }
+                        break;
+                    case PointerEventType.Released:
+                    case PointerEventType.Cancelled:
+                        _gestureRecognizer.ProcessUpEvent(pointerPoint);
+                        if (!_gestureRecognizer.AutoProcessInertia)
+                        {
+                            _gestureRecognizer.CompleteGesture();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        switch (type)
+        {
+            case PointerEventType.Pressed:
+            case PointerEventType.Moved:
+                break;
+            case PointerEventType.Released:
+            case PointerEventType.Cancelled:
+                _initiatePointerPoint = null;
+                break;
+            default:
+                break;
         }
     }
 
@@ -1359,7 +1432,7 @@ internal partial class ReaderView : UserControl
         double v = _isVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
         _maxLinearVelocity = Math.Max(_maxLinearVelocity, Math.Abs(v));
         bool normalDirection = (_isVertical || _isLeftToRight) ? double.IsNegative(v) : double.IsPositive(v);
-        if (_autoScrollSpeed > 0 && _isContinuous && !_pointerDown && normalDirection)
+        if (IsAutoScrollEnabled && _isContinuous && !_pointerDown && normalDirection)
         {
             double threshold = _maxLinearVelocity * AUTO_SCROLL_COMMON_START_THRESHOLD * _autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
             if (Math.Abs(v) < threshold)
@@ -1444,6 +1517,13 @@ internal partial class ReaderView : UserControl
         e.Handled = true;
     }
 
+    //
+    // Tap Event Handlers
+    //
+
+    private bool _tapPending = false;
+    private bool _tapCancelled = false;
+
     private void OnReaderTapped(object sender, TappedEventArgs e)
     {
         if (e.TapCount == 1)
@@ -1488,28 +1568,72 @@ internal partial class ReaderView : UserControl
     private int _autoScrollSpeed = 0;
     private bool _isAutoScrolling = false;
     private bool _stopAutoScrollingRequested = false;
+    private double _autoScrollParallelVelocity = 0.0;
+    private double _autoScrollPerpendicularVelocity = 0.0;
+    private bool _isMiddleButtonAutoScrolling = false;
+    private Windows.Foundation.Point _middleButtonAutoScrollOrigin;
 
-    private void ToggleAutoScrolling()
-    {
-        if (_isAutoScrolling)
-        {
-            StopAutoScrolling();
-        }
-        else
-        {
-            StartAutoScrolling();
-        }
-    }
+    private bool IsAutoScrollEnabled => _autoScrollSpeed > 0;
 
-    private void StartAutoScrolling(double? velocity = null)
+    private void StartMiddleButtonAutoScrolling(Windows.Foundation.Point point)
     {
-        _stopAutoScrollingRequested = false;
-        if (_isAutoScrolling || _autoScrollSpeed <= 0)
+        if (_isMiddleButtonAutoScrolling || !IsAutoScrollEnabled)
         {
             return;
         }
 
-        double velocityValue = 0.0;
+        _isMiddleButtonAutoScrolling = true;
+        _middleButtonAutoScrollOrigin = point;
+        MiddleButtonMarkerRectangle.Visibility = Visibility.Visible;
+        MiddleButtonMarkerRectangle.Margin = new Thickness(point.X, point.Y, 0, 0);
+    }
+
+    private void UpdateMiddleButtonAutoScrolling(Windows.Foundation.Point point)
+    {
+        if (!_isMiddleButtonAutoScrolling)
+        {
+            return;
+        }
+
+        double velocityX = point.X - _middleButtonAutoScrollOrigin.X;
+        double velocityY = point.Y - _middleButtonAutoScrollOrigin.Y;
+        double parallelVelocity = _isVertical ? velocityY : (_isLeftToRight ? velocityX : -velocityX);
+        double perpendicularVelocity = _isVertical ? velocityX : velocityY;
+        parallelVelocity *= (double)_autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
+        if (_isContinuous)
+        {
+            parallelVelocity *= AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_CONTINUOUS;
+            perpendicularVelocity *= AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_CONTINUOUS;
+        }
+        else
+        {
+            parallelVelocity *= AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_SEPERATE;
+            perpendicularVelocity *= AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_SEPERATE;
+        }
+
+        StartAutoScrollingInternal(parallelVelocity, perpendicularVelocity);
+    }
+
+    private void StopMiddleButtonAutoScrolling()
+    {
+        if (!_isMiddleButtonAutoScrolling)
+        {
+            return;
+        }
+
+        _isMiddleButtonAutoScrolling = false;
+        MiddleButtonMarkerRectangle.Visibility = Visibility.Collapsed;
+        StopAutoScrolling();
+    }
+
+    private void StartAutoScrolling(double? velocity = null)
+    {
+        if (_isAutoScrolling || !IsAutoScrollEnabled)
+        {
+            return;
+        }
+
+        double velocityValue;
         if (_isContinuous)
         {
             velocity ??= _internalDB?.AutoScrollVelocity;
@@ -1527,9 +1651,33 @@ internal partial class ReaderView : UserControl
                 _internalDB.AutoScrollVelocity = velocityValue;
             }
         }
+        else
+        {
+            velocityValue = 1000.0 * _autoScrollSpeed / ((double)AUTO_SCROLL_COMMON_INTERVAL * AUTO_SCROLL_COMMON_SPEED);
+        }
+
+        StartAutoScrollingInternal(velocityValue, 0);
+    }
+
+    private void StopAutoScrolling()
+    {
+        _stopAutoScrollingRequested = true;
+    }
+
+    private void StartAutoScrollingInternal(double parallelVelocity, double perpendicularVelocity)
+    {
+        _stopAutoScrollingRequested = false;
+        _autoScrollParallelVelocity = parallelVelocity;
+        _autoScrollPerpendicularVelocity = perpendicularVelocity;
+        if (_isAutoScrolling)
+        {
+            UpdateReaderStatusText();
+            return;
+        }
 
         _isAutoScrolling = true;
-        Log("AutoScroll", $"Start velocity={velocityValue}");
+        Log("AutoScroll", $"Start velocity=({parallelVelocity},{perpendicularVelocity})");
+        UpdateReaderStatusText();
         ReaderEventAutoScrollingChanged?.Invoke(this, true);
 
         DispatcherQueueTimer timer = MainThreadUtils.CreateTimer();
@@ -1544,12 +1692,15 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            if (_stopAutoScrollingRequested || _autoScrollSpeed <= 0 || isContinuous != _isContinuous)
+            if (_stopAutoScrollingRequested || isContinuous != _isContinuous || !IsAutoScrollEnabled)
             {
                 timer.Stop();
                 _isAutoScrolling = false;
+                StopMiddleButtonAutoScrolling();
                 Log("AutoScroll", $"Stop");
+                UpdateReaderStatusText();
                 ReaderEventAutoScrollingChanged?.Invoke(this, false);
+                return;
             }
 
             long currentTime = GetTicks();
@@ -1562,13 +1713,16 @@ internal partial class ReaderView : UserControl
             int elapsed = (int)(currentTime - lastTick);
             if (_isContinuous)
             {
-                double delta = velocityValue * elapsed;
+                double parallelDelta = _autoScrollParallelVelocity * elapsed;
+                double perpendicularDelta = _autoScrollPerpendicularVelocity * elapsed;
                 lastTick = currentTime;
-                SetScrollViewer1("AutoScroll", ScrollSource.Programmatic, parallelOffset: SCParallelOffsetFinal + delta);
+                SetScrollViewer1("AutoScroll", ScrollSource.Programmatic,
+                    parallelOffset: SCParallelOffsetFinal + parallelDelta,
+                    perpendicularOffset: SCPerpendicularOffsetFinal + perpendicularDelta);
             }
             else
             {
-                double targetDelay = (double)AUTO_SCROLL_COMMON_INTERVAL / _autoScrollSpeed * AUTO_SCROLL_COMMON_SPEED;
+                double targetDelay = 1000.0 / Math.Abs(_autoScrollParallelVelocity); // (0, PositiveInfinite)
 
                 int frameIndex = PageToFrame(SCCurrentPageFinal, out _, out _);
                 if (frameIndex >= 0 && frameIndex < FrameDataSource.Count)
@@ -1583,16 +1737,18 @@ internal partial class ReaderView : UserControl
                 if (elapsed > targetDelay)
                 {
                     lastTick = currentTime;
-                    MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, 1);
+                    if (double.IsPositive(_autoScrollParallelVelocity))
+                    {
+                        MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, 1);
+                    }
+                    else
+                    {
+                        MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, -1);
+                    }
                 }
             }
         };
         timer.Start();
-    }
-
-    private void StopAutoScrolling()
-    {
-        _stopAutoScrollingRequested = true;
     }
 
     //
@@ -1695,8 +1851,8 @@ internal partial class ReaderView : UserControl
     private float _zoom = 1F;
     private bool _finalValueSynced = false;
 
-    private ScrollViewer ThisScrollViewer => SvReader;
-    private ListView ThisListView => LvReader;
+    private ScrollViewer ThisScrollViewer => ContentScrollViewer;
+    private ListView ThisListView => ContentListView;
     private float ZoomFactor => ThisScrollViewer.ZoomFactor;
     private double HorizontalOffset => ThisScrollViewer.HorizontalOffset;
     private double VerticalOffset => ThisScrollViewer.VerticalOffset;
@@ -1861,10 +2017,11 @@ internal partial class ReaderView : UserControl
         SetScrollViewer2(reason, source, zoom: zoom, page: page, disableAnimation: !AppModel.TransitionAnimation);
     }
 
-    private ScrollResult SetScrollViewer1(string reason, ScrollSource source, float? zoom = null, double? parallelOffset = null, bool disableAnimation = true)
+    private ScrollResult SetScrollViewer1(string reason, ScrollSource source, float? zoom = null,
+        double? parallelOffset = null, double? perpendicularOffset = null, bool disableAnimation = true)
     {
-        double? horizontalOffset = _isVertical ? null : parallelOffset;
-        double? verticalOffset = _isVertical ? parallelOffset : null;
+        double? horizontalOffset = _isVertical ? perpendicularOffset : parallelOffset;
+        double? verticalOffset = _isVertical ? parallelOffset : perpendicularOffset;
 
         return SetScrollViewerInternal(new ScrollRequest(source)
         {
@@ -2642,6 +2799,35 @@ internal partial class ReaderView : UserControl
     }
 
     //
+    // Reader Status
+    //
+
+    private void UpdateReaderStatusText()
+    {
+        string text = string.Empty;
+        if (_isAutoScrolling)
+        {
+            text = StringResourceProvider.Instance.Auto;
+            if (!_isContinuous)
+            {
+                double targetDelay = 1.0 / Math.Abs(_autoScrollParallelVelocity);
+                targetDelay = Math.Round(targetDelay, 1, MidpointRounding.AwayFromZero);
+                text += $" ({targetDelay:0.#}s)";
+            }
+        }
+
+        if (string.IsNullOrEmpty(text))
+        {
+            ReaderStatusTextBlock.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            ReaderStatusTextBlock.Text = text;
+            ReaderStatusTextBlock.Visibility = Visibility.Visible;
+        }
+    }
+
+    //
     // Utilities
     //
 
@@ -2840,6 +3026,14 @@ internal partial class ReaderView : UserControl
         CenterCrop,
         FitWidthDualAware,
         FitHeight,
+    }
+
+    private enum PointerEventType
+    {
+        Pressed,
+        Moved,
+        Released,
+        Cancelled,
     }
 
     private class ScrollRequest(ScrollSource source)
