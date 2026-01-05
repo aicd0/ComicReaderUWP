@@ -1009,7 +1009,6 @@ internal partial class ReaderView : UserControl
         {
             _imagePool.Cancel();
             DisposeCursor();
-            StopAutoScrolling();
         }
     }
 
@@ -1298,60 +1297,60 @@ internal partial class ReaderView : UserControl
             case PointerEventType.Pressed:
                 _pointerDown = true;
                 _initiatePointerPoint = pointerPoint;
-                StopMiddleButtonAutoScrolling();
+                if (pointerPoint.Properties.IsMiddleButtonPressed)
+                {
+                    StopMiddleButtonAutoScrolling();
+                    StartMiddleButtonAutoScrolling(pointerPoint.Position);
+                }
+                else if (_isMiddleButtonAutoScrolling)
+                {
+                    _initiatePointerPoint = null; // Suppress future events
+                    StopMiddleButtonAutoScrolling();
+                }
                 break;
+
             case PointerEventType.Moved:
                 UpdateMiddleButtonAutoScrolling(pointerPoint.Position);
                 break;
+
             case PointerEventType.Released:
             case PointerEventType.Cancelled:
                 _pointerDown = false;
                 break;
+
             default:
                 break;
         }
 
-        if (_initiatePointerPoint is not null)
+        PointerPoint? initiatePointerPoint = _initiatePointerPoint;
+        if (initiatePointerPoint is null)
         {
-            if (_initiatePointerPoint.Properties.IsMiddleButtonPressed)
+            return;
+        }
+
+        if (!initiatePointerPoint.Properties.IsMiddleButtonPressed)
+        {
+            switch (type)
             {
-                switch (type)
-                {
-                    case PointerEventType.Pressed:
-                        StartMiddleButtonAutoScrolling(pointerPoint.Position);
-                        break;
-                    case PointerEventType.Moved:
-                    case PointerEventType.Released:
-                    case PointerEventType.Cancelled:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                switch (type)
-                {
-                    case PointerEventType.Pressed:
-                        _gestureRecognizer.ProcessDownEvent(pointerPoint);
-                        break;
-                    case PointerEventType.Moved:
-                        {
-                            IList<PointerPoint> points = e.GetIntermediatePoints(_gestureReference);
-                            _gestureRecognizer.ProcessMoveEvents(points);
-                        }
-                        break;
-                    case PointerEventType.Released:
-                    case PointerEventType.Cancelled:
-                        _gestureRecognizer.ProcessUpEvent(pointerPoint);
-                        if (!_gestureRecognizer.AutoProcessInertia)
-                        {
-                            _gestureRecognizer.CompleteGesture();
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                case PointerEventType.Pressed:
+                    _gestureRecognizer.ProcessDownEvent(pointerPoint);
+                    break;
+                case PointerEventType.Moved:
+                    {
+                        IList<PointerPoint> points = e.GetIntermediatePoints(_gestureReference);
+                        _gestureRecognizer.ProcessMoveEvents(points);
+                    }
+                    break;
+                case PointerEventType.Released:
+                case PointerEventType.Cancelled:
+                    _gestureRecognizer.ProcessUpEvent(pointerPoint);
+                    if (!_gestureRecognizer.AutoProcessInertia)
+                    {
+                        _gestureRecognizer.CompleteGesture();
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -1586,6 +1585,7 @@ internal partial class ReaderView : UserControl
         _middleButtonAutoScrollOrigin = point;
         MiddleButtonMarkerRectangle.Visibility = Visibility.Visible;
         MiddleButtonMarkerRectangle.Margin = new Thickness(point.X, point.Y, 0, 0);
+        StartAutoScrollingInternal(0, 0);
     }
 
     private void UpdateMiddleButtonAutoScrolling(Windows.Foundation.Point point)
@@ -1628,11 +1628,6 @@ internal partial class ReaderView : UserControl
 
     private void StartAutoScrolling(double? velocity = null)
     {
-        if (_isAutoScrolling || !IsAutoScrollEnabled)
-        {
-            return;
-        }
-
         double velocityValue;
         if (_isContinuous)
         {
@@ -1692,7 +1687,7 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            if (_stopAutoScrollingRequested || isContinuous != _isContinuous || !IsAutoScrollEnabled)
+            if (_stopAutoScrollingRequested || !IsAutoScrollEnabled || !_isLoaded || isContinuous != _isContinuous)
             {
                 timer.Stop();
                 _isAutoScrolling = false;
