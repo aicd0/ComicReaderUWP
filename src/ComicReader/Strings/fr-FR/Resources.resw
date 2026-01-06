@@ -305,6 +305,18 @@ $comics</value>
   <data name="DiscreteButton.Label" xml:space="preserve">
     <value>Séparé</value>
   </data>
+  <data name="DonationAlreadyPurchased" xml:space="preserve">
+    <value>Déjà acheté ?</value>
+  </data>
+  <data name="DonationBuyMeACoffee" xml:space="preserve">
+    <value>Offre-moi un café</value>
+  </data>
+  <data name="DonationDescription" xml:space="preserve">
+    <value>Si vous appréciez ce projet, pensez à soutenir l’auteur en achetant un ticket à l’aide du bouton ci-dessous. Cela ne débloque aucune fonctionnalité, mais contribue grandement à la maintenance continue du projet.</value>
+  </data>
+  <data name="DonationSuccess" xml:space="preserve">
+    <value>Vous êtes maintenant donateur. Merci pour votre soutien !</value>
+  </data>
   <data name="Done" xml:space="preserve">
     <value>Fait</value>
   </data>
@@ -688,6 +700,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Confirmer avant de supprimer les bandes dessinées</value>
+  </data>
+  <data name="PurchaseFailureMessage" xml:space="preserve">
+    <value>Aucun historique d’achat n’a été trouvé.</value>
   </data>
   <data name="RandomComic" xml:space="preserve">
     <value>Bande dessinée aléatoire</value>

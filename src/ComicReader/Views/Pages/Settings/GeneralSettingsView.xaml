@@ -39,8 +39,8 @@
                 Grid.Row="0"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Style="{StaticResource SettingsPageBodyTextBlock}"
-                Text="{x:Bind StringResource.CloseLastTabBehavior}" />
+                Text="{x:Bind StringResource.CloseLastTabBehavior}"
+                TextWrapping="Wrap" />
             <ComboBox
                 Grid.Row="0"
                 Grid.Column="2"
@@ -52,8 +52,8 @@
                 Grid.Row="2"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Style="{StaticResource SettingsPageBodyTextBlock}"
-                Text="{x:Bind StringResource.HomePageTapComicBehavior}" />
+                Text="{x:Bind StringResource.HomePageTapComicBehavior}"
+                TextWrapping="Wrap" />
             <ComboBox
                 Grid.Row="2"
                 Grid.Column="2"

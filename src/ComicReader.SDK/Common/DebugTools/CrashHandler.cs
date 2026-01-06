@@ -40,7 +40,6 @@ internal static class CrashHandler
         }
 
         string crashReport = sb.ToString();
-
         try
         {
             string fileName = $"crash_report_{DateTimeOffset.Now:yyyyMMddHHmmss}_{RandomString(4)}.txt";

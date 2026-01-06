@@ -305,6 +305,18 @@ $comics</value>
   <data name="DiscreteButton.Label" xml:space="preserve">
     <value>スプリット</value>
   </data>
+  <data name="DonationAlreadyPurchased" xml:space="preserve">
+    <value>すでに購入済みですか？</value>
+  </data>
+  <data name="DonationBuyMeACoffee" xml:space="preserve">
+    <value>コーヒーをおごってください</value>
+  </data>
+  <data name="DonationDescription" xml:space="preserve">
+    <value>このプロジェクトを気に入っていただけた場合は、下のボタンからチケットを購入して作者を支援していただけると幸いです。機能がアンロックされることはありませんが、プロジェクトの継続的なメンテナンスに大きく貢献します。</value>
+  </data>
+  <data name="DonationSuccess" xml:space="preserve">
+    <value>ご支援ありがとうございます。あなたは現在、支援者です。</value>
+  </data>
   <data name="Done" xml:space="preserve">
     <value>確認する</value>
   </data>
@@ -688,6 +700,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>マンガを削除する前に確認</value>
+  </data>
+  <data name="PurchaseFailureMessage" xml:space="preserve">
+    <value>購入履歴が見つかりませんでした。</value>
   </data>
   <data name="RandomComic" xml:space="preserve">
     <value>ランダムコミック</value>

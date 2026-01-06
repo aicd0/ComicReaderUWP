@@ -11,6 +11,7 @@ using System.Text;
 using ComicReader.SDK.Common.Constants;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.ServiceManagement;
+using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.KV;
 using ComicReader.SDK.Plugins;
@@ -30,6 +31,7 @@ public class EnvironmentProvider
     private readonly object _lock = new();
     private string _additionalDebugInformation = string.Empty;
     private string _appLanguageTag = string.Empty;
+    private string _actualDeviceId = string.Empty;
     private string _deviceId = string.Empty;
     private string _hostVersion = string.Empty;
     private readonly DateTimeOffset _launchTime;
@@ -47,6 +49,12 @@ public class EnvironmentProvider
     public void Initialize(string additionalDebugInformation)
     {
         _additionalDebugInformation = additionalDebugInformation;
+        TaskDispatcher.DefaultThreadPool.Submit("EnvironmentProviderInit", () =>
+        {
+            string deviceId = RecalculateDeviceId();
+            _actualDeviceId = deviceId;
+            KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID, deviceId);
+        });
     }
 
     public void AppendDebugText(StringBuilder sb)
@@ -138,15 +146,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        string combined = string.Join('-', GetDeviceList());
-        if (combined.Length < 12)
-        {
-            combined = Guid.NewGuid().ToString();
-        }
-
-        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
-        deviceId = Convert.ToHexString(hash)[..16];
-
+        deviceId = RecalculateDeviceId();
         lock (_lock)
         {
             if (!string.IsNullOrEmpty(_deviceId))
@@ -159,6 +159,24 @@ public class EnvironmentProvider
         }
 
         return deviceId;
+    }
+
+    public string GetActualDeviceId()
+    {
+        string? deviceId = _actualDeviceId;
+        if (!string.IsNullOrEmpty(deviceId))
+        {
+            return deviceId;
+        }
+
+        deviceId = KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID);
+        if (!string.IsNullOrEmpty(deviceId))
+        {
+            _actualDeviceId = deviceId;
+            return deviceId;
+        }
+
+        return GetDeviceId();
     }
 
     public string GetCurrentAppLanguage()
@@ -213,7 +231,7 @@ public class EnvironmentProvider
     public string GetDeveloperToken()
     {
         List<string> info = [];
-        info.Add(GetDeviceId());
+        info.Add(GetActualDeviceId());
         info.Add(GetHostVersion());
         string combined = string.Join('-', info);
         byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
@@ -256,6 +274,18 @@ public class EnvironmentProvider
     public static bool IsPortable()
     {
         return ServiceManager.GetService<IApplicationService>().IsPortableBuild();
+    }
+
+    private static string RecalculateDeviceId()
+    {
+        string combined = string.Join('-', GetDeviceList());
+        if (combined.Length < 12)
+        {
+            combined = Guid.NewGuid().ToString();
+        }
+
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
+        return Convert.ToHexString(hash)[..16];
     }
 
     private static List<string> GetDeviceList()
