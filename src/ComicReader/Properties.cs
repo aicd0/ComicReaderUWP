@@ -5,6 +5,7 @@ namespace ComicReader;
 
 internal static class Properties
 {
-    public static readonly string AdditionalDebugInformation = "";
-    public static readonly string SentryDsn = "";
+    public const string AdditionalDebugInformation = "";
+    public const string SentryDsn = "";
+    public const string StoreIdDonor = "";
 }

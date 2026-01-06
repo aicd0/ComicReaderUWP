@@ -26,7 +26,7 @@ internal static class PurchaseManager
     private const string TAG = nameof(PurchaseManager);
     private const string KEY_DONOR_TOKEN = "DonorToken";
     private const string ITEM_NAME_DONOR = "Donor";
-    private const string STORE_ID_DONOR = "DonationUser1";
+    private const string STORE_ID_DONOR = Properties.StoreIdDonor;
 
     private static bool? _isDonor;
     public static bool IsDonor
