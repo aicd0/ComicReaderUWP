@@ -154,13 +154,13 @@ public static class Logger
 
     public static void F(string? tag, string? message)
     {
-        AssertException exceptionNotNull = new(null, message);
+        AssertException exceptionNotNull = new(message);
         Log(LEVEL_FATAL, LogTag.N(tag), message, exceptionNotNull);
     }
 
     public static void F(LogTag? tag, string? message)
     {
-        AssertException exceptionNotNull = new(null, message);
+        AssertException exceptionNotNull = new(message);
         Log(LEVEL_FATAL, tag, message, exceptionNotNull);
     }
 
@@ -178,40 +178,40 @@ public static class Logger
 
     public static void F(string? tag, string? message, Exception? exception)
     {
-        AssertException exceptionNotNull = new(null, message, exception);
+        AssertException exceptionNotNull = new(message, exception);
         Log(LEVEL_FATAL, LogTag.N(tag), message, exceptionNotNull);
     }
 
     public static void F(LogTag? tag, string? message, Exception? exception)
     {
-        AssertException exceptionNotNull = new(null, message, exception);
+        AssertException exceptionNotNull = new(message, exception);
         Log(LEVEL_FATAL, tag, message, exceptionNotNull);
     }
 
-    public static void Assert(bool condition, string? eventName)
+    public static void Assert(bool condition, string? message)
     {
         if (condition)
         {
             return;
         }
 
-        AssertNotReachHereInternal(eventName, null, null);
+        AssertNotReachHereInternal(message, null);
     }
 
-    public static void AssertNotReachHere(string? eventName)
+    public static void AssertNotReachHere(string? message)
     {
-        AssertNotReachHereInternal(eventName, null, null);
+        AssertNotReachHereInternal(message, null);
     }
 
-    public static void AssertNotReachHere(string? eventName, Exception? exception)
+    public static void AssertNotReachHere(string? message, Exception? exception)
     {
-        AssertNotReachHereInternal(eventName, null, exception);
+        AssertNotReachHereInternal(message, exception);
     }
 
-    private static void AssertNotReachHereInternal(string? eventName, string? message, Exception? exception)
+    private static void AssertNotReachHereInternal(string? message, Exception? exception)
     {
-        AssertException exceptionNotNull = new(eventName, message, exception);
-        Log(LEVEL_FATAL, LogTag.N("Assert", eventName), message, exceptionNotNull);
+        AssertException exceptionNotNull = new(message, exception);
+        Log(LEVEL_FATAL, LogTag.N("Assert"), message, exceptionNotNull);
     }
 
     private static void Console(string message)
@@ -521,34 +521,13 @@ public static class Logger
 
     private class AssertException : Exception
     {
-        private const string UNTITLED_EVENT = "UntitledEvent";
+        public AssertException(string? message) : base(ConvertMessage(message)) { }
 
-        public AssertException(string? eventName) : base(CombineMessage(eventName, null)) { }
+        public AssertException(string? message, Exception? inner) : base(ConvertMessage(message), inner) { }
 
-        public AssertException(string? eventName, string? message) : base(CombineMessage(eventName, message)) { }
-
-        public AssertException(string? eventName, Exception? inner) : base(CombineMessage(eventName, null), inner) { }
-
-        public AssertException(string? eventName, string? message, Exception? inner) : base(CombineMessage(eventName, message), inner) { }
-
-        private static string CombineMessage(string? eventName, string? message)
+        private static string ConvertMessage(string? message)
         {
-            StringBuilder sb = new();
-            if (string.IsNullOrEmpty(eventName))
-            {
-                sb.Append(UNTITLED_EVENT);
-            }
-            else
-            {
-                sb.Append(eventName);
-            }
-
-            if (!string.IsNullOrEmpty(message))
-            {
-                sb.Append(" (").Append(message).Append(')');
-            }
-
-            return sb.ToString();
+            return message ?? "(no message)";
         }
     }
 
