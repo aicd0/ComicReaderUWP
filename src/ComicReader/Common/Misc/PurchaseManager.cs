@@ -15,6 +15,7 @@ using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.Database.KV;
+using ComicReader.Views.AppWindows.Main;
 
 using Windows.Services.Store;
 
@@ -61,30 +62,20 @@ internal static class PurchaseManager
         }
     }
 
-    private static StoreContext? _context;
-    private static StoreContext Context
-    {
-        get
-        {
-            StoreContext? context = _context;
-            if (context is null)
-            {
-                context = StoreContext.GetDefault();
-                _context = context;
-            }
-
-            return context;
-        }
-    }
-
     public static void ResetPurchaseStatus()
     {
         IsDonor = false;
     }
 
-    public static async Task<OperationResult> UpdatePurchaseStatus()
+    public static async Task<OperationResult> UpdatePurchaseStatus(int windowId)
     {
-        StoreProductQueryResult result = await Context.GetUserCollectionAsync(["Durable"]);
+        StoreContext? context = GetStoreContext(windowId);
+        if (context is null)
+        {
+            return OperationResult.From(false, new InvalidOperationException("Failed to get StoreContext."));
+        }
+
+        StoreProductQueryResult result = await context.GetUserCollectionAsync(["Durable"]);
         if (result.ExtendedError is not null)
         {
             return OperationResult.From(false, result.ExtendedError);
@@ -106,9 +97,15 @@ internal static class PurchaseManager
         return OperationResult.From(true, null);
     }
 
-    public static async Task<OperationResult> PurchaseDonor()
+    public static async Task<OperationResult> PurchaseDonor(int windowId)
     {
-        StorePurchaseResult result = await Context.RequestPurchaseAsync(STORE_ID_DONOR);
+        StoreContext? context = GetStoreContext(windowId);
+        if (context is null)
+        {
+            return OperationResult.From(false, new InvalidOperationException("Failed to get StoreContext."));
+        }
+
+        StorePurchaseResult result = await context.RequestPurchaseAsync(STORE_ID_DONOR);
         bool successful = result.Status switch
         {
             StorePurchaseStatus.Succeeded or StorePurchaseStatus.AlreadyPurchased => true,
@@ -137,6 +134,22 @@ internal static class PurchaseManager
             PurchaseInfoJson = purchaseInfoJson,
         };
         return JsonSerializer.Serialize(token);
+    }
+
+    private static StoreContext? GetStoreContext(int preferredWindowId)
+    {
+        var context = StoreContext.GetDefault();
+        MainWindow? window = App.Instance.WindowManager.GetWindow(preferredWindowId) ??
+            App.Instance.WindowManager.GetActiveWindow() ??
+            App.Instance.WindowManager.GetAnyWindow();
+        if (window is null)
+        {
+            return null;
+        }
+
+        nint hWnd = window.WindowHandle;
+        WinRT.Interop.InitializeWithWindow.Initialize(context, hWnd);
+        return context;
     }
 
     private static PurchaseInfo? VerifyPurchaseToken(string? token)

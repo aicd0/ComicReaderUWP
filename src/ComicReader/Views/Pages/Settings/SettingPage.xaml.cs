@@ -201,7 +201,7 @@ internal sealed partial class SettingPage : BasePage
     {
         CoroutineUtils.Start(async () =>
         {
-            PurchaseManager.OperationResult result = await PurchaseManager.PurchaseDonor();
+            PurchaseManager.OperationResult result = await PurchaseManager.PurchaseDonor(WindowId);
             if (!result.Successful)
             {
                 await DialogUtils.EnqueueDialogAsync(WindowId, new DialogOptions.Builder()
@@ -219,7 +219,7 @@ internal sealed partial class SettingPage : BasePage
     {
         CoroutineUtils.Start(async () =>
         {
-            PurchaseManager.OperationResult result = await PurchaseManager.UpdatePurchaseStatus();
+            PurchaseManager.OperationResult result = await PurchaseManager.UpdatePurchaseStatus(WindowId);
             if (!result.Successful)
             {
                 await DialogUtils.EnqueueDialogAsync(WindowId, new DialogOptions.Builder()
