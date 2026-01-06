@@ -358,6 +358,17 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isDonor = false;
+    public bool IsDonor
+    {
+        get => _isDonor;
+        set
+        {
+            _isDonor = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDonor)));
+        }
+    }
+
     public void Initialize(ILifecycleOwner owner)
     {
         _dispatcher.Submit($"{TAG}#Initialize", InitializeInternal);

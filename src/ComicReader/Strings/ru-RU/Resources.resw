@@ -305,6 +305,18 @@ $comics</value>
   <data name="DiscreteButton.Label" xml:space="preserve">
     <value>Раздельный</value>
   </data>
+  <data name="DonationAlreadyPurchased" xml:space="preserve">
+    <value>Уже купили?</value>
+  </data>
+  <data name="DonationBuyMeACoffee" xml:space="preserve">
+    <value>Купи мне кофе</value>
+  </data>
+  <data name="DonationDescription" xml:space="preserve">
+    <value>Если вам нравится этот проект, пожалуйста, поддержите автора, купив билет с помощью кнопки ниже. Это не откроет никаких функций, но значительно поможет в поддержке и развитии проекта.</value>
+  </data>
+  <data name="DonationSuccess" xml:space="preserve">
+    <value>Теперь вы стали донором. Спасибо за вашу поддержку!</value>
+  </data>
   <data name="Done" xml:space="preserve">
     <value>Сделанный</value>
   </data>
@@ -689,6 +701,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Запрашивать подтверждение перед удалением комиксов</value>
+  </data>
+  <data name="PurchaseFailureMessage" xml:space="preserve">
+    <value>Записи о покупках не найдены.</value>
   </data>
   <data name="RandomComic" xml:space="preserve">
     <value>Случайный комикс</value>

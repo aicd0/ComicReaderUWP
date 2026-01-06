@@ -30,7 +30,8 @@ internal class InitTaskManager(Application application)
 
     private object? _appLock;
 
-    public bool ExitedNormallyLastTime { get; private set; } = true;
+    public bool IsFirstInstance { get; private set; } = true;
+    public bool IsExitedNormallyLastTime { get; private set; } = true;
 
     public void InitOnAppCreate()
     {
@@ -59,14 +60,14 @@ internal class InitTaskManager(Application application)
         // Initialize main thread dispatcher
         MainThreadUtils.Initialize(DispatcherQueue.GetForCurrentThread());
 
-        // Initialize environment information
-        EnvironmentProvider.Instance.Initialize(Properties.AdditionalDebugInformation);
-
-        bool isFirstInstance = TryRegisterFirstInstance();
-        if (isFirstInstance)
+        IsFirstInstance = TryRegisterFirstInstance();
+        if (IsFirstInstance)
         {
             // Register exit handler
             RegisterExitHandler();
+
+            // Initialize environment information
+            EnvironmentProvider.Instance.Initialize(Properties.AdditionalDebugInformation);
 
             // Initialize Sentry
             SentryManager.Initialize(Properties.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
@@ -132,15 +133,11 @@ internal class InitTaskManager(Application application)
     private bool TryRegisterFirstInstance()
     {
         string lockFileDirPath = StorageLocation.TemporaryFolderPath;
-        if (!Directory.Exists(lockFileDirPath))
-        {
-            Directory.CreateDirectory(lockFileDirPath);
-        }
-
+        Directory.CreateDirectory(lockFileDirPath);
         string lockFilePath = Path.Combine(lockFileDirPath, "app.lock");
         if (File.Exists(lockFilePath))
         {
-            ExitedNormallyLastTime = false;
+            IsExitedNormallyLastTime = false;
         }
 
         try

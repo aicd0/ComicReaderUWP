@@ -38,7 +38,7 @@ public partial class App : Application
     private readonly InitTaskManager _initTaskManager;
 
     internal readonly WindowManager WindowManager = new();
-    internal bool ExitedNormallyLastTime { get; private set; } = true;
+    internal bool ExitedNormallyLastTime => _initTaskManager.IsExitedNormallyLastTime;
 
     public App()
     {
@@ -46,7 +46,6 @@ public partial class App : Application
         _instance = this;
         _initTaskManager = new(this);
         _initTaskManager.InitOnAppCreate();
-        ExitedNormallyLastTime = _initTaskManager.ExitedNormallyLastTime;
         InitializeComponent();
     }
 
@@ -81,25 +80,23 @@ public partial class App : Application
     protected override async void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs e)
     {
         LaunchPerformanceTracker.MarkAppLaunched();
-
-        // Read: https://docs.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/guides/applifecycle#single-instancing-in-applicationonlaunched
-        // If this is the first instance launched, then register it as the "main" instance.
-        // If this isn't the first instance launched, then "main" will already be registered,
-        // so retrieve it.
-        var mainInstance = AppInstance.FindOrRegisterForKey("main");
         AppActivationArguments activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
 
-        // If the instance that's executing the OnLaunched handler right now
-        // isn't the "main" instance.
+        var mainInstance = AppInstance.FindOrRegisterForKey("main");
+        if (mainInstance.IsCurrent && !_initTaskManager.IsFirstInstance)
+        {
+            DebugUtils.CaptureFatalError("Inconsistent state: main instance is current but not first instance.", new InvalidOperationException());
+            System.Diagnostics.Process.GetCurrentProcess().Kill();
+            return;
+        }
+
         if (!mainInstance.IsCurrent)
         {
-            // If the app is running in portable mode, store the command line arguments
             if (EnvironmentProvider.IsPortable())
             {
                 StoreCommandLine();
             }
 
-            // Redirect the activation (and args) to the "main" instance, and exit.
             await mainInstance.RedirectActivationToAsync(activatedEventArgs);
             System.Diagnostics.Process.GetCurrentProcess().Kill();
             return;

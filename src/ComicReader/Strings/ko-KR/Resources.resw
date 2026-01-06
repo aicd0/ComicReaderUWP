@@ -305,6 +305,18 @@ $comics</value>
   <data name="DiscreteButton.Label" xml:space="preserve">
     <value>분리된</value>
   </data>
+  <data name="DonationAlreadyPurchased" xml:space="preserve">
+    <value>이미 구매하셨나요?</value>
+  </data>
+  <data name="DonationBuyMeACoffee" xml:space="preserve">
+    <value>커피 한 잔 사주세요</value>
+  </data>
+  <data name="DonationDescription" xml:space="preserve">
+    <value>이 프로젝트가 마음에 드신다면 아래 버튼을 통해 티켓을 구매하여 제작자를 지원해 주세요. 기능이 추가되지는 않지만, 프로젝트의 지속적인 유지 관리에 큰 도움이 됩니다.</value>
+  </data>
+  <data name="DonationSuccess" xml:space="preserve">
+    <value>후원자가 되셨습니다. 소중한 지원에 감사드립니다!</value>
+  </data>
   <data name="Done" xml:space="preserve">
     <value>완료</value>
   </data>
@@ -689,6 +701,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>만화를 삭제하기 전에 확인</value>
+  </data>
+  <data name="PurchaseFailureMessage" xml:space="preserve">
+    <value>구매 기록을 찾을 수 없습니다.</value>
   </data>
   <data name="RandomComic" xml:space="preserve">
     <value>랜덤 만화</value>

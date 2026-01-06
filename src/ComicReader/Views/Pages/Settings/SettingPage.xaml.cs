@@ -50,6 +50,7 @@ internal sealed partial class SettingPage : BasePage
         UpdateFeedback();
         UpdateAbout();
         UpdateDebugInformation();
+        ViewModel.IsDonor = PurchaseManager.IsDonor;
     }
 
     //
@@ -194,6 +195,51 @@ internal sealed partial class SettingPage : BasePage
         }
 
         er.DisplayErrorMessage(PageActionHandler);
+    }
+
+    private void DonationButton_Click(object sender, RoutedEventArgs e)
+    {
+        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        {
+            PurchaseManager.OperationResult result = await PurchaseManager.PurchaseDonor(WindowId);
+            if (!result.Successful)
+            {
+                await DialogUtils.EnqueueDialogAsync(WindowId, new DialogOptions.Builder()
+                    .SetTitle(StringResourceProvider.Instance.Error)
+                    .SetContent(result.ErrorMessage)
+                    .Build());
+                return;
+            }
+
+            ViewModel.IsDonor = PurchaseManager.IsDonor;
+        }));
+    }
+
+    private void DonationAlreadyPurchasedHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    {
+        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        {
+            PurchaseManager.OperationResult result = await PurchaseManager.UpdatePurchaseStatus(WindowId);
+            if (!result.Successful)
+            {
+                await DialogUtils.EnqueueDialogAsync(WindowId, new DialogOptions.Builder()
+                    .SetTitle(StringResourceProvider.Instance.Error)
+                    .SetContent(result.ErrorMessage)
+                    .Build());
+                return;
+            }
+
+            if (!PurchaseManager.IsDonor)
+            {
+                await DialogUtils.EnqueueDialogAsync(WindowId, new DialogOptions.Builder()
+                    .SetTitle(StringResourceProvider.Instance.Error)
+                    .SetContent(StringResourceProvider.Instance.PurchaseFailureMessage)
+                    .Build());
+                return;
+            }
+
+            ViewModel.IsDonor = PurchaseManager.IsDonor;
+        }));
     }
 
     //

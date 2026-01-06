@@ -59,6 +59,10 @@ public class StringResourceProvider
     public string DiffMode => GetResourceString("DiffMode");
     public string Disable => GetResourceString("Disable");
     public string Disabled => GetResourceString("Disabled");
+    public string DonationAlreadyPurchased => GetResourceString("DonationAlreadyPurchased");
+    public string DonationBuyMeACoffee => GetResourceString("DonationBuyMeACoffee");
+    public string DonationDescription => GetResourceString("DonationDescription");
+    public string DonationSuccess => GetResourceString("DonationSuccess");
     public string Done => GetResourceString("Done");
     public string Edit => GetResourceString("Edit");
     public string EditPreset => GetResourceString("EditPreset");
@@ -142,6 +146,7 @@ public class StringResourceProvider
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
     public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");
+    public string PurchaseFailureMessage => GetResourceString("PurchaseFailureMessage");
     public string RandomComic => GetResourceString("RandomComic");
     public string Rating => GetResourceString("Rating");
     public string ReaderStatusError => GetResourceString("ReaderStatusError");

@@ -7,6 +7,7 @@ internal static class DatabaseEntry
 {
     public const string KV_LIB_MAIN = "main";
 
+    public const string KV_KEY_MAIN_ACTUAL_DEVICE_ID = "ActualDeviceId";
     public const string KV_KEY_MAIN_DEVICE_ID = "DeviceId";
     public const string KV_KEY_MAIN_DEBUG_MODE = "DebugMode";
     public const string KV_KEY_MAIN_DEVELOPER_MODE = "DeveloperMode";
