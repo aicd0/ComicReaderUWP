@@ -62,11 +62,6 @@ internal static class PurchaseManager
         }
     }
 
-    public static void ResetPurchaseStatus()
-    {
-        IsDonor = false;
-    }
-
     public static async Task<OperationResult> UpdatePurchaseStatus(int windowId)
     {
         StoreContext? context = GetStoreContext(windowId);
@@ -115,8 +110,39 @@ internal static class PurchaseManager
         return OperationResult.From(successful, result.ExtendedError);
     }
 
+    //
+    // Test API
+    //
+
+    public static void MockDonorStatus(bool isDonor)
+    {
+        IsDonor = isDonor;
+    }
+
+    //
+    // Helpers
+    //
+
+    private static StoreContext? GetStoreContext(int preferredWindowId)
+    {
+        var context = StoreContext.GetDefault();
+        MainWindow? window = App.Instance.WindowManager.GetWindow(preferredWindowId) ??
+            App.Instance.WindowManager.GetActiveWindow() ??
+            App.Instance.WindowManager.GetAnyWindow();
+        if (window is null)
+        {
+            return null;
+        }
+
+        nint hWnd = window.WindowHandle;
+        WinRT.Interop.InitializeWithWindow.Initialize(context, hWnd);
+        return context;
+    }
+
     private static string CreatePurchaseToken(PurchaseInfo info)
     {
+        // We sign the purchase token only for fun, since this is an open source project
+        // and everyone can check the encryption implementation.
         string purchaseInfoJson = JsonSerializer.Serialize(info.ToJsonModel());
         string deviceId = EnvironmentProvider.Instance.GetActualDeviceId();
         string payloadStr = $"{deviceId}|{purchaseInfoJson}";
@@ -134,22 +160,6 @@ internal static class PurchaseManager
             PurchaseInfoJson = purchaseInfoJson,
         };
         return JsonSerializer.Serialize(token);
-    }
-
-    private static StoreContext? GetStoreContext(int preferredWindowId)
-    {
-        var context = StoreContext.GetDefault();
-        MainWindow? window = App.Instance.WindowManager.GetWindow(preferredWindowId) ??
-            App.Instance.WindowManager.GetActiveWindow() ??
-            App.Instance.WindowManager.GetAnyWindow();
-        if (window is null)
-        {
-            return null;
-        }
-
-        nint hWnd = window.WindowHandle;
-        WinRT.Interop.InitializeWithWindow.Initialize(context, hWnd);
-        return context;
     }
 
     private static PurchaseInfo? VerifyPurchaseToken(string? token)

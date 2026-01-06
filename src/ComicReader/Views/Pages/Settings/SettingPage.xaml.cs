@@ -199,7 +199,7 @@ internal sealed partial class SettingPage : BasePage
 
     private void DonationButton_Click(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
         {
             PurchaseManager.OperationResult result = await PurchaseManager.PurchaseDonor(WindowId);
             if (!result.Successful)
@@ -212,12 +212,12 @@ internal sealed partial class SettingPage : BasePage
             }
 
             ViewModel.IsDonor = PurchaseManager.IsDonor;
-        });
+        }));
     }
 
     private void DonationAlreadyPurchasedHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
         {
             PurchaseManager.OperationResult result = await PurchaseManager.UpdatePurchaseStatus(WindowId);
             if (!result.Successful)
@@ -239,7 +239,7 @@ internal sealed partial class SettingPage : BasePage
             }
 
             ViewModel.IsDonor = PurchaseManager.IsDonor;
-        });
+        }));
     }
 
     //

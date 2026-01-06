@@ -103,7 +103,12 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void ResetPurchaseStatusButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        PurchaseManager.ResetPurchaseStatus();
+        PurchaseManager.MockDonorStatus(false);
+    }
+
+    private void BecomeADonorButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        PurchaseManager.MockDonorStatus(true);
     }
 
     private void DeveloperModeToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
