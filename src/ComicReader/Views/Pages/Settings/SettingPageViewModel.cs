@@ -34,11 +34,6 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private readonly ReaderWriterLock _lock = new();
-    private readonly ITaskDispatcher _dispatcher = TaskDispatcher.DefaultQueue;
-    private AppSettingsModel.ExternalModel? _settingsModel;
-    private bool _languageChanged = false;
-
     private List<Tuple<string, int>> _encodings = [];
     public List<Tuple<string, int>> Encodings
     {
@@ -368,6 +363,13 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDonor)));
         }
     }
+
+    public bool IsPortable => EnvironmentProvider.IsPortable();
+
+    private readonly ReaderWriterLock _lock = new();
+    private readonly ITaskDispatcher _dispatcher = TaskDispatcher.DefaultQueue;
+    private AppSettingsModel.ExternalModel? _settingsModel;
+    private bool _languageChanged = false;
 
     public void Initialize(ILifecycleOwner owner)
     {

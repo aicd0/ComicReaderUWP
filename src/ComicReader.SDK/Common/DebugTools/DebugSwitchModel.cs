@@ -65,6 +65,8 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
         }
     }
 
+    public string? DonorStoreId => DebugUtils.DeveloperMode ? GetConfig().DonorStoreId : null;
+
     private DebugSwitchModel() : base("debug.json") { }
 
     protected override JsonModel CreateModel()
@@ -132,5 +134,8 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 
         [JsonPropertyName("LogTreeEnabled")]
         public bool LogTreeEnabled { get; set; }
+
+        [JsonPropertyName("DonorStoreId")]
+        public string? DonorStoreId { get; set; }
     }
 }
