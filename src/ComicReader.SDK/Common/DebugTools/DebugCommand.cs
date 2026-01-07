@@ -72,8 +72,8 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
         Array.Copy(signatureAndCommandBytes, SIGNATURE_LENGTH, commandBytes, 0, signatureAndCommandBytes.Length - SIGNATURE_LENGTH);
         string command = System.Text.Encoding.UTF8.GetString(commandBytes);
 
-        string developerToken = EnvironmentProvider.Instance.GetDeveloperToken();
-        byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes($"{developerToken}+{command}");
+        string developerId = EnvironmentProvider.Instance.GetDeveloperId();
+        byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes($"{developerId}+{command}");
         if (!VerifySignature(payloadBytes, signatureBytes, PUBLIC_KEY_PEM))
         {
             return null;

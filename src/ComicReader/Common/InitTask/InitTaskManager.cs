@@ -67,10 +67,10 @@ internal class InitTaskManager(Application application)
             RegisterExitHandler();
 
             // Initialize environment information
-            EnvironmentProvider.Instance.Initialize(Properties.AdditionalDebugInformation);
+            EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
 
             // Initialize Sentry
-            SentryManager.Initialize(Properties.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
+            SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
 
             // Initialize database
             DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
