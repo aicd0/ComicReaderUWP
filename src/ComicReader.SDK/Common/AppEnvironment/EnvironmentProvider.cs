@@ -63,7 +63,7 @@ public class EnvironmentProvider
         sb.SafeAppend("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
         sb.SafeAppend("Current app language", GetCurrentAppLanguage);
         sb.SafeAppend("Current system language", GetCurrentSystemLanguage);
-        sb.SafeAppend("Developer token", GetDeveloperToken);
+        sb.SafeAppend("Developer ID", GetDeveloperId);
         sb.SafeAppend("Device ID", GetDeviceId);
         sb.SafeAppend("Device model", DeviceInformationHelper.Instance.GetDeviceModel);
         sb.SafeAppend("Host version", GetHostVersion);
@@ -228,7 +228,7 @@ public class EnvironmentProvider
         }
     }
 
-    public string GetDeveloperToken()
+    public string GetDeveloperId()
     {
         List<string> info = [];
         info.Add(GetActualDeviceId());

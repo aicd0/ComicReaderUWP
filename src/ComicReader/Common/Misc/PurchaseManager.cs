@@ -26,7 +26,6 @@ internal static class PurchaseManager
     private const string TAG = nameof(PurchaseManager);
     private const string KEY_DONOR_TOKEN = "DonorToken";
     private const string ITEM_NAME_DONOR = "Donor";
-    private const string STORE_ID_DONOR = Properties.StoreIdDonor;
 
     private static bool? _isDonor;
     public static bool IsDonor
@@ -36,7 +35,7 @@ internal static class PurchaseManager
             if (!_isDonor.HasValue)
             {
                 string? token = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_PURCHASES).GetValue<string>(KEY_DONOR_TOKEN);
-                PurchaseInfo? info = VerifyPurchaseToken(token);
+                PurchaseInfo? info = VerifyPurchaseToken(token, SecretImpl.Salt1);
                 _isDonor = info is not null && info.Name == ITEM_NAME_DONOR;
             }
 
@@ -52,7 +51,7 @@ internal static class PurchaseManager
                     Name = ITEM_NAME_DONOR,
                     PurchaseDate = DateTime.UtcNow,
                 };
-                string token = CreatePurchaseToken(info);
+                string token = CreatePurchaseToken(info, SecretImpl.Salt1);
                 KVStore.App.GetCollection(DatabaseEntry.KV_LIB_PURCHASES).Set(KEY_DONOR_TOKEN, token);
             }
             else
@@ -79,13 +78,9 @@ internal static class PurchaseManager
         foreach (KeyValuePair<string, StoreProduct> pair in result.Products)
         {
             string storeId = pair.Key;
-            switch (storeId)
+            if (storeId == SecretImpl.StoreIdDonor)
             {
-                case STORE_ID_DONOR:
-                    IsDonor = true;
-                    break;
-                default:
-                    break;
+                IsDonor = true;
             }
         }
 
@@ -100,13 +95,24 @@ internal static class PurchaseManager
             return OperationResult.From(false, new InvalidOperationException("Failed to get StoreContext."));
         }
 
-        StorePurchaseResult result = await context.RequestPurchaseAsync(STORE_ID_DONOR);
-        bool successful = result.Status switch
+        StorePurchaseResult result = await context.RequestPurchaseAsync(SecretImpl.StoreIdDonor);
+        bool successful = false;
+        switch (result.Status)
         {
-            StorePurchaseStatus.Succeeded or StorePurchaseStatus.AlreadyPurchased => true,
-            StorePurchaseStatus.NotPurchased or StorePurchaseStatus.NetworkError or StorePurchaseStatus.ServerError => false,
-            _ => false,
-        };
+            case StorePurchaseStatus.Succeeded:
+            case StorePurchaseStatus.AlreadyPurchased:
+                IsDonor = true;
+                successful = true;
+                break;
+            case StorePurchaseStatus.NotPurchased:
+                IsDonor = false;
+                break;
+            case StorePurchaseStatus.NetworkError:
+            case StorePurchaseStatus.ServerError:
+                break;
+            default:
+                break;
+        }
         return OperationResult.From(successful, result.ExtendedError);
     }
 
@@ -139,13 +145,13 @@ internal static class PurchaseManager
         return context;
     }
 
-    private static string CreatePurchaseToken(PurchaseInfo info)
+    private static string CreatePurchaseToken(PurchaseInfo info, string salt)
     {
         // We sign the purchase token only for fun, since this is an open source project
         // and everyone can check the encryption implementation.
         string purchaseInfoJson = JsonSerializer.Serialize(info.ToJsonModel());
         string deviceId = EnvironmentProvider.Instance.GetActualDeviceId();
-        string payloadStr = $"{deviceId}|{purchaseInfoJson}";
+        string payloadStr = $"{salt}|{deviceId}|{purchaseInfoJson}";
         byte[] payload = Encoding.UTF8.GetBytes(payloadStr);
 
         using var rsa = RSA.Create(2048);
@@ -162,7 +168,7 @@ internal static class PurchaseManager
         return JsonSerializer.Serialize(token);
     }
 
-    private static PurchaseInfo? VerifyPurchaseToken(string? token)
+    private static PurchaseInfo? VerifyPurchaseToken(string? token, string salt)
     {
         if (string.IsNullOrEmpty(token))
         {
@@ -234,7 +240,7 @@ internal static class PurchaseManager
         }
 
         string deviceId = EnvironmentProvider.Instance.GetActualDeviceId();
-        string payloadStr = $"{deviceId}|{purchaseInfoJson}";
+        string payloadStr = $"{salt}|{deviceId}|{purchaseInfoJson}";
         byte[] payload = Encoding.UTF8.GetBytes(payloadStr);
         try
         {
