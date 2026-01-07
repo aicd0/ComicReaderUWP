@@ -27,6 +27,8 @@ internal static class PurchaseManager
     private const string KEY_DONOR_TOKEN = "DonorToken";
     private const string ITEM_NAME_DONOR = "Donor";
 
+    private static string DonorStoreId => DebugSwitchModel.Instance.DonorStoreId ?? SecretImpl.StoreIdDonor;
+
     private static bool? _isDonor;
     public static bool IsDonor
     {
@@ -78,7 +80,7 @@ internal static class PurchaseManager
         foreach (KeyValuePair<string, StoreProduct> pair in result.Products)
         {
             string storeId = pair.Key;
-            if (storeId == SecretImpl.StoreIdDonor)
+            if (storeId == DonorStoreId)
             {
                 IsDonor = true;
             }
@@ -95,7 +97,7 @@ internal static class PurchaseManager
             return OperationResult.From(false, new InvalidOperationException("Failed to get StoreContext."));
         }
 
-        StorePurchaseResult result = await context.RequestPurchaseAsync(SecretImpl.StoreIdDonor);
+        StorePurchaseResult result = await context.RequestPurchaseAsync(DonorStoreId);
         bool successful = false;
         switch (result.Status)
         {
