@@ -5,8 +5,8 @@ namespace ComicReader;
 
 internal static class SecretImpl
 {
-    public static string Salt1 => string.Empty;
-    public static string AdditionalDebugInformation => string.Empty;
-    public static string SentryDsn => string.Empty;
-    public static string StoreIdDonor => string.Empty;
+    public static string Salt1 => "";
+    public static string AdditionalDebugInformation => "";
+    public static string SentryDsn => "";
+    public static string StoreIdDonor => "";
 }
