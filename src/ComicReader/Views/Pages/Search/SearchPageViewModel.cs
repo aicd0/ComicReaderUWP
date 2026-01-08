@@ -9,10 +9,9 @@ using ComicReader.Common.Actions;
 using ComicReader.Common.Misc;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
-using ComicReader.Helpers.Navigation;
+using ComicReader.Helpers.Misc;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Algorithm;
-using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Threading;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.UserControls.ComicItemView;
@@ -203,8 +202,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
-
     public bool IsLoading;
 
     public bool IsResultEmpty => SearchResults.Count == 0;
@@ -368,9 +365,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     {
                         if (!IsSelectMode)
                         {
-                            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                            OpenInCurrentTabLiveData.Emit(route);
+                            OpenComicHelper.OpenComic(_actionHandler, comic.Id);
                         }
                     },
                 };

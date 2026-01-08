@@ -104,7 +104,6 @@ public class StringResourceProvider
     public string Hide => GetResourceString("Hide");
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
-    public string HomePageTapComicBehavior => GetResourceString("HomePageTapComicBehavior");
     public string LastReadTime => GetResourceString("LastReadTime");
     public string LinkErrorContent => GetResourceString("LinkErrorContent");
     public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
@@ -123,6 +122,7 @@ public class StringResourceProvider
     public string None => GetResourceString("None");
     public string OK => GetResourceString("OK");
     public string Open => GetResourceString("Open");
+    public string OpenComicDefaultBehavior => GetResourceString("OpenComicDefaultBehavior");
     public string OpenHomePage => GetResourceString("OpenHomePage");
     public string OpenInCurrentTab => GetResourceString("OpenInCurrentTab");
     public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");

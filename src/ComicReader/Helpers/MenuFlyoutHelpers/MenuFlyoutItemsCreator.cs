@@ -18,6 +18,7 @@ using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.Misc;
 using ComicReader.Data.Models.TagInfo;
+using ComicReader.Helpers.Misc;
 using ComicReader.Helpers.Navigation;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Utils;
@@ -31,7 +32,7 @@ internal static class MenuFlyoutItemsCreator
 
     public static async Task<List<BaseMenuFlyoutItemModel>> CreateComicMenuItems(
         ComicModel primaryComic, ActionHandler actionHandler, IEnumerable<ComicModel>? selectedComics = null,
-        bool canOpenInCurrentTab = false, bool canEdit = true, bool canSelect = false)
+        bool canOpenWithDefault = false, bool canEdit = true, bool canSelect = false)
     {
         // If primaryComic is not in selectedComics, ignore selectedComics and use only primaryComic.
         selectedComics ??= [primaryComic];
@@ -52,7 +53,7 @@ internal static class MenuFlyoutItemsCreator
 
         List<BaseMenuFlyoutItemModel> items = [];
 
-        if (canOpenInCurrentTab)
+        if (canOpenWithDefault)
         {
             items.Add(new SimpleMenuFlyoutItemModel()
             {
@@ -60,10 +61,7 @@ internal static class MenuFlyoutItemsCreator
                 Glyph = "\uE8B9",
                 Click = () =>
                 {
-                    ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
-                        .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
-                        .Build();
-                    actionHandler.Handle(actionModel);
+                    OpenComicHelper.OpenComic(actionHandler, primaryComicRoute);
                 },
             });
         }
@@ -335,7 +333,7 @@ internal static class MenuFlyoutItemsCreator
             {
                 Text = StringResourceProvider.Instance.RandomComic,
                 Glyph = "\uE8B1",
-                Items = await CreateComicMenuItems(randomComic, actionHandler, canOpenInCurrentTab: true),
+                Items = await CreateComicMenuItems(randomComic, actionHandler, canOpenWithDefault: true),
             });
         }
 

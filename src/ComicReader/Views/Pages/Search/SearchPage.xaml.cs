@@ -89,11 +89,6 @@ internal sealed partial class SearchPage : BasePage
         {
             ViewModel.Refresh();
         });
-
-        ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
-        {
-            GetMainPageAbility().OpenInCurrentTab(route);
-        });
     }
 
     //

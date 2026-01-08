@@ -38,25 +38,25 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private List<TapComicBehaviorEntry> _homePageTapComicBaheviors = [];
-    public List<TapComicBehaviorEntry> HomePageTapComicBaheviors
+    private List<TapComicBehaviorEntry> _openComicDefaultBaheviors = [];
+    public List<TapComicBehaviorEntry> OpenComicDefaultBaheviors
     {
-        get => _homePageTapComicBaheviors;
+        get => _openComicDefaultBaheviors;
         set
         {
-            _homePageTapComicBaheviors = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HomePageTapComicBaheviors)));
+            _openComicDefaultBaheviors = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OpenComicDefaultBaheviors)));
         }
     }
 
-    private int _homePageTapComicBaheviorIndex = 0;
-    public int HomePageTapComicBaheviorIndex
+    private int _openComicDefaultBaheviorIndex = 0;
+    public int OpenComicDefaultBaheviorIndex
     {
-        get => _homePageTapComicBaheviorIndex;
+        get => _openComicDefaultBaheviorIndex;
         set
         {
-            _homePageTapComicBaheviorIndex = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HomePageTapComicBaheviorIndex)));
+            _openComicDefaultBaheviorIndex = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OpenComicDefaultBaheviorIndex)));
         }
     }
 
@@ -83,21 +83,21 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
         AppSettingsModel.Instance.CloseLastTabBehavior = _closeLastTabBehaviors[index].Behavior;
     }
 
-    public void SetHomePageTapComicBehavior(int index)
+    public void SetOpenComicDefaultBehavior(int index)
     {
-        if (index == _homePageTapComicBaheviorIndex)
+        if (index == _openComicDefaultBaheviorIndex)
         {
             return;
         }
 
-        if (index < 0 || index >= _homePageTapComicBaheviors.Count)
+        if (index < 0 || index >= _openComicDefaultBaheviors.Count)
         {
-            Logger.F(TAG, "SetHomePageTapComicBehavior: Index out of bounds.");
+            Logger.F(TAG, "SetOpenComicDefaultBehavior: Index out of bounds.");
             return;
         }
 
-        _homePageTapComicBaheviorIndex = index;
-        AppSettingsModel.Instance.HomePageTapComicBehavior = _homePageTapComicBaheviors[index].Behavior;
+        _openComicDefaultBaheviorIndex = index;
+        AppSettingsModel.Instance.OpenComicDefaultBehavior = _openComicDefaultBaheviors[index].Behavior;
     }
 
     private void UpdateCloseLastTabBehavior()
@@ -128,11 +128,11 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
     private void UpdateHomePageTapComicBehavior()
     {
-        AppSettingsModel.TapComicBehaviorEnum behavior = AppSettingsModel.Instance.HomePageTapComicBehavior;
+        AppSettingsModel.OpenComicBehaviorEnum behavior = AppSettingsModel.Instance.OpenComicDefaultBehavior;
         List<TapComicBehaviorEntry> entries = [
-            new(AppSettingsModel.TapComicBehaviorEnum.OpenInCurrentTab),
-            new(AppSettingsModel.TapComicBehaviorEnum.OpenInNewTab),
-            new(AppSettingsModel.TapComicBehaviorEnum.OpenInLastActiveReaderTab),
+            new(AppSettingsModel.OpenComicBehaviorEnum.OpenInCurrentTab),
+            new(AppSettingsModel.OpenComicBehaviorEnum.OpenInNewTab),
+            new(AppSettingsModel.OpenComicBehaviorEnum.OpenInLastActiveReaderTab),
         ];
         int selectedIndex = -1;
         for (int i = 0; i < entries.Count; i++)
@@ -149,8 +149,8 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
             selectedIndex = 0;
         }
 
-        HomePageTapComicBaheviors = entries;
-        HomePageTapComicBaheviorIndex = selectedIndex;
+        OpenComicDefaultBaheviors = entries;
+        OpenComicDefaultBaheviorIndex = selectedIndex;
     }
 
     //
@@ -175,9 +175,9 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    public class TapComicBehaviorEntry(AppSettingsModel.TapComicBehaviorEnum behavior)
+    public class TapComicBehaviorEntry(AppSettingsModel.OpenComicBehaviorEnum behavior)
     {
-        public AppSettingsModel.TapComicBehaviorEnum Behavior => behavior;
+        public AppSettingsModel.OpenComicBehaviorEnum Behavior => behavior;
 
         public string Name
         {
@@ -185,9 +185,9 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
             {
                 return behavior switch
                 {
-                    AppSettingsModel.TapComicBehaviorEnum.OpenInCurrentTab => StringResourceProvider.Instance.OpenInCurrentTab,
-                    AppSettingsModel.TapComicBehaviorEnum.OpenInNewTab => StringResourceProvider.Instance.OpenInNewTab,
-                    AppSettingsModel.TapComicBehaviorEnum.OpenInLastActiveReaderTab => StringResourceProvider.Instance.OpenInLastActiveReaderTab,
+                    AppSettingsModel.OpenComicBehaviorEnum.OpenInCurrentTab => StringResourceProvider.Instance.OpenInCurrentTab,
+                    AppSettingsModel.OpenComicBehaviorEnum.OpenInNewTab => StringResourceProvider.Instance.OpenInNewTab,
+                    AppSettingsModel.OpenComicBehaviorEnum.OpenInLastActiveReaderTab => StringResourceProvider.Instance.OpenInLastActiveReaderTab,
                     _ => throw new InvalidEnumArgumentException(nameof(Behavior)),
                 };
             }

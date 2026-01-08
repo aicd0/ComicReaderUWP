@@ -500,9 +500,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>家</value>
   </data>
-  <data name="HomePageTapComicBehavior" xml:space="preserve">
-    <value>ホーム画面で漫画をタップしたときの動作</value>
-  </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>水平</value>
   </data>
@@ -628,6 +625,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Open" xml:space="preserve">
     <value>開く</value>
+  </data>
+  <data name="OpenComicDefaultBehavior" xml:space="preserve">
+    <value>コミックを開いたときのデフォルトの動作</value>
   </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>ホームページを開く</value>

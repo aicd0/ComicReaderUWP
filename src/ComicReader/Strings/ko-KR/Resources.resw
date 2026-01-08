@@ -501,9 +501,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>집</value>
   </data>
-  <data name="HomePageTapComicBehavior" xml:space="preserve">
-    <value>홈 화면에서 만화를 탭했을 때의 동작</value>
-  </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>수평의</value>
   </data>
@@ -629,6 +626,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Open" xml:space="preserve">
     <value>열기</value>
+  </data>
+  <data name="OpenComicDefaultBehavior" xml:space="preserve">
+    <value>만화를 열 때의 기본 동작</value>
   </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>홈페이지 열기</value>

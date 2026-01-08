@@ -48,20 +48,20 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
-    public TapComicBehaviorEnum HomePageTapComicBehavior
+    public OpenComicBehaviorEnum OpenComicDefaultBehavior
     {
         get
         {
             return Read(model =>
             {
-                return ConvertTapComicBehaviorFromJson(model.HomePageTapComicBehavior);
+                return ConvertOpenComicDefaultBehaviorFromJson(model.OpenComicDefaultBehavior ?? model.HomePageTapComicBehavior);
             });
         }
         set
         {
             Write(model =>
             {
-                model.HomePageTapComicBehavior = ConvertTapComicBehaviorToJson(value);
+                model.OpenComicDefaultBehavior = ConvertOpenComicDefaultBehaviorToJson(value);
                 return true;
             });
             Save();
@@ -159,25 +159,25 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         };
     }
 
-    private static string ConvertTapComicBehaviorToJson(TapComicBehaviorEnum behavior)
+    private static string ConvertOpenComicDefaultBehaviorToJson(OpenComicBehaviorEnum behavior)
     {
         return behavior switch
         {
-            TapComicBehaviorEnum.OpenInCurrentTab => "OpenInCurrentTab",
-            TapComicBehaviorEnum.OpenInNewTab => "OpenInNewTab",
-            TapComicBehaviorEnum.OpenInLastActiveReaderTab => "OpenInLastActiveReaderTab",
+            OpenComicBehaviorEnum.OpenInCurrentTab => "OpenInCurrentTab",
+            OpenComicBehaviorEnum.OpenInNewTab => "OpenInNewTab",
+            OpenComicBehaviorEnum.OpenInLastActiveReaderTab => "OpenInLastActiveReaderTab",
             _ => "OpenInCurrentTab",
         };
     }
 
-    private static TapComicBehaviorEnum ConvertTapComicBehaviorFromJson(string? behavior)
+    private static OpenComicBehaviorEnum ConvertOpenComicDefaultBehaviorFromJson(string? behavior)
     {
         return behavior switch
         {
-            "OpenInCurrentTab" => TapComicBehaviorEnum.OpenInCurrentTab,
-            "OpenInNewTab" => TapComicBehaviorEnum.OpenInNewTab,
-            "OpenInLastActiveReaderTab" => TapComicBehaviorEnum.OpenInLastActiveReaderTab,
-            _ => TapComicBehaviorEnum.OpenInCurrentTab,
+            "OpenInCurrentTab" => OpenComicBehaviorEnum.OpenInCurrentTab,
+            "OpenInNewTab" => OpenComicBehaviorEnum.OpenInNewTab,
+            "OpenInLastActiveReaderTab" => OpenComicBehaviorEnum.OpenInLastActiveReaderTab,
+            _ => OpenComicBehaviorEnum.OpenInCurrentTab,
         };
     }
 
@@ -202,8 +202,8 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         [JsonPropertyName("DefaultReaderSettingPresetKey")]
         public string? DefaultReaderSettingPresetKey { get; set; }
 
-        [JsonPropertyName("HomePageTapComicBehavior")]
-        public string? HomePageTapComicBehavior { get; set; }
+        [JsonPropertyName("OpenComicDefaultBehavior")]
+        public string? OpenComicDefaultBehavior { get; set; }
 
         [JsonPropertyName("Language")]
         public string? Language { get; set; }
@@ -225,6 +225,13 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("Theme")]
         public int? Theme { get; set; }
+
+        //
+        // Legacy
+        //
+
+        [JsonPropertyName("HomePageTapComicBehavior")]
+        public string? HomePageTapComicBehavior { get; set; }
     }
 
     public class ReaderSettingJsonModel
@@ -426,7 +433,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         OpenHomePage,
     }
 
-    public enum TapComicBehaviorEnum
+    public enum OpenComicBehaviorEnum
     {
         OpenInCurrentTab,
         OpenInNewTab,
