@@ -16,8 +16,6 @@ internal interface IMainPageAbility : IPageAbility
 
     void OpenInNewTab(Route route);
 
-    void RegisterTabUnselectedHandler(ILifecycleOwner owner, TabUnselectedEventHandler handler);
-
     void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);
 
     void ShowOrHideTitleBar(bool show);

@@ -17,7 +17,6 @@ using ComicReader.Data.Models.TagInfo;
 using ComicReader.Data.Tables;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.Helpers.Misc;
-using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
@@ -32,8 +31,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
-    public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
     public readonly MutableLiveData<string> EditTagCategoryLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
 

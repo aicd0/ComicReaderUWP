@@ -500,7 +500,6 @@ internal sealed partial class MainPage : BasePage
         Logger.Assert(newSelectedTab != null, "59496F61DEF5BD3C");
         _currentTab = newSelectedTab;
 
-        lastSelectedTab?.Ability.SendTabUnselectedEvent();
         OnPageChanged();
     }
 
@@ -1163,11 +1162,8 @@ internal sealed partial class MainPage : BasePage
 
     abstract class MainPageAbility(MainPage parent) : IMainPageAbility, ILifecycleAwareAbility
     {
-        private const string EVENT_TAB_UNSELECTED = "TabUnselected";
-
         protected readonly WeakReference<MainPage> _parent = new(parent);
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
-        private readonly EventBus _eventBus = new();
         private readonly MutableLiveData<bool> _titleBarVisibilityChangeLiveData = new(parent._titleBarVisible);
 
         public abstract void OpenInCurrentTab(Route route);
@@ -1183,19 +1179,6 @@ internal sealed partial class MainPage : BasePage
             {
                 parent.Open(route, -1);
             });
-        }
-
-        public void RegisterTabUnselectedHandler(ILifecycleOwner owner, IMainPageAbility.TabUnselectedEventHandler handler)
-        {
-            _eventBus.With<bool>(EVENT_TAB_UNSELECTED).Observe(owner, delegate
-            {
-                handler();
-            });
-        }
-
-        public void SendTabUnselectedEvent()
-        {
-            _eventBus.With<bool>(EVENT_TAB_UNSELECTED).Emit(true);
         }
 
         public void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)

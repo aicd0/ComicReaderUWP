@@ -51,16 +51,6 @@ internal sealed partial class TagsPage : BasePage
             ViewModel.UpdateTags();
         });
 
-        ViewModel.OpenInCurrentTabLiveData.Observe(this, route =>
-        {
-            GetMainPageAbility().OpenInCurrentTab(route);
-        });
-
-        ViewModel.OpenInNewTabLiveData.Observe(this, route =>
-        {
-            GetMainPageAbility().OpenInNewTab(route);
-        });
-
         ViewModel.EditTagCategoryLiveData.Observe(this, tagCategory =>
         {
             var dialog = new EditTagCateogoryDialog(tagCategory);
