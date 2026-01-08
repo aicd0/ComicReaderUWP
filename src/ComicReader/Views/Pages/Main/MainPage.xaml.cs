@@ -92,9 +92,17 @@ internal sealed partial class MainPage : BasePage
     /// <summary>
     /// Must be called from the UI thread.
     /// </summary>
-    public void Open(Route route, int tabId)
+    public void Open(Route route, int targetTabId)
     {
-        LoadTabNoLock(tabId, route, true);
+        TabInfo? currentTab = _currentTab;
+        if (currentTab is null)
+        {
+            LoadTabNoLock(route, targetTabId);
+        }
+        else
+        {
+            LoadTabNoLock(route, targetTabId, initiateTabId: currentTab.Id);
+        }
     }
 
     /// <summary>
@@ -179,7 +187,7 @@ internal sealed partial class MainPage : BasePage
                     }
 
                     var route = Route.Create(tab.Url);
-                    LoadTabNoLock(-1, route, i == model.SelectedIndex);
+                    LoadTabNoLock(route, -1, selectTab: i == model.SelectedIndex);
                 }
             }
 
@@ -282,15 +290,15 @@ internal sealed partial class MainPage : BasePage
         if (_tabs.Count == 0)
         {
             var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-            LoadTabNoLock(-1, route, true);
+            LoadTabNoLock(route, -1);
         }
     }
 
-    private bool LoadTabNoLock(int tabId, Route route, bool select)
+    private bool LoadTabNoLock(Route route, int targetTabId, bool selectTab = true, int initiateTabId = 0)
     {
-        if (tabId < -1)
+        if (targetTabId < -1)
         {
-            Logger.F(TAG, $"Invalid tab ID {tabId}.");
+            Logger.F(TAG, $"Invalid tab ID {targetTabId}.");
             return false;
         }
 
@@ -307,7 +315,7 @@ internal sealed partial class MainPage : BasePage
             {
                 if (tab.CurrentBundle.Url == bundle.Url)
                 {
-                    if (select)
+                    if (selectTab)
                     {
                         RootTabView.SelectedItem = tab.Item;
                     }
@@ -317,20 +325,34 @@ internal sealed partial class MainPage : BasePage
             }
         }
 
-        bool newTab = tabId == -1;
+        bool newTab = targetTabId == -1;
         if (newTab)
         {
-            tabId = AddTabNoLock(bundle);
+            int placementIndex = -1;
+            if (initiateTabId > 0)
+            {
+                for (int i = 0; i < _tabs.Count; i++)
+                {
+                    TabInfo tab = _tabs[i];
+                    if (tab.Id == initiateTabId)
+                    {
+                        placementIndex = i + 1;
+                        break;
+                    }
+                }
+            }
+
+            targetTabId = AddTabNoLock(bundle, placementIndex);
         }
 
-        TabInfo? tabInfo = GetTabInfoNoLock(tabId);
+        TabInfo? tabInfo = GetTabInfoNoLock(targetTabId);
         if (tabInfo == null)
         {
-            Logger.F(TAG, $"Failed to find tab info for ID {tabId}.");
+            Logger.F(TAG, $"Failed to find tab info for ID {targetTabId}.");
             return false;
         }
 
-        if (select)
+        if (selectTab)
         {
             RootTabView.SelectedItem = tabInfo.Item;
         }
@@ -346,7 +368,7 @@ internal sealed partial class MainPage : BasePage
         return true;
     }
 
-    private int AddTabNoLock(NavigationBundle bundle)
+    private int AddTabNoLock(NavigationBundle bundle, int placementIndex)
     {
         int tabId = Interlocked.Increment(ref _highestTabId);
         var frame = new Frame();
@@ -376,8 +398,14 @@ internal sealed partial class MainPage : BasePage
             }
         };
         frame.Navigated += tabInfo.NavigatedHandler;
-        _tabs.Add(tabInfo);
-        RootTabView.TabItems.Add(item);
+
+        if (placementIndex == -1)
+        {
+            placementIndex = _tabs.Count;
+        }
+
+        _tabs.Insert(placementIndex, tabInfo);
+        RootTabView.TabItems.Insert(placementIndex, tabInfo.Item);
         return tabId;
     }
 
@@ -443,7 +471,7 @@ internal sealed partial class MainPage : BasePage
     private void OnAddTabButtonClicked(TabView sender, object args)
     {
         var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-        Open(route, -1);
+        LoadTabNoLock(route, -1);
     }
 
     private void OnTabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
@@ -551,7 +579,7 @@ internal sealed partial class MainPage : BasePage
             if (sourceWindowId != WindowId)
             {
                 App.Instance.WindowManager.GetEventBus(sourceWindowId).With<int>(EventId.CloseTab).Emit(sourceTabId);
-                LoadTabNoLock(-1, Route.Create(url), true);
+                LoadTabNoLock(Route.Create(url), -1);
                 EnsureInitialTabNoLock();
             }
 
@@ -611,7 +639,7 @@ internal sealed partial class MainPage : BasePage
         }
 
         _tabs.Remove(removingTab);
-        RootTabView.TabItems.Remove(tab);
+        RootTabView.TabItems.Remove(removingTab.Item);
         MainWindow.Open(url: removingTab.CurrentBundle.Url);
     }
 
@@ -1253,7 +1281,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTabNoLock(_tabId, route, true);
+            parent.LoadTabNoLock(route, _tabId, initiateTabId: _tabId);
         }
 
         public void SetTitle(string title)
@@ -1344,7 +1372,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTabNoLock(tabInfo.Id, route, true);
+            parent.Open(route, tabInfo.Id);
         }
     }
 
