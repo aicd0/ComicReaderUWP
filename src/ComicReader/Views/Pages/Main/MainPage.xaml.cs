@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
 
+using ComicReader.Common.Actions.Components;
 using ComicReader.Common.BaseUI;
 using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Constants;
@@ -138,6 +139,9 @@ internal sealed partial class MainPage : BasePage
         return jsonModel;
     }
 
+    /// <summary>
+    /// Must be called from the UI thread.
+    /// </summary>
     public void RestoreTabStatus(LastTabStatusJsonModel? jsonModel)
     {
         TabStatusModel? model = null;
@@ -197,6 +201,7 @@ internal sealed partial class MainPage : BasePage
         base.OnStart(bundle);
 
         _currentWindow = App.Instance.WindowManager.GetWindow(WindowId);
+        PageActionHandler.RegisterComponent<IMainPageComponent>(new MainPageComponent(this));
 
         CurrentWindow.SetTitleBar(MainTitleBar);
         AppWindowTitleBar titleBar = CurrentWindow.AppWindow.TitleBar;
@@ -1688,6 +1693,28 @@ internal sealed partial class MainPage : BasePage
     //
     // Types
     //
+
+    private class MainPageComponent(MainPage parent) : IMainPageComponent
+    {
+        protected readonly WeakReference<MainPage> _parent = new(parent);
+
+        public int TabId
+        {
+            get
+            {
+                if (_parent.TryGetTarget(out MainPage? parent))
+                {
+                    TabInfo? currentTab = parent._currentTab;
+                    if (currentTab is not null)
+                    {
+                        return currentTab.Id;
+                    }
+                }
+
+                return 0;
+            }
+        }
+    }
 
     private class SidePaneHandler(MainPage page) : SidePaneView.ISidePaneHandler
     {

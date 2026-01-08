@@ -223,4 +223,14 @@ internal abstract class BasePage : Page, ILifecycleOwner
             page.OnStop();
         }
     }
+
+    private class MainWindowComponent(int windowId) : IMainWindowComponent
+    {
+        public int WindowId => windowId;
+    }
+
+    private class MainPageComponent(int tabId) : IMainPageComponent
+    {
+        public int TabId => tabId;
+    }
 }
