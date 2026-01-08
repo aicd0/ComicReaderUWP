@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Misc;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.Misc;
@@ -15,7 +16,6 @@ using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

@@ -6,10 +6,10 @@ using System;
 using ComicReader.Common.Actions;
 using ComicReader.Common.Actions.Components;
 using ComicReader.Common.Actions.Utils;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Localization;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Lifecycle;
-using ComicReader.Views.AppWindows.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -172,18 +172,20 @@ internal abstract class BasePage : Page, ILifecycleOwner
         {
             INavigationBundle bundle = page._navigationBundle!;
 
-            int windowId = page.GetAbility<IMainWindowAbility>()!.WindowId;
-            if (windowId <= 0)
+            // Retrieve window ID
+            IMainWindowAbility? mainWindowAbility = page.GetAbility<IMainWindowAbility>() ?? throw new InvalidOperationException("IMainWindowAbility not found");
+            int windowId = mainWindowAbility.WindowId;
+            page.WindowId = windowId;
+            page.PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(windowId));
+
+            // Retrieve tab ID (if has)
+            IMainPageAbilityForTab? mainPageAbility = page.GetAbility<IMainPageAbilityForTab>();
+            if (mainPageAbility is not null)
             {
-                throw new ArgumentException("Invalid window ID in navigation parameters: " + windowId);
+                page.PageActionHandler.RegisterComponent<IMainPageComponent>(new MainPageComponent(mainPageAbility.TabId));
             }
 
-            page.WindowId = windowId;
-
-            // Register action handler components and providers
-            page.PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(windowId));
             ActionHandlerUtility.RegisterCommonProviders(page.PageActionHandler);
-
             page.GetAbility<ILifecycleAwareAbility>()!.RegisterPageLifecycleHandler(page._externalLifecycleHandler);
         }
 

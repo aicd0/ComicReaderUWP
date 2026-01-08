@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.SDK.Common.Lifecycle;
 
 namespace ComicReader.Common.BaseUI;

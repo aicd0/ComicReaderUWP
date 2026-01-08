@@ -3,7 +3,7 @@
 
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReader.Views.Pages.Main;
+namespace ComicReader.Common.BaseUI.PageAbilities;
 
 internal interface IMainPageAbilityForTab : IMainPageAbility
 {

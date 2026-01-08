@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 
+using ComicReader.Common.BaseUI.PageAbilities;
+
 namespace ComicReader.Common.BaseUI;
 
 internal class PageCommunicator

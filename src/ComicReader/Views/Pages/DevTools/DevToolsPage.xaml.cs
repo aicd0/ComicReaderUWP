@@ -5,12 +5,12 @@ using System;
 using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.DataModels;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -18,8 +18,6 @@ namespace ComicReader.Views.Pages.DevTools;
 
 internal sealed partial class DevToolsPage : BasePage
 {
-    private const string TAG = nameof(DevToolsPage);
-
     public DevToolsPage()
     {
         InitializeComponent();

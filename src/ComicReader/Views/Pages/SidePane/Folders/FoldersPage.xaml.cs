@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Misc;
 using ComicReader.Helpers.MenuFlyoutHelpers;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml.Controls;
 

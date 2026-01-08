@@ -3,7 +3,7 @@
 
 using ComicReader.SDK.Common.Lifecycle;
 
-namespace ComicReader.Common.BaseUI;
+namespace ComicReader.Common.BaseUI.PageAbilities;
 
 public delegate void PageLifecycleEventHandler(ILifecycle.State state);
 

@@ -5,6 +5,7 @@ using System;
 using System.Text;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
@@ -18,7 +19,6 @@ using ComicReader.SDK.Common.Storage;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.DataModels;
 using ComicReader.Views.Dialogs.ChooseLocation;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

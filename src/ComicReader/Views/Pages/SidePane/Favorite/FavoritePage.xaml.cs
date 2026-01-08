@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Misc;
@@ -18,7 +19,6 @@ using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
