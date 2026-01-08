@@ -10,11 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReader.Common.Actions;
-using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Helpers.MenuFlyoutHelpers;
-using ComicReader.Helpers.Navigation;
+using ComicReader.Helpers.Misc;
 using ComicReader.Helpers.Search;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Threading;
@@ -154,12 +153,7 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
                 CanExpand = false,
                 Clicked = () =>
                 {
-                    Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                        .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                    ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
-                        .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
-                        .Build();
-                    _actionHandler.Handle(actionModel);
+                    OpenComicHelper.OpenComic(_actionHandler, comic.Id);
                 },
                 RequestContextMenuItemsAsync = (primary, selection) =>
                 {

@@ -75,7 +75,9 @@ internal class OpenTabProvider : IActionProvider
                 tabId = window.CurrentTab?.Id ?? -1;
             }
 
-            window.OpenTab(url, tabId);
+            IMainPageComponent? mainPageCom = context.GetComponent<IMainPageComponent>();
+            int initiateTabId = mainPageCom?.TabId ?? -1;
+            window.OpenTab(url, tabId, initiateTabId);
         }
 
         context.SetSuccess();

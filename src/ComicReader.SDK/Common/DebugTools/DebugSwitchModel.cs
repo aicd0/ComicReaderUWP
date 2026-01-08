@@ -127,15 +127,15 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
     public class JsonModel
     {
         [JsonPropertyName("ConsoleEnabled")]
-        public bool ConsoleEnabled { get; set; }
+        public bool ConsoleEnabled { get; set; } = false;
 
         [JsonPropertyName("ConsoleWhitelist")]
-        public List<string?>? ConsoleWhitelist { get; set; }
+        public List<string?>? ConsoleWhitelist { get; set; } = null;
 
         [JsonPropertyName("LogTreeEnabled")]
-        public bool LogTreeEnabled { get; set; }
+        public bool LogTreeEnabled { get; set; } = false;
 
         [JsonPropertyName("DonorStoreId")]
-        public string? DonorStoreId { get; set; }
+        public string? DonorStoreId { get; set; } = null;
     }
 }

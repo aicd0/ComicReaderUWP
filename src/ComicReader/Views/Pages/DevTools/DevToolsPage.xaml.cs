@@ -5,12 +5,12 @@ using System;
 using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
 using ComicReader.SDK.Common.DebugTools;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.SDK.DataModels;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -18,8 +18,6 @@ namespace ComicReader.Views.Pages.DevTools;
 
 internal sealed partial class DevToolsPage : BasePage
 {
-    private const string TAG = nameof(DevToolsPage);
-
     public DevToolsPage()
     {
         InitializeComponent();
@@ -49,19 +47,9 @@ internal sealed partial class DevToolsPage : BasePage
     // Events
     //
 
-    private void CrashAppButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void ApplyConfigsButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        throw new InvalidOperationException();
-    }
-
-    private void TriggerAssertFailureButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        Logger.AssertNotReachHere("MockAssertFailure");
-    }
-
-    private void OnCommonConfigsApplyClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        string configs = TbCommonConfigs.Text;
+        string configs = CommonConfigsTextBlock.Text;
         try
         {
             DebugSwitchModel.Instance.SaveConfigFromJson(configs);
@@ -76,12 +64,28 @@ internal sealed partial class DevToolsPage : BasePage
         RestoreConfig();
     }
 
-    private void OnCommonConfigsRestoreClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void RestoreConfigsButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         RestoreConfig();
     }
 
-    private void OnShowDialogOnActiveWindowClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void ResetConfigsButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        DebugSwitchModel.Instance.SaveConfigFromJson("null");
+        RestoreConfig();
+    }
+
+    private void CrashAppButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        throw new InvalidOperationException();
+    }
+
+    private void TriggerAssertFailureButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        Logger.AssertNotReachHere("MockAssertFailure");
+    }
+
+    private void ShowDialogOnActiveWindowButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         CoroutineUtils.Start(async () =>
         {
@@ -96,7 +100,7 @@ internal sealed partial class DevToolsPage : BasePage
         });
     }
 
-    private void OnPrintMemoryLeakReportClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void PrintMemoryLeakReportButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         SetResult(MemoryLeakTracker.GenerateReport());
     }
@@ -143,7 +147,7 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void RestoreConfig()
     {
-        TbCommonConfigs.Text = DebugSwitchModel.Instance.GetConfigAsJson();
+        CommonConfigsTextBlock.Text = DebugSwitchModel.Instance.GetConfigAsJson();
         DeveloperModeToggleSwitch.IsOn = DebugUtils.DeveloperMode;
         SentryToggleSwitch.IsOn = DebugUtils.SentryEnabled;
     }

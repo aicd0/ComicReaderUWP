@@ -7,6 +7,7 @@ using System.Linq;
 
 using ComicReader.Common.Actions.Providers;
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
@@ -19,7 +20,6 @@ using ComicReader.SDK.Common.Utils;
 using ComicReader.UserControls.ComicItemView;
 using ComicReader.ViewModels;
 using ComicReader.Views.Dialogs.EditFilter;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

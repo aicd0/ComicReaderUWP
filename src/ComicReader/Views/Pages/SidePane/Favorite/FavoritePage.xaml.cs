@@ -7,17 +7,18 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Legacy;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Misc;
 using ComicReader.Common.Utils;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.Misc;
+using ComicReader.Helpers.Misc;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -259,7 +260,10 @@ internal sealed partial class FavoritePage : BasePage
         Save();
     }
 
-    // events
+    //
+    // Events
+    //
+
     private void MainTreeViewBackgroundPressed(object sender, PointerRoutedEventArgs e)
     {
         CoroutineUtils.Start(ResetItems);
@@ -282,7 +286,7 @@ internal sealed partial class FavoritePage : BasePage
         });
     }
 
-    private void MainTreeViewItemInvoked(Microsoft.UI.Xaml.Controls.TreeView sender, Microsoft.UI.Xaml.Controls.TreeViewItemInvokedEventArgs e)
+    private void MainTreeViewItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs e)
     {
         CoroutineUtils.Start(async () =>
         {
@@ -304,9 +308,7 @@ internal sealed partial class FavoritePage : BasePage
                 }
                 else
                 {
-                    Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                        .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                    GetMainPageAbility().OpenInCurrentTab(route);
+                    OpenComicHelper.OpenComic(PageActionHandler, comic.Id);
                     GetMainPageAbility().SetSidePaneOpenState(false, force: false);
                 }
             }

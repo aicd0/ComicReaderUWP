@@ -52,15 +52,15 @@
                 Grid.Row="2"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Text="{x:Bind StringResource.HomePageTapComicBehavior}"
+                Text="{x:Bind StringResource.OpenComicDefaultBehavior}"
                 TextWrapping="Wrap" />
             <ComboBox
                 Grid.Row="2"
                 Grid.Column="2"
                 DisplayMemberPath="Name"
-                ItemsSource="{x:Bind ViewModel.HomePageTapComicBaheviors, Mode=OneWay}"
-                SelectedIndex="{x:Bind ViewModel.HomePageTapComicBaheviorIndex, Mode=OneWay}"
-                SelectionChanged="HomePageTapComicBehaviorComboBox_SelectionChanged" />
+                ItemsSource="{x:Bind ViewModel.OpenComicDefaultBaheviors, Mode=OneWay}"
+                SelectedIndex="{x:Bind ViewModel.OpenComicDefaultBaheviorIndex, Mode=OneWay}"
+                SelectionChanged="OpenComicDefaultBehaviorComboBox_SelectionChanged" />
         </Grid>
     </StackPanel>
 

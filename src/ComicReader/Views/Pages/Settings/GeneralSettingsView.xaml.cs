@@ -32,8 +32,8 @@ internal sealed partial class GeneralSettingsView : BaseUserControl
         ViewModel.SetCloseLastTabBehavior(((ComboBox)sender).SelectedIndex);
     }
 
-    private void HomePageTapComicBehaviorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void OpenComicDefaultBehaviorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        ViewModel.SetHomePageTapComicBehavior(((ComboBox)sender).SelectedIndex);
+        ViewModel.SetOpenComicDefaultBehavior(((ComboBox)sender).SelectedIndex);
     }
 }

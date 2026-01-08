@@ -16,7 +16,7 @@ using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.TagInfo;
 using ComicReader.Data.Tables;
 using ComicReader.Helpers.MenuFlyoutHelpers;
-using ComicReader.Helpers.Navigation;
+using ComicReader.Helpers.Misc;
 using ComicReader.SDK.Common.Algorithm;
 using ComicReader.SDK.Common.Lifecycle;
 using ComicReader.SDK.Common.Utils;
@@ -31,8 +31,6 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public readonly MutableLiveData<Route> OpenInCurrentTabLiveData = new();
-    public readonly MutableLiveData<Route> OpenInNewTabLiveData = new();
     public readonly MutableLiveData<string> EditTagCategoryLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
 
@@ -242,9 +240,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 CanExpand = false,
                 Clicked = () =>
                 {
-                    Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                        .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                    OpenInCurrentTabLiveData.Emit(route);
+                    OpenComicHelper.OpenComic(_actionHandler, comic.Id);
                 },
                 RequestContextMenuItemsAsync = (primary, selection) =>
                 {

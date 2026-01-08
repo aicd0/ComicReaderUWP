@@ -1,11 +1,10 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReader.Common.BaseUI;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.Lifecycle;
 
-namespace ComicReader.Views.Pages.Main;
+namespace ComicReader.Common.BaseUI.PageAbilities;
 
 internal interface IMainPageAbility : IPageAbility
 {
@@ -15,8 +14,6 @@ internal interface IMainPageAbility : IPageAbility
     void OpenInCurrentTab(Route route);
 
     void OpenInNewTab(Route route);
-
-    void RegisterTabUnselectedHandler(ILifecycleOwner owner, TabUnselectedEventHandler handler);
 
     void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);
 

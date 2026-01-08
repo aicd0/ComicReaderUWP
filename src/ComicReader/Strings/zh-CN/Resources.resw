@@ -500,9 +500,6 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>主页</value>
   </data>
-  <data name="HomePageTapComicBehavior" xml:space="preserve">
-    <value>在主页点击漫画时的行为</value>
-  </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>横向</value>
   </data>
@@ -628,6 +625,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="Open" xml:space="preserve">
     <value>打开</value>
+  </data>
+  <data name="OpenComicDefaultBehavior" xml:space="preserve">
+    <value>打开漫画时的默认行为</value>
   </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>打开主页</value>

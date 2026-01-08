@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.InitTask;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Services;
@@ -108,7 +109,7 @@ internal sealed partial class MainWindow : Window
     // Public Methods
     //
 
-    public void OpenTab(string url, int tabId)
+    public void OpenTab(string url, int targetTabId, int initiateTabId)
     {
         var route = Route.Create(url);
         MainPage? mainPage = Members._mainPage;
@@ -119,7 +120,7 @@ internal sealed partial class MainWindow : Window
 
         CoroutineUtils.RunInMainThread(() =>
         {
-            mainPage.Open(route, tabId);
+            mainPage.Open(route, targetTabId, initiateTabId);
         });
     }
 

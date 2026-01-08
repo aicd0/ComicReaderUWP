@@ -500,9 +500,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Heim</value>
   </data>
-  <data name="HomePageTapComicBehavior" xml:space="preserve">
-    <value>Verhalten beim Antippen eines Comics auf der Startseite</value>
-  </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>Horizontal</value>
   </data>
@@ -628,6 +625,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Open" xml:space="preserve">
     <value>Öffnen</value>
+  </data>
+  <data name="OpenComicDefaultBehavior" xml:space="preserve">
+    <value>Standardverhalten beim Öffnen eines Comics</value>
   </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>Startseite öffnen</value>

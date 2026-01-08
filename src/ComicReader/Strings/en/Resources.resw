@@ -502,9 +502,6 @@ The evaluation will be performed in the following order:
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Home</value>
   </data>
-  <data name="HomePageTapComicBehavior" xml:space="preserve">
-    <value>Behavior when tapping a comic on the home page</value>
-  </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>Horizontal</value>
   </data>
@@ -630,6 +627,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="Open" xml:space="preserve">
     <value>Open</value>
+  </data>
+  <data name="OpenComicDefaultBehavior" xml:space="preserve">
+    <value>Default behavior when opening a comic</value>
   </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>Open home page</value>

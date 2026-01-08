@@ -501,9 +501,6 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Дом</value>
   </data>
-  <data name="HomePageTapComicBehavior" xml:space="preserve">
-    <value>Поведение при нажатии на комикс на главной странице</value>
-  </data>
   <data name="HorizontalButton.Label" xml:space="preserve">
     <value>Горизонтальный</value>
   </data>
@@ -629,6 +626,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
+  </data>
+  <data name="OpenComicDefaultBehavior" xml:space="preserve">
+    <value>Поведение по умолчанию при открытии комикса</value>
   </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>Открыть главную страницу</value>

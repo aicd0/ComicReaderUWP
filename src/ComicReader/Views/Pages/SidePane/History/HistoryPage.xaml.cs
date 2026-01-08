@@ -7,14 +7,15 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Misc;
 using ComicReader.Data.Models.Comic;
 using ComicReader.Data.Models.Misc;
+using ComicReader.Helpers.Misc;
 using ComicReader.Helpers.Navigation;
 using ComicReader.SDK.Common.AppEnvironment;
 using ComicReader.SDK.Common.Utils;
 using ComicReader.ViewModels;
-using ComicReader.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -89,26 +90,24 @@ internal sealed partial class HistoryPage : BasePage
     private async Task OpenItem(HistoryItemViewModel item, bool newTab)
     {
         ComicModel? comic = await ComicModel.FromId(item.Id, "HistoryLoadComic");
-
-        if (comic == null)
+        if (comic is null)
         {
             DeleteItem(item);
+            return;
         }
-        else
+
+        if (newTab)
         {
             Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
                 .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-            if (newTab)
-            {
-                GetMainPageAbility().OpenInNewTab(route);
-            }
-            else
-            {
-                GetMainPageAbility().OpenInCurrentTab(route);
-            }
-
-            GetMainPageAbility().SetSidePaneOpenState(false, force: false);
+            GetMainPageAbility().OpenInNewTab(route);
         }
+        else
+        {
+            OpenComicHelper.OpenComic(PageActionHandler, comic.Id);
+        }
+
+        GetMainPageAbility().SetSidePaneOpenState(false, force: false);
     }
 
     private IMainPageAbility GetMainPageAbility()

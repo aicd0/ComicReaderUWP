@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 
 using ComicReader.Common.BaseUI;
+using ComicReader.Common.BaseUI.PageAbilities;
 using ComicReader.Common.Constants;
 using ComicReader.Common.Localization;
 using ComicReader.Common.Misc;
@@ -92,9 +93,9 @@ internal sealed partial class MainPage : BasePage
     /// <summary>
     /// Must be called from the UI thread.
     /// </summary>
-    public void Open(Route route, int tabId)
+    public void Open(Route route, int targetTabId, int initiateTabId)
     {
-        LoadTabNoLock(tabId, route, true);
+        LoadTabNoLock(route, targetTabId, initiateTabId: initiateTabId);
     }
 
     /// <summary>
@@ -179,7 +180,7 @@ internal sealed partial class MainPage : BasePage
                     }
 
                     var route = Route.Create(tab.Url);
-                    LoadTabNoLock(-1, route, i == model.SelectedIndex);
+                    LoadTabNoLock(route, -1, selectTab: i == model.SelectedIndex);
                 }
             }
 
@@ -282,15 +283,15 @@ internal sealed partial class MainPage : BasePage
         if (_tabs.Count == 0)
         {
             var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-            LoadTabNoLock(-1, route, true);
+            LoadTabNoLock(route, -1);
         }
     }
 
-    private bool LoadTabNoLock(int tabId, Route route, bool select)
+    private bool LoadTabNoLock(Route route, int targetTabId, bool selectTab = true, int initiateTabId = -1)
     {
-        if (tabId < -1)
+        if (targetTabId < -1 || initiateTabId < -1)
         {
-            Logger.F(TAG, $"Invalid tab ID {tabId}.");
+            Logger.F(TAG, $"Invalid arguments");
             return false;
         }
 
@@ -307,7 +308,7 @@ internal sealed partial class MainPage : BasePage
             {
                 if (tab.CurrentBundle.Url == bundle.Url)
                 {
-                    if (select)
+                    if (selectTab)
                     {
                         RootTabView.SelectedItem = tab.Item;
                     }
@@ -317,20 +318,20 @@ internal sealed partial class MainPage : BasePage
             }
         }
 
-        bool newTab = tabId == -1;
+        bool newTab = targetTabId == -1;
         if (newTab)
         {
-            tabId = AddTabNoLock(bundle);
+            targetTabId = AddTabNoLock(bundle, initiateTabId);
         }
 
-        TabInfo? tabInfo = GetTabInfoNoLock(tabId);
+        TabInfo? tabInfo = GetTabInfoNoLock(targetTabId);
         if (tabInfo == null)
         {
-            Logger.F(TAG, $"Failed to find tab info for ID {tabId}.");
+            Logger.F(TAG, $"Failed to find tab info for ID {targetTabId}.");
             return false;
         }
 
-        if (select)
+        if (selectTab)
         {
             RootTabView.SelectedItem = tabInfo.Item;
         }
@@ -346,8 +347,28 @@ internal sealed partial class MainPage : BasePage
         return true;
     }
 
-    private int AddTabNoLock(NavigationBundle bundle)
+    private int AddTabNoLock(NavigationBundle bundle, int initiateTabId)
     {
+        int placementIndex = -1;
+        if (initiateTabId >= 0)
+        {
+            for (int i = 0; i < _tabs.Count; i++)
+            {
+                TabInfo tab = _tabs[i];
+                if (tab.Id == initiateTabId)
+                {
+                    placementIndex = i + 1;
+                    break;
+                }
+            }
+        }
+
+        if (placementIndex == -1)
+        {
+            initiateTabId = -1;
+            placementIndex = _tabs.Count;
+        }
+
         int tabId = Interlocked.Increment(ref _highestTabId);
         var frame = new Frame();
         var item = new TabViewItem
@@ -360,6 +381,7 @@ internal sealed partial class MainPage : BasePage
         TabInfo tabInfo = new()
         {
             Id = tabId,
+            InitiateTabId = initiateTabId,
             Item = item,
             Ability = ability,
             NavigationBarAbility = navigationBarAbility,
@@ -376,8 +398,9 @@ internal sealed partial class MainPage : BasePage
             }
         };
         frame.Navigated += tabInfo.NavigatedHandler;
-        _tabs.Add(tabInfo);
-        RootTabView.TabItems.Add(item);
+
+        _tabs.Insert(placementIndex, tabInfo);
+        RootTabView.TabItems.Insert(placementIndex, tabInfo.Item);
         return tabId;
     }
 
@@ -399,14 +422,29 @@ internal sealed partial class MainPage : BasePage
             }
         }
 
-        if (closingTab == null)
+        if (closingTab is null)
         {
+            Logger.F(TAG, $"Closing tab ID {tabId} not found");
             return;
         }
 
         CloseTabInternalNoLock(closingTab);
 
-        if (_tabs.Count <= 0)
+        if (_tabs.Count > 0)
+        {
+            if (closingTab.InitiateTabId >= 0)
+            {
+                for (int i = 0; i < _tabs.Count; i++)
+                {
+                    TabInfo tab = _tabs[i];
+                    if (tab.Id == closingTab.InitiateTabId)
+                    {
+                        RootTabView.SelectedIndex = i;
+                    }
+                }
+            }
+        }
+        else
         {
             CurrentWindow?.Close();
         }
@@ -443,7 +481,7 @@ internal sealed partial class MainPage : BasePage
     private void OnAddTabButtonClicked(TabView sender, object args)
     {
         var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-        Open(route, -1);
+        LoadTabNoLock(route, -1);
     }
 
     private void OnTabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
@@ -468,7 +506,7 @@ internal sealed partial class MainPage : BasePage
                 case AppSettingsModel.CloseLastTabBehaviorEnum.OpenHomePage:
                     {
                         var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-                        Open(route, -1);
+                        LoadTabNoLock(route, -1);
                     }
                     break;
                 default:
@@ -500,7 +538,6 @@ internal sealed partial class MainPage : BasePage
         Logger.Assert(newSelectedTab != null, "59496F61DEF5BD3C");
         _currentTab = newSelectedTab;
 
-        lastSelectedTab?.Ability.SendTabUnselectedEvent();
         OnPageChanged();
     }
 
@@ -552,7 +589,7 @@ internal sealed partial class MainPage : BasePage
             if (sourceWindowId != WindowId)
             {
                 App.Instance.WindowManager.GetEventBus(sourceWindowId).With<int>(EventId.CloseTab).Emit(sourceTabId);
-                LoadTabNoLock(-1, Route.Create(url), true);
+                LoadTabNoLock(Route.Create(url), -1);
                 EnsureInitialTabNoLock();
             }
 
@@ -612,7 +649,7 @@ internal sealed partial class MainPage : BasePage
         }
 
         _tabs.Remove(removingTab);
-        RootTabView.TabItems.Remove(tab);
+        RootTabView.TabItems.Remove(removingTab.Item);
         MainWindow.Open(url: removingTab.CurrentBundle.Url);
     }
 
@@ -1163,40 +1200,13 @@ internal sealed partial class MainPage : BasePage
 
     abstract class MainPageAbility(MainPage parent) : IMainPageAbility, ILifecycleAwareAbility
     {
-        private const string EVENT_TAB_UNSELECTED = "TabUnselected";
-
         protected readonly WeakReference<MainPage> _parent = new(parent);
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
-        private readonly EventBus _eventBus = new();
         private readonly MutableLiveData<bool> _titleBarVisibilityChangeLiveData = new(parent._titleBarVisible);
 
         public abstract void OpenInCurrentTab(Route route);
 
-        public void OpenInNewTab(Route route)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            CoroutineUtils.RunInMainThread(() =>
-            {
-                parent.Open(route, -1);
-            });
-        }
-
-        public void RegisterTabUnselectedHandler(ILifecycleOwner owner, IMainPageAbility.TabUnselectedEventHandler handler)
-        {
-            _eventBus.With<bool>(EVENT_TAB_UNSELECTED).Observe(owner, delegate
-            {
-                handler();
-            });
-        }
-
-        public void SendTabUnselectedEvent()
-        {
-            _eventBus.With<bool>(EVENT_TAB_UNSELECTED).Emit(true);
-        }
+        public abstract void OpenInNewTab(Route route);
 
         public void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)
         {
@@ -1270,7 +1280,17 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTabNoLock(_tabId, route, true);
+            parent.LoadTabNoLock(route, _tabId, initiateTabId: _tabId);
+        }
+
+        public override void OpenInNewTab(Route route)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.LoadTabNoLock(route, -1, initiateTabId: _tabId);
         }
 
         public void SetTitle(string title)
@@ -1361,7 +1381,19 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTabNoLock(tabInfo.Id, route, true);
+            int currentTabId = parent._currentTab?.Id ?? -1;
+            parent.LoadTabNoLock(route, tabInfo.Id, initiateTabId: currentTabId);
+        }
+
+        public override void OpenInNewTab(Route route)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            int currentTabId = parent._currentTab?.Id ?? -1;
+            parent.LoadTabNoLock(route, -1, initiateTabId: currentTabId);
         }
     }
 
@@ -1673,6 +1705,7 @@ internal sealed partial class MainPage : BasePage
     private class TabInfo : ITabInfo
     {
         public required int Id { init; get; }
+        public required int InitiateTabId { init; get; }
         public required TabViewItem Item { init; get; }
         public required MainPageAbilityForTab Ability { init; get; }
         public required NavigationPageAbility NavigationBarAbility { init; get; }
