@@ -8,4 +8,6 @@ namespace ComicReaderUWP.Common.Imaging;
 internal interface IImageResultHandler
 {
     public void OnSuccess(BitmapImage image);
+
+    public void OnFailure();
 }

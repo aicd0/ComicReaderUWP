@@ -170,19 +170,28 @@ internal static class ImageCacheManager
         }
     }
 
-    public static void LoadImage(CancellationSession.IToken token,
-        IImageSource source, double frameWidth, double frameHeight, StretchModeEnum stretchMode,
-        IImageResultHandler handler)
+    public static void LoadImage(CancellationSession.IToken token, IImageSource source,
+        double frameWidth, double frameHeight, StretchModeEnum stretchMode, IImageResultHandler handler)
+    {
+        bool enqueued = LoadImageInternal(token, source, frameWidth, frameHeight, stretchMode, handler);
+        if (!enqueued)
+        {
+            handler.OnFailure();
+        }
+    }
+
+    private static bool LoadImageInternal(CancellationSession.IToken token, IImageSource source,
+        double frameWidth, double frameHeight, StretchModeEnum stretchMode, IImageResultHandler handler)
     {
         if (MainThreadUtils.IsMainThread())
         {
             Logger.F(TAG, "LoadImage cannot be called on main thread.");
-            return;
+            return false;
         }
 
         if (token.IsCancellationRequested)
         {
-            return;
+            return false;
         }
 
         long startTime = GetCurrentTick();
@@ -190,21 +199,21 @@ internal static class ImageCacheManager
         if (string.IsNullOrEmpty(uri))
         {
             Logger.E(TAG, "Image source URI is null or empty");
-            return;
+            return false;
         }
 
         LRUCache? imageCache = GetImageLRUCache();
         if (imageCache is null)
         {
             Logger.F(TAG, "Image cache is null");
-            return;
+            return false;
         }
 
         ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(source.GetUri());
         if (record is null)
         {
             Logger.F(TAG, "Cache record is null");
-            return;
+            return false;
         }
 
         RenderItem renderItem;
@@ -221,7 +230,7 @@ internal static class ImageCacheManager
                 if (sourceStream is null)
                 {
                     Logger.E(TAG, "sourceStream is null");
-                    return;
+                    return false;
                 }
 
                 LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
@@ -247,6 +256,12 @@ internal static class ImageCacheManager
                     sourceStream.Dispose();
                     sourceStream = null;
                 }
+            }
+
+            if (imageStream is null)
+            {
+                Logger.E(TAG, "imageStream is null");
+                return false;
             }
 
             renderItem = new RenderItem
@@ -275,6 +290,7 @@ internal static class ImageCacheManager
 
         sRenderQueue.Enqueue(renderItem);
         ScheduleDecoding();
+        return true;
     }
 
     private static void ScheduleDecoding()
@@ -291,7 +307,15 @@ internal static class ImageCacheManager
             // Only responsible for rendering tasks that have been queued before this point
             while (sRenderQueue.TryDequeue(out RenderItem? item))
             {
-                await PerformDecoding(item);
+                BitmapImage? image = await PerformDecoding(item);
+                if (image is not null)
+                {
+                    item.Handler.OnSuccess(image);
+                }
+                else
+                {
+                    item.Handler.OnFailure();
+                }
 
                 // Keep main thread responsive
                 if (GetCurrentTick() - startTime > 50)
@@ -307,25 +331,21 @@ internal static class ImageCacheManager
         }, DispatcherQueuePriority.Low);
     }
 
-    private static async Task PerformDecoding(RenderItem item)
+    private static async Task<BitmapImage?> PerformDecoding(RenderItem item)
     {
         BitmapImage? image = null;
         try
         {
             if (item.Token.IsCancellationRequested)
             {
-                return;
+                return null;
             }
 
-            if (item.ImageStream is not null)
-            {
-                image = await TryLoadImageFromStreamAsync(item.ImageStream);
-            }
-
+            image = await TryLoadImageFromStreamAsync(item.ImageStream);
             if (image is null)
             {
                 Logger.E(TAG, "image is null");
-                return;
+                return null;
             }
         }
         finally
@@ -336,10 +356,10 @@ internal static class ImageCacheManager
         if (item.Token.IsCancellationRequested)
         {
             Logger.I(TAG, $"task cancelled (time={GetCurrentTick() - item.StartTime},uri={item.Uri})");
-            return;
+            return null;
         }
 
-        item.Handler.OnSuccess(image);
+        return image;
     }
 
     private static IRandomAccessStream? OpenThumbnailStreamFromCacheRecord(LRUCache imageCache,
@@ -768,10 +788,10 @@ internal static class ImageCacheManager
     {
         public required CancellationSession.IToken Token;
         public required string Uri;
+        public required IRandomAccessStream ImageStream;
         public double FrameWidth;
         public double FrameHeight;
         public StretchModeEnum StretchMode;
-        public IRandomAccessStream? ImageStream;
         public required IImageResultHandler Handler;
         public long StartTime;
     }
