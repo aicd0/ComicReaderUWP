@@ -11,6 +11,9 @@ namespace ComicReaderUWP.SDK.Plugins;
 public partial class PluginXamlMetadataProvider : IXamlMetadataProvider
 {
     private static List<IXamlMetadataProvider> _providers = [];
+    private static bool _enteredGetXamlType1 = false;
+    private static bool _enteredGetXamlType2 = false;
+    private static bool _enteredGetXmlnsDefinitions = false;
 
     public static void AddProviders(IEnumerable<IXamlMetadataProvider> providers)
     {
@@ -21,40 +24,79 @@ public partial class PluginXamlMetadataProvider : IXamlMetadataProvider
 
     IXamlType? IXamlMetadataProvider.GetXamlType(Type type)
     {
-        foreach (IXamlMetadataProvider provider in _providers)
+        if (_enteredGetXamlType1)
         {
-            IXamlType xamlType = provider.GetXamlType(type);
-            if (xamlType != null)
-            {
-                return xamlType;
-            }
+            return null;
         }
 
-        return null;
+        _enteredGetXamlType1 = true;
+        try
+        {
+            foreach (IXamlMetadataProvider provider in _providers)
+            {
+                IXamlType xamlType = provider.GetXamlType(type);
+                if (xamlType != null)
+                {
+                    return xamlType;
+                }
+            }
+
+            return null;
+        }
+        finally
+        {
+            _enteredGetXamlType1 = false;
+        }
     }
 
     IXamlType? IXamlMetadataProvider.GetXamlType(string fullName)
     {
-        foreach (IXamlMetadataProvider provider in _providers)
+        if (_enteredGetXamlType2)
         {
-            IXamlType xamlType = provider.GetXamlType(fullName);
-            if (xamlType != null)
-            {
-                return xamlType;
-            }
+            return null;
         }
 
-        return null;
+        _enteredGetXamlType2 = true;
+        try
+        {
+            foreach (IXamlMetadataProvider provider in _providers)
+            {
+                IXamlType xamlType = provider.GetXamlType(fullName);
+                if (xamlType != null)
+                {
+                    return xamlType;
+                }
+            }
+
+            return null;
+        }
+        finally
+        {
+            _enteredGetXamlType2 = false;
+        }
     }
 
     XmlnsDefinition[] IXamlMetadataProvider.GetXmlnsDefinitions()
     {
-        List<XmlnsDefinition> definitions = [];
-        foreach (IXamlMetadataProvider provider in _providers)
+        if (_enteredGetXmlnsDefinitions)
         {
-            definitions.AddRange(provider.GetXmlnsDefinitions());
+            return [];
         }
 
-        return [.. definitions];
+        _enteredGetXmlnsDefinitions = true;
+        try
+        {
+            List<XmlnsDefinition> definitions = [];
+            foreach (IXamlMetadataProvider provider in _providers)
+            {
+                definitions.AddRange(provider.GetXmlnsDefinitions());
+            }
+
+            return [.. definitions];
+        }
+        finally
+        {
+            _enteredGetXmlnsDefinitions = false;
+        }
     }
 }
