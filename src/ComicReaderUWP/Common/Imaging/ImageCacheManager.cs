@@ -208,14 +208,14 @@ internal static class ImageCacheManager
         }
 
         RenderItem renderItem;
-        IRandomAccessStream? thumbnailStream = null;
+        IRandomAccessStream? imageStream = null;
         IRandomAccessStream? sourceStream = null;
         record.Lock.AcquireReaderLock(Timeout.Infinite);
         try
         {
             string sourceFingerprint = source.GetContentFingerprint();
-            thumbnailStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, sourceFingerprint, frameWidth, frameHeight, stretchMode, out bool requireThumbnail);
-            if (thumbnailStream is null && requireThumbnail)
+            imageStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, sourceFingerprint, frameWidth, frameHeight, stretchMode, out bool requireThumbnail);
+            if (imageStream is null && requireThumbnail)
             {
                 sourceStream = TryOpenImageStreamAsync(source).Result;
                 if (sourceStream is null)
@@ -227,8 +227,8 @@ internal static class ImageCacheManager
                 LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
                 try
                 {
-                    thumbnailStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, sourceFingerprint, frameWidth, frameHeight, stretchMode, out bool _);
-                    thumbnailStream ??= TryCreateThumbnail(imageCache, record, sourceStream, frameWidth, frameHeight, stretchMode, uri, sourceFingerprint);
+                    imageStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, sourceFingerprint, frameWidth, frameHeight, stretchMode, out bool _);
+                    imageStream ??= TryCreateThumbnail(imageCache, record, sourceStream, frameWidth, frameHeight, stretchMode, uri, sourceFingerprint);
                 }
                 finally
                 {
@@ -236,16 +236,27 @@ internal static class ImageCacheManager
                 }
             }
 
+            if (sourceStream is not null)
+            {
+                if (imageStream is null)
+                {
+                    imageStream = sourceStream;
+                }
+                else
+                {
+                    sourceStream.Dispose();
+                    sourceStream = null;
+                }
+            }
+
             renderItem = new RenderItem
             {
                 Token = token,
-                Source = source,
                 Uri = uri,
                 FrameWidth = frameWidth,
                 FrameHeight = frameHeight,
                 StretchMode = stretchMode,
-                ThumbnailStream = thumbnailStream,
-                SourceStream = sourceStream,
+                ImageStream = imageStream,
                 Handler = handler,
                 StartTime = startTime,
             };
@@ -253,7 +264,7 @@ internal static class ImageCacheManager
         catch (Exception e)
         {
             Logger.F(TAG, "LoadImage", e);
-            thumbnailStream?.Dispose();
+            imageStream?.Dispose();
             sourceStream?.Dispose();
             throw;
         }
@@ -263,10 +274,10 @@ internal static class ImageCacheManager
         }
 
         sRenderQueue.Enqueue(renderItem);
-        ScheduleRender();
+        ScheduleDecoding();
     }
 
-    private static void ScheduleRender()
+    private static void ScheduleDecoding()
     {
         if (Interlocked.CompareExchange(ref sPostMainThreadTask, 1, 0) == 1)
         {
@@ -280,21 +291,23 @@ internal static class ImageCacheManager
             // Only responsible for rendering tasks that have been queued before this point
             while (sRenderQueue.TryDequeue(out RenderItem? item))
             {
-                await PerformRender(item);
+                await PerformDecoding(item);
+
+                // Keep main thread responsive
                 if (GetCurrentTick() - startTime > 50)
                 {
-                    // Keep main thread responsive.
                     if (sRenderQueue.TryPeek(out _))
                     {
-                        ScheduleRender();
+                        ScheduleDecoding();
                     }
+
                     break;
                 }
             }
         }, DispatcherQueuePriority.Low);
     }
 
-    private static async Task PerformRender(RenderItem item)
+    private static async Task PerformDecoding(RenderItem item)
     {
         BitmapImage? image = null;
         try
@@ -304,38 +317,20 @@ internal static class ImageCacheManager
                 return;
             }
 
-            if (item.ThumbnailStream != null)
+            if (item.ImageStream is not null)
             {
-                image = await TryLoadImageFromStreamAsync(item.ThumbnailStream);
+                image = await TryLoadImageFromStreamAsync(item.ImageStream);
             }
 
-            if (image == null)
-            {
-                item.SourceStream ??= await TryOpenImageStreamAsync(item.Source);
-
-                if (item.SourceStream != null)
-                {
-                    image = await TryLoadImageFromStreamAsync(item.SourceStream);
-                }
-            }
-
-            if (image == null)
+            if (image is null)
             {
                 Logger.E(TAG, "image is null");
                 return;
             }
-
-            CalculateDesiredDimension(item.FrameWidth, item.FrameHeight, item.StretchMode, image.PixelWidth, image.PixelHeight, out int desiredWidth, out int desiredHeight);
-            if (desiredWidth != image.PixelWidth || desiredHeight != image.PixelHeight)
-            {
-                image.DecodePixelWidth = desiredWidth;
-                image.DecodePixelHeight = desiredHeight;
-            }
         }
         finally
         {
-            item.ThumbnailStream?.Dispose();
-            item.SourceStream?.Dispose();
+            item.ImageStream?.Dispose();
         }
 
         if (item.Token.IsCancellationRequested)
@@ -772,13 +767,11 @@ internal static class ImageCacheManager
     private class RenderItem
     {
         public required CancellationSession.IToken Token;
-        public required IImageSource Source;
         public required string Uri;
         public double FrameWidth;
         public double FrameHeight;
         public StretchModeEnum StretchMode;
-        public IRandomAccessStream? ThumbnailStream;
-        public IRandomAccessStream? SourceStream;
+        public IRandomAccessStream? ImageStream;
         public required IImageResultHandler Handler;
         public long StartTime;
     }
