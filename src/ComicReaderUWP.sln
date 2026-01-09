@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.32014.148
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{009CF779-E0A7-429F-BA8A-D921E866DADB}"
 	ProjectSection(SolutionItems) = preProject
@@ -9,13 +9,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReader.Tests", "Tests\ComicReader.Tests\ComicReader.Tests.csproj", "{080FD1B1-888C-49CB-BF10-3863A9151583}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.Tests", "Tests\ComicReaderUWP.Tests\ComicReaderUWP.Tests.csproj", "{080FD1B1-888C-49CB-BF10-3863A9151583}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComicReader", "ComicReader\ComicReader.csproj", "{D5E797FD-AD3D-477F-8649-5EAE522BA061}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComicReaderUWP", "ComicReaderUWP\ComicReaderUWP.csproj", "{D5E797FD-AD3D-477F-8649-5EAE522BA061}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReader.SDK", "ComicReader.SDK\ComicReader.SDK.csproj", "{3A555A1B-826E-41A4-8808-29C2E214F671}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.SDK", "ComicReaderUWP.SDK\ComicReaderUWP.SDK.csproj", "{3A555A1B-826E-41A4-8808-29C2E214F671}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReader.SDK.Tests", "Tests\ComicReader.SDK.Tests\ComicReader.SDK.Tests.csproj", "{A57B0BCD-96D2-4E88-9E91-03CDE828B3C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.SDK.Tests", "Tests\ComicReaderUWP.SDK.Tests\ComicReaderUWP.SDK.Tests.csproj", "{A57B0BCD-96D2-4E88-9E91-03CDE828B3C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

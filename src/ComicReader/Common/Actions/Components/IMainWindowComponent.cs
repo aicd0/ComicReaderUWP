@@ -1,9 +1,0 @@
-﻿// Copyright (c) aicd0. All rights reserved.
-// Licensed under the MIT License.
-
-namespace ComicReader.Common.Actions.Components;
-
-internal interface IMainWindowComponent : IActionComponent
-{
-    int WindowId { get; }
-}
