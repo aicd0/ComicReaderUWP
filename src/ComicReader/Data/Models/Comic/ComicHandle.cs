@@ -810,38 +810,36 @@ internal abstract class ComicHandle
 
     public void SetAsDefaultInfo()
     {
-        Title1 = "";
-        Title2 = "";
-
-        List<string> sub_paths = [.. Location.Split(ArchiveAccess.FileSeperator)];
+        List<string> subPaths = [.. Location.Split(ArchiveAccess.FileSeperator)];
         var tags = new List<string>();
-
-        foreach (string path in sub_paths)
+        foreach (string path in subPaths)
         {
-            List<string> sub_tags = [.. path.Split('\\')];
-
-            if (sub_tags.Count == 0)
+            List<string> subTags = [.. path.Split('\\')];
+            if (subTags.Count == 0)
             {
                 continue;
             }
 
             if (Type != ComicType.Folder)
             {
-                sub_tags[^1] = StringUtils.DisplayNameFromFilename(sub_tags[^1]);
+                subTags[^1] = StringUtils.DisplayNameFromFilename(subTags[^1]);
             }
 
-            tags.AddRange(sub_tags);
+            tags.AddRange(subTags);
         }
 
-        if (tags.Count <= 1)
+        Title1 = tags.Count >= 1 ? tags[^1] : string.Empty;
+        Title2 = string.Empty;
+
+        if (tags.Count >= 2)
         {
-            return;
+            TagData defaultTag = new(StringResourceProvider.Instance.Default, tags[1..^1].ToHashSet());
+            Tags = [defaultTag];
         }
-
-        Title1 = tags[^1];
-
-        TagData defaultTag = new(StringResourceProvider.Instance.Default, tags.Skip(1).ToHashSet());
-        Tags = [defaultTag];
+        else
+        {
+            Tags = [];
+        }
     }
 
     public async Task<string> GetCoverImageCacheKey()
