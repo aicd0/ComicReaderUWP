@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ComicReader\ComicReaderUWP.csproj" />
+    <ProjectReference Include="..\..\ComicReaderUWP\ComicReaderUWP.csproj" />
   </ItemGroup>
 
   <ItemGroup>
