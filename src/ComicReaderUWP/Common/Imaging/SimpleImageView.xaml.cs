@@ -10,7 +10,6 @@ using ComicReaderUWP.SDK.Common.Threading;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace ComicReaderUWP.Common.Imaging;
 
@@ -109,19 +108,23 @@ internal partial class SimpleImageView : UserControl
             _callback = callback;
         }
 
-        public void OnSuccess(BitmapImage image)
+        public void OnSuccess(DecodedImageModel result)
         {
             if (_imageView.TryGetTarget(out SimpleImageView view))
             {
-                view.ImageHolder.Source = image;
-                _callback?.OnSuccess(image);
+                view.ImageHolder.Source = ImagingUtils.CreateImageSource(result);
+                _callback?.OnSuccess(result);
             }
+        }
+
+        public void OnFailure()
+        {
         }
     }
 
     public interface IImageCallback
     {
-        void OnSuccess(BitmapImage image);
+        void OnSuccess(DecodedImageModel image);
     }
 
     public class Model

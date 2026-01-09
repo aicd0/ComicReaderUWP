@@ -1,15 +1,13 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.Imaging;
 
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Media;
 
 namespace ComicReaderUWP.UserControls.Reader;
 
@@ -17,7 +15,7 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged
 {
     public const int NO_PAGE = -1;
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private Thickness _frameMargin = new(0.0, 0.0, 0.0, 0.0);
     public Thickness FrameMargin
@@ -30,11 +28,11 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged
         }
     }
 
-    public IImageSource LeftImageSource { get; set; }
+    public IImageSource? LeftImageSource { get; set; }
     public ImageHolder LeftImageHolder { get; }
 
-    private BitmapImage _imageLeft;
-    public BitmapImage ImageLeft
+    private ImageSource? _imageLeft;
+    public ImageSource? ImageLeft
     {
         get => _imageLeft;
         set
@@ -66,11 +64,11 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged
         }
     }
 
-    public IImageSource RightImageSource { get; set; }
+    public IImageSource? RightImageSource { get; set; }
     public ImageHolder RightImageHolder { get; }
 
-    private BitmapImage _imageRight;
-    public BitmapImage ImageRight
+    private ImageSource? _imageRight;
+    public ImageSource? ImageRight
     {
         get => _imageRight;
         set
@@ -112,13 +110,25 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged
 
     public ReaderFrameViewModel(ReaderImagePool pool)
     {
-        LeftImageHolder = new(pool, delegate (BitmapImage image)
+        LeftImageHolder = new(pool, delegate (DecodedImageModel? result)
         {
-            ImageLeft = image;
+            if (result is null)
+            {
+                ImageLeft = null;
+                return;
+            }
+
+            ImageLeft = ImagingUtils.CreateImageSource(result);
         });
-        RightImageHolder = new(pool, delegate (BitmapImage image)
+        RightImageHolder = new(pool, delegate (DecodedImageModel? result)
         {
-            ImageRight = image;
+            if (result is null)
+            {
+                ImageRight = null;
+                return;
+            }
+
+            ImageRight = ImagingUtils.CreateImageSource(result);
         });
     }
 

@@ -2,9 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Threading.Tasks;
-
-using Windows.Storage.Streams;
+using System.IO;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
@@ -34,11 +32,11 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
         return _connection.GetImageCount();
     }
 
-    Task<IRandomAccessStream?> IComicConnection.GetImageStream(int index)
+    public Stream? GetImageStream(int index)
     {
         if (_disposed)
         {
-            return Task.FromResult<IRandomAccessStream?>(null);
+            return null;
         }
 
         return _connection.GetImageStream(index);

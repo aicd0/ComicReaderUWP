@@ -12,7 +12,7 @@ using ComicReaderUWP.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Media;
 
 namespace ComicReaderUWP.UserControls.ComicItemView;
 
@@ -134,7 +134,7 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
 
     private void BindImage(ComicItemViewModel item)
     {
-        BitmapImage? image = item.Image.Image;
+        ImageSource? image = item.Image.Image;
         ImageHolder1.Source = image;
         ImageHolder2.Source = image;
     }
@@ -170,13 +170,17 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
             _viewModel = viewModel;
         }
 
-        public void OnSuccess(BitmapImage image)
+        public void OnSuccess(DecodedImageModel result)
         {
-            _viewModel.Image.Image = image;
+            _viewModel.Image.Image = ImagingUtils.CreateImageSource(result);
             if (_viewModel == _viewHolder.Item)
             {
                 _viewHolder.BindImage(_viewModel);
             }
+        }
+
+        public void OnFailure()
+        {
         }
     }
 }

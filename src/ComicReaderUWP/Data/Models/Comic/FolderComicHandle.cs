@@ -16,7 +16,6 @@ using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 
 using Windows.Storage;
-using Windows.Storage.Streams;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
@@ -200,7 +199,7 @@ internal partial class FolderComicHandle : ComicHandle
             return _imageFiles.Count;
         }
 
-        public async Task<IRandomAccessStream?> GetImageStream(int index)
+        public Stream? GetImageStream(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)
             {
@@ -211,8 +210,7 @@ internal partial class FolderComicHandle : ComicHandle
             string imageFile = _imageFiles[index];
             try
             {
-                StorageFile file = await StorageFile.GetFileFromPathAsync(imageFile);
-                return await file.OpenAsync(FileAccessMode.Read);
+                return new FileStream(imageFile, FileMode.Open, FileAccess.Read);
             }
             catch (FileNotFoundException)
             {

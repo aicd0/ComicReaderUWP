@@ -12,7 +12,7 @@
         x:Name="MainFrame"
         Loaded="OnFrameLoaded"
         SizeChanged="OnFrameSizeChanged">
-        <Grid Margin="{x:Bind ViewModelNotNull.FrameMargin, Mode=OneWay}">
+        <Grid Margin="{x:Bind ViewModel.FrameMargin, Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -20,17 +20,17 @@
             <Image
                 x:Name="ImageLeft"
                 Grid.Column="0"
-                Width="{x:Bind ViewModelNotNull.LeftImageWidth, Mode=OneWay}"
-                Height="{x:Bind ViewModelNotNull.LeftImageHeight, Mode=OneWay}"
+                Width="{x:Bind ViewModel.LeftImageWidth, Mode=OneWay}"
+                Height="{x:Bind ViewModel.LeftImageHeight, Mode=OneWay}"
                 VerticalAlignment="Center"
-                Source="{x:Bind ViewModelNotNull.ImageLeft, Mode=OneWay}" />
+                Source="{x:Bind ViewModel.ImageLeft, Mode=OneWay}" />
             <Image
                 x:Name="ImageRight"
                 Grid.Column="1"
-                Width="{x:Bind ViewModelNotNull.RightImageWidth, Mode=OneWay}"
-                Height="{x:Bind ViewModelNotNull.RightImageHeight, Mode=OneWay}"
+                Width="{x:Bind ViewModel.RightImageWidth, Mode=OneWay}"
+                Height="{x:Bind ViewModel.RightImageHeight, Mode=OneWay}"
                 VerticalAlignment="Center"
-                Source="{x:Bind ViewModelNotNull.ImageRight, Mode=OneWay}" />
+                Source="{x:Bind ViewModel.ImageRight, Mode=OneWay}" />
         </Grid>
     </Grid>
 

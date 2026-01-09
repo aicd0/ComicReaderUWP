@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 
 using Microsoft.UI.Xaml;
@@ -12,19 +10,16 @@ namespace ComicReaderUWP.UserControls.Reader;
 
 internal sealed partial class ReaderFrame : UserControl
 {
-    private static readonly ReaderFrameViewModel sEmptyViewModel = new(null);
-
     private bool _isLoaded = false;
     private bool? _isReady = null;
 
     public delegate void ReadyStateChangeListener(FrameworkElement container, bool isReady, string reason);
-    private event ReadyStateChangeListener ReadyStateChanged;
+    private event ReadyStateChangeListener? ReadyStateChanged;
 
     public delegate void ImageChangeListener(ReaderFrameViewModel model);
-    private event ImageChangeListener ImageChanged;
+    private event ImageChangeListener? ImageChanged;
 
-    private ReaderFrameViewModel ViewModel { get; set; }
-    private ReaderFrameViewModel ViewModelNotNull => ViewModel ?? sEmptyViewModel;
+    private ReaderFrameViewModel? ViewModel { get; set; }
     private FrameworkElement Container => MainFrame;
 
     public ReaderFrame()
@@ -41,6 +36,7 @@ internal sealed partial class ReaderFrame : UserControl
         {
             return;
         }
+
         _isLoaded = IsLoaded;
 
         if (ViewModel != null)
@@ -53,7 +49,7 @@ internal sealed partial class ReaderFrame : UserControl
         }
     }
 
-    public void Bind(ReaderFrameViewModel model)
+    public void Bind(ReaderFrameViewModel? model)
     {
         if (ViewModel != null)
         {
@@ -70,12 +66,12 @@ internal sealed partial class ReaderFrame : UserControl
         RebindViewModel("Rebind by container");
     }
 
-    public void SetReadyStateChangeHandler(ReadyStateChangeListener handler)
+    public void SetReadyStateChangeHandler(ReadyStateChangeListener? handler)
     {
         ReadyStateChanged = handler;
     }
 
-    public void SetImageChangeHandler(ImageChangeListener handler)
+    public void SetImageChangeHandler(ImageChangeListener? handler)
     {
         ImageChanged = handler;
     }
@@ -90,7 +86,7 @@ internal sealed partial class ReaderFrame : UserControl
         DispatchReadyStateChangeEvent($"SizeChanged (W={e.NewSize.Width},H={e.NewSize.Height})");
     }
 
-    private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ReaderFrameViewModel))
         {
@@ -125,7 +121,7 @@ internal sealed partial class ReaderFrame : UserControl
     private bool IsReady()
     {
         FrameworkElement container = Container;
-        ReaderFrameViewModel model = ViewModel;
+        ReaderFrameViewModel? model = ViewModel;
         if (container == null || model == null)
         {
             return false;
