@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "ComicReaderUWP (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": false,
+      "nativeDebugging": false
+    },
+    "ComicReaderUWP (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

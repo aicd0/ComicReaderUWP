@@ -1,0 +1,24 @@
+﻿// Copyright (c) aicd0. All rights reserved.
+// Licensed under the MIT License.
+
+namespace ComicReaderUWP.SDK.Common.Lifecycle;
+
+public class EmptyLiveData<T> : IMutableLiveData<T>
+{
+    public void Clear()
+    {
+    }
+
+    public void Emit(T value)
+    {
+    }
+
+    public void Observe(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options)
+    {
+    }
+
+    public T? GetValue()
+    {
+        return default;
+    }
+}

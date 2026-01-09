@@ -1,0 +1,13 @@
+﻿// Copyright (c) aicd0. All rights reserved.
+// Licensed under the MIT License.
+
+using ComicReaderUWP.SDK.Database.SqlHelpers;
+
+namespace ComicReaderUWP.Common.Expression.Search.Sql;
+
+internal interface ISQLCommandProvider
+{
+    ICondition CreateFilterCondition(string key, string value);
+
+    ICondition? GetAdditionalCondition();
+}
