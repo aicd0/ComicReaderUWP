@@ -100,12 +100,12 @@ internal sealed partial class SearchPage : BasePage
         var viewHolder = (ComicItemHorizontal)args.ItemContainer.ContentTemplateRoot;
         if (args.InRecycleQueue)
         {
-            viewHolder.Unbind();
+            viewHolder.SetComicModel(null);
         }
         else
         {
             var item = (ComicItemViewModel)args.Item;
-            viewHolder.Bind(item);
+            viewHolder.SetComicModel(item);
         }
     }
 

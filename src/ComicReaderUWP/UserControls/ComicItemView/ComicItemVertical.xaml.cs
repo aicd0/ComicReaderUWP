@@ -1,6 +1,7 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 
 using ComicReaderUWP.Common.BaseUI;
@@ -18,41 +19,57 @@ namespace ComicReaderUWP.UserControls.ComicItemView;
 
 internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemView
 {
-    private readonly CancellationSession _loadImageToken = new();
-
     public ComicItemViewModel? Item { get; private set; }
+
+    private readonly CancellationSession _loadImageToken = new();
+    private bool _isLoaded = false;
+    private bool _imageRequested = false;
+    private ImageSourceHolder? _imageSourceHolder;
 
     public ComicItemVertical()
     {
         InitializeComponent();
+        Loaded += ComicItemVertical_LoadedOrUnloaded;
+        Unloaded += ComicItemVertical_LoadedOrUnloaded;
     }
 
-    private void UserControl_Loaded(object sender, RoutedEventArgs e)
+    public void SetComicModel(ComicItemViewModel? item)
     {
-        if (sender is not FrameworkElement element || !element.IsLoaded)
+        if (item == Item)
         {
             return;
         }
 
-        ComicItemViewModel? item = Item;
-        if (item != null)
+        Item = item;
+        if (item == null)
         {
-            RequestImageIfNeeded(item);
+            ClearImage();
+        }
+        else
+        {
+            Bindings.Update();
+            ClearImage();
+            RequestImageIfNeeded();
         }
     }
 
-    private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+    private void ComicItemVertical_LoadedOrUnloaded(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement element || element.IsLoaded)
+        if (_isLoaded == IsLoaded)
         {
             return;
         }
 
-        _loadImageToken.Next();
-        ComicItemViewModel? item = Item;
-        if (item != null)
+        _isLoaded = IsLoaded;
+        if (_isLoaded)
         {
-            item.Image.ImageRequested = false;
+            RequestImageIfNeeded();
+        }
+        else
+        {
+            ClearImage();
+            _imageSourceHolder?.Dispose();
+            _imageSourceHolder = null;
         }
     }
 
@@ -108,44 +125,26 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
         args.Handled = true;
     }
 
-    public void Bind(ComicItemViewModel item)
+    private void ClearImage()
     {
-        if (item != Item)
-        {
-            item.Image.ImageRequested = false;
-            Item = item;
-            Bindings.Update();
-        }
-
-        BindImage(item);
-        RequestImageIfNeeded(item);
+        _loadImageToken.Next();
+        _imageRequested = false;
+        SetImageSource(null);
     }
 
-    public void Unbind()
+    private void RequestImageIfNeeded()
     {
-        ComicItemViewModel? item = Item;
-        Item = null;
-        if (item != null)
-        {
-            item.Image.ImageRequested = false;
-            item.Image.Image = null;
-        }
-    }
-
-    private void BindImage(ComicItemViewModel item)
-    {
-        ImageSource? image = item.Image.Image;
-        ImageHolder1.Source = image;
-        ImageHolder2.Source = image;
-    }
-
-    private void RequestImageIfNeeded(ComicItemViewModel item)
-    {
-        if (item.Image.Image != null || item.Image.ImageRequested)
+        if (_imageRequested || !_isLoaded)
         {
             return;
         }
-        item.Image.ImageRequested = true;
+
+        ComicItemViewModel? item = Item;
+        if (item is null)
+        {
+            return;
+        }
+
         double imageWidth = (double)Application.Current.Resources["ComicItemVerticalDesiredWidth"] - 40.0;
         double imageHeight = (double)Application.Current.Resources["ComicItemVerticalImageHeight"];
         var tokens = new List<SimpleImageLoader.Token>
@@ -157,26 +156,46 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
             }
         };
         new SimpleImageLoader.Transaction(_loadImageToken.Token, tokens).Commit();
+        _imageRequested = true;
     }
 
-    private class LoadImageCallback : IImageResultHandler
+    private void SetImageSource(ImageSource? imageSource)
     {
-        private readonly ComicItemVertical _viewHolder;
-        private readonly ComicItemViewModel _viewModel;
+        ImageHolder1.Source = imageSource;
+        ImageHolder2.Source = imageSource;
+    }
 
-        public LoadImageCallback(ComicItemVertical viewHolder, ComicItemViewModel viewModel)
-        {
-            _viewHolder = viewHolder;
-            _viewModel = viewModel;
-        }
+    private class LoadImageCallback(ComicItemVertical viewHolder, ComicItemViewModel viewModel) : IImageResultHandler
+    {
+        private readonly WeakReference<ComicItemVertical> _viewHolderRef = new(viewHolder);
+        private readonly ComicItemViewModel _viewModel = viewModel;
 
         public void OnSuccess(DecodedImageModel result)
         {
-            _viewModel.Image.Image = ImagingUtils.CreateImageSource(result);
-            if (_viewModel == _viewHolder.Item)
+            using DecodedImageModel disposingResult = result;
+            if (!_viewHolderRef.TryGetTarget(out ComicItemVertical? view) || !view.IsLoaded)
             {
-                _viewHolder.BindImage(_viewModel);
+                return;
             }
+
+            if (view.Item != _viewModel)
+            {
+                return;
+            }
+
+            ImageSourceHolder? imageSourceHolder = view._imageSourceHolder;
+            if (imageSourceHolder is null)
+            {
+                imageSourceHolder = new();
+                view._imageSourceHolder = imageSourceHolder;
+                imageSourceHolder.SourceChanged += view.SetImageSource;
+            }
+
+            imageSourceHolder.SetImage(result);
+
+            // We still need to bind in case silent backing buffer update causing
+            // SourceChanged not triggering (which is intended)
+            view.SetImageSource(imageSourceHolder.Source);
         }
 
         public void OnFailure()

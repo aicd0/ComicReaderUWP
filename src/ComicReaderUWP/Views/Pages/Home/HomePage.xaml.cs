@@ -239,11 +239,11 @@ internal sealed partial class HomePage : BasePage
 
         if (args.InRecycleQueue)
         {
-            viewHolder.Unbind();
+            viewHolder.SetComicModel(null);
         }
         else
         {
-            viewHolder.Bind(item);
+            viewHolder.SetComicModel(item);
         }
     }
 

@@ -11,9 +11,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:ComicReaderUWP.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:ComicItemViewModel}"
-    Loaded="UserControl_Loaded"
     Tapped="UserControl_Tapped"
-    Unloaded="UserControl_Unloaded"
     mc:Ignorable="d">
 
     <base:BaseUserControl.Resources>

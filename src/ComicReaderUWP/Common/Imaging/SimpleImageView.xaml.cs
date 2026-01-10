@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 
 using ComicReaderUWP.Common.Utils;
@@ -15,53 +13,60 @@ namespace ComicReaderUWP.Common.Imaging;
 
 internal partial class SimpleImageView : UserControl
 {
-    private bool _isLoaded;
-    private Model _model;
-    private int _currentImageHash = 0;
     private readonly CancellationSession _cancellationSession = new();
+    private bool _isLoaded = false;
+    private Model? _viewModel;
+    private int _currentImageHash = 0;
+    private ImageSourceHolder? _imageSourceHolder;
 
     public SimpleImageView()
     {
         InitializeComponent();
-
-        Loaded += OnLoaded;
-        Unloaded += OnUnloaded;
+        Loaded += SimpleImageView_LoadedOrUnloaded;
+        Unloaded += SimpleImageView_LoadedOrUnloaded;
     }
 
-    public void SetModel(Model model)
+    public void SetModel(Model? model)
     {
-        _model = model;
+        _viewModel = model;
         UpdateImage();
     }
 
-    public void UnsetModel()
+    private void SimpleImageView_LoadedOrUnloaded(object sender, RoutedEventArgs e)
     {
-        _model = null;
-        UpdateImage();
-    }
+        if (_isLoaded == IsLoaded)
+        {
+            return;
+        }
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        _isLoaded = true;
-        UpdateImage();
-    }
-
-    private void OnUnloaded(object sender, RoutedEventArgs e)
-    {
-        _isLoaded = false;
-        UpdateImage();
+        _isLoaded = IsLoaded;
+        if (_isLoaded)
+        {
+            UpdateImage();
+        }
+        else
+        {
+            UnloadImage();
+            _imageSourceHolder?.Dispose();
+            _imageSourceHolder = null;
+        }
     }
 
     private void UpdateImage()
     {
-        Model model = _model;
-        if (!_isLoaded || model == null)
+        if (!_isLoaded)
+        {
+            return;
+        }
+
+        Model? viewModel = _viewModel;
+        if (viewModel is null)
         {
             UnloadImage();
             return;
         }
 
-        int newHash = model.GetImageHashCode();
+        int newHash = viewModel.GetImageHashCode();
         if (newHash == _currentImageHash)
         {
             return;
@@ -69,12 +74,11 @@ internal partial class SimpleImageView : UserControl
 
         UnloadImage();
         _currentImageHash = newHash;
-
         CancellationSession.IToken token = _cancellationSession.Token;
-        IImageResultHandler handler = new WeakImageResultHandler(this, model.Callback);
-        model.Dispatcher.Submit(model.DebugDescription, delegate
+        IImageResultHandler handler = new WeakImageResultHandler(this);
+        viewModel.Dispatcher.Submit(viewModel.DebugDescription, delegate
         {
-            LoadImage(token, model, handler);
+            LoadImage(token, viewModel, handler);
         });
     }
 
@@ -82,39 +86,40 @@ internal partial class SimpleImageView : UserControl
     {
         _currentImageHash = 0;
         _cancellationSession.Next();
-
-        if (ImageHolder.Source != null)
-        {
-            ImageHolder.Source = null;
-        }
+        ImageHolder.Source = null;
     }
 
     private static void LoadImage(CancellationSession.IToken token, Model model, IImageResultHandler handler)
     {
         double width = model.Width * model.Multiplication;
         double height = model.Height * model.Multiplication;
-        ImageCacheManager.LoadImage(token, model.Source, width,
-            height, model.StretchMode, handler);
+        ImageCacheManager.LoadImage(token, model.Source, width, height, model.StretchMode, handler);
     }
 
-    private class WeakImageResultHandler : IImageResultHandler
+    private class WeakImageResultHandler(SimpleImageView view) : IImageResultHandler
     {
-        private readonly WeakReference<SimpleImageView> _imageView;
-        private readonly IImageCallback _callback;
-
-        public WeakImageResultHandler(SimpleImageView view, IImageCallback callback)
-        {
-            _imageView = new WeakReference<SimpleImageView>(view);
-            _callback = callback;
-        }
+        private readonly WeakReference<SimpleImageView> _imageViewRef = new(view);
 
         public void OnSuccess(DecodedImageModel result)
         {
-            if (_imageView.TryGetTarget(out SimpleImageView view))
+            using DecodedImageModel disposingResult = result;
+            if (!_imageViewRef.TryGetTarget(out SimpleImageView? view) || !view.IsLoaded)
             {
-                view.ImageHolder.Source = ImagingUtils.CreateImageSource(result);
-                _callback?.OnSuccess(result);
+                return;
             }
+
+            ImageSourceHolder? imageSourceHolder = view._imageSourceHolder;
+            if (imageSourceHolder is null)
+            {
+                imageSourceHolder = new();
+                view._imageSourceHolder = imageSourceHolder;
+                imageSourceHolder.SourceChanged += source =>
+                {
+                    view.ImageHolder.Source = source;
+                };
+            }
+
+            imageSourceHolder.SetImage(result);
         }
 
         public void OnFailure()
@@ -122,21 +127,15 @@ internal partial class SimpleImageView : UserControl
         }
     }
 
-    public interface IImageCallback
-    {
-        void OnSuccess(DecodedImageModel image);
-    }
-
     public class Model
     {
-        public IImageSource Source { get; set; }
-        public double Width { get; set; } = double.PositiveInfinity;
-        public double Height { get; set; } = double.PositiveInfinity;
+        public required IImageSource Source { get; set; }
+        public required double Width { get; set; } = double.PositiveInfinity;
+        public required double Height { get; set; } = double.PositiveInfinity;
         public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
         public double Multiplication { get; set; } = 1.0;
-        public ITaskDispatcher Dispatcher { get; set; }
-        public IImageCallback Callback { get; set; }
-        public string DebugDescription { get; set; }
+        public required ITaskDispatcher Dispatcher { get; set; }
+        public string DebugDescription { get; set; } = string.Empty;
 
         public int GetImageHashCode()
         {

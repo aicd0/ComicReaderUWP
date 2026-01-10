@@ -7,7 +7,5 @@ namespace ComicReaderUWP.UserControls.ComicItemView;
 
 interface IComicItemView
 {
-    void Bind(ComicItemViewModel item);
-
-    void Unbind();
+    void SetComicModel(ComicItemViewModel? item);
 }
