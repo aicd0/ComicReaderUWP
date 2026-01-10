@@ -2,9 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Threading.Tasks;
-
-using Windows.Storage.Streams;
+using System.IO;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
@@ -12,7 +10,7 @@ internal interface IComicConnection : IDisposable
 {
     int GetImageCount();
 
-    Task<IRandomAccessStream?> GetImageStream(int index);
+    Stream? GetImageStream(int index);
 
     string GetImageName(int index);
 

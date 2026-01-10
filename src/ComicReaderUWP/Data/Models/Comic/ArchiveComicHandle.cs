@@ -14,7 +14,6 @@ using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 
 using Windows.Storage;
-using Windows.Storage.Streams;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
@@ -190,7 +189,7 @@ internal partial class ArchiveComicHandle : ComicHandle
             return _entries.Count;
         }
 
-        public async Task<IRandomAccessStream?> GetImageStream(int index)
+        public Stream? GetImageStream(int index)
         {
             if (index < 0 || index >= _entries.Count)
             {
@@ -199,15 +198,14 @@ internal partial class ArchiveComicHandle : ComicHandle
             }
 
             string path = _entries[index];
-            Stream? stream = await ArchiveAccess.TryGetFileStream(_archiveFile, path);
+            Stream? stream = ArchiveAccess.TryGetFileStream(_archiveFile, path).Result;
             if (stream == null)
             {
                 Logger.I(TAG, "Failed to access entry '" + _entries[index] + "'");
                 return null;
             }
 
-            IRandomAccessStream winStream = stream.AsRandomAccessStream();
-            return winStream;
+            return stream;
         }
 
         public string GetImageName(int index)

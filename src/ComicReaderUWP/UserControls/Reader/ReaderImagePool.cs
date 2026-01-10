@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -12,27 +10,20 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
 
-using Microsoft.UI.Xaml.Media.Imaging;
-
 namespace ComicReaderUWP.UserControls.Reader;
 
-internal class ReaderImagePool
+internal partial class ReaderImagePool(ITaskDispatcher dispatcher)
 {
     private readonly CancellationSession _session = new();
-    private readonly ITaskDispatcher _dispatcher;
+    private readonly ITaskDispatcher _dispatcher = dispatcher;
     private readonly OrderedDictionary _entries = [];
 
     private bool _flushing = false;
     private bool _flushingInvalidated = false;
 
-    public delegate void IRequestCallback(BitmapImage image);
+    public delegate void IRequestCallback(DecodedImageModel? image);
 
-    public ReaderImagePool(ITaskDispatcher dispatcher)
-    {
-        _dispatcher = dispatcher;
-    }
-
-    public void Cancel()
+    public void Cancel(bool clear)
     {
         _session.Next();
 
@@ -45,7 +36,7 @@ internal class ReaderImagePool
         HashSet<IRequestCallback> callbacks = [];
         foreach (string uri in keys)
         {
-            var entry = (ImageEntry)_entries[uri];
+            var entry = (ImageEntry)_entries[uri]!;
             switch (entry.State)
             {
                 case ImageEntryState.Requesting:
@@ -54,12 +45,26 @@ internal class ReaderImagePool
                     {
                         callbacks.Add(callback);
                     }
-                    entry.Callbacks.Clear();
+
+                    entry.Dispose();
                     _entries.Remove(uri);
                     Log($"cancelled {uri}");
                     break;
+
                 case ImageEntryState.Recycled:
+                    if (clear)
+                    {
+                        foreach (IRequestCallback callback in entry.Callbacks)
+                        {
+                            callbacks.Add(callback);
+                        }
+
+                        entry.Dispose();
+                        _entries.Remove(uri);
+                        Log($"cleared {uri}");
+                    }
                     break;
+
                 default:
                     break;
             }
@@ -73,9 +78,6 @@ internal class ReaderImagePool
 
     public void RequestImage(IImageSource source, IRequestCallback callback)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
-        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
-
         string uri = source.GetUri();
         if (uri == null || uri.Length == 0)
         {
@@ -87,7 +89,7 @@ internal class ReaderImagePool
         ImageEntry entry;
         if (_entries.Contains(uri))
         {
-            entry = (ImageEntry)_entries[uri];
+            entry = (ImageEntry)_entries[uri]!;
         }
         else
         {
@@ -112,11 +114,8 @@ internal class ReaderImagePool
         }
     }
 
-    public void RecycleImage(IImageSource source, BitmapImage image)
+    public void RecycleImage(IImageSource source, DecodedImageModel image)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
-        ArgumentNullException.ThrowIfNull(image, nameof(image));
-
         string uri = source.GetUri();
         if (uri == null || uri.Length == 0)
         {
@@ -128,16 +127,20 @@ internal class ReaderImagePool
         ImageEntry entry;
         if (_entries.Contains(uri))
         {
-            entry = (ImageEntry)_entries[uri];
+            entry = (ImageEntry)_entries[uri]!;
+            entry.State = ImageEntryState.Recycled;
+            entry.Source = source;
         }
         else
         {
-            entry = new ImageEntry();
+            entry = new ImageEntry()
+            {
+                Source = source,
+                State = ImageEntryState.Recycled,
+            };
             _entries.Add(uri, entry);
         }
 
-        entry.State = ImageEntryState.Recycled;
-        entry.Source = source;
         entry.Image = image;
     }
 
@@ -180,20 +183,23 @@ internal class ReaderImagePool
             {
                 continue;
             }
-            var entry = (ImageEntry)_entries[uri];
+
+            var entry = (ImageEntry)_entries[uri]!;
             switch (entry.State)
             {
                 case ImageEntryState.Requesting:
                     if (entry.Callbacks.Count == 0)
                     {
-                        entry.Session.Next();
+                        entry.Dispose();
                         _entries.Remove(uri);
                         Log($"cancelled {uri}");
                     }
                     break;
+
                 case ImageEntryState.Pending:
                     if (entry.Callbacks.Count == 0)
                     {
+                        entry.Dispose();
                         _entries.Remove(uri);
                     }
                     else
@@ -211,6 +217,7 @@ internal class ReaderImagePool
                         Log($"submitted {uri}");
                     }
                     break;
+
                 case ImageEntryState.Recycled:
                     if (entry.Callbacks.Count > 0)
                     {
@@ -220,18 +227,23 @@ internal class ReaderImagePool
                     {
                         Log($"removed {uri}");
                     }
+
+                    DecodedImageModel? image = entry.Image;
+                    entry.Image = null;
                     while (entry.Callbacks.Count > 0)
                     {
-                        List<IRequestCallback> callbacks = new(entry.Callbacks);
+                        List<IRequestCallback> callbacks = [.. entry.Callbacks];
                         entry.Callbacks.Clear();
-
                         foreach (IRequestCallback callback in callbacks)
                         {
-                            callback(entry.Image);
+                            callback(image);
                         }
                     }
+
+                    entry.Dispose();
                     _entries.Remove(uri);
                     break;
+
                 default:
                     Logger.AssertNotReachHere("0DA06D20A76086F2");
                     break;
@@ -246,22 +258,19 @@ internal class ReaderImagePool
 
     private class LoadImageResultHandler(ReaderImagePool pool, string uri) : IImageResultHandler
     {
-        public void OnSuccess(BitmapImage image)
+        public void OnSuccess(DecodedImageModel result)
         {
             Log($"event/loaded {uri}");
             ImageEntry entry;
             if (pool._entries.Contains(uri))
             {
-                entry = (ImageEntry)pool._entries[uri];
+                entry = (ImageEntry)pool._entries[uri]!;
             }
             else
             {
                 Log($"abandoned {uri}");
                 return;
             }
-
-            entry.Image = image;
-            entry.State = ImageEntryState.Recycled;
 
             if (entry.Callbacks.Count > 0)
             {
@@ -274,16 +283,21 @@ internal class ReaderImagePool
 
             while (entry.Callbacks.Count > 0)
             {
-                List<IRequestCallback> callbacks = new(entry.Callbacks);
+                List<IRequestCallback> callbacks = [.. entry.Callbacks];
                 entry.Callbacks.Clear();
 
                 foreach (IRequestCallback callback in callbacks)
                 {
-                    callback(image);
+                    callback(result);
                 }
             }
 
+            entry.Dispose();
             pool._entries.Remove(uri);
+        }
+
+        public void OnFailure()
+        {
         }
     }
 
@@ -294,12 +308,21 @@ internal class ReaderImagePool
         Recycled,
     }
 
-    private class ImageEntry
+    private partial class ImageEntry : IDisposable
     {
-        public ImageEntryState State;
-        public IImageSource Source;
-        public CancellationSession Session;
-        public BitmapImage Image;
-        public HashSet<IRequestCallback> Callbacks = [];
+        public required ImageEntryState State;
+        public required IImageSource Source;
+        public CancellationSession? Session;
+        public DecodedImageModel? Image;
+        public readonly HashSet<IRequestCallback> Callbacks = [];
+
+        public void Dispose()
+        {
+            Session?.Next();
+            Session = null;
+            Callbacks.Clear();
+            Image?.Dispose();
+            Image = null;
+        }
     }
 }

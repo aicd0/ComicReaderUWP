@@ -6,9 +6,7 @@ using System.Collections.Concurrent;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 
-using Windows.Foundation;
 using Windows.Storage;
-using Windows.Storage.Streams;
 
 namespace ComicReaderUWP.SDK.Common.Caching;
 
@@ -33,13 +31,13 @@ public class LRUCache(string directoryPath, long maxSize)
         _database.Clear();
     }
 
-    public ILRUInputStream? Put(string key)
+    public LRUCacheStream? Put(string key)
     {
         ArgumentNullException.ThrowIfNull(key, nameof(key));
 
         string hashedKey = ToHashedKey(key);
         CacheEntry entry = _entries.GetOrAdd(hashedKey, key => new CacheEntry(this, key));
-        ILRUInputStream? stream = entry.StartWrite();
+        LRUCacheStream? stream = entry.StartWrite();
         if (stream != null)
         {
             AddPendingFlushKey(key);
@@ -48,13 +46,13 @@ public class LRUCache(string directoryPath, long maxSize)
         return stream;
     }
 
-    public ILRUOutputStream? Get(string key)
+    public LRUCacheStream? Get(string key)
     {
         ArgumentNullException.ThrowIfNull(key, nameof(key));
 
         string hashedKey = ToHashedKey(key);
         CacheEntry entry = _entries.GetOrAdd(hashedKey, key => new CacheEntry(this, key));
-        ILRUOutputStream? stream = entry.StartRead();
+        LRUCacheStream? stream = entry.StartRead();
         if (stream != null)
         {
             AddPendingFlushKey(key);
@@ -243,7 +241,7 @@ public class LRUCache(string directoryPath, long maxSize)
             _status = Status.Empty;
         }
 
-        public ILRUInputStream? StartWrite()
+        public LRUInputStream? StartWrite()
         {
             _lock.AcquireWriterLock(-1);
             try
@@ -261,27 +259,11 @@ public class LRUCache(string directoryPath, long maxSize)
                 _lock.ReleaseWriterLock();
             }
 
-            string dirtyFileName = GetDirtyFileName(_key);
-            StorageFile? file = null;
+            string filePath = Path.Combine(_cache._directoryPath, GetDirtyFileName(_key));
+            Stream? stream = null;
             try
             {
-                file = _cache.GetFolder().CreateFileAsync(dirtyFileName, CreationCollisionOption.ReplaceExisting).AsTask().Result;
-            }
-            catch (Exception e)
-            {
-                Logger.F(TAG, nameof(StartWrite), e);
-            }
-
-            if (file == null)
-            {
-                SwitchToEmptyState();
-                return null;
-            }
-
-            IRandomAccessStream? stream = null;
-            try
-            {
-                stream = file.OpenAsync(FileAccessMode.ReadWrite).AsTask().Result;
+                stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
             }
             catch (Exception e)
             {
@@ -299,26 +281,11 @@ public class LRUCache(string directoryPath, long maxSize)
 
         public void EndWrite()
         {
-            string dirtyFileName = GetDirtyFileName(_key);
-            StorageFile? file = null;
+            string oldPath = Path.Combine(_cache._directoryPath, GetDirtyFileName(_key));
+            string newPath = Path.Combine(_cache._directoryPath, GetCleanFileName(_key));
             try
             {
-                file = _cache.GetFolder().GetFileAsync(dirtyFileName).AsTask().Result;
-            }
-            catch (Exception e)
-            {
-                Logger.F(TAG, nameof(EndWrite), e);
-            }
-            if (file == null)
-            {
-                SwitchToEmptyState();
-                return;
-            }
-
-            string cleanFileName = GetCleanFileName(_key);
-            try
-            {
-                file.RenameAsync(cleanFileName, NameCollisionOption.ReplaceExisting).AsTask().Wait();
+                File.Move(oldPath, newPath, overwrite: true);
             }
             catch (Exception e)
             {
@@ -339,7 +306,7 @@ public class LRUCache(string directoryPath, long maxSize)
             }
         }
 
-        public ILRUOutputStream? StartRead()
+        public LRUOutputStream? StartRead()
         {
             _lock.AcquireWriterLock(-1);
             try
@@ -350,11 +317,10 @@ public class LRUCache(string directoryPath, long maxSize)
                 }
 
                 string filePath = Path.Combine(_cache._directoryPath, GetCleanFileName(_key));
-                IRandomAccessStream? stream = null;
+                Stream? stream = null;
                 try
                 {
-                    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-                    stream = fileStream.AsRandomAccessStream();
+                    stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
                 }
                 catch (FileNotFoundException)
                 {
@@ -391,6 +357,7 @@ public class LRUCache(string directoryPath, long maxSize)
                 {
                     return;
                 }
+
                 _readerCount--;
             }
             finally
@@ -420,73 +387,47 @@ public class LRUCache(string directoryPath, long maxSize)
         }
     }
 
-    private class LRUInputStream(CacheEntry entry, IRandomAccessStream stream) : ILRUInputStream
+    private class LRUInputStream(CacheEntry entry, Stream stream) : LRUCacheStream(stream)
     {
-        public void Dispose()
-        {
-            stream.Dispose();
-            entry.EndWrite();
-        }
+        private bool _disposed;
 
-        public async Task WriteAsync(IBuffer buffer)
+        protected override void Dispose(bool disposing)
         {
-            await stream.WriteAsync(buffer);
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                Inner.Dispose();
+                entry.EndWrite();
+            }
+
+            _disposed = true;
+            base.Dispose(disposing);
         }
     }
 
-    private class LRUOutputStream(CacheEntry entry, IRandomAccessStream stream) : ILRUOutputStream
+    private class LRUOutputStream(CacheEntry entry, Stream stream) : LRUCacheStream(stream)
     {
-        public bool CanRead => stream.CanRead;
+        private bool _disposed;
 
-        public bool CanWrite => stream.CanWrite;
-
-        public ulong Position => stream.Position;
-
-        public ulong Size
+        protected override void Dispose(bool disposing)
         {
-            get => stream.Size;
-            set => stream.Size = value;
-        }
+            if (_disposed)
+            {
+                return;
+            }
 
-        public IRandomAccessStream CloneStream()
-        {
-            return stream.CloneStream();
-        }
+            if (disposing)
+            {
+                Inner.Dispose();
+                entry.EndRead();
+            }
 
-        public void Dispose()
-        {
-            entry.EndRead();
-            stream.Dispose();
-        }
-
-        public IAsyncOperation<bool> FlushAsync()
-        {
-            return stream.FlushAsync();
-        }
-
-        public IInputStream GetInputStreamAt(ulong position)
-        {
-            return stream.GetInputStreamAt(position);
-        }
-
-        public IOutputStream GetOutputStreamAt(ulong position)
-        {
-            return stream.GetOutputStreamAt(position);
-        }
-
-        public IAsyncOperationWithProgress<IBuffer, uint> ReadAsync(IBuffer buffer, uint count, InputStreamOptions options)
-        {
-            return stream.ReadAsync(buffer, count, options);
-        }
-
-        public void Seek(ulong position)
-        {
-            stream.Seek(position);
-        }
-
-        public IAsyncOperationWithProgress<uint, uint> WriteAsync(IBuffer buffer)
-        {
-            return stream.WriteAsync(buffer);
+            _disposed = true;
+            base.Dispose(disposing);
         }
     }
 }

@@ -16,7 +16,6 @@ using ComicReaderUWP.SDK.Common.Pdf;
 using ComicReaderUWP.SDK.Common.Utils;
 
 using Windows.Storage;
-using Windows.Storage.Streams;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
@@ -109,18 +108,19 @@ internal partial class PdfComicHandle : ComicHandle
             return StringResourceProvider.Instance.PageN.Replace("$page", (index + 1).ToString());
         }
 
-        public async Task<IRandomAccessStream?> GetImageStream(int index)
+        public Stream? GetImageStream(int index)
         {
             MemoryStream? memoryStream = new();
             try
             {
                 SizeF size = connection.GetPageSize(index);
                 CalculatePageSize(size.Width, size.Height, out int width, out int height);
-                using Image? image = await connection.Render(index, width, height);
+                using Image? image = connection.Render(index, width, height).Result;
                 if (image == null)
                 {
                     return null;
                 }
+
                 image.Save(memoryStream, ImageFormat.Png);
             }
             catch (Exception e)
@@ -129,7 +129,8 @@ internal partial class PdfComicHandle : ComicHandle
                 memoryStream.Dispose();
                 memoryStream = null;
             }
-            return memoryStream?.AsRandomAccessStream();
+
+            return memoryStream;
         }
 
         public string GetImageCacheKey(int index)

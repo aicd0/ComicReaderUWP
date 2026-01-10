@@ -23,7 +23,7 @@ internal sealed partial class ReaderPreviewImage : UserControl
     {
         if (inRecycleQueue)
         {
-            ImageHolder.UnsetModel();
+            ImageHolder.SetModel(null);
         }
 
         Model = model;

@@ -1,12 +1,11 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Text;
+
 using ComicReaderUWP.SDK.Common.Caching;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Storage;
-
-using Windows.Security.Cryptography;
-using Windows.Storage.Streams;
 
 namespace ComicReaderUWP.SDK.Database.Misc;
 
@@ -35,33 +34,27 @@ internal class SimpleConfigDatabase
             return null;
         }
 
-        ILRUOutputStream? stream = lruCache.Get(key);
+        using LRUCacheStream? stream = lruCache.Get(key);
         if (stream is null)
         {
             return null;
         }
 
-        using DataReader reader = new(stream);
-        string value;
+        using var reader = new StreamReader(
+            stream,
+            Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: false,
+            bufferSize: 1024,
+            leaveOpen: true);
         try
         {
-            uint bytesLoaded = reader.LoadAsync((uint)stream.Size).AsTask().Result;
-            if (bytesLoaded == 0)
-            {
-                Logger.AssertNotReachHere("7EFEE0FD9C031188");
-                return null;
-            }
-
-            IBuffer buffer = reader.ReadBuffer(bytesLoaded);
-            value = CryptographicBuffer.ConvertBinaryToString(BinaryStringEncoding.Utf8, buffer);
+            return reader.ReadToEnd();
         }
         catch (Exception ex)
         {
             Logger.F(TAG, nameof(TryGetConfig), ex);
             return null;
         }
-
-        return value;
     }
 
     public void TryPutConfig(string key, string value)
@@ -72,19 +65,23 @@ internal class SimpleConfigDatabase
             return;
         }
 
-        IBuffer buffer = CryptographicBuffer.ConvertStringToBinary(value, BinaryStringEncoding.Utf8);
-        using ILRUInputStream? stream = lruCache.Put(key);
+        using LRUCacheStream? stream = lruCache.Put(key);
         if (stream is null)
         {
             Logger.F(TAG, "Failed to acquire input stream.");
             return;
         }
 
+        using var writer = new StreamWriter(
+            stream,
+            Encoding.UTF8,
+            bufferSize: 1024,
+            leaveOpen: true);
         try
         {
-            stream.WriteAsync(buffer).Wait();
+            writer.Write(value);
         }
-        catch (Exception ex)
+        catch (IOException ex)
         {
             Logger.F(TAG, nameof(TryPutConfig), ex);
             return;

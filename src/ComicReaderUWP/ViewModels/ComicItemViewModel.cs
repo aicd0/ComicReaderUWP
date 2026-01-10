@@ -134,9 +134,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         }
     }
 
-    private readonly ReaderImageViewModel _image = new();
-    public ReaderImageViewModel Image => _image;
-
     public bool IsRatingVisible => !string.IsNullOrEmpty(Rating);
     public bool IsRead => Comic.CompletionState == ComicCompletionStatusEnum.Completed;
     public bool IsReading => Comic.CompletionState == ComicCompletionStatusEnum.Started;
@@ -166,16 +163,12 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
 
     public ComicItemViewModel Clone()
     {
-        var model = new ComicItemViewModel(Comic)
+        return new ComicItemViewModel(Comic)
         {
             Progress = Progress,
             OnClick = OnClick,
             OnRequestContextFlyoutAsync = OnRequestContextFlyoutAsync,
         };
-
-        model._image.Image = _image.Image;
-        model._image.ImageRequested = _image.ImageRequested;
-        return model;
     }
 
     public void Update(ComicItemViewModel item)
@@ -189,8 +182,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         Progress = item.Progress;
         OnClick = item.OnClick;
         OnRequestContextFlyoutAsync = item.OnRequestContextFlyoutAsync;
-        _image.Image = item._image.Image;
-        _image.ImageRequested = item._image.ImageRequested;
     }
 
     public void UpdateProgress(bool compat)
