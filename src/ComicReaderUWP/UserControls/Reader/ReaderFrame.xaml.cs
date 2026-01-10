@@ -16,9 +16,6 @@ internal sealed partial class ReaderFrame : UserControl
     public delegate void ReadyStateChangeListener(FrameworkElement container, bool isReady, string reason);
     private event ReadyStateChangeListener? ReadyStateChanged;
 
-    public delegate void ImageChangeListener(ReaderFrameViewModel model);
-    private event ImageChangeListener? ImageChanged;
-
     private ReaderFrameViewModel? ViewModel { get; set; }
     private FrameworkElement Container => MainFrame;
 
@@ -71,11 +68,6 @@ internal sealed partial class ReaderFrame : UserControl
         ReadyStateChanged = handler;
     }
 
-    public void SetImageChangeHandler(ImageChangeListener? handler)
-    {
-        ImageChanged = handler;
-    }
-
     private void OnFrameLoaded(object sender, RoutedEventArgs e)
     {
         DispatchReadyStateChangeEvent("FrameLoaded");
@@ -91,13 +83,6 @@ internal sealed partial class ReaderFrame : UserControl
         if (e.PropertyName == nameof(ReaderFrameViewModel))
         {
             RebindViewModel("Rebind by property");
-        }
-        else if (e.PropertyName == nameof(ReaderFrameViewModel.ImageLeft) || e.PropertyName == nameof(ReaderFrameViewModel.ImageRight))
-        {
-            if (ViewModel != null)
-            {
-                ImageChanged?.Invoke(ViewModel);
-            }
         }
     }
 

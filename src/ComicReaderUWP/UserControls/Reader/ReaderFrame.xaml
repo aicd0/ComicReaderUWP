@@ -10,28 +10,15 @@
 
     <Grid
         x:Name="MainFrame"
+        Padding="{x:Bind ViewModel.FrameMargin, Mode=OneWay}"
         Loaded="OnFrameLoaded"
         SizeChanged="OnFrameSizeChanged">
-        <Grid Margin="{x:Bind ViewModel.FrameMargin, Mode=OneWay}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Image
-                x:Name="ImageLeft"
-                Grid.Column="0"
-                Width="{x:Bind ViewModel.LeftImageWidth, Mode=OneWay}"
-                Height="{x:Bind ViewModel.LeftImageHeight, Mode=OneWay}"
-                VerticalAlignment="Center"
-                Source="{x:Bind ViewModel.ImageLeft, Mode=OneWay}" />
-            <Image
-                x:Name="ImageRight"
-                Grid.Column="1"
-                Width="{x:Bind ViewModel.RightImageWidth, Mode=OneWay}"
-                Height="{x:Bind ViewModel.RightImageHeight, Mode=OneWay}"
-                VerticalAlignment="Center"
-                Source="{x:Bind ViewModel.ImageRight, Mode=OneWay}" />
-        </Grid>
+        <Image
+            x:Name="ImageMerged"
+            Width="{x:Bind ViewModel.FrameWidth, Mode=OneWay}"
+            Height="{x:Bind ViewModel.FrameHeight, Mode=OneWay}"
+            VerticalAlignment="Center"
+            Source="{x:Bind ViewModel.ImageMerged, Mode=OneWay}" />
     </Grid>
 
 </UserControl>

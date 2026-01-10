@@ -11,94 +11,34 @@ using Microsoft.UI.Xaml.Media;
 
 namespace ComicReaderUWP.UserControls.Reader;
 
-internal partial class ReaderFrameViewModel : INotifyPropertyChanged
+internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposable
 {
     public const int NO_PAGE = -1;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private Thickness _frameMargin = new(0.0, 0.0, 0.0, 0.0);
-    public Thickness FrameMargin
+    private ImageSource? _imageMerged;
+    public ImageSource? ImageMerged
     {
-        get => _frameMargin;
+        get => _imageMerged;
         set
         {
-            _frameMargin = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FrameMargin)));
+            _imageMerged = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageMerged)));
         }
     }
+
+    public Thickness FrameMargin { get; set; } = new(0.0, 0.0, 0.0, 0.0);
 
     public IImageSource? LeftImageSource { get; set; }
     public ImageHolder LeftImageHolder { get; }
-
-    private ImageSource? _imageLeft;
-    public ImageSource? ImageLeft
-    {
-        get => _imageLeft;
-        set
-        {
-            _imageLeft = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageLeft)));
-        }
-    }
-
-    private double _leftImageWidth = 0.0;
-    public double LeftImageWidth
-    {
-        get => _leftImageWidth;
-        set
-        {
-            _leftImageWidth = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftImageWidth)));
-        }
-    }
-
-    private double _leftImageHeight = 0.0;
-    public double LeftImageHeight
-    {
-        get => _leftImageHeight;
-        set
-        {
-            _leftImageHeight = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftImageHeight)));
-        }
-    }
+    public double LeftImageWidth { get; set; } = 0.0;
+    public double LeftImageHeight { get; set; } = 0.0;
 
     public IImageSource? RightImageSource { get; set; }
     public ImageHolder RightImageHolder { get; }
-
-    private ImageSource? _imageRight;
-    public ImageSource? ImageRight
-    {
-        get => _imageRight;
-        set
-        {
-            _imageRight = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageRight)));
-        }
-    }
-
-    private double _rightImageWidth = 0.0;
-    public double RightImageWidth
-    {
-        get => _rightImageWidth;
-        set
-        {
-            _rightImageWidth = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightImageWidth)));
-        }
-    }
-
-    private double _rightImageHeight = 0.0;
-    public double RightImageHeight
-    {
-        get => _rightImageHeight;
-        set
-        {
-            _rightImageHeight = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightImageHeight)));
-        }
-    }
+    public double RightImageWidth { get; set; } = 0.0;
+    public double RightImageHeight { get; set; } = 0.0;
 
     public double FrameWidth => LeftImageWidth + RightImageWidth;
     public double FrameHeight => Math.Max(LeftImageHeight, RightImageHeight);
@@ -108,32 +48,50 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged
     public double Page => PageL != NO_PAGE && PageR != NO_PAGE ? (PageL + PageR) * 0.5 : PageL == NO_PAGE ? PageR : PageL;
     public bool IsDualPage => PageL != NO_PAGE && PageR != NO_PAGE;
 
+    private readonly ReaderImageSourceHolder _imageSourceHolder = new();
+
     public ReaderFrameViewModel(ReaderImagePool pool)
     {
-        LeftImageHolder = new(pool, delegate (DecodedImageModel? result)
+        _imageSourceHolder.SourceChanged += source =>
         {
-            if (result is null)
-            {
-                ImageLeft = null;
-                return;
-            }
-
-            ImageLeft = ImagingUtils.CreateImageSource(result);
-        });
-        RightImageHolder = new(pool, delegate (DecodedImageModel? result)
+            ImageMerged = source;
+        };
+        LeftImageHolder = new(pool, source =>
         {
-            if (result is null)
-            {
-                ImageRight = null;
-                return;
-            }
-
-            ImageRight = ImagingUtils.CreateImageSource(result);
+            PrepareImageSourceHolder();
+            _imageSourceHolder.SetLeftImage(source);
         });
+        RightImageHolder = new(pool, source =>
+        {
+            PrepareImageSourceHolder();
+            _imageSourceHolder.SetRightImage(source);
+        });
+    }
+
+    public void Dispose()
+    {
+        LeftImageHolder.Dispose();
+        RightImageHolder.Dispose();
+        _imageSourceHolder.Dispose();
     }
 
     public void RebindEntireViewModel()
     {
         PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ReaderFrameViewModel)));
+    }
+
+    public void SetScale(double scale)
+    {
+        _imageSourceHolder.Scale = scale;
+        _imageSourceHolder.Invalidate();
+    }
+
+    private void PrepareImageSourceHolder()
+    {
+        _imageSourceHolder.PlaceholderMode = IsDualPage;
+        _imageSourceHolder.LeftImageWidth = LeftImageWidth;
+        _imageSourceHolder.LeftImageHeight = LeftImageHeight;
+        _imageSourceHolder.RightImageWidth = RightImageWidth;
+        _imageSourceHolder.RightImageHeight = RightImageHeight;
     }
 };

@@ -7,7 +7,7 @@ using ComicReaderUWP.Common.Imaging;
 
 namespace ComicReaderUWP.UserControls.Reader;
 
-internal class ImageHolder
+internal partial class ImageHolder : IDisposable
 {
     private readonly ReaderImagePool? _pool;
     private readonly Action<DecodedImageModel?> _setter;
@@ -20,6 +20,12 @@ internal class ImageHolder
     {
         _pool = pool;
         _setter = setter;
+    }
+
+    public void Dispose()
+    {
+        _currentImage?.Dispose();
+        _currentImage = null;
     }
 
     public void SetImage(IImageSource? source)
@@ -49,11 +55,17 @@ internal class ImageHolder
 
         if (_currentImage != null && _currentImageSource != null)
         {
-            _pool.RecycleImage(_currentImageSource, _currentImage);
+            DecodedImageModel recyclingImage = _currentImage;
+            _currentImage = null;
+            _pool.RecycleImage(_currentImageSource, recyclingImage);
+        }
+        else
+        {
+            _currentImage?.Dispose();
+            _currentImage = null;
         }
 
         _currentImageSource = source;
-        _currentImage = null;
 
         if (uri.Length == 0 || source is null)
         {
@@ -72,6 +84,7 @@ internal class ImageHolder
             _currentUri = string.Empty;
         }
 
+        _currentImage?.Dispose();
         _currentImage = image;
         _setter(image);
     }

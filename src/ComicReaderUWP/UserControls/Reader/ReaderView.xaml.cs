@@ -20,7 +20,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace ComicReaderUWP.UserControls.Reader;
 
@@ -152,6 +151,13 @@ internal partial class ReaderView : UserControl
         _isDestoryed = true;
         UpdateLoadedState();
         _dataModelSession.Next();
+
+        foreach (ReaderFrameViewModel frameModel in FrameDataSource)
+        {
+            frameModel.Dispose();
+        }
+
+        FrameDataSource.Clear();
     }
 
     public void StartLoadingImages(IEnumerable<IImageSource> images)
@@ -296,10 +302,11 @@ internal partial class ReaderView : UserControl
         int lastFrameIndex = PageToFrame(PageCount, out bool _, out int _);
         for (int i = FrameDataSource.Count - 1; i > lastFrameIndex; --i)
         {
+            FrameDataSource[i].Dispose();
             FrameDataSource.RemoveAt(i);
         }
 
-        _imagePool.Cancel();
+        _imagePool.Cancel(clear: false);
         for (int i = 0; i < FrameDataSource.Count; ++i)
         {
             ReaderFrameViewModel item = FrameDataSource[i];
@@ -934,37 +941,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        double frameHeight = model.FrameHeight * SCZoomFactorFinal;
-
-        void applyDecodeSize(BitmapImage image)
-        {
-            if (image == null || image.PixelHeight <= 0 || image.PixelWidth <= 0)
-            {
-                return;
-            }
-
-            double frameWidth = frameHeight * image.PixelWidth / image.PixelHeight;
-            double multiplication = 1.2 * DisplayUtils.GetRawPixelPerPixel();
-            int decodeHeight = (int)Math.Round(frameHeight * multiplication);
-            int decodeWidth = (int)Math.Round(frameWidth * multiplication);
-
-            if (decodeHeight * decodeWidth >= image.PixelHeight * image.PixelWidth)
-            {
-                decodeHeight = image.PixelHeight;
-                decodeWidth = image.PixelWidth;
-            }
-
-            if (image.DecodePixelHeight == decodeHeight && image.DecodePixelWidth == decodeWidth)
-            {
-                return;
-            }
-
-            image.DecodePixelWidth = decodeWidth;
-            image.DecodePixelHeight = decodeHeight;
-        }
-
-        applyDecodeSize(model.ImageLeft);
-        applyDecodeSize(model.ImageRight);
+        model.SetScale(SCZoomFactorFinal);
     }
 
     //
@@ -1007,7 +984,7 @@ internal partial class ReaderView : UserControl
         }
         else
         {
-            _imagePool.Cancel();
+            _imagePool.Cancel(clear: true);
             DisposeCursor();
         }
     }
@@ -1139,7 +1116,6 @@ internal partial class ReaderView : UserControl
         {
             _frameManager.MarkViewNotReady(args.ItemIndex, "ViewRecycled");
             viewHolder.SetReadyStateChangeHandler(null);
-            viewHolder.SetImageChangeHandler(null);
             viewHolder.Bind(null);
         }
         else
@@ -1157,7 +1133,6 @@ internal partial class ReaderView : UserControl
                     _frameManager.MarkViewNotReady(index, "ViewNotReady");
                 }
             });
-            viewHolder.SetImageChangeHandler(UpdateImageDecodeSize);
 
             viewHolder.Bind(item);
             _frameManager.MarkModelInstanceUpdateToDate(index, "ViewBindByContainer");
