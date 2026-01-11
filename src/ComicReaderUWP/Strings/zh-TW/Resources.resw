@@ -153,8 +153,8 @@
   <data name="AllPages" xml:space="preserve">
     <value>所有頁面</value>
   </data>
-  <data name="AntiAliasingFilter.Text" xml:space="preserve">
-    <value>抗混疊濾波器（實驗性）</value>
+  <data name="AntiAliasingFilter" xml:space="preserve">
+    <value>抗混疊濾波器</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
     <value>漫畫閱讀器 UWP</value>

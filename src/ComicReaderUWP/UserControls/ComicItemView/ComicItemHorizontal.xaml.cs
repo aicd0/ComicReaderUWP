@@ -24,7 +24,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
     private readonly CancellationSession _loadImageToken = new();
     private bool _isLoaded = false;
     private bool _imageRequested = false;
-    private ImageSourceHolder? _imageSourceHolder;
 
     public ComicItemHorizontal()
     {
@@ -68,8 +67,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         else
         {
             ClearImage();
-            _imageSourceHolder?.Dispose();
-            _imageSourceHolder = null;
         }
     }
 
@@ -142,7 +139,7 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
             new(new ComicCoverImageSource(item.Comic), new LoadImageCallback(this, item)) {
                 Width = imageWidth,
                 Height = imageHeight,
-                Multiplication = 1.4,
+                Multiplication = DisplayUtils.GetRawPixelPerPixel(),
                 StretchMode = StretchModeEnum.UniformToFill,
             }
         };
@@ -162,7 +159,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
 
         public void OnSuccess(DecodedImageModel result)
         {
-            using DecodedImageModel disposingResult = result;
             if (!_viewHolderRef.TryGetTarget(out ComicItemHorizontal? view) || !view.IsLoaded)
             {
                 return;
@@ -173,19 +169,7 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
                 return;
             }
 
-            ImageSourceHolder? imageSourceHolder = view._imageSourceHolder;
-            if (imageSourceHolder is null)
-            {
-                imageSourceHolder = new();
-                view._imageSourceHolder = imageSourceHolder;
-                imageSourceHolder.SourceChanged += view.SetImageSource;
-            }
-
-            imageSourceHolder.SetImage(result);
-
-            // We still need to bind in case silent backing buffer update causing
-            // SourceChanged not triggering (which is intended)
-            view.SetImageSource(imageSourceHolder.Source);
+            view.SetImageSource(result.Source);
         }
 
         public void OnFailure()

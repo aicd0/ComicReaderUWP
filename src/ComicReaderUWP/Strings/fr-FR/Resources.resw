@@ -153,8 +153,8 @@
   <data name="AllPages" xml:space="preserve">
     <value>Toutes les pages</value>
   </data>
-  <data name="AntiAliasingFilter.Text" xml:space="preserve">
-    <value>Filtre anti-aliasing (expérimental)</value>
+  <data name="AntiAliasingFilter" xml:space="preserve">
+    <value>Filtre anti-aliasing</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
     <value>Lecteur de Bandes Dessinées UWP</value>

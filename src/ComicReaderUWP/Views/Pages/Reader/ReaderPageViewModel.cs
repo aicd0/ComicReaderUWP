@@ -623,15 +623,15 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private static string FormatDpi(int dpiX, int dpiY)
+    private static string FormatDpi(double dpiX, double dpiY)
     {
         if (dpiX == dpiY)
         {
-            return $"{dpiX} dpi";
+            return $"{dpiX:0.##} dpi";
         }
         else
         {
-            return $"{dpiX} x {dpiY} dpi";
+            return $"{dpiX:0.##} x {dpiY:0.##} dpi";
         }
     }
 

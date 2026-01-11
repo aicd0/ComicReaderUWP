@@ -9,7 +9,7 @@ using ComicReaderUWP.Common.Imaging;
 
 namespace ComicReaderUWP.ViewModels;
 
-internal class ReaderImagePreviewViewModel : INotifyPropertyChanged
+internal partial class ReaderImagePreviewViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
 
@@ -20,7 +20,7 @@ internal class ReaderImagePreviewViewModel : INotifyPropertyChanged
         set
         {
             _Image = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Image"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Image)));
         }
     }
 
@@ -31,7 +31,7 @@ internal class ReaderImagePreviewViewModel : INotifyPropertyChanged
         set
         {
             _Page = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Page"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Page)));
         }
     }
 }

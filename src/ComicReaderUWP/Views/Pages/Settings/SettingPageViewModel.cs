@@ -789,10 +789,8 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     private static string GetCacheSize()
     {
         long size = 0;
-        var localCacheDir = new DirectoryInfo(StorageLocation.LocalCacheFolderPath);
-        size += GetCacheDirectorySize(localCacheDir);
-        var tempDir = new DirectoryInfo(StorageLocation.TemporaryFolderPath);
-        size += GetCacheDirectorySize(tempDir);
+        size += GetCacheDirectorySize(StorageLocation.LocalCacheFolderPath);
+        size += GetCacheDirectorySize(StorageLocation.TemporaryFolderPath);
 
         string[] sizes = ["B", "KB", "MB", "GB", "TB"];
         int order = 0;
@@ -808,15 +806,24 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     private static void ClearCacheInternal()
     {
         ImageCacheManager.Clear();
-        DirectoryInfo cacheDir = new(StorageLocation.LocalCacheFolderPath);
-        ClearCacheDirectory(cacheDir);
-        DirectoryInfo tempDir = new(StorageLocation.TemporaryFolderPath);
-        ClearCacheDirectory(tempDir);
+        ClearCacheDirectory(StorageLocation.LocalCacheFolderPath);
+        ClearCacheDirectory(StorageLocation.TemporaryFolderPath);
     }
 
-    private static long GetCacheDirectorySize(DirectoryInfo directory)
+    private static long GetCacheDirectorySize(string directoryPath)
     {
         long size = 0;
+
+        DirectoryInfo directory;
+        try
+        {
+            directory = new(directoryPath);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+            return size;
+        }
 
         FileInfo[] files;
         try
@@ -865,8 +872,19 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         return size;
     }
 
-    private static void ClearCacheDirectory(DirectoryInfo directory)
+    private static void ClearCacheDirectory(string directoryPath)
     {
+        DirectoryInfo directory;
+        try
+        {
+            directory = new(directoryPath);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+            return;
+        }
+
         FileInfo[] files;
         try
         {
@@ -884,7 +902,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             {
                 file.Delete();
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 Logger.E(TAG, "ClearDirectory", e);
             }
@@ -907,7 +925,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             {
                 dir.Delete(true);
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 Logger.E(TAG, "ClearDirectory", e);
             }

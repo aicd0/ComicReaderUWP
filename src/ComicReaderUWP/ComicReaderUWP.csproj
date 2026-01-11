@@ -99,7 +99,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="SharpCompress" Version="0.43.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ComicReaderUWP.SDK\ComicReaderUWP.SDK.csproj" />

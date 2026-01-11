@@ -9,6 +9,8 @@ namespace ComicReaderUWP.SDK.Common.DebugTools;
 
 public static class DebugUtils
 {
+    private const string TAG = nameof(DebugUtils);
+
 #if DEBUG
     private const bool IS_DEBUG_BUILD = true;
 #else
@@ -124,6 +126,7 @@ public static class DebugUtils
 
     private static void CaptureFatalErrorInternal(string? message, Exception e, bool fastFail)
     {
+        Logger.E(TAG, message, e);
         AppUnhandledException appException = new(message, e);
         SentryManager.CaptureError(appException);
         CrashHandler.OnUnhandledException(appException);

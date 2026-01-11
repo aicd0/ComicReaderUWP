@@ -24,7 +24,6 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
     private readonly CancellationSession _loadImageToken = new();
     private bool _isLoaded = false;
     private bool _imageRequested = false;
-    private ImageSourceHolder? _imageSourceHolder;
 
     public ComicItemVertical()
     {
@@ -68,8 +67,6 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
         else
         {
             ClearImage();
-            _imageSourceHolder?.Dispose();
-            _imageSourceHolder = null;
         }
     }
 
@@ -152,7 +149,7 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
             new(new ComicCoverImageSource(item.Comic), new LoadImageCallback(this, item)) {
                 Width = imageWidth,
                 Height = imageHeight,
-                Multiplication = 1.4,
+                Multiplication = DisplayUtils.GetRawPixelPerPixel(),
             }
         };
         new SimpleImageLoader.Transaction(_loadImageToken.Token, tokens).Commit();
@@ -172,7 +169,6 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
 
         public void OnSuccess(DecodedImageModel result)
         {
-            using DecodedImageModel disposingResult = result;
             if (!_viewHolderRef.TryGetTarget(out ComicItemVertical? view) || !view.IsLoaded)
             {
                 return;
@@ -183,19 +179,7 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
                 return;
             }
 
-            ImageSourceHolder? imageSourceHolder = view._imageSourceHolder;
-            if (imageSourceHolder is null)
-            {
-                imageSourceHolder = new();
-                view._imageSourceHolder = imageSourceHolder;
-                imageSourceHolder.SourceChanged += view.SetImageSource;
-            }
-
-            imageSourceHolder.SetImage(result);
-
-            // We still need to bind in case silent backing buffer update causing
-            // SourceChanged not triggering (which is intended)
-            view.SetImageSource(imageSourceHolder.Source);
+            view.SetImageSource(result.Source);
         }
 
         public void OnFailure()

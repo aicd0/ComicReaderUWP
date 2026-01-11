@@ -153,8 +153,8 @@
   <data name="AllPages" xml:space="preserve">
     <value>모든 페이지</value>
   </data>
-  <data name="AntiAliasingFilter.Text" xml:space="preserve">
-    <value>앤티앨리어싱 필터(실험적)</value>
+  <data name="AntiAliasingFilter" xml:space="preserve">
+    <value>앤티앨리어싱 필터</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
     <value>만화 리더 UWP</value>
