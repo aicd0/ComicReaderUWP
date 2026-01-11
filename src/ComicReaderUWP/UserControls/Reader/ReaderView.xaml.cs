@@ -37,8 +37,8 @@ internal partial class ReaderView : UserControl
     private const double DEFAULT_HORIZONTAL_PAGE_SPACING = 100.0;
     private const double DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER = 2.0;
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 1.05F;
-    private const int PRELOAD_FRAMES_BEFORE = 10;
-    private const int PRELOAD_FRAMES_AFTER = 10;
+    private const int PRELOAD_FRAMES_BEFORE = 5;
+    private const int PRELOAD_FRAMES_AFTER = 5;
     private const double AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_CONTINUOUS = 0.001;
     private const double AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_SEPERATE = 0.0005;
     private const int AUTO_SCROLL_COMMON_SPEED = 20;

@@ -33,7 +33,8 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     public ImageSource? Source => _canvasImageSource;
 
     private readonly object _lock = new();
-    private readonly ITaskDispatcher _dispatcher = dispatcher;
+    private readonly ITaskDispatcher _decodeDispatcher = dispatcher;
+    private readonly ITaskDispatcher _drawDispatcher = TaskDispatcher.DefaultThreadPool;
     private readonly List<ImageItem> _images = [];
     private CanvasDevice? _canvasDevice;
     private CanvasImageSource? _canvasImageSource;
@@ -103,7 +104,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return;
         }
 
-        _dispatcher.Submit(() =>
+        _decodeDispatcher.Submit(() =>
         {
             bool loadInvalidated = false;
             do
@@ -138,17 +139,17 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
     private bool LoadImage(ImageItem item, IImageSource? source)
     {
-        CanvasBitmap? oldBitmap;
+        RefCounted<CanvasBitmap>? oldBitmapRef;
         lock (item.Lock)
         {
-            oldBitmap = item.Bitmap;
-            item.Bitmap = null;
+            oldBitmapRef = item.BitmapRef;
+            item.BitmapRef = null;
         }
 
         bool needDraw = false;
-        if (oldBitmap is not null)
+        if (oldBitmapRef is not null)
         {
-            oldBitmap.Dispose();
+            oldBitmapRef.Unref();
             needDraw = true;
         }
 
@@ -175,13 +176,14 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return needDraw;
         }
 
+        RefCounted<CanvasBitmap>? newBitmapRef = new(newBitmap);
         lock (item.Lock)
         {
-            oldBitmap = item.Bitmap;
-            item.Bitmap = newBitmap;
+            oldBitmapRef = item.BitmapRef;
+            item.BitmapRef = newBitmapRef;
         }
 
-        oldBitmap?.Dispose();
+        oldBitmapRef?.Unref();
         return true;
     }
 
@@ -192,7 +194,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return;
         }
 
-        _dispatcher.Submit(() =>
+        _drawDispatcher.Submit(() =>
         {
             Interlocked.Exchange(ref _postDraw, 0);
             Draw();
@@ -201,18 +203,19 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
     private void Draw()
     {
-        CanvasBitmap?[] bitmaps;
+        RefCounted<CanvasBitmap>?[] bitmaps;
         Size[] frameSizes;
         lock (_images)
         {
-            bitmaps = new CanvasBitmap?[_images.Count];
+            bitmaps = new RefCounted<CanvasBitmap>?[_images.Count];
             frameSizes = new Size[_images.Count];
             for (int i = 0; i < _images.Count; i++)
             {
                 ImageItem item = _images[i];
                 lock (item.Lock)
                 {
-                    bitmaps[i] = item.Bitmap;
+                    item.BitmapRef?.Ref();
+                    bitmaps[i] = item.BitmapRef;
                     frameSizes[i] = item.FrameSize;
                 }
             }
@@ -221,15 +224,17 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         double maxPixelRatio = 0;
         for (int i = 0; i < bitmaps.Length; i++)
         {
-            CanvasBitmap? bitmap = bitmaps[i];
-            if (bitmap is null)
+            RefCounted<CanvasBitmap>? bitmapRef = bitmaps[i];
+            if (bitmapRef is null)
             {
                 continue;
             }
 
+            CanvasBitmap bitmap = bitmapRef.Value;
             if (bitmap.SizeInPixels.Width < 1 || bitmap.SizeInPixels.Height < 1)
             {
                 bitmaps[i] = null;
+                bitmapRef.Unref();
                 continue;
             }
 
@@ -237,6 +242,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             if (frameSize.Width < 1E-3 || frameSize.Height < 1E-3)
             {
                 bitmaps[i] = null;
+                bitmapRef.Unref();
                 continue;
             }
 
@@ -266,7 +272,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         double maxHeight = 0;
         for (int i = 0; i < bitmaps.Length; i++)
         {
-            CanvasBitmap? bitmap = bitmaps[i];
+            CanvasBitmap? bitmap = bitmaps[i]?.Value;
             if (bitmap is null && !PlaceholderMode)
             {
                 continue;
@@ -295,7 +301,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         maxHeight *= scaleRatio;
         for (int i = 0; i < bitmaps.Length; i++)
         {
-            CanvasBitmap? bitmap = bitmaps[i];
+            CanvasBitmap? bitmap = bitmaps[i]?.Value;
             if (bitmap is null && !PlaceholderMode)
             {
                 continue;
@@ -325,12 +331,13 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             using CanvasDrawingSession ds = imageSource.CreateDrawingSession(Colors.Transparent);
             for (int i = 0; i < bitmaps.Length; i++)
             {
-                CanvasBitmap? bitmap = bitmaps[i];
-                if (bitmap is null)
+                RefCounted<CanvasBitmap>? bitmapRef = bitmaps[i];
+                if (bitmapRef is null)
                 {
                     continue;
                 }
 
+                CanvasBitmap bitmap = bitmapRef.Value;
                 ImageRect imageRect = imageRects[i];
                 ds.DrawImage(
                     bitmap,
@@ -338,6 +345,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                     new Windows.Foundation.Rect(0, 0, bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height),
                     1F,
                     CanvasImageInterpolation.HighQualityCubic);
+                bitmapRef.Unref();
             }
         });
     }
@@ -395,7 +403,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     private partial class ImageItem : IDisposable
     {
         public object Lock { get; } = new();
-        public CanvasBitmap? Bitmap { get; set; }
+        public RefCounted<CanvasBitmap>? BitmapRef { get; set; }
         public IImageSource? Source { get; set; }
         public bool IsLoading { get; set; } = false;
         public bool IsLoadInvalidated { get; set; } = false;
@@ -403,8 +411,8 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
         public void Dispose()
         {
-            Bitmap?.Dispose();
-            Bitmap = null;
+            BitmapRef?.Unref();
+            BitmapRef = null;
         }
     }
 }
