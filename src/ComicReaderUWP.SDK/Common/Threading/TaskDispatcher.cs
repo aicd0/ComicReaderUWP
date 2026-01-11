@@ -30,6 +30,11 @@ public abstract class TaskDispatcher : ITaskDispatcher
         _endTag = LogTag.N(TAG, "end", _name);
     }
 
+    public void Submit(Action action)
+    {
+        Submit("AnonymousTask", action);
+    }
+
     public void Submit(string taskName, Action action)
     {
         ArgumentNullException.ThrowIfNull(taskName, nameof(taskName));

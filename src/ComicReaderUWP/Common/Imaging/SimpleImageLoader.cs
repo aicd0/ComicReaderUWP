@@ -41,8 +41,15 @@ internal static class SimpleImageLoader
                 {
                     double width = token.Width * token.Multiplication;
                     double height = token.Height * token.Multiplication;
-
-                    ImageCacheManager.LoadImage(_sessionToken, token.Source, width, height, token.StretchMode, token.ImageResultHandler);
+                    LoadImageOptions options = new()
+                    {
+                        Token = _sessionToken,
+                        FrameWidth = width,
+                        FrameHeight = height,
+                        StretchMode = token.StretchMode,
+                        Handler = token.ImageResultHandler,
+                    };
+                    ImageCacheManager.LoadImage(token.Source, options);
                 }
             });
         }

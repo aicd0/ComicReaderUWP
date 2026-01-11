@@ -92,7 +92,6 @@ internal partial class ReaderView : UserControl
     private readonly ITaskDispatcher _loadInfoDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadInfoQueue");
     private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private readonly ReaderFrameManager _frameManager = new();
-    private readonly ReaderImagePool _imagePool;
     private readonly Dictionary<int, ImageDataModel> _dataModel = [];
     private readonly CancellationSession _dataModelSession;
 
@@ -114,7 +113,6 @@ internal partial class ReaderView : UserControl
         _gestureRecognizer.SetHandler(_gestureHandler);
 
         _dataModelSession = new();
-        _imagePool = new(_loadImageDispatcher);
     }
 
     //
@@ -306,7 +304,6 @@ internal partial class ReaderView : UserControl
             FrameDataSource.RemoveAt(i);
         }
 
-        _imagePool.Cancel(clear: false);
         for (int i = 0; i < FrameDataSource.Count; ++i)
         {
             ReaderFrameViewModel item = FrameDataSource[i];
@@ -567,7 +564,7 @@ internal partial class ReaderView : UserControl
             needReload = true;
         }
 
-        if (needReload && _originalDataModel != null)
+        if (needReload)
         {
             if (_isInitialFrameJumped)
             {
@@ -683,7 +680,7 @@ internal partial class ReaderView : UserControl
         while (frameIndex >= FrameDataSource.Count)
         {
             _frameManager.MarkModelInstanceOutOfDate(frameIndex, "DataAppended");
-            FrameDataSource.Add(new ReaderFrameViewModel(_imagePool));
+            FrameDataSource.Add(new ReaderFrameViewModel(_loadImageDispatcher));
         }
 
         ReaderFrameViewModel item = FrameDataSource[frameIndex];
@@ -895,8 +892,8 @@ internal partial class ReaderView : UserControl
             ReaderFrameViewModel model = FrameDataSource[i];
             if (i < preloadWindowBegin || i > preloadWindowEnd)
             {
-                model.LeftImageHolder.SetImage(null);
-                model.RightImageHolder.SetImage(null);
+                model.SetLeftImageVisibility(false);
+                model.SetRightImageVisibility(false);
             }
             else
             {
@@ -912,8 +909,8 @@ internal partial class ReaderView : UserControl
             }
 
             ReaderFrameViewModel model = FrameDataSource[i];
-            model.LeftImageHolder.SetImage(model.LeftImageSource);
-            model.RightImageHolder.SetImage(model.RightImageSource);
+            model.SetLeftImageVisibility(true);
+            model.SetRightImageVisibility(true);
         }
 
         int spread = Math.Max(preloadWindowEnd - frame, frame - preloadWindowBegin);
@@ -930,8 +927,6 @@ internal partial class ReaderView : UserControl
                 addToLoaderQueue(frame - i);
             }
         }
-
-        _imagePool.FlushRequests();
     }
 
     private void UpdateImageDecodeSize(ReaderFrameViewModel model)
@@ -984,7 +979,6 @@ internal partial class ReaderView : UserControl
         }
         else
         {
-            _imagePool.Cancel(clear: true);
             DisposeCursor();
         }
     }

@@ -12,7 +12,7 @@ internal static class ImageCacheStrategy
     private const int CACHE_ENTRY_RESOLUTION_100K = 100000;
     private const int CACHE_ENTRY_RESOLUTION_300K = 300000;
 
-    public static IEnumerable<string> CalculateCacheEntryKeys(int desiredWidth, int desiredHeight, int originWidth, int originHeight)
+    public static List<string> CalculateCacheEntryKeys(int desiredWidth, int desiredHeight, int originWidth, int originHeight)
     {
         List<string> keys = [];
 

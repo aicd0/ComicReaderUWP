@@ -2,9 +2,15 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.SDK.Common.Threading;
+using ComicReaderUWP.SDK.Common.Utils;
 
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
@@ -13,8 +19,9 @@ using Microsoft.UI.Xaml.Media;
 
 namespace ComicReaderUWP.UserControls.Reader;
 
-internal partial class ReaderImageSourceHolder : IDisposable
+internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDisposable
 {
+    private const string TAG = nameof(ReaderImageSourceHolder);
     private const int MAX_CANVAS_SIZE = 33177600;
 
     public delegate void SourceChangedHandler(ImageSource? source);
@@ -22,95 +29,193 @@ internal partial class ReaderImageSourceHolder : IDisposable
 
     public double Scale { get; set; } = double.PositiveInfinity;
     public bool PlaceholderMode { get; set; } = false;
-    public double LeftImageWidth { get; set; }
-    public double LeftImageHeight { get; set; }
-    public double RightImageWidth { get; set; }
-    public double RightImageHeight { get; set; }
 
     public ImageSource? Source => _canvasImageSource;
 
+    private readonly object _lock = new();
+    private readonly ITaskDispatcher _dispatcher = dispatcher;
+    private readonly List<ImageItem> _images = [];
     private CanvasDevice? _canvasDevice;
     private CanvasImageSource? _canvasImageSource;
-    private CanvasBitmap? _leftCanvasBitmap;
-    private CanvasBitmap? _rightCanvasBitmap;
+    private int _postDraw = 0;
 
     public void Dispose()
     {
         _canvasDevice = null;
         _canvasImageSource = null;
-        _leftCanvasBitmap?.Dispose();
-        _leftCanvasBitmap = null;
-        _rightCanvasBitmap?.Dispose();
-        _rightCanvasBitmap = null;
+
+        foreach (ImageItem item in _images)
+        {
+            item.Dispose();
+        }
+
+        _images.Clear();
     }
 
     public void Invalidate()
     {
-        Draw();
+        PostDrawTask();
     }
 
-    public void SetLeftImage(DecodedImageModel? imageModel)
+    public void SetImage(int index, IImageSource? source, double frameWidth, double frameHeight)
     {
-        _leftCanvasBitmap?.Dispose();
-        _leftCanvasBitmap = null;
+        ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
 
-        if (imageModel is not null)
+        ImageItem item;
+        bool needDraw = false;
+        lock (_images)
         {
-            SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Bgra32> image = imageModel.Image;
-            byte[] pixels = new byte[image.Width * image.Height * 4];
-            image.CopyPixelDataTo(pixels); // CPU copy
+            while (index >= _images.Count)
+            {
+                needDraw = true;
+                _images.Add(new());
+            }
 
-            CanvasDevice device = GetCanvasDevice();
-            var canvasBitmap = CanvasBitmap.CreateFromBytes(
-                device,
-                pixels,
-                image.Width,
-                image.Height,
-                Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized,
-                96F,
-                CanvasAlphaMode.Premultiplied);
-            _leftCanvasBitmap = canvasBitmap;
+            item = _images[index];
         }
 
-        Draw();
+        bool postLoading;
+        lock (item.Lock)
+        {
+            if (item.Source != source || item.FrameSize.Width != frameWidth || item.FrameSize.Height != frameHeight)
+            {
+                needDraw = true;
+            }
+
+            if (!needDraw)
+            {
+                return;
+            }
+
+            item.Source = source;
+            item.FrameSize = new(frameWidth, frameHeight);
+            if (item.IsLoading)
+            {
+                item.IsLoadInvalidated = true;
+            }
+
+            postLoading = !item.IsLoading;
+            item.IsLoading = true;
+        }
+
+        if (!postLoading)
+        {
+            return;
+        }
+
+        _dispatcher.Submit(() =>
+        {
+            bool loadInvalidated = false;
+            do
+            {
+                try
+                {
+                    if (LoadImage(item, source))
+                    {
+                        PostDrawTask();
+                    }
+                }
+                catch (Exception)
+                {
+                    lock (item.Lock)
+                    {
+                        item.IsLoading = false;
+                    }
+
+                    throw;
+                }
+
+                lock (item.Lock)
+                {
+                    loadInvalidated = item.IsLoadInvalidated;
+                    item.IsLoading = loadInvalidated;
+                    source = item.Source;
+                }
+            } while (loadInvalidated);
+        });
     }
 
-    public void SetRightImage(DecodedImageModel? imageModel)
+    private bool LoadImage(ImageItem item, IImageSource? source)
     {
-        _rightCanvasBitmap?.Dispose();
-        _rightCanvasBitmap = null;
-
-        if (imageModel is not null)
+        CanvasBitmap? oldBitmap;
+        lock (item.Lock)
         {
-            SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Bgra32> image = imageModel.Image;
-            byte[] pixels = new byte[image.Width * image.Height * 4];
-            image.CopyPixelDataTo(pixels); // CPU copy
-
-            CanvasDevice device = GetCanvasDevice();
-            var canvasBitmap = CanvasBitmap.CreateFromBytes(
-                device,
-                pixels,
-                image.Width,
-                image.Height,
-                Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized,
-                96F,
-                CanvasAlphaMode.Premultiplied);
-            _rightCanvasBitmap = canvasBitmap;
+            oldBitmap = item.Bitmap;
+            item.Bitmap = null;
         }
 
-        Draw();
+        bool needDraw = false;
+        if (oldBitmap is not null)
+        {
+            oldBitmap.Dispose();
+            needDraw = true;
+        }
+
+        if (source is null)
+        {
+            return needDraw;
+        }
+
+        using Stream? stream = source.GetImageStream();
+        if (stream is null)
+        {
+            return needDraw;
+        }
+
+        CanvasDevice device = GetCanvasDevice();
+        CanvasBitmap newBitmap;
+        try
+        {
+            newBitmap = CanvasBitmap.LoadAsync(device, stream.AsRandomAccessStream()).AsTask().Result;
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, ex);
+            return needDraw;
+        }
+
+        lock (item.Lock)
+        {
+            oldBitmap = item.Bitmap;
+            item.Bitmap = newBitmap;
+        }
+
+        oldBitmap?.Dispose();
+        return true;
+    }
+
+    private void PostDrawTask()
+    {
+        if (Interlocked.Exchange(ref _postDraw, 1) == 1)
+        {
+            return;
+        }
+
+        _dispatcher.Submit(() =>
+        {
+            Interlocked.Exchange(ref _postDraw, 0);
+            Draw();
+        });
     }
 
     private void Draw()
     {
-        CanvasBitmap?[] bitmaps = [
-            _leftCanvasBitmap,
-            _rightCanvasBitmap
-        ];
-        FrameSize[] frameSizes = [
-            new(LeftImageWidth, LeftImageHeight),
-            new(RightImageWidth, RightImageHeight)
-        ];
+        CanvasBitmap?[] bitmaps;
+        Size[] frameSizes;
+        lock (_images)
+        {
+            bitmaps = new CanvasBitmap?[_images.Count];
+            frameSizes = new Size[_images.Count];
+            for (int i = 0; i < _images.Count; i++)
+            {
+                ImageItem item = _images[i];
+                lock (item.Lock)
+                {
+                    bitmaps[i] = item.Bitmap;
+                    frameSizes[i] = item.FrameSize;
+                }
+            }
+        }
 
         double maxPixelRatio = 0;
         for (int i = 0; i < bitmaps.Length; i++)
@@ -127,7 +232,7 @@ internal partial class ReaderImageSourceHolder : IDisposable
                 continue;
             }
 
-            FrameSize frameSize = frameSizes[i];
+            Size frameSize = frameSizes[i];
             if (frameSize.Width < 1E-3 || frameSize.Height < 1E-3)
             {
                 bitmaps[i] = null;
@@ -143,7 +248,13 @@ internal partial class ReaderImageSourceHolder : IDisposable
             if (_canvasImageSource is not null)
             {
                 _canvasImageSource = null;
-                SourceChanged?.Invoke(null);
+                CoroutineUtils.RunInMainThread(() =>
+                {
+                    if (_canvasImageSource is null)
+                    {
+                        SourceChanged?.Invoke(null);
+                    }
+                });
             }
 
             return;
@@ -160,7 +271,7 @@ internal partial class ReaderImageSourceHolder : IDisposable
                 continue;
             }
 
-            FrameSize frameSize = frameSizes[i];
+            Size frameSize = frameSizes[i];
             double rectWidth = frameSize.Width * finalPixelRatio;
             accumulatedWidth += rectWidth;
 
@@ -190,7 +301,7 @@ internal partial class ReaderImageSourceHolder : IDisposable
             }
 
             ImageRect imageRect = new();
-            FrameSize frameSize = frameSizes[i];
+            Size frameSize = frameSizes[i];
             double rectWidth = frameSize.Width * finalPixelRatio * scaleRatio;
             imageRect.X = (int)accumulatedWidth;
             imageRect.Width = rectWidth;
@@ -207,24 +318,27 @@ internal partial class ReaderImageSourceHolder : IDisposable
             imageRects[i] = imageRect;
         }
 
-        CanvasImageSource? imageSource = GetCanvasImageSource((int)accumulatedWidth, (int)maxHeight);
-        using CanvasDrawingSession ds = imageSource.CreateDrawingSession(Colors.Transparent);
-        for (int i = 0; i < bitmaps.Length; i++)
+        CoroutineUtils.RunInMainThread(() =>
         {
-            CanvasBitmap? bitmap = bitmaps[i];
-            if (bitmap is null)
+            CanvasImageSource imageSource = GetCanvasImageSource((int)accumulatedWidth, (int)maxHeight);
+            using CanvasDrawingSession ds = imageSource.CreateDrawingSession(Colors.Transparent);
+            for (int i = 0; i < bitmaps.Length; i++)
             {
-                continue;
-            }
+                CanvasBitmap? bitmap = bitmaps[i];
+                if (bitmap is null)
+                {
+                    continue;
+                }
 
-            ImageRect imageRect = imageRects[i];
-            ds.DrawImage(
-                bitmap,
-                new Windows.Foundation.Rect(imageRect.X, imageRect.Y, imageRect.Width, imageRect.Height),
-                new Windows.Foundation.Rect(0, 0, bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height),
-                1F,
-                CanvasImageInterpolation.HighQualityCubic);
-        }
+                ImageRect imageRect = imageRects[i];
+                ds.DrawImage(
+                    bitmap,
+                    new Windows.Foundation.Rect(imageRect.X, imageRect.Y, imageRect.Width, imageRect.Height),
+                    new Windows.Foundation.Rect(0, 0, bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height),
+                    1F,
+                    CanvasImageInterpolation.HighQualityCubic);
+            }
+        });
     }
 
     private CanvasImageSource GetCanvasImageSource(int width, int height)
@@ -257,12 +371,12 @@ internal partial class ReaderImageSourceHolder : IDisposable
         return device;
     }
 
-    private struct FrameSize
+    private struct Size
     {
         public double Width;
         public double Height;
 
-        public FrameSize(double width, double height)
+        public Size(double width, double height)
         {
             Width = width;
             Height = height;
@@ -275,5 +389,21 @@ internal partial class ReaderImageSourceHolder : IDisposable
         public double Y;
         public double Width;
         public double Height;
+    }
+
+    private partial class ImageItem : IDisposable
+    {
+        public object Lock { get; } = new();
+        public CanvasBitmap? Bitmap { get; set; }
+        public IImageSource? Source { get; set; }
+        public bool IsLoading { get; set; } = false;
+        public bool IsLoadInvalidated { get; set; } = false;
+        public Size FrameSize { get; set; }
+
+        public void Dispose()
+        {
+            Bitmap?.Dispose();
+            Bitmap = null;
+        }
     }
 }

@@ -17,7 +17,6 @@ internal partial class SimpleImageView : UserControl
     private bool _isLoaded = false;
     private Model? _viewModel;
     private int _currentImageHash = 0;
-    private ImageSourceHolder? _imageSourceHolder;
 
     public SimpleImageView()
     {
@@ -47,8 +46,6 @@ internal partial class SimpleImageView : UserControl
         else
         {
             UnloadImage();
-            _imageSourceHolder?.Dispose();
-            _imageSourceHolder = null;
         }
     }
 
@@ -93,7 +90,15 @@ internal partial class SimpleImageView : UserControl
     {
         double width = model.Width * model.Multiplication;
         double height = model.Height * model.Multiplication;
-        ImageCacheManager.LoadImage(token, model.Source, width, height, model.StretchMode, handler);
+        LoadImageOptions options = new()
+        {
+            Token = token,
+            FrameWidth = width,
+            FrameHeight = height,
+            StretchMode = model.StretchMode,
+            Handler = handler,
+        };
+        ImageCacheManager.LoadImage(model.Source, options);
     }
 
     private class WeakImageResultHandler(SimpleImageView view) : IImageResultHandler
@@ -102,24 +107,12 @@ internal partial class SimpleImageView : UserControl
 
         public void OnSuccess(DecodedImageModel result)
         {
-            using DecodedImageModel disposingResult = result;
             if (!_imageViewRef.TryGetTarget(out SimpleImageView? view) || !view.IsLoaded)
             {
                 return;
             }
 
-            ImageSourceHolder? imageSourceHolder = view._imageSourceHolder;
-            if (imageSourceHolder is null)
-            {
-                imageSourceHolder = new();
-                view._imageSourceHolder = imageSourceHolder;
-                imageSourceHolder.SourceChanged += source =>
-                {
-                    view.ImageHolder.Source = source;
-                };
-            }
-
-            imageSourceHolder.SetImage(result);
+            view.ImageHolder.Source = result.Source;
         }
 
         public void OnFailure()

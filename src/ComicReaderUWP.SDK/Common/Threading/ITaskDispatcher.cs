@@ -5,5 +5,7 @@ namespace ComicReaderUWP.SDK.Common.Threading;
 
 public interface ITaskDispatcher
 {
+    void Submit(Action action);
+
     void Submit(string taskName, Action action);
 }
