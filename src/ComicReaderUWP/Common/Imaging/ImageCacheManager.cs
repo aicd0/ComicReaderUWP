@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +18,6 @@ using ComicReaderUWP.SDK.Common.Utils;
 
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
-
-using SixLabors.ImageSharp;
 
 using Windows.Graphics.Imaging;
 
