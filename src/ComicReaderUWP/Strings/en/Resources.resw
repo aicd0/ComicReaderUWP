@@ -153,8 +153,8 @@
   <data name="AllPages" xml:space="preserve">
     <value>All pages</value>
   </data>
-  <data name="AntiAliasingFilter.Text" xml:space="preserve">
-    <value>Anti-aliasing filter (experimental)</value>
+  <data name="AntiAliasingFilter" xml:space="preserve">
+    <value>Anti-aliasing filter</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
     <value>Comic Reader UWP</value>

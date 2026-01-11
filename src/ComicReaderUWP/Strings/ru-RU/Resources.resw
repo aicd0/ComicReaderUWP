@@ -153,8 +153,8 @@
   <data name="AllPages" xml:space="preserve">
     <value>Все страницы</value>
   </data>
-  <data name="AntiAliasingFilter.Text" xml:space="preserve">
-    <value>Фильтр сглаживания (экспериментальный)</value>
+  <data name="AntiAliasingFilter" xml:space="preserve">
+    <value>Фильтр сглаживания</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
     <value>Читатель Комиксов UWP</value>
