@@ -206,12 +206,7 @@ internal static partial class ImageCacheManager
             BitmapDecoder? decoder = null;
 
             // Ensure image metadata
-            ImageMeta? meta = null;
-            if (string.IsNullOrEmpty(sourceFingerprint) || record.ImageCacheFingerprint != sourceFingerprint)
-            {
-                meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
-            }
-
+            ImageMeta? meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
             if (meta is null)
             {
                 sourceStream ??= OpenImageStream(source);

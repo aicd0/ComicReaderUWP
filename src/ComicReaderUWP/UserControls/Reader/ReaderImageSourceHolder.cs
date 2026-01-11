@@ -128,6 +128,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                 lock (item.Lock)
                 {
                     loadInvalidated = item.IsLoadInvalidated;
+                    item.IsLoadInvalidated = false;
                     item.IsLoading = loadInvalidated;
                     source = item.Source;
                 }
