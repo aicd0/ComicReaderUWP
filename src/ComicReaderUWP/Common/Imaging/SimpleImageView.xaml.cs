@@ -133,7 +133,7 @@ internal partial class SimpleImageView : UserControl
         public required double Width { get; set; } = double.PositiveInfinity;
         public required double Height { get; set; } = double.PositiveInfinity;
         public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
-        public double Multiplication { get; set; } = 1.0;
+        public double Multiplication { get; set; } = DisplayUtils.GetRawPixelPerPixel();
         public required ITaskDispatcher Dispatcher { get; set; }
         public string DebugDescription { get; set; } = string.Empty;
 

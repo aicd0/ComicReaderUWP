@@ -142,7 +142,7 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
             new(new ComicCoverImageSource(item.Comic), new LoadImageCallback(this, item)) {
                 Width = imageWidth,
                 Height = imageHeight,
-                Multiplication = 1.4,
+                Multiplication = DisplayUtils.GetRawPixelPerPixel(),
                 StretchMode = StretchModeEnum.UniformToFill,
             }
         };
