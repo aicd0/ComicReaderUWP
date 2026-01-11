@@ -690,7 +690,16 @@ internal static partial class ImageCacheManager
             BitmapPixelFormat.Yuy2 => 16,
             _ => 0,
         };
-        string decoderName = decoder.DecoderInformation.FriendlyName;
+        string decoderName = decoder.DecoderInformation.FriendlyName switch
+        {
+            "JPEG Decoder" => "JPEG",
+            "PNG Decoder" => "PNG",
+            "BMP Decoder" => "BMP",
+            "GIF Decoder" => "GIF",
+            "TIFF Decoder" => "TIFF",
+            "Microsoft Webp Decoder" => "WebP",
+            _ => decoder.DecoderInformation.FriendlyName,
+        };
 
         record.PutExt(ImageCacheExt.IMAGE_META_VERSION, IMAGE_META_VERSION.ToString());
         record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
