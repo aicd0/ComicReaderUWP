@@ -83,6 +83,5 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposabl
     public void SetScale(double scale)
     {
         _imageSourceHolder.Scale = scale;
-        _imageSourceHolder.Invalidate();
     }
 };

@@ -897,7 +897,7 @@ internal partial class ReaderView : UserControl
             }
             else
             {
-                UpdateImageDecodeSize(model);
+                model.SetScale(AppModel.AntiAliasingEnabled ? SCZoomFactorFinal : double.PositiveInfinity);
             }
         }
 
@@ -927,16 +927,6 @@ internal partial class ReaderView : UserControl
                 addToLoaderQueue(frame - i);
             }
         }
-    }
-
-    private void UpdateImageDecodeSize(ReaderFrameViewModel model)
-    {
-        if (!AppModel.AntiAliasingEnabled)
-        {
-            return;
-        }
-
-        model.SetScale(SCZoomFactorFinal);
     }
 
     //

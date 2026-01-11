@@ -27,9 +27,27 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     public delegate void SourceChangedHandler(ImageSource? source);
     public event SourceChangedHandler? SourceChanged;
 
-    public double Scale { get; set; } = double.PositiveInfinity;
-    public bool PlaceholderMode { get; set; } = false;
+    private double _scale = double.PositiveInfinity;
+    public double Scale
+    {
+        get => _scale;
+        set
+        {
+            if (double.IsNaN(_scale))
+            {
+                return;
+            }
 
+            double fixedValue = Math.Max(0, value);
+            if (_scale != fixedValue)
+            {
+                _scale = fixedValue;
+                Invalidate();
+            }
+        }
+    }
+
+    public bool PlaceholderMode { get; set; } = false;
     public ImageSource? Source => _canvasImageSource;
 
     private readonly object _lock = new();
@@ -267,7 +285,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return;
         }
 
-        double finalPixelRatio = Math.Min(Scale * DisplayUtils.GetRawPixelPerPixel(), maxPixelRatio);
+        double finalPixelRatio = Math.Min(_scale * DisplayUtils.GetRawPixelPerPixel(), maxPixelRatio);
         double accumulatedWidth = 0;
         double maxHeight = 0;
         for (int i = 0; i < bitmaps.Length; i++)
@@ -316,7 +334,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
             if (bitmap is not null)
             {
-                double rectHeight = rectWidth * scaleRatio * bitmap.SizeInPixels.Height / bitmap.SizeInPixels.Width;
+                double rectHeight = rectWidth * bitmap.SizeInPixels.Height / bitmap.SizeInPixels.Width;
                 double rectTop = (maxHeight - rectHeight) * 0.5;
                 imageRect.Y = rectTop;
                 imageRect.Height = rectHeight;
