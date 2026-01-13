@@ -724,30 +724,30 @@ internal static partial class ImageCacheManager
         {
             if (double.IsInfinity(frameWidth))
             {
-                useOriginalSize = true;
                 desiredWidthRaw = originWidth;
                 desiredHeightRaw = originHeight;
+                useOriginalSize = true;
             }
             else
             {
-                useOriginalSize = false;
                 desiredWidthRaw = frameWidth * rawPixelsPerViewPixel;
                 desiredHeightRaw = desiredWidthRaw / imageRatio;
+                useOriginalSize = desiredWidthRaw >= originWidth;
             }
         }
         else
         {
             if (double.IsInfinity(frameHeight))
             {
-                useOriginalSize = true;
                 desiredWidthRaw = originWidth;
                 desiredHeightRaw = originHeight;
+                useOriginalSize = true;
             }
             else
             {
-                useOriginalSize = false;
                 desiredHeightRaw = frameHeight * rawPixelsPerViewPixel;
                 desiredWidthRaw = desiredHeightRaw * imageRatio;
+                useOriginalSize = desiredHeightRaw >= originHeight;
             }
         }
 

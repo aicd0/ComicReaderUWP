@@ -4,14 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Pdf;
 using ComicReaderUWP.SDK.Common.Utils;
 
@@ -110,27 +108,9 @@ internal partial class PdfComicHandle : ComicHandle
 
         public Stream? GetImageStream(int index)
         {
-            MemoryStream? memoryStream = new();
-            try
-            {
-                SizeF size = connection.GetPageSize(index);
-                CalculatePageSize(size.Width, size.Height, out int width, out int height);
-                using Image? image = connection.Render(index, width, height).Result;
-                if (image == null)
-                {
-                    return null;
-                }
-
-                image.Save(memoryStream, ImageFormat.Png);
-            }
-            catch (Exception e)
-            {
-                Logger.F(TAG, "GetImageStream", e);
-                memoryStream.Dispose();
-                memoryStream = null;
-            }
-
-            return memoryStream;
+            SizeF size = connection.GetPageSize(index);
+            CalculatePageSize(size.Width, size.Height, out int width, out int height);
+            return connection.Render(index, width, height);
         }
 
         public string GetImageCacheKey(int index)
