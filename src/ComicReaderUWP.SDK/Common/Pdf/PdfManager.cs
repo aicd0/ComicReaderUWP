@@ -2,24 +2,24 @@
 // Licensed under the MIT License.
 
 using System.Drawing;
+using System.Drawing.Imaging;
 
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 
-using PdfiumViewer;
-
 namespace ComicReaderUWP.SDK.Common.Pdf;
 
-public static class PdfManager
+public static partial class PdfManager
 {
     private const string TAG = nameof(PdfManager);
 
-    private static readonly object _lock = new();
     private static readonly Lazy<IDisposableTaskDispatcher> _pdfQueue = new(() => TaskDispatcher.Factory.NewSingleThread("PdfQueue"));
-    private static readonly Dictionary<string, PdfWrapper> _cache = [];
+    private static readonly object _documentLock = new();
+    private static readonly Dictionary<string, PdfDocument> _documents = [];
+    private static bool _libraryInitialized = false;
 
-    public static Task<IPdfConnection?> OpenPdf(string filepath, string? password)
+    public static async Task<IPdfConnection?> OpenPdf(string filepath, string? password)
     {
         string fullpath;
         try
@@ -28,112 +28,146 @@ public static class PdfManager
         }
         catch (Exception ex)
         {
-            Logger.F(TAG, "", ex);
-            return Task.FromResult<IPdfConnection?>(null);
+            Logger.F(TAG, ex);
+            return null;
         }
 
-        lock (_lock)
+        string key = fullpath;
+        lock (_documentLock)
         {
-            if (_cache.TryGetValue(fullpath, out PdfWrapper? existing))
+            if (_documents.TryGetValue(key, out PdfDocument? existing))
             {
                 existing.UseCount++;
-                IPdfConnection connection = new PdfConnection(existing);
-                return Task.FromResult<IPdfConnection?>(connection);
+                return new PdfConnection(existing);
             }
         }
 
         IPdfConnection? loadPdfFunc()
         {
-            lock (_lock)
+            lock (_documentLock)
             {
-                if (_cache.TryGetValue(fullpath, out PdfWrapper? existing))
+                if (_documents.TryGetValue(key, out PdfDocument? existing))
                 {
                     existing.UseCount++;
                     return new PdfConnection(existing);
                 }
             }
 
-            PdfDocument? pdfDocument = null;
-            try
-            {
-                pdfDocument = PdfDocument.Load(fullpath, password);
-            }
-            catch (PdfException e)
-            {
-                Logger.E(TAG, $"Unable to load PDF file '{fullpath}'. The file might be corrupted.", e);
-                return null;
-            }
-            catch (Exception e)
-            {
-                Logger.F(TAG, "OpenDocument", e);
-                return null;
-            }
-
-            if (pdfDocument == null)
+            InitializeLibrary();
+            nint docPtr = Pdfium.FPDF_LoadDocument(fullpath, password);
+            if (docPtr == nint.Zero)
             {
                 return null;
             }
 
-            PdfWrapper wrapper = new(pdfDocument);
-            lock (_lock)
+            int pageCount = Pdfium.FPDF_GetPageCount(docPtr);
+            List<SizeF> pageSizes = new(pageCount);
+            for (int i = 0; i < pageCount; i++)
             {
-                _cache.Add(fullpath, wrapper);
+                nint page = Pdfium.FPDF_LoadPage(docPtr, i);
+                if (page == nint.Zero)
+                {
+                    pageSizes.Add(new SizeF());
+                    continue;
+                }
+
+                double width = Pdfium.FPDF_GetPageWidth(page);
+                double height = Pdfium.FPDF_GetPageHeight(page);
+                Pdfium.FPDF_ClosePage(page);
+                pageSizes.Add(new SizeF((float)width, (float)height));
             }
-            Logger.I(TAG, $"Opened {fullpath}");
-            return new PdfConnection(wrapper);
+
+            PdfDocument document = new(key, docPtr, pageCount, pageSizes);
+            lock (_documents)
+            {
+                _documents.Add(key, document);
+            }
+
+            return new PdfConnection(document);
         }
-        return Enqueue(loadPdfFunc, "LoadPdf");
+
+        return await Enqueue(loadPdfFunc);
     }
 
-    private static Task<T> Enqueue<T>(Func<T> op, string taskName)
+    private static void InitializeLibrary()
+    {
+        if (_libraryInitialized)
+        {
+            return;
+        }
+
+        Pdfium.FPDF_InitLibrary();
+        _libraryInitialized = true;
+    }
+
+    private static async Task Enqueue(Action action)
+    {
+        var taskResult = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _pdfQueue.Value.Submit(() =>
+        {
+            action();
+            taskResult.SetResult(true);
+        });
+        await taskResult.Task;
+    }
+
+    private static async Task<T> Enqueue<T>(Func<T> action)
     {
         var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pdfQueue.Value.Submit($"{TAG}#Enqueue#{taskName}", delegate
+        _pdfQueue.Value.Submit(() =>
         {
-            taskResult.SetResult(op());
+            taskResult.SetResult(action());
         });
-        return taskResult.Task;
+        return await taskResult.Task;
     }
 
-    private class PdfWrapper : IDisposable
+    private static Stream CreateStreamFromBuffer(nint buffer, int width, int height, int stride)
     {
-        public PdfDocument? RawPdfDocument;
-        public int UseCount = 1;
-        public readonly int PageCount;
-        public readonly List<SizeF> PageSizes;
-
-        public PdfWrapper(PdfDocument pdfDocument)
-        {
-            RawPdfDocument = pdfDocument;
-            PageCount = pdfDocument.PageCount;
-            PageSizes = [.. pdfDocument.PageSizes];
-        }
-
-        public void Dispose()
-        {
-            RawPdfDocument?.Dispose();
-            RawPdfDocument = null;
-        }
+        var stream = new MemoryStream();
+        using var bitmap = new Bitmap(
+            width,
+            height,
+            stride,
+            PixelFormat.Format32bppPArgb,
+            buffer);
+        bitmap.Save(stream, ImageFormat.Png);
+        stream.Position = 0;
+        return stream;
+        //int bytesPerPixel = 4;
+        //int rowBytes = width * bytesPerPixel;
+        //int totalBytes = rowBytes * height;
+        //byte[] packed = new byte[totalBytes];
+        //unsafe
+        //{
+        //    byte* src = (byte*)buffer;
+        //    fixed (byte* dstBase = packed)
+        //    {
+        //        byte* dst = dstBase;
+        //        for (int y = 0; y < height; y++)
+        //        {
+        //            Buffer.MemoryCopy(
+        //                src + y * stride,
+        //                dst + y * rowBytes,
+        //                rowBytes,
+        //                rowBytes);
+        //        }
+        //    }
+        //}
     }
 
-    public interface IPdfConnection : IDisposable
+    private partial class PdfDocument(
+        string key,
+        nint documentPtr,
+        int pageCount,
+        IReadOnlyList<SizeF> pageSizes) : IDisposable
     {
-        int GetPageCount();
+        public string Key { get; } = key;
+        public int UseCount { get; set; } = 1;
+        public nint DocumentPtr { get; private set; } = documentPtr;
+        public int PageCount { get; } = pageCount;
+        public IReadOnlyList<SizeF> PageSizes { get; } = pageSizes;
 
-        SizeF GetPageSize(int page);
-
-        Task<Image?> Render(int page, int width, int height);
-    }
-
-    private class PdfConnection : IPdfConnection
-    {
-        private readonly PdfWrapper _wrapper;
         private int _disposed = 0;
-
-        public PdfConnection(PdfWrapper wrapper)
-        {
-            _wrapper = wrapper;
-        }
 
         public void Dispose()
         {
@@ -142,53 +176,115 @@ public static class PdfManager
                 return;
             }
 
-            lock (_lock)
+            CoroutineUtils.Start(() => Enqueue(() =>
             {
-                _wrapper.UseCount--;
+                Pdfium.FPDF_CloseDocument(DocumentPtr);
+                DocumentPtr = nint.Zero;
+            }));
+        }
+    }
+
+    public interface IPdfConnection : IDisposable
+    {
+        int GetPageCount();
+
+        SizeF GetPageSize(int pageIndex);
+
+        Stream? Render(int pageIndex, int width, int height);
+    }
+
+    private partial class PdfConnection(PdfDocument document) : IPdfConnection
+    {
+        public PdfDocument Document { get; } = document;
+
+        private int _disposed = 0;
+
+        public void Dispose()
+        {
+            if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 1)
+            {
+                return;
             }
 
-            CoroutineUtils.Start(() => Enqueue(delegate
+            bool needDispose;
+            lock (_documentLock)
             {
-                lock (_lock)
+                Document.UseCount--;
+                needDispose = Document.UseCount == 0;
+                if (needDispose)
                 {
-                    List<string> keys = [.. _cache.Keys];
-                    foreach (string key in keys)
-                    {
-                        PdfWrapper cache = _cache[key];
-                        if (cache.UseCount > 0)
-                        {
-                            continue;
-                        }
-                        cache.Dispose();
-                        _cache.Remove(key);
-                        Logger.I(TAG, $"Disposed {key}");
-                    }
+                    _documents.Remove(Document.Key);
                 }
-                return true;
-            }, "Clean"));
+            }
+
+            if (needDispose)
+            {
+                Document.Dispose();
+            }
         }
 
         public int GetPageCount()
         {
-            return _wrapper.PageCount;
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) == 1, this);
+            return Document.PageCount;
         }
 
-        public SizeF GetPageSize(int page)
+        public SizeF GetPageSize(int pageIndex)
         {
-            return _wrapper.PageSizes[page];
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) == 1, this);
+            return Document.PageSizes[pageIndex];
         }
 
-        public Task<Image?> Render(int page, int width, int height)
+        public Stream? Render(int pageIndex, int width, int height)
         {
-            return Enqueue(delegate
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) == 1, this);
+
+            if (pageIndex < 0 || pageIndex >= Document.PageCount)
             {
-                if (_wrapper.RawPdfDocument == null)
+                return null;
+            }
+
+            return Enqueue(() =>
+            {
+                nint bitmap = Pdfium.FPDFBitmap_Create(width, height, 1);
+                if (bitmap == nint.Zero)
                 {
                     return null;
                 }
 
-                return _wrapper.RawPdfDocument.Render(page, width, height, 1, 1, false);
-            }, "Render");
+                try
+                {
+                    nint page = Pdfium.FPDF_LoadPage(Document.DocumentPtr, pageIndex);
+                    if (page == nint.Zero)
+                    {
+                        return null;
+                    }
+
+                    try
+                    {
+                        Pdfium.FPDFBitmap_FillRect(bitmap, 0, 0, width, height, 0xFFFFFFFF);
+                        Pdfium.FPDF_RenderPageBitmap(
+                            bitmap,
+                            page,
+                            0, 0,
+                            width, height,
+                            0,
+                            0);
+                    }
+                    finally
+                    {
+                        Pdfium.FPDF_ClosePage(page);
+                    }
+
+                    nint buffer = Pdfium.FPDFBitmap_GetBuffer(bitmap);
+                    int stride = Pdfium.FPDFBitmap_GetStride(bitmap);
+                    return CreateStreamFromBuffer(buffer, width, height, stride);
+                }
+                finally
+                {
+                    Pdfium.FPDFBitmap_Destroy(bitmap);
+                }
+            }).Result;
         }
     }
 }

@@ -190,7 +190,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         }
         catch (Exception ex)
         {
-            Logger.F(TAG, ex);
+            Logger.E(TAG, ex);
             return needDraw;
         }
 
