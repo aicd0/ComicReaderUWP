@@ -285,7 +285,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             Glyph = "\uE713",
             Click = () =>
             {
-                var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SETTING);
+                var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SETTINGS);
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                     .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                     .AddParameter(OpenTabProvider.PARAM_TAB_ID, "-1")

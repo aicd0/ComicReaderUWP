@@ -23,7 +23,7 @@ internal class OpenPageInterceptor : IRouterInterceptor
             RouterConstants.HOST_READER => ReaderPageTrait.Instance,
             RouterConstants.HOST_HOME => HomePageTrait.Instance,
             RouterConstants.HOST_SEARCH => SearchPageTrait.Instance,
-            RouterConstants.HOST_SETTING => SettingPageTrait.Instance,
+            RouterConstants.HOST_SETTINGS => SettingsPageTrait.Instance,
             RouterConstants.HOST_SIDE_PANE_FAVORITE => new DefaultPageTrait(typeof(FavoritePage)),
             RouterConstants.HOST_SIDE_PANE_HISTORY => new DefaultPageTrait(typeof(HistoryPage)),
             RouterConstants.HOST_SIDE_PANE_TAGS => new DefaultPageTrait(typeof(TagsPage)),

@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>Gesamten Verlauf löschen</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>Cache leeren</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>Cache-Größe: $size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Verhalten beim Schließen des letzten Tabs</value>
@@ -312,7 +309,7 @@ $comics</value>
     <value>Kauf mir einen Kaffee</value>
   </data>
   <data name="DonationDescription" xml:space="preserve">
-    <value>Wenn Ihnen dieses Projekt gefällt, unterstützen Sie den Autor bitte, indem Sie über die Schaltfläche unten ein Ticket kaufen. Dadurch werden keine Funktionen freigeschaltet, aber es hilft erheblich bei der Wartung und Weiterentwicklung des Projekts.</value>
+    <value>Wenn dir dieses Projekt gefällt, erwäge bitte, den Entwickler über die Schaltfläche unten zu unterstützen. Dadurch werden keine zusätzlichen Funktionen freigeschaltet, aber es hilft erheblich bei der laufenden Pflege des Projekts.</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
     <value>Du bist jetzt Unterstützer. Vielen Dank für deine Unterstützung!</value>
@@ -554,6 +551,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>Bibliothek</value>
   </data>
+  <data name="License" xml:space="preserve">
+    <value>Lizenz</value>
+  </data>
   <data name="LinkErrorContent" xml:space="preserve">
     <value>„$link“ scheint kein gültiger Weblink zu sein.</value>
   </data>
@@ -689,7 +689,7 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Plugins" xml:space="preserve">
     <value>Plugins</value>
   </data>
-  <data name="PrivacyPolicy.Text" xml:space="preserve">
+  <data name="PrivacyPolicy" xml:space="preserve">
     <value>Datenschutzrichtlinie</value>
   </data>
   <data name="Proceed" xml:space="preserve">
@@ -752,6 +752,12 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Reset" xml:space="preserve">
     <value>Zurücksetzen</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>Alle einstellungen zurücksetzen</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>Alle einstellungen werden auf den standardzustand zurückgesetzt. Ihre benutzerdaten bleiben erhalten.</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Letzte Leseposition wiederherstellen</value>

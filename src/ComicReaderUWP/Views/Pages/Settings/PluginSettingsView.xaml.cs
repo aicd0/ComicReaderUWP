@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 
-using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
@@ -38,9 +37,9 @@ internal sealed partial class PluginSettingsView : BaseUserControl
         ObserveData();
     }
 
-    public void Initialize(ActionHandler actionHandler)
+    public void Initialize(SettingsSharedViewModel shared)
     {
-        ViewModel.Initialize(actionHandler);
+        ViewModel.Initialize(shared);
     }
 
     private void ObserveData()
@@ -67,7 +66,7 @@ internal sealed partial class PluginSettingsView : BaseUserControl
                 er.SetError(ex);
             }
 
-            er.DisplayErrorMessage(ViewModel.PageActionHandler);
+            er.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
         });
     }
 

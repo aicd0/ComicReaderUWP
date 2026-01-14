@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>すべての履歴を消去</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>キャッシュをクリアする</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>キャッシュサイズ: $size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>最後のタブを閉じたときの動作</value>
@@ -312,7 +309,7 @@ $comics</value>
     <value>コーヒーをおごってください</value>
   </data>
   <data name="DonationDescription" xml:space="preserve">
-    <value>このプロジェクトを気に入っていただけた場合は、下のボタンからチケットを購入して作者を支援していただけると幸いです。機能がアンロックされることはありませんが、プロジェクトの継続的なメンテナンスに大きく貢献します。</value>
+    <value>このプロジェクトを気に入っていただけたら、下のボタンから開発者を支援することをご検討ください。機能が追加されることはありませんが、プロジェクトの継続的なメンテナンスに大きく役立ちます。</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
     <value>ご支援ありがとうございます。あなたは現在、支援者です。</value>
@@ -554,6 +551,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>図書館</value>
   </data>
+  <data name="License" xml:space="preserve">
+    <value>ライセンス</value>
+  </data>
   <data name="LinkErrorContent" xml:space="preserve">
     <value>「$link」は有効な Web リンクではないようです。</value>
   </data>
@@ -689,7 +689,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Plugins" xml:space="preserve">
     <value>プラグイン</value>
   </data>
-  <data name="PrivacyPolicy.Text" xml:space="preserve">
+  <data name="PrivacyPolicy" xml:space="preserve">
     <value>プライバシーポリシー</value>
   </data>
   <data name="Proceed" xml:space="preserve">
@@ -752,6 +752,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Reset" xml:space="preserve">
     <value>リセット</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>すべての設定をリセット</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>すべての設定は既定の状態に戻ります。ユーザーデータは保持されます。</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>最後の読書位置を復元</value>

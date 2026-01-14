@@ -69,9 +69,10 @@ public class DebugSwitchModel : JsonDatabase<DebugSwitchModel.JsonModel>
 
     private DebugSwitchModel() : base("debug.json") { }
 
-    protected override JsonModel CreateModel()
+    protected override JsonModel InitializeModel(JsonModel? model)
     {
-        return new();
+        model ??= new();
+        return model;
     }
 
     internal void Initialize()

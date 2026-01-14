@@ -897,7 +897,7 @@ internal partial class ReaderView : UserControl
             }
             else
             {
-                model.SetScale(AppModel.AntiAliasingEnabled ? SCZoomFactorFinal : double.PositiveInfinity);
+                model.SetScale(AppSettingsModel.Instance.AntiAliasingEnabled ? SCZoomFactorFinal : double.PositiveInfinity);
             }
         }
 
@@ -1227,7 +1227,7 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppModel.AutomaticallyHideCursor)
+        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppSettingsModel.Instance.AutomaticallyHideCursor)
         {
             ShowCursor();
             HideCursorDelayed(3000);
@@ -1968,7 +1968,7 @@ internal partial class ReaderView : UserControl
 
         double page = FrameDataSource[frame].Page;
         float? zoom = _zoom > 1.01F ? 1F : null;
-        SetScrollViewer2(reason, source, zoom: zoom, page: page, disableAnimation: !AppModel.TransitionAnimation);
+        SetScrollViewer2(reason, source, zoom: zoom, page: page, disableAnimation: !AppSettingsModel.Instance.TransitionAnimation);
     }
 
     private ScrollResult SetScrollViewer1(string reason, ScrollSource source, float? zoom = null,

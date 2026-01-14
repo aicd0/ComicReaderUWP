@@ -14,17 +14,11 @@ internal sealed partial class GeneralSettingsView : BaseUserControl
     public GeneralSettingsView()
     {
         InitializeComponent();
-
-        DataContextChanged += (s, e) =>
-        {
-            Bindings.StopTracking();
-            Bindings.Update();
-        };
     }
 
-    public void Initialize()
+    public void Initialize(SettingsSharedViewModel shared)
     {
-        ViewModel.Initialize();
+        ViewModel.Initialize(shared);
     }
 
     private void CloseLastTabBehaviorBehaviorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

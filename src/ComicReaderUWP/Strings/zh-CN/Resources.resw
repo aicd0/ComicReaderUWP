@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>清除所有记录</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>清空缓存</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>缓存大小：$size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>关闭最后一个标签页时的行为</value>
@@ -312,7 +309,7 @@ $comics</value>
     <value>请我喝杯咖啡</value>
   </data>
   <data name="DonationDescription" xml:space="preserve">
-    <value>如果你喜欢这个项目，欢迎通过下方按钮购买支持票来支持作者。此操作不会解锁任何功能，但将极大地帮助项目的持续维护。</value>
+    <value>如果你喜欢这个项目，请考虑通过下方按钮支持开发者。这不会解锁任何额外功能，但将极大地帮助项目的持续维护。</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
     <value>您已成为捐赠者。感谢您的支持！</value>
@@ -554,6 +551,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>库</value>
   </data>
+  <data name="License" xml:space="preserve">
+    <value>许可证</value>
+  </data>
   <data name="LinkErrorContent" xml:space="preserve">
     <value>'$link' 似乎不是一个有效的网络链接。</value>
   </data>
@@ -689,7 +689,7 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Plugins" xml:space="preserve">
     <value>插件</value>
   </data>
-  <data name="PrivacyPolicy.Text" xml:space="preserve">
+  <data name="PrivacyPolicy" xml:space="preserve">
     <value>隐私策略</value>
   </data>
   <data name="Proceed" xml:space="preserve">
@@ -752,6 +752,12 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="Reset" xml:space="preserve">
     <value>重置</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>重置所有设置</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>所有设置将恢复为默认状态。您的用户数据将被保留。</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>恢复上次阅读位置</value>

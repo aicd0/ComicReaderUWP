@@ -8,7 +8,7 @@ using System.IO;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Storage;
 
-namespace ComicReaderUWP.Views.Dialogs.EditFilter;
+namespace ComicReaderUWP.Common.Utils;
 
 internal class ThirdPartyLauncher
 {

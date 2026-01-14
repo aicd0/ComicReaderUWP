@@ -128,13 +128,13 @@ internal class ReaderPageTrait : IPageTrait
     }
 }
 
-internal class SettingPageTrait : IPageTrait
+internal class SettingsPageTrait : IPageTrait
 {
-    private SettingPageTrait() { }
+    private SettingsPageTrait() { }
 
     public Type GetPageType()
     {
-        return typeof(SettingPage);
+        return typeof(SettingsPage);
     }
 
     public bool ImmersiveMode()
@@ -152,7 +152,7 @@ internal class SettingPageTrait : IPageTrait
     {
         get
         {
-            _instance ??= new SettingPageTrait();
+            _instance ??= new SettingsPageTrait();
             return _instance;
         }
     }

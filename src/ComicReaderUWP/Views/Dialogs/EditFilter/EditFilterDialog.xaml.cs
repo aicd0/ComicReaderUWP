@@ -4,6 +4,7 @@
 using System.Text;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Common.Utils;
 

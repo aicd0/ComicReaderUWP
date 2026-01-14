@@ -350,7 +350,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         if (!comic.IsExternal)
         {
             await comic.SetCompletionStateToAtLeastStarted();
-            if (AppModel.SaveBrowsingHistory)
+            if (AppSettingsModel.Instance.SaveBrowsingHistory)
             {
                 await ComicHistoryItemModel.AddAsync(comic.Id, comic.Title1);
             }

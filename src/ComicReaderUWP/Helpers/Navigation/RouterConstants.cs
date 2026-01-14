@@ -12,7 +12,7 @@ internal static class RouterConstants
     public const string HOST_READER = "reader";
     public const string HOST_HOME = "home";
     public const string HOST_SEARCH = "search";
-    public const string HOST_SETTING = "setting";
+    public const string HOST_SETTINGS = "settings";
     public const string HOST_SIDE_PANE_FAVORITE = "side_pane_favorite";
     public const string HOST_SIDE_PANE_HISTORY = "side_pane_history";
     public const string HOST_SIDE_PANE_FOLDERS = "side_pane_folders";

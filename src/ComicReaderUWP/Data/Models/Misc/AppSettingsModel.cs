@@ -5,45 +5,117 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
+using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.SDK.Common.AppEnvironment;
+using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.SDK.Common.Utils;
+using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.SDK.Database.Misc;
+
+using Windows.Globalization;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
 public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 {
+    private const string TAG = nameof(AppSettingsModel);
     private const string APP_BACKGROUND_NONE = "None";
     private const string APP_BACKGROUND_ACRYLIC = "Acrylic";
 
     public static readonly AppSettingsModel Instance = new();
 
-    private AppSettingsModel() : base("settings.json") { }
-
-    protected override JsonModel CreateModel()
-    {
-        return new();
-    }
-
     //
     // Properties
     //
+
+    public bool AntiAliasingEnabled
+    {
+        get
+        {
+            return Read(model => model.AntiAliasingEnabled ?? false);
+        }
+        set
+        {
+            Write(model => model.AntiAliasingEnabled = value);
+            Save();
+        }
+    }
+
+    public bool AutomaticallyHideCursor
+    {
+        get
+        {
+            return Read(model => model.AutomaticallyHideCursor ?? false);
+        }
+        set
+        {
+            Write(model => model.AutomaticallyHideCursor = value);
+            Save();
+        }
+    }
+
+    public int DefaultArchiveCodePage
+    {
+        get
+        {
+            return Read(model => model.DefaultArchiveCodePage ?? -1);
+        }
+        set
+        {
+            Write(model => model.DefaultArchiveCodePage = value);
+            Save();
+        }
+    }
+
+    public bool RatingPercentageEnabled
+    {
+        get
+        {
+            return Read(model => model.RatingPercentageEnabled ?? false);
+        }
+        set
+        {
+            Write(model => model.RatingPercentageEnabled = value);
+            Save();
+        }
+    }
+
+    public bool SaveBrowsingHistory
+    {
+        get
+        {
+            return Read(model => model.SaveBrowsingHistory ?? true);
+        }
+        set
+        {
+            Write(model => model.SaveBrowsingHistory = value);
+            Save();
+        }
+    }
+
+    public bool TransitionAnimation
+    {
+        get
+        {
+            return Read(model => model.TransitionAnimation ?? true);
+        }
+        set
+        {
+            Write(model => model.TransitionAnimation = value);
+            Save();
+        }
+    }
 
     public CloseLastTabBehaviorEnum CloseLastTabBehavior
     {
         get
         {
-            return Read(model =>
-            {
-                return ConvertCloseLastTabBehaviorFromJson(model.CloseLastTabBehavior);
-            });
+            return Read(model => ConvertCloseLastTabBehaviorFromJson(model.CloseLastTabBehavior));
         }
         set
         {
-            Write(model =>
-            {
-                model.CloseLastTabBehavior = ConvertCloseLastTabBehaviorToJson(value);
-                return true;
-            });
+            Write(model => model.CloseLastTabBehavior = ConvertCloseLastTabBehaviorToJson(value));
             Save();
         }
     }
@@ -52,20 +124,57 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         get
         {
-            return Read(model =>
-            {
-                return ConvertOpenComicDefaultBehaviorFromJson(model.OpenComicDefaultBehavior ?? model.HomePageTapComicBehavior);
-            });
+            return Read(model => ConvertOpenComicDefaultBehaviorFromJson(model.OpenComicDefaultBehavior));
         }
         set
         {
-            Write(model =>
-            {
-                model.OpenComicDefaultBehavior = ConvertOpenComicDefaultBehaviorToJson(value);
-                return true;
-            });
+            Write(model => model.OpenComicDefaultBehavior = ConvertOpenComicDefaultBehaviorToJson(value));
             Save();
         }
+    }
+
+    public string Language
+    {
+        get
+        {
+            return Read(model => model.Language ?? string.Empty);
+        }
+        set
+        {
+            if (!EnvironmentProvider.IsPortable())
+            {
+                try
+                {
+                    ApplicationLanguages.PrimaryLanguageOverride = value;
+                }
+                catch (Exception ex)
+                {
+                    Logger.F(TAG, ex);
+                }
+            }
+
+            Write(model => model.Language = value);
+            Save();
+        }
+    }
+
+    //
+    // Constructor
+    //
+
+    private AppSettingsModel() : base("settings.json") { }
+
+    protected override JsonModel InitializeModel(JsonModel? model)
+    {
+        model ??= new();
+        model.OpenComicDefaultBehavior ??= model.HomePageTapComicBehavior;
+        model.AntiAliasingEnabled ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
+        model.AutomaticallyHideCursor ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
+        model.DefaultArchiveCodePage ??= (int)KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<long>(DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
+        model.RatingPercentageEnabled ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
+        model.SaveBrowsingHistory ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
+        model.TransitionAnimation ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, true);
+        return model;
     }
 
     //
@@ -81,13 +190,21 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     // Setters
     //
 
+    public void Reset()
+    {
+        JsonModel newModel = new();
+        Read(model =>
+        {
+            newModel.ComicFolders = model.ComicFolders;
+        });
+
+        Write(newModel);
+        Language = Language;
+    }
+
     public void UpdateModel(ExternalModel model)
     {
-        Write(m =>
-        {
-            model.To(m);
-            return true;
-        });
+        Write(model.To);
         Save();
     }
 
@@ -116,6 +233,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             m.ComicFolders.Add(folderPath);
             return true;
         });
+
         if (updated)
         {
             Save();
@@ -129,6 +247,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             m.ComicFolders ??= [];
             return m.ComicFolders.Remove(folderPath);
         });
+
         if (updated)
         {
             Save();
@@ -185,88 +304,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     // Types
     //
 
-    public class JsonModel
-    {
-        [JsonPropertyName("Background")]
-        public string? Background { get; set; }
-
-        [JsonPropertyName("CloseLastTabBehavior")]
-        public string? CloseLastTabBehavior { get; set; }
-
-        [JsonPropertyName("ComicFolders")]
-        public List<string?>? ComicFolders { get; set; }
-
-        [JsonPropertyName("ComicShuffleRandomSeed")]
-        public int? ComicShuffleRandomSeed { get; set; }
-
-        [JsonPropertyName("DefaultReaderSettingPresetKey")]
-        public string? DefaultReaderSettingPresetKey { get; set; }
-
-        [JsonPropertyName("OpenComicDefaultBehavior")]
-        public string? OpenComicDefaultBehavior { get; set; }
-
-        [JsonPropertyName("Language")]
-        public string? Language { get; set; }
-
-        [JsonPropertyName("PromptBeforeRemovingComics")]
-        public bool? PromptBeforeRemovingComics { get; set; }
-
-        [JsonPropertyName("ReaderSettingPresets")]
-        public Dictionary<string, ReaderSettingJsonModel?>? ReaderSettingPresets { get; set; }
-
-        [JsonPropertyName("RemoveUnreachableComics")]
-        public bool? RemoveUnreachableComics { get; set; }
-
-        [JsonPropertyName("RestoreLastReadingPosition")]
-        public bool? RestoreLastReadingPosition { get; set; }
-
-        [JsonPropertyName("ScanOnLaunch")]
-        public bool? ScanOnLaunch { get; set; }
-
-        [JsonPropertyName("Theme")]
-        public int? Theme { get; set; }
-
-        //
-        // Legacy
-        //
-
-        [JsonPropertyName("HomePageTapComicBehavior")]
-        public string? HomePageTapComicBehavior { get; set; }
-    }
-
-    public class ReaderSettingJsonModel
-    {
-        [JsonPropertyName("PresetName")]
-        public string? PresetName { get; set; }
-
-        [JsonPropertyName("OriginalSize")]
-        public bool? OriginalSize { get; set; }
-
-        [JsonPropertyName("VerticalReading")]
-        public bool? VerticalReading { get; set; }
-
-        [JsonPropertyName("LeftToRight")]
-        public bool? LeftToRight { get; set; }
-
-        [JsonPropertyName("VerticalContinuous")]
-        public bool? VerticalContinuous { get; set; }
-
-        [JsonPropertyName("HorizontalContinuous")]
-        public bool? HorizontalContinuous { get; set; }
-
-        [JsonPropertyName("VerticalPageArrangement")]
-        public int? VerticalPageArrangement { get; set; }
-
-        [JsonPropertyName("HorizontalPageArrangement")]
-        public int? HorizontalPageArrangement { get; set; }
-
-        [JsonPropertyName("PageGap")]
-        public int? PageGap { get; set; }
-
-        [JsonPropertyName("AutoScrollSpeed")]
-        public int? AutoScrollSpeed { get; set; }
-    }
-
     public class ExternalModel
     {
         public List<string> ComicFolders { get; set; } = [];
@@ -274,7 +311,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public bool RemoveUnreachableComics { get; set; }
         public bool PromptBeforeRemovingComics { get; set; }
         public bool RestoreLastReadingPosition { get; set; }
-        public string Language { get; set; } = "";
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
         public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
         public Dictionary<string, ReaderSettingModel> ReaderSettingPresets { get; set; } = [];
@@ -289,7 +325,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 RemoveUnreachableComics = model.RemoveUnreachableComics ?? true,
                 PromptBeforeRemovingComics = model.PromptBeforeRemovingComics ?? true,
                 RestoreLastReadingPosition = model.RestoreLastReadingPosition ?? true,
-                Language = model.Language ?? "",
                 ComicShuffleRandomSeed = model.ComicShuffleRandomSeed ?? 0,
                 DefaultReaderSettingPresetKey = model.DefaultReaderSettingPresetKey ?? string.Empty,
             };
@@ -349,7 +384,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             model.RemoveUnreachableComics = RemoveUnreachableComics;
             model.RestoreLastReadingPosition = RestoreLastReadingPosition;
             model.PromptBeforeRemovingComics = PromptBeforeRemovingComics;
-            model.Language = Language;
             model.Theme = (int)Theme;
             model.ComicShuffleRandomSeed = ComicShuffleRandomSeed;
             model.DefaultReaderSettingPresetKey = DefaultReaderSettingPresetKey;
@@ -452,5 +486,105 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         None,
         Acrylic,
+    }
+
+    public class JsonModel
+    {
+        [JsonPropertyName("AntiAliasingEnabled")]
+        public bool? AntiAliasingEnabled { get; set; }
+
+        [JsonPropertyName("AutomaticallyHideCursor")]
+        public bool? AutomaticallyHideCursor { get; set; }
+
+        [JsonPropertyName("Background")]
+        public string? Background { get; set; }
+
+        [JsonPropertyName("CloseLastTabBehavior")]
+        public string? CloseLastTabBehavior { get; set; }
+
+        [JsonPropertyName("ComicFolders")]
+        public List<string?>? ComicFolders { get; set; }
+
+        [JsonPropertyName("ComicShuffleRandomSeed")]
+        public int? ComicShuffleRandomSeed { get; set; }
+
+        [JsonPropertyName("DefaultArchiveCodePage")]
+        public int? DefaultArchiveCodePage { get; set; }
+
+        [JsonPropertyName("DefaultReaderSettingPresetKey")]
+        public string? DefaultReaderSettingPresetKey { get; set; }
+
+        [JsonPropertyName("OpenComicDefaultBehavior")]
+        public string? OpenComicDefaultBehavior { get; set; }
+
+        [JsonPropertyName("Language")]
+        public string? Language { get; set; }
+
+        [JsonPropertyName("PromptBeforeRemovingComics")]
+        public bool? PromptBeforeRemovingComics { get; set; }
+
+        [JsonPropertyName("RatingPercentageEnabled")]
+        public bool? RatingPercentageEnabled { get; set; }
+
+        [JsonPropertyName("ReaderSettingPresets")]
+        public Dictionary<string, ReaderSettingJsonModel?>? ReaderSettingPresets { get; set; }
+
+        [JsonPropertyName("RemoveUnreachableComics")]
+        public bool? RemoveUnreachableComics { get; set; }
+
+        [JsonPropertyName("RestoreLastReadingPosition")]
+        public bool? RestoreLastReadingPosition { get; set; }
+
+        [JsonPropertyName("SaveBrowsingHistory")]
+        public bool? SaveBrowsingHistory { get; set; }
+
+        [JsonPropertyName("ScanOnLaunch")]
+        public bool? ScanOnLaunch { get; set; }
+
+        [JsonPropertyName("Theme")]
+        public int? Theme { get; set; }
+
+        [JsonPropertyName("TransitionAnimation")]
+        public bool? TransitionAnimation { get; set; }
+
+        //
+        // Legacy
+        //
+
+        [JsonPropertyName("HomePageTapComicBehavior")]
+        public string? HomePageTapComicBehavior { get; set; }
+    }
+
+    public class ReaderSettingJsonModel
+    {
+        [JsonPropertyName("PresetName")]
+        public string? PresetName { get; set; }
+
+        [JsonPropertyName("OriginalSize")]
+        public bool? OriginalSize { get; set; }
+
+        [JsonPropertyName("VerticalReading")]
+        public bool? VerticalReading { get; set; }
+
+        [JsonPropertyName("LeftToRight")]
+        public bool? LeftToRight { get; set; }
+
+        [JsonPropertyName("VerticalContinuous")]
+        public bool? VerticalContinuous { get; set; }
+
+        [JsonPropertyName("HorizontalContinuous")]
+        public bool? HorizontalContinuous { get; set; }
+
+        [JsonPropertyName("VerticalPageArrangement")]
+        public int? VerticalPageArrangement { get; set; }
+
+        [JsonPropertyName("HorizontalPageArrangement")]
+        public int? HorizontalPageArrangement { get; set; }
+
+        [JsonPropertyName("PageGap")]
+        public int? PageGap { get; set; }
+
+        [JsonPropertyName("AutoScrollSpeed")]
+        public int? AutoScrollSpeed { get; set; }
     }
 }
