@@ -32,16 +32,6 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
         return _connection.GetImageCount();
     }
 
-    public Stream? GetImageStream(int index)
-    {
-        if (_disposed)
-        {
-            return null;
-        }
-
-        return _connection.GetImageStream(index);
-    }
-
     public string GetImageName(int index)
     {
         if (_disposed)
@@ -70,5 +60,15 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
         }
 
         return _connection.GetImageSignature(index);
+    }
+
+    public Stream? OpenImageStream(int index)
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        return _connection.OpenImageStream(index);
     }
 }

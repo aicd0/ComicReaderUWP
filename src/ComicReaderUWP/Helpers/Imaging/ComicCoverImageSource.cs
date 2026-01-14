@@ -12,17 +12,6 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
 {
     private readonly ComicModel _comic = comic;
 
-    public Stream? GetImageStream()
-    {
-        using IComicConnection? connection = _comic.OpenComicAsync().Result;
-        if (connection == null)
-        {
-            return null;
-        }
-
-        return connection.GetImageStream(0);
-    }
-
     public string GetUri()
     {
         return _comic.CoverImageCacheKey;
@@ -31,5 +20,16 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
     public string GetContentFingerprint()
     {
         return string.Empty;
+    }
+
+    public Stream? OpenImageStream()
+    {
+        using IComicConnection? connection = _comic.OpenComicAsync().Result;
+        if (connection == null)
+        {
+            return null;
+        }
+
+        return connection.OpenImageStream(0);
     }
 }

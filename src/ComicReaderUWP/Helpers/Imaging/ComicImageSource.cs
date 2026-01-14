@@ -13,11 +13,6 @@ internal class ComicImageSource(IComicConnection connection, int index) : IImage
     private readonly IComicConnection _connection = connection;
     private readonly int _index = index;
 
-    public Stream? GetImageStream()
-    {
-        return _connection.GetImageStream(_index);
-    }
-
     public string GetUri()
     {
         return _connection.GetImageCacheKey(_index);
@@ -26,5 +21,10 @@ internal class ComicImageSource(IComicConnection connection, int index) : IImage
     public string GetContentFingerprint()
     {
         return _connection.GetImageSignature(_index);
+    }
+
+    public Stream? OpenImageStream()
+    {
+        return _connection.OpenImageStream(_index);
     }
 }

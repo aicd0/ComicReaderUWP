@@ -176,7 +176,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return needDraw;
         }
 
-        using Stream? stream = source.GetImageStream();
+        using Stream? stream = source.OpenImageStream();
         if (stream is null)
         {
             return needDraw;

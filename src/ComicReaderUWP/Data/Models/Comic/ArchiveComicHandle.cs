@@ -189,25 +189,6 @@ internal partial class ArchiveComicHandle : ComicHandle
             return _entries.Count;
         }
 
-        public Stream? GetImageStream(int index)
-        {
-            if (index < 0 || index >= _entries.Count)
-            {
-                Logger.F(TAG, "GetImageStream");
-                return null;
-            }
-
-            string path = _entries[index];
-            Stream? stream = ArchiveAccess.TryGetFileStream(_archiveFile, path).Result;
-            if (stream == null)
-            {
-                Logger.I(TAG, "Failed to access entry '" + _entries[index] + "'");
-                return null;
-            }
-
-            return stream;
-        }
-
         public string GetImageName(int index)
         {
             if (index < 0 || index >= _entries.Count)
@@ -241,6 +222,25 @@ internal partial class ArchiveComicHandle : ComicHandle
         public string GetImageSignature(int index)
         {
             return FileUtils.GetFileSignature(_archiveFile.Path);
+        }
+
+        public Stream? OpenImageStream(int index)
+        {
+            if (index < 0 || index >= _entries.Count)
+            {
+                Logger.F(TAG, "GetImageStream");
+                return null;
+            }
+
+            string path = _entries[index];
+            Stream? stream = ArchiveAccess.TryGetFileStream(_archiveFile, path).Result;
+            if (stream == null)
+            {
+                Logger.I(TAG, "Failed to access entry '" + _entries[index] + "'");
+                return null;
+            }
+
+            return stream;
         }
     }
 }

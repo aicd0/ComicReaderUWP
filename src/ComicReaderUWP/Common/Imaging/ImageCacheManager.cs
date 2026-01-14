@@ -555,7 +555,7 @@ internal static partial class ImageCacheManager
     {
         try
         {
-            return source.GetImageStream();
+            return source.OpenImageStream();
         }
         catch (Exception e)
         {

@@ -10,11 +10,11 @@ internal interface IComicConnection : IDisposable
 {
     int GetImageCount();
 
-    Stream? GetImageStream(int index);
-
     string GetImageName(int index);
 
     string GetImageCacheKey(int index);
 
     string GetImageSignature(int index);
+
+    Stream? OpenImageStream(int index);
 }
