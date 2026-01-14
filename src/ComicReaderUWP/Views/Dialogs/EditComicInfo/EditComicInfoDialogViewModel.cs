@@ -128,7 +128,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
 
         string commonRating = ExtractCommonValue(comic => comic.Rating.ToString(), string.Empty);
         Rating = commonRating == "-1" ? string.Empty : commonRating;
-        SetRatingPercentageEnabled(AppModel.RatingPercentageEnabled);
+        SetRatingPercentageEnabled(AppSettingsModel.Instance.RatingPercentageEnabled);
 
         InitializeTags(_tagIdMode);
         InitializeLinks();
@@ -341,7 +341,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         }
 
         RatingPercentageEnabled = enabled;
-        AppModel.RatingPercentageEnabled = enabled;
+        AppSettingsModel.Instance.RatingPercentageEnabled = enabled;
 
         if (!string.IsNullOrEmpty(_rating) && float.TryParse(_rating, out float ratingFloat))
         {

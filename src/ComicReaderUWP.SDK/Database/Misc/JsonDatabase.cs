@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System.Text.Json;
 
 using ComicReaderUWP.SDK.Common.DebugTools;
@@ -16,7 +14,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
 
     private readonly string _fileName = fileName;
     private readonly ReaderWriterLock _lock = new();
-    private T _jsonModel;
+    private T? _jsonModel;
     private readonly ITaskDispatcher _queue = TaskDispatcher.Factory.NewQueue($"{nameof(JsonDatabase<T>)}#{fileName}");
 
     private readonly JsonSerializerOptions _serializerOptions = new()
@@ -25,15 +23,15 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
         Encoder = DebugUtils.DebugMode ? System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping : System.Text.Encodings.Web.JavaScriptEncoder.Default,
     };
 
-    protected abstract T CreateModel();
+    protected abstract T InitializeModel(T? model);
 
     protected R Read<R>(Func<T, R> func)
     {
-        Initialize();
+        T jsonModel = Initialize();
         _lock.AcquireReaderLock(Timeout.Infinite);
         try
         {
-            return func(_jsonModel);
+            return func(jsonModel);
         }
         finally
         {
@@ -41,13 +39,27 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
         }
     }
 
-    protected R Write<R>(Func<T, R> func)
+    protected void Write(Action<T> action)
     {
-        Initialize();
+        T jsonModel = Initialize();
         _lock.AcquireWriterLock(Timeout.Infinite);
         try
         {
-            return func(_jsonModel);
+            action(jsonModel);
+        }
+        finally
+        {
+            _lock.ReleaseWriterLock();
+        }
+    }
+
+    protected R Write<R>(Func<T, R> func)
+    {
+        T jsonModel = Initialize();
+        _lock.AcquireWriterLock(Timeout.Infinite);
+        try
+        {
+            return func(jsonModel);
         }
         finally
         {
@@ -73,7 +85,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
 
     protected void Save()
     {
-        T clonedModel = Read(CloneModel);
+        T? clonedModel = Read(CloneModel);
         if (clonedModel != null)
         {
             _queue.Submit("Save", () =>
@@ -84,7 +96,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
         }
     }
 
-    protected T CloneModel(T model)
+    protected T? CloneModel(T model)
     {
         string json = JsonSerializer.Serialize(model, _serializerOptions);
         try
@@ -98,23 +110,24 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
         }
     }
 
-    private void Initialize()
+    private T Initialize()
     {
-        if (_jsonModel != null)
+        T? jsonModel = _jsonModel;
+        if (jsonModel is not null)
         {
-            return;
+            return jsonModel;
         }
 
         _lock.AcquireWriterLock(Timeout.Infinite);
         try
         {
-            if (_jsonModel != null)
+            jsonModel = _jsonModel;
+            if (jsonModel is not null)
             {
-                return;
+                return jsonModel;
             }
 
-            string json = SimpleConfigDatabase.Instance.TryGetConfig(_fileName);
-            T jsonModel = null;
+            string? json = SimpleConfigDatabase.Instance.TryGetConfig(_fileName);
             if (!string.IsNullOrEmpty(json))
             {
                 try
@@ -127,8 +140,9 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
                 }
             }
 
-            jsonModel ??= CreateModel();
+            jsonModel = InitializeModel(jsonModel);
             _jsonModel = jsonModel;
+            return jsonModel;
         }
         finally
         {

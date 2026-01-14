@@ -101,7 +101,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             int selectedIndex = value;
             if (selectedIndex >= 0 && selectedIndex < Encodings.Count)
             {
-                AppModel.DefaultArchiveCodePage = Encodings[selectedIndex].Item2;
+                AppSettingsModel.Instance.DefaultArchiveCodePage = Encodings[selectedIndex].Item2;
             }
         }
     }
@@ -159,7 +159,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             _transitionAnimation = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransitionAnimation)));
 
-            AppModel.TransitionAnimation = value;
+            AppSettingsModel.Instance.TransitionAnimation = value;
         }
     }
 
@@ -172,7 +172,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             _automaticallyHideCursor = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutomaticallyHideCursor)));
 
-            AppModel.AutomaticallyHideCursor = value;
+            AppSettingsModel.Instance.AutomaticallyHideCursor = value;
         }
     }
 
@@ -185,7 +185,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             _antiAliasingEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AntiAliasingEnabled)));
 
-            AppModel.AntiAliasingEnabled = value;
+            AppSettingsModel.Instance.AntiAliasingEnabled = value;
         }
     }
 
@@ -209,7 +209,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             _historySaveBrowsingHistory = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HistorySaveBrowsingHistory)));
 
-            AppModel.SaveBrowsingHistory = value;
+            AppSettingsModel.Instance.SaveBrowsingHistory = value;
         }
     }
 
@@ -383,7 +383,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             });
         });
 
-        ComicHandle.IsScanningLibrary.ObserveSticky(owner, (bool isScanning) =>
+        ComicHandle.IsScanningLibrary.ObserveSticky(owner, isScanning =>
         {
             IsRescanning = isScanning;
         });
@@ -532,7 +532,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         {
             new(StringResourceProvider.Instance.Default, -1)
         };
-        int defaultCodePage = AppModel.DefaultArchiveCodePage;
+        int defaultCodePage = AppSettingsModel.Instance.DefaultArchiveCodePage;
         int selectedIndex = 0;
         foreach (Encoding info in supportedEncodings.Values)
         {
@@ -545,7 +545,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
         if (!supportedEncodings.ContainsKey(defaultCodePage))
         {
-            AppModel.DefaultArchiveCodePage = -1;
+            AppSettingsModel.Instance.DefaultArchiveCodePage = -1;
             selectedIndex = 0;
         }
 
@@ -560,9 +560,9 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     {
         CoroutineUtils.RunInMainThread(() =>
         {
-            TransitionAnimation = AppModel.TransitionAnimation;
-            AntiAliasingEnabled = AppModel.AntiAliasingEnabled;
-            AutomaticallyHideCursor = AppModel.AutomaticallyHideCursor;
+            TransitionAnimation = AppSettingsModel.Instance.TransitionAnimation;
+            AntiAliasingEnabled = AppSettingsModel.Instance.AntiAliasingEnabled;
+            AutomaticallyHideCursor = AppSettingsModel.Instance.AutomaticallyHideCursor;
         });
     }
 
@@ -575,7 +575,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             bool removeUnreachableComics = model.RemoveUnreachableComics;
             bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
             bool restoreLastReadingPosition = model.RestoreLastReadingPosition;
-            bool saveBrowsingHistory = AppModel.SaveBrowsingHistory;
+            bool saveBrowsingHistory = AppSettingsModel.Instance.SaveBrowsingHistory;
 
             await MainThreadUtils.RunInMainThread(() =>
             {

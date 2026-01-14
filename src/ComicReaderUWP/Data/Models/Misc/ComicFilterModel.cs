@@ -30,9 +30,10 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
     private ComicFilterModel() : base("filters.json") { }
 
-    protected override JsonModel CreateModel()
+    protected override JsonModel InitializeModel(JsonModel? model)
     {
-        return new();
+        model ??= new();
+        return model;
     }
 
     public ExternalModel? GetModel()
@@ -42,11 +43,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
     public void UpdateModel(ExternalModel model)
     {
-        Write(m =>
-        {
-            model.To(m);
-            return true;
-        });
+        Write(model.To);
         Save();
         GlobalEvent.Instance.FilterUpdated.Emit(0);
     }
@@ -57,7 +54,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         public FilterModel? LastFilter { get; set; }
 
         [JsonPropertyName("Filters")]
-        public List<FilterModel?>? Filters { get; set; } = new();
+        public List<FilterModel?>? Filters { get; set; }
     }
 
     public class FilterModel

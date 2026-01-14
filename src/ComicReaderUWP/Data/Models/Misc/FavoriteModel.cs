@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -16,31 +14,32 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
     public class JsonModel
     {
         [JsonPropertyName("children")]
-        public List<JsonNodeModel> Children { get; set; } = new();
+        public List<JsonNodeModel?>? Children { get; set; }
     }
 
     public class JsonNodeModel
     {
         [JsonPropertyName("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [JsonPropertyName("id")]
-        public long Id { get; set; }
+        public long? Id { get; set; }
 
         [JsonPropertyName("children")]
-        public List<JsonNodeModel> Children { get; set; } = new();
+        public List<JsonNodeModel?>? Children { get; set; }
     }
 
     public static readonly FavoriteModel Instance = new();
 
     private FavoriteModel() : base("favorites.json") { }
 
-    protected override JsonModel CreateModel()
+    protected override JsonModel InitializeModel(JsonModel? model)
     {
-        return new();
+        model ??= new();
+        return model;
     }
 
     public ExternalModel GetModel()
@@ -52,30 +51,38 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
     {
         Write(m =>
         {
-            m.Children.Clear();
+            m.Children = [];
             foreach (ExternalNodeModel node in model.Children)
             {
                 m.Children.Add(ConvertToJsonModel(node));
             }
-            return true;
         });
         Save();
         DispatchUpdateEvent();
     }
 
-    public ExternalNodeModel FromId(long id)
+    public ExternalNodeModel? FromId(long id)
     {
-        JsonNodeModel model = Read(model => FromIdNoLock(model, id));
+        JsonNodeModel? model = Read(model => FromIdNoLock(model, id));
         return ConvertToExternalModel(model);
     }
 
     public bool RemoveWithId(long id, bool sendEvent)
     {
-        bool helper(List<JsonNodeModel> e)
+        bool helper(List<JsonNodeModel?>? e)
         {
+            if (e is null)
+            {
+                return false;
+            }
+
             for (int i = 0; i < e.Count; ++i)
             {
-                JsonNodeModel node = e[i];
+                JsonNodeModel? node = e[i];
+                if (node is null)
+                {
+                    continue;
+                }
 
                 if (node.Type == "i")
                 {
@@ -85,15 +92,9 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
                         return true;
                     }
                 }
-                else
+                else if (helper(node.Children))
                 {
-                    if (!(node.Children.Count == 0))
-                    {
-                        if (helper(node.Children))
-                        {
-                            return true;
-                        }
-                    }
+                    return true;
                 }
             }
 
@@ -102,10 +103,12 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
 
         bool result = Write(model => helper(model.Children));
         Save();
+
         if (sendEvent)
         {
             DispatchUpdateEvent();
         }
+
         return result;
     }
 
@@ -116,21 +119,31 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
             return;
         }
 
-        bool Helper(List<JsonNodeModel> e)
+        bool helper(List<JsonNodeModel?>? e)
         {
+            if (e is null)
+            {
+                return false;
+            }
+
             bool updated = false;
             for (int i = e.Count - 1; i >= 0; --i)
             {
-                JsonNodeModel node = e[i];
+                JsonNodeModel? node = e[i];
+                if (node is null)
+                {
+                    continue;
+                }
+
                 if (node.Type == "i")
                 {
-                    if (ids.Contains(node.Id))
+                    if (node.Id.HasValue && ids.Contains(node.Id.Value))
                     {
                         e.RemoveAt(i);
                         updated = true;
                     }
                 }
-                else if (node.Children.Count > 0 && Helper(node.Children))
+                else if (helper(node.Children))
                 {
                     updated = true;
                 }
@@ -139,7 +152,7 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
             return updated;
         }
 
-        bool updated = Write(model => Helper(model.Children));
+        bool updated = Write(model => helper(model.Children));
         if (updated)
         {
             Save();
@@ -149,19 +162,21 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
 
     public void Add(long id, string title, bool sendEvent)
     {
-        bool updated = Write(delegate (JsonModel model)
+        bool updated = Write(model =>
         {
-            JsonNodeModel node = FromIdNoLock(model, id);
+            JsonNodeModel? node = FromIdNoLock(model, id);
             if (node != null)
             {
                 return false;
             }
+
             node = new JsonNodeModel
             {
                 Type = "i",
                 Name = title,
                 Id = id
             };
+            model.Children ??= [];
             model.Children.Add(node);
             return true;
         });
@@ -184,22 +199,24 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
             return;
         }
 
-        bool updated = Write(delegate (JsonModel model)
+        bool updated = Write(model =>
         {
             bool updated = false;
             foreach (FavoriteItem item in items)
             {
-                JsonNodeModel node = FromIdNoLock(model, item.Id);
+                JsonNodeModel? node = FromIdNoLock(model, item.Id);
                 if (node != null)
                 {
                     continue;
                 }
+
                 node = new JsonNodeModel
                 {
                     Type = "i",
                     Name = item.Title,
                     Id = item.Id
                 };
+                model.Children ??= [];
                 model.Children.Add(node);
                 updated = true;
             }
@@ -213,12 +230,22 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
         }
     }
 
-    private JsonNodeModel FromIdNoLock(JsonModel model, long id)
+    private static JsonNodeModel? FromIdNoLock(JsonModel model, long id)
     {
-        JsonNodeModel helper(List<JsonNodeModel> e)
+        JsonNodeModel? helper(List<JsonNodeModel?>? e)
         {
-            foreach (JsonNodeModel node in e)
+            if (e is null)
             {
+                return null;
+            }
+
+            foreach (JsonNodeModel? node in e)
+            {
+                if (node is null)
+                {
+                    continue;
+                }
+
                 if (node.Type == "i")
                 {
                     if (node.Id == id)
@@ -228,14 +255,10 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
                 }
                 else
                 {
-                    if (!(node.Children.Count == 0))
+                    JsonNodeModel? result = helper(node.Children);
+                    if (result != null)
                     {
-                        JsonNodeModel result = helper(node.Children);
-
-                        if (result != null)
-                        {
-                            return result;
-                        }
+                        return result;
                     }
                 }
             }
@@ -246,52 +269,64 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
         return helper(model.Children);
     }
 
-    private void DispatchUpdateEvent()
+    private static void DispatchUpdateEvent()
     {
         GlobalEvent.Instance.FavoriteUpdated.Emit(0);
     }
 
     private static ExternalModel ConvertToExternalModel(JsonModel model)
     {
-        if (model == null)
+        var children = new List<ExternalNodeModel>();
+        if (model.Children is not null)
         {
-            return null;
+            foreach (JsonNodeModel? child in model.Children)
+            {
+                ExternalNodeModel? childModel = ConvertToExternalModel(child);
+                if (childModel is null)
+                {
+                    continue;
+                }
+
+                children.Add(childModel);
+            }
         }
 
-        var children = new List<ExternalNodeModel>();
-        foreach (JsonNodeModel child in model.Children)
-        {
-            children.Add(ConvertToExternalModel(child));
-        }
         return new ExternalModel(children);
     }
 
-    private static ExternalNodeModel ConvertToExternalModel(JsonNodeModel node)
+    private static ExternalNodeModel? ConvertToExternalModel(JsonNodeModel? node)
     {
-        if (node == null)
+        if (node is null || !node.Id.HasValue || string.IsNullOrEmpty(node.Type) || string.IsNullOrEmpty(node.Name))
         {
             return null;
         }
 
         var children = new List<ExternalNodeModel>();
-        foreach (JsonNodeModel child in node.Children)
+        if (node.Children is not null)
         {
-            children.Add(ConvertToExternalModel(child));
+            foreach (JsonNodeModel? child in node.Children)
+            {
+                ExternalNodeModel? childModel = ConvertToExternalModel(child);
+                if (childModel is null)
+                {
+                    continue;
+                }
+
+                children.Add(childModel);
+            }
         }
-        return new ExternalNodeModel(node.Type, node.Name, node.Id, children);
+
+        return new ExternalNodeModel(node.Type, node.Name, node.Id.Value, children);
     }
 
     private static JsonNodeModel ConvertToJsonModel(ExternalNodeModel node)
     {
-        if (node == null)
-        {
-            return null;
-        }
-        var children = new List<JsonNodeModel>();
+        var children = new List<JsonNodeModel?>();
         foreach (ExternalNodeModel child in node.Children)
         {
             children.Add(ConvertToJsonModel(child));
         }
+
         return new JsonNodeModel
         {
             Type = node.Type,

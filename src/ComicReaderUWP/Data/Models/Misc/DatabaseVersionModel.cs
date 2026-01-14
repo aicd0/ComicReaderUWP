@@ -21,17 +21,22 @@ class DatabaseVersionModel : JsonDatabase<DatabaseVersionModel.JsonModel>
 
     private DatabaseVersionModel() : base("database_version.json") { }
 
-    protected override JsonModel CreateModel()
+    protected override JsonModel InitializeModel(JsonModel? model)
     {
-        return new()
+        if (model is null)
         {
-            Version = VERSION,
-            KVStoreVersion = KV_STORE_VERSION,
-            SqliteDatabaseVersion = SQLITE_DATABASE_VERSION,
-            FavoritesVersion = FAVORITES_VERSION,
-            HistoryVersion = HISTORY_VERSION,
-            AppSettingsVersion = APP_SETTING_VERSION,
-        };
+            return new()
+            {
+                Version = VERSION,
+                KVStoreVersion = KV_STORE_VERSION,
+                SqliteDatabaseVersion = SQLITE_DATABASE_VERSION,
+                FavoritesVersion = FAVORITES_VERSION,
+                HistoryVersion = HISTORY_VERSION,
+                AppSettingsVersion = APP_SETTING_VERSION,
+            };
+        }
+
+        return model;
     }
 
     public ExternalModel GetModel()
@@ -41,11 +46,7 @@ class DatabaseVersionModel : JsonDatabase<DatabaseVersionModel.JsonModel>
 
     public void UpdateModel(ExternalModel model)
     {
-        Write(jsonModel =>
-        {
-            model.ToJsonModel(jsonModel);
-            return true;
-        });
+        Write(model.ToJsonModel);
         Save();
     }
 
