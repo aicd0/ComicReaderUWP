@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>Очистить всю историю</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>Очистить кэш</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>Размер кэша: $size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Поведение при закрытии последней вкладки</value>
@@ -753,6 +750,12 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Reset" xml:space="preserve">
     <value>Сбросить</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>Сбросить все настройки</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>Все настройки будут восстановлены до состояния по умолчанию. Ваши пользовательские данные будут сохранены.</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Восстанавливать последнюю позицию чтения</value>

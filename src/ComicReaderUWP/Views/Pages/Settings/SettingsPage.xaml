@@ -1,5 +1,5 @@
 <base:BasePage
-    x:Class="ComicReaderUWP.Views.Pages.Settings.SettingPage"
+    x:Class="ComicReaderUWP.Views.Pages.Settings.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"
@@ -147,7 +147,7 @@
                                     IsEnabled="{x:Bind ViewModel.IsClearHistoryEnabled, Mode=OneWay}" />
                                 <TextBlock
                                     x:Uid="SaveHistory"
-                                    Margin="0,20,0,0"
+                                    Margin="0,16,0,0"
                                     TextWrapping="Wrap" />
                                 <ToggleSwitch IsOn="{x:Bind ViewModel.HistorySaveBrowsingHistory, Mode=TwoWay}" />
                             </StackPanel>
@@ -166,10 +166,13 @@
                                     Text="{x:Bind StringResource.ApplyOnNextLaunch}"
                                     TextWrapping="Wrap"
                                     Visibility="{x:Bind ViewModel.AppearanceChanged, Mode=OneWay}" />
-                                <muxc:RadioButtons Margin="0,-8,0,0">
-                                    <RadioButton x:Uid="ThemeLight" IsChecked="{x:Bind ViewModel.AppearanceLightChecked, Mode=TwoWay}" />
-                                    <RadioButton x:Uid="ThemeDark" IsChecked="{x:Bind ViewModel.AppearanceDarkChecked, Mode=TwoWay}" />
-                                    <RadioButton x:Uid="ThemeUseSystemSetting" IsChecked="{x:Bind ViewModel.AppearanceUseSystemSettingChecked, Mode=TwoWay}" />
+                                <muxc:RadioButtons
+                                    Margin="0,-8,0,0"
+                                    SelectedIndex="{x:Bind ViewModel.AppearanceIndex, Mode=OneWay}"
+                                    SelectionChanged="AppearanceRadioButtons_SelectionChanged">
+                                    <RadioButton x:Uid="ThemeLight" />
+                                    <RadioButton x:Uid="ThemeDark" />
+                                    <RadioButton x:Uid="ThemeUseSystemSetting" />
                                 </muxc:RadioButtons>
                                 <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
                                     <TextBlock VerticalAlignment="Center" Text="{x:Bind StringResource.Background}" />
@@ -249,39 +252,7 @@
                         Glyph="&#xEC7A;"
                         IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
-                            <StackPanel Orientation="Vertical">
-                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                                    <Button
-                                        x:Uid="ClearCacheButton"
-                                        Click="OnClearCacheClick"
-                                        IsEnabled="{x:Bind ViewModel.IsClearingCache, Converter={StaticResource BooleanNegationConverter}, Mode=OneWay}" />
-                                    <ProgressRing
-                                        Margin="20,0,0,0"
-                                        VerticalAlignment="Center"
-                                        IsActive="{x:Bind ViewModel.IsClearingCache, Mode=OneWay}" />
-                                </StackPanel>
-                                <TextBlock
-                                    Margin="0,4,0,0"
-                                    Foreground="{ThemeResource ForegroundGrey2}"
-                                    Text="{x:Bind ViewModel.CacheSize, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-                                <Button
-                                    Margin="0,16,0,0"
-                                    Click="OnOpenUserDataFolderClick"
-                                    Content="{x:Bind StringResource.OpenUserDataFolder}" />
-                                <Button
-                                    Margin="0,8,0,0"
-                                    Click="OnRefreshRandomSeedClick"
-                                    Content="{x:Bind StringResource.RefreshRandomSeed}" />
-                                <TextBlock
-                                    x:Uid="DebugMode"
-                                    Margin="0,20,0,0"
-                                    TextWrapping="Wrap" />
-                                <ToggleSwitch
-                                    x:Name="TsDebugMode"
-                                    IsOn="{x:Bind ViewModel.DebugMode, Mode=OneWay}"
-                                    Toggled="OnDebugModeToggled" />
-                            </StackPanel>
+                            <settings:AdvancedSettingsView x:Name="AdvancedSettingsSection" />
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>
 
@@ -398,7 +369,7 @@
                         TextWrapping="Wrap" />
 
                     <!--  Debug information  -->
-                    <StackPanel Orientation="Vertical" Visibility="{x:Bind ViewModel.DebugMode, Mode=OneWay}">
+                    <StackPanel Orientation="Vertical" Visibility="{x:Bind ViewModel.Shared.DebugMode, Mode=OneWay}">
                         <TextBlock x:Uid="DebugInformation" Style="{StaticResource SettingsPageSubTitleTextBlock}" />
                         <TextBlock
                             x:Name="TbDebugInformation"

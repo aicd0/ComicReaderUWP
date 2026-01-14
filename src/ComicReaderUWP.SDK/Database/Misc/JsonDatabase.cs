@@ -25,6 +25,20 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
 
     protected abstract T InitializeModel(T? model);
 
+    protected void Read(Action<T> action)
+    {
+        T jsonModel = Initialize();
+        _lock.AcquireReaderLock(Timeout.Infinite);
+        try
+        {
+            action(jsonModel);
+        }
+        finally
+        {
+            _lock.ReleaseReaderLock();
+        }
+    }
+
     protected R Read<R>(Func<T, R> func)
     {
         T jsonModel = Initialize();

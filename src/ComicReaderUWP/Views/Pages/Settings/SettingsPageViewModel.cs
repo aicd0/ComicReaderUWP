@@ -6,11 +6,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO;
 using System.Text;
 using System.Threading;
 
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Data.Models.Comic;
@@ -19,20 +17,19 @@ using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.Common.Storage;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 
-using Windows.Globalization;
-
 namespace ComicReaderUWP.Views.Pages.Settings;
 
-public partial class SettingPageViewModel : INotifyPropertyChanged
+internal partial class SettingsPageViewModel : INotifyPropertyChanged
 {
-    private const string TAG = nameof(SettingPageViewModel);
+    private const string TAG = nameof(SettingsPageViewModel);
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public SettingsSharedViewModel Shared { get; } = new();
 
     private List<Tuple<string, int>> _encodings = [];
     public List<Tuple<string, int>> Encodings
@@ -213,66 +210,14 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _appearanceLightChecked = false;
-    public bool AppearanceLightChecked
+    private int _appearanceIndex;
+    public int AppearanceIndex
     {
-        get => _appearanceLightChecked;
+        get => _appearanceIndex;
         set
         {
-            if (value == _appearanceLightChecked)
-            {
-                return;
-            }
-
-            _appearanceLightChecked = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceLightChecked)));
-
-            if (value)
-            {
-                SetAppearance(AppSettingsModel.AppearanceSetting.Light);
-            }
-        }
-    }
-
-    private bool _appearanceDarkChecked = false;
-    public bool AppearanceDarkChecked
-    {
-        get => _appearanceDarkChecked;
-        set
-        {
-            if (value == _appearanceDarkChecked)
-            {
-                return;
-            }
-
-            _appearanceDarkChecked = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceDarkChecked)));
-
-            if (value)
-            {
-                SetAppearance(AppSettingsModel.AppearanceSetting.Dark);
-            }
-        }
-    }
-
-    private bool _appearanceUseSystemSettingChecked = false;
-    public bool AppearanceUseSystemSettingChecked
-    {
-        get => _appearanceUseSystemSettingChecked;
-        set
-        {
-            if (value == _appearanceUseSystemSettingChecked)
-            {
-                return;
-            }
-
-            _appearanceUseSystemSettingChecked = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceUseSystemSettingChecked)));
-
-            if (value)
-            {
-                SetAppearance(AppSettingsModel.AppearanceSetting.UseSystemSetting);
-            }
+            _appearanceIndex = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceIndex)));
         }
     }
 
@@ -298,25 +243,40 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _languageDescription = "";
-    public string LanguageDescription
+    private bool _languageChanged;
+    public bool LanguageChanged
     {
-        get => _languageDescription;
+        get => _languageChanged;
         set
         {
-            _languageDescription = value;
+            _languageChanged = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LanguageDescription)));
         }
     }
 
-    private bool _debugMode;
-    public bool DebugMode
+    private string _languageDescription = string.Empty;
+    public string LanguageDescription
     {
-        get => _debugMode;
+        get
+        {
+            List<string> lines = [];
+
+            if (_languageChanged)
+            {
+                lines.Add(StringResourceProvider.Instance.ApplyOnNextLaunch);
+            }
+
+            if (!string.IsNullOrEmpty(_languageDescription))
+            {
+                lines.Add(_languageDescription);
+            }
+
+            return string.Join('\n', lines);
+        }
         set
         {
-            _debugMode = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DebugMode)));
+            _languageDescription = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LanguageDescription)));
         }
     }
 
@@ -328,28 +288,6 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         {
             _isRescanning = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRescanning)));
-        }
-    }
-
-    private bool _isClearingCache = false;
-    public bool IsClearingCache
-    {
-        get => _isClearingCache;
-        set
-        {
-            _isClearingCache = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsClearingCache)));
-        }
-    }
-
-    private string _cacheSize = StringResourceProvider.Instance.Calculating;
-    public string CacheSize
-    {
-        get => StringResourceProvider.Instance.ClearCacheDetail.Replace("$size", _cacheSize);
-        set
-        {
-            _cacheSize = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CacheSize)));
         }
     }
 
@@ -369,12 +307,9 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
     private readonly ReaderWriterLock _lock = new();
     private readonly ITaskDispatcher _dispatcher = TaskDispatcher.DefaultQueue;
     private AppSettingsModel.ExternalModel? _settingsModel;
-    private bool _languageChanged = false;
 
     public void Initialize(ILifecycleOwner owner)
     {
-        _dispatcher.Submit($"{TAG}#Initialize", InitializeInternal);
-
         GlobalEvent.Instance.ComicUpdated.Observe(owner, (_) =>
         {
             _dispatcher.Submit($"{TAG}#UpdateStatistis", () =>
@@ -387,6 +322,8 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         {
             IsRescanning = isScanning;
         });
+
+        Shared.UpdateStarted += Update;
     }
 
     public void SetScanOnLaunch(bool scanOnLaunch)
@@ -421,13 +358,6 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         AppSettingsModel.Instance.UpdateModel(model);
     }
 
-    public void RefreshRandomSeed()
-    {
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
-        model.ComicShuffleRandomSeed = Random.Shared.Next();
-        AppSettingsModel.Instance.UpdateModel(model);
-    }
-
     public void SetBackground(int index)
     {
         if (index == _backgroundIndex)
@@ -435,9 +365,8 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (index >= _backgrounds.Count)
+        if (index < 0 || index >= _backgrounds.Count)
         {
-            Logger.F(TAG, "Background index out of bounds.");
             return;
         }
 
@@ -451,78 +380,66 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
     public void SetAppLanguage(int index)
     {
-        if (index == _languageIndex)
+        if (index < 0 || index >= _languages.Count || index == _languageIndex)
         {
-            return;
-        }
-
-        if (index >= _languages.Count)
-        {
-            Logger.F(TAG, "Language index out of bounds.");
             return;
         }
 
         LanguageEntry selectedLanguage = _languages[index];
         _languageIndex = index;
-        _languageChanged = true;
-        UpdateLanguageDescription(selectedLanguage.Description);
-
-        if (!EnvironmentProvider.IsPortable())
-        {
-            try
-            {
-                ApplicationLanguages.PrimaryLanguageOverride = selectedLanguage.Identifier;
-            }
-            catch (Exception ex)
-            {
-                Logger.F(TAG, ex);
-            }
-        }
-
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
-        model.Language = selectedLanguage.Identifier;
-        AppSettingsModel.Instance.UpdateModel(model);
+        LanguageChanged = true;
+        LanguageDescription = selectedLanguage.Description;
+        AppSettingsModel.Instance.Language = selectedLanguage.Identifier;
     }
 
-    public void SetAppearance(AppSettingsModel.AppearanceSetting appearance)
+    public void SetAppearance(int index)
     {
+        if (index == _appearanceIndex)
+        {
+            return;
+        }
+
+        _appearanceIndex = index;
+        AppSettingsModel.AppearanceSetting appearance = index switch
+        {
+            0 => AppSettingsModel.AppearanceSetting.Light,
+            1 => AppSettingsModel.AppearanceSetting.Dark,
+            2 => AppSettingsModel.AppearanceSetting.UseSystemSetting,
+            _ => AppSettingsModel.AppearanceSetting.UseSystemSetting,
+        };
         AppearanceChanged = true;
         AppSettingsModel.ExternalModel model = GetSettingsModel();
         model.Theme = appearance;
         AppSettingsModel.Instance.UpdateModel(model);
     }
 
-    public void ClearCache()
-    {
-        IsClearingCache = true;
-        TaskDispatcher.DefaultQueue.Submit("ClearCache", delegate
-        {
-            ClearCacheInternal();
-            string size = GetCacheSize();
-            CoroutineUtils.RunInMainThread(() =>
-            {
-                IsClearingCache = false;
-                CacheSize = size;
-            });
-        });
-    }
-
     //
     // Initialization
     //
 
+    private void Update()
+    {
+        _dispatcher.Submit($"{TAG}#Initialize", InitializeInternal);
+    }
+
     private void InitializeInternal()
     {
+        _settingsModel = null;
         AppSettingsModel.ExternalModel model = GetSettingsModel();
         UpdateEncodings();
         UpdateReaderSettings();
         UpdateHistory(model);
         UpdateAppearance(model);
         UpdateBackground(model);
-        UpdateLanguage(model);
+        UpdateLanguage();
         UpdateStatistis();
-        UpdateCacheSize();
-        UpdateOtherSettings();
+        UpdateSharedSettings();
+
+        CoroutineUtils.RunInMainThread(() =>
+        {
+            AppearanceChanged = false;
+            LanguageChanged = false;
+        });
     }
 
     private void UpdateEncodings()
@@ -609,9 +526,9 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private void UpdateLanguage(AppSettingsModel.ExternalModel model)
+    private void UpdateLanguage()
     {
-        string currentLanguage = model.Language;
+        string currentLanguage = AppSettingsModel.Instance.Language;
         List<LanguageEntry> languages = [
             new("Deutsch", "de-DE", "Einige Texte sind maschinell übersetzt"),
             new("Español", "es-ES", "Algunos textos están traducidos automáticamente"),
@@ -637,6 +554,7 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
                 break;
             }
         }
+
         if (selectedIndex < 0)
         {
             selectedIndex = 0;
@@ -646,24 +564,8 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         {
             Languages = languages;
             LanguageIndex = selectedIndex;
-            UpdateLanguageDescription(languageDescription);
+            LanguageDescription = languageDescription;
         });
-    }
-
-    private void UpdateLanguageDescription(string description)
-    {
-        if (_languageChanged)
-        {
-            if (description.Length == 0)
-            {
-                description = StringResourceProvider.Instance.ApplyOnNextLaunch;
-            }
-            else
-            {
-                description += "\n" + StringResourceProvider.Instance.ApplyOnNextLaunch;
-            }
-        }
-        LanguageDescription = description;
     }
 
     private void UpdateAppearance(AppSettingsModel.ExternalModel model)
@@ -676,13 +578,13 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
 
         CoroutineUtils.RunInMainThread(() =>
         {
-            // Reset first to avoid triggering the change event
-            _appearanceLightChecked = appearance == AppSettingsModel.AppearanceSetting.Light;
-            AppearanceLightChecked = _appearanceLightChecked;
-            _appearanceDarkChecked = appearance == AppSettingsModel.AppearanceSetting.Dark;
-            AppearanceDarkChecked = _appearanceDarkChecked;
-            _appearanceUseSystemSettingChecked = appearance == AppSettingsModel.AppearanceSetting.UseSystemSetting;
-            AppearanceUseSystemSettingChecked = _appearanceUseSystemSettingChecked;
+            AppearanceIndex = appearance switch
+            {
+                AppSettingsModel.AppearanceSetting.Light => 0,
+                AppSettingsModel.AppearanceSetting.Dark => 1,
+                AppSettingsModel.AppearanceSetting.UseSystemSetting => 2,
+                _ => 2,
+            };
         });
     }
 
@@ -732,20 +634,11 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private void UpdateCacheSize()
-    {
-        string size = GetCacheSize();
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            CacheSize = size;
-        });
-    }
-
-    public void UpdateOtherSettings()
+    private void UpdateSharedSettings()
     {
         CoroutineUtils.RunInMainThread(() =>
         {
-            DebugMode = DebugUtils.DebugMode;
+            Shared.DebugMode = DebugUtils.DebugMode;
         });
     }
 
@@ -779,156 +672,6 @@ public partial class SettingPageViewModel : INotifyPropertyChanged
         finally
         {
             _lock.ReleaseReaderLock();
-        }
-    }
-
-    //
-    // File cache
-    //
-
-    private static string GetCacheSize()
-    {
-        long size = 0;
-        size += GetCacheDirectorySize(StorageLocation.LocalCacheFolderPath);
-        size += GetCacheDirectorySize(StorageLocation.TemporaryFolderPath);
-
-        string[] sizes = ["B", "KB", "MB", "GB", "TB"];
-        int order = 0;
-        while (size >= 1024 && order < sizes.Length - 1)
-        {
-            order++;
-            size /= 1024;
-        }
-
-        return string.Format("{0:0.##} {1}", size, sizes[order]);
-    }
-
-    private static void ClearCacheInternal()
-    {
-        ImageCacheManager.Clear();
-        ClearCacheDirectory(StorageLocation.LocalCacheFolderPath);
-        ClearCacheDirectory(StorageLocation.TemporaryFolderPath);
-    }
-
-    private static long GetCacheDirectorySize(string directoryPath)
-    {
-        long size = 0;
-
-        DirectoryInfo directory;
-        try
-        {
-            directory = new(directoryPath);
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, e);
-            return size;
-        }
-
-        FileInfo[] files;
-        try
-        {
-            files = directory.GetFiles();
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, "GetCacheSize", e);
-            files = [];
-        }
-
-        foreach (FileInfo file in files)
-        {
-            try
-            {
-                size += file.Length;
-            }
-            catch (Exception e)
-            {
-                Logger.E(TAG, "GetCacheSize", e);
-            }
-        }
-
-        DirectoryInfo[] dirs;
-        try
-        {
-            dirs = directory.GetDirectories();
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, "GetCacheSize", e);
-            dirs = [];
-        }
-
-        foreach (DirectoryInfo dir in dirs)
-        {
-            if (dir.Name == "Local")
-            {
-                continue;
-            }
-
-            size += FileUtils.GetApproximateDirectorySize(dir);
-        }
-
-        return size;
-    }
-
-    private static void ClearCacheDirectory(string directoryPath)
-    {
-        DirectoryInfo directory;
-        try
-        {
-            directory = new(directoryPath);
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, e);
-            return;
-        }
-
-        FileInfo[] files;
-        try
-        {
-            files = directory.GetFiles();
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, "ClearDirectory", e);
-            files = [];
-        }
-
-        foreach (FileInfo file in files)
-        {
-            try
-            {
-                file.Delete();
-            }
-            catch (Exception e)
-            {
-                Logger.E(TAG, "ClearDirectory", e);
-            }
-        }
-
-        DirectoryInfo[] dirs;
-        try
-        {
-            dirs = directory.GetDirectories();
-        }
-        catch (Exception e)
-        {
-            Logger.E(TAG, "ClearDirectory", e);
-            dirs = [];
-        }
-
-        foreach (DirectoryInfo dir in dirs)
-        {
-            try
-            {
-                dir.Delete(true);
-            }
-            catch (Exception e)
-            {
-                Logger.E(TAG, "ClearDirectory", e);
-            }
         }
     }
 

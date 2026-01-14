@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>すべての履歴を消去</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>キャッシュをクリアする</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>キャッシュサイズ: $size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>最後のタブを閉じたときの動作</value>
@@ -752,6 +749,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Reset" xml:space="preserve">
     <value>リセット</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>すべての設定をリセット</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>すべての設定は既定の状態に戻ります。ユーザーデータは保持されます。</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>最後の読書位置を復元</value>

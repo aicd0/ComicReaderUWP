@@ -120,7 +120,7 @@ internal class InitTaskManager(Application application)
     {
         if (EnvironmentProvider.IsPortable())
         {
-            string languageTag = AppSettingsModel.Instance.GetModel().Language;
+            string languageTag = AppSettingsModel.Instance.Language;
             if (string.IsNullOrEmpty(languageTag))
             {
                 languageTag = EnvironmentProvider.GetCurrentSystemLanguage();

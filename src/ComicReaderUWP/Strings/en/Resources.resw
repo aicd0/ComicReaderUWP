@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>Clear all history</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>Clear cache</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>Cache size: $size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Behavior when closing the last tab</value>
@@ -754,6 +751,12 @@ The evaluation will be performed in the following order:
   </data>
   <data name="Reset" xml:space="preserve">
     <value>Reset</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>Reset all settings</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>All settings will be restored to their default state. Your user data will be kept.</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Restore last reading position</value>

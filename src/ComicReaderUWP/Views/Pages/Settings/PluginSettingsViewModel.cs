@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
@@ -16,6 +15,17 @@ namespace ComicReaderUWP.Views.Pages.Settings;
 internal partial class PluginSettingsViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private SettingsSharedViewModel _shared = new();
+    public SettingsSharedViewModel Shared
+    {
+        get => _shared;
+        private set
+        {
+            _shared = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Shared)));
+        }
+    }
 
     private bool _noPlugins = false;
     public bool NoPlugins
@@ -40,11 +50,10 @@ internal partial class PluginSettingsViewModel : INotifyPropertyChanged
     }
 
     public readonly ObservableCollection<PluginItemViewModel> Plugins = [];
-    public ActionHandler PageActionHandler { get; private set; } = ActionHandler.Dummy;
 
-    public void Initialize(ActionHandler actionHandler)
+    public void Initialize(SettingsSharedViewModel shared)
     {
-        PageActionHandler = actionHandler;
+        Shared = shared;
     }
 
     public void UpdatePlugins()

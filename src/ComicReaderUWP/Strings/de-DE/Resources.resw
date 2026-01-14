@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>Gesamten Verlauf löschen</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>Cache leeren</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>Cache-Größe: $size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Verhalten beim Schließen des letzten Tabs</value>
@@ -752,6 +749,12 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Reset" xml:space="preserve">
     <value>Zurücksetzen</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>Alle einstellungen zurücksetzen</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>Alle einstellungen werden auf den standardzustand zurückgesetzt. Ihre benutzerdaten bleiben erhalten.</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Letzte Leseposition wiederherstellen</value>

@@ -14,8 +14,6 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Storage;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.DataModels;
 using ComicReaderUWP.Views.Dialogs.ChooseLocation;
@@ -25,11 +23,11 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 
-internal sealed partial class SettingPage : BasePage
+internal sealed partial class SettingsPage : BasePage
 {
-    private SettingPageViewModel ViewModel { get; } = new();
+    private SettingsPageViewModel ViewModel { get; } = new();
 
-    public SettingPage()
+    public SettingsPage()
     {
         InitializeComponent();
     }
@@ -44,49 +42,36 @@ internal sealed partial class SettingPage : BasePage
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.Settings);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Setting });
 
+        ViewModel.Shared.WindowId = WindowId;
+        ViewModel.Shared.ActionHandler = PageActionHandler;
         ViewModel.Initialize(this);
-        GeneralSettingsSection.Initialize();
-        PluginSettingsSection.Initialize(PageActionHandler);
-        UpdateFeedback();
-        UpdateAbout();
-        UpdateDebugInformation();
-        ViewModel.IsDonor = PurchaseManager.IsDonor;
+        GeneralSettingsSection.Initialize(ViewModel.Shared);
+        PluginSettingsSection.Initialize(ViewModel.Shared);
+        AdvancedSettingsSection.Initialize(ViewModel.Shared);
+        ViewModel.Shared.UpdateStarted += Update;
+        ViewModel.Shared.Update();
+    }
+
+    protected override void OnStop()
+    {
+        base.OnStop();
+        ViewModel.Shared.UpdateStarted -= Update;
+    }
+
+    private void Update()
+    {
+        CoroutineUtils.RunInMainThread(() =>
+        {
+            UpdateFeedback();
+            UpdateAbout();
+            UpdateDebugInformation();
+            ViewModel.IsDonor = PurchaseManager.IsDonor;
+        });
     }
 
     //
     // Events
     //
-
-    private void OnDebugModeToggled(object sender, RoutedEventArgs e)
-    {
-        bool debugMode = TsDebugMode.IsOn;
-        if (ViewModel.DebugMode == debugMode)
-        {
-            return;
-        }
-
-        CoroutineUtils.Start(async () =>
-        {
-            if (debugMode)
-            {
-                DialogOptions options = new DialogOptions.Builder()
-                    .SetTitle(StringResourceProvider.Instance.Warning)
-                    .SetContent(StringResourceProvider.Instance.DebugModeWarning)
-                    .SetPrimaryButtonText(StringResourceProvider.Instance.Proceed)
-                    .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
-                    .Build();
-                DialogResult result = await DialogUtils.EnqueueDialogAsync(WindowId, options);
-                if (result.Result == ContentDialogResult.None)
-                {
-                    ViewModel.DebugMode = false;
-                    return;
-                }
-            }
-
-            ViewModel.DebugMode = debugMode;
-            DebugUtils.DebugMode = debugMode;
-        });
-    }
 
     private void ChooseLocationsClick(object sender, RoutedEventArgs e)
     {
@@ -120,6 +105,11 @@ internal sealed partial class SettingPage : BasePage
     private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         ViewModel.SetAppLanguage(((ComboBox)sender).SelectedIndex);
+    }
+
+    private void AppearanceRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ViewModel.SetAppearance(((RadioButtons)sender).SelectedIndex);
     }
 
     private void ShowHiddenComicButton_Click(object sender, RoutedEventArgs e)
@@ -168,33 +158,6 @@ internal sealed partial class SettingPage : BasePage
     private void OnRescanFilesClicked(object sender, RoutedEventArgs e)
     {
         ComicModel.UpdateAllComics("OnRescanFilesClicked");
-    }
-
-    private void OnClearCacheClick(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ClearCache();
-    }
-
-    private void OnRefreshRandomSeedClick(object sender, RoutedEventArgs e)
-    {
-        ViewModel.RefreshRandomSeed();
-    }
-
-    private async void OnOpenUserDataFolderClick(object sender, RoutedEventArgs e)
-    {
-        string path = StorageLocation.LocalFolderPath;
-        var er = EventRecorder.Create("OnOpenUserDataFolderClick");
-        try
-        {
-            Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
-            await Windows.System.Launcher.LaunchFolderAsync(folder);
-        }
-        catch (Exception ex)
-        {
-            er.SetError(ex);
-        }
-
-        er.DisplayErrorMessage(PageActionHandler);
     }
 
     private void DonationButton_Click(object sender, RoutedEventArgs e)

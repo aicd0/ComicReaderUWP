@@ -6,7 +6,6 @@ using System.ComponentModel;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.SDK.Common.DebugTools;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 
@@ -15,6 +14,17 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
     private const string TAG = nameof(GeneralSettingsViewModel);
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private SettingsSharedViewModel _shared = new();
+    public SettingsSharedViewModel Shared
+    {
+        get => _shared;
+        private set
+        {
+            _shared = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Shared)));
+        }
+    }
 
     private List<CloseLastTabBehaviorEntry> _closeLastTabBehaviors = [];
     public List<CloseLastTabBehaviorEntry> CloseLastTabBehaviors
@@ -60,22 +70,16 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    public void Initialize()
+    public void Initialize(SettingsSharedViewModel shared)
     {
-        UpdateCloseLastTabBehavior();
-        UpdateHomePageTapComicBehavior();
+        Shared = shared;
+        Shared.UpdateStarted += Update;
     }
 
     public void SetCloseLastTabBehavior(int index)
     {
-        if (index == _closeLastTabBehaviorIndex)
+        if (index == _closeLastTabBehaviorIndex || index < 0 || index >= _closeLastTabBehaviors.Count)
         {
-            return;
-        }
-
-        if (index < 0 || index >= _closeLastTabBehaviors.Count)
-        {
-            Logger.F(TAG, "SetCloseLastTabBehavior: Index out of bounds.");
             return;
         }
 
@@ -85,19 +89,19 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
     public void SetOpenComicDefaultBehavior(int index)
     {
-        if (index == _openComicDefaultBaheviorIndex)
+        if (index == _openComicDefaultBaheviorIndex || index < 0 || index >= _openComicDefaultBaheviors.Count)
         {
-            return;
-        }
-
-        if (index < 0 || index >= _openComicDefaultBaheviors.Count)
-        {
-            Logger.F(TAG, "SetOpenComicDefaultBehavior: Index out of bounds.");
             return;
         }
 
         _openComicDefaultBaheviorIndex = index;
         AppSettingsModel.Instance.OpenComicDefaultBehavior = _openComicDefaultBaheviors[index].Behavior;
+    }
+
+    private void Update()
+    {
+        UpdateCloseLastTabBehavior();
+        UpdateHomePageTapComicBehavior();
     }
 
     private void UpdateCloseLastTabBehavior()

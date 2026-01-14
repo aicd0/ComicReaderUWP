@@ -7,33 +7,23 @@ using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.SDK.Common.AppEnvironment;
+using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.SDK.Database.Misc;
+
+using Windows.Globalization;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
 public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 {
+    private const string TAG = nameof(AppSettingsModel);
     private const string APP_BACKGROUND_NONE = "None";
     private const string APP_BACKGROUND_ACRYLIC = "Acrylic";
 
     public static readonly AppSettingsModel Instance = new();
-
-    private AppSettingsModel() : base("settings.json") { }
-
-    protected override JsonModel InitializeModel(JsonModel? model)
-    {
-        model ??= new();
-        model.OpenComicDefaultBehavior ??= model.HomePageTapComicBehavior;
-        model.AntiAliasingEnabled ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
-        model.AutomaticallyHideCursor ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
-        model.DefaultArchiveCodePage ??= (int)KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<long>(DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
-        model.RatingPercentageEnabled ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
-        model.SaveBrowsingHistory ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
-        model.TransitionAnimation ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, true);
-        return model;
-    }
 
     //
     // Properties
@@ -143,6 +133,50 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
+    public string Language
+    {
+        get
+        {
+            return Read(model => model.Language ?? string.Empty);
+        }
+        set
+        {
+            if (!EnvironmentProvider.IsPortable())
+            {
+                try
+                {
+                    ApplicationLanguages.PrimaryLanguageOverride = value;
+                }
+                catch (Exception ex)
+                {
+                    Logger.F(TAG, ex);
+                }
+            }
+
+            Write(model => model.Language = value);
+            Save();
+        }
+    }
+
+    //
+    // Constructor
+    //
+
+    private AppSettingsModel() : base("settings.json") { }
+
+    protected override JsonModel InitializeModel(JsonModel? model)
+    {
+        model ??= new();
+        model.OpenComicDefaultBehavior ??= model.HomePageTapComicBehavior;
+        model.AntiAliasingEnabled ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
+        model.AutomaticallyHideCursor ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
+        model.DefaultArchiveCodePage ??= (int)KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<long>(DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
+        model.RatingPercentageEnabled ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
+        model.SaveBrowsingHistory ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
+        model.TransitionAnimation ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, true);
+        return model;
+    }
+
     //
     // Getters
     //
@@ -155,6 +189,18 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     //
     // Setters
     //
+
+    public void Reset()
+    {
+        JsonModel newModel = new();
+        Read(model =>
+        {
+            newModel.ComicFolders = model.ComicFolders;
+        });
+
+        Write(newModel);
+        Language = Language;
+    }
 
     public void UpdateModel(ExternalModel model)
     {
@@ -265,7 +311,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public bool RemoveUnreachableComics { get; set; }
         public bool PromptBeforeRemovingComics { get; set; }
         public bool RestoreLastReadingPosition { get; set; }
-        public string Language { get; set; } = "";
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
         public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
         public Dictionary<string, ReaderSettingModel> ReaderSettingPresets { get; set; } = [];
@@ -280,7 +325,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 RemoveUnreachableComics = model.RemoveUnreachableComics ?? true,
                 PromptBeforeRemovingComics = model.PromptBeforeRemovingComics ?? true,
                 RestoreLastReadingPosition = model.RestoreLastReadingPosition ?? true,
-                Language = model.Language ?? "",
                 ComicShuffleRandomSeed = model.ComicShuffleRandomSeed ?? 0,
                 DefaultReaderSettingPresetKey = model.DefaultReaderSettingPresetKey ?? string.Empty,
             };
@@ -340,7 +384,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             model.RemoveUnreachableComics = RemoveUnreachableComics;
             model.RestoreLastReadingPosition = RestoreLastReadingPosition;
             model.PromptBeforeRemovingComics = PromptBeforeRemovingComics;
-            model.Language = Language;
             model.Theme = (int)Theme;
             model.ComicShuffleRandomSeed = ComicShuffleRandomSeed;
             model.DefaultReaderSettingPresetKey = DefaultReaderSettingPresetKey;

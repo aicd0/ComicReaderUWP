@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>Borrar todo el historial</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>Borrar caché</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>Tamaño de caché: $size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Comportamiento al cerrar la última pestaña</value>
@@ -752,6 +749,12 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="Reset" xml:space="preserve">
     <value>Restablecer</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>Restablecer todos los ajustes</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>Todos los ajustes se restaurarán a su estado predeterminado. Sus datos de usuario se conservarán.</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Restaurar la última posición de lectura</value>

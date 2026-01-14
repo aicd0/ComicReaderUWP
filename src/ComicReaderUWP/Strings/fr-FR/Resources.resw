@@ -210,11 +210,8 @@
   <data name="ClearAllHistoryButton.Content" xml:space="preserve">
     <value>Effacer tout l'historique</value>
   </data>
-  <data name="ClearCacheButton.Content" xml:space="preserve">
+  <data name="ClearCache" xml:space="preserve">
     <value>Vider le cache</value>
-  </data>
-  <data name="ClearCacheDetail" xml:space="preserve">
-    <value>Taille du cache : $size</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Comportement lors de la fermeture du dernier onglet</value>
@@ -752,6 +749,12 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="Reset" xml:space="preserve">
     <value>Réinitialiser</value>
+  </data>
+  <data name="ResetAllSettings" xml:space="preserve">
+    <value>Réinitialiser tous les réglages</value>
+  </data>
+  <data name="ResetAllSettingsMessage" xml:space="preserve">
+    <value>Tous les réglages seront restaurés à leur état par défaut. Vos données utilisateur seront conservées.</value>
   </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Restaurer la dernière position de lecture</value>
