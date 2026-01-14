@@ -309,7 +309,7 @@ $comics</value>
     <value>Kauf mir einen Kaffee</value>
   </data>
   <data name="DonationDescription" xml:space="preserve">
-    <value>Wenn Ihnen dieses Projekt gefällt, unterstützen Sie den Autor bitte, indem Sie über die Schaltfläche unten ein Ticket kaufen. Dadurch werden keine Funktionen freigeschaltet, aber es hilft erheblich bei der Wartung und Weiterentwicklung des Projekts.</value>
+    <value>Wenn dir dieses Projekt gefällt, erwäge bitte, den Entwickler über die Schaltfläche unten zu unterstützen. Dadurch werden keine zusätzlichen Funktionen freigeschaltet, aber es hilft erheblich bei der laufenden Pflege des Projekts.</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
     <value>Du bist jetzt Unterstützer. Vielen Dank für deine Unterstützung!</value>
@@ -551,6 +551,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>Bibliothek</value>
   </data>
+  <data name="License" xml:space="preserve">
+    <value>Lizenz</value>
+  </data>
   <data name="LinkErrorContent" xml:space="preserve">
     <value>„$link“ scheint kein gültiger Weblink zu sein.</value>
   </data>
@@ -686,7 +689,7 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Plugins" xml:space="preserve">
     <value>Plugins</value>
   </data>
-  <data name="PrivacyPolicy.Text" xml:space="preserve">
+  <data name="PrivacyPolicy" xml:space="preserve">
     <value>Datenschutzrichtlinie</value>
   </data>
   <data name="Proceed" xml:space="preserve">

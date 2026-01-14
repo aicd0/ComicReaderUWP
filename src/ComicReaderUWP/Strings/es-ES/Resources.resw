@@ -309,7 +309,7 @@ $comics</value>
     <value>Cómprame un café</value>
   </data>
   <data name="DonationDescription" xml:space="preserve">
-    <value>Si te gusta este proyecto, considera apoyar al autor comprando un ticket mediante el botón de abajo. Esto no desbloquea ninguna función, pero ayuda enormemente al mantenimiento continuo del proyecto.</value>
+    <value>Si te gusta este proyecto, considera apoyar al desarrollador usando el botón de abajo. Esto no desbloqueará funciones adicionales, pero ayudará enormemente al mantenimiento continuo del proyecto.</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
     <value>Ahora eres donante. ¡Gracias por tu apoyo!</value>
@@ -551,6 +551,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>Biblioteca</value>
   </data>
+  <data name="License" xml:space="preserve">
+    <value>Licencia</value>
+  </data>
   <data name="LinkErrorContent" xml:space="preserve">
     <value>'$link' no parece ser un enlace web válido.</value>
   </data>
@@ -686,7 +689,7 @@ La evaluación se realizará en el siguiente orden:
   <data name="Plugins" xml:space="preserve">
     <value>Complementos</value>
   </data>
-  <data name="PrivacyPolicy.Text" xml:space="preserve">
+  <data name="PrivacyPolicy" xml:space="preserve">
     <value>política de privacidad</value>
   </data>
   <data name="Proceed" xml:space="preserve">

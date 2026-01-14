@@ -309,7 +309,7 @@ $comics</value>
     <value>Купи мне кофе</value>
   </data>
   <data name="DonationDescription" xml:space="preserve">
-    <value>Если вам нравится этот проект, пожалуйста, поддержите автора, купив билет с помощью кнопки ниже. Это не откроет никаких функций, но значительно поможет в поддержке и развитии проекта.</value>
+    <value>Если вам нравится этот проект, пожалуйста, рассмотрите возможность поддержать разработчика с помощью кнопки ниже. Это не откроет дополнительных функций, но значительно поможет в дальнейшем поддержании проекта.</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
     <value>Теперь вы стали донором. Спасибо за вашу поддержку!</value>
@@ -552,6 +552,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>Библиотека</value>
   </data>
+  <data name="License" xml:space="preserve">
+    <value>Лицензия</value>
+  </data>
   <data name="LinkErrorContent" xml:space="preserve">
     <value>«$link» не является допустимой веб-ссылкой.</value>
   </data>
@@ -687,7 +690,7 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Plugins" xml:space="preserve">
     <value>Плагины</value>
   </data>
-  <data name="PrivacyPolicy.Text" xml:space="preserve">
+  <data name="PrivacyPolicy" xml:space="preserve">
     <value>политика конфиденциальности</value>
   </data>
   <data name="Proceed" xml:space="preserve">

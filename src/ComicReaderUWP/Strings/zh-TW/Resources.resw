@@ -309,7 +309,7 @@ $comics</value>
     <value>請我喝杯咖啡</value>
   </data>
   <data name="DonationDescription" xml:space="preserve">
-    <value>如果你喜歡這個專案，歡迎透過下方按鈕購買支持票來支持作者。此操作不會解鎖任何功能，但將大幅幫助專案的持續維護。</value>
+    <value>如果你喜歡這個專案，請考慮透過下方按鈕支持開發者。這不會解鎖任何額外功能，但能大大幫助專案的持續維護。</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
     <value>您已成為捐贈者。感謝您的支持！</value>
@@ -551,6 +551,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>庫</value>
   </data>
+  <data name="License" xml:space="preserve">
+    <value>許可證</value>
+  </data>
   <data name="LinkErrorContent" xml:space="preserve">
     <value>'$link' 似乎不是一個有效的網頁連結。</value>
   </data>
@@ -686,7 +689,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Plugins" xml:space="preserve">
     <value>外掛程式</value>
   </data>
-  <data name="PrivacyPolicy.Text" xml:space="preserve">
+  <data name="PrivacyPolicy" xml:space="preserve">
     <value>隱私權策略</value>
   </data>
   <data name="Proceed" xml:space="preserve">

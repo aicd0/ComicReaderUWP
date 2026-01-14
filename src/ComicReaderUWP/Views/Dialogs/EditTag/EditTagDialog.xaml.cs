@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Views.Dialogs.EditFilter;
+using ComicReaderUWP.Common.Utils;
 
 using Microsoft.UI.Xaml.Controls;
 

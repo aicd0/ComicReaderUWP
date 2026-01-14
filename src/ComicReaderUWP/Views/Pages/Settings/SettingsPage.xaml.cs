@@ -6,6 +6,7 @@ using System.Text;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
+using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
@@ -203,6 +204,11 @@ internal sealed partial class SettingsPage : BasePage
 
             ViewModel.IsDonor = PurchaseManager.IsDonor;
         }));
+    }
+
+    private void LicenseHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    {
+        ThirdPartyLauncher.StartTemporaryTextFile("license.txt", StaticStringResources.LICENSE);
     }
 
     //

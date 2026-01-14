@@ -106,6 +106,7 @@ public class StringResourceProvider
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
     public string LastReadTime => GetResourceString("LastReadTime");
+    public string License => GetResourceString("License");
     public string LinkErrorContent => GetResourceString("LinkErrorContent");
     public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
     public string Links => GetResourceString("Links");
@@ -144,6 +145,7 @@ public class StringResourceProvider
     public string Pin => GetResourceString("Pin");
     public string PluginSettingsDescription => GetResourceString("PluginSettingsDescription");
     public string Plugins => GetResourceString("Plugins");
+    public string PrivacyPolicy => GetResourceString("PrivacyPolicy");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
     public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");

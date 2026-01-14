@@ -309,7 +309,7 @@ $comics</value>
     <value>コーヒーをおごってください</value>
   </data>
   <data name="DonationDescription" xml:space="preserve">
-    <value>このプロジェクトを気に入っていただけた場合は、下のボタンからチケットを購入して作者を支援していただけると幸いです。機能がアンロックされることはありませんが、プロジェクトの継続的なメンテナンスに大きく貢献します。</value>
+    <value>このプロジェクトを気に入っていただけたら、下のボタンから開発者を支援することをご検討ください。機能が追加されることはありませんが、プロジェクトの継続的なメンテナンスに大きく役立ちます。</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
     <value>ご支援ありがとうございます。あなたは現在、支援者です。</value>
@@ -551,6 +551,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="LibraryHeader.Text" xml:space="preserve">
     <value>図書館</value>
   </data>
+  <data name="License" xml:space="preserve">
+    <value>ライセンス</value>
+  </data>
   <data name="LinkErrorContent" xml:space="preserve">
     <value>「$link」は有効な Web リンクではないようです。</value>
   </data>
@@ -686,7 +689,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Plugins" xml:space="preserve">
     <value>プラグイン</value>
   </data>
-  <data name="PrivacyPolicy.Text" xml:space="preserve">
+  <data name="PrivacyPolicy" xml:space="preserve">
     <value>プライバシーポリシー</value>
   </data>
   <data name="Proceed" xml:space="preserve">
