@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 
@@ -176,21 +174,10 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return needDraw;
         }
 
-        using Stream? stream = source.OpenImageStream();
-        if (stream is null)
-        {
-            return needDraw;
-        }
-
         CanvasDevice device = GetCanvasDevice();
-        CanvasBitmap newBitmap;
-        try
+        CanvasBitmap? newBitmap = source.CreateImageCanvasBitmap(device);
+        if (newBitmap is null)
         {
-            newBitmap = CanvasBitmap.LoadAsync(device, stream.AsRandomAccessStream()).AsTask().Result;
-        }
-        catch (Exception ex)
-        {
-            Logger.E(TAG, ex);
             return needDraw;
         }
 

@@ -6,6 +6,8 @@ using System.IO;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Data.Models.Comic;
 
+using Microsoft.Graphics.Canvas;
+
 namespace ComicReaderUWP.Helpers.Imaging;
 
 internal class ComicCoverImageSource(ComicModel comic) : IImageSource
@@ -25,11 +27,22 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
     public Stream? OpenImageStream()
     {
         using IComicConnection? connection = _comic.OpenComicAsync().Result;
-        if (connection == null)
+        if (connection is null)
         {
             return null;
         }
 
         return connection.OpenImageStream(0);
+    }
+
+    public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator)
+    {
+        using IComicConnection? connection = _comic.OpenComicAsync().Result;
+        if (connection is null)
+        {
+            return null;
+        }
+
+        return connection.CreateImageCanvasBitmap(creator, 0);
     }
 }

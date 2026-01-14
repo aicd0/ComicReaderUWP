@@ -4,6 +4,8 @@
 using System;
 using System.IO;
 
+using Microsoft.Graphics.Canvas;
+
 namespace ComicReaderUWP.Data.Models.Comic;
 
 internal interface IComicConnection : IDisposable
@@ -17,4 +19,6 @@ internal interface IComicConnection : IDisposable
     string GetImageSignature(int index);
 
     Stream? OpenImageStream(int index);
+
+    CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index);
 }

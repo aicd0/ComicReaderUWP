@@ -3,6 +3,8 @@
 
 using System.IO;
 
+using Microsoft.Graphics.Canvas;
+
 namespace ComicReaderUWP.Common.Imaging;
 
 internal interface IImageSource
@@ -12,4 +14,6 @@ internal interface IImageSource
     string GetContentFingerprint();
 
     Stream? OpenImageStream();
+
+    CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator);
 }

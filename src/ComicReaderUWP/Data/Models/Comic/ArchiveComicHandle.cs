@@ -13,6 +13,8 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 
+using Microsoft.Graphics.Canvas;
+
 using Windows.Storage;
 
 namespace ComicReaderUWP.Data.Models.Comic;
@@ -241,6 +243,25 @@ internal partial class ArchiveComicHandle : ComicHandle
             }
 
             return stream;
+        }
+
+        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+        {
+            using Stream? stream = OpenImageStream(index);
+            if (stream is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return CanvasBitmap.LoadAsync(creator, stream.AsRandomAccessStream()).AsTask().Result;
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, e);
+                return null;
+            }
         }
     }
 }

@@ -11,8 +11,11 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Pdf;
 using ComicReaderUWP.SDK.Common.Utils;
+
+using Microsoft.Graphics.Canvas;
 
 using Windows.Storage;
 
@@ -102,26 +105,6 @@ internal partial class PdfComicHandle : ComicHandle
         bitmap.Save(stream, ImageFormat.Png);
         stream.Position = 0;
         return stream;
-        //int bytesPerPixel = 4;
-        //int rowBytes = width * bytesPerPixel;
-        //int totalBytes = rowBytes * height;
-        //byte[] packed = new byte[totalBytes];
-        //unsafe
-        //{
-        //    byte* src = (byte*)buffer;
-        //    fixed (byte* dstBase = packed)
-        //    {
-        //        byte* dst = dstBase;
-        //        for (int y = 0; y < height; y++)
-        //        {
-        //            Buffer.MemoryCopy(
-        //                src + y * stride,
-        //                dst + y * rowBytes,
-        //                rowBytes,
-        //                rowBytes);
-        //        }
-        //    }
-        //}
     }
 
     private partial class PdfComicConnection(string pdfPath, PdfManager.IPdfConnection connection) : IComicConnection
@@ -155,12 +138,61 @@ internal partial class PdfComicHandle : ComicHandle
         {
             SizeF size = connection.GetPageSize(index);
             CalculatePageSize(size.Width, size.Height, out int width, out int height);
-            Stream? stream = null;
-            connection.Render(index, 0, 0, width, height, (buffer, stride) =>
+            return connection.Render(index, 0, 0, width, height, (buffer, stride) =>
             {
-                stream = CreateStreamFromBuffer(buffer, width, height, stride);
+                return CreateStreamFromBuffer(buffer, width, height, stride);
             });
-            return stream;
+        }
+
+        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+        {
+            SizeF size = connection.GetPageSize(index);
+            CalculatePageSize(size.Width, size.Height, out int width, out int height);
+            byte[]? buffer = connection.Render(index, 0, 0, width, height, (buffer, stride) =>
+            {
+                int bytesPerPixel = 4;
+                int rowBytes = width * bytesPerPixel;
+                int totalBytes = rowBytes * height;
+                byte[] packed = new byte[totalBytes];
+                unsafe
+                {
+                    byte* src = (byte*)buffer;
+                    fixed (byte* dstBase = packed)
+                    {
+                        byte* dst = dstBase;
+                        for (int y = 0; y < height; y++)
+                        {
+                            Buffer.MemoryCopy(
+                                src + y * stride,
+                                dst + y * rowBytes,
+                                rowBytes,
+                                rowBytes);
+                        }
+                    }
+                }
+
+                return packed;
+            });
+
+            if (buffer is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return CanvasBitmap.CreateFromBytes(
+                    creator,
+                    buffer,
+                    width,
+                    height,
+                    Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
+            }
+            catch (Exception ex)
+            {
+                Logger.E(TAG, ex);
+                return null;
+            }
         }
 
         private static void CalculatePageSize(float originWidth, float originHeight, out int width, out int height)

@@ -15,6 +15,8 @@ using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 
+using Microsoft.Graphics.Canvas;
+
 using Windows.Storage;
 
 namespace ComicReaderUWP.Data.Models.Comic;
@@ -254,6 +256,25 @@ internal partial class FolderComicHandle : ComicHandle
             catch (Exception e)
             {
                 Logger.F(TAG, $"Cannot open '{imageFile}'.", e);
+                return null;
+            }
+        }
+
+        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+        {
+            using Stream? stream = OpenImageStream(index);
+            if (stream is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return CanvasBitmap.LoadAsync(creator, stream.AsRandomAccessStream()).AsTask().Result;
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, e);
                 return null;
             }
         }

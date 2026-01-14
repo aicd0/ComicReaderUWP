@@ -155,7 +155,7 @@ public static partial class PdfManager
 
         SizeF GetPageSize(int pageIndex);
 
-        void Render(int pageIndex, int left, int top, int width, int height, Action<nint, int> action);
+        T? Render<T>(int pageIndex, int left, int top, int width, int height, Func<nint, int, T?> func);
     }
 
     private partial class PdfConnection(PdfDocument document) : IPdfConnection
@@ -200,21 +200,21 @@ public static partial class PdfManager
             return Document.PageSizes[pageIndex];
         }
 
-        public void Render(int pageIndex, int left, int top, int width, int height, Action<nint, int> action)
+        public T? Render<T>(int pageIndex, int left, int top, int width, int height, Func<nint, int, T?> func)
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) == 1, this);
 
             if (pageIndex < 0 || pageIndex >= Document.PageCount)
             {
-                return;
+                return default;
             }
 
-            Enqueue(() =>
+            return Enqueue(() =>
             {
                 nint bitmap = Pdfium.FPDFBitmap_Create(width, height, 1);
                 if (bitmap == nint.Zero)
                 {
-                    return;
+                    return default;
                 }
 
                 try
@@ -222,7 +222,7 @@ public static partial class PdfManager
                     nint page = Pdfium.FPDF_LoadPage(Document.DocumentPtr, pageIndex);
                     if (page == nint.Zero)
                     {
-                        return;
+                        return default;
                     }
 
                     try
@@ -243,13 +243,13 @@ public static partial class PdfManager
 
                     nint buffer = Pdfium.FPDFBitmap_GetBuffer(bitmap);
                     int stride = Pdfium.FPDFBitmap_GetStride(bitmap);
-                    action(buffer, stride);
+                    return func(buffer, stride);
                 }
                 finally
                 {
                     Pdfium.FPDFBitmap_Destroy(bitmap);
                 }
-            }).Wait();
+            }).Result;
         }
     }
 }

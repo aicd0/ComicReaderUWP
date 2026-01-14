@@ -4,6 +4,8 @@
 using System;
 using System.IO;
 
+using Microsoft.Graphics.Canvas;
+
 namespace ComicReaderUWP.Data.Models.Comic;
 
 internal sealed partial class ComicConnectionWrapper(IComicConnection connection) : IComicConnection
@@ -70,5 +72,15 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
         }
 
         return _connection.OpenImageStream(index);
+    }
+
+    public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        return _connection.CreateImageCanvasBitmap(creator, index);
     }
 }
