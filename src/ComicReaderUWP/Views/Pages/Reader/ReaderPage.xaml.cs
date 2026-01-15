@@ -45,7 +45,7 @@ internal sealed partial class ReaderPage : BasePage
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
     // Must be accessed on UI thread
-    public static IReadOnlyList<Tuple<int, int>> ActiveTabs { get; private set; } = [];
+    public static IReadOnlyList<Tuple<int, string>> ActiveTabs { get; private set; } = [];
 
     //
     // Variables
@@ -582,6 +582,21 @@ internal sealed partial class ReaderPage : BasePage
         MainReaderView.IsAutoScrolling = !MainReaderView.IsAutoScrolling;
     }
 
+    private void PlaybackPreviousButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void PlaybackNextButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void PlaybackPlaylistButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
     private void PlaybackMoreButton_Click(object sender, RoutedEventArgs e)
     {
         CoroutineUtils.Start(async () =>
@@ -818,21 +833,21 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         int windowId = WindowId;
-        int tabId = GetMainPageAbility().TabId;
+        string tabId = GetMainPageAbility().TabId;
 
         if (ActiveTabs.Count > 0)
         {
-            Tuple<int, int> tab = ActiveTabs[ActiveTabs.Count - 1];
+            Tuple<int, string> tab = ActiveTabs[ActiveTabs.Count - 1];
             if (tab.Item1 == windowId && tab.Item2 == tabId)
             {
                 return;
             }
         }
 
-        List<Tuple<int, int>> copy = [.. ActiveTabs];
+        List<Tuple<int, string>> copy = [.. ActiveTabs];
         for (int i = copy.Count - 1; i >= 0; i--)
         {
-            Tuple<int, int> tab = copy[i];
+            Tuple<int, string> tab = copy[i];
             if (tab.Item1 == windowId && tab.Item2 == tabId)
             {
                 copy.RemoveAt(i);
@@ -846,12 +861,12 @@ internal sealed partial class ReaderPage : BasePage
     private void RemoveFromActiveTabs()
     {
         int windowId = WindowId;
-        int tabId = GetMainPageAbility().TabId;
+        string tabId = GetMainPageAbility().TabId;
 
-        List<Tuple<int, int>> copy = [.. ActiveTabs];
+        List<Tuple<int, string>> copy = [.. ActiveTabs];
         for (int i = copy.Count - 1; i >= 0; i--)
         {
-            Tuple<int, int> tab = copy[i];
+            Tuple<int, string> tab = copy[i];
             if (tab.Item1 == windowId && tab.Item2 == tabId)
             {
                 copy.RemoveAt(i);

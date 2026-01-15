@@ -7,7 +7,7 @@ namespace ComicReaderUWP.Common.BaseUI.PageAbilities;
 
 internal interface IMainPageAbilityForTab : IMainPageAbility
 {
-    int TabId { get; }
+    string TabId { get; }
 
     void SetTitle(string title);
 

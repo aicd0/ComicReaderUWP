@@ -87,7 +87,10 @@
                 <StackPanel Orientation="Vertical">
                     <Grid>
                         <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                            <Button Style="{StaticResource PlaybackControlButtonStyle}" ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
+                            <Button
+                                Click="PlaybackPreviousButton_Click"
+                                Style="{StaticResource PlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
                                 <Button.Content>
                                     <FontIcon FontSize="16" Glyph="&#xE892;" />
                                 </Button.Content>
@@ -101,12 +104,18 @@
                                     <FontIcon FontSize="16" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
                                 </Button.Content>
                             </Button>
-                            <Button Style="{StaticResource PlaybackControlButtonStyle}" ToolTipService.ToolTip="{x:Bind StringResource.Next}">
+                            <Button
+                                Click="PlaybackNextButton_Click"
+                                Style="{StaticResource PlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.Next}">
                                 <Button.Content>
                                     <FontIcon FontSize="16" Glyph="&#xE893;" />
                                 </Button.Content>
                             </Button>
-                            <Button Style="{StaticResource PlaybackControlButtonStyle}" ToolTipService.ToolTip="{x:Bind StringResource.Playlist}">
+                            <Button
+                                Click="PlaybackPlaylistButton_Click"
+                                Style="{StaticResource PlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.Playlist}">
                                 <Button.Content>
                                     <FontIcon FontSize="16" Glyph="&#xEA37;" />
                                 </Button.Content>

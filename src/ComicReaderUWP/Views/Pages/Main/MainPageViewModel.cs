@@ -208,7 +208,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                     .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
-                    .AddParameter(OpenTabProvider.PARAM_TAB_ID, "-1")
+                    .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                     .Build();
                 _actionHandler.Handle(actionModel);
             },
@@ -288,7 +288,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SETTINGS);
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                     .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
-                    .AddParameter(OpenTabProvider.PARAM_TAB_ID, "-1")
+                    .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                     .Build();
                 _actionHandler.Handle(actionModel);
             },

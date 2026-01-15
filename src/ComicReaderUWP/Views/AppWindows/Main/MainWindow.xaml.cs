@@ -109,7 +109,7 @@ internal sealed partial class MainWindow : Window
     // Public Methods
     //
 
-    public void OpenTab(string url, int targetTabId, int initiateTabId)
+    public void OpenTab(string url, string targetTabId, string initiateTabId)
     {
         var route = Route.Create(url);
         MainPage? mainPage = Members._mainPage;

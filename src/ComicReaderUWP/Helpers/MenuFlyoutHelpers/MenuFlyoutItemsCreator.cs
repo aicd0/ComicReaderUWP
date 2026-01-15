@@ -74,7 +74,7 @@ internal static class MenuFlyoutItemsCreator
             {
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                     .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
-                    .AddParameter(OpenTabProvider.PARAM_TAB_ID, "-1")
+                    .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                     .Build();
                 actionHandler.Handle(actionModel);
             },

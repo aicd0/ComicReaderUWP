@@ -41,25 +41,25 @@ internal static class OpenComicHelper
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                         .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
-                        .AddParameter(OpenTabProvider.PARAM_TAB_ID, "-1")
+                        .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                         .Build();
                     actionHandler.Handle(actionModel);
                 }
                 break;
             case AppSettingsModel.OpenComicBehaviorEnum.OpenInLastActiveReaderTab:
                 {
-                    IReadOnlyList<Tuple<int, int>> activeReaderTabs = ReaderPage.ActiveTabs;
+                    IReadOnlyList<Tuple<int, string>> activeReaderTabs = ReaderPage.ActiveTabs;
                     if (activeReaderTabs.Count == 0)
                     {
                         goto case AppSettingsModel.OpenComicBehaviorEnum.OpenInNewTab;
                     }
 
                     int windowId = activeReaderTabs[activeReaderTabs.Count - 1].Item1;
-                    int tabId = activeReaderTabs[activeReaderTabs.Count - 1].Item2;
+                    string tabId = activeReaderTabs[activeReaderTabs.Count - 1].Item2;
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                         .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                         .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, windowId.ToString())
-                        .AddParameter(OpenTabProvider.PARAM_TAB_ID, tabId.ToString())
+                        .AddParameter(OpenTabProvider.PARAM_TAB_ID, tabId)
                         .Build();
                     actionHandler.Handle(actionModel);
                 }
