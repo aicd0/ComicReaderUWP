@@ -596,6 +596,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="NewWindow" xml:space="preserve">
     <value>Neues Fenster</value>
   </data>
+  <data name="Next" xml:space="preserve">
+    <value>Weiter</value>
+  </data>
   <data name="NoComicsHint" xml:space="preserve">
     <value>Deine Comics werden hier angezeigt</value>
   </data>
@@ -680,14 +683,26 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="PageN" xml:space="preserve">
     <value>Seite $page</value>
   </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
   <data name="Pin" xml:space="preserve">
     <value>Anheften</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Abspielen</value>
+  </data>
+  <data name="Playlist" xml:space="preserve">
+    <value>Wiedergabeliste</value>
   </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>Plugins verwalten und konfigurieren</value>
   </data>
   <data name="Plugins" xml:space="preserve">
     <value>Plugins</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Zurück</value>
   </data>
   <data name="PrivacyPolicy" xml:space="preserve">
     <value>Datenschutzrichtlinie</value>

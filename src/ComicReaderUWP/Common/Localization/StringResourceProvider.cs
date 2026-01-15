@@ -117,6 +117,7 @@ public class StringResourceProvider
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
     public string NewWindow => GetResourceString("NewWindow");
+    public string Next => GetResourceString("Next");
     public string NoComicsHint => GetResourceString("NoComicsHint");
     public string NoRating => GetResourceString("NoRating");
     public string NoResults => GetResourceString("NoResults");
@@ -142,9 +143,13 @@ public class StringResourceProvider
     public string PageLayoutDualWithCoverMirrored => GetResourceString("PageLayoutDualWithCoverMirrored");
     public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
     public string PageN => GetResourceString("PageN");
+    public string Pause => GetResourceString("Pause");
     public string Pin => GetResourceString("Pin");
+    public string Play => GetResourceString("Play");
+    public string Playlist => GetResourceString("Playlist");
     public string PluginSettingsDescription => GetResourceString("PluginSettingsDescription");
     public string Plugins => GetResourceString("Plugins");
+    public string Previous => GetResourceString("Previous");
     public string PrivacyPolicy => GetResourceString("PrivacyPolicy");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");

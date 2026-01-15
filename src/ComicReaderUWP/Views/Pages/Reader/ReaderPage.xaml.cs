@@ -85,57 +85,6 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.ComicDir = "";
         ViewModel.IsEditable = false;
         ViewModel.PreviewDataSource = [];
-
-        ReaderView reader = MainReaderView;
-
-        reader.ReaderEventTapped += delegate (ReaderView sender)
-        {
-            BottomTileSetHold(!_bottomTileShowed);
-        };
-
-        reader.ReaderEventPageChanged += delegate (ReaderView sender, bool isIntermediate)
-        {
-            ViewModel.SetPageIndex(MainReaderView.CurrentPageDisplay - 1);
-            UpdatePage();
-
-            if (!reader.IsAutoScrolling)
-            {
-                BottomTileSetHold(false);
-            }
-
-            if (!isIntermediate)
-            {
-                SaveProgress();
-                AddToActiveTabs();
-            }
-        };
-
-        reader.ReaderEventReaderStateChanged += delegate (ReaderView sender, ReaderView.ReaderState state, string description)
-        {
-            switch (state)
-            {
-                case ReaderView.ReaderState.Ready:
-                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Working, description));
-                    UpdatePage();
-                    ShowBottomTile();
-                    HideBottomTileDelayed(5000);
-                    break;
-                case ReaderView.ReaderState.Loading:
-                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Loading, description));
-                    break;
-                case ReaderView.ReaderState.Error:
-                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error, description));
-                    break;
-            }
-        };
-
-        reader.ReaderEventAutoScrollingChanged += delegate (ReaderView sender, bool isAutoScrolling)
-        {
-            if (isAutoScrolling)
-            {
-                BottomTileSetHold(false);
-            }
-        };
     }
 
     //
@@ -360,6 +309,57 @@ internal sealed partial class ReaderPage : BasePage
             MainReaderView.SetCurrentPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
         });
+
+        MainReaderView.ReaderEventTapped += delegate (ReaderView sender)
+        {
+            BottomTileSetHold(!_bottomTileShowed);
+        };
+
+        MainReaderView.ReaderEventPageChanged += delegate (ReaderView sender, bool isIntermediate)
+        {
+            ViewModel.SetPageIndex(MainReaderView.CurrentPageDisplay - 1);
+            UpdatePage();
+
+            if (!MainReaderView.IsAutoScrolling)
+            {
+                BottomTileSetHold(false);
+            }
+
+            if (!isIntermediate)
+            {
+                SaveProgress();
+                AddToActiveTabs();
+            }
+        };
+
+        MainReaderView.ReaderEventReaderStateChanged += delegate (ReaderView sender, ReaderView.ReaderState state, string description)
+        {
+            switch (state)
+            {
+                case ReaderView.ReaderState.Ready:
+                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Working, description));
+                    UpdatePage();
+                    ShowBottomTile();
+                    HideBottomTileDelayed(5000);
+                    break;
+                case ReaderView.ReaderState.Loading:
+                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Loading, description));
+                    break;
+                case ReaderView.ReaderState.Error:
+                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error, description));
+                    break;
+            }
+        };
+
+        MainReaderView.ReaderEventAutoScrollingChanged += delegate (ReaderView sender, bool isAutoScrolling)
+        {
+            if (isAutoScrolling)
+            {
+                BottomTileSetHold(false);
+            }
+
+            ViewModel.IsAutoPlaying = isAutoScrolling;
+        };
     }
 
     //
@@ -440,6 +440,10 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetUseOriginalSize(readerSettingModel.OriginalSize);
         reader.SetAutoScrollSpeed(readerSettingModel.AutoScrollSpeed);
         reader.SetPageGap(readerSettingModel.PageGap);
+
+        PlaybackSlider.FlowDirection = readerSettingModel.IsLeftToRight || readerSettingModel.IsVertical ?
+            FlowDirection.LeftToRight : FlowDirection.RightToLeft;
+        ViewModel.IsAutoPlayEnabled = readerSettingModel.AutoScrollSpeed > 0;
     }
 
     private void UpdateReaderUI()
@@ -464,13 +468,6 @@ internal sealed partial class ReaderPage : BasePage
             GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
             TryFocus(MainReaderView);
         }
-    }
-
-    private void UpdatePage()
-    {
-        ReaderView reader = MainReaderView;
-        int currentPage = reader.CurrentPageDisplay;
-        PageIndicator.Text = currentPage.ToString() + " / " + reader.PageCount.ToString();
     }
 
     //
@@ -561,6 +558,80 @@ internal sealed partial class ReaderPage : BasePage
         {
             HideBottomTileDelayed(0);
         }
+    }
+
+    //
+    // Playback control
+    //
+
+    private void PlaybackSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        ReaderView reader = MainReaderView;
+        double currentValue = reader.CurrentPage;
+        double newValue = e.NewValue;
+        if (Math.Abs(currentValue - newValue) < 0.5)
+        {
+            return;
+        }
+
+        reader.SetCurrentPage(newValue);
+    }
+
+    private void PlaybackPlayButton_Click(object sender, RoutedEventArgs e)
+    {
+        MainReaderView.IsAutoScrolling = !MainReaderView.IsAutoScrolling;
+    }
+
+    private void PlaybackMoreButton_Click(object sender, RoutedEventArgs e)
+    {
+        CoroutineUtils.Start(async () =>
+        {
+            if (sender is not FrameworkElement fe)
+            {
+                return;
+            }
+
+            ComicModel? comic = ViewModel.Comic;
+            if (comic is null)
+            {
+                return;
+            }
+
+            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(comic, PageActionHandler);
+            if (menuItems.Count == 0)
+            {
+                return;
+            }
+
+            MenuFlyout flyout = new()
+            {
+                Placement = FlyoutPlacementMode.Top,
+            };
+            foreach (BaseMenuFlyoutItemModel item in menuItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
+
+            flyout.ShowAt(fe);
+        });
+    }
+
+    private void UpdatePage()
+    {
+        ReaderView reader = MainReaderView;
+        int totalPages = reader.PageCount;
+        if (totalPages <= 0)
+        {
+            return;
+        }
+
+        int currentPage = reader.CurrentPageDisplay;
+        int percentage = (int)Math.Round(100.0 * reader.CurrentPage / totalPages, 0, MidpointRounding.AwayFromZero);
+        ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
+        ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
+        PlaybackSlider.Value = currentPage;
+        PlaybackSlider.Minimum = 1;
+        PlaybackSlider.Maximum = totalPages;
     }
 
     //

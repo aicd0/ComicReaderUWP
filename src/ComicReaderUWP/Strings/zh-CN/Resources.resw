@@ -596,6 +596,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="NewWindow" xml:space="preserve">
     <value>新窗口</value>
   </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一个</value>
+  </data>
   <data name="NoComicsHint" xml:space="preserve">
     <value>你的漫画会显示在这里</value>
   </data>
@@ -680,14 +683,26 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="PageN" xml:space="preserve">
     <value>第$page页</value>
   </data>
+  <data name="Pause" xml:space="preserve">
+    <value>暂停</value>
+  </data>
   <data name="Pin" xml:space="preserve">
     <value>固定</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>播放</value>
+  </data>
+  <data name="Playlist" xml:space="preserve">
+    <value>播放列表</value>
   </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>管理和配置插件</value>
   </data>
   <data name="Plugins" xml:space="preserve">
     <value>插件</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>上一个</value>
   </data>
   <data name="PrivacyPolicy" xml:space="preserve">
     <value>隐私策略</value>

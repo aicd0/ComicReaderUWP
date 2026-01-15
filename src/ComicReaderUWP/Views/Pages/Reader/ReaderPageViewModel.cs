@@ -146,6 +146,62 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _primaryPageIndicatorText = string.Empty;
+    public string PrimaryPageIndicatorText
+    {
+        get => _primaryPageIndicatorText;
+        set
+        {
+            _primaryPageIndicatorText = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PrimaryPageIndicatorText)));
+        }
+    }
+
+    private string _secondaryPageIndicatorText = string.Empty;
+    public string SecondaryPageIndicatorText
+    {
+        get => _secondaryPageIndicatorText;
+        set
+        {
+            _secondaryPageIndicatorText = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SecondaryPageIndicatorText)));
+        }
+    }
+
+    private bool _isAutoPlayEnabled = false;
+    public bool IsAutoPlayEnabled
+    {
+        get => _isAutoPlayEnabled;
+        set
+        {
+            _isAutoPlayEnabled = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAutoPlayEnabled)));
+        }
+    }
+
+    private bool _isAutoPlaying = false;
+    public bool IsAutoPlaying
+    {
+        get => _isAutoPlaying;
+        set
+        {
+            _isAutoPlaying = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAutoPlaying)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PlayOrPauseButtonTooltip)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PlayOrPauseButtonGlyph)));
+        }
+    }
+
+    public string PlayOrPauseButtonTooltip
+    {
+        get => _isAutoPlaying ? StringResourceProvider.Instance.Pause : StringResourceProvider.Instance.Play;
+    }
+
+    public string PlayOrPauseButtonGlyph
+    {
+        get => _isAutoPlaying ? "\uE769" : "\uE768";
+    }
+
     public ComicModel? Comic => _comic;
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
     public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];

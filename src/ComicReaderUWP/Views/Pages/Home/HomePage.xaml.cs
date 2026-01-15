@@ -460,31 +460,34 @@ internal sealed partial class HomePage : BasePage
     // More actions
     //
 
-    private async void MoreButton_Click(object sender, RoutedEventArgs e)
+    private void MoreButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement fe)
+        CoroutineUtils.Start(async () =>
         {
-            return;
-        }
+            if (sender is not FrameworkElement fe)
+            {
+                return;
+            }
 
-        ComicModel? randomComic = ViewModel.GetRandomComic();
-        List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
-            PageActionHandler, randomComic, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
-        if (menuItems.Count == 0)
-        {
-            return;
-        }
+            ComicModel? randomComic = ViewModel.GetRandomComic();
+            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
+                PageActionHandler, randomComic, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
+            if (menuItems.Count == 0)
+            {
+                return;
+            }
 
-        MenuFlyout flyout = new()
-        {
-            Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
-        };
-        foreach (BaseMenuFlyoutItemModel item in menuItems)
-        {
-            flyout.Items.Add(item.CreateMenuFlyoutItem());
-        }
+            MenuFlyout flyout = new()
+            {
+                Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
+            };
+            foreach (BaseMenuFlyoutItemModel item in menuItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
 
-        flyout.ShowAt(fe);
+            flyout.ShowAt(fe);
+        });
     }
 
     //

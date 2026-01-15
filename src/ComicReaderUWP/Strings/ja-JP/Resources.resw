@@ -596,6 +596,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="NewWindow" xml:space="preserve">
     <value>新しいウィンドウ</value>
   </data>
+  <data name="Next" xml:space="preserve">
+    <value>次へ</value>
+  </data>
   <data name="NoComicsHint" xml:space="preserve">
     <value>あなたのコミックはここに表示されます</value>
   </data>
@@ -680,14 +683,26 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="PageN" xml:space="preserve">
     <value>$pageページ目</value>
   </data>
+  <data name="Pause" xml:space="preserve">
+    <value>一時停止</value>
+  </data>
   <data name="Pin" xml:space="preserve">
     <value>ピン留めする</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>再生</value>
+  </data>
+  <data name="Playlist" xml:space="preserve">
+    <value>再生リスト</value>
   </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>プラグインの管理と設定</value>
   </data>
   <data name="Plugins" xml:space="preserve">
     <value>プラグイン</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>前へ</value>
   </data>
   <data name="PrivacyPolicy" xml:space="preserve">
     <value>プライバシーポリシー</value>

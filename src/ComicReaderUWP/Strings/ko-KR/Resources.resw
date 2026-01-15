@@ -597,6 +597,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="NewWindow" xml:space="preserve">
     <value>새 창</value>
   </data>
+  <data name="Next" xml:space="preserve">
+    <value>다음</value>
+  </data>
   <data name="NoComicsHint" xml:space="preserve">
     <value>여기에 내 만화가 표시됩니다</value>
   </data>
@@ -681,14 +684,26 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="PageN" xml:space="preserve">
     <value>$page페이지</value>
   </data>
+  <data name="Pause" xml:space="preserve">
+    <value>일시정지</value>
+  </data>
   <data name="Pin" xml:space="preserve">
     <value>고정</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>재생</value>
+  </data>
+  <data name="Playlist" xml:space="preserve">
+    <value>재생목록</value>
   </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>플러그인 관리 및 구성</value>
   </data>
   <data name="Plugins" xml:space="preserve">
     <value>플러그인</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>이전</value>
   </data>
   <data name="PrivacyPolicy" xml:space="preserve">
     <value>개인정보 보호정책</value>

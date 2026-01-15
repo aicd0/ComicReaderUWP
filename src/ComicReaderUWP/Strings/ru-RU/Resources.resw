@@ -597,6 +597,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="NewWindow" xml:space="preserve">
     <value>Новое окно</value>
   </data>
+  <data name="Next" xml:space="preserve">
+    <value>Следующий</value>
+  </data>
   <data name="NoComicsHint" xml:space="preserve">
     <value>Ваши комиксы появятся здесь</value>
   </data>
@@ -681,14 +684,26 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="PageN" xml:space="preserve">
     <value>Страница $page</value>
   </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Пауза</value>
+  </data>
   <data name="Pin" xml:space="preserve">
     <value>Закрепить</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Воспроизвести</value>
+  </data>
+  <data name="Playlist" xml:space="preserve">
+    <value>Плейлист</value>
   </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>Управление и настройка плагинов</value>
   </data>
   <data name="Plugins" xml:space="preserve">
     <value>Плагины</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Предыдущий</value>
   </data>
   <data name="PrivacyPolicy" xml:space="preserve">
     <value>политика конфиденциальности</value>

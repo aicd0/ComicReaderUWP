@@ -137,7 +137,26 @@ internal partial class ReaderView : UserControl
     public int CurrentPageDisplay => CurrentPageInt;
     public bool IsLastPage => PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1;
     public bool IsVertical => _isVertical;
-    public bool IsAutoScrolling => _isAutoScrolling;
+    public bool IsAutoScrolling
+    {
+        get => _isAutoScrolling;
+        set
+        {
+            if (_isAutoScrolling == value)
+            {
+                return;
+            }
+
+            if (value)
+            {
+                StartAutoScrolling();
+            }
+            else
+            {
+                StopAutoScrolling();
+            }
+        }
+    }
 
     public void Destory()
     {
@@ -1587,6 +1606,11 @@ internal partial class ReaderView : UserControl
 
     private void StartAutoScrolling(double? velocity = null)
     {
+        if (!IsAutoScrollEnabled)
+        {
+            return;
+        }
+
         double velocityValue;
         if (_isContinuous)
         {
