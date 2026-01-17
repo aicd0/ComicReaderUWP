@@ -91,9 +91,9 @@ internal sealed partial class FilterPresetsPage : BasePage
             return;
         }
 
-        ComicModel? randomComic = ViewModel.GetRandomComic();
+        List<ComicModel> snapshot = ViewModel.GetComicSnapshot();
         List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
-            PageActionHandler, randomComic, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
+            PageActionHandler, snapshot, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
         if (menuItems.Count == 0)
         {
             return;

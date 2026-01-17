@@ -8,6 +8,7 @@ using System.ComponentModel;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Search;
@@ -357,26 +358,32 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit("OnSearchResult", () =>
         {
             List<ComicItemViewModel> newItems = [];
+            var playlist = PlaylistModel.Builder.Create();
             foreach (ComicModel comic in comics)
             {
                 ComicItemViewModel item = new(comic)
                 {
-                    OnClick = () =>
+                    OnClick = model =>
                     {
-                        if (!IsSelectMode)
+                        if (IsSelectMode)
                         {
-                            OpenComicHelper.OpenComic(_actionHandler, comic.Id);
+                            return;
                         }
+
+                        OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, model.Playlist));
                     },
-                };
-                item.OnRequestContextFlyoutAsync = () =>
-                {
-                    List<ComicItemViewModel> selection = GetSelection(item);
-                    return MenuFlyoutItemsCreator.CreateComicMenuItems(comic, _actionHandler,
-                        selectedComics: selection.ConvertAll(x => x.Comic), canSelect: true);
+                    OnRequestContextFlyoutAsync = model =>
+                    {
+                        List<ComicItemViewModel> selection = GetSelection(model);
+                        return MenuFlyoutItemsCreator.CreateComicMenuItems(
+                            _actionHandler, comic, model.Playlist,
+                            selectedComics: selection.ConvertAll(x => x.Comic), canSelect: true);
+                    },
+                    Playlist = playlist,
                 };
                 item.UpdateProgress(false);
                 newItems.Add(item);
+                playlist.AddComic(comic);
             }
 
             CoroutineUtils.RunInMainThread(() =>

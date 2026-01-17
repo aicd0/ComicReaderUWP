@@ -186,6 +186,9 @@
   <data name="AutoScrolling" xml:space="preserve">
     <value>自動スクロール</value>
   </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>自動切り替え</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>背景</value>
   </data>
@@ -692,9 +695,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Play" xml:space="preserve">
     <value>再生</value>
   </data>
-  <data name="Playlist" xml:space="preserve">
-    <value>再生リスト</value>
-  </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>プラグインの管理と設定</value>
   </data>
@@ -743,6 +743,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. ダブルタップして幅／高さに合わせます。
 2. マウスの中ボタンを有効にするには、「自動スクロール」を 0 より大きい値に設定してください。</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>読書リスト</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>あなたの読書リストがここに表示されます</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>リフレッシュ</value>

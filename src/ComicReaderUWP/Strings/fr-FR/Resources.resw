@@ -186,6 +186,9 @@
   <data name="AutoScrolling" xml:space="preserve">
     <value>Défilement automatique</value>
   </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>Changement automatique</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>Arrière-plan</value>
   </data>
@@ -692,9 +695,6 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="Play" xml:space="preserve">
     <value>Lire</value>
   </data>
-  <data name="Playlist" xml:space="preserve">
-    <value>Liste de lecture</value>
-  </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>Gérer et configurer les extensions</value>
   </data>
@@ -743,6 +743,12 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. Appuyez deux fois pour ajuster à la largeur/hauteur.
 2. Définissez « Défilement automatique » sur une valeur supérieure à 0 pour activer le bouton central de la souris.</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>Liste de lecture</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>Votre liste de lecture s’affichera ici</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Rafraîchir</value>

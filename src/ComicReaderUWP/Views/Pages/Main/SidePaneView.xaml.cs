@@ -15,11 +15,12 @@ namespace ComicReaderUWP.Views.Pages.Main;
 
 internal sealed partial class SidePaneView : BaseUserControl
 {
-    private const string FAVORITES = "Favorites";
-    private const string HISTORY = "History";
-    private const string TAGS = "Tags";
-    private const string FOLDERS = "Folders";
-    private const string FILTER_PRESETS = "FilterPresets";
+    public const string FAVORITES = "Favorites";
+    public const string HISTORY = "History";
+    public const string TAGS = "Tags";
+    public const string FOLDERS = "Folders";
+    public const string FILTER_PRESETS = "FilterPresets";
+    public const string PLAYLIST = "Playlist";
 
     public delegate void PinStateChangedEventHandler(SidePaneView sender, bool pinned);
     public event PinStateChangedEventHandler? PinStateChanged;
@@ -56,6 +57,11 @@ internal sealed partial class SidePaneView : BaseUserControl
 
         bool pinned = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
         SetPinState(pinned);
+    }
+
+    public void SetPage(string pageName)
+    {
+        NavigateToItem(pageName);
     }
 
     //
@@ -96,6 +102,7 @@ internal sealed partial class SidePaneView : BaseUserControl
             TAGS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_TAGS),
             FOLDERS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FOLDERS),
             FILTER_PRESETS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FILTER_PRESETS),
+            PLAYLIST => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_PLAYLIST),
             _ => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
         };
 

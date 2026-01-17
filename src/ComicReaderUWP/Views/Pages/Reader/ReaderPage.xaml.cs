@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -12,10 +11,10 @@ using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
@@ -33,8 +32,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
-
-using Windows.Storage;
 
 namespace ComicReaderUWP.Views.Pages.Reader;
 
@@ -106,17 +103,9 @@ internal sealed partial class ReaderPage : BasePage
         GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
         CoroutineUtils.Start(async () =>
         {
-            ComicModel? comic = await GetTargetComic(bundle);
-            if (comic is null)
-            {
-                GetMainPageAbility().SetTitle(StringResource.Error);
-                ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error));
-            }
-            else
-            {
-                GetMainPageAbility().SetTitle(comic.Title);
-                await ViewModel.LoadComic(comic);
-            }
+            PlaylistModel? playlist = await GetPlaylist(bundle);
+            string? serializedPlayback = bundle.GetString(RouterConstants.ARG_PLAYBACK);
+            ViewModel.LoadPlaylist(playlist ?? PlaylistModel.CreateEmpty(), serializedPlayback);
         });
 
         ObserveData();
@@ -130,6 +119,7 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.ReloadReaderSettings();
         UpdateReaderUI();
         AddToActiveTabs();
+        GetEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
     }
 
     protected override void OnStop()
@@ -138,7 +128,7 @@ internal sealed partial class ReaderPage : BasePage
 
         RemoveFromActiveTabs();
         MainReaderView.Destory();
-        ViewModel.CloseComicConnection();
+        ViewModel.Destory();
     }
 
     private void ObserveData()
@@ -216,6 +206,18 @@ internal sealed partial class ReaderPage : BasePage
         GetNavigationPageAbility().RegisterFavoriteChangedEventHandler(this, delegate (bool isFavorite)
         {
             ViewModel.SetIsFavorite(isFavorite, true);
+        });
+
+        ViewModel.TitleLiveData.ObserveStartSticky(this, title =>
+        {
+            GetMainPageAbility().SetTitle(title);
+        });
+
+        ViewModel.PlaybackChangeLiveData.ObserveSticky(this, _ =>
+        {
+            Route route = Route.Create(GetMainPageAbility().Url)
+                .WithParam(RouterConstants.ARG_PLAYBACK, ViewModel.Playback.ToSerializedString());
+            GetMainPageAbility().SetUrl(route.Url);
         });
 
         ViewModel.EditTagLiveData.Observe(this, pair =>
@@ -306,7 +308,7 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.ReaderLoadingInfoLiveData.ObserveSticky(this, info =>
         {
             MainReaderView.SetConfigurationDatabase(new ReaderConfigDatabase());
-            MainReaderView.SetCurrentPage(info.InitialPage);
+            MainReaderView.SetInitialPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
         });
 
@@ -332,15 +334,13 @@ internal sealed partial class ReaderPage : BasePage
             }
         };
 
-        MainReaderView.ReaderEventReaderStateChanged += delegate (ReaderView sender, ReaderView.ReaderState state, string description)
+        MainReaderView.ReaderEventReaderStateChanged += (sender, state, description) =>
         {
             switch (state)
             {
                 case ReaderView.ReaderState.Ready:
                     ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Working, description));
                     UpdatePage();
-                    ShowBottomTile();
-                    HideBottomTileDelayed(5000);
                     break;
                 case ReaderView.ReaderState.Loading:
                     ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Loading, description));
@@ -359,6 +359,23 @@ internal sealed partial class ReaderPage : BasePage
             }
 
             ViewModel.IsAutoPlaying = isAutoScrolling;
+        };
+
+        MainReaderView.ReaderEventOverScroll += (sender, forward) =>
+        {
+            if (!AppSettingsModel.Instance.AutoSwitch)
+            {
+                return;
+            }
+
+            if (forward)
+            {
+                ViewModel.Playback.Next();
+            }
+            else
+            {
+                ViewModel.Playback.Previous();
+            }
         };
     }
 
@@ -448,7 +465,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void UpdateReaderUI()
     {
-        bool isWorking = ViewModel.ReaderStatusLiveData.GetValue()?.Status == ReaderStatusEnum.Working;
+        bool isWorking = ViewModel.ReaderStatus == ReaderStatusEnum.Working;
         bool previewVisible = isWorking && _gridViewModeEnabled;
         bool readerVisible = isWorking && !previewVisible;
 
@@ -510,7 +527,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        bool readerWorking = ViewModel.ReaderStatusLiveData.GetValue()?.Status == ReaderStatusEnum.Working;
+        bool readerWorking = ViewModel.ReaderStatus == ReaderStatusEnum.Working;
         if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || !_readerPointerEntered || !readerWorking)
         {
             return;
@@ -567,7 +584,7 @@ internal sealed partial class ReaderPage : BasePage
     private void PlaybackSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         ReaderView reader = MainReaderView;
-        double currentValue = reader.CurrentPage;
+        double currentValue = reader.CurrentPageDisplay;
         double newValue = e.NewValue;
         if (Math.Abs(currentValue - newValue) < 0.5)
         {
@@ -584,51 +601,69 @@ internal sealed partial class ReaderPage : BasePage
 
     private void PlaybackPreviousButton_Click(object sender, RoutedEventArgs e)
     {
-
+        ViewModel.Playback.Previous();
     }
 
     private void PlaybackNextButton_Click(object sender, RoutedEventArgs e)
     {
-
+        ViewModel.Playback.Next();
     }
 
     private void PlaybackPlaylistButton_Click(object sender, RoutedEventArgs e)
     {
-
+        GetMainPageAbility().SetSidePanePage(SidePaneView.PLAYLIST);
+        GetMainPageAbility().SetSidePaneOpenState(true, force: true);
     }
 
     private void PlaybackMoreButton_Click(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        if (sender is not FrameworkElement fe)
         {
-            if (sender is not FrameworkElement fe)
-            {
-                return;
-            }
+            return;
+        }
 
-            ComicModel? comic = ViewModel.Comic;
-            if (comic is null)
-            {
-                return;
-            }
+        ComicModel? comic = ViewModel.Comic;
+        if (comic is null)
+        {
+            return;
+        }
 
-            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(comic, PageActionHandler);
-            if (menuItems.Count == 0)
-            {
-                return;
-            }
+        List<BaseMenuFlyoutItemModel> menuItems = CreatePlaybackMoreMenuItems();
+        if (menuItems.Count == 0)
+        {
+            return;
+        }
 
-            MenuFlyout flyout = new()
-            {
-                Placement = FlyoutPlacementMode.Top,
-            };
-            foreach (BaseMenuFlyoutItemModel item in menuItems)
-            {
-                flyout.Items.Add(item.CreateMenuFlyoutItem());
-            }
+        MenuFlyout flyout = new()
+        {
+            Placement = FlyoutPlacementMode.Top,
+        };
+        foreach (BaseMenuFlyoutItemModel item in menuItems)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
 
-            flyout.ShowAt(fe);
-        });
+        flyout.ShowAt(fe);
+    }
+
+    private static List<BaseMenuFlyoutItemModel> CreatePlaybackMoreMenuItems()
+    {
+        List<BaseMenuFlyoutItemModel> items = [];
+
+        {
+            bool autoSwitch = AppSettingsModel.Instance.AutoSwitch;
+            items.Add(new ToggleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.AutoSwitch,
+                IsChecked = autoSwitch,
+                Click = () =>
+                {
+                    AppSettingsModel.Instance.AutoSwitch = !autoSwitch;
+                },
+            });
+        }
+
+        return items;
     }
 
     private void UpdatePage()
@@ -709,7 +744,8 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(comic, PageActionHandler);
+        List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(
+            PageActionHandler, comic, ViewModel.Playlist.ToBuilder());
         if (menuItems.Count == 0)
         {
             return;
@@ -761,7 +797,9 @@ internal sealed partial class ReaderPage : BasePage
         // Post detection to allow routed event to be dispatched to root
         CoroutineUtils.PostInMainThread(() =>
         {
-            if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow())
+            if (!_readerPointerEntered &&
+                ViewModel.ReaderStatus == ReaderStatusEnum.Working &&
+                GetMainWindowAbility().PointerInWindow())
             {
                 ShowBottomTile();
             }
@@ -903,118 +941,18 @@ internal sealed partial class ReaderPage : BasePage
         helper(0);
     }
 
-    private static async Task<ComicModel?> GetTargetComic(PageBundle bundle)
+    private static async Task<PlaylistModel?> GetPlaylist(PageBundle bundle)
     {
-        if (!long.TryParse(bundle.GetString(RouterConstants.ARG_COMIC_ID, "-1"), out long comicId))
+        string? serializedPlaylist = bundle.GetString(RouterConstants.ARG_PLAYLIST);
+        if (!string.IsNullOrEmpty(serializedPlaylist))
         {
-            comicId = -1;
-        }
-
-        if (comicId > 0)
-        {
-            ComicModel? comic = await ComicModel.FromId(comicId, "GetTargetComic");
-            if (comic is not null)
+            PlaylistModel? playlist = await PlaylistModel.CreateFromSerializedString(serializedPlaylist);
+            if (playlist is not null)
             {
-                return comic;
+                return playlist;
             }
         }
 
-        string location = bundle.GetString(RouterConstants.ARG_COMIC_LOCATION, string.Empty);
-        if (!string.IsNullOrEmpty(location))
-        {
-            ComicModel? comic = await GetComicFromLocation(location);
-            if (comic is not null)
-            {
-                return comic;
-            }
-        }
-
-        return null;
-    }
-
-    private static async Task<ComicModel?> GetComicFromLocation(string location)
-    {
-        if (File.Exists(location))
-        {
-            string extension = Path.GetExtension(location);
-            if (!AppInfoProvider.IsSupportedExternalFileExtension(extension))
-            {
-                Logger.E(TAG, $"Unsupported file extension: {extension}");
-                return null;
-            }
-
-            StorageFile? file = await Storage.TryGetFile(location);
-            if (file is null)
-            {
-                Logger.E(TAG, $"File not found: {location}");
-                return null;
-            }
-
-            ComicModel? comic = await ComicModel.FromFile(file);
-            if (comic is null)
-            {
-                Logger.E(TAG, $"Failed to create comic from file: {location}");
-                return null;
-            }
-
-            return comic;
-        }
-
-        if (Directory.Exists(location))
-        {
-            ComicModel? comic = await ComicModel.FromLocation(location, "GetComicFromLocation");
-            if (comic is not null)
-            {
-                return comic;
-            }
-
-            string[] filePaths;
-            try
-            {
-                filePaths = Directory.GetFiles(location);
-            }
-            catch (Exception e)
-            {
-                Logger.E(TAG, $"Failed to list files in directory: {location}.", e);
-                return null;
-            }
-
-            List<StorageFile> files = [];
-            foreach (string path in filePaths)
-            {
-                string extension = Path.GetExtension(path);
-                if (!AppInfoProvider.IsSupportedImageExtension(extension))
-                {
-                    continue;
-                }
-
-                StorageFile? file = await Storage.TryGetFile(path);
-                if (file is null)
-                {
-                    Logger.E(TAG, $"File not found: {path}");
-                    continue;
-                }
-
-                files.Add(file);
-            }
-
-            if (files.Count == 0)
-            {
-                Logger.E(TAG, $"No valid image files found in directory: {location}");
-                return null;
-            }
-
-            comic = ComicModel.FromImageFiles(location, files);
-            if (comic is null)
-            {
-                Logger.E(TAG, $"Failed to create comic from image files in directory: {location}");
-                return null;
-            }
-
-            return comic;
-        }
-
-        Logger.E(TAG, $"Invalid location: {location}");
         return null;
     }
 

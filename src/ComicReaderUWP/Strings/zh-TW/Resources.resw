@@ -186,6 +186,9 @@
   <data name="AutoScrolling" xml:space="preserve">
     <value>自動捲動</value>
   </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>自動切換</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>背景</value>
   </data>
@@ -692,9 +695,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Play" xml:space="preserve">
     <value>播放</value>
   </data>
-  <data name="Playlist" xml:space="preserve">
-    <value>播放清單</value>
-  </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>管理與設定外掛程式</value>
   </data>
@@ -743,6 +743,12 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. 雙擊以符合寬度/高度。
 2. 將「自動捲動」設為大於 0 的數值以啟用滑鼠中鍵。</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>閱讀清單</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>你的閱讀清單將顯示在這裡</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>重新整理</value>

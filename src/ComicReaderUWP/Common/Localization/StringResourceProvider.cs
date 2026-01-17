@@ -30,6 +30,7 @@ public class StringResourceProvider
     public string Ascending => GetResourceString("Ascending");
     public string Auto => GetResourceString("Auto");
     public string AutoScrolling => GetResourceString("AutoScrolling");
+    public string AutoSwitch => GetResourceString("AutoSwitch");
     public string Background => GetResourceString("Background");
     public string BackgroundAcrylic => GetResourceString("BackgroundAcrylic");
     public string Calculating => GetResourceString("Calculating");
@@ -146,7 +147,6 @@ public class StringResourceProvider
     public string Pause => GetResourceString("Pause");
     public string Pin => GetResourceString("Pin");
     public string Play => GetResourceString("Play");
-    public string Playlist => GetResourceString("Playlist");
     public string PluginSettingsDescription => GetResourceString("PluginSettingsDescription");
     public string Plugins => GetResourceString("Plugins");
     public string Previous => GetResourceString("Previous");
@@ -160,6 +160,8 @@ public class StringResourceProvider
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");
     public string ReaderTipContent => GetResourceString("ReaderTipContent");
+    public string ReadingList => GetResourceString("ReadingList");
+    public string ReadingListEmpty => GetResourceString("ReadingListEmpty");
     public string Refresh => GetResourceString("Refresh");
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");

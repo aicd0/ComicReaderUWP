@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
+using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
@@ -17,11 +18,14 @@ internal static class OpenComicHelper
 {
     private const string TAG = nameof(OpenComicHelper);
 
-    public static void OpenComic(ActionHandler actionHandler, long comicId)
+    public static Route GetComicRoute(ComicModel comic, PlaylistModel.Builder? playlist)
     {
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_COMIC_ID, comicId.ToString());
-        OpenComic(actionHandler, route);
+        playlist ??= PlaylistModel.Builder.Create();
+        var playback = PlaybackModel.Builder.Create();
+        playback.SetCurrentId(playlist.EnsureComic(comic));
+        return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+            .WithParam(RouterConstants.ARG_PLAYLIST, playlist.ToSerializedString())
+            .WithParam(RouterConstants.ARG_PLAYBACK, playback.ToSerializedString());
     }
 
     public static void OpenComic(ActionHandler actionHandler, Route route)

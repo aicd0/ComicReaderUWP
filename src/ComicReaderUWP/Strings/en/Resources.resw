@@ -186,6 +186,9 @@
   <data name="AutoScrolling" xml:space="preserve">
     <value>Auto scrolling</value>
   </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>Auto switch</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>Background</value>
   </data>
@@ -694,9 +697,6 @@ The evaluation will be performed in the following order:
   <data name="Play" xml:space="preserve">
     <value>Play</value>
   </data>
-  <data name="Playlist" xml:space="preserve">
-    <value>Playlist</value>
-  </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>Manage and configure plugins</value>
   </data>
@@ -745,6 +745,12 @@ The evaluation will be performed in the following order:
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. Double tap to fit width/height.
 2. Set “Auto scrolling” to a value greater than 0 to enable the mouse middle button.</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>Reading list</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>Your reading list appears here</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Refresh</value>

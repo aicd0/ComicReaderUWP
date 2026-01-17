@@ -711,6 +711,7 @@ internal sealed partial class MainPage : BasePage
     {
         _tabContainerGrid = (Grid)sender;
 
+        GetEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
         _tabContainerGridOpacityListenerToken = _tabContainerGrid.RegisterPropertyChangedCallback(OpacityProperty, (sender, dp) =>
         {
             if (!IsStarted)
@@ -957,6 +958,11 @@ internal sealed partial class MainPage : BasePage
         }
 
         SyncSidebarOpenState(open);
+    }
+
+    private void SetSidePanePage(string pageName)
+    {
+        RightSidePane.SetPage(pageName);
     }
 
     private void SyncSidebarOpenState(bool opened, bool initialSync = false)
@@ -1279,6 +1285,16 @@ internal sealed partial class MainPage : BasePage
             parent.SetSidePaneOpenState(open, force: force);
         }
 
+        public void SetSidePanePage(string pageName)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.SetSidePanePage(pageName);
+        }
+
         public LifecycleAwareAbility GetLifecycleAbility()
         {
             return _lifecycleAbility;
@@ -1290,6 +1306,20 @@ internal sealed partial class MainPage : BasePage
         private readonly string _tabId = tabId;
 
         public string TabId => _tabId;
+
+        public string Url
+        {
+            get
+            {
+                TabInfo? tab = GetTab();
+                if (tab is null)
+                {
+                    return string.Empty;
+                }
+
+                return tab.CurrentBundle.Url;
+            }
+        }
 
         public override void OpenInCurrentTab(Route route)
         {

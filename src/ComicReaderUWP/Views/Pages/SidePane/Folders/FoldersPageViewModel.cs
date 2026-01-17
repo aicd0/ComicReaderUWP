@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Search;
@@ -143,7 +144,7 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
             currentNode.Comics.Add(comic);
         }
 
-        SimpleTreeViewNodeModel ComicToNode(ComicModel comic)
+        SimpleTreeViewNodeModel ComicToNode(ComicModel comic, PlaylistModel.Builder playlist)
         {
             return new()
             {
@@ -151,14 +152,18 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
                 Glyph = "\uE8B9",
                 Title = comic.Title,
                 CanExpand = false,
-                Clicked = () =>
+                Clicked = item =>
                 {
-                    OpenComicHelper.OpenComic(_actionHandler, comic.Id);
+                    OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
                 },
                 RequestContextMenuItemsAsync = (primary, selection) =>
                 {
-                    IEnumerable<ComicModel> selectedComics = selection.Where(x => x.DataContext is ComicModel).Select(x => (ComicModel)x.DataContext!);
-                    return MenuFlyoutItemsCreator.CreateComicMenuItems(comic, _actionHandler, selectedComics, canSelect: !SelectionMode);
+                    IEnumerable<ComicModel> selectedComics = selection
+                        .Where(x => x.DataContext is ComicModel)
+                        .Select(x => (ComicModel)x.DataContext!);
+                    return MenuFlyoutItemsCreator.CreateComicMenuItems(
+                        _actionHandler, comic, playlist,
+                        selectedComics, canSelect: !SelectionMode);
                 },
             };
         }
@@ -191,9 +196,10 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
 
             IEnumerable<ComicModel> sortedComics = folderNode.Comics
                 .OrderBy(x => StringUtils.SmartFileNameKeySelector(x.Title), StringUtils.SmartFileNameComparer);
+            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sortedComics);
             foreach (ComicModel comic in sortedComics)
             {
-                nodes.Add(ComicToNode(comic));
+                nodes.Add(ComicToNode(comic, playlist));
             }
 
             return nodes;
@@ -205,8 +211,8 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
     private async Task<List<BaseMenuFlyoutItemModel>> CreateFolderMenuItems(SimpleTreeViewNodeModel primary, IEnumerable<SimpleTreeViewNodeModel> selection)
     {
         List<ComicModel> comics = [.. primary.CollectDataContext<ComicModel>()];
-        ComicModel? randomComic = comics.Count > 0 ? comics[Random.Shared.Next(comics.Count)] : null;
-        return await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(_actionHandler, randomComic,
+        return await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
+            _actionHandler, comics,
             primary.ExpandAll, primary.CollapseAll);
     }
 

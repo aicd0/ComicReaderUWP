@@ -8,7 +8,7 @@ namespace ComicReaderUWP.SDK.Common.Lifecycle;
 
 public class LiveData<T> : ILiveData<T>, ILiveDataNoType
 {
-    private readonly Dictionary<IObserver<T>, ObserverWrapper> _observers = new();
+    private readonly Dictionary<IObserver<T>, ObserverWrapper> _observers = [];
     private T? _value;
     private int _version = 0;
     private bool _dispatchingValue = false;
@@ -86,7 +86,8 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
             return;
         }
 
-        ObserverWrapper observerWrapper = new LifecycleObserverWrapper(this, owner, observer);
+        ILifecycle.State activeState = options.ActiveOnStart ? ILifecycle.State.Started : ILifecycle.State.Resumed;
+        ObserverWrapper observerWrapper = new LifecycleObserverWrapper(this, owner, observer, activeState);
         if (!options.StickyOnObserve)
         {
             observerWrapper.Version = _version;
@@ -159,11 +160,17 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
     {
         private readonly LiveData<T> _liveData;
         private readonly ILifecycleOwner _owner;
+        private readonly ILifecycle.State _activeState;
 
-        public LifecycleObserverWrapper(LiveData<T> liveData, ILifecycleOwner owner, IObserver<T> observer) : base(observer)
+        public LifecycleObserverWrapper(
+            LiveData<T> liveData,
+            ILifecycleOwner owner,
+            IObserver<T> observer,
+            ILifecycle.State activeState) : base(observer)
         {
             _liveData = liveData;
             _owner = owner;
+            _activeState = activeState;
             _owner.GetLifecycle().AddObserver(this);
         }
 
@@ -174,7 +181,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
 
         public override bool IsActive()
         {
-            return _owner.GetLifecycle().GetState() == ILifecycle.State.Resumed;
+            return _owner.GetLifecycle().GetState() >= _activeState;
         }
 
         public override void Remove()
@@ -185,16 +192,16 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType
 
         void ILifecycleObserver.OnLifecycleEvent(ILifecycle.State fromState, ILifecycle.State toState)
         {
-            if (toState == ILifecycle.State.Resumed)
+            if (toState == ILifecycle.State.Stopped)
+            {
+                Remove();
+            }
+            else if (toState >= _activeState)
             {
                 if (_liveData._version > Version)
                 {
                     _liveData.DispatchValue(this);
                 }
-            }
-            else if (toState == ILifecycle.State.Stopped)
-            {
-                Remove();
             }
         }
     }

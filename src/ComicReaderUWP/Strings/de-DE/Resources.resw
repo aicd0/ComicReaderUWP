@@ -184,7 +184,10 @@
     <value>Auto</value>
   </data>
   <data name="AutoScrolling" xml:space="preserve">
-    <value>Automatisches Scrollen</value>
+    <value>Automatisches scrollen</value>
+  </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>Automatischer wechsel</value>
   </data>
   <data name="Background" xml:space="preserve">
     <value>Hintergrund</value>
@@ -692,9 +695,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Play" xml:space="preserve">
     <value>Abspielen</value>
   </data>
-  <data name="Playlist" xml:space="preserve">
-    <value>Wiedergabeliste</value>
-  </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>Plugins verwalten und konfigurieren</value>
   </data>
@@ -743,6 +743,12 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. Doppeltippen, um an Breite/Höhe anzupassen.
 2. Setzen Sie „Automatisches Scrollen“ auf einen Wert größer als 0, um die mittlere Maustaste zu aktivieren.</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>Leseliste</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>Deine Leseliste wird hier angezeigt</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Aktualisieren</value>

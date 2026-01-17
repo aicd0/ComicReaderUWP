@@ -9,6 +9,8 @@ internal interface IMainPageAbilityForTab : IMainPageAbility
 {
     string TabId { get; }
 
+    string Url { get; }
+
     void SetTitle(string title);
 
     void SetIcon(IconSource icon);

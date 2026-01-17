@@ -55,6 +55,19 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
+    public bool AutoSwitch
+    {
+        get
+        {
+            return Read(model => model.AutoSwitch ?? false);
+        }
+        set
+        {
+            Write(model => model.AutoSwitch = value);
+            Save();
+        }
+    }
+
     public int DefaultArchiveCodePage
     {
         get
@@ -495,6 +508,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("AutomaticallyHideCursor")]
         public bool? AutomaticallyHideCursor { get; set; }
+
+        [JsonPropertyName("AutoSwitch")]
+        public bool? AutoSwitch { get; set; }
 
         [JsonPropertyName("Background")]
         public string? Background { get; set; }

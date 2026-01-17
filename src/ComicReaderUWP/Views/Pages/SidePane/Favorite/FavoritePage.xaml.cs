@@ -299,19 +299,22 @@ internal sealed partial class FavoritePage : BasePage
 
             await ResetItems();
 
-            if (item.Type == FavoriteNodeType.Item)
+            if (item.Type != FavoriteNodeType.Item)
             {
-                ComicModel? comic = await ComicModel.FromId(item.Id, "FavoriteLoadComic");
-                if (comic == null)
-                {
-                    DeleteItem(item);
-                }
-                else
-                {
-                    OpenComicHelper.OpenComic(PageActionHandler, comic.Id);
-                    GetMainPageAbility().SetSidePaneOpenState(false, force: false);
-                }
+                return;
             }
+
+            ComicModel? comic = await ComicModel.FromId(item.Id, "FavoriteLoadComic");
+            if (comic is null)
+            {
+                DeleteItem(item);
+                return;
+            }
+
+            IEnumerable<long> playlistComicIds = item.Parent?.Children.Where(x => x.Type == FavoriteNodeType.Item).Select(x => x.Id) ?? [];
+            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComicIds(playlistComicIds);
+            OpenComicHelper.OpenComic(PageActionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
+            GetMainPageAbility().SetSidePaneOpenState(false, force: false);
         });
     }
 
@@ -415,13 +418,13 @@ internal sealed partial class FavoritePage : BasePage
             if (comic is null)
             {
                 DeleteItem(item);
+                return;
             }
-            else
-            {
-                Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-                GetMainPageAbility().OpenInNewTab(route);
-            }
+
+            IEnumerable<long> playlistComicIds = item.Parent?.Children.Where(x => x.Type == FavoriteNodeType.Item).Select(x => x.Id) ?? [];
+            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComicIds(playlistComicIds);
+            Route route = OpenComicHelper.GetComicRoute(comic, playlist);
+            GetMainPageAbility().OpenInNewTab(route);
         });
     }
 

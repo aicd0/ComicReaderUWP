@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -64,7 +65,7 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
     {
         SelectionMode = false;
         var item = (SimpleTreeViewNodeModel)args.InvokedItem;
-        item.Clicked?.Invoke();
+        item.Clicked?.Invoke(item);
     }
 
     private void TreeView_Tapped(object sender, TappedRoutedEventArgs e)
@@ -77,39 +78,42 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
         e.Handled = true;
     }
 
-    private async void TreeView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    private void TreeView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
-        if (args.OriginalSource is not FrameworkElement fe)
+        CoroutineUtils.Start(async () =>
         {
-            return;
-        }
+            if (args.OriginalSource is not FrameworkElement fe)
+            {
+                return;
+            }
 
-        if (fe.DataContext is not SimpleTreeViewNodeModel viewModel)
-        {
-            return;
-        }
+            if (fe.DataContext is not SimpleTreeViewNodeModel viewModel)
+            {
+                return;
+            }
 
-        List<SimpleTreeViewNodeModel> selectedItems = [];
-        foreach (object? item in MainTreeView.SelectedItems)
-        {
-            selectedItems.Add((SimpleTreeViewNodeModel)item);
-        }
+            List<SimpleTreeViewNodeModel> selectedItems = [];
+            foreach (object? item in MainTreeView.SelectedItems)
+            {
+                selectedItems.Add((SimpleTreeViewNodeModel)item);
+            }
 
-        FlyoutBase? flyout = await viewModel.CreateContextFlyout(selectedItems);
-        if (flyout is null)
-        {
-            return;
-        }
+            FlyoutBase? flyout = await viewModel.CreateContextFlyout(selectedItems);
+            if (flyout is null)
+            {
+                return;
+            }
 
-        if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
-        {
-            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
-        }
-        else
-        {
-            flyout.ShowAt(fe);
-        }
+            if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
+            {
+                flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+            }
+            else
+            {
+                flyout.ShowAt(fe);
+            }
 
-        args.Handled = true;
+            args.Handled = true;
+        });
     }
 }

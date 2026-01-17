@@ -32,11 +32,12 @@ namespace ComicReaderUWP.Views.Pages.Reader;
 
 internal partial class ReaderPageViewModel : INotifyPropertyChanged
 {
-    private const string TAG = nameof(ReaderPageViewModel);
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
+    private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
+
+    // Comic states
     private ComicModel? _comic;
     private ComicModel? _pendingComic;
     private bool _isLoading = false;
@@ -44,8 +45,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     private int _pageIndex = -1;
     private bool? _isFavorite = null;
 
-    private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
-
+    public readonly MutableLiveData<string> TitleLiveData = new();
+    public readonly MutableLiveData<bool> PlaybackChangeLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
     public readonly MutableLiveData<ReaderPage.ReaderStatusInfo> ReaderStatusLiveData = new(new(ReaderPage.ReaderStatusEnum.Loading));
     public readonly MutableLiveData<ComicModel> ReaderSettingLiveData = new();
@@ -202,6 +203,31 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         get => _isAutoPlaying ? "\uE769" : "\uE768";
     }
 
+    private bool _isPlaybackNextEnabled = false;
+    public bool IsPlaybackNextEnabled
+    {
+        get => _isPlaybackNextEnabled;
+        set
+        {
+            _isPlaybackNextEnabled = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPlaybackNextEnabled)));
+        }
+    }
+
+    private bool _isPlaybackPreviousEnabled = false;
+    public bool IsPlaybackPreviousEnabled
+    {
+        get => _isPlaybackPreviousEnabled;
+        set
+        {
+            _isPlaybackPreviousEnabled = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPlaybackPreviousEnabled)));
+        }
+    }
+
+    public PlaylistModel Playlist { get; private set; } = PlaylistModel.CreateEmpty();
+    public PlaybackModel Playback { get; } = new();
+    public ReaderPage.ReaderStatusEnum ReaderStatus => ReaderStatusLiveData.GetValue()?.Status ?? ReaderPage.ReaderStatusEnum.Loading;
     public ComicModel? Comic => _comic;
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
     public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];
@@ -212,12 +238,19 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public void Initialize(ActionHandler actionHandler)
     {
         _actionHandler = actionHandler;
+        Playback.PlaybackStatusChanged += Playback_PlaybackStatusChanged;
     }
 
-    public void CloseComicConnection()
+    public void Destory()
     {
-        _comicConnection?.Dispose();
-        _comicConnection = null;
+        Playback.PlaybackStatusChanged -= Playback_PlaybackStatusChanged;
+        CloseComicConnection();
+    }
+
+    public void LoadPlaylist(PlaylistModel playlist, string? serializedPlayback)
+    {
+        Playlist = playlist;
+        Playback.SetPlaylist(playlist, serializedPlayback);
     }
 
     public void SetIsFavorite(bool isFavorite, bool writeDatabase)
@@ -292,31 +325,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         UpdateImageDescription();
     }
 
-    public async Task LoadComic(ComicModel comic)
-    {
-        if (_isLoading)
-        {
-            _pendingComic = comic;
-            return;
-        }
-
-        _isLoading = true;
-        try
-        {
-            ComicModel? loadingComic = comic;
-            while (loadingComic != null)
-            {
-                await LoadComicInternal(loadingComic);
-                loadingComic = _pendingComic;
-                _pendingComic = null;
-            }
-        }
-        finally
-        {
-            _isLoading = false;
-        }
-    }
-
     public void ReloadComicInfo()
     {
         LoadComicInfo();
@@ -380,6 +388,61 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
 
         CoroutineUtils.Start(() => comic.SetTags(tags));
+    }
+
+    private void Playback_PlaybackStatusChanged()
+    {
+        IsPlaybackNextEnabled = Playback.CanGoNext;
+        IsPlaybackPreviousEnabled = Playback.CanGoPrevious;
+
+        PlaylistModel.PlaylistItem? playlistItem = Playback.CurrentItem;
+        if (playlistItem is null)
+        {
+            TitleLiveData.Emit(StringResourceProvider.Instance.Error);
+            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
+        }
+        else if (playlistItem.Comic != _comic)
+        {
+            TitleLiveData.Emit(playlistItem.Comic.Title);
+            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
+            LoadComic(playlistItem.Comic);
+        }
+
+        PlaybackChangeLiveData.Emit(true);
+    }
+
+    private void CloseComicConnection()
+    {
+        _comicConnection?.Dispose();
+        _comicConnection = null;
+    }
+
+    private void LoadComic(ComicModel comic)
+    {
+        CoroutineUtils.Start(async () =>
+        {
+            if (_isLoading)
+            {
+                _pendingComic = comic;
+                return;
+            }
+
+            _isLoading = true;
+            try
+            {
+                ComicModel? loadingComic = comic;
+                while (loadingComic != null)
+                {
+                    await LoadComicInternal(loadingComic);
+                    loadingComic = _pendingComic;
+                    _pendingComic = null;
+                }
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        });
     }
 
     private async Task LoadComicInternal(ComicModel comic)

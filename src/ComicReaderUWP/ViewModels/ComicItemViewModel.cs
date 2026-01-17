@@ -25,6 +25,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     //
 
     public ComicModel Comic { get; }
+    public PlaylistModel.Builder? Playlist { get; set; }
 
     private string _title;
     public string Title
@@ -139,8 +140,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     public bool IsReading => Comic.CompletionState == ComicCompletionStatusEnum.Started;
     public bool IsUnread => Comic.CompletionState == ComicCompletionStatusEnum.NotStarted;
 
-    public Action? OnClick { get; set; }
-    public Func<Task<List<BaseMenuFlyoutItemModel>>>? OnRequestContextFlyoutAsync { get; set; }
+    public Action<ComicItemViewModel>? OnClick { get; set; }
+    public Func<ComicItemViewModel, Task<List<BaseMenuFlyoutItemModel>>>? OnRequestContextFlyoutAsync { get; set; }
 
     //
     // Constructors
@@ -215,7 +216,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
             return null;
         }
 
-        List<BaseMenuFlyoutItemModel> menuFlyoutItems = await OnRequestContextFlyoutAsync();
+        List<BaseMenuFlyoutItemModel> menuFlyoutItems = await OnRequestContextFlyoutAsync(this);
         if (menuFlyoutItems.Count == 0)
         {
             return null;

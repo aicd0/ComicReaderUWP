@@ -22,4 +22,6 @@ internal interface IMainPageAbility : IPageAbility
     bool GetSidePaneOpenState();
 
     void SetSidePaneOpenState(bool open, bool force);
+
+    void SetSidePanePage(string pageName);
 }

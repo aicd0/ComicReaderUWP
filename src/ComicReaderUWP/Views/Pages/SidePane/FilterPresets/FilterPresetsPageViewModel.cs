@@ -79,7 +79,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         ScheduleUpdateComics();
     }
 
-    public ComicModel? GetRandomComic()
+    public List<ComicModel> GetComicSnapshot()
     {
         List<ComicModel> comics = [];
         foreach (SimpleTreeViewNodeModel node in DataSource)
@@ -90,13 +90,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             }
         }
 
-        if (comics.Count == 0)
-        {
-            return null;
-        }
-
-        int index = Random.Shared.Next(comics.Count);
-        return comics[index];
+        return comics;
     }
 
     public void SetSearchText(string searchText)
@@ -222,7 +216,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             ComicPropertyModel? groupBy = filter.GroupBy;
 
             List<SimpleTreeViewNodeModel> dataSource = [];
-            SimpleTreeViewNodeModel ComicToNode(ComicModel comic)
+            SimpleTreeViewNodeModel ComicToNode(ComicModel comic, PlaylistModel.Builder playlist)
             {
                 return new()
                 {
@@ -230,14 +224,18 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                     Glyph = "\uE8B9",
                     Title = comic.Title,
                     CanExpand = false,
-                    Clicked = () =>
+                    Clicked = item =>
                     {
-                        OpenComicHelper.OpenComic(_actionHandler, comic.Id);
+                        OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
                     },
                     RequestContextMenuItemsAsync = (primary, selection) =>
                     {
-                        IEnumerable<ComicModel> selectedComics = selection.Where(x => x.DataContext is ComicModel).Select(x => (ComicModel)x.DataContext!);
-                        return MenuFlyoutItemsCreator.CreateComicMenuItems(comic, _actionHandler, selectedComics, canSelect: !SelectionMode);
+                        IEnumerable<ComicModel> selectedComics = selection
+                            .Where(x => x.DataContext is ComicModel)
+                            .Select(x => (ComicModel)x.DataContext!);
+                        return MenuFlyoutItemsCreator.CreateComicMenuItems(
+                            _actionHandler, comic, playlist,
+                            selectedComics, canSelect: !SelectionMode);
                     },
                 };
             }
@@ -262,9 +260,10 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
                     List<SimpleTreeViewNodeModel> nodeChildren = [];
                     List<ComicModel> sorted = sortBy.SortComics(item.Items, x => x, filter.ComicOrderMethod);
+                    PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sorted);
                     foreach (ComicModel comic in sorted)
                     {
-                        groupNode.Children.Add(ComicToNode(comic));
+                        groupNode.Children.Add(ComicToNode(comic, playlist));
                     }
 
                     dataSource.Add(groupNode);
@@ -273,9 +272,10 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             else
             {
                 List<ComicModel> sorted = sortBy.SortComics(items, x => x, filter.ComicOrderMethod);
+                PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sorted);
                 foreach (ComicModel comic in sorted)
                 {
-                    dataSource.Add(ComicToNode(comic));
+                    dataSource.Add(ComicToNode(comic, playlist));
                 }
             }
 
@@ -300,8 +300,8 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
     private Task<List<BaseMenuFlyoutItemModel>> CreateGroupMenuItems(SimpleTreeViewNodeModel node)
     {
         List<ComicModel> comics = [.. node.CollectDataContext<ComicModel>()];
-        ComicModel? randomComic = comics.Count > 0 ? comics[Random.Shared.Next(comics.Count)] : null;
-        return MenuFlyoutItemsCreator.CreateComicGroupMenuItems(_actionHandler, randomComic,
+        return MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
+            _actionHandler, comics,
             node.ExpandAll, node.CollapseAll);
     }
 

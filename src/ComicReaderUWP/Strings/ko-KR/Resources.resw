@@ -186,6 +186,9 @@
   <data name="AutoScrolling" xml:space="preserve">
     <value>자동 스크롤</value>
   </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>자동 전환</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>배경</value>
   </data>
@@ -693,9 +696,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Play" xml:space="preserve">
     <value>재생</value>
   </data>
-  <data name="Playlist" xml:space="preserve">
-    <value>재생목록</value>
-  </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>플러그인 관리 및 구성</value>
   </data>
@@ -744,6 +744,12 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. 두 번 탭하여 너비/높이에 맞춥니다.
 2. 마우스 가운데 버튼을 활성화하려면 “자동 스크롤”을 0보다 큰 값으로 설정하세요.</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>읽기 목록</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>읽기 목록이 여기에 표시됩니다</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>새로 고치다</value>

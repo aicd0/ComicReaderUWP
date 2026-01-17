@@ -72,10 +72,8 @@ internal class InitTaskManager(Application application)
             // Initialize Sentry
             SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
 
-            // Initialize database
-            DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
-            SqlDatabaseManager.Initialize();
-            DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
+            // Initialize databases
+            DatabaseManager.Initialize();
 
             // Initialize app language
             InitializeAppLanguage();

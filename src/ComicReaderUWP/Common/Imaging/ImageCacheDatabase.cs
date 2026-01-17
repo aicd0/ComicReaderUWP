@@ -43,9 +43,9 @@ internal class ImageCacheDatabase(string databaseFilePath)
         }
     }
 
-    public CacheRecord? GetOrCreate(string key)
+    public CacheRecord? GetOrCreate(string? key)
     {
-        if (key == null || key.Length == 0)
+        if (string.IsNullOrEmpty(key))
         {
             return null;
         }

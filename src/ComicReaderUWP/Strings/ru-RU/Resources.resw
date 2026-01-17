@@ -186,6 +186,9 @@
   <data name="AutoScrolling" xml:space="preserve">
     <value>Автопрокрутка</value>
   </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>Автоматическое переключение</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>Фон</value>
   </data>
@@ -693,9 +696,6 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Play" xml:space="preserve">
     <value>Воспроизвести</value>
   </data>
-  <data name="Playlist" xml:space="preserve">
-    <value>Плейлист</value>
-  </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>Управление и настройка плагинов</value>
   </data>
@@ -744,6 +744,12 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. Дважды коснитесь, чтобы подогнать по ширине/высоте.
 2. Установите параметр «Автопрокрутка» на значение больше 0, чтобы включить среднюю кнопку мыши.</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>Список чтения</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>Ваш список чтения появится здесь</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Обновить</value>
