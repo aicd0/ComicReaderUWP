@@ -313,7 +313,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
     {
         if (!PathRegex().IsMatch(path))
         {
-            throw new ArgumentException(null, nameof(path));
+            throw new ArgumentException($"Invalid path '{path}'");
         }
 
         return path;

@@ -519,7 +519,7 @@ internal sealed partial class MainWindow : Window
         public WindowPlacementManager.SavedWindowState? WindowPlacement { get; init; }
 
         [JsonPropertyName("TabStatus")]
-        public required MainPage.LastTabStatusJsonModel TabStatus { get; init; }
+        public MainPage.LastTabStatusJsonModel? TabStatus { get; init; }
 
         public static WindowStatusModel FromUrl(string url)
         {

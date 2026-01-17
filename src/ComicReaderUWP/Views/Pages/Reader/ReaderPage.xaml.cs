@@ -13,6 +13,7 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Data.Misc;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
@@ -20,6 +21,7 @@ using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.KV;
+using ComicReaderUWP.SDK.Database.Registry;
 using ComicReaderUWP.UserControls.Reader;
 using ComicReaderUWP.ViewModels;
 using ComicReaderUWP.Views.Dialogs.EditComicInfo;
@@ -103,9 +105,9 @@ internal sealed partial class ReaderPage : BasePage
         GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
         CoroutineUtils.Start(async () =>
         {
-            PlaylistModel? playlist = await GetPlaylist(bundle);
+            PlaylistModel playlist = await GetPlaylist(bundle);
             string? serializedPlayback = bundle.GetString(RouterConstants.ARG_PLAYBACK);
-            ViewModel.LoadPlaylist(playlist ?? PlaylistModel.CreateEmpty(), serializedPlayback);
+            ViewModel.LoadPlaylist(playlist, serializedPlayback);
         });
 
         ObserveData();
@@ -377,6 +379,47 @@ internal sealed partial class ReaderPage : BasePage
                 ViewModel.Playback.Previous();
             }
         };
+    }
+
+    private async Task<PlaylistModel> GetPlaylist(PageBundle bundle)
+    {
+        string tabResourceRegistry = $"{RegistryNames.TAB_RESOURCES}{GetMainPageAbility().TabId}/";
+
+        PlaylistModel? playlist = null;
+        string? playlistId = bundle.GetString(RouterConstants.ARG_PLAYLIST_ID);
+        if (!string.IsNullOrEmpty(playlistId))
+        {
+            if (DatabaseManager.MainRegistry.TryGetKey(RegistryNames.PLAYLISTS, out IRegistryKey? key))
+            {
+                if (key.TryGet(playlistId, out string? serializedPlaylist))
+                {
+                    playlist = await PlaylistModel.CreateFromSerializedString(serializedPlaylist);
+                }
+            }
+
+            if (playlist is null && DatabaseManager.MainRegistry.TryGetKey(tabResourceRegistry, out key))
+            {
+                if (key.TryGet("Playlist", out string? serializedPlaylist))
+                {
+                    playlist = await PlaylistModel.CreateFromSerializedString(serializedPlaylist);
+                    if (playlist is not null)
+                    {
+                        return playlist;
+                    }
+                }
+            }
+        }
+        else
+        {
+            playlistId = Guid.NewGuid().ToString();
+            Route route = Route.Create(GetMainPageAbility().Url)
+                .WithParam(RouterConstants.ARG_PLAYLIST_ID, playlistId);
+            GetMainPageAbility().SetUrl(route.Url);
+        }
+
+        playlist ??= PlaylistModel.CreateEmpty();
+        DatabaseManager.MainRegistry.CreateKey(tabResourceRegistry).Set("Playlist", playlist.ToSerializedString());
+        return playlist;
     }
 
     //
@@ -939,21 +982,6 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         helper(0);
-    }
-
-    private static async Task<PlaylistModel?> GetPlaylist(PageBundle bundle)
-    {
-        string? serializedPlaylist = bundle.GetString(RouterConstants.ARG_PLAYLIST);
-        if (!string.IsNullOrEmpty(serializedPlaylist))
-        {
-            PlaylistModel? playlist = await PlaylistModel.CreateFromSerializedString(serializedPlaylist);
-            if (playlist is not null)
-            {
-                return playlist;
-            }
-        }
-
-        return null;
     }
 
     [GeneratedRegex(REGEX_URL, RegexOptions.None)]

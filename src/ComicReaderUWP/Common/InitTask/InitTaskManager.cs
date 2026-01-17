@@ -161,6 +161,7 @@ internal class InitTaskManager(Application application)
         {
             Logger.Flush();
             KVStore.Dispose();
+            DatabaseManager.Dispose();
             if (_appLock is FileStream fileStream)
             {
                 try

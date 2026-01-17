@@ -155,12 +155,17 @@ internal class WindowPlacementManager(MainWindow window)
     {
         public const int CURRENT_VERSION = 1;
 
+        [JsonPropertyName("Version")]
         public int Version { get; init; } = 0;
-        public required WindowPlacementDto Placement { get; init; }
+
+        [JsonPropertyName("Placement")]
+        public WindowPlacementDto Placement { get; init; }
+
+        [JsonPropertyName("CurrentRect")]
         public RectDto CurrentRect { get; init; }
     }
 
-    public class WindowPlacementDto
+    public readonly struct WindowPlacementDto
     {
         [JsonPropertyName("flags")]
         public uint Flags { get; init; }
@@ -169,10 +174,10 @@ internal class WindowPlacementManager(MainWindow window)
         public int ShowCmd { get; init; }
 
         [JsonPropertyName("MinPosition")]
-        public required PointDto MinPosition { get; init; }
+        public PointDto MinPosition { get; init; }
 
         [JsonPropertyName("MaxPosition")]
-        public required PointDto MaxPosition { get; init; }
+        public PointDto MaxPosition { get; init; }
 
         [JsonPropertyName("NormalPosition")]
         public RectDto NormalPosition { get; init; }
@@ -199,7 +204,7 @@ internal class WindowPlacementManager(MainWindow window)
         }
     }
 
-    public class PointDto
+    public readonly struct PointDto
     {
         [JsonPropertyName("X")]
         public int X { get; init; }
@@ -214,9 +219,9 @@ internal class WindowPlacementManager(MainWindow window)
                 Y = point.Y
             };
 
-        public System.Drawing.Point ToNative()
+        public Point ToNative()
         {
-            System.Drawing.Point point = default;
+            Point point = default;
             point.X = X;
             point.Y = Y;
             return point;

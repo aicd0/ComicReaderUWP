@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 
+using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.SDK.Common.Storage;
 using ComicReaderUWP.SDK.Database.Registry;
 
@@ -20,8 +21,18 @@ internal static class DatabaseManager
     });
     public static IRegistryDatabase MainRegistry => _mainRegistryDatabase.Value;
 
+    public static void Dispose()
+    {
+        if (_mainRegistryDatabase.IsValueCreated)
+        {
+            _mainRegistryDatabase.Value.Dispose();
+        }
+    }
+
     public static void Initialize()
     {
+        MainRegistry.RemoveKey(RegistryNames.RUNTIME_RESOURCES);
+
         DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
         SqlDatabaseManager.Initialize();
         DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();

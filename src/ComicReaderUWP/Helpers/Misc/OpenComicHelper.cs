@@ -6,6 +6,8 @@ using System.Collections.Generic;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
+using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Data.Misc;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
@@ -23,8 +25,10 @@ internal static class OpenComicHelper
         playlist ??= PlaylistModel.Builder.Create();
         var playback = PlaybackModel.Builder.Create();
         playback.SetCurrentId(playlist.EnsureComic(comic));
+        string playlistId = Guid.NewGuid().ToString();
+        DatabaseManager.MainRegistry.CreateKey(RegistryNames.PLAYLISTS).Set(playlistId, playlist.ToSerializedString());
         return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-            .WithParam(RouterConstants.ARG_PLAYLIST, playlist.ToSerializedString())
+            .WithParam(RouterConstants.ARG_PLAYLIST_ID, playlistId)
             .WithParam(RouterConstants.ARG_PLAYBACK, playback.ToSerializedString());
     }
 

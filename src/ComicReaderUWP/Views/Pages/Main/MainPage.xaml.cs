@@ -176,7 +176,7 @@ internal sealed partial class MainPage : BasePage
             }
             else
             {
-                model.SelectedIndex = Math.Clamp(jsonModel.SelectedIndex ?? -1, 0, model.Tabs.Count - 1);
+                model.SelectedIndex = Math.Clamp(jsonModel.SelectedIndex, 0, model.Tabs.Count - 1);
             }
         }
 
@@ -1794,7 +1794,7 @@ internal sealed partial class MainPage : BasePage
     public class LastTabStatusJsonModel
     {
         [JsonPropertyName("SelectedIndex")]
-        public int? SelectedIndex { get; set; }
+        public int SelectedIndex { get; set; }
 
         [JsonPropertyName("Tabs")]
         public List<TabJsonModel?>? Tabs { get; set; }
