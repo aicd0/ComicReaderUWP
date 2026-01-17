@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
@@ -181,12 +181,12 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         model ??= new();
         model.OpenComicDefaultBehavior ??= model.HomePageTapComicBehavior;
-        model.AntiAliasingEnabled ??= AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
-        model.AutomaticallyHideCursor ??= AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
-        model.DefaultArchiveCodePage ??= (int)AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<long>(DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
-        model.RatingPercentageEnabled ??= AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
-        model.SaveBrowsingHistory ??= AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
-        model.TransitionAnimation ??= AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, true);
+        model.AntiAliasingEnabled ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
+        model.AutomaticallyHideCursor ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
+        model.DefaultArchiveCodePage ??= (int)AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<long>(KVNames.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
+        model.RatingPercentageEnabled ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
+        model.SaveBrowsingHistory ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
+        model.TransitionAnimation ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_TRANSITION_ANIMATION, true);
         return model;
     }
 

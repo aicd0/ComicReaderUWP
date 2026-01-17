@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.Common.Constants;
 
-internal static class DatabaseEntry
+internal static class KVNames
 {
     public const string KV_LIB_APP = "app";
     public const string KV_LIB_PLUGINS = "plugins";

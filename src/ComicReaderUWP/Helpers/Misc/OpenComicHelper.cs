@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;

@@ -13,7 +13,7 @@ using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.SDK.Database.Misc;
 using ComicReaderUWP.SDK.Database.Registry;
 
-namespace ComicReaderUWP.Data.Misc;
+namespace ComicReaderUWP.Data.Database;
 
 internal static class AppDB
 {
@@ -74,6 +74,8 @@ internal static class AppDB
 
     public static void Dispose()
     {
+        SqliteDB.Dispose();
+
         if (_mainRegistryDatabase.IsValueCreated)
         {
             _mainRegistryDatabase.Value.Dispose();
@@ -99,7 +101,7 @@ internal static class AppDB
         MainRegistry.RemoveKey(RegistryNames.RUNTIME_RESOURCES);
 
         DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
-        SqlDatabaseManager.Initialize();
+        SqliteDB.Initialize();
         DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
     }
 }

@@ -13,7 +13,7 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
@@ -95,7 +95,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.Initialize(PageActionHandler);
 
-        bool tipShown = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_TIPS).GetValueOrDefault(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, false);
+        bool tipShown = AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).GetValueOrDefault(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
         if (!tipShown)
         {
             ReaderTip.IsOpen = !tipShown;
@@ -861,7 +861,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
     {
-        AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, true);
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).Set(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, true);
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
@@ -1077,12 +1077,12 @@ internal sealed partial class ReaderPage : BasePage
     {
         public string? ReadConfiguration(string key)
         {
-            return AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).GetValue<string>(key);
+            return AppDB.AppKV.GetCollection(KVNames.KV_LIB_READER_STATE).GetValue<string>(key);
         }
 
         public void WriteConfiguration(string key, string value)
         {
-            AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).Set(key, value);
+            AppDB.AppKV.GetCollection(KVNames.KV_LIB_READER_STATE).Set(key, value);
         }
     }
 }

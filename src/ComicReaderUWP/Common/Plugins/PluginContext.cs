@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;

@@ -5,7 +5,7 @@ using System;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Misc;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 
 namespace ComicReaderUWP.Data.Models.TagInfo;
 
@@ -31,7 +31,7 @@ internal static class TagInfoDatabase
     public static async Task<T> Enqueue<T>(string taskName, Func<T> op)
     {
         var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        SqlDatabaseManager.TagInfoDatabaseDispatcher.Submit(taskName, delegate
+        SqliteDB.TagInfoDatabaseDispatcher.Submit(taskName, delegate
         {
             taskResult.SetResult(op());
         });

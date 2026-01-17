@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.Utils;
 
@@ -49,13 +49,13 @@ internal sealed partial class SidePaneView : BaseUserControl
 
     public void RestoreLastStatus()
     {
-        string lastSidePaneItem = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
+        string lastSidePaneItem = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
         if (!NavigateToItem(lastSidePaneItem))
         {
             NavigateToItem(FAVORITES);
         }
 
-        bool pinned = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
+        bool pinned = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_PINNED, false);
         SetPinState(pinned);
     }
 
@@ -119,14 +119,14 @@ internal sealed partial class SidePaneView : BaseUserControl
         NavigationBundle bundle = AppRouter.Process(route)!;
         _handler.TransferAbility(bundle);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-        AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
     }
 
     private void PinButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         bool pinned = !Pinned;
         SetPinState(pinned);
-        AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
     }
 
     //

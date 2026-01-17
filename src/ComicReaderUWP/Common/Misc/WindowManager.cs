@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Threading;
@@ -138,7 +138,7 @@ class WindowManager
     public void RestoreWindowStatus()
     {
         WindowStatusModel? model = null;
-        string? serialized = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS);
+        string? serialized = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValue<string>(KVNames.KV_KEY_APP_WINDOW_STATUS);
         if (!string.IsNullOrEmpty(serialized))
         {
             try
@@ -188,7 +188,7 @@ class WindowManager
             });
 
             string serialized = JsonSerializer.Serialize(model);
-            AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS, serialized);
+            AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_WINDOW_STATUS, serialized);
         });
     }
 

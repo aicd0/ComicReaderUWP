@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Storage;
@@ -178,7 +178,7 @@ internal partial class PluginManager
     private void ReadDisabledPlugins()
     {
         _disabledPlugins.Clear();
-        string json = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_PLUGINS).GetValueOrDefault(KEY_DISABLED_PLUGINS, "[]");
+        string json = AppDB.AppKV.GetCollection(KVNames.KV_LIB_PLUGINS).GetValueOrDefault(KEY_DISABLED_PLUGINS, "[]");
         IEnumerable<string>? disabledPlugins;
         try
         {
@@ -227,7 +227,7 @@ internal partial class PluginManager
         List<string> disabledPlugins = [.. _disabledPlugins.Keys];
         disabledPlugins.Sort();
         string json = System.Text.Json.JsonSerializer.Serialize(disabledPlugins);
-        AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_PLUGINS).Set(KEY_DISABLED_PLUGINS, json);
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_PLUGINS).Set(KEY_DISABLED_PLUGINS, json);
     }
 
     private static void NotifyPluginsChanged()

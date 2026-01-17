@@ -9,7 +9,7 @@ using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Services;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;

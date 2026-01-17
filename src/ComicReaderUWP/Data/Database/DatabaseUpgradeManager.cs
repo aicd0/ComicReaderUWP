@@ -10,7 +10,7 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Storage;
 
-namespace ComicReaderUWP.Data.Misc;
+namespace ComicReaderUWP.Data.Database;
 
 class DatabaseUpgradeManager
 {
@@ -98,7 +98,7 @@ class DatabaseUpgradeManager
         switch (versions.KVStoreVersion)
         {
             case 0: // 2.8.1
-                AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, false);
+                AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).Set(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
                 break;
             default:
                 break;
@@ -115,7 +115,7 @@ class DatabaseUpgradeManager
             return false;
         }
 
-        SqlDatabaseManager.UpdateDatabase(versions.SqliteDatabaseVersion);
+        SqliteDB.UpdateDatabase(versions.SqliteDatabaseVersion);
         versions.SqliteDatabaseVersion = DatabaseVersionModel.SQLITE_DATABASE_VERSION;
         return true;
     }
