@@ -15,7 +15,6 @@ using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.Views.AppWindows.Main;
 using ComicReaderUWP.Views.Pages.Main;
 
@@ -139,7 +138,7 @@ class WindowManager
     public void RestoreWindowStatus()
     {
         WindowStatusModel? model = null;
-        string? serialized = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS);
+        string? serialized = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS);
         if (!string.IsNullOrEmpty(serialized))
         {
             try
@@ -189,7 +188,7 @@ class WindowManager
             });
 
             string serialized = JsonSerializer.Serialize(model);
-            KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS, serialized);
+            AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS, serialized);
         });
     }
 
@@ -203,7 +202,7 @@ class WindowManager
             .Where(x => !string.IsNullOrEmpty(x))
             .Select(x => x!) ?? [];
         HashSet<string> aliveTabIds = [.. tabIds];
-        IEnumerable<string> unusedKeys = DatabaseManager.MainRegistry.GetKeys(RegistryNames.TAB_RESOURCES, recursive: false)
+        IEnumerable<string> unusedKeys = AppDB.MainRegistry.GetKeys(RegistryNames.TAB_RESOURCES, recursive: false)
             .Where(x =>
             {
                 int index = x.LastIndexOf('/', x.Length - 2);
@@ -212,7 +211,7 @@ class WindowManager
             });
         foreach (string key in unusedKeys)
         {
-            DatabaseManager.MainRegistry.RemoveKey(key);
+            AppDB.MainRegistry.RemoveKey(key);
         }
     }
 

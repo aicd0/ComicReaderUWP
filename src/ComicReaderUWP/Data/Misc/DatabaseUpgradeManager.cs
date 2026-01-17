@@ -9,7 +9,6 @@ using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Storage;
-using ComicReaderUWP.SDK.Database.KV;
 
 namespace ComicReaderUWP.Data.Misc;
 
@@ -99,7 +98,7 @@ class DatabaseUpgradeManager
         switch (versions.KVStoreVersion)
         {
             case 0: // 2.8.1
-                KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, false);
+                AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, false);
                 break;
             default:
                 break;

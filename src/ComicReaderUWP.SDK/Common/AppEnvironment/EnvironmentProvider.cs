@@ -13,7 +13,7 @@ using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.ServiceManagement;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
+using ComicReaderUWP.SDK.Database.Misc;
 using ComicReaderUWP.SDK.Plugins;
 
 using Windows.ApplicationModel;
@@ -53,7 +53,7 @@ public class EnvironmentProvider
         {
             string deviceId = RecalculateDeviceId();
             _actualDeviceId = deviceId;
-            KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID, deviceId);
+            SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID, deviceId);
         });
     }
 
@@ -139,7 +139,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        deviceId = KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID);
+        deviceId = SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID);
         if (!string.IsNullOrEmpty(deviceId))
         {
             _deviceId = deviceId;
@@ -155,7 +155,7 @@ public class EnvironmentProvider
             }
 
             _deviceId = deviceId;
-            KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID, deviceId);
+            SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID, deviceId);
         }
 
         return deviceId;
@@ -169,7 +169,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        deviceId = KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID);
+        deviceId = SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID);
         if (!string.IsNullOrEmpty(deviceId))
         {
             _actualDeviceId = deviceId;

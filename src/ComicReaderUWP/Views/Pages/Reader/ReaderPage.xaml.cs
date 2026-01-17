@@ -20,7 +20,6 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.SDK.Database.Registry;
 using ComicReaderUWP.UserControls.Reader;
 using ComicReaderUWP.ViewModels;
@@ -96,7 +95,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.Initialize(PageActionHandler);
 
-        bool tipShown = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).GetValueOrDefault(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, false);
+        bool tipShown = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_TIPS).GetValueOrDefault(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, false);
         if (!tipShown)
         {
             ReaderTip.IsOpen = !tipShown;
@@ -389,7 +388,7 @@ internal sealed partial class ReaderPage : BasePage
         string? playlistId = bundle.GetString(RouterConstants.ARG_PLAYLIST_ID);
         if (!string.IsNullOrEmpty(playlistId))
         {
-            if (DatabaseManager.MainRegistry.TryGetKey(RegistryNames.PLAYLISTS, out IRegistryKey? key))
+            if (AppDB.MainRegistry.TryGetKey(RegistryNames.PLAYLISTS, out IRegistryKey? key))
             {
                 if (key.TryGet(playlistId, out string? serializedPlaylist))
                 {
@@ -397,7 +396,7 @@ internal sealed partial class ReaderPage : BasePage
                 }
             }
 
-            if (playlist is null && DatabaseManager.MainRegistry.TryGetKey(tabResourceRegistry, out key))
+            if (playlist is null && AppDB.MainRegistry.TryGetKey(tabResourceRegistry, out key))
             {
                 if (key.TryGet("Playlist", out string? serializedPlaylist))
                 {
@@ -418,7 +417,7 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         playlist ??= PlaylistModel.CreateEmpty();
-        DatabaseManager.MainRegistry.CreateKey(tabResourceRegistry).Set("Playlist", playlist.ToSerializedString());
+        AppDB.MainRegistry.CreateKey(tabResourceRegistry).Set("Playlist", playlist.ToSerializedString());
         return playlist;
     }
 
@@ -654,7 +653,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void PlaybackPlaylistButton_Click(object sender, RoutedEventArgs e)
     {
-        GetMainPageAbility().SetSidePanePage(SidePaneView.PLAYLIST);
+        GetMainPageAbility().SetSidePanePage(SidePaneView.PageEnum.Playlist);
         GetMainPageAbility().SetSidePaneOpenState(true, force: true);
     }
 
@@ -862,7 +861,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
     {
-        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, true);
+        AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_TIPS).Set(DatabaseEntry.KV_KEY_TIPS_READER_TIP_SHOWN, true);
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
@@ -1078,12 +1077,12 @@ internal sealed partial class ReaderPage : BasePage
     {
         public string? ReadConfiguration(string key)
         {
-            return KVStore.App.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).GetValue<string>(key);
+            return AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).GetValue<string>(key);
         }
 
         public void WriteConfiguration(string key, string value)
         {
-            KVStore.App.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).Set(key, value);
+            AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_READER_STATE).Set(key, value);
         }
     }
 }

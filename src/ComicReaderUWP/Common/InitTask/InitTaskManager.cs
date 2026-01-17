@@ -16,7 +16,6 @@ using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.ServiceManagement;
 using ComicReaderUWP.SDK.Common.Storage;
 using ComicReaderUWP.SDK.Common.Threading;
-using ComicReaderUWP.SDK.Database.KV;
 
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -73,7 +72,7 @@ internal class InitTaskManager(Application application)
             SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
 
             // Initialize databases
-            DatabaseManager.Initialize();
+            AppDB.Initialize();
 
             // Initialize app language
             InitializeAppLanguage();
@@ -160,8 +159,8 @@ internal class InitTaskManager(Application application)
         AppDomain.CurrentDomain.ProcessExit += (s, e) =>
         {
             Logger.Flush();
-            KVStore.Dispose();
-            DatabaseManager.Dispose();
+            AppDB.Dispose();
+
             if (_appLock is FileStream fileStream)
             {
                 try

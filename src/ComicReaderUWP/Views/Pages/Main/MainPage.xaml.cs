@@ -12,13 +12,13 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Data.Misc;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.Views.AppWindows.Main;
 
 using Microsoft.UI;
@@ -235,10 +235,10 @@ internal sealed partial class MainPage : BasePage
 
         MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
-        NavigationPageSidePane.OpenPaneLength = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<double>(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
+        NavigationPageSidePane.OpenPaneLength = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<double>(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
         RightSidePane.RestoreLastStatus();
 
-        if (_sidePanePinned && KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false))
+        if (_sidePanePinned && AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, false))
         {
             SetSidePaneOpenState(true, force: true);
         }
@@ -934,7 +934,7 @@ internal sealed partial class MainPage : BasePage
 
         _sidePaneWidth = newWidth;
         DispatchRightOverlayWidthChangeEvent();
-        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
+        AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
     }
 
     private void SetSidePaneOpenState(bool open, bool force)
@@ -960,11 +960,6 @@ internal sealed partial class MainPage : BasePage
         SyncSidebarOpenState(open);
     }
 
-    private void SetSidePanePage(string pageName)
-    {
-        RightSidePane.SetPage(pageName);
-    }
-
     private void SyncSidebarOpenState(bool opened, bool initialSync = false)
     {
         if (!initialSync && opened == _sidePaneOpened)
@@ -979,7 +974,7 @@ internal sealed partial class MainPage : BasePage
 
         if (!initialSync)
         {
-            KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
+            AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_OPENED, opened);
         }
     }
 
@@ -1285,14 +1280,14 @@ internal sealed partial class MainPage : BasePage
             parent.SetSidePaneOpenState(open, force: force);
         }
 
-        public void SetSidePanePage(string pageName)
+        public void SetSidePanePage(SidePaneView.PageEnum page)
         {
             if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
 
-            parent.SetSidePanePage(pageName);
+            parent.RightSidePane.SetPage(page);
         }
 
         public LifecycleAwareAbility GetLifecycleAbility()

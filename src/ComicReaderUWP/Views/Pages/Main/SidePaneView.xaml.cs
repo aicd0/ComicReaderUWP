@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Data.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -15,12 +15,12 @@ namespace ComicReaderUWP.Views.Pages.Main;
 
 internal sealed partial class SidePaneView : BaseUserControl
 {
-    public const string FAVORITES = "Favorites";
-    public const string HISTORY = "History";
-    public const string TAGS = "Tags";
-    public const string FOLDERS = "Folders";
-    public const string FILTER_PRESETS = "FilterPresets";
-    public const string PLAYLIST = "Playlist";
+    private const string FAVORITES = "Favorites";
+    private const string HISTORY = "History";
+    private const string TAGS = "Tags";
+    private const string FOLDERS = "Folders";
+    private const string FILTER_PRESETS = "FilterPresets";
+    private const string PLAYLIST = "Playlist";
 
     public delegate void PinStateChangedEventHandler(SidePaneView sender, bool pinned);
     public event PinStateChangedEventHandler? PinStateChanged;
@@ -49,18 +49,28 @@ internal sealed partial class SidePaneView : BaseUserControl
 
     public void RestoreLastStatus()
     {
-        string lastSidePaneItem = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
+        string lastSidePaneItem = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
         if (!NavigateToItem(lastSidePaneItem))
         {
             NavigateToItem(FAVORITES);
         }
 
-        bool pinned = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
+        bool pinned = AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, false);
         SetPinState(pinned);
     }
 
-    public void SetPage(string pageName)
+    public void SetPage(PageEnum page)
     {
+        string pageName = page switch
+        {
+            PageEnum.Favorites => FAVORITES,
+            PageEnum.History => HISTORY,
+            PageEnum.Tags => TAGS,
+            PageEnum.Folders => FOLDERS,
+            PageEnum.FilterPresets => FILTER_PRESETS,
+            PageEnum.Playlist => PLAYLIST,
+            _ => FAVORITES,
+        };
         NavigateToItem(pageName);
     }
 
@@ -109,14 +119,14 @@ internal sealed partial class SidePaneView : BaseUserControl
         NavigationBundle bundle = AppRouter.Process(route)!;
         _handler.TransferAbility(bundle);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
+        AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
     }
 
     private void PinButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         bool pinned = !Pinned;
         SetPinState(pinned);
-        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
+        AppDB.AppKV.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
     }
 
     //
@@ -153,5 +163,15 @@ internal sealed partial class SidePaneView : BaseUserControl
         int GetWindowId();
 
         void TransferAbility(NavigationBundle bundle);
+    }
+
+    public enum PageEnum
+    {
+        Favorites,
+        History,
+        Tags,
+        Folders,
+        FilterPresets,
+        Playlist,
     }
 }

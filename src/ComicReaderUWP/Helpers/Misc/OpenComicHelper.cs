@@ -26,7 +26,7 @@ internal static class OpenComicHelper
         var playback = PlaybackModel.Builder.Create();
         playback.SetCurrentId(playlist.EnsureComic(comic));
         string playlistId = Guid.NewGuid().ToString();
-        DatabaseManager.MainRegistry.CreateKey(RegistryNames.PLAYLISTS).Set(playlistId, playlist.ToSerializedString());
+        AppDB.MainRegistry.CreateKey(RegistryNames.PLAYLISTS).Set(playlistId, playlist.ToSerializedString());
         return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
             .WithParam(RouterConstants.ARG_PLAYLIST_ID, playlistId)
             .WithParam(RouterConstants.ARG_PLAYBACK, playback.ToSerializedString());
