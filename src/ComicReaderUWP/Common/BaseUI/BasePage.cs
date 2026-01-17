@@ -229,8 +229,8 @@ internal abstract class BasePage : Page, ILifecycleOwner
         public int WindowId => windowId;
     }
 
-    private class MainPageComponent(int tabId) : IMainPageComponent
+    private class MainPageComponent(string tabId) : IMainPageComponent
     {
-        public int TabId => tabId;
+        public string TabId => tabId;
     }
 }

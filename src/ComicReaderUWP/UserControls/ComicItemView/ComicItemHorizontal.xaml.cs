@@ -78,7 +78,13 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
 
     private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        Item?.OnClick?.Invoke();
+        ComicItemViewModel? item = Item;
+        if (item is null)
+        {
+            return;
+        }
+
+        item.OnClick?.Invoke(item);
     }
 
     private async void RootGrid_ContextRequested(UIElement sender, ContextRequestedEventArgs args)

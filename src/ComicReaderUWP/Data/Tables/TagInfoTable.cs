@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 
 namespace ComicReaderUWP.Data.Tables;
@@ -18,7 +18,7 @@ internal class TagInfoTable : ITable
 
     public SqlDatabase GetDatabase()
     {
-        return SqlDatabaseManager.TagInfoDatabase;
+        return SqliteDB.TagInfoDatabase;
     }
 
     public string GetTableName()

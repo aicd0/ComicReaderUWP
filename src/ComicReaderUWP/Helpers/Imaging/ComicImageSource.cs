@@ -6,17 +6,14 @@ using System.IO;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Data.Models.Comic;
 
+using Microsoft.Graphics.Canvas;
+
 namespace ComicReaderUWP.Helpers.Imaging;
 
 internal class ComicImageSource(IComicConnection connection, int index) : IImageSource
 {
     private readonly IComicConnection _connection = connection;
     private readonly int _index = index;
-
-    public Stream? GetImageStream()
-    {
-        return _connection.GetImageStream(_index);
-    }
 
     public string GetUri()
     {
@@ -26,5 +23,15 @@ internal class ComicImageSource(IComicConnection connection, int index) : IImage
     public string GetContentFingerprint()
     {
         return _connection.GetImageSignature(_index);
+    }
+
+    public Stream? OpenImageStream()
+    {
+        return _connection.OpenImageStream(_index);
+    }
+
+    public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator)
+    {
+        return _connection.CreateImageCanvasBitmap(creator, _index);
     }
 }

@@ -15,6 +15,8 @@ using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 
+using Microsoft.Graphics.Canvas;
+
 using Windows.Storage;
 
 namespace ComicReaderUWP.Data.Models.Comic;
@@ -199,31 +201,6 @@ internal partial class FolderComicHandle : ComicHandle
             return _imageFiles.Count;
         }
 
-        public Stream? GetImageStream(int index)
-        {
-            if (index < 0 || index >= _imageFiles.Count)
-            {
-                Logger.F(TAG, "GetImageStream");
-                return null;
-            }
-
-            string imageFile = _imageFiles[index];
-            try
-            {
-                return new FileStream(imageFile, FileMode.Open, FileAccess.Read);
-            }
-            catch (FileNotFoundException)
-            {
-                Logger.I(TAG, $"File not found: {imageFile}");
-                return null;
-            }
-            catch (Exception e)
-            {
-                Logger.F(TAG, $"Cannot open '{imageFile}'.", e);
-                return null;
-            }
-        }
-
         public string GetImageName(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)
@@ -256,6 +233,50 @@ internal partial class FolderComicHandle : ComicHandle
             }
 
             return FileUtils.GetFileSignature(_imageFiles[index]);
+        }
+
+        public Stream? OpenImageStream(int index)
+        {
+            if (index < 0 || index >= _imageFiles.Count)
+            {
+                Logger.F(TAG, "GetImageStream");
+                return null;
+            }
+
+            string imageFile = _imageFiles[index];
+            try
+            {
+                return new FileStream(imageFile, FileMode.Open, FileAccess.Read);
+            }
+            catch (FileNotFoundException)
+            {
+                Logger.I(TAG, $"File not found: {imageFile}");
+                return null;
+            }
+            catch (Exception e)
+            {
+                Logger.F(TAG, $"Cannot open '{imageFile}'.", e);
+                return null;
+            }
+        }
+
+        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+        {
+            using Stream? stream = OpenImageStream(index);
+            if (stream is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return CanvasBitmap.LoadAsync(creator, stream.AsRandomAccessStream()).AsTask().Result;
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, e);
+                return null;
+            }
         }
     }
 }

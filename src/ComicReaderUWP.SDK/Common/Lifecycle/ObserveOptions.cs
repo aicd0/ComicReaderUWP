@@ -6,4 +6,5 @@ namespace ComicReaderUWP.SDK.Common.Lifecycle;
 public class ObserveOptions
 {
     public bool StickyOnObserve = false;
+    public bool ActiveOnStart = false;
 }

@@ -109,7 +109,7 @@ internal sealed partial class MainWindow : Window
     // Public Methods
     //
 
-    public void OpenTab(string url, int targetTabId, int initiateTabId)
+    public void OpenTab(string url, string targetTabId, string initiateTabId)
     {
         var route = Route.Create(url);
         MainPage? mainPage = Members._mainPage;
@@ -519,7 +519,7 @@ internal sealed partial class MainWindow : Window
         public WindowPlacementManager.SavedWindowState? WindowPlacement { get; init; }
 
         [JsonPropertyName("TabStatus")]
-        public required MainPage.LastTabStatusJsonModel TabStatus { get; init; }
+        public MainPage.LastTabStatusJsonModel? TabStatus { get; init; }
 
         public static WindowStatusModel FromUrl(string url)
         {

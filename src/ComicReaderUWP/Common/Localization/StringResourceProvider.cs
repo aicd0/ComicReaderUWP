@@ -30,6 +30,7 @@ public class StringResourceProvider
     public string Ascending => GetResourceString("Ascending");
     public string Auto => GetResourceString("Auto");
     public string AutoScrolling => GetResourceString("AutoScrolling");
+    public string AutoSwitch => GetResourceString("AutoSwitch");
     public string Background => GetResourceString("Background");
     public string BackgroundAcrylic => GetResourceString("BackgroundAcrylic");
     public string Calculating => GetResourceString("Calculating");
@@ -117,6 +118,7 @@ public class StringResourceProvider
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
     public string NewWindow => GetResourceString("NewWindow");
+    public string Next => GetResourceString("Next");
     public string NoComicsHint => GetResourceString("NoComicsHint");
     public string NoRating => GetResourceString("NoRating");
     public string NoResults => GetResourceString("NoResults");
@@ -142,9 +144,12 @@ public class StringResourceProvider
     public string PageLayoutDualWithCoverMirrored => GetResourceString("PageLayoutDualWithCoverMirrored");
     public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
     public string PageN => GetResourceString("PageN");
+    public string Pause => GetResourceString("Pause");
     public string Pin => GetResourceString("Pin");
+    public string Play => GetResourceString("Play");
     public string PluginSettingsDescription => GetResourceString("PluginSettingsDescription");
     public string Plugins => GetResourceString("Plugins");
+    public string Previous => GetResourceString("Previous");
     public string PrivacyPolicy => GetResourceString("PrivacyPolicy");
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
@@ -155,6 +160,8 @@ public class StringResourceProvider
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");
     public string ReaderTipContent => GetResourceString("ReaderTipContent");
+    public string ReadingList => GetResourceString("ReadingList");
+    public string ReadingListEmpty => GetResourceString("ReadingListEmpty");
     public string Refresh => GetResourceString("Refresh");
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");

@@ -14,7 +14,7 @@ using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.SDK.Common.DebugTools;
@@ -54,7 +54,7 @@ internal abstract class ComicHandle
     public static async Task<T> Enqueue<T>(string taskName, Func<T> op)
     {
         var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        SqlDatabaseManager.MainDatabaseDispatcher.Submit($"{TAG}#Enqueue#{taskName}", delegate
+        SqliteDB.MainDatabaseDispatcher.Submit($"{TAG}#Enqueue#{taskName}", delegate
         {
             taskResult.SetResult(op());
         });
@@ -945,7 +945,7 @@ internal abstract class ComicHandle
     {
         await Enqueue(taskName, delegate
         {
-            SqlDatabaseManager.MainDatabase.WithTransaction(() =>
+            SqliteDB.MainDatabase.WithTransaction(() =>
             {
                 op().Wait();
             });

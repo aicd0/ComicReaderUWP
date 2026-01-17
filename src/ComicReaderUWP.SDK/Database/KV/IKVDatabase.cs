@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.SDK.Database.KV;
 
-public interface IKVDatabase
+public interface IKVDatabase : IDisposable
 {
     IKVCollection GetCollection(string name);
 }

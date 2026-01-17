@@ -755,10 +755,10 @@ internal class ComicPropertyModel
     {
         public List<T> Sort<T>(IEnumerable<T> items, Func<T, ComicModel> selector, ComicFilterModel.OrderMethodEnum orderMethod)
         {
-            ILookup<int, T> lookup = items.ToLookup(t => selector(t).ObjectId);
+            ILookup<ComicModel, T> lookup = items.ToLookup(t => selector(t));
             IEnumerable<T> sorted = property
                 .SortItems(items.Select(x => selector(x)))
-                .SelectMany(t => lookup[t.ObjectId]);
+                .SelectMany(t => lookup[t]);
             return orderMethod switch
             {
                 ComicFilterModel.OrderMethodEnum.Ascending => [.. sorted],

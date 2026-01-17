@@ -4,19 +4,20 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
-using ComicReaderUWP.SDK.Common.Storage;
-
 using LiteDB;
 
 namespace ComicReaderUWP.SDK.Database.KV;
 
-internal partial class LiteDBLayer(string name, IDatabaseLayer? fallbackLayer = null) : IDatabaseLayer
+internal partial class LiteDBLayer(string databasePath, IDatabaseLayer? fallbackLayer = null) : IDatabaseLayer
 {
     private readonly Lazy<LiteDatabase> _db = new(() =>
     {
-        string databaseFolder = Path.Combine(StorageLocation.LocalFolderPath, "kv");
-        string databasePath = Path.Combine(databaseFolder, $"{name}.db");
-        Directory.CreateDirectory(databaseFolder);
+        string? databaseFolder = Path.GetDirectoryName(databasePath);
+        if (!string.IsNullOrEmpty(databaseFolder))
+        {
+            Directory.CreateDirectory(databaseFolder);
+        }
+
         return new LiteDatabase($"Filename={databasePath}; Mode=Shared;");
     });
 

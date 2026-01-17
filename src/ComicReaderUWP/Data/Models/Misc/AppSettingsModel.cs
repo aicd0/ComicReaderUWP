@@ -7,10 +7,10 @@ using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.SDK.Database.Misc;
 
 using Windows.Globalization;
@@ -51,6 +51,19 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         set
         {
             Write(model => model.AutomaticallyHideCursor = value);
+            Save();
+        }
+    }
+
+    public bool AutoSwitch
+    {
+        get
+        {
+            return Read(model => model.AutoSwitch ?? false);
+        }
+        set
+        {
+            Write(model => model.AutoSwitch = value);
             Save();
         }
     }
@@ -168,12 +181,12 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         model ??= new();
         model.OpenComicDefaultBehavior ??= model.HomePageTapComicBehavior;
-        model.AntiAliasingEnabled ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
-        model.AutomaticallyHideCursor ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
-        model.DefaultArchiveCodePage ??= (int)KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault<long>(DatabaseEntry.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
-        model.RatingPercentageEnabled ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
-        model.SaveBrowsingHistory ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
-        model.TransitionAnimation ??= KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_TRANSITION_ANIMATION, true);
+        model.AntiAliasingEnabled ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
+        model.AutomaticallyHideCursor ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
+        model.DefaultArchiveCodePage ??= (int)AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<long>(KVNames.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
+        model.RatingPercentageEnabled ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
+        model.SaveBrowsingHistory ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
+        model.TransitionAnimation ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_TRANSITION_ANIMATION, true);
         return model;
     }
 
@@ -495,6 +508,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("AutomaticallyHideCursor")]
         public bool? AutomaticallyHideCursor { get; set; }
+
+        [JsonPropertyName("AutoSwitch")]
+        public bool? AutoSwitch { get; set; }
 
         [JsonPropertyName("Background")]
         public string? Background { get; set; }

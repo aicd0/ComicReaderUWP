@@ -45,17 +45,7 @@ internal class OpenTabProvider : IActionProvider
             return;
         }
 
-        string tabIdString = parameters[PARAM_TAB_ID] ?? string.Empty;
-        int tabId;
-        if (string.IsNullOrEmpty(tabIdString))
-        {
-            tabId = -2;
-        }
-        else if (!int.TryParse(tabIdString, out tabId) || tabId < -1)
-        {
-            context.SetError($"'{tabIdString}' is not a valid tab ID.");
-            return;
-        }
+        string? tabId = parameters[PARAM_TAB_ID];
 
         if (windowId == -1)
         {
@@ -70,13 +60,9 @@ internal class OpenTabProvider : IActionProvider
                 return;
             }
 
-            if (tabId == -2)
-            {
-                tabId = window.CurrentTab?.Id ?? -1;
-            }
-
+            tabId ??= window.CurrentTab?.Id ?? string.Empty;
             IMainPageComponent? mainPageCom = context.GetComponent<IMainPageComponent>();
-            int initiateTabId = mainPageCom?.TabId ?? -1;
+            string initiateTabId = mainPageCom?.TabId ?? string.Empty;
             window.OpenTab(url, tabId, initiateTabId);
         }
 

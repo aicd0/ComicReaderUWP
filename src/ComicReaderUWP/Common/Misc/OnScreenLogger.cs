@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
 
 namespace ComicReaderUWP.Common.Misc;
 
@@ -29,8 +29,8 @@ internal static class OnscreenLogger
         }
 
         _initialize = true;
-        SetLogVisibility(KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, false));
-        SetLogStarted(KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValueOrDefault(DatabaseEntry.KV_KEY_APP_LOG_STARTED, true));
+        SetLogVisibility(AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_LOG_VISIBLE, false));
+        SetLogStarted(AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_LOG_STARTED, true));
     }
 
     public static void StartOrPause()
@@ -58,7 +58,7 @@ internal static class OnscreenLogger
         }
 
         _logStarted = started;
-        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_LOG_STARTED, started);
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_LOG_STARTED, started);
         _started.Emit(started);
     }
 
@@ -75,7 +75,7 @@ internal static class OnscreenLogger
         }
 
         _logVisible = visible;
-        KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_LOG_VISIBLE, visible);
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_LOG_VISIBLE, visible);
         _visible.Emit(visible);
     }
 }

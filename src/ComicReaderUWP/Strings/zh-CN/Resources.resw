@@ -186,6 +186,9 @@
   <data name="AutoScrolling" xml:space="preserve">
     <value>自动滚动</value>
   </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>自动切换</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>背景</value>
   </data>
@@ -596,6 +599,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="NewWindow" xml:space="preserve">
     <value>新窗口</value>
   </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一个</value>
+  </data>
   <data name="NoComicsHint" xml:space="preserve">
     <value>你的漫画会显示在这里</value>
   </data>
@@ -680,14 +686,23 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="PageN" xml:space="preserve">
     <value>第$page页</value>
   </data>
+  <data name="Pause" xml:space="preserve">
+    <value>暂停</value>
+  </data>
   <data name="Pin" xml:space="preserve">
     <value>固定</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>播放</value>
   </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>管理和配置插件</value>
   </data>
   <data name="Plugins" xml:space="preserve">
     <value>插件</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>上一个</value>
   </data>
   <data name="PrivacyPolicy" xml:space="preserve">
     <value>隐私策略</value>
@@ -728,6 +743,12 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. 双击以适应宽度/高度。
 2. 将“自动滚动”设置为大于 0 的值以启用鼠标中键。</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>阅读列表</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>你的阅读列表将显示在这里</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>刷新</value>

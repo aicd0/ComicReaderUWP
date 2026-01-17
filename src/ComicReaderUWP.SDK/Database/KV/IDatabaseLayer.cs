@@ -3,6 +3,6 @@
 
 namespace ComicReaderUWP.SDK.Database.KV;
 
-internal interface IDatabaseLayer : IKVDatabase, IDisposable
+internal interface IDatabaseLayer : IKVDatabase
 {
 }

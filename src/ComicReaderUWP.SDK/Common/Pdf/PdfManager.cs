@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System.Drawing;
-using System.Drawing.Imaging;
 
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
@@ -121,40 +120,6 @@ public static partial class PdfManager
         return await taskResult.Task;
     }
 
-    private static Stream CreateStreamFromBuffer(nint buffer, int width, int height, int stride)
-    {
-        var stream = new MemoryStream();
-        using var bitmap = new Bitmap(
-            width,
-            height,
-            stride,
-            PixelFormat.Format32bppPArgb,
-            buffer);
-        bitmap.Save(stream, ImageFormat.Png);
-        stream.Position = 0;
-        return stream;
-        //int bytesPerPixel = 4;
-        //int rowBytes = width * bytesPerPixel;
-        //int totalBytes = rowBytes * height;
-        //byte[] packed = new byte[totalBytes];
-        //unsafe
-        //{
-        //    byte* src = (byte*)buffer;
-        //    fixed (byte* dstBase = packed)
-        //    {
-        //        byte* dst = dstBase;
-        //        for (int y = 0; y < height; y++)
-        //        {
-        //            Buffer.MemoryCopy(
-        //                src + y * stride,
-        //                dst + y * rowBytes,
-        //                rowBytes,
-        //                rowBytes);
-        //        }
-        //    }
-        //}
-    }
-
     private partial class PdfDocument(
         string key,
         nint documentPtr,
@@ -190,7 +155,7 @@ public static partial class PdfManager
 
         SizeF GetPageSize(int pageIndex);
 
-        Stream? Render(int pageIndex, int width, int height);
+        T? Render<T>(int pageIndex, int left, int top, int width, int height, Func<nint, int, T?> func);
     }
 
     private partial class PdfConnection(PdfDocument document) : IPdfConnection
@@ -235,13 +200,13 @@ public static partial class PdfManager
             return Document.PageSizes[pageIndex];
         }
 
-        public Stream? Render(int pageIndex, int width, int height)
+        public T? Render<T>(int pageIndex, int left, int top, int width, int height, Func<nint, int, T?> func)
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) == 1, this);
 
             if (pageIndex < 0 || pageIndex >= Document.PageCount)
             {
-                return null;
+                return default;
             }
 
             return Enqueue(() =>
@@ -249,7 +214,7 @@ public static partial class PdfManager
                 nint bitmap = Pdfium.FPDFBitmap_Create(width, height, 1);
                 if (bitmap == nint.Zero)
                 {
-                    return null;
+                    return default;
                 }
 
                 try
@@ -257,16 +222,16 @@ public static partial class PdfManager
                     nint page = Pdfium.FPDF_LoadPage(Document.DocumentPtr, pageIndex);
                     if (page == nint.Zero)
                     {
-                        return null;
+                        return default;
                     }
 
                     try
                     {
-                        Pdfium.FPDFBitmap_FillRect(bitmap, 0, 0, width, height, 0xFFFFFFFF);
+                        Pdfium.FPDFBitmap_FillRect(bitmap, left, top, width, height, 0xFFFFFFFF);
                         Pdfium.FPDF_RenderPageBitmap(
                             bitmap,
                             page,
-                            0, 0,
+                            left, top,
                             width, height,
                             0,
                             0);
@@ -278,7 +243,7 @@ public static partial class PdfManager
 
                     nint buffer = Pdfium.FPDFBitmap_GetBuffer(bitmap);
                     int stride = Pdfium.FPDFBitmap_GetStride(bitmap);
-                    return CreateStreamFromBuffer(buffer, width, height, stride);
+                    return func(buffer, stride);
                 }
                 finally
                 {

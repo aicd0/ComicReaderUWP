@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.BaseUI;
@@ -24,6 +25,8 @@ namespace ComicReaderUWP.Views.Pages.SidePane.History;
 
 internal sealed partial class HistoryPage : BasePage
 {
+    public ObservableCollection<HistoryGroupViewModel> DataSource { get; set; } = [];
+
     public HistoryPage()
     {
         InitializeComponent();
@@ -52,7 +55,7 @@ internal sealed partial class HistoryPage : BasePage
 
     private async Task Update()
     {
-        var source = new ObservableCollection<HistoryGroupViewModel>();
+        var source = new List<HistoryGroupViewModel>();
         HistoryGroupViewModel? currentGroup = null;
         List<ComicHistoryItemModel> historyItems = await ComicHistoryItemModel.GetAllAsync();
         historyItems.Sort((x, y) => y.DateTime.CompareTo(x.DateTime));
@@ -82,7 +85,12 @@ internal sealed partial class HistoryPage : BasePage
             source.Add(currentGroup);
         }
 
-        HistorySource.Source = source;
+        DataSource.Clear();
+        foreach (HistoryGroupViewModel item in source)
+        {
+            DataSource.Add(item);
+        }
+
         MainListView.SelectedIndex = -1;
         TbNoHistory.Visibility = source.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -96,15 +104,16 @@ internal sealed partial class HistoryPage : BasePage
             return;
         }
 
+        IEnumerable<long> playlistComicIds = DataSource.SelectMany(x => x).Select(x => x.Id);
+        PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComicIds(playlistComicIds);
         if (newTab)
         {
-            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+            Route route = OpenComicHelper.GetComicRoute(comic, playlist);
             GetMainPageAbility().OpenInNewTab(route);
         }
         else
         {
-            OpenComicHelper.OpenComic(PageActionHandler, comic.Id);
+            OpenComicHelper.OpenComic(PageActionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
         }
 
         GetMainPageAbility().SetSidePaneOpenState(false, force: false);

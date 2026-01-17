@@ -1,57 +1,18 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Collections.Concurrent;
-using System.Text;
-
-using ComicReaderUWP.SDK.Common.Utils;
-
 namespace ComicReaderUWP.SDK.Database.KV;
 
 public static class KVStore
 {
-    private static readonly ConcurrentDictionary<string, IDatabaseLayer> sDatabases = [];
-
-    public static void Dispose()
+    public static IKVDatabase CreateDatabase(string databasePath, string? legacyName = null)
     {
-        foreach (IDatabaseLayer database in sDatabases.Values)
+        IDatabaseLayer? fallbackLayer = null;
+        if (!string.IsNullOrEmpty(legacyName))
         {
-            database.Dispose();
+            fallbackLayer = new OldLiteDBLayer(legacyName);
         }
 
-        sDatabases.Clear();
-    }
-
-    internal static IKVDatabase GetDatabase(string name, string? legacyName = null)
-    {
-        if (sDatabases.TryGetValue(name, out IDatabaseLayer? database))
-        {
-            return database;
-        }
-
-        legacyName ??= name;
-        database = new CacheLayer(new LiteDBLayer(name, fallbackLayer: new OldLiteDBLayer(legacyName)));
-        if (sDatabases.TryAdd(name, database))
-        {
-            return database;
-        }
-
-        database.Dispose();
-        return sDatabases[name];
-    }
-
-    //
-    // Predefined Databases
-    //
-
-    public static IKVDatabase App => GetDatabase("app", legacyName: "lib");
-    internal static IKVDatabase Sdk => GetDatabase("sdk");
-
-    public static IKVDatabase Plugin(string pluginName)
-    {
-        byte[] bytes = Encoding.UTF8.GetBytes(pluginName);
-        byte[] hash = HashUtils.GetXxHash64(bytes);
-        string hashString = Convert.ToHexString(hash)[..8].ToLowerInvariant();
-        return GetDatabase($"plugin_{hashString}");
+        return new CacheLayer(new LiteDBLayer(databasePath, fallbackLayer: fallbackLayer));
     }
 }

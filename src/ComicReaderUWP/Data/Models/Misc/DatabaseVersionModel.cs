@@ -3,7 +3,7 @@
 
 using System.Text.Json.Serialization;
 
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Database.Misc;
 
 namespace ComicReaderUWP.Data.Models.Misc;
@@ -11,7 +11,7 @@ namespace ComicReaderUWP.Data.Models.Misc;
 class DatabaseVersionModel : JsonDatabase<DatabaseVersionModel.JsonModel>
 {
     public const int VERSION = 1;
-    public const int SQLITE_DATABASE_VERSION = SqlDatabaseManager.DATABASE_VERSION;
+    public const int SQLITE_DATABASE_VERSION = SqliteDB.DATABASE_VERSION;
     public const int KV_STORE_VERSION = 1;
     public const int FAVORITES_VERSION = 1;
     public const int HISTORY_VERSION = 1;

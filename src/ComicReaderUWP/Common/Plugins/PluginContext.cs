@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
@@ -139,7 +140,7 @@ internal partial class PluginContext(IPlugin plugin, string pluginFilePath, stri
 
     IKVDatabase IPluginContext.GetKVDatabase()
     {
-        return KVStore.Plugin(_pluginName);
+        return AppDB.PluginKV(_pluginName);
     }
 
     Task IPluginContext.Busy(Func<Task> action)

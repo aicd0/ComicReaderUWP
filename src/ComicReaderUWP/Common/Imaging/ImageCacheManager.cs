@@ -92,7 +92,6 @@ internal static partial class ImageCacheManager
         ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(source.GetUri());
         if (record is null)
         {
-            Logger.F(TAG, "Cache record is null");
             return null;
         }
 
@@ -555,7 +554,7 @@ internal static partial class ImageCacheManager
     {
         try
         {
-            return source.GetImageStream();
+            return source.OpenImageStream();
         }
         catch (Exception e)
         {

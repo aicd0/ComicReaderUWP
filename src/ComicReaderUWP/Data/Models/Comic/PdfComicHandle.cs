@@ -4,14 +4,18 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Pdf;
 using ComicReaderUWP.SDK.Common.Utils;
+
+using Microsoft.Graphics.Canvas;
 
 using Windows.Storage;
 
@@ -89,6 +93,20 @@ internal partial class PdfComicHandle : ComicHandle
         return file;
     }
 
+    private static MemoryStream CreateStreamFromBuffer(nint buffer, int width, int height, int stride)
+    {
+        var stream = new MemoryStream();
+        using var bitmap = new Bitmap(
+            width,
+            height,
+            stride,
+            PixelFormat.Format32bppPArgb,
+            buffer);
+        bitmap.Save(stream, ImageFormat.Png);
+        stream.Position = 0;
+        return stream;
+    }
+
     private partial class PdfComicConnection(string pdfPath, PdfManager.IPdfConnection connection) : IComicConnection
     {
         public void Dispose()
@@ -106,13 +124,6 @@ internal partial class PdfComicHandle : ComicHandle
             return StringResourceProvider.Instance.PageN.Replace("$page", (index + 1).ToString());
         }
 
-        public Stream? GetImageStream(int index)
-        {
-            SizeF size = connection.GetPageSize(index);
-            CalculatePageSize(size.Width, size.Height, out int width, out int height);
-            return connection.Render(index, width, height);
-        }
-
         public string GetImageCacheKey(int index)
         {
             return pdfPath + ":" + index.ToString();
@@ -121,6 +132,67 @@ internal partial class PdfComicHandle : ComicHandle
         public string GetImageSignature(int index)
         {
             return FileUtils.GetFileSignature(pdfPath);
+        }
+
+        public Stream? OpenImageStream(int index)
+        {
+            SizeF size = connection.GetPageSize(index);
+            CalculatePageSize(size.Width, size.Height, out int width, out int height);
+            return connection.Render(index, 0, 0, width, height, (buffer, stride) =>
+            {
+                return CreateStreamFromBuffer(buffer, width, height, stride);
+            });
+        }
+
+        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+        {
+            SizeF size = connection.GetPageSize(index);
+            CalculatePageSize(size.Width, size.Height, out int width, out int height);
+            byte[]? buffer = connection.Render(index, 0, 0, width, height, (buffer, stride) =>
+            {
+                int bytesPerPixel = 4;
+                int rowBytes = width * bytesPerPixel;
+                int totalBytes = rowBytes * height;
+                byte[] packed = new byte[totalBytes];
+                unsafe
+                {
+                    byte* src = (byte*)buffer;
+                    fixed (byte* dstBase = packed)
+                    {
+                        byte* dst = dstBase;
+                        for (int y = 0; y < height; y++)
+                        {
+                            Buffer.MemoryCopy(
+                                src + y * stride,
+                                dst + y * rowBytes,
+                                rowBytes,
+                                rowBytes);
+                        }
+                    }
+                }
+
+                return packed;
+            });
+
+            if (buffer is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return CanvasBitmap.CreateFromBytes(
+                    creator,
+                    buffer,
+                    width,
+                    height,
+                    Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
+            }
+            catch (Exception ex)
+            {
+                Logger.E(TAG, ex);
+                return null;
+            }
         }
 
         private static void CalculatePageSize(float originWidth, float originHeight, out int width, out int height)

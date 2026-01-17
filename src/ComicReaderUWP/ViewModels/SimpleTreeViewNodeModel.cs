@@ -76,7 +76,7 @@ internal partial class SimpleTreeViewNodeModel : BaseViewModel, INotifyPropertyC
 
     public ObservableCollection<SimpleTreeViewNodeModel> Children { get; } = [];
     public object? DataContext { get; set; }
-    public Action? Clicked { get; set; }
+    public Action<SimpleTreeViewNodeModel>? Clicked { get; set; }
     public Func<SimpleTreeViewNodeModel, IEnumerable<SimpleTreeViewNodeModel>, Task<List<BaseMenuFlyoutItemModel>>>? RequestContextMenuItemsAsync { get; set; }
 
     public async Task<FlyoutBase?> CreateContextFlyout(IEnumerable<SimpleTreeViewNodeModel> selectedItems)

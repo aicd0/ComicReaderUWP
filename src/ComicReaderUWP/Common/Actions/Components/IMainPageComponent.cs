@@ -5,5 +5,5 @@ namespace ComicReaderUWP.Common.Actions.Components;
 
 internal interface IMainPageComponent : IActionComponent
 {
-    int TabId { get; }
+    string TabId { get; }
 }

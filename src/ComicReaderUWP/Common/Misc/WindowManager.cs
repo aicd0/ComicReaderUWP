@@ -3,17 +3,18 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.Views.AppWindows.Main;
 using ComicReaderUWP.Views.Pages.Main;
 
@@ -137,7 +138,7 @@ class WindowManager
     public void RestoreWindowStatus()
     {
         WindowStatusModel? model = null;
-        string? serialized = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).GetValue<string>(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS);
+        string? serialized = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValue<string>(KVNames.KV_KEY_APP_WINDOW_STATUS);
         if (!string.IsNullOrEmpty(serialized))
         {
             try
@@ -150,13 +151,16 @@ class WindowManager
             }
         }
 
-        if (model is null || model.Windows.Count == 0)
+        CleanUpTabResources(model);
+
+        List<MainWindow.WindowStatusModel> windows = [.. model?.Windows?.Where(x => x is not null).Select(x => x!) ?? []];
+        if (windows.Count == 0)
         {
             MainWindow.Open();
             return;
         }
 
-        foreach (MainWindow.WindowStatusModel windowStatus in model.Windows)
+        foreach (MainWindow.WindowStatusModel? windowStatus in windows)
         {
             MainWindow.Open(windowStatus);
         }
@@ -184,8 +188,31 @@ class WindowManager
             });
 
             string serialized = JsonSerializer.Serialize(model);
-            KVStore.App.GetCollection(DatabaseEntry.KV_LIB_APP).Set(DatabaseEntry.KV_KEY_APP_WINDOW_STATUS, serialized);
+            AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_WINDOW_STATUS, serialized);
         });
+    }
+
+    private static void CleanUpTabResources(WindowStatusModel? model)
+    {
+        IEnumerable<string> tabIds = model?.Windows?
+            .Where(x => x is not null)
+            .SelectMany(x => x!.TabStatus?.Tabs ?? [])
+            .Where(x => x is not null)
+            .Select(x => x!.Id)
+            .Where(x => !string.IsNullOrEmpty(x))
+            .Select(x => x!) ?? [];
+        HashSet<string> aliveTabIds = [.. tabIds];
+        IEnumerable<string> unusedKeys = AppDB.MainRegistry.GetKeys(RegistryNames.TAB_RESOURCES, recursive: false)
+            .Where(x =>
+            {
+                int index = x.LastIndexOf('/', x.Length - 2);
+                string tabId = x[(index + 1)..^1];
+                return !aliveTabIds.Contains(tabId);
+            });
+        foreach (string key in unusedKeys)
+        {
+            AppDB.MainRegistry.RemoveKey(key);
+        }
     }
 
     private class WindowWrapper(MainWindow window)
@@ -197,6 +224,6 @@ class WindowManager
     private class WindowStatusModel
     {
         [JsonPropertyName("Windows")]
-        public required List<MainWindow.WindowStatusModel> Windows { get; init; }
+        public required List<MainWindow.WindowStatusModel?>? Windows { get; init; }
     }
 }

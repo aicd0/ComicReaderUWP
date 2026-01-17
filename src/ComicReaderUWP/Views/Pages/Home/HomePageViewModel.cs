@@ -417,25 +417,12 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }));
     }
 
-    /// <summary>
-    /// Retrieves a random comic from the collection.
-    /// </summary>
-    /// <remarks>If the collection is empty, the method returns <see langword="null"/>. This method is
-    /// thread-safe and can be called concurrently from multiple threads.</remarks>
-    /// <returns>A <see cref="ComicModel"/> representing a random comic from the collection, or <see langword="null"/> if the
-    /// collection is empty.</returns>
-    public ComicModel? GetRandomComic()
+    public List<ComicModel> GetComicSnapshot()
     {
         _comicItemsLock.AcquireReaderLock(Timeout.Infinite);
         try
         {
-            if (_comicItems.Count == 0)
-            {
-                return null;
-            }
-
-            int index = Random.Shared.Next(_comicItems.Count);
-            return _comicItems[index].Comic;
+            return [.. _comicItems.Select(x => x.Comic)];
         }
         finally
         {
@@ -647,7 +634,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     // Unsorted
     //
 
-    private void OnComicSearchResult(IReadOnlyList<ComicModel> items)
+    private void OnComicSearchResult(IReadOnlyList<ComicModel> comics)
     {
         _sharedDispatcher.Submit("OnComicSearchResult", delegate
         {
@@ -655,26 +642,29 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             try
             {
                 _comicItems.Clear();
-                foreach (ComicModel item in items)
+                foreach (ComicModel comic in comics)
                 {
-                    var model = new ComicItemViewModel(item)
+                    var item = new ComicItemViewModel(comic)
                     {
-                        OnClick = () =>
+                        OnClick = model =>
                         {
-                            if (!IsSelectMode)
+                            if (IsSelectMode)
                             {
-                                OpenComicHelper.OpenComic(_actionHandler, item.Id);
+                                return;
                             }
+
+                            OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, model.Playlist));
                         },
-                        OnRequestContextFlyoutAsync = () =>
+                        OnRequestContextFlyoutAsync = model =>
                         {
-                            List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [item];
-                            return MenuFlyoutItemsCreator.CreateComicMenuItems(item, _actionHandler,
+                            List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [comic];
+                            return MenuFlyoutItemsCreator.CreateComicMenuItems(
+                                _actionHandler, comic, model.Playlist,
                                 selectedComics: selectedComics, canSelect: true);
                         },
                     };
-                    model.UpdateProgress(true);
-                    _comicItems.Add(model);
+                    item.UpdateProgress(true);
+                    _comicItems.Add(item);
                 }
             }
             finally
@@ -983,10 +973,29 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     };
                     comicsGrouped.Add(group);
                 }
+
+                // Fill playlist
+                var playlist = PlaylistModel.Builder.Create();
+                foreach (ComicGroupViewModel group in comicsGrouped)
+                {
+                    foreach (ComicItemViewModel item in group.Items)
+                    {
+                        playlist.AddComic(item.Comic);
+                        item.Playlist = playlist;
+                    }
+                }
             }
             else
             {
                 comicsUngrouped = SortComicItemsByProerty(comicItems, sortBy, filter.ComicOrderMethod);
+
+                // Fill playlist
+                var playlist = PlaylistModel.Builder.Create();
+                foreach (ComicItemViewModel item in comicsUngrouped)
+                {
+                    playlist.AddComic(item.Comic);
+                    item.Playlist = playlist;
+                }
             }
         }
 

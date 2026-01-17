@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 
 namespace ComicReaderUWP.Data.Tables;
@@ -18,7 +18,7 @@ internal class ComicHistoryTable : ITable
 
     public SqlDatabase GetDatabase()
     {
-        return SqlDatabaseManager.MiscDatabase;
+        return SqliteDB.MiscDatabase;
     }
 
     public string GetTableName()

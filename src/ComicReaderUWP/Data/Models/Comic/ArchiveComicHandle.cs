@@ -13,6 +13,8 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 
+using Microsoft.Graphics.Canvas;
+
 using Windows.Storage;
 
 namespace ComicReaderUWP.Data.Models.Comic;
@@ -189,25 +191,6 @@ internal partial class ArchiveComicHandle : ComicHandle
             return _entries.Count;
         }
 
-        public Stream? GetImageStream(int index)
-        {
-            if (index < 0 || index >= _entries.Count)
-            {
-                Logger.F(TAG, "GetImageStream");
-                return null;
-            }
-
-            string path = _entries[index];
-            Stream? stream = ArchiveAccess.TryGetFileStream(_archiveFile, path).Result;
-            if (stream == null)
-            {
-                Logger.I(TAG, "Failed to access entry '" + _entries[index] + "'");
-                return null;
-            }
-
-            return stream;
-        }
-
         public string GetImageName(int index)
         {
             if (index < 0 || index >= _entries.Count)
@@ -241,6 +224,44 @@ internal partial class ArchiveComicHandle : ComicHandle
         public string GetImageSignature(int index)
         {
             return FileUtils.GetFileSignature(_archiveFile.Path);
+        }
+
+        public Stream? OpenImageStream(int index)
+        {
+            if (index < 0 || index >= _entries.Count)
+            {
+                Logger.F(TAG, "GetImageStream");
+                return null;
+            }
+
+            string path = _entries[index];
+            Stream? stream = ArchiveAccess.TryGetFileStream(_archiveFile, path).Result;
+            if (stream == null)
+            {
+                Logger.I(TAG, "Failed to access entry '" + _entries[index] + "'");
+                return null;
+            }
+
+            return stream;
+        }
+
+        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+        {
+            using Stream? stream = OpenImageStream(index);
+            if (stream is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return CanvasBitmap.LoadAsync(creator, stream.AsRandomAccessStream()).AsTask().Result;
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, e);
+                return null;
+            }
         }
     }
 }

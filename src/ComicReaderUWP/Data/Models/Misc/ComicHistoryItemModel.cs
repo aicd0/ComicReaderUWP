@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Misc;
-using ComicReaderUWP.Data.Misc;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 
@@ -134,7 +134,7 @@ internal class ComicHistoryItemModel
     private static async Task<T> Enqueue<T>(string taskName, Func<T> op)
     {
         var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        SqlDatabaseManager.MiscDatabaseDispatcher.Submit(taskName, delegate
+        SqliteDB.MiscDatabaseDispatcher.Submit(taskName, delegate
         {
             taskResult.SetResult(op());
         });

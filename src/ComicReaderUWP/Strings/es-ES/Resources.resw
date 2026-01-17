@@ -186,6 +186,9 @@
   <data name="AutoScrolling" xml:space="preserve">
     <value>Desplazamiento automático</value>
   </data>
+  <data name="AutoSwitch" xml:space="preserve">
+    <value>Cambio automático</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>Fondo</value>
   </data>
@@ -596,6 +599,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="NewWindow" xml:space="preserve">
     <value>Nueva ventana</value>
   </data>
+  <data name="Next" xml:space="preserve">
+    <value>Siguiente</value>
+  </data>
   <data name="NoComicsHint" xml:space="preserve">
     <value>Tus cómics aparecerán aquí</value>
   </data>
@@ -680,14 +686,23 @@ La evaluación se realizará en el siguiente orden:
   <data name="PageN" xml:space="preserve">
     <value>Página $page</value>
   </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pausa</value>
+  </data>
   <data name="Pin" xml:space="preserve">
     <value>Fijar</value>
+  </data>
+  <data name="Play" xml:space="preserve">
+    <value>Reproducir</value>
   </data>
   <data name="PluginSettingsDescription" xml:space="preserve">
     <value>Administrar y configurar complementos</value>
   </data>
   <data name="Plugins" xml:space="preserve">
     <value>Complementos</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Anterior</value>
   </data>
   <data name="PrivacyPolicy" xml:space="preserve">
     <value>política de privacidad</value>
@@ -728,6 +743,12 @@ La evaluación se realizará en el siguiente orden:
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. Toca dos veces para ajustar al ancho/alto.
 2. Establece “Desplazamiento automático” en un valor mayor que 0 para habilitar el botón central del ratón.</value>
+  </data>
+  <data name="ReadingList" xml:space="preserve">
+    <value>Lista de lectura</value>
+  </data>
+  <data name="ReadingListEmpty" xml:space="preserve">
+    <value>Tu lista de lectura aparecerá aquí</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Refrescar</value>

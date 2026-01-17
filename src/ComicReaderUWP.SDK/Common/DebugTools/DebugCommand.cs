@@ -7,7 +7,7 @@ using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.Constants;
 using ComicReaderUWP.SDK.Common.ServiceManagement;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
+using ComicReaderUWP.SDK.Database.Misc;
 
 namespace ComicReaderUWP.SDK.Common.DebugTools;
 
@@ -31,7 +31,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
         {
             if (!_unlockedDeveloperMode.HasValue)
             {
-                string? token = KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN);
+                string? token = SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN);
                 bool tokenValid = token != null && ParseCommand(token) != null;
                 _unlockedDeveloperMode = tokenValid;
             }
@@ -50,7 +50,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
 
         // Enable developer mode
         _unlockedDeveloperMode = true;
-        KVStore.Sdk.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
+        SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
         DebugUtils.DeveloperMode = true;
 
         return ProcessCommand(parsedCommand);

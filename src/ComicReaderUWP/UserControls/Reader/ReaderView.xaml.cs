@@ -131,13 +131,35 @@ internal partial class ReaderView : UserControl
     public delegate void ReaderEventAutoScrollingChangedEventHandler(ReaderView sender, bool isAutoScrolling);
     public event ReaderEventAutoScrollingChangedEventHandler? ReaderEventAutoScrollingChanged;
 
+    public delegate void ReaderEventOverScrollEventHandler(ReaderView sender, bool forward);
+    public event ReaderEventOverScrollEventHandler? ReaderEventOverScroll;
+
     public int PageCount { get; private set; } = 0;
     public double CurrentPage { get; private set; } = 0.0;
     private int CurrentPageInt => ToDiscretePage(CurrentPage);
     public int CurrentPageDisplay => CurrentPageInt;
     public bool IsLastPage => PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1;
     public bool IsVertical => _isVertical;
-    public bool IsAutoScrolling => _isAutoScrolling;
+    public bool IsAutoScrolling
+    {
+        get => _isAutoScrolling;
+        set
+        {
+            if (_isAutoScrolling == value)
+            {
+                return;
+            }
+
+            if (value)
+            {
+                StartAutoScrolling();
+            }
+            else
+            {
+                StopAutoScrolling();
+            }
+        }
+    }
 
     public void Destory()
     {
@@ -249,6 +271,12 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
+    public void SetInitialPage(double page)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(page);
+        _initialPage = page;
+    }
+
     public void SetCurrentPage(double page)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(page);
@@ -256,10 +284,6 @@ internal partial class ReaderView : UserControl
         if (ComicLoaded)
         {
             SetScrollViewer2("SetCurrentPage", ScrollSource.User, page: page);
-        }
-        else
-        {
-            _initialPage = page;
         }
     }
 
@@ -296,6 +320,7 @@ internal partial class ReaderView : UserControl
         _maxZoomFactor = double.MinValue;
         _dataModel.Clear();
         PageCount = images.Count;
+        CurrentPage = 0;
 
         int lastFrameIndex = PageToFrame(PageCount, out bool _, out int _);
         for (int i = FrameDataSource.Count - 1; i > lastFrameIndex; --i)
@@ -419,6 +444,7 @@ internal partial class ReaderView : UserControl
         _isFirstFrameActionPerformed = false;
         _isInitialFrameLoaded = false;
         _isInitialFrameActionPerformed = false;
+        _isInitialFrameJumped = false;
         _isLastFrameLoaded = false;
         _isLastFrameActionPerformed = false;
     }
@@ -779,7 +805,6 @@ internal partial class ReaderView : UserControl
 
         if (FrameDataSource.Count == 0)
         {
-            Logger.AssertNotReachHere("9AE769598FEF42CA");
             return false;
         }
 
@@ -1036,7 +1061,7 @@ internal partial class ReaderView : UserControl
 
     private void OnViewChanged(bool final)
     {
-        if (!_isInitialFrameLoaded)
+        if (!_isInitialFrameJumped)
         {
             return;
         }
@@ -1587,6 +1612,11 @@ internal partial class ReaderView : UserControl
 
     private void StartAutoScrolling(double? velocity = null)
     {
+        if (!IsAutoScrollEnabled)
+        {
+            return;
+        }
+
         double velocityValue;
         if (_isContinuous)
         {
@@ -1963,8 +1993,18 @@ internal partial class ReaderView : UserControl
 
         int frame = PageToFrame(SCCurrentPageFinal, out _, out _);
         frame += increment;
-        frame = Math.Min(FrameDataSource.Count - 1, frame);
-        frame = Math.Max(0, frame);
+
+        if (frame >= FrameDataSource.Count)
+        {
+            ReaderEventOverScroll?.Invoke(this, true);
+            return;
+        }
+
+        if (frame < 0)
+        {
+            ReaderEventOverScroll?.Invoke(this, false);
+            return;
+        }
 
         double page = FrameDataSource[frame].Page;
         float? zoom = _zoom > 1.01F ? 1F : null;
@@ -2000,7 +2040,7 @@ internal partial class ReaderView : UserControl
             if (offsets is null)
             {
                 Log("Jump", $"Failed (offsets is null, p={page.Value})");
-                return ScrollResult.Failed;
+                return ScrollResult.UnknownFailure;
             }
 
             double parallelOffset = offsets.Item1;
@@ -2055,23 +2095,6 @@ internal partial class ReaderView : UserControl
 
     private ScrollResult SetScrollViewerInternal(ScrollRequest request, string reason)
     {
-        if (!_isLoaded)
-        {
-            Log("Jump", "Failed (not loaded)");
-            return ScrollResult.Failed;
-        }
-
-        if (_isCommitting)
-        {
-            Log("Jump", "Failed (is committing)");
-            return ScrollResult.Failed;
-        }
-
-        Logger.Assert(float.IsFinite(request.Zoom ?? 0), "5D42C4251571A722");
-        Logger.Assert(!float.IsNegative(request.Zoom ?? 0), "65075662668EE56D");
-        Logger.Assert(double.IsFinite(request.HorizontalOffset ?? 0), "4FD89F79946B8D03");
-        Logger.Assert(double.IsFinite(request.VerticalOffset ?? 0), "6678A0ED7D2FEB43");
-
         Log("Jump", "Request:"
             + $" Reason={reason}"
             + $",Src={(int)request.Source}"
@@ -2081,12 +2104,6 @@ internal partial class ReaderView : UserControl
             + $",V={request.VerticalOffset}"
             + $",D={request.DisableAnimation}");
 
-        if (request.Source == ScrollSource.User)
-        {
-            // User interaction cancels auto scrolling
-            StopAutoScrolling();
-        }
-
         var context = new ScrollContext
         {
             Zoom = request.Zoom,
@@ -2095,7 +2112,47 @@ internal partial class ReaderView : UserControl
             VerticalOffset = request.VerticalOffset,
         };
 
+        SetScrollViewerInternal(request, context);
+        if (context.Result == ScrollResult.None)
+        {
+            Logger.F(TAG, "Scroll result not set");
+        }
+
+        return context.Result;
+    }
+
+    private void SetScrollViewerInternal(ScrollRequest request, ScrollContext context)
+    {
+        if (!_isLoaded)
+        {
+            Log("Jump", "Failed (not loaded)");
+            context.Result = ScrollResult.UnknownFailure;
+            return;
+        }
+
+        if (_isCommitting)
+        {
+            Log("Jump", "Failed (is committing)");
+            context.Result = ScrollResult.UnknownFailure;
+            return;
+        }
+
+        Logger.Assert(float.IsFinite(request.Zoom ?? 0), "5D42C4251571A722");
+        Logger.Assert(!float.IsNegative(request.Zoom ?? 0), "65075662668EE56D");
+        Logger.Assert(double.IsFinite(request.HorizontalOffset ?? 0), "4FD89F79946B8D03");
+        Logger.Assert(double.IsFinite(request.VerticalOffset ?? 0), "6678A0ED7D2FEB43");
+
+        if (request.Source == ScrollSource.User)
+        {
+            // User interaction cancels auto scrolling
+            StopAutoScrolling();
+        }
+
         SetScrollViewerZoom(request, context);
+        if (context.Result != ScrollResult.None)
+        {
+            return;
+        }
 
         Logger.Assert(float.IsFinite(context.Zoom ?? 0), "8E76EB6D567DCCB9");
         Logger.Assert(!float.IsNegative(context.Zoom ?? 0), "7D83986CC7231EAE");
@@ -2149,7 +2206,8 @@ internal partial class ReaderView : UserControl
 
         if (context.HorizontalOffset == null && context.VerticalOffset == null && context.ZoomFactor == null)
         {
-            return ScrollResult.Success;
+            context.Result = ScrollResult.Success;
+            return;
         }
 
         if (request.IgnoreTooClose)
@@ -2162,12 +2220,13 @@ internal partial class ReaderView : UserControl
                 // Ignore the request if target offset is really close to the current offset,
                 // otherwise we might trigger a dead loop
                 Log("Jump", "Cancelled (TooClose)");
-                return ScrollResult.TooClose;
+                context.Result = ScrollResult.TooClose;
+                return;
             }
         }
 
         ChangeView(context.ZoomFactor, context.HorizontalOffset, context.VerticalOffset, context.DisableAnimation);
-        return ScrollResult.Success;
+        context.Result = ScrollResult.Success;
     }
 
     private void SetScrollViewerZoom(ScrollRequest request, ScrollContext context)
@@ -2178,6 +2237,19 @@ internal partial class ReaderView : UserControl
         ZoomCoefficient? zoomCoefficientNew = null;
         {
             int pageNew = request.Page.HasValue ? (int)Math.Round(request.Page.Value) : SCCurrentPageFinal;
+
+            if (pageNew < 0)
+            {
+                context.Result = ScrollResult.UnknownFailure;
+                return;
+            }
+
+            if (pageNew > PageCount)
+            {
+                context.Result = ScrollResult.UnknownFailure;
+                return;
+            }
+
             newFrameIndex = PageToFrame(pageNew, out _, out _);
             if (newFrameIndex < 0 || newFrameIndex >= FrameDataSource.Count)
             {
@@ -2969,9 +3041,10 @@ internal partial class ReaderView : UserControl
 
     private enum ScrollResult
     {
-        Success = 0,
-        Failed = 1,
-        TooClose = 2,
+        None,
+        Success,
+        UnknownFailure,
+        TooClose,
     }
 
     private enum ZoomType
@@ -3012,6 +3085,7 @@ internal partial class ReaderView : UserControl
 
     private class ScrollContext
     {
+        public ScrollResult Result = ScrollResult.None;
         public float? Zoom = null;
         public float? ZoomFactor = null;
         public double? HorizontalOffset = null;

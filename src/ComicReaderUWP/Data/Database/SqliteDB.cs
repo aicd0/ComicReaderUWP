@@ -9,13 +9,13 @@ using ComicReaderUWP.SDK.Common.Storage;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 
-namespace ComicReaderUWP.Data.Misc;
+namespace ComicReaderUWP.Data.Database;
 
-public static class SqlDatabaseManager
+public static class SqliteDB
 {
     public const int DATABASE_VERSION = 7;
 
-    private const string TAG = nameof(SqlDatabaseManager);
+    private const string TAG = nameof(SqliteDB);
 
     private static string DatabaseFolderPath => Path.Combine(StorageLocation.LocalFolderPath, "sqlite");
 
@@ -54,6 +54,16 @@ public static class SqlDatabaseManager
     //
     // Public Methods
     //
+
+    public static void Dispose()
+    {
+        _mainDatabase?.Dispose();
+        _mainDatabase = null;
+        _tagInfoDatabase?.Dispose();
+        _tagInfoDatabase = null;
+        _miscDatabase?.Dispose();
+        _miscDatabase = null;
+    }
 
     public static void Initialize()
     {

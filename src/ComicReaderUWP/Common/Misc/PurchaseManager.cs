@@ -11,10 +11,10 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
 using ComicReaderUWP.Views.AppWindows.Main;
 
 using Windows.Services.Store;
@@ -36,7 +36,7 @@ internal static class PurchaseManager
         {
             if (!_isDonor.HasValue)
             {
-                string? token = KVStore.App.GetCollection(DatabaseEntry.KV_LIB_PURCHASES).GetValue<string>(KEY_DONOR_TOKEN);
+                string? token = AppDB.AppKV.GetCollection(KVNames.KV_LIB_PURCHASES).GetValue<string>(KEY_DONOR_TOKEN);
                 PurchaseInfo? info = VerifyPurchaseToken(token, SecretImpl.Salt1);
                 _isDonor = info is not null && info.Name == ITEM_NAME_DONOR;
             }
@@ -54,11 +54,11 @@ internal static class PurchaseManager
                     PurchaseDate = DateTime.UtcNow,
                 };
                 string token = CreatePurchaseToken(info, SecretImpl.Salt1);
-                KVStore.App.GetCollection(DatabaseEntry.KV_LIB_PURCHASES).Set(KEY_DONOR_TOKEN, token);
+                AppDB.AppKV.GetCollection(KVNames.KV_LIB_PURCHASES).Set(KEY_DONOR_TOKEN, token);
             }
             else
             {
-                KVStore.App.GetCollection(DatabaseEntry.KV_LIB_PURCHASES).Set<string>(KEY_DONOR_TOKEN, null);
+                AppDB.AppKV.GetCollection(KVNames.KV_LIB_PURCHASES).Set<string>(KEY_DONOR_TOKEN, null);
             }
         }
     }

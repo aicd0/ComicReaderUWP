@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Tables;
@@ -21,17 +22,33 @@ using Windows.Storage;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
-internal sealed class ComicModel : IComicModel
+internal sealed class ComicModel : IEquatable<ComicModel>, IComicModel
 {
-    private static int _highestObjectId = 0;
+    private const string TAG = nameof(ComicModel);
 
-    private readonly int _objectId;
     private readonly ComicHandle _internalModel;
 
     private ComicModel(ComicHandle comicData)
     {
         _objectId = Interlocked.Increment(ref _highestObjectId);
         _internalModel = comicData;
+    }
+
+    //
+    // Equality
+    //
+
+    private static int _highestObjectId = 0;
+    private readonly int _objectId;
+
+    public bool Equals(ComicModel? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return other._objectId == _objectId;
     }
 
     public override bool Equals(object? obj)
@@ -41,19 +58,24 @@ internal sealed class ComicModel : IComicModel
             return false;
         }
 
-        return comic.ObjectId == ObjectId;
+        return Equals(comic);
     }
 
     public override int GetHashCode()
     {
-        return ObjectId.GetHashCode();
+        return _objectId.GetHashCode();
     }
+
+    public static bool operator ==(ComicModel? left, ComicModel? right)
+        => EqualityComparer<ComicModel>.Default.Equals(left, right);
+
+    public static bool operator !=(ComicModel? left, ComicModel? right)
+        => !(left == right);
 
     //
     // Getters
     //
 
-    public int ObjectId => _objectId;
     public string CoverImageCacheKey => _internalModel.GetCoverImageCacheKey().Result;
     public string Description => _internalModel.Description;
     public bool Hidden => _internalModel.Hidden;
@@ -396,6 +418,92 @@ internal sealed class ComicModel : IComicModel
         }
 
         return ReplaceWithExisting(comic);
+    }
+
+    public static async Task<ComicModel?> FromExternalLocation(string location)
+    {
+        if (File.Exists(location))
+        {
+            string extension = Path.GetExtension(location);
+            if (!AppInfoProvider.IsSupportedExternalFileExtension(extension))
+            {
+                Logger.E(TAG, $"Unsupported file extension: {extension}");
+                return null;
+            }
+
+            StorageFile? file = await Storage.TryGetFile(location);
+            if (file is null)
+            {
+                Logger.E(TAG, $"File not found: {location}");
+                return null;
+            }
+
+            ComicModel? comic = await FromFile(file);
+            if (comic is null)
+            {
+                Logger.E(TAG, $"Failed to create comic from file: {location}");
+                return null;
+            }
+
+            return comic;
+        }
+
+        if (Directory.Exists(location))
+        {
+            ComicModel? comic = await FromLocation(location, "GetComicFromLocation");
+            if (comic is not null)
+            {
+                return comic;
+            }
+
+            string[] filePaths;
+            try
+            {
+                filePaths = Directory.GetFiles(location);
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, $"Failed to list files in directory: {location}.", e);
+                return null;
+            }
+
+            List<StorageFile> files = [];
+            foreach (string path in filePaths)
+            {
+                string extension = Path.GetExtension(path);
+                if (!AppInfoProvider.IsSupportedImageExtension(extension))
+                {
+                    continue;
+                }
+
+                StorageFile? file = await Storage.TryGetFile(path);
+                if (file is null)
+                {
+                    Logger.E(TAG, $"File not found: {path}");
+                    continue;
+                }
+
+                files.Add(file);
+            }
+
+            if (files.Count == 0)
+            {
+                Logger.E(TAG, $"No valid image files found in directory: {location}");
+                return null;
+            }
+
+            comic = FromImageFiles(location, files);
+            if (comic is null)
+            {
+                Logger.E(TAG, $"Failed to create comic from image files in directory: {location}");
+                return null;
+            }
+
+            return comic;
+        }
+
+        Logger.E(TAG, $"Invalid location: {location}");
+        return null;
     }
 
     public static async Task<List<ComicModel>> BatchFromId(string taskName, IEnumerable<long> ids)

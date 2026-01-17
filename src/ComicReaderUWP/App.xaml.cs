@@ -11,6 +11,7 @@ using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;
@@ -57,16 +58,16 @@ public partial class App : Application
     {
         CoroutineUtils.Start(async () =>
         {
-            Route? route = await GetFileActivatedComicRoute(args);
             if (!window.Alive)
             {
                 Logger.E(TAG, "Unable to process command line because window is not alive.");
                 return;
             }
 
+            Route? route = await GetFileActivatedRoute(args);
             if (route is not null)
             {
-                window.OpenTab(route.Url, -1, -1);
+                window.OpenTab(route.Url, string.Empty, string.Empty);
             }
 
             window.BringToFront();
@@ -164,7 +165,7 @@ public partial class App : Application
         {
             CoroutineUtils.Start(async () =>
             {
-                Route? route = await GetFileActivatedComicRoute(cmdArgs);
+                Route? route = await GetFileActivatedRoute(cmdArgs);
                 if (route is null)
                 {
                     WindowManager.RestoreWindowStatus();
@@ -271,7 +272,7 @@ public partial class App : Application
     // File Activation
     //
 
-    private static async Task<Route?> GetFileActivatedComicRoute(string[] args)
+    private static async Task<Route?> GetFileActivatedRoute(string[] args)
     {
         if (args.Length == 0)
         {
@@ -301,31 +302,19 @@ public partial class App : Application
         ComicModel? comic = await ComicModel.FromFile(targetFile);
         if (comic is not null)
         {
-            if (comic.IsExternal)
-            {
-                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                    .WithParam(RouterConstants.ARG_COMIC_LOCATION, targetFile.Path);
-            }
-            else
-            {
-                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
-            }
+            return OpenComicHelper.GetComicRoute(comic, null);
         }
 
         if (AppInfoProvider.IsSupportedImageExtension(targetFile.FileType))
         {
             string parentPath = targetFile.Path;
             parentPath = StringUtils.ParentLocationFromLocation(parentPath);
-            comic = await ComicModel.FromLocation(parentPath, "GetFileActivatedComicRoute");
-            if (comic is not null && !comic.IsExternal)
+            comic = await ComicModel.FromLocation(parentPath, "GetFileActivatedComicRoute") ??
+                await ComicModel.FromExternalLocation(parentPath);
+            if (comic is not null)
             {
-                return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                    .WithParam(RouterConstants.ARG_COMIC_ID, comic.Id.ToString());
+                return OpenComicHelper.GetComicRoute(comic, null);
             }
-
-            return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
-                .WithParam(RouterConstants.ARG_COMIC_LOCATION, parentPath);
         }
 
         return null;

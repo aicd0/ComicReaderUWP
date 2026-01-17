@@ -45,6 +45,11 @@
                     <FontIcon Glyph="&#xE71C;" />
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
+            <muxc:NavigationViewItem Name="Playlist" ToolTipService.ToolTip="{x:Bind StringResource.ReadingList}">
+                <muxc:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE7BC;" />
+                </muxc:NavigationViewItem.Icon>
+            </muxc:NavigationViewItem>
         </muxc:NavigationView.MenuItems>
         <muxc:NavigationView.PaneFooter>
             <StackPanel Orientation="Vertical">
