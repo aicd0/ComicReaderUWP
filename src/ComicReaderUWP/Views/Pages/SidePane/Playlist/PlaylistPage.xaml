@@ -17,6 +17,7 @@
             Text="{x:Bind StringResource.ReadingListEmpty}"
             Visibility="{x:Bind ViewModel.NoComicsVisible, Mode=OneWay}" />
         <ListView
+            x:Name="MainListView"
             ContextRequested="ListView_ContextRequested"
             ItemsSource="{x:Bind ViewModel.DataSource}"
             SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=OneWay}"
