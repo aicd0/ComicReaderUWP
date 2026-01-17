@@ -382,7 +382,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private async Task<PlaylistModel> GetPlaylist(PageBundle bundle)
     {
-        string tabResourceRegistry = $"{RegistryNames.TAB_RESOURCES}{GetMainPageAbility().TabId}/";
+        string playlistsRegistry = $"{RegistryNames.TAB_RESOURCES}{GetMainPageAbility().TabId}/Playlists/";
 
         PlaylistModel? playlist = null;
         string? playlistId = bundle.GetString(RouterConstants.ARG_PLAYLIST_ID);
@@ -396,9 +396,9 @@ internal sealed partial class ReaderPage : BasePage
                 }
             }
 
-            if (playlist is null && AppDB.MainRegistry.TryGetKey(tabResourceRegistry, out key))
+            if (playlist is null && AppDB.MainRegistry.TryGetKey(playlistsRegistry, out key))
             {
-                if (key.TryGet("Playlist", out string? serializedPlaylist))
+                if (key.TryGet(playlistId, out string? serializedPlaylist))
                 {
                     playlist = await PlaylistModel.CreateFromSerializedString(serializedPlaylist);
                     if (playlist is not null)
@@ -417,7 +417,7 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         playlist ??= PlaylistModel.CreateEmpty();
-        AppDB.MainRegistry.CreateKey(tabResourceRegistry).Set("Playlist", playlist.ToSerializedString());
+        AppDB.MainRegistry.CreateKey(playlistsRegistry).Set(playlistId, playlist.ToSerializedString());
         return playlist;
     }
 

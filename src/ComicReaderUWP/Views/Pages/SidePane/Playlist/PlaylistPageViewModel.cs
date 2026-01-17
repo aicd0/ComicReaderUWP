@@ -142,9 +142,8 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
             if (cursor >= 0 && cursor < DataSource.Count)
             {
                 SelectedIndex = cursor;
+                ScrollToItemLiveData.Emit(DataSource[cursor]);
             }
-
-            ScrollToItemLiveData.Emit(DataSource[cursor]);
         });
     }
 
