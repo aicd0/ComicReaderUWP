@@ -488,7 +488,7 @@ internal partial class ReaderView : UserControl
 
             LoadZoomingConfig(out float zoom, out ZoomType zoomType);
             ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", ScrollSource.Programmatic,
-                zoom: zoom, zoomType: zoomType, page: InitialPage);
+                zoom: zoom, zoomType: zoomType, page: InitialPage, fixForPaddingDelay: true);
             Log("Load", $"InitialFrameScroll (result={scrollResult})");
 
             UpdateImages("InitialFrameLoaded");
@@ -596,6 +596,13 @@ internal partial class ReaderView : UserControl
 
         if (needReload)
         {
+            // Overwrite initial page so that in not-first-loading scenario,
+            // current page will remain unchanged after reloading
+            if (_isInitialFrameJumped)
+            {
+                _initialPage = CurrentPage;
+            }
+
             Reload(_originalDataModel);
         }
     }
@@ -2129,6 +2136,7 @@ internal partial class ReaderView : UserControl
     {
         double? horizontalOffset = null;
         double? verticalOffset = null;
+        double extentParallelLengthBias = 0.0;
 
         if (page.HasValue)
         {
@@ -2147,13 +2155,26 @@ internal partial class ReaderView : UserControl
                 FrameOffsetData? firstFrameOffset = FrameOffset(0);
                 if (firstFrameOffset is not null)
                 {
-                    double desiredPaddingStart = SCPaddingStartFinal;
+                    double expectPaddingStart = SCPaddingStartFinal;
                     double actualPaddingStart = firstFrameOffset.ParallelBegin;
-                    if (Math.Abs(desiredPaddingStart - actualPaddingStart) > 1.0)
+                    double delayedStartPadding = expectPaddingStart - actualPaddingStart;
+                    if (delayedStartPadding > 1.0)
                     {
-                        double fixingForPaddingDelay = (desiredPaddingStart - actualPaddingStart) * SCZoomFactorFinal;
-                        Log("Jump", $"FixingForPaddingDelay={fixingForPaddingDelay}");
-                        parallelOffset += fixingForPaddingDelay;
+                        Log("Jump", $"DelayedStartPadding={delayedStartPadding}");
+                        parallelOffset += delayedStartPadding * SCZoomFactorFinal;
+                    }
+                }
+
+                FrameOffsetData? lastFrameOffset = FrameOffset(FrameDataSource.Count - 1);
+                if (lastFrameOffset is not null)
+                {
+                    double expectExtentLength = lastFrameOffset.ParallelEnd + SCPaddingEndFinal;
+                    double actualExtentLength = ExtentParallelLength;
+                    double delayedEndPadding = expectExtentLength - actualExtentLength;
+                    if (delayedEndPadding > 1.0)
+                    {
+                        Log("Jump", $"DelayedEndPadding={delayedEndPadding}");
+                        extentParallelLengthBias = delayedEndPadding;
                     }
                 }
             }
@@ -2170,6 +2191,7 @@ internal partial class ReaderView : UserControl
             VerticalOffset = verticalOffset,
             DisableAnimation = disableAnimation,
             IgnoreTooClose = _isViewChanging,
+            ExtentParallelLengthBias = extentParallelLengthBias,
         }, reason);
     }
 
@@ -2292,7 +2314,7 @@ internal partial class ReaderView : UserControl
             + $",V={context.VerticalOffset}"
             + $",D={context.DisableAnimation}");
 
-        AdjustParallelOffset(context);
+        AdjustParallelOffset(request, context);
 
         Logger.Assert(float.IsFinite(context.Zoom ?? 0), "6BC2B5793E12AFA4");
         Logger.Assert(!float.IsNegative(context.Zoom ?? 0), "CF5A68638CB59852");
@@ -2540,7 +2562,7 @@ internal partial class ReaderView : UserControl
         return successful;
     }
 
-    private void AdjustParallelOffset(ScrollContext context)
+    private void AdjustParallelOffset(ScrollRequest request, ScrollContext context)
     {
         if (FrameDataSource.Count == 0)
         {
@@ -2592,7 +2614,7 @@ internal partial class ReaderView : UserControl
             //double imageCenterOffset = extentParallelLength - (SCPaddingEndFinal + frameParallelLength * 0.5) * zoom;
             //double imageCenterToScreenCenter = screenCenterOffset - imageCenterOffset;
             //movementBackward = Math.Min(space, imageCenterToScreenCenter);
-            double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
+            double extentParallelLength = (ExtentParallelLength + request.ExtentParallelLengthBias) * zoom / ZoomFactor;
             double imageEndOffset = extentParallelLength - SCPaddingEndFinal * zoom;
             movementBackward = screenCenterOffset - imageEndOffset;
         }
@@ -3207,6 +3229,7 @@ internal partial class ReaderView : UserControl
 
         // Options
         public bool IgnoreTooClose = false;
+        public double ExtentParallelLengthBias = 0.0;
     }
 
     private class ScrollContext

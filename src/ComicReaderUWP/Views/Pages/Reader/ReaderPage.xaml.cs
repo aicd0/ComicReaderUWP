@@ -64,7 +64,6 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     private bool _restoreSidebar = false;
-    private bool _readerFocused = false;
     private bool _readerPointerEntered = false;
     private bool _bottomTileShowed = false;
     private bool _bottomTileHold = false;
@@ -199,11 +198,7 @@ internal sealed partial class ReaderPage : BasePage
             GetMainPageAbility().SetSidePaneOpenState(false, force: true);
         });
 
-        GetNavigationPageAbility().RegisterReaderSettingsChangedEventHandler(this, delegate (ReaderSettingDataModel setting)
-        {
-            ApplyReaderSettings(setting);
-            UpdateReaderUI();
-        });
+        GetNavigationPageAbility().RegisterReaderSettingsChangedEventHandler(this, ApplyReaderSettings);
 
         GetNavigationPageAbility().RegisterFavoriteChangedEventHandler(this, delegate (bool isFavorite)
         {
@@ -247,6 +242,7 @@ internal sealed partial class ReaderPage : BasePage
                     _ => string.Empty,
                 };
             }
+
             TbReaderStatus.Text = readerStatusText;
             TbReaderStatus.Visibility = readerStatusText.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateReaderUI();
@@ -516,13 +512,16 @@ internal sealed partial class ReaderPage : BasePage
         GMainSection.IsHitTestVisible = !previewVisible;
 
         MainReaderView.SetVisibility(readerVisible);
-
-        if (!_readerFocused && readerVisible)
+        if (readerVisible)
         {
-            _readerFocused = true;
-            GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
-            TryFocus(MainReaderView);
+            FocusReader();
         }
+    }
+
+    private void FocusReader()
+    {
+        GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
+        TryFocus(MainReaderView);
     }
 
     //
@@ -845,16 +844,22 @@ internal sealed partial class ReaderPage : BasePage
 
         _readerPointerEntered = false;
 
-        // Post detection to allow routed event to be dispatched to root
-        CoroutineUtils.PostInMainThread(() =>
+        bool canShowBottomTile()
         {
-            if (!_readerPointerEntered &&
-                ViewModel.ReaderStatus == ReaderStatusEnum.Working &&
-                GetMainWindowAbility().PointerInWindow())
+            return ViewModel.ReaderStatus == ReaderStatusEnum.Working;
+        }
+
+        if (canShowBottomTile())
+        {
+            // Post detection to allow routed event to be dispatched to root
+            CoroutineUtils.PostInMainThread(() =>
             {
-                ShowBottomTile();
-            }
-        });
+                if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow() && canShowBottomTile())
+                {
+                    ShowBottomTile();
+                }
+            });
+        }
     }
 
     private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)
