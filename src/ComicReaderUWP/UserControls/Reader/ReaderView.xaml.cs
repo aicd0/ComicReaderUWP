@@ -322,31 +322,17 @@ internal partial class ReaderView : UserControl
         _dataModelSession.Next();
         CancellationSession.IToken token = _dataModelSession.Token;
 
-        // Update internal states
+        // Reset internal states
         _minZoomFactor = double.MaxValue;
         _maxZoomFactor = double.MinValue;
         _dataModel.Clear();
         PageCount = images.Count;
         CurrentPage = InitialPage;
-
-        int lastFrameIndex = PageToFrame(PageCount, out bool _, out int _);
-        for (int i = FrameDataSource.Count - 1; i > lastFrameIndex; --i)
-        {
-            FrameDataSource[i].Dispose();
-            FrameDataSource.RemoveAt(i);
-        }
-
-        for (int i = 0; i < FrameDataSource.Count; ++i)
-        {
-            ReaderFrameViewModel item = FrameDataSource[i];
-            item.PageL = ReaderFrameViewModel.NO_PAGE;
-            item.PageR = ReaderFrameViewModel.NO_PAGE;
-        }
-
         SCClearFinalVal("Reload");
 
         // Reset loader
         int initialFrameIndex = PageToFrame(ToDiscretePage(InitialPage), out bool _, out int _);
+        int lastFrameIndex = PageToFrame(PageCount, out bool _, out int _);
         Log("Reload", $"IP={InitialPage},IF={initialFrameIndex},LP={PageCount},LF={lastFrameIndex}");
         ResetLoader();
         _frameManager.ResetReadyIndex();
@@ -378,8 +364,22 @@ internal partial class ReaderView : UserControl
             DispatchReaderStateChangeEvent(_state, $"{StringResourceProvider.Instance.ReaderStatusLoading} ({progress}%)");
         });
 
-        // Start loading images
+        // Start loading frames
         DispatchReaderStateChangeEvent(ReaderState.Loading, StringResourceProvider.Instance.ReaderStatusLoading);
+
+        for (int i = FrameDataSource.Count - 1; i > lastFrameIndex; --i)
+        {
+            FrameDataSource[i].Dispose();
+            FrameDataSource.RemoveAt(i);
+        }
+
+        for (int i = 0; i < FrameDataSource.Count; ++i)
+        {
+            ReaderFrameViewModel item = FrameDataSource[i];
+            item.PageL = ReaderFrameViewModel.NO_PAGE;
+            item.PageR = ReaderFrameViewModel.NO_PAGE;
+        }
+
         _loadInfoDispatcher.Submit("ReaderLoadImageInfo", delegate
         {
             void dispatchToMainThread(List<PengingImageItem> pendingList)
@@ -486,15 +486,12 @@ internal partial class ReaderView : UserControl
             Log("Load", "InitialFrame");
             _isInitialFrameActionPerformed = true;
 
-            PostToCurrentThread(delegate
-            {
-                LoadZoomingConfig(out float zoom, out ZoomType zoomType);
-                ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", ScrollSource.Programmatic,
-                    zoom: zoom, zoomType: zoomType, page: InitialPage);
-                _isInitialFrameJumped = true;
-                Log("Load", $"InitialFrameScroll (result={scrollResult})");
-                UpdateImages("InitialFrameLoaded");
-            });
+            LoadZoomingConfig(out float zoom, out ZoomType zoomType);
+            ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", ScrollSource.Programmatic,
+                zoom: zoom, zoomType: zoomType, page: InitialPage);
+            Log("Load", $"InitialFrameScroll (result={scrollResult})");
+
+            UpdateImages("InitialFrameLoaded");
 
             needDispatchReadyState = true;
         }
@@ -599,11 +596,6 @@ internal partial class ReaderView : UserControl
 
         if (needReload)
         {
-            if (_isInitialFrameJumped)
-            {
-                _initialPage = CurrentPage;
-            }
-
             Reload(_originalDataModel);
         }
     }
@@ -1037,6 +1029,7 @@ internal partial class ReaderView : UserControl
     {
         if (_isCommitting)
         {
+            Log("ViewChanged", "IgnoreCommitting");
             return;
         }
 
@@ -1048,11 +1041,34 @@ internal partial class ReaderView : UserControl
 
         if (final)
         {
-            _lastFinalViewChangeTicks = GetTicks();
             Log("ViewChanged",
                 $"Z={ZoomFactor}",
                 $"H={HorizontalOffset}",
                 $"V={VerticalOffset}");
+        }
+
+        if (!_isInitialFrameJumped)
+        {
+            if (!_isInitialFrameActionPerformed)
+            {
+                return;
+            }
+
+            double parallelDiff = Math.Abs(ParallelOffset - SCParallelOffsetFinal);
+            if (parallelDiff < 10)
+            {
+                Log("ViewChanged", $"InitialFrameJumped (P={ParallelOffset},PF={SCParallelOffsetFinal})");
+                _isInitialFrameJumped = true;
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        if (final)
+        {
+            _lastFinalViewChangeTicks = GetTicks();
         }
 
         _isViewChanging = true;
@@ -1068,11 +1084,6 @@ internal partial class ReaderView : UserControl
 
     private void OnViewChanged(bool final)
     {
-        if (!_isInitialFrameJumped)
-        {
-            return;
-        }
-
         if (!UpdatePage())
         {
             return;
