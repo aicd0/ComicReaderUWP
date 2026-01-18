@@ -111,6 +111,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ObserveData();
         AddToActiveTabs();
+        MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
     }
 
     protected override void OnResume()
@@ -364,11 +365,6 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventOverScroll += (sender, forward) =>
         {
-            if (!AppSettingsModel.Instance.AutoSwitch)
-            {
-                return;
-            }
-
             if (forward)
             {
                 ViewModel.Playback.Next();
@@ -688,12 +684,12 @@ internal sealed partial class ReaderPage : BasePage
         flyout.ShowAt(fe);
     }
 
-    private static List<BaseMenuFlyoutItemModel> CreatePlaybackMoreMenuItems()
+    private List<BaseMenuFlyoutItemModel> CreatePlaybackMoreMenuItems()
     {
         List<BaseMenuFlyoutItemModel> items = [];
 
         {
-            bool autoSwitch = AppSettingsModel.Instance.AutoSwitch;
+            bool autoSwitch = MainReaderView.OverScrollEnabled;
             items.Add(new ToggleMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.AutoSwitch,
@@ -701,6 +697,7 @@ internal sealed partial class ReaderPage : BasePage
                 Click = () =>
                 {
                     AppSettingsModel.Instance.AutoSwitch = !autoSwitch;
+                    MainReaderView.OverScrollEnabled = !autoSwitch;
                 },
             });
         }
