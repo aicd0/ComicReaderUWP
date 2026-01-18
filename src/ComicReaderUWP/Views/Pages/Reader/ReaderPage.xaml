@@ -142,6 +142,7 @@
                     <Slider
                         x:Name="PlaybackSlider"
                         Width="340"
+                        Minimum="1"
                         ValueChanged="PlaybackSlider_ValueChanged" />
                 </StackPanel>
             </Grid>

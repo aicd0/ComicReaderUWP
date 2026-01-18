@@ -721,9 +721,18 @@ internal sealed partial class ReaderPage : BasePage
         percentage = Math.Max(Math.Min(percentage, 100), 0);
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
         ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
-        PlaybackSlider.Value = currentPage;
-        PlaybackSlider.Minimum = 1;
-        PlaybackSlider.Maximum = totalPages;
+
+        // Use different order to prevent unwanted change events
+        if (PlaybackSlider.Maximum > currentPage)
+        {
+            PlaybackSlider.Value = currentPage;
+            PlaybackSlider.Maximum = totalPages;
+        }
+        else
+        {
+            PlaybackSlider.Maximum = totalPages;
+            PlaybackSlider.Value = currentPage;
+        }
     }
 
     //
