@@ -718,7 +718,10 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         int currentPage = reader.CurrentPageDisplay;
-        int percentage = (int)Math.Round(100.0 * reader.CurrentPage / totalPages, 0, MidpointRounding.AwayFromZero);
+        int percentage = (int)Math.Round(
+            100.0 * (reader.CurrentPage - 1.0) / (totalPages - 0.5),
+            0, MidpointRounding.AwayFromZero);
+        percentage = Math.Max(Math.Min(percentage, 100), 0);
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
         ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
         PlaybackSlider.Value = currentPage;

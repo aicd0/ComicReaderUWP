@@ -889,7 +889,7 @@ internal partial class ReaderView : UserControl
             page = pageMax + pageFrac * 0.5;
         }
 
-        CurrentPage = Math.Min(page, PageCount);
+        CurrentPage = Math.Min(page, PageCount + 0.5);
 
         Log("PageUpdated",
             $"P={CurrentPage}," +
@@ -2441,6 +2441,7 @@ internal partial class ReaderView : UserControl
             {
                 return;
             }
+
             parallelOffset = context.VerticalOffset.Value;
         }
         else
@@ -2449,6 +2450,7 @@ internal partial class ReaderView : UserControl
             {
                 return;
             }
+
             parallelOffset = context.HorizontalOffset.Value;
         }
 
@@ -2469,21 +2471,27 @@ internal partial class ReaderView : UserControl
         FrameworkElement lastContainer = _frameManager.GetContainer(FrameDataSource.Count - 1);
         if (lastContainer != null)
         {
-            double frameParallelLength = _isVertical ? lastContainer.ActualHeight : lastContainer.ActualWidth;
+            // Old logic, keep it for future
+            //double frameParallelLength = _isVertical ? lastContainer.ActualHeight : lastContainer.ActualWidth;
+            //double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
+            //double space = SCPaddingEndFinal * zoom - (extentParallelLength - parallelOffset - ViewportParallelLength);
+            //double imageCenterOffset = extentParallelLength - (SCPaddingEndFinal + frameParallelLength * 0.5) * zoom;
+            //double imageCenterToScreenCenter = screenCenterOffset - imageCenterOffset;
+            //movementBackward = Math.Min(space, imageCenterToScreenCenter);
             double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
-            double space = SCPaddingEndFinal * zoom - (extentParallelLength - parallelOffset - ViewportParallelLength);
-            double imageCenterOffset = extentParallelLength - (SCPaddingEndFinal + frameParallelLength * 0.5) * zoom;
-            double imageCenterToScreenCenter = screenCenterOffset - imageCenterOffset;
-            movementBackward = Math.Min(space, imageCenterToScreenCenter);
+            double imageEndOffset = extentParallelLength - SCPaddingEndFinal * zoom;
+            movementBackward = screenCenterOffset - imageEndOffset;
         }
 
         double movement = 0.0;
         bool canMove = false;
+
         if (movementForward.HasValue && movementForward.Value > 0)
         {
             canMove = true;
             movement += movementForward.Value;
         }
+
         if (movementBackward.HasValue && movementBackward.Value > 0)
         {
             canMove = true;
@@ -2559,8 +2567,10 @@ internal partial class ReaderView : UserControl
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
             zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
-            paddingEnd = (innerLength - FrameParallelLength(frameIdx)) / 2;
-            paddingEnd = Math.Max(0.0, paddingEnd);
+            // Old logic, keep it for future
+            //paddingEnd = (innerLength - FrameParallelLength(frameIdx)) / 2;
+            //paddingEnd = Math.Max(0.0, paddingEnd);
+            paddingEnd = innerLength * 0.5;
         } while (false);
 
         double oldPaddingStart = SCPaddingStartFinal;
@@ -2920,7 +2930,7 @@ internal partial class ReaderView : UserControl
 
     private int ToDiscretePage(double pageContinuous)
     {
-        return Math.Max(1, (int)Math.Round(pageContinuous));
+        return Math.Max(1, Math.Min(PageCount, (int)Math.Round(pageContinuous)));
     }
 
     private void ConvertOffset(ref double? toHorizontal, ref double? toVertical, double? fromParallel, double? fromPerpendicular)
