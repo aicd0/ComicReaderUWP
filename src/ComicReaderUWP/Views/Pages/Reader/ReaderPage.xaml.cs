@@ -844,16 +844,22 @@ internal sealed partial class ReaderPage : BasePage
 
         _readerPointerEntered = false;
 
-        // Post detection to allow routed event to be dispatched to root
-        CoroutineUtils.PostInMainThread(() =>
+        bool canShowBottomTile()
         {
-            if (!_readerPointerEntered &&
-                ViewModel.ReaderStatus == ReaderStatusEnum.Working &&
-                GetMainWindowAbility().PointerInWindow())
+            return ViewModel.ReaderStatus == ReaderStatusEnum.Working;
+        }
+
+        if (canShowBottomTile())
+        {
+            // Post detection to allow routed event to be dispatched to root
+            CoroutineUtils.PostInMainThread(() =>
             {
-                ShowBottomTile();
-            }
-        });
+                if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow() && canShowBottomTile())
+                {
+                    ShowBottomTile();
+                }
+            });
+        }
     }
 
     private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)
