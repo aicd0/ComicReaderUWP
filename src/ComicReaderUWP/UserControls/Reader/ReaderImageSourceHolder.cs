@@ -48,7 +48,6 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     public bool PlaceholderMode { get; set; } = false;
     public ImageSource? Source => _canvasImageSource;
 
-    private readonly object _lock = new();
     private readonly ITaskDispatcher _decodeDispatcher = dispatcher;
     private readonly ITaskDispatcher _drawDispatcher = TaskDispatcher.DefaultThreadPool;
     private readonly List<ImageItem> _images = [];
@@ -127,10 +126,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             {
                 try
                 {
-                    if (LoadImage(item, source))
-                    {
-                        PostDrawTask();
-                    }
+                    LoadImage(item, source);
                 }
                 catch (Exception)
                 {
@@ -153,7 +149,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         });
     }
 
-    private bool LoadImage(ImageItem item, IImageSource? source)
+    private void LoadImage(ImageItem item, IImageSource? source)
     {
         RefCounted<CanvasBitmap>? oldBitmapRef;
         lock (item.Lock)
@@ -162,23 +158,18 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             item.BitmapRef = null;
         }
 
-        bool needDraw = false;
-        if (oldBitmapRef is not null)
-        {
-            oldBitmapRef.Unref();
-            needDraw = true;
-        }
-
+        oldBitmapRef?.Unref();
+        PostDrawTask();
         if (source is null)
         {
-            return needDraw;
+            return;
         }
 
         CanvasDevice device = GetCanvasDevice();
         CanvasBitmap? newBitmap = source.CreateImageCanvasBitmap(device);
         if (newBitmap is null)
         {
-            return needDraw;
+            return;
         }
 
         RefCounted<CanvasBitmap>? newBitmapRef = new(newBitmap);
@@ -189,7 +180,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         }
 
         oldBitmapRef?.Unref();
-        return true;
+        PostDrawTask();
     }
 
     private void PostDrawTask()

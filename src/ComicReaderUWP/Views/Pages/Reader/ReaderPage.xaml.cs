@@ -111,6 +111,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ObserveData();
         AddToActiveTabs();
+        MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
     }
 
     protected override void OnResume()
@@ -364,25 +365,20 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventOverScroll += (sender, forward) =>
         {
-            if (!AppSettingsModel.Instance.AutoSwitch)
-            {
-                return;
-            }
-
             if (forward)
             {
                 ViewModel.Playback.Next();
             }
             else
             {
-                ViewModel.Playback.Previous();
+                ViewModel.Playback.Previous(fromOverScroll: true);
             }
         };
     }
 
     private async Task<PlaylistModel> GetPlaylist(PageBundle bundle)
     {
-        string tabResourceRegistry = $"{RegistryNames.TAB_RESOURCES}{GetMainPageAbility().TabId}/";
+        string playlistsRegistry = $"{RegistryNames.TAB_RESOURCES}{GetMainPageAbility().TabId}/Playlists/";
 
         PlaylistModel? playlist = null;
         string? playlistId = bundle.GetString(RouterConstants.ARG_PLAYLIST_ID);
@@ -396,9 +392,9 @@ internal sealed partial class ReaderPage : BasePage
                 }
             }
 
-            if (playlist is null && AppDB.MainRegistry.TryGetKey(tabResourceRegistry, out key))
+            if (playlist is null && AppDB.MainRegistry.TryGetKey(playlistsRegistry, out key))
             {
-                if (key.TryGet("Playlist", out string? serializedPlaylist))
+                if (key.TryGet(playlistId, out string? serializedPlaylist))
                 {
                     playlist = await PlaylistModel.CreateFromSerializedString(serializedPlaylist);
                     if (playlist is not null)
@@ -417,7 +413,7 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         playlist ??= PlaylistModel.CreateEmpty();
-        AppDB.MainRegistry.CreateKey(tabResourceRegistry).Set("Playlist", playlist.ToSerializedString());
+        AppDB.MainRegistry.CreateKey(playlistsRegistry).Set(playlistId, playlist.ToSerializedString());
         return playlist;
     }
 
@@ -643,7 +639,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void PlaybackPreviousButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.Playback.Previous();
+        ViewModel.Playback.Previous(fromOverScroll: false);
     }
 
     private void PlaybackNextButton_Click(object sender, RoutedEventArgs e)
@@ -688,12 +684,12 @@ internal sealed partial class ReaderPage : BasePage
         flyout.ShowAt(fe);
     }
 
-    private static List<BaseMenuFlyoutItemModel> CreatePlaybackMoreMenuItems()
+    private List<BaseMenuFlyoutItemModel> CreatePlaybackMoreMenuItems()
     {
         List<BaseMenuFlyoutItemModel> items = [];
 
         {
-            bool autoSwitch = AppSettingsModel.Instance.AutoSwitch;
+            bool autoSwitch = MainReaderView.OverScrollEnabled;
             items.Add(new ToggleMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.AutoSwitch,
@@ -701,6 +697,7 @@ internal sealed partial class ReaderPage : BasePage
                 Click = () =>
                 {
                     AppSettingsModel.Instance.AutoSwitch = !autoSwitch;
+                    MainReaderView.OverScrollEnabled = !autoSwitch;
                 },
             });
         }
@@ -718,7 +715,10 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         int currentPage = reader.CurrentPageDisplay;
-        int percentage = (int)Math.Round(100.0 * reader.CurrentPage / totalPages, 0, MidpointRounding.AwayFromZero);
+        int percentage = (int)Math.Round(
+            100.0 * (reader.CurrentPage - 1.0) / (totalPages - 0.5),
+            0, MidpointRounding.AwayFromZero);
+        percentage = Math.Max(Math.Min(percentage, 100), 0);
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
         ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
         PlaybackSlider.Value = currentPage;

@@ -140,6 +140,7 @@ internal partial class ReaderView : UserControl
     public int CurrentPageDisplay => CurrentPageInt;
     public bool IsLastPage => PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1;
     public bool IsVertical => _isVertical;
+
     public bool IsAutoScrolling
     {
         get => _isAutoScrolling;
@@ -159,6 +160,12 @@ internal partial class ReaderView : UserControl
                 StopAutoScrolling();
             }
         }
+    }
+
+    public bool OverScrollEnabled
+    {
+        get => _isOverScrollEnabled;
+        set => _isOverScrollEnabled = value;
     }
 
     public void Destory()
@@ -320,7 +327,7 @@ internal partial class ReaderView : UserControl
         _maxZoomFactor = double.MinValue;
         _dataModel.Clear();
         PageCount = images.Count;
-        CurrentPage = 0;
+        CurrentPage = InitialPage;
 
         int lastFrameIndex = PageToFrame(PageCount, out bool _, out int _);
         for (int i = FrameDataSource.Count - 1; i > lastFrameIndex; --i)
@@ -889,7 +896,7 @@ internal partial class ReaderView : UserControl
             page = pageMax + pageFrac * 0.5;
         }
 
-        CurrentPage = Math.Min(page, PageCount);
+        CurrentPage = Math.Min(page, PageCount + 0.5);
 
         Log("PageUpdated",
             $"P={CurrentPage}," +
@@ -1700,7 +1707,7 @@ internal partial class ReaderView : UserControl
                 double parallelDelta = _autoScrollParallelVelocity * elapsed;
                 double perpendicularDelta = _autoScrollPerpendicularVelocity * elapsed;
                 lastTick = currentTime;
-                SetScrollViewer1("AutoScroll", ScrollSource.Programmatic,
+                SetScrollViewer1("AutoScroll", ScrollSource.AutoScroll,
                     parallelOffset: SCParallelOffsetFinal + parallelDelta,
                     perpendicularOffset: SCPerpendicularOffsetFinal + perpendicularDelta);
             }
@@ -1723,16 +1730,94 @@ internal partial class ReaderView : UserControl
                     lastTick = currentTime;
                     if (double.IsPositive(_autoScrollParallelVelocity))
                     {
-                        MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, 1);
+                        MoveFrameInternal("AutoScrolling", ScrollSource.AutoScroll, 1);
                     }
                     else
                     {
-                        MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, -1);
+                        MoveFrameInternal("AutoScrolling", ScrollSource.AutoScroll, -1);
                     }
                 }
             }
         };
         timer.Start();
+    }
+
+    //
+    // Over Scroll
+    //
+
+    private bool _isOverScrollEnabled = false;
+    private bool _overScrollStarted = false;
+    private double _overScrollAmount = 0.0;
+
+    private void UpdateOverScrollAmount(double increment)
+    {
+        if (!_isOverScrollEnabled)
+        {
+            if (_overScrollStarted)
+            {
+                _overScrollStarted = false;
+                UpdateOverScrollStatus();
+            }
+
+            return;
+        }
+
+        if (!_overScrollStarted)
+        {
+            _overScrollAmount = 0.0;
+            _overScrollStarted = true;
+            return;
+        }
+
+        _overScrollAmount += increment;
+        UpdateOverScrollStatus();
+    }
+
+    private void ResetOverScrollAmount()
+    {
+        if (!_overScrollStarted)
+        {
+            return;
+        }
+
+        _overScrollStarted = false;
+        _overScrollAmount = 0.0;
+        UpdateOverScrollStatus();
+    }
+
+    private void UpdateOverScrollStatus()
+    {
+        const double maxOverScrollAmount = 500.0;
+
+        if (!_overScrollStarted)
+        {
+            OverScrollProgressBar.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        double ratio = Math.Abs(_overScrollAmount) / maxOverScrollAmount;
+        if (ratio > 1.0)
+        {
+            bool forward = double.IsPositive(_overScrollAmount);
+            _overScrollStarted = false;
+            OverScrollProgressBar.Visibility = Visibility.Collapsed;
+            DispatchOverScrollEvent(forward);
+            return;
+        }
+
+        OverScrollProgressBar.Value = ratio * 100.0;
+        OverScrollProgressBar.Visibility = Visibility.Visible;
+    }
+
+    private void DispatchOverScrollEvent(bool forward)
+    {
+        if (!_isOverScrollEnabled)
+        {
+            return;
+        }
+
+        ReaderEventOverScroll?.Invoke(this, forward);
     }
 
     //
@@ -1996,13 +2081,13 @@ internal partial class ReaderView : UserControl
 
         if (frame >= FrameDataSource.Count)
         {
-            ReaderEventOverScroll?.Invoke(this, true);
+            DispatchOverScrollEvent(true);
             return;
         }
 
         if (frame < 0)
         {
-            ReaderEventOverScroll?.Invoke(this, false);
+            DispatchOverScrollEvent(false);
             return;
         }
 
@@ -2113,9 +2198,27 @@ internal partial class ReaderView : UserControl
         };
 
         SetScrollViewerInternal(request, context);
-        if (context.Result == ScrollResult.None)
+
+        switch (context.Result)
         {
-            Logger.F(TAG, "Scroll result not set");
+            case ScrollResult.None:
+                Logger.F(TAG, "Scroll result not set");
+                break;
+            case ScrollResult.Success:
+                if (request.Source == ScrollSource.User || request.Source == ScrollSource.AutoScroll)
+                {
+                    if (Math.Abs(context.OverScrollAmount) < 1E-2)
+                    {
+                        ResetOverScrollAmount();
+                    }
+                    else
+                    {
+                        UpdateOverScrollAmount(context.OverScrollAmount);
+                    }
+                }
+                break;
+            default:
+                break;
         }
 
         return context.Result;
@@ -2441,6 +2544,7 @@ internal partial class ReaderView : UserControl
             {
                 return;
             }
+
             parallelOffset = context.VerticalOffset.Value;
         }
         else
@@ -2449,6 +2553,7 @@ internal partial class ReaderView : UserControl
             {
                 return;
             }
+
             parallelOffset = context.HorizontalOffset.Value;
         }
 
@@ -2469,21 +2574,27 @@ internal partial class ReaderView : UserControl
         FrameworkElement lastContainer = _frameManager.GetContainer(FrameDataSource.Count - 1);
         if (lastContainer != null)
         {
-            double frameParallelLength = _isVertical ? lastContainer.ActualHeight : lastContainer.ActualWidth;
+            // Old logic, keep it for future
+            //double frameParallelLength = _isVertical ? lastContainer.ActualHeight : lastContainer.ActualWidth;
+            //double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
+            //double space = SCPaddingEndFinal * zoom - (extentParallelLength - parallelOffset - ViewportParallelLength);
+            //double imageCenterOffset = extentParallelLength - (SCPaddingEndFinal + frameParallelLength * 0.5) * zoom;
+            //double imageCenterToScreenCenter = screenCenterOffset - imageCenterOffset;
+            //movementBackward = Math.Min(space, imageCenterToScreenCenter);
             double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
-            double space = SCPaddingEndFinal * zoom - (extentParallelLength - parallelOffset - ViewportParallelLength);
-            double imageCenterOffset = extentParallelLength - (SCPaddingEndFinal + frameParallelLength * 0.5) * zoom;
-            double imageCenterToScreenCenter = screenCenterOffset - imageCenterOffset;
-            movementBackward = Math.Min(space, imageCenterToScreenCenter);
+            double imageEndOffset = extentParallelLength - SCPaddingEndFinal * zoom;
+            movementBackward = screenCenterOffset - imageEndOffset;
         }
 
         double movement = 0.0;
         bool canMove = false;
+
         if (movementForward.HasValue && movementForward.Value > 0)
         {
             canMove = true;
             movement += movementForward.Value;
         }
+
         if (movementBackward.HasValue && movementBackward.Value > 0)
         {
             canMove = true;
@@ -2495,6 +2606,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
+        context.OverScrollAmount = -movement;
         if (_isVertical)
         {
             context.VerticalOffset += movement;
@@ -2559,8 +2671,10 @@ internal partial class ReaderView : UserControl
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
             zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
-            paddingEnd = (innerLength - FrameParallelLength(frameIdx)) / 2;
-            paddingEnd = Math.Max(0.0, paddingEnd);
+            // Old logic, keep it for future
+            //paddingEnd = (innerLength - FrameParallelLength(frameIdx)) / 2;
+            //paddingEnd = Math.Max(0.0, paddingEnd);
+            paddingEnd = innerLength * 0.5;
         } while (false);
 
         double oldPaddingStart = SCPaddingStartFinal;
@@ -2920,7 +3034,7 @@ internal partial class ReaderView : UserControl
 
     private int ToDiscretePage(double pageContinuous)
     {
-        return Math.Max(1, (int)Math.Round(pageContinuous));
+        return Math.Max(1, Math.Min(PageCount, (int)Math.Round(pageContinuous)));
     }
 
     private void ConvertOffset(ref double? toHorizontal, ref double? toVertical, double? fromParallel, double? fromPerpendicular)
@@ -3035,8 +3149,9 @@ internal partial class ReaderView : UserControl
 
     private enum ScrollSource
     {
-        User = 0,
-        Programmatic = 1,
+        User,
+        Programmatic,
+        AutoScroll,
     }
 
     private enum ScrollResult
@@ -3091,6 +3206,7 @@ internal partial class ReaderView : UserControl
         public double? HorizontalOffset = null;
         public double? VerticalOffset = null;
         public bool DisableAnimation = false;
+        public double OverScrollAmount = 0.0;
     }
 
     private class PengingImageItem

@@ -26,6 +26,14 @@ class DatabaseUpgradeManager
     public void UpgradeDatabaseBeforeInitialization()
     {
         int version = ReadVersion();
+
+        if (version < 0)
+        {
+            // New app
+            File.WriteAllText(VersionFilePath, VERSION.ToString());
+            version = VERSION;
+        }
+
         if (version == VERSION)
         {
             return;
@@ -158,7 +166,7 @@ class DatabaseUpgradeManager
         string versionFile = VersionFilePath;
         if (!File.Exists(versionFile))
         {
-            return VERSION;
+            return -1;
         }
 
         string versionContent;
@@ -169,15 +177,15 @@ class DatabaseUpgradeManager
         catch (Exception e)
         {
             Logger.E(TAG, e);
-            return VERSION;
+            return -1;
         }
 
-        if (int.TryParse(versionContent, out int version))
+        if (!int.TryParse(versionContent, out int version))
         {
-            return version;
+            return -1;
         }
 
-        return VERSION;
+        return version;
     }
 
     private static void MergeToDirectory(string sourceDir, string destinationDir)

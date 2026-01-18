@@ -13,6 +13,7 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.SDK.Common.Algorithm;
+using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Utils;
 
 namespace ComicReaderUWP.Views.Pages.SidePane.Playlist;
@@ -47,6 +48,8 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
     }
 
     public ObservableCollection<PlaylistItemViewModel> DataSource { get; set; } = [];
+
+    public MutableLiveData<PlaylistItemViewModel> ScrollToItemLiveData = new();
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private PlaybackModel _playback = new();
@@ -95,7 +98,7 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
         UpdatePlaylist();
     }
 
-    private void Playback_PlaybackStatusChanged()
+    private void Playback_PlaybackStatusChanged(PlaybackModel.StatusChangeReason reason)
     {
         UpdatePlaybackStatus();
     }
@@ -139,6 +142,7 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
             if (cursor >= 0 && cursor < DataSource.Count)
             {
                 SelectedIndex = cursor;
+                ScrollToItemLiveData.Emit(DataSource[cursor]);
             }
         });
     }

@@ -316,6 +316,25 @@
                 </ListView>
             </Grid>
         </ScrollViewer>
+        <StackPanel
+            Margin="12,0,0,10"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            Orientation="Vertical">
+            <TextBlock
+                x:Name="ReaderStatusTextBlock"
+                VerticalAlignment="Center"
+                FontSize="16"
+                FontWeight="SemiLight"
+                Opacity="0.3"
+                Visibility="Collapsed" />
+            <ProgressBar
+                x:Name="OverScrollProgressBar"
+                Width="100"
+                Margin="0,2,0,2"
+                IsIndeterminate="False"
+                Visibility="Collapsed" />
+        </StackPanel>
         <FontIcon
             x:Name="MiddleButtonMarkerRectangle"
             HorizontalAlignment="Left"
@@ -327,15 +346,6 @@
                 <TranslateTransform X="-8" Y="-8" />
             </FontIcon.RenderTransform>
         </FontIcon>
-        <TextBlock
-            x:Name="ReaderStatusTextBlock"
-            Margin="12,0,0,8"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Bottom"
-            FontSize="16"
-            FontWeight="SemiLight"
-            Opacity="0.3"
-            Visibility="Collapsed" />
     </Grid>
 
 </UserControl>
