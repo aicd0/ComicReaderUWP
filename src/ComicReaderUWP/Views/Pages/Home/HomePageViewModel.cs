@@ -879,8 +879,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     {
         Logger.I(TAG, "DisplayComicsNoLock");
 
-        List<ComicItemViewModel> comicItems = [];
-        foreach (ComicModel comic in _comics)
+        ComicItemViewModel comicToViewModel(ComicModel comic, PlaylistModel.Builder playlist)
         {
             var item = new ComicItemViewModel(comic)
             {
@@ -900,12 +899,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                         _actionHandler, comic, model.Playlist,
                         selectedComics: selectedComics, canSelect: true);
                 },
+                Playlist = playlist,
             };
             item.UpdateProgress(true);
-            comicItems.Add(item);
+            return item;
         }
 
-        bool isEmpty = comicItems.Count == 0;
+        IReadOnlyList<ComicModel> comics = _comics;
+        bool isEmpty = comics.Count == 0;
         List<ComicItemViewModel>? comicsUngrouped = null;
         List<ComicGroupViewModel>? comicsGrouped = null;
 
@@ -921,41 +922,26 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
             if (groupBy != null)
             {
-                List<ComicPropertyModel.GroupItem<ComicItemViewModel>> groupItems = groupBy.GroupComics(comicItems, (x) => x.Comic,
+                List<ComicPropertyModel.GroupItem<ComicModel>> groups = groupBy.GroupComics(comics, x => x,
                     filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty);
                 comicsGrouped = [];
-                foreach (ComicPropertyModel.GroupItem<ComicItemViewModel> item in groupItems)
+                foreach (ComicPropertyModel.GroupItem<ComicModel> group in groups)
                 {
-                    List<ComicItemViewModel> sorted = SortComicItemsByProerty(item.Items, sortBy, filter.ComicOrderMethod);
-                    var group = new ComicGroupViewModel(item.Name, sorted, false)
+                    List<ComicModel> sorted = SortComicsByProerty(group.Items, sortBy, filter.ComicOrderMethod);
+                    PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sorted);
+                    List<ComicItemViewModel> items = [.. sorted.Select(x => comicToViewModel(x, playlist))];
+                    var groupViewModel = new ComicGroupViewModel(group.Name, items, false)
                     {
-                        Description = item.Description,
+                        Description = group.Description,
                     };
-                    comicsGrouped.Add(group);
-                }
-
-                // Fill playlist
-                var playlist = PlaylistModel.Builder.Create();
-                foreach (ComicGroupViewModel group in comicsGrouped)
-                {
-                    foreach (ComicItemViewModel item in group.Items)
-                    {
-                        playlist.AddComic(item.Comic);
-                        item.Playlist = playlist;
-                    }
+                    comicsGrouped.Add(groupViewModel);
                 }
             }
             else
             {
-                comicsUngrouped = SortComicItemsByProerty(comicItems, sortBy, filter.ComicOrderMethod);
-
-                // Fill playlist
-                var playlist = PlaylistModel.Builder.Create();
-                foreach (ComicItemViewModel item in comicsUngrouped)
-                {
-                    playlist.AddComic(item.Comic);
-                    item.Playlist = playlist;
-                }
+                List<ComicModel> sortedComics = SortComicsByProerty(comics, sortBy, filter.ComicOrderMethod);
+                PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sortedComics);
+                comicsUngrouped = [.. sortedComics.Select(x => comicToViewModel(x, playlist))];
             }
         }
 
@@ -1013,10 +999,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         UrlLiveData.Emit(route.Url);
     }
 
-    private List<ComicItemViewModel> SortComicItemsByProerty(IReadOnlyList<ComicItemViewModel> items,
+    private static List<ComicModel> SortComicsByProerty(IReadOnlyList<ComicModel> comics,
         ComicPropertyModel property, ComicFilterModel.OrderMethodEnum orderMethod)
     {
-        return property.SortComics(items, (x) => x.Comic, orderMethod);
+        return property.SortComics(comics, x => x, orderMethod);
     }
 
     private List<BaseMenuFlyoutItemModel> CreateSortByMenuItems(List<ComicPropertyModel> properties,
