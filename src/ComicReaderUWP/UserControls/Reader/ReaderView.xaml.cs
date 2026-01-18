@@ -1707,7 +1707,7 @@ internal partial class ReaderView : UserControl
                 double parallelDelta = _autoScrollParallelVelocity * elapsed;
                 double perpendicularDelta = _autoScrollPerpendicularVelocity * elapsed;
                 lastTick = currentTime;
-                SetScrollViewer1("AutoScroll", ScrollSource.Programmatic,
+                SetScrollViewer1("AutoScroll", ScrollSource.AutoScroll,
                     parallelOffset: SCParallelOffsetFinal + parallelDelta,
                     perpendicularOffset: SCPerpendicularOffsetFinal + perpendicularDelta);
             }
@@ -1730,11 +1730,11 @@ internal partial class ReaderView : UserControl
                     lastTick = currentTime;
                     if (double.IsPositive(_autoScrollParallelVelocity))
                     {
-                        MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, 1);
+                        MoveFrameInternal("AutoScrolling", ScrollSource.AutoScroll, 1);
                     }
                     else
                     {
-                        MoveFrameInternal("AutoScrolling", ScrollSource.Programmatic, -1);
+                        MoveFrameInternal("AutoScrolling", ScrollSource.AutoScroll, -1);
                     }
                 }
             }
@@ -2205,13 +2205,16 @@ internal partial class ReaderView : UserControl
                 Logger.F(TAG, "Scroll result not set");
                 break;
             case ScrollResult.Success:
-                if (Math.Abs(context.OverScrollAmount) < 1E-2)
+                if (request.Source == ScrollSource.User || request.Source == ScrollSource.AutoScroll)
                 {
-                    ResetOverScrollAmount();
-                }
-                else
-                {
-                    UpdateOverScrollAmount(context.OverScrollAmount);
+                    if (Math.Abs(context.OverScrollAmount) < 1E-2)
+                    {
+                        ResetOverScrollAmount();
+                    }
+                    else
+                    {
+                        UpdateOverScrollAmount(context.OverScrollAmount);
+                    }
                 }
                 break;
             default:
@@ -3146,8 +3149,9 @@ internal partial class ReaderView : UserControl
 
     private enum ScrollSource
     {
-        User = 0,
-        Programmatic = 1,
+        User,
+        Programmatic,
+        AutoScroll,
     }
 
     private enum ScrollResult

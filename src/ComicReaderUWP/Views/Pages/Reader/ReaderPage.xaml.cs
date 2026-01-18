@@ -371,7 +371,7 @@ internal sealed partial class ReaderPage : BasePage
             }
             else
             {
-                ViewModel.Playback.Previous();
+                ViewModel.Playback.Previous(fromOverScroll: true);
             }
         };
     }
@@ -639,7 +639,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void PlaybackPreviousButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.Playback.Previous();
+        ViewModel.Playback.Previous(fromOverScroll: false);
     }
 
     private void PlaybackNextButton_Click(object sender, RoutedEventArgs e)

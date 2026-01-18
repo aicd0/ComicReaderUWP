@@ -39,7 +39,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     // Comic states
     private ComicModel? _comic;
-    private ComicModel? _pendingComic;
+    private LoadingComicInfo? _pendingComic;
     private bool _isLoading = false;
     private IComicConnection? _comicConnection;
     private int _pageIndex = -1;
@@ -390,7 +390,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         CoroutineUtils.Start(() => comic.SetTags(tags));
     }
 
-    private void Playback_PlaybackStatusChanged()
+    private void Playback_PlaybackStatusChanged(PlaybackModel.StatusChangeReason reason)
     {
         IsPlaybackNextEnabled = Playback.CanGoNext;
         IsPlaybackPreviousEnabled = Playback.CanGoPrevious;
@@ -405,7 +405,11 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             TitleLiveData.Emit(playlistItem.Comic.Title);
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
-            LoadComic(playlistItem.Comic);
+            LoadComic(new()
+            {
+                Comic = playlistItem.Comic,
+                LoadReason = reason,
+            });
         }
 
         PlaybackChangeLiveData.Emit(true);
@@ -417,7 +421,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         _comicConnection = null;
     }
 
-    private void LoadComic(ComicModel comic)
+    private void LoadComic(LoadingComicInfo comic)
     {
         CoroutineUtils.Start(async () =>
         {
@@ -430,7 +434,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             _isLoading = true;
             try
             {
-                ComicModel? loadingComic = comic;
+                LoadingComicInfo? loadingComic = comic;
                 while (loadingComic != null)
                 {
                     await LoadComicInternal(loadingComic);
@@ -445,8 +449,9 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private async Task LoadComicInternal(ComicModel comic)
+    private async Task LoadComicInternal(LoadingComicInfo info)
     {
+        ComicModel? comic = info.Comic;
         if (comic == _comic)
         {
             return;
@@ -458,7 +463,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         PreviewDataSource.Clear();
 
         // Load new comic
-        if (comic == null)
+        if (comic is null)
         {
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
             return;
@@ -500,8 +505,25 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        bool restorePosition = AppSettingsModel.Instance.GetModel().RestoreLastReadingPosition && !comic.IsExternal;
-        ReaderLoadingInfoLiveData.Emit(new(images, restorePosition ? comic.LastPosition : 0.0));
+        double initialPage;
+        switch (info.LoadReason)
+        {
+            case PlaybackModel.StatusChangeReason.Next:
+            case PlaybackModel.StatusChangeReason.Previous:
+                initialPage = 0.0;
+                break;
+            case PlaybackModel.StatusChangeReason.PreviousByOverScroll:
+                initialPage = comic.PageCount;
+                break;
+            default:
+                {
+                    bool restorePosition = AppSettingsModel.Instance.GetModel().RestoreLastReadingPosition && !comic.IsExternal;
+                    initialPage = restorePosition ? comic.LastPosition : 0.0;
+                }
+                break;
+        }
+
+        ReaderLoadingInfoLiveData.Emit(new(images, initialPage));
 
         // Load preview images
         double previewWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"];
@@ -775,5 +797,11 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     {
         public readonly IEnumerable<IImageSource> Images = images;
         public readonly double InitialPage = initialPage;
+    }
+
+    private class LoadingComicInfo
+    {
+        public required ComicModel? Comic { get; init; }
+        public required PlaybackModel.StatusChangeReason LoadReason { get; init; }
     }
 }

@@ -14,7 +14,7 @@ internal class PlaybackModel
 {
     private const string TAG = nameof(PlaybackModel);
 
-    public delegate void PlaybackStatusChangedEventHandler();
+    public delegate void PlaybackStatusChangedEventHandler(StatusChangeReason reason);
     public event PlaybackStatusChangedEventHandler? PlaybackStatusChanged;
 
     public delegate void PlaylistChangedEventHandler();
@@ -40,7 +40,7 @@ internal class PlaybackModel
 
             _cursor = value;
             FixCursor();
-            DispatchPlaybackStatusChange();
+            DispatchPlaybackStatusChange(StatusChangeReason.SetCursor);
         }
     }
 
@@ -71,21 +71,21 @@ internal class PlaybackModel
 
         FixCursor();
         DispatchPlaylistChange();
-        DispatchPlaybackStatusChange();
+        DispatchPlaybackStatusChange(StatusChangeReason.SetCursor);
     }
 
     public void Next()
     {
         _cursor++;
         FixCursor();
-        DispatchPlaybackStatusChange();
+        DispatchPlaybackStatusChange(StatusChangeReason.Next);
     }
 
-    public void Previous()
+    public void Previous(bool fromOverScroll)
     {
         _cursor--;
         FixCursor();
-        DispatchPlaybackStatusChange();
+        DispatchPlaybackStatusChange(fromOverScroll ? StatusChangeReason.PreviousByOverScroll : StatusChangeReason.Previous);
     }
 
     public string ToSerializedString()
@@ -135,14 +135,22 @@ internal class PlaybackModel
         _cursor = Math.Max(Math.Min(_cursor, _items.Count - 1), 0);
     }
 
-    private void DispatchPlaybackStatusChange()
+    private void DispatchPlaybackStatusChange(StatusChangeReason reason)
     {
-        PlaybackStatusChanged?.Invoke();
+        PlaybackStatusChanged?.Invoke(reason);
     }
 
     private void DispatchPlaylistChange()
     {
         PlaylistChanged?.Invoke();
+    }
+
+    public enum StatusChangeReason
+    {
+        SetCursor,
+        Next,
+        Previous,
+        PreviousByOverScroll,
     }
 
     private class PlaybackJsonModel

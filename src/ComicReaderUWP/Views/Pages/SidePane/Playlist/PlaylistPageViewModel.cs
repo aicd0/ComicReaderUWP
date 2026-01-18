@@ -98,7 +98,7 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
         UpdatePlaylist();
     }
 
-    private void Playback_PlaybackStatusChanged()
+    private void Playback_PlaybackStatusChanged(PlaybackModel.StatusChangeReason reason)
     {
         UpdatePlaybackStatus();
     }
