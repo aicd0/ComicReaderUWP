@@ -327,7 +327,7 @@ internal partial class ReaderView : UserControl
         _maxZoomFactor = double.MinValue;
         _dataModel.Clear();
         PageCount = images.Count;
-        CurrentPage = 0;
+        CurrentPage = InitialPage;
 
         int lastFrameIndex = PageToFrame(PageCount, out bool _, out int _);
         for (int i = FrameDataSource.Count - 1; i > lastFrameIndex; --i)
