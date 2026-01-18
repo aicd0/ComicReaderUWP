@@ -469,7 +469,7 @@ internal sealed partial class HomePage : BasePage
                 return;
             }
 
-            List<ComicModel> snapshot = ViewModel.GetComicSnapshot();
+            IReadOnlyList<ComicModel> snapshot = ViewModel.GetComicSnapshot();
             List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
                 PageActionHandler, snapshot, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
             if (menuItems.Count == 0)
