@@ -596,6 +596,13 @@ internal partial class ReaderView : UserControl
 
         if (needReload)
         {
+            // Overwrite initial page so that in not-first-loading scenario,
+            // current page will remain unchanged after reloading
+            if (_isInitialFrameJumped)
+            {
+                _initialPage = CurrentPage;
+            }
+
             Reload(_originalDataModel);
         }
     }
