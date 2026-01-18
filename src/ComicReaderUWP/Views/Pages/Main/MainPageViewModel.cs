@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -311,6 +312,20 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                 },
             });
         }
+
+        items.Add(new SimpleMenuFlyoutItemModel()
+        {
+            Text = StringResourceProvider.Instance.CheckForUpdates,
+            Glyph = "\uE895",
+            Click = () =>
+            {
+                CoroutineUtils.Start(async () =>
+                {
+                    var uri = new Uri(@"https://github.com/aicd0/ComicReaderUWP/releases");
+                    await Windows.System.Launcher.LaunchUriAsync(uri);
+                });
+            },
+        });
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {

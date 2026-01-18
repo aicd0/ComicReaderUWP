@@ -36,6 +36,7 @@ public class StringResourceProvider
     public string Calculating => GetResourceString("Calculating");
     public string Cancel => GetResourceString("Cancel");
     public string Category => GetResourceString("Category");
+    public string CheckForUpdates => GetResourceString("CheckForUpdates");
     public string ClearCache => GetResourceString("ClearCache");
     public string CloseLastTabBehavior => GetResourceString("CloseLastTabBehavior");
     public string CloseSidebar => GetResourceString("CloseSidebar");

@@ -204,6 +204,9 @@
   <data name="Category" xml:space="preserve">
     <value>Catégorie</value>
   </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Rechercher des mises à jour</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Choisir où nous recherchons des images</value>
   </data>

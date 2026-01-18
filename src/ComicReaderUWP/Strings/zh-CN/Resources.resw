@@ -204,6 +204,9 @@
   <data name="Category" xml:space="preserve">
     <value>类别</value>
   </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>检查更新</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>添加或修改图片位置</value>
   </data>

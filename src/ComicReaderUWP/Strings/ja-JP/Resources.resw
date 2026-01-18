@@ -204,6 +204,9 @@
   <data name="Category" xml:space="preserve">
     <value>カテゴリ</value>
   </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>アップデートを確認</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>画像を検索する場所を選択する</value>
   </data>
