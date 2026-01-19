@@ -56,12 +56,10 @@ internal partial class ReaderView : UserControl
     private ReaderState _state = ReaderState.Idle;
     private bool _isVertical = true;
     private bool _isContinuous = true;
-    private bool _isVisible = true;
     private bool _isLeftToRight = true;
     private PageArrangementEnum _pageArrangement = PageArrangementEnum.Single;
     private bool _useOriginalSize = false;
     private int _pageGap = 100;
-    private bool _uiStateUpdatedVisibility = true;
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
@@ -227,18 +225,6 @@ internal partial class ReaderView : UserControl
 
         _isLeftToRight = isLeftToRight;
         _uiStateUpdatedFlowDirection = true;
-        UpdateUI();
-    }
-
-    public void SetVisibility(bool visible)
-    {
-        if (visible == _isVisible)
-        {
-            return;
-        }
-
-        _isVisible = visible;
-        _uiStateUpdatedVisibility = true;
         UpdateUI();
     }
 
@@ -527,15 +513,6 @@ internal partial class ReaderView : UserControl
         }
 
         bool needReload = false;
-
-        if (_uiStateUpdatedVisibility)
-        {
-            _uiStateUpdatedVisibility = false;
-            bool isVisible = _isVisible;
-            ContentScrollViewer.IsEnabled = isVisible;
-            ContentScrollViewer.IsHitTestVisible = isVisible;
-            ContentScrollViewer.Opacity = isVisible ? 1 : 0;
-        }
 
         if (_uiStateUpdatedOrientation)
         {
@@ -2246,7 +2223,11 @@ internal partial class ReaderView : UserControl
                     }
                     else
                     {
-                        UpdateOverScrollAmount(context.OverScrollAmount);
+                        // Positive over scroll can only occur when last frame is loaded
+                        if (double.IsNegative(context.OverScrollAmount) || _isLastFrameLoaded)
+                        {
+                            UpdateOverScrollAmount(context.OverScrollAmount);
+                        }
                     }
                 }
                 break;
@@ -2259,7 +2240,7 @@ internal partial class ReaderView : UserControl
 
     private void SetScrollViewerInternal(ScrollRequest request, ScrollContext context)
     {
-        if (!_isLoaded)
+        if (!_isInitialFrameActionPerformed)
         {
             Log("Jump", "Failed (not loaded)");
             context.Result = ScrollResult.UnknownFailure;
@@ -3017,6 +2998,8 @@ internal partial class ReaderView : UserControl
         }
 
         _state = state;
+        ContentScrollViewer.Opacity = state == ReaderState.Ready ? 1 : 0;
+
         ReaderEventReaderStateChanged?.Invoke(this, state, stateDescription);
     }
 

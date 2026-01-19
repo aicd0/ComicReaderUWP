@@ -511,7 +511,6 @@ internal sealed partial class ReaderPage : BasePage
         GMainSection.Opacity = previewVisible ? 0.0 : 1.0;
         GMainSection.IsHitTestVisible = !previewVisible;
 
-        MainReaderView.SetVisibility(readerVisible);
         if (readerVisible)
         {
             FocusReader();
@@ -564,8 +563,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        bool readerWorking = ViewModel.ReaderStatus == ReaderStatusEnum.Working;
-        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || !_readerPointerEntered || !readerWorking)
+        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || !_readerPointerEntered)
         {
             return;
         }
@@ -872,22 +870,14 @@ internal sealed partial class ReaderPage : BasePage
 
         _readerPointerEntered = false;
 
-        bool canShowBottomTile()
+        // Post detection to allow routed event to be dispatched to root
+        CoroutineUtils.PostInMainThread(() =>
         {
-            return ViewModel.ReaderStatus == ReaderStatusEnum.Working;
-        }
-
-        if (canShowBottomTile())
-        {
-            // Post detection to allow routed event to be dispatched to root
-            CoroutineUtils.PostInMainThread(() =>
+            if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow())
             {
-                if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow() && canShowBottomTile())
-                {
-                    ShowBottomTile();
-                }
-            });
-        }
+                ShowBottomTile();
+            }
+        });
     }
 
     private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)
