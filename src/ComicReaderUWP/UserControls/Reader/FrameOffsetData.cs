@@ -3,19 +3,14 @@
 
 namespace ComicReaderUWP.UserControls.Reader;
 
-internal class FrameOffsetData
+internal struct FrameOffsetData
 {
-    public double ParallelBegin;
-    public double ParallelCenter;
+    public double ParallelStart;
     public double ParallelEnd;
     public double PerpendicularCenter;
 
-    public override string ToString()
+    public override readonly string ToString()
     {
-        return
-            "XB=" + ParallelBegin.ToString() +
-            ",XC=" + ParallelCenter.ToString() +
-            ",XE=" + ParallelEnd.ToString() +
-            ",YC=" + PerpendicularCenter.ToString();
+        return $"AS={ParallelStart}, AE={ParallelEnd}, BC={PerpendicularCenter}";
     }
 }

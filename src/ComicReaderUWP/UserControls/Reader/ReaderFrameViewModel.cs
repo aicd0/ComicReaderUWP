@@ -44,8 +44,11 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposabl
 
     public int PageL { get; set; } = NO_PAGE;
     public int PageR { get; set; } = NO_PAGE;
-    public double Page => PageL != NO_PAGE && PageR != NO_PAGE ? (PageL + PageR) * 0.5 : PageL == NO_PAGE ? PageR : PageL;
+    public double Page => PageL != NO_PAGE && PageR != NO_PAGE ? (PageL + PageR) * 0.5 : (PageL == NO_PAGE ? PageR : PageL);
     public bool IsDualPage => PageL != NO_PAGE && PageR != NO_PAGE;
+    public bool IsEmpty => PageL == NO_PAGE && PageR == NO_PAGE;
+    public int MaxPage => Math.Max(PageL, PageR);
+    public int MinPage => PageL == NO_PAGE ? PageR : (PageR == NO_PAGE ? PageL : Math.Min(PageL, PageR));
 
     private readonly ReaderImageSourceHolder _imageSourceHolder;
 
