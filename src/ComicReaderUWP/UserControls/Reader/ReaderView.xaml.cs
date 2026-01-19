@@ -82,7 +82,7 @@ internal partial class ReaderView : UserControl
     private readonly GestureHandler _gestureHandler;
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
-    private double _initialPage = 0.0;
+    private double _initialPage = 1.0;
     private ReaderViewInternalDatabase? _internalDB = null;
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
@@ -266,8 +266,7 @@ internal partial class ReaderView : UserControl
 
     public void SetInitialPage(double page)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(page);
-        _initialPage = page;
+        _initialPage = Math.Max(0.5, page);
     }
 
     public void SetCurrentPage(double page)
@@ -2577,18 +2576,19 @@ internal partial class ReaderView : UserControl
         FrameworkElement firstContainer = _frameManager.GetContainer(0);
         if (firstContainer != null)
         {
-            double frameParallelLength = _isVertical ? firstContainer.ActualHeight : firstContainer.ActualWidth;
-            double space = SCPaddingStartFinal * zoom - parallelOffset;
-            double imageCenterOffset = (SCPaddingStartFinal + frameParallelLength * 0.5) * zoom;
-            double imageCenterToScreenCenter = imageCenterOffset - screenCenterOffset;
-            movementForward = Math.Min(space, imageCenterToScreenCenter);
+            //double frameParallelLength = _isVertical ? firstContainer.ActualHeight : firstContainer.ActualWidth;
+            //double space = SCPaddingStartFinal * zoom - parallelOffset;
+            //double imageCenterOffset = (SCPaddingStartFinal + frameParallelLength * 0.5) * zoom;
+            //double imageCenterToScreenCenter = imageCenterOffset - screenCenterOffset;
+            //movementForward = Math.Min(space, imageCenterToScreenCenter);
+            double imageStartOffset = SCPaddingStartFinal * zoom;
+            movementForward = imageStartOffset - screenCenterOffset;
         }
 
         double? movementBackward = null;
         FrameworkElement lastContainer = _frameManager.GetContainer(FrameDataSource.Count - 1);
         if (lastContainer != null)
         {
-            // Old logic, keep it for future
             //double frameParallelLength = _isVertical ? lastContainer.ActualHeight : lastContainer.ActualWidth;
             //double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
             //double space = SCPaddingEndFinal * zoom - (extentParallelLength - parallelOffset - ViewportParallelLength);
@@ -2663,8 +2663,9 @@ internal partial class ReaderView : UserControl
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
             zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
-            paddingStart = (innerLength - FrameParallelLength(frameIdx)) / 2;
-            paddingStart = Math.Max(0.0, paddingStart);
+            //paddingStart = (innerLength - FrameParallelLength(frameIdx)) / 2;
+            //paddingStart = Math.Max(0.0, paddingStart);
+            paddingStart = innerLength * 0.5;
         } while (false);
 
         double paddingEnd = SCPaddingEndFinal;
@@ -2685,7 +2686,6 @@ internal partial class ReaderView : UserControl
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
             zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
-            // Old logic, keep it for future
             //paddingEnd = (innerLength - FrameParallelLength(frameIdx)) / 2;
             //paddingEnd = Math.Max(0.0, paddingEnd);
             paddingEnd = innerLength * 0.5;

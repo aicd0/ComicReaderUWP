@@ -510,7 +510,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             case PlaybackModel.StatusChangeReason.Next:
             case PlaybackModel.StatusChangeReason.Previous:
-                initialPage = 0.0;
+                initialPage = 1.0;
                 break;
             case PlaybackModel.StatusChangeReason.PreviousByOverScroll:
                 initialPage = comic.PageCount;
@@ -518,7 +518,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             default:
                 {
                     bool restorePosition = AppSettingsModel.Instance.GetModel().RestoreLastReadingPosition && !comic.IsExternal;
-                    initialPage = restorePosition ? comic.LastPosition : 0.0;
+                    initialPage = restorePosition ? comic.LastPosition : 1.0;
                 }
                 break;
         }

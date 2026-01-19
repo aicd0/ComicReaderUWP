@@ -444,27 +444,12 @@ internal sealed partial class ReaderPage : BasePage
                     }
 
                     ReaderView reader = MainReaderView;
-                    double page = reader.CurrentPage;
-                    if (page <= 0.0)
-                    {
-                        continue;
-                    }
-
-                    int progress;
-                    if (reader.PageCount <= 0)
-                    {
-                        progress = 0;
-                    }
-                    else if (reader.IsLastPage)
-                    {
-                        progress = 100;
-                    }
-                    else
-                    {
-                        progress = (int)((float)page / reader.PageCount * 100);
-                    }
-
-                    progress = Math.Min(progress, 100);
+                    int pageCount = reader.PageCount;
+                    double page = Math.Max(0, reader.CurrentPage);
+                    bool isLastPage = reader.IsLastPage;
+                    int progress = pageCount <= 0 ? 0 : (isLastPage ? 100 :
+                        (int)Math.Round(page / pageCount * 100.0, MidpointRounding.AwayFromZero));
+                    progress = Math.Clamp(progress, 0, 100);
                     await comic.SetProgress(progress, page);
                     await Task.Delay(SAVE_PREOGRESS_INTERVAL);
                 }
@@ -741,7 +726,7 @@ internal sealed partial class ReaderPage : BasePage
 
         int currentPage = reader.CurrentPageDisplay;
         int percentage = (int)Math.Round(
-            100.0 * (reader.CurrentPage - 1.0) / (totalPages - 0.5),
+            100.0 * (reader.CurrentPage - 0.5) / totalPages,
             0, MidpointRounding.AwayFromZero);
         percentage = Math.Max(Math.Min(percentage, 100), 0);
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
