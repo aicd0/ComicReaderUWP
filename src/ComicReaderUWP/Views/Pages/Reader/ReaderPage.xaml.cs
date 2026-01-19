@@ -444,27 +444,8 @@ internal sealed partial class ReaderPage : BasePage
                     }
 
                     ReaderView reader = MainReaderView;
-                    double page = reader.CurrentPage;
-                    if (page <= 0.0)
-                    {
-                        continue;
-                    }
-
-                    int progress;
-                    if (reader.PageCount <= 0)
-                    {
-                        progress = 0;
-                    }
-                    else if (reader.IsLastPage)
-                    {
-                        progress = 100;
-                    }
-                    else
-                    {
-                        progress = (int)((float)page / reader.PageCount * 100);
-                    }
-
-                    progress = Math.Min(progress, 100);
+                    double page = Math.Max(0, reader.CurrentPage);
+                    int progress = reader.CurrentPagePercentage;
                     await comic.SetProgress(progress, page);
                     await Task.Delay(SAVE_PREOGRESS_INTERVAL);
                 }
@@ -511,7 +492,6 @@ internal sealed partial class ReaderPage : BasePage
         GMainSection.Opacity = previewVisible ? 0.0 : 1.0;
         GMainSection.IsHitTestVisible = !previewVisible;
 
-        MainReaderView.SetVisibility(readerVisible);
         if (readerVisible)
         {
             FocusReader();
@@ -564,8 +544,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        bool readerWorking = ViewModel.ReaderStatus == ReaderStatusEnum.Working;
-        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || !_readerPointerEntered || !readerWorking)
+        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || !_readerPointerEntered)
         {
             return;
         }
@@ -688,6 +667,34 @@ internal sealed partial class ReaderPage : BasePage
         List<BaseMenuFlyoutItemModel> items = [];
 
         {
+            bool repeat = ViewModel.Playback.IsRepeat;
+            items.Add(new ToggleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.Repeat,
+                IsChecked = repeat,
+                Click = () =>
+                {
+                    ViewModel.Playback.IsRepeat = !repeat;
+                },
+            });
+        }
+
+        {
+            bool shuffle = ViewModel.Playback.IsShuffle;
+            items.Add(new ToggleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.Shuffle,
+                IsChecked = shuffle,
+                Click = () =>
+                {
+                    ViewModel.Playback.IsShuffle = !shuffle;
+                },
+            });
+        }
+
+        items.Add(new SeparatorMenuFlyoutItemModel());
+
+        {
             bool autoSwitch = MainReaderView.OverScrollEnabled;
             items.Add(new ToggleMenuFlyoutItemModel()
             {
@@ -707,17 +714,9 @@ internal sealed partial class ReaderPage : BasePage
     private void UpdatePage()
     {
         ReaderView reader = MainReaderView;
-        int totalPages = reader.PageCount;
-        if (totalPages <= 0)
-        {
-            return;
-        }
-
+        int totalPages = Math.Max(0, reader.PageCount);
         int currentPage = reader.CurrentPageDisplay;
-        int percentage = (int)Math.Round(
-            100.0 * (reader.CurrentPage - 1.0) / (totalPages - 0.5),
-            0, MidpointRounding.AwayFromZero);
-        percentage = Math.Max(Math.Min(percentage, 100), 0);
+        int percentage = reader.CurrentPagePercentage;
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
         ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
 
@@ -844,22 +843,14 @@ internal sealed partial class ReaderPage : BasePage
 
         _readerPointerEntered = false;
 
-        bool canShowBottomTile()
+        // Post detection to allow routed event to be dispatched to root
+        CoroutineUtils.PostInMainThread(() =>
         {
-            return ViewModel.ReaderStatus == ReaderStatusEnum.Working;
-        }
-
-        if (canShowBottomTile())
-        {
-            // Post detection to allow routed event to be dispatched to root
-            CoroutineUtils.PostInMainThread(() =>
+            if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow())
             {
-                if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow() && canShowBottomTile())
-                {
-                    ShowBottomTile();
-                }
-            });
-        }
+                ShowBottomTile();
+            }
+        });
     }
 
     private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)

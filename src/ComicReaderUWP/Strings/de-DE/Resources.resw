@@ -204,6 +204,9 @@
   <data name="Category" xml:space="preserve">
     <value>Kategorie</value>
   </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Nach Updates suchen</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Wählen Sie aus, wo wir nach Bildern suchen</value>
   </data>
@@ -767,6 +770,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Nicht erreichbare Comics automatisch entfernen</value>
+  </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>Wiederholen</value>
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Dateien erneut scannen</value>

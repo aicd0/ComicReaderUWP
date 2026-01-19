@@ -56,12 +56,10 @@ internal partial class ReaderView : UserControl
     private ReaderState _state = ReaderState.Idle;
     private bool _isVertical = true;
     private bool _isContinuous = true;
-    private bool _isVisible = true;
     private bool _isLeftToRight = true;
     private PageArrangementEnum _pageArrangement = PageArrangementEnum.Single;
     private bool _useOriginalSize = false;
     private int _pageGap = 100;
-    private bool _uiStateUpdatedVisibility = true;
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
@@ -84,7 +82,7 @@ internal partial class ReaderView : UserControl
     private readonly GestureHandler _gestureHandler;
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
-    private double _initialPage = 0.0;
+    private double _initialPage = 1.0;
     private ReaderViewInternalDatabase? _internalDB = null;
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
@@ -138,8 +136,26 @@ internal partial class ReaderView : UserControl
     public double CurrentPage { get; private set; } = 0.0;
     private int CurrentPageInt => ToDiscretePage(CurrentPage);
     public int CurrentPageDisplay => CurrentPageInt;
-    public bool IsLastPage => PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1;
     public bool IsVertical => _isVertical;
+
+    public int CurrentPagePercentage
+    {
+        get
+        {
+            if (PageCount <= 0)
+            {
+                return 0;
+            }
+
+            if (PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1)
+            {
+                return 100;
+            }
+
+            int percentage = (int)Math.Round(100.0 * (CurrentPage - 0.5) / PageCount, MidpointRounding.AwayFromZero);
+            return Math.Clamp(percentage, 0, 100);
+        }
+    }
 
     public bool IsAutoScrolling
     {
@@ -230,18 +246,6 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
-    public void SetVisibility(bool visible)
-    {
-        if (visible == _isVisible)
-        {
-            return;
-        }
-
-        _isVisible = visible;
-        _uiStateUpdatedVisibility = true;
-        UpdateUI();
-    }
-
     public void SetPageArrangement(PageArrangementEnum type)
     {
         if (_pageArrangement == type)
@@ -280,8 +284,7 @@ internal partial class ReaderView : UserControl
 
     public void SetInitialPage(double page)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(page);
-        _initialPage = page;
+        _initialPage = Math.Max(0.5, page);
     }
 
     public void SetCurrentPage(double page)
@@ -527,15 +530,6 @@ internal partial class ReaderView : UserControl
         }
 
         bool needReload = false;
-
-        if (_uiStateUpdatedVisibility)
-        {
-            _uiStateUpdatedVisibility = false;
-            bool isVisible = _isVisible;
-            ContentScrollViewer.IsEnabled = isVisible;
-            ContentScrollViewer.IsHitTestVisible = isVisible;
-            ContentScrollViewer.Opacity = isVisible ? 1 : 0;
-        }
 
         if (_uiStateUpdatedOrientation)
         {
@@ -2246,7 +2240,11 @@ internal partial class ReaderView : UserControl
                     }
                     else
                     {
-                        UpdateOverScrollAmount(context.OverScrollAmount);
+                        // Positive over scroll can only occur when last frame is loaded
+                        if (double.IsNegative(context.OverScrollAmount) || _isLastFrameLoaded)
+                        {
+                            UpdateOverScrollAmount(context.OverScrollAmount);
+                        }
                     }
                 }
                 break;
@@ -2259,7 +2257,7 @@ internal partial class ReaderView : UserControl
 
     private void SetScrollViewerInternal(ScrollRequest request, ScrollContext context)
     {
-        if (!_isLoaded)
+        if (!_isInitialFrameActionPerformed)
         {
             Log("Jump", "Failed (not loaded)");
             context.Result = ScrollResult.UnknownFailure;
@@ -2596,18 +2594,19 @@ internal partial class ReaderView : UserControl
         FrameworkElement firstContainer = _frameManager.GetContainer(0);
         if (firstContainer != null)
         {
-            double frameParallelLength = _isVertical ? firstContainer.ActualHeight : firstContainer.ActualWidth;
-            double space = SCPaddingStartFinal * zoom - parallelOffset;
-            double imageCenterOffset = (SCPaddingStartFinal + frameParallelLength * 0.5) * zoom;
-            double imageCenterToScreenCenter = imageCenterOffset - screenCenterOffset;
-            movementForward = Math.Min(space, imageCenterToScreenCenter);
+            //double frameParallelLength = _isVertical ? firstContainer.ActualHeight : firstContainer.ActualWidth;
+            //double space = SCPaddingStartFinal * zoom - parallelOffset;
+            //double imageCenterOffset = (SCPaddingStartFinal + frameParallelLength * 0.5) * zoom;
+            //double imageCenterToScreenCenter = imageCenterOffset - screenCenterOffset;
+            //movementForward = Math.Min(space, imageCenterToScreenCenter);
+            double imageStartOffset = SCPaddingStartFinal * zoom;
+            movementForward = imageStartOffset - screenCenterOffset;
         }
 
         double? movementBackward = null;
         FrameworkElement lastContainer = _frameManager.GetContainer(FrameDataSource.Count - 1);
         if (lastContainer != null)
         {
-            // Old logic, keep it for future
             //double frameParallelLength = _isVertical ? lastContainer.ActualHeight : lastContainer.ActualWidth;
             //double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
             //double space = SCPaddingEndFinal * zoom - (extentParallelLength - parallelOffset - ViewportParallelLength);
@@ -2682,8 +2681,9 @@ internal partial class ReaderView : UserControl
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
             zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
-            paddingStart = (innerLength - FrameParallelLength(frameIdx)) / 2;
-            paddingStart = Math.Max(0.0, paddingStart);
+            //paddingStart = (innerLength - FrameParallelLength(frameIdx)) / 2;
+            //paddingStart = Math.Max(0.0, paddingStart);
+            paddingStart = innerLength * 0.5;
         } while (false);
 
         double paddingEnd = SCPaddingEndFinal;
@@ -2704,7 +2704,6 @@ internal partial class ReaderView : UserControl
             double zoomFactor = Math.Min(MIN_ZOOM_CENTER_INSIDE * zoomCoefficient.Min(), MIN_ZOOM_CENTER_CROP * zoomCoefficient.Max());
             zoomFactor = Math.Min(zoomFactor, _minZoomFactor);
             double innerLength = ViewportParallelLength / zoomFactor;
-            // Old logic, keep it for future
             //paddingEnd = (innerLength - FrameParallelLength(frameIdx)) / 2;
             //paddingEnd = Math.Max(0.0, paddingEnd);
             paddingEnd = innerLength * 0.5;
@@ -3017,6 +3016,8 @@ internal partial class ReaderView : UserControl
         }
 
         _state = state;
+        ContentScrollViewer.Opacity = state == ReaderState.Ready ? 1 : 0;
+
         ReaderEventReaderStateChanged?.Invoke(this, state, stateDescription);
     }
 

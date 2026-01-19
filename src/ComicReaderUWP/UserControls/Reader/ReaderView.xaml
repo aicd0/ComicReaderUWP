@@ -317,7 +317,7 @@
             </Grid>
         </ScrollViewer>
         <StackPanel
-            Margin="12,0,0,10"
+            Margin="8,0,0,6"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
             Orientation="Vertical">

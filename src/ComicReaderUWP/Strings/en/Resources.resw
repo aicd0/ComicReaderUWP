@@ -204,6 +204,9 @@
   <data name="Category" xml:space="preserve">
     <value>Category</value>
   </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Choose where we look for images</value>
   </data>
@@ -769,6 +772,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Automatically remove unreachable comics</value>
+  </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>Repeat</value>
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Rescan files</value>

@@ -204,6 +204,9 @@
   <data name="Category" xml:space="preserve">
     <value>類別</value>
   </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>檢查更新</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>新增或修改圖片位置</value>
   </data>
@@ -767,6 +770,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>自動移除不可存取的漫畫</value>
+  </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>循環播放</value>
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>重新掃描文件</value>

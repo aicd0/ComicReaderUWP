@@ -204,6 +204,9 @@
   <data name="Category" xml:space="preserve">
     <value>カテゴリ</value>
   </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>アップデートを確認</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>画像を検索する場所を選択する</value>
   </data>
@@ -767,6 +770,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>アクセスできないコミックを自動的に削除</value>
+  </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>リピート</value>
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>ファイルの再スキャン</value>

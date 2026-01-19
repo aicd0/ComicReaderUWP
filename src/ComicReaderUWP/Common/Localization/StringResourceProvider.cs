@@ -36,6 +36,7 @@ public class StringResourceProvider
     public string Calculating => GetResourceString("Calculating");
     public string Cancel => GetResourceString("Cancel");
     public string Category => GetResourceString("Category");
+    public string CheckForUpdates => GetResourceString("CheckForUpdates");
     public string ClearCache => GetResourceString("ClearCache");
     public string CloseLastTabBehavior => GetResourceString("CloseLastTabBehavior");
     public string CloseSidebar => GetResourceString("CloseSidebar");
@@ -166,6 +167,7 @@ public class StringResourceProvider
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
+    public string Repeat => GetResourceString("Repeat");
     public string Reset => GetResourceString("Reset");
     public string ResetAllSettings => GetResourceString("ResetAllSettings");
     public string ResetAllSettingsMessage => GetResourceString("ResetAllSettingsMessage");

@@ -68,6 +68,19 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
+    public CloseLastTabBehaviorEnum CloseLastTabBehavior
+    {
+        get
+        {
+            return Read(model => ConvertCloseLastTabBehaviorFromJson(model.CloseLastTabBehavior));
+        }
+        set
+        {
+            Write(model => model.CloseLastTabBehavior = ConvertCloseLastTabBehaviorToJson(value));
+            Save();
+        }
+    }
+
     public int DefaultArchiveCodePage
     {
         get
@@ -77,6 +90,70 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         set
         {
             Write(model => model.DefaultArchiveCodePage = value);
+            Save();
+        }
+    }
+
+    public string Language
+    {
+        get
+        {
+            return Read(model => model.Language ?? string.Empty);
+        }
+        set
+        {
+            if (!EnvironmentProvider.IsPortable())
+            {
+                try
+                {
+                    ApplicationLanguages.PrimaryLanguageOverride = value;
+                }
+                catch (Exception ex)
+                {
+                    Logger.F(TAG, ex);
+                }
+            }
+
+            Write(model => model.Language = value);
+            Save();
+        }
+    }
+
+    public OpenComicBehaviorEnum OpenComicDefaultBehavior
+    {
+        get
+        {
+            return Read(model => ConvertOpenComicDefaultBehaviorFromJson(model.OpenComicDefaultBehavior));
+        }
+        set
+        {
+            Write(model => model.OpenComicDefaultBehavior = ConvertOpenComicDefaultBehaviorToJson(value));
+            Save();
+        }
+    }
+
+    public bool PlaybackDefaultRepeat
+    {
+        get
+        {
+            return Read(model => model.PlaybackDefaultRepeat ?? false);
+        }
+        set
+        {
+            Write(model => model.PlaybackDefaultRepeat = value);
+            Save();
+        }
+    }
+
+    public bool PlaybackDefaultShuffle
+    {
+        get
+        {
+            return Read(model => model.PlaybackDefaultShuffle ?? false);
+        }
+        set
+        {
+            Write(model => model.PlaybackDefaultShuffle = value);
             Save();
         }
     }
@@ -116,57 +193,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         set
         {
             Write(model => model.TransitionAnimation = value);
-            Save();
-        }
-    }
-
-    public CloseLastTabBehaviorEnum CloseLastTabBehavior
-    {
-        get
-        {
-            return Read(model => ConvertCloseLastTabBehaviorFromJson(model.CloseLastTabBehavior));
-        }
-        set
-        {
-            Write(model => model.CloseLastTabBehavior = ConvertCloseLastTabBehaviorToJson(value));
-            Save();
-        }
-    }
-
-    public OpenComicBehaviorEnum OpenComicDefaultBehavior
-    {
-        get
-        {
-            return Read(model => ConvertOpenComicDefaultBehaviorFromJson(model.OpenComicDefaultBehavior));
-        }
-        set
-        {
-            Write(model => model.OpenComicDefaultBehavior = ConvertOpenComicDefaultBehaviorToJson(value));
-            Save();
-        }
-    }
-
-    public string Language
-    {
-        get
-        {
-            return Read(model => model.Language ?? string.Empty);
-        }
-        set
-        {
-            if (!EnvironmentProvider.IsPortable())
-            {
-                try
-                {
-                    ApplicationLanguages.PrimaryLanguageOverride = value;
-                }
-                catch (Exception ex)
-                {
-                    Logger.F(TAG, ex);
-                }
-            }
-
-            Write(model => model.Language = value);
             Save();
         }
     }
@@ -535,6 +561,12 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("Language")]
         public string? Language { get; set; }
+
+        [JsonPropertyName("PlaybackDefaultRepeat")]
+        public bool? PlaybackDefaultRepeat { get; set; }
+
+        [JsonPropertyName("PlaybackDefaultShuffle")]
+        public bool? PlaybackDefaultShuffle { get; set; }
 
         [JsonPropertyName("PromptBeforeRemovingComics")]
         public bool? PromptBeforeRemovingComics { get; set; }

@@ -204,6 +204,9 @@
   <data name="Category" xml:space="preserve">
     <value>Категория</value>
   </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Проверить обновления</value>
+  </data>
   <data name="ChooseLocationButton.Content" xml:space="preserve">
     <value>Выберите, где мы ищем изображения</value>
   </data>
@@ -768,6 +771,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Автоматически удалять недоступные комиксы</value>
+  </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>Повтор</value>
   </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Повторное сканирование файлов</value>
