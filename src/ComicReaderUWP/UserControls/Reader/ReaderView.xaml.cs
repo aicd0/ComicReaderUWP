@@ -136,8 +136,26 @@ internal partial class ReaderView : UserControl
     public double CurrentPage { get; private set; } = 0.0;
     private int CurrentPageInt => ToDiscretePage(CurrentPage);
     public int CurrentPageDisplay => CurrentPageInt;
-    public bool IsLastPage => PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1;
     public bool IsVertical => _isVertical;
+
+    public int CurrentPagePercentage
+    {
+        get
+        {
+            if (PageCount <= 0)
+            {
+                return 0;
+            }
+
+            if (PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1)
+            {
+                return 100;
+            }
+
+            int percentage = (int)Math.Round(100.0 * (CurrentPage - 0.5) / PageCount, MidpointRounding.AwayFromZero);
+            return Math.Clamp(percentage, 0, 100);
+        }
+    }
 
     public bool IsAutoScrolling
     {

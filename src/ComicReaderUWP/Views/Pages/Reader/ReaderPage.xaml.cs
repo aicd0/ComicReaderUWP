@@ -444,12 +444,8 @@ internal sealed partial class ReaderPage : BasePage
                     }
 
                     ReaderView reader = MainReaderView;
-                    int pageCount = reader.PageCount;
                     double page = Math.Max(0, reader.CurrentPage);
-                    bool isLastPage = reader.IsLastPage;
-                    int progress = pageCount <= 0 ? 0 : (isLastPage ? 100 :
-                        (int)Math.Round(page / pageCount * 100.0, MidpointRounding.AwayFromZero));
-                    progress = Math.Clamp(progress, 0, 100);
+                    int progress = reader.CurrentPagePercentage;
                     await comic.SetProgress(progress, page);
                     await Task.Delay(SAVE_PREOGRESS_INTERVAL);
                 }
@@ -718,17 +714,9 @@ internal sealed partial class ReaderPage : BasePage
     private void UpdatePage()
     {
         ReaderView reader = MainReaderView;
-        int totalPages = reader.PageCount;
-        if (totalPages <= 0)
-        {
-            return;
-        }
-
+        int totalPages = Math.Max(0, reader.PageCount);
         int currentPage = reader.CurrentPageDisplay;
-        int percentage = (int)Math.Round(
-            100.0 * (reader.CurrentPage - 0.5) / totalPages,
-            0, MidpointRounding.AwayFromZero);
-        percentage = Math.Max(Math.Min(percentage, 100), 0);
+        int percentage = reader.CurrentPagePercentage;
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
         ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
 
