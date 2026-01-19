@@ -167,6 +167,7 @@ public class StringResourceProvider
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
+    public string Repeat => GetResourceString("Repeat");
     public string Reset => GetResourceString("Reset");
     public string ResetAllSettings => GetResourceString("ResetAllSettings");
     public string ResetAllSettingsMessage => GetResourceString("ResetAllSettingsMessage");

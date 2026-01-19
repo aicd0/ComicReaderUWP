@@ -772,6 +772,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Автоматически удалять недоступные комиксы</value>
   </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>Повтор</value>
+  </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Повторное сканирование файлов</value>
   </data>

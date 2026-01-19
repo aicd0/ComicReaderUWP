@@ -771,6 +771,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>アクセスできないコミックを自動的に削除</value>
   </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>リピート</value>
+  </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>ファイルの再スキャン</value>
   </data>

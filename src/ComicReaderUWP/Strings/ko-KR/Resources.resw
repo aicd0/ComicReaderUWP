@@ -772,6 +772,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>접근할 수 없는 만화를 자동으로 제거합니다</value>
   </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>반복</value>
+  </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>파일 다시 검사</value>
   </data>

@@ -771,6 +771,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Eliminar automáticamente los cómics inaccesibles</value>
   </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>Repetir</value>
+  </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Volver a escanear archivos</value>
   </data>

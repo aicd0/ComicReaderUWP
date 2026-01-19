@@ -688,6 +688,34 @@ internal sealed partial class ReaderPage : BasePage
         List<BaseMenuFlyoutItemModel> items = [];
 
         {
+            bool repeat = ViewModel.Playback.IsRepeat;
+            items.Add(new ToggleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.Repeat,
+                IsChecked = repeat,
+                Click = () =>
+                {
+                    ViewModel.Playback.IsRepeat = !repeat;
+                },
+            });
+        }
+
+        {
+            bool shuffle = ViewModel.Playback.IsShuffle;
+            items.Add(new ToggleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.Shuffle,
+                IsChecked = shuffle,
+                Click = () =>
+                {
+                    ViewModel.Playback.IsShuffle = !shuffle;
+                },
+            });
+        }
+
+        items.Add(new SeparatorMenuFlyoutItemModel());
+
+        {
             bool autoSwitch = MainReaderView.OverScrollEnabled;
             items.Add(new ToggleMenuFlyoutItemModel()
             {

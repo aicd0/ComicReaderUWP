@@ -771,6 +771,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>自动移除不可访问的漫画</value>
   </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>循环播放</value>
+  </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>重新扫描文件</value>
   </data>

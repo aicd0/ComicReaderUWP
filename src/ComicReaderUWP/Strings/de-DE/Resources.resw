@@ -771,6 +771,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Nicht erreichbare Comics automatisch entfernen</value>
   </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>Wiederholen</value>
+  </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Dateien erneut scannen</value>
   </data>

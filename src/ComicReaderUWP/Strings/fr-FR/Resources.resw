@@ -771,6 +771,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Supprimer automatiquement les bandes dessinées inaccessibles</value>
   </data>
+  <data name="Repeat" xml:space="preserve">
+    <value>Répéter</value>
+  </data>
   <data name="RescanFilesButton.Content" xml:space="preserve">
     <value>Réanalyser les fichiers</value>
   </data>
