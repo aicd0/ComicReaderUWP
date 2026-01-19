@@ -323,6 +323,7 @@
             Orientation="Vertical">
             <TextBlock
                 x:Name="ReaderStatusTextBlock"
+                HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 FontSize="16"
                 FontWeight="SemiLight"
@@ -332,6 +333,7 @@
                 x:Name="OverScrollProgressBar"
                 Width="100"
                 Margin="0,2,0,2"
+                HorizontalAlignment="Left"
                 IsIndeterminate="False"
                 Visibility="Collapsed" />
         </StackPanel>
