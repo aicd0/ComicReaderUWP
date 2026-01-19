@@ -77,7 +77,6 @@ internal partial class ReaderView : UserControl
     private bool _isLastFrameActionPerformed = false;
 
     private double _maxLinearVelocity = 0.0;
-    private bool _manipulationDisabled = false;
     private readonly UIElement _gestureReference;
     private readonly GestureHandler _gestureHandler;
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
@@ -1261,6 +1260,7 @@ internal partial class ReaderView : UserControl
     //
 
     private bool _pointerDown = false;
+    private bool _isInInertiaTranslation = false;
     private PointerPoint? _initiatePointerPoint;
 
     private void OnReaderPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -1385,31 +1385,14 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderManipulationStarted(object sender, ManipulationStartedEventArgs e)
     {
-        OnReaderManipulationStarted(e);
+        _isInInertiaTranslation = false;
+        _maxLinearVelocity = 0.0;
     }
 
     private void OnReaderManipulationUpdated(object sender, ManipulationUpdatedEventArgs e)
     {
-        OnReaderManipulationUpdated(e);
-    }
-
-    private void OnReaderManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
-    {
-        OnReaderManipulationCompleted(e);
-    }
-
-    private void OnReaderManipulationStarted(ManipulationStartedEventArgs e)
-    {
-        _manipulationDisabled = false;
-        _maxLinearVelocity = 0.0;
-    }
-
-    private void OnReaderManipulationUpdated(ManipulationUpdatedEventArgs e)
-    {
-        if (_manipulationDisabled)
-        {
-            return;
-        }
+        bool inertia = !_pointerDown;
+        _isInInertiaTranslation = inertia;
 
         double dx = e.Delta.Translation.X;
         double dy = e.Delta.Translation.Y;
@@ -1433,8 +1416,8 @@ internal partial class ReaderView : UserControl
         // Handle auto scrolling in continuous mode
         double v = _isVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
         _maxLinearVelocity = Math.Max(_maxLinearVelocity, Math.Abs(v));
-        bool normalDirection = (_isVertical || _isLeftToRight) ? double.IsNegative(v) : double.IsPositive(v);
-        if (IsAutoScrollEnabled && _isContinuous && !_pointerDown && normalDirection)
+        bool forwardDirection = (_isVertical || _isLeftToRight) ? double.IsNegative(v) : double.IsPositive(v);
+        if (IsAutoScrollEnabled && _isContinuous && inertia && forwardDirection)
         {
             double threshold = _maxLinearVelocity * AUTO_SCROLL_COMMON_START_THRESHOLD * _autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
             if (Math.Abs(v) < threshold)
@@ -1445,30 +1428,30 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    private void OnReaderManipulationCompleted(ManipulationCompletedEventArgs e)
+    private void OnReaderManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
     {
-        if (_isContinuous || _zoom >= FORCE_CONTINUOUS_ZOOM_THRESHOLD)
-        {
-            return;
-        }
+        _isInInertiaTranslation = false;
 
-        double velocity = IsVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
-
-        if (!_isVertical && !_isLeftToRight)
+        if (!_isContinuous && _zoom < FORCE_CONTINUOUS_ZOOM_THRESHOLD)
         {
-            velocity = -velocity;
-        }
+            double velocity = IsVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
 
-        if (velocity > 1.0)
-        {
-            MoveFrameByUser("MoveToLastPageUsingManipulation", -1);
-        }
-        else if (velocity < -1.0)
-        {
-            MoveFrameByUser("MoveToNextPageUsingManipulation", 1);
+            if (!_isVertical && !_isLeftToRight)
+            {
+                velocity = -velocity;
+            }
 
-            // Page turning in seperate mode starts auto scrolling
-            StartAutoScrolling();
+            if (velocity > 1.0)
+            {
+                MoveFrameByUser("MoveToLastPageUsingManipulation", -1);
+            }
+            else if (velocity < -1.0)
+            {
+                MoveFrameByUser("MoveToNextPageUsingManipulation", 1);
+
+                // Page turning in seperate mode starts auto scrolling
+                StartAutoScrolling();
+            }
         }
     }
 
@@ -1515,7 +1498,6 @@ internal partial class ReaderView : UserControl
             MoveFrameByUser("PageTurningUsingPointerWheel", delta);
         }
 
-        _manipulationDisabled = true;
         e.Handled = true;
     }
 
@@ -1777,8 +1759,12 @@ internal partial class ReaderView : UserControl
 
         if (!_overScrollStarted)
         {
-            _overScrollAmount = 0.0;
-            _overScrollStarted = true;
+            if (Math.Abs(increment) > 1E-2)
+            {
+                _overScrollAmount = 0.0;
+                _overScrollStarted = true;
+            }
+
             return;
         }
 
@@ -1800,7 +1786,7 @@ internal partial class ReaderView : UserControl
 
     private void UpdateOverScrollStatus()
     {
-        const double maxOverScrollAmount = 500.0;
+        double maxOverScrollAmount = ViewportParallelLength * 0.4;
 
         if (!_overScrollStarted)
         {
@@ -2062,8 +2048,10 @@ internal partial class ReaderView : UserControl
 
         _finalValueSynced = true;
         _SCCurrentPageFinal = CurrentPageInt;
-        _SCPaddingStartFinal = IsVertical ? ThisListView.Padding.Top : ThisListView.Padding.Left;
-        _SCPaddingEndFinal = IsVertical ? ThisListView.Padding.Bottom : ThisListView.Padding.Right;
+        _SCPaddingStartFinal = IsVertical ? ThisListView.Padding.Top :
+            (_isLeftToRight ? ThisListView.Padding.Left : ThisListView.Padding.Right);
+        _SCPaddingEndFinal = IsVertical ? ThisListView.Padding.Bottom :
+            (_isLeftToRight ? ThisListView.Padding.Right : ThisListView.Padding.Left);
         _SCHorizontalOffsetFinal = HorizontalOffset;
         _SCVerticalOffsetFinal = VerticalOffset;
         _SCZoomFactorFinal = ZoomFactor;
@@ -2234,7 +2222,7 @@ internal partial class ReaderView : UserControl
             case ScrollResult.Success:
                 if (request.Source == ScrollSource.User || request.Source == ScrollSource.AutoScroll)
                 {
-                    if (Math.Abs(context.OverScrollAmount) < 1E-2)
+                    if (Math.Abs(context.ScrollAmount) > 1E-2 || _isInInertiaTranslation)
                     {
                         ResetOverScrollAmount();
                     }
@@ -2359,7 +2347,7 @@ internal partial class ReaderView : UserControl
             }
         }
 
-        ChangeView(context.ZoomFactor, context.HorizontalOffset, context.VerticalOffset, context.DisableAnimation);
+        ChangeView(context);
         context.Result = ScrollResult.Success;
     }
 
@@ -2512,24 +2500,39 @@ internal partial class ReaderView : UserControl
         context.VerticalOffset = Math.Max(0.0, context.VerticalOffset.Value);
     }
 
-    private bool ChangeView(float? zoomFactor, double? horizontalOffset, double? verticalOffset, bool disableAnimation)
+    private bool ChangeView(ScrollContext context)
     {
-        if (horizontalOffset != null)
+        if (_isVertical)
         {
-            SCHorizontalOffsetFinal = horizontalOffset.Value;
+            if (context.VerticalOffset.HasValue)
+            {
+                context.ScrollAmount = context.VerticalOffset.Value - SCVerticalOffsetFinal;
+            }
+        }
+        else
+        {
+            if (context.HorizontalOffset.HasValue)
+            {
+                context.ScrollAmount = context.HorizontalOffset.Value - SCHorizontalOffsetFinal;
+            }
         }
 
-        if (verticalOffset != null)
+        if (context.HorizontalOffset.HasValue)
         {
-            SCVerticalOffsetFinal = verticalOffset.Value;
+            SCHorizontalOffsetFinal = context.HorizontalOffset.Value;
         }
 
-        if (zoomFactor != null)
+        if (context.VerticalOffset.HasValue)
         {
-            SCZoomFactorFinal = zoomFactor.Value;
+            SCVerticalOffsetFinal = context.VerticalOffset.Value;
         }
 
-        if (disableAnimation)
+        if (context.ZoomFactor.HasValue)
+        {
+            SCZoomFactorFinal = context.ZoomFactor.Value;
+        }
+
+        if (context.DisableAnimation)
         {
             SCDisableAnimationFinal = true;
         }
@@ -2590,22 +2593,24 @@ internal partial class ReaderView : UserControl
 
         double screenCenterOffset = ViewportParallelLength * 0.5 + parallelOffset;
 
-        double? movementForward = null;
-        FrameworkElement firstContainer = _frameManager.GetContainer(0);
-        if (firstContainer != null)
+        double? movementForward;
+        //FrameworkElement firstContainer = _frameManager.GetContainer(0);
+        //if (firstContainer != null)
         {
             //double frameParallelLength = _isVertical ? firstContainer.ActualHeight : firstContainer.ActualWidth;
             //double space = SCPaddingStartFinal * zoom - parallelOffset;
             //double imageCenterOffset = (SCPaddingStartFinal + frameParallelLength * 0.5) * zoom;
             //double imageCenterToScreenCenter = imageCenterOffset - screenCenterOffset;
             //movementForward = Math.Min(space, imageCenterToScreenCenter);
-            double imageStartOffset = SCPaddingStartFinal * zoom;
+            Thickness firstFrameMargin = FrameDataSource[0].FrameMargin;
+            double frameMarginStart = _isVertical ? firstFrameMargin.Top : (_isLeftToRight ? firstFrameMargin.Left : firstFrameMargin.Right);
+            double imageStartOffset = (SCPaddingStartFinal + frameMarginStart) * zoom;
             movementForward = imageStartOffset - screenCenterOffset;
         }
 
-        double? movementBackward = null;
-        FrameworkElement lastContainer = _frameManager.GetContainer(FrameDataSource.Count - 1);
-        if (lastContainer != null)
+        double? movementBackward;
+        //FrameworkElement lastContainer = _frameManager.GetContainer(FrameDataSource.Count - 1);
+        //if (lastContainer != null)
         {
             //double frameParallelLength = _isVertical ? lastContainer.ActualHeight : lastContainer.ActualWidth;
             //double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
@@ -2613,8 +2618,10 @@ internal partial class ReaderView : UserControl
             //double imageCenterOffset = extentParallelLength - (SCPaddingEndFinal + frameParallelLength * 0.5) * zoom;
             //double imageCenterToScreenCenter = screenCenterOffset - imageCenterOffset;
             //movementBackward = Math.Min(space, imageCenterToScreenCenter);
+            Thickness lastFrameMargin = FrameDataSource[^1].FrameMargin;
+            double frameMarginEnd = _isVertical ? lastFrameMargin.Bottom : (_isLeftToRight ? lastFrameMargin.Right : lastFrameMargin.Left);
             double extentParallelLength = (ExtentParallelLength + request.ExtentParallelLengthBias) * zoom / ZoomFactor;
-            double imageEndOffset = extentParallelLength - SCPaddingEndFinal * zoom;
+            double imageEndOffset = extentParallelLength - (SCPaddingEndFinal + frameMarginEnd) * zoom;
             movementBackward = screenCenterOffset - imageEndOffset;
         }
 
@@ -2647,8 +2654,6 @@ internal partial class ReaderView : UserControl
         {
             context.HorizontalOffset += movement;
         }
-
-        _manipulationDisabled = true;
     }
 
     private void AdjustPadding(string reason, bool fixOffset)
@@ -2722,7 +2727,9 @@ internal partial class ReaderView : UserControl
         }
         else
         {
-            ThisListView.Padding = new Thickness(paddingStart, 0.0, paddingEnd, 0.0);
+            ThisListView.Padding = _isLeftToRight ?
+                new Thickness(paddingStart, 0.0, paddingEnd, 0.0) :
+                new Thickness(paddingEnd, 0.0, paddingStart, 0.0);
         }
 
         Log("AdjustPadding",
@@ -3241,6 +3248,7 @@ internal partial class ReaderView : UserControl
         public double? HorizontalOffset = null;
         public double? VerticalOffset = null;
         public bool DisableAnimation = false;
+        public double ScrollAmount = 0.0;
         public double OverScrollAmount = 0.0;
     }
 
