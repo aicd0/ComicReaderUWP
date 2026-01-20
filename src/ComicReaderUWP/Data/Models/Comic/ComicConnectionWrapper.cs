@@ -3,40 +3,38 @@
 
 using System;
 using System.IO;
+using System.Threading;
 
-using Microsoft.Graphics.Canvas;
+using ComicReaderUWP.Common.Imaging;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
 internal sealed partial class ComicConnectionWrapper(IComicConnection connection) : IComicConnection
 {
-    private volatile bool _disposed = false;
+    private int _disposed = 0;
     private readonly IComicConnection _connection = connection;
+    private readonly int _imageCount = connection.GetImageCount();
+
+    private bool Disposed => Volatile.Read(ref _disposed) == 1;
 
     void IDisposable.Dispose()
     {
-        if (_disposed)
+        if (Interlocked.Exchange(ref _disposed, 1) == 1)
         {
             return;
         }
 
-        _disposed = true;
         _connection.Dispose();
     }
 
     int IComicConnection.GetImageCount()
     {
-        if (_disposed)
-        {
-            return 0;
-        }
-
-        return _connection.GetImageCount();
+        return _imageCount;
     }
 
     public string GetImageName(int index)
     {
-        if (_disposed)
+        if (Disposed || index < 0 || index >= _imageCount)
         {
             return string.Empty;
         }
@@ -46,7 +44,7 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
 
     string IComicConnection.GetImageCacheKey(int index)
     {
-        if (_disposed)
+        if (Disposed || index < 0 || index >= _imageCount)
         {
             return string.Empty;
         }
@@ -56,7 +54,7 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
 
     string IComicConnection.GetImageSignature(int index)
     {
-        if (_disposed)
+        if (Disposed || index < 0 || index >= _imageCount)
         {
             return string.Empty;
         }
@@ -66,7 +64,7 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
 
     public Stream? OpenImageStream(int index)
     {
-        if (_disposed)
+        if (Disposed || index < 0 || index >= _imageCount)
         {
             return null;
         }
@@ -74,13 +72,13 @@ internal sealed partial class ComicConnectionWrapper(IComicConnection connection
         return _connection.OpenImageStream(index);
     }
 
-    public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+    public IVectorImageService? OpenVectorService(int index)
     {
-        if (_disposed)
+        if (Disposed || index < 0 || index >= _imageCount)
         {
             return null;
         }
 
-        return _connection.CreateImageCanvasBitmap(creator, index);
+        return _connection.OpenVectorService(index);
     }
 }

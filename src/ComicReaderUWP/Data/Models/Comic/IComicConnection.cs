@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 
-using Microsoft.Graphics.Canvas;
+using ComicReaderUWP.Common.Imaging;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
@@ -20,5 +20,5 @@ internal interface IComicConnection : IDisposable
 
     Stream? OpenImageStream(int index);
 
-    CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index);
+    IVectorImageService? OpenVectorService(int index);
 }
