@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Tables;
@@ -14,8 +15,6 @@ using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
-
-using Microsoft.Graphics.Canvas;
 
 using Windows.Storage;
 
@@ -260,23 +259,9 @@ internal partial class FolderComicHandle : ComicHandle
             }
         }
 
-        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+        public IVectorImageService? OpenVectorService(int index)
         {
-            using Stream? stream = OpenImageStream(index);
-            if (stream is null)
-            {
-                return null;
-            }
-
-            try
-            {
-                return CanvasBitmap.LoadAsync(creator, stream.AsRandomAccessStream()).AsTask().Result;
-            }
-            catch (Exception e)
-            {
-                Logger.E(TAG, e);
-                return null;
-            }
+            return null;
         }
     }
 }

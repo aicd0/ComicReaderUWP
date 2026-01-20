@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 
@@ -31,17 +33,20 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         get => _scale;
         set
         {
-            if (double.IsNaN(_scale))
+            if (double.IsNaN(value) || value <= 0.0)
             {
                 return;
             }
 
-            double fixedValue = Math.Max(0, value);
-            if (_scale != fixedValue)
+            double fixedValue = value * DisplayUtils.GetRawPixelPerPixel() * 1.2;
+            if (_scale == fixedValue)
             {
-                _scale = fixedValue;
-                Invalidate();
+                return;
             }
+
+            _scale = fixedValue;
+            InvalidateVectorImages();
+            PostDrawTask();
         }
     }
 
@@ -90,6 +95,13 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             item = _images[index];
         }
 
+        bool supportVector = false;
+        if (source is not null)
+        {
+            using IVectorImageService? vectorService = source.OpenVectorService();
+            supportVector = vectorService is not null;
+        }
+
         bool postLoading;
         lock (item.Lock)
         {
@@ -105,6 +117,8 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
             item.Source = source;
             item.FrameSize = new(frameWidth, frameHeight);
+            item.SupportVector = supportVector;
+
             if (item.IsLoading)
             {
                 item.IsLoadInvalidated = true;
@@ -112,6 +126,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
             postLoading = !item.IsLoading;
             item.IsLoading = true;
+            item.ClearPrevious = true;
         }
 
         if (!postLoading)
@@ -119,6 +134,49 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return;
         }
 
+        PostDecodeTask(item);
+    }
+
+    private void InvalidateVectorImages()
+    {
+        List<ImageItem> vectorItems = [];
+        lock (_images)
+        {
+            foreach (ImageItem item in _images)
+            {
+                lock (item.Lock)
+                {
+                    if (!item.SupportVector)
+                    {
+                        continue;
+                    }
+
+                    if (item.IsLoading)
+                    {
+                        item.IsLoadInvalidated = true;
+                    }
+                    else
+                    {
+                        vectorItems.Add(item);
+                        item.IsLoading = true;
+                    }
+                }
+            }
+        }
+
+        if (vectorItems.Count == 0)
+        {
+            return;
+        }
+
+        foreach (ImageItem item in vectorItems)
+        {
+            PostDecodeTask(item);
+        }
+    }
+
+    private void PostDecodeTask(ImageItem item)
+    {
         _decodeDispatcher.Submit(() =>
         {
             bool loadInvalidated = false;
@@ -126,7 +184,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             {
                 try
                 {
-                    LoadImage(item, source);
+                    DecodeImage(item);
                 }
                 catch (Exception)
                 {
@@ -143,36 +201,97 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                     loadInvalidated = item.IsLoadInvalidated;
                     item.IsLoadInvalidated = false;
                     item.IsLoading = loadInvalidated;
-                    source = item.Source;
                 }
             } while (loadInvalidated);
         });
     }
 
-    private void LoadImage(ImageItem item, IImageSource? source)
+    private void DecodeImage(ImageItem item)
     {
-        RefCounted<CanvasBitmap>? oldBitmapRef;
+        IImageSource? source;
+        bool clearPrevious;
+        Size frameSize;
         lock (item.Lock)
         {
-            oldBitmapRef = item.BitmapRef;
-            item.BitmapRef = null;
+            source = item.Source;
+            clearPrevious = item.ClearPrevious;
+            item.ClearPrevious = false;
+            frameSize = item.FrameSize;
         }
 
-        oldBitmapRef?.Unref();
-        PostDrawTask();
+        if (clearPrevious)
+        {
+            bool needDraw;
+            lock (item.Lock)
+            {
+                needDraw = item.BitmapRef is not null;
+                item.BitmapRef?.Unref();
+                item.BitmapRef = null;
+            }
+
+            if (needDraw)
+            {
+                PostDrawTask();
+            }
+        }
+
         if (source is null)
         {
             return;
         }
 
-        CanvasDevice device = GetCanvasDevice();
-        CanvasBitmap? newBitmap = source.CreateImageCanvasBitmap(device);
+        CanvasBitmap? newBitmap;
+        using IVectorImageService? vectorService = source.OpenVectorService();
+        if (vectorService is not null)
+        {
+            double width = frameSize.Width * _scale;
+            double height = frameSize.Height * _scale;
+            double resolution = width * height;
+
+            if (resolution < 1E-2)
+            {
+                return;
+            }
+
+            const double maxResolution = 10000000;
+            if (resolution > maxResolution)
+            {
+                double ratio = Math.Sqrt(maxResolution / (frameSize.Width * frameSize.Height));
+                width = frameSize.Width * ratio;
+                height = frameSize.Height * ratio;
+            }
+
+            CanvasDevice device = GetCanvasDevice();
+            newBitmap = vectorService.CreateImageCanvasBitmap(device,
+                (int)Math.Round(width), (int)Math.Round(height));
+        }
+        else
+        {
+            using Stream? stream = source.OpenImageStream();
+            if (stream is null)
+            {
+                return;
+            }
+
+            CanvasDevice device = GetCanvasDevice();
+            try
+            {
+                newBitmap = CanvasBitmap.LoadAsync(device, stream.AsRandomAccessStream()).AsTask().Result;
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, e);
+                return;
+            }
+        }
+
         if (newBitmap is null)
         {
             return;
         }
 
         RefCounted<CanvasBitmap>? newBitmapRef = new(newBitmap);
+        RefCounted<CanvasBitmap>? oldBitmapRef;
         lock (item.Lock)
         {
             oldBitmapRef = item.BitmapRef;
@@ -263,7 +382,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return;
         }
 
-        double finalPixelRatio = Math.Min(_scale * DisplayUtils.GetRawPixelPerPixel(), maxPixelRatio);
+        double finalPixelRatio = Math.Min(_scale, maxPixelRatio);
         double accumulatedWidth = 0;
         double maxHeight = 0;
         for (int i = 0; i < bitmaps.Length; i++)
@@ -376,16 +495,10 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         return device;
     }
 
-    private struct Size
+    private struct Size(double width, double height)
     {
-        public double Width;
-        public double Height;
-
-        public Size(double width, double height)
-        {
-            Width = width;
-            Height = height;
-        }
+        public double Width = width;
+        public double Height = height;
     }
 
     private struct ImageRect
@@ -399,16 +512,19 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     private partial class ImageItem : IDisposable
     {
         public object Lock { get; } = new();
-        public RefCounted<CanvasBitmap>? BitmapRef { get; set; }
         public IImageSource? Source { get; set; }
+        public Size FrameSize { get; set; }
+        public bool SupportVector { get; set; } = false;
         public bool IsLoading { get; set; } = false;
         public bool IsLoadInvalidated { get; set; } = false;
-        public Size FrameSize { get; set; }
+        public bool ClearPrevious { get; set; } = false;
+        public RefCounted<CanvasBitmap>? BitmapRef { get; set; }
 
         public void Dispose()
         {
             BitmapRef?.Unref();
             BitmapRef = null;
+            Source = null;
         }
     }
 }

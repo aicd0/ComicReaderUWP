@@ -151,11 +151,13 @@ public static partial class PdfManager
 
     public interface IPdfConnection : IDisposable
     {
+        IPdfConnection Clone();
+
         int GetPageCount();
 
         SizeF GetPageSize(int pageIndex);
 
-        T? Render<T>(int pageIndex, int left, int top, int width, int height, Func<nint, int, T?> func);
+        T? Render<T>(int pageIndex, int width, int height, Func<nint, int, T?> func);
     }
 
     private partial class PdfConnection(PdfDocument document) : IPdfConnection
@@ -188,6 +190,17 @@ public static partial class PdfManager
             }
         }
 
+        public IPdfConnection Clone()
+        {
+            lock (_documentLock)
+            {
+                ObjectDisposedException.ThrowIf(Document.UseCount <= 0, this);
+                Document.UseCount++;
+            }
+
+            return new PdfConnection(Document);
+        }
+
         public int GetPageCount()
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) == 1, this);
@@ -200,7 +213,7 @@ public static partial class PdfManager
             return Document.PageSizes[pageIndex];
         }
 
-        public T? Render<T>(int pageIndex, int left, int top, int width, int height, Func<nint, int, T?> func)
+        public T? Render<T>(int pageIndex, int width, int height, Func<nint, int, T?> func)
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) == 1, this);
 
@@ -227,11 +240,11 @@ public static partial class PdfManager
 
                     try
                     {
-                        Pdfium.FPDFBitmap_FillRect(bitmap, left, top, width, height, 0xFFFFFFFF);
+                        Pdfium.FPDFBitmap_FillRect(bitmap, 0, 0, width, height, 0xFFFFFFFF);
                         Pdfium.FPDF_RenderPageBitmap(
                             bitmap,
                             page,
-                            left, top,
+                            0, 0,
                             width, height,
                             0,
                             0);

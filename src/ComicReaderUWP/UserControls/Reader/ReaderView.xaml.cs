@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
@@ -630,13 +631,12 @@ internal partial class ReaderView : UserControl
                 }
 
                 IImageSource image = images[i];
-                ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(image);
                 int width = 0;
                 int height = 0;
-                if (imageMeta is not null)
+                if (ImageCacheManager.TryGetOriginalDimension(image, out SizeF size))
                 {
-                    width = imageMeta.Width;
-                    height = imageMeta.Height;
+                    width = (int)Math.Round(size.Width);
+                    height = (int)Math.Round(size.Height);
                 }
 
                 pendingList.Add(new()

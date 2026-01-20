@@ -2,15 +2,17 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Pdf;
 using ComicReaderUWP.SDK.Common.Utils;
@@ -137,109 +139,110 @@ internal partial class PdfComicHandle : ComicHandle
         public Stream? OpenImageStream(int index)
         {
             SizeF size = connection.GetPageSize(index);
-            CalculatePageSize(size.Width, size.Height, out int width, out int height);
-            return connection.Render(index, 0, 0, width, height, (buffer, stride) =>
+            int width = (int)Math.Round(size.Width);
+            int height = (int)Math.Round(size.Height);
+            return connection.Render(index, width, height, (buffer, stride) =>
             {
                 return CreateStreamFromBuffer(buffer, width, height, stride);
             });
         }
 
-        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int index)
+        public IVectorImageService? OpenVectorService(int index)
         {
-            SizeF size = connection.GetPageSize(index);
-            CalculatePageSize(size.Width, size.Height, out int width, out int height);
-            byte[]? buffer = connection.Render(index, 0, 0, width, height, (buffer, stride) =>
-            {
-                int bytesPerPixel = 4;
-                int rowBytes = width * bytesPerPixel;
-                int totalBytes = rowBytes * height;
-                byte[] packed = new byte[totalBytes];
-                unsafe
-                {
-                    byte* src = (byte*)buffer;
-                    fixed (byte* dstBase = packed)
-                    {
-                        byte* dst = dstBase;
-                        for (int y = 0; y < height; y++)
-                        {
-                            Buffer.MemoryCopy(
-                                src + y * stride,
-                                dst + y * rowBytes,
-                                rowBytes,
-                                rowBytes);
-                        }
-                    }
-                }
+            return new VectorService(connection.Clone(), index);
+        }
+    }
 
-                return packed;
-            });
+    private partial class VectorService(PdfManager.IPdfConnection connection, int index) : IVectorImageService
+    {
+        public SizeF Size => connection.GetPageSize(index);
 
-            if (buffer is null)
-            {
-                return null;
-            }
-
-            try
-            {
-                return CanvasBitmap.CreateFromBytes(
-                    creator,
-                    buffer,
-                    width,
-                    height,
-                    Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
-            }
-            catch (Exception ex)
-            {
-                Logger.E(TAG, ex);
-                return null;
-            }
+        public void Dispose()
+        {
+            connection.Dispose();
         }
 
-        private static void CalculatePageSize(float originWidth, float originHeight, out int width, out int height)
+        public Windows.Graphics.Imaging.SoftwareBitmap? CreateSoftwareBitmap(int width, int height)
         {
-            int defaultWidth = 764;
-            int defaultHeight = 1080;
-
-            if (!(float.IsFinite(originWidth) && float.IsFinite(originHeight) && originWidth > 0 && originHeight > 0))
+            return Render(index, width, height, buffer =>
             {
-                width = defaultWidth;
-                height = defaultHeight;
-                return;
-            }
+                try
+                {
+                    return Windows.Graphics.Imaging.SoftwareBitmap.CreateCopyFromBuffer(
+                        buffer.AsBuffer(),
+                        Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8,
+                        width, height);
+                }
+                catch (Exception ex)
+                {
+                    Logger.E(TAG, ex);
+                    return null;
+                }
+            });
+        }
 
-            DisplayUtils.GetScreenSize(out int screenWidth, out int screenHeight);
-            if (screenWidth <= 0 || screenHeight <= 0)
+        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int width, int height)
+        {
+            return Render(index, width, height, buffer =>
             {
-                width = (int)originWidth;
-                height = (int)originHeight;
-                return;
-            }
+                try
+                {
+                    return CanvasBitmap.CreateFromBytes(
+                        creator,
+                        buffer,
+                        width,
+                        height,
+                        Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
+                }
+                catch (Exception ex)
+                {
+                    Logger.E(TAG, ex);
+                    return null;
+                }
+            });
+        }
 
-            float pageAspectRatio = originWidth / originHeight;
-            float screenAspectRatio = (float)screenWidth / screenHeight;
+        private T? Render<T>(int index, int width, int height, Func<byte[], T?> func)
+        {
+            int bytesPerPixel = 4;
+            int rowBytes = width * bytesPerPixel;
+            int totalBytes = rowBytes * height;
+            byte[] packed = ArrayPool<byte>.Shared.Rent(totalBytes);
+            try
+            {
+                bool success = connection.Render(index, width, height, (buffer, stride) =>
+                {
+                    unsafe
+                    {
+                        byte* src = (byte*)buffer;
+                        fixed (byte* dstBase = packed)
+                        {
+                            byte* dst = dstBase;
+                            for (int y = 0; y < height; y++)
+                            {
+                                Buffer.MemoryCopy(
+                                    src + y * stride,
+                                    dst + y * rowBytes,
+                                    rowBytes,
+                                    rowBytes);
+                            }
+                        }
+                    }
 
-            float targetWidth, targetHeight;
-            if (pageAspectRatio > screenAspectRatio)
-            {
-                targetHeight = screenHeight;
-                targetWidth = screenHeight / originHeight * originWidth;
-            }
-            else
-            {
-                targetWidth = screenWidth;
-                targetHeight = screenWidth / originWidth * originHeight;
-            }
+                    return true;
+                });
 
-            float maxResolution = 10000000;
-            float targetResolution = targetWidth * targetHeight;
-            if (targetResolution > maxResolution)
-            {
-                float dimensionFactor = (float)Math.Sqrt(maxResolution / targetResolution);
-                targetWidth *= dimensionFactor;
-                targetHeight *= dimensionFactor;
+                if (!success)
+                {
+                    return default;
+                }
+
+                return func(packed);
             }
-            width = (int)targetWidth;
-            height = (int)targetHeight;
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(packed);
+            }
         }
     }
 }

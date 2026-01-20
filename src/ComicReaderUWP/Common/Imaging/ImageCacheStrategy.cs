@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace ComicReaderUWP.Common.Imaging;
 
@@ -12,12 +13,12 @@ internal static class ImageCacheStrategy
     private const int CACHE_ENTRY_RESOLUTION_100K = 100000;
     private const int CACHE_ENTRY_RESOLUTION_300K = 300000;
 
-    public static List<string> CalculateCacheEntryKeys(int desiredWidth, int desiredHeight, int originWidth, int originHeight)
+    public static List<string> CalculateCacheEntryKeys(int desiredWidth, int desiredHeight, SizeF originalSize)
     {
         List<string> keys = [];
 
         int desiredResolution = desiredWidth * desiredHeight;
-        int originResolution = originWidth * originHeight;
+        double originResolution = originalSize.Width * originalSize.Height;
 
         if (desiredResolution >= originResolution)
         {

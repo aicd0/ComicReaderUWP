@@ -190,7 +190,12 @@
             Modifiers="Control" />
     </Page.KeyboardAccelerators>
 
-    <Grid>
+    <Grid
+        AllowDrop="True"
+        Background="Transparent"
+        DragOver="OnRootTabViewDragOver"
+        Drop="OnRootTabViewDrop">
+
         <!--  Content (immersive mode)  -->
         <Grid x:Name="ContentGridImmersive" />
 
@@ -415,10 +420,7 @@
             x:Name="RootTabView"
             VerticalAlignment="Stretch"
             AddTabButtonClick="OnAddTabButtonClicked"
-            AllowDrop="True"
             CanDragTabs="True"
-            DragOver="OnRootTabViewDragOver"
-            Drop="OnRootTabViewDrop"
             SelectionChanged="OnTabViewSelectionChanged"
             Style="{StaticResource MainPageTabViewStyle}"
             TabCloseRequested="OnTabCloseRequested"

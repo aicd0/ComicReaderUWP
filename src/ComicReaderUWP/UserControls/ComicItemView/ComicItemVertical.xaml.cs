@@ -155,7 +155,6 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
             new(new ComicCoverImageSource(item.Comic), new LoadImageCallback(this, item)) {
                 Width = imageWidth,
                 Height = imageHeight,
-                Multiplication = DisplayUtils.GetRawPixelPerPixel(),
             }
         };
         new SimpleImageLoader.Transaction(_loadImageToken.Token, tokens).Commit();
