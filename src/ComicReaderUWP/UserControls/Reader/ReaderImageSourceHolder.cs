@@ -394,16 +394,10 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         return device;
     }
 
-    private struct Size
+    private struct Size(double width, double height)
     {
-        public double Width;
-        public double Height;
-
-        public Size(double width, double height)
-        {
-            Width = width;
-            Height = height;
-        }
+        public double Width = width;
+        public double Height = height;
     }
 
     private struct ImageRect

@@ -631,13 +631,12 @@ internal partial class ReaderView : UserControl
                 }
 
                 IImageSource image = images[i];
-                SizeF? size = ImageCacheManager.TryGetOriginalDimension(image);
                 int width = 0;
                 int height = 0;
-                if (size.HasValue)
+                if (ImageCacheManager.TryGetOriginalDimension(image, out SizeF size))
                 {
-                    width = (int)Math.Round(size.Value.Width);
-                    height = (int)Math.Round(size.Value.Height);
+                    width = (int)Math.Round(size.Width);
+                    height = (int)Math.Round(size.Height);
                 }
 
                 pendingList.Add(new()
