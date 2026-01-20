@@ -25,7 +25,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     //
 
     public ComicModel Comic { get; }
-    public PlaylistModel.Builder? Playlist { get; set; }
 
     private string _title;
     public string Title

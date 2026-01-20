@@ -885,21 +885,20 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 OnClick = model =>
                 {
-                    if (IsSelectMode)
+                    if (_isSelectMode)
                     {
                         return;
                     }
 
-                    OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, model.Playlist));
+                    OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
                 },
                 OnRequestContextFlyoutAsync = model =>
                 {
-                    List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [comic];
+                    List<ComicModel>? selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : null;
                     return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                        _actionHandler, comic, model.Playlist,
+                        _actionHandler, comic, playlist,
                         selectedComics: selectedComics, canSelect: true);
                 },
-                Playlist = playlist,
             };
             item.UpdateProgress(true);
             return item;

@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Misc;
@@ -256,37 +257,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         UpdateCommandBarButtonStates();
     }
 
-    public List<ComicItemViewModel> GetSelection(ComicItemViewModel triggerItem)
-    {
-        List<ComicItemViewModel> selection = [];
-        if (_isSelectMode)
-        {
-            bool contained = false;
-            foreach (ComicItemViewModel item in _selectedItems)
-            {
-                if (triggerItem.Comic == item.Comic)
-                {
-                    contained = true;
-                    break;
-                }
-            }
-            if (contained)
-            {
-                selection.AddRange(_selectedItems);
-            }
-            else
-            {
-                selection.Add(triggerItem);
-            }
-        }
-        else
-        {
-            selection.Add(triggerItem);
-        }
-
-        return selection;
-    }
-
     public void ApplyOperationToComicSelection(ComicOperationType operationType)
     {
         List<ComicItemViewModel> selectedItems = [.. _selectedItems];
@@ -358,28 +328,27 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit("OnSearchResult", () =>
         {
             List<ComicItemViewModel> newItems = [];
-            var playlist = PlaylistModel.Builder.Create();
+            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(comics);
             foreach (ComicModel comic in comics)
             {
                 ComicItemViewModel item = new(comic)
                 {
                     OnClick = model =>
                     {
-                        if (IsSelectMode)
+                        if (_isSelectMode)
                         {
                             return;
                         }
 
-                        OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, model.Playlist));
+                        OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
                     },
                     OnRequestContextFlyoutAsync = model =>
                     {
-                        List<ComicItemViewModel> selection = GetSelection(model);
+                        IEnumerable<ComicModel>? selection = _isSelectMode ? _selectedItems.Select(x => x.Comic) : null;
                         return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                            _actionHandler, comic, model.Playlist,
-                            selectedComics: selection.ConvertAll(x => x.Comic), canSelect: true);
+                            _actionHandler, comic, playlist,
+                            selectedComics: selection, canSelect: true);
                     },
-                    Playlist = playlist,
                 };
                 item.UpdateProgress(false);
                 newItems.Add(item);

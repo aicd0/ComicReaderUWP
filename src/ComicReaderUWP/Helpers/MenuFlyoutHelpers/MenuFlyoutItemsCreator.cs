@@ -36,11 +36,21 @@ internal static class MenuFlyoutItemsCreator
         IEnumerable<ComicModel>? selectedComics = null,
         bool canOpenWithDefault = false, bool canEdit = true, bool canSelect = false)
     {
-        // If primaryComic is not in selectedComics, ignore selectedComics and use only primaryComic.
-        selectedComics ??= [primaryComic];
-        if (!selectedComics.Any(i => i.Id == primaryComic.Id))
+        if (selectedComics is null)
         {
             selectedComics = [primaryComic];
+        }
+        else
+        {
+            if (selectedComics.Any(i => i.Id == primaryComic.Id))
+            {
+                playlist = PlaylistModel.Builder.Create().AddComics(selectedComics);
+                canOpenWithDefault = true;
+            }
+            else
+            {
+                selectedComics = [primaryComic];
+            }
         }
 
         Route primaryComicRoute = OpenComicHelper.GetComicRoute(primaryComic, playlist);
@@ -517,15 +527,15 @@ internal static class MenuFlyoutItemsCreator
             .ToList();
         if (tags.Count > 0)
         {
-            foreach ((string Category, string Tag) pair in tags)
+            foreach ((string category, string tag) in tags)
             {
-                string name = $"{pair.Tag} ({pair.Category})";
+                string name = $"{tag} ({category})";
                 items.Add(new SimpleMenuFlyoutItemModel()
                 {
                     Text = name,
                     Click = () =>
                     {
-                        string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(pair.Category)}\"=\"{ExpressionUtils.EscapeString(pair.Tag)}\"";
+                        string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(category)}\"=\"{ExpressionUtils.EscapeString(tag)}\"";
                         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
                             .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
                         ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
