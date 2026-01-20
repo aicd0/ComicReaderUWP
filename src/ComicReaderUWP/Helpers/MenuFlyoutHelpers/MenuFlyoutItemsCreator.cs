@@ -36,11 +36,21 @@ internal static class MenuFlyoutItemsCreator
         IEnumerable<ComicModel>? selectedComics = null,
         bool canOpenWithDefault = false, bool canEdit = true, bool canSelect = false)
     {
-        // If primaryComic is not in selectedComics, ignore selectedComics and use only primaryComic.
-        selectedComics ??= [primaryComic];
-        if (!selectedComics.Any(i => i.Id == primaryComic.Id))
+        if (selectedComics is null)
         {
             selectedComics = [primaryComic];
+        }
+        else
+        {
+            if (selectedComics.Any(i => i.Id == primaryComic.Id))
+            {
+                playlist = PlaylistModel.Builder.Create().AddComics(selectedComics);
+                canOpenWithDefault = true;
+            }
+            else
+            {
+                selectedComics = [primaryComic];
+            }
         }
 
         Route primaryComicRoute = OpenComicHelper.GetComicRoute(primaryComic, playlist);

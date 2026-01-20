@@ -245,12 +245,12 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 },
                 RequestContextMenuItemsAsync = (primary, selection) =>
                 {
-                    IEnumerable<ComicModel> selectedComics = selection
+                    IEnumerable<ComicModel>? selectedComics = !_selectionMode ? null : selection
                         .Where(x => x.DataContext is ComicModel)
                         .Select(x => (ComicModel)x.DataContext!);
                     return MenuFlyoutItemsCreator.CreateComicMenuItems(
                         _actionHandler, comic, playlist,
-                        selectedComics, canSelect: !SelectionMode);
+                        selectedComics: selectedComics, canSelect: !SelectionMode);
                 },
             };
         }

@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Misc;
@@ -256,37 +257,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         UpdateCommandBarButtonStates();
     }
 
-    public List<ComicItemViewModel> GetSelection(ComicItemViewModel triggerItem)
-    {
-        List<ComicItemViewModel> selection = [];
-        if (_isSelectMode)
-        {
-            bool contained = false;
-            foreach (ComicItemViewModel item in _selectedItems)
-            {
-                if (triggerItem.Comic == item.Comic)
-                {
-                    contained = true;
-                    break;
-                }
-            }
-            if (contained)
-            {
-                selection.AddRange(_selectedItems);
-            }
-            else
-            {
-                selection.Add(triggerItem);
-            }
-        }
-        else
-        {
-            selection.Add(triggerItem);
-        }
-
-        return selection;
-    }
-
     public void ApplyOperationToComicSelection(ComicOperationType operationType)
     {
         List<ComicItemViewModel> selectedItems = [.. _selectedItems];
@@ -365,7 +335,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 {
                     OnClick = model =>
                     {
-                        if (IsSelectMode)
+                        if (_isSelectMode)
                         {
                             return;
                         }
@@ -374,10 +344,10 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     },
                     OnRequestContextFlyoutAsync = model =>
                     {
-                        List<ComicItemViewModel> selection = GetSelection(model);
+                        IEnumerable<ComicModel>? selection = _isSelectMode ? _selectedItems.Select(x => x.Comic) : null;
                         return MenuFlyoutItemsCreator.CreateComicMenuItems(
                             _actionHandler, comic, playlist,
-                            selectedComics: selection.ConvertAll(x => x.Comic), canSelect: true);
+                            selectedComics: selection, canSelect: true);
                     },
                 };
                 item.UpdateProgress(false);
