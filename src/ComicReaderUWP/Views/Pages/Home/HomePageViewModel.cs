@@ -890,16 +890,15 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                         return;
                     }
 
-                    OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, model.Playlist));
+                    OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
                 },
                 OnRequestContextFlyoutAsync = model =>
                 {
                     List<ComicModel> selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : [comic];
                     return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                        _actionHandler, comic, model.Playlist,
+                        _actionHandler, comic, playlist,
                         selectedComics: selectedComics, canSelect: true);
                 },
-                Playlist = playlist,
             };
             item.UpdateProgress(true);
             return item;

@@ -358,7 +358,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit("OnSearchResult", () =>
         {
             List<ComicItemViewModel> newItems = [];
-            var playlist = PlaylistModel.Builder.Create();
+            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(comics);
             foreach (ComicModel comic in comics)
             {
                 ComicItemViewModel item = new(comic)
@@ -370,16 +370,15 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                             return;
                         }
 
-                        OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, model.Playlist));
+                        OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
                     },
                     OnRequestContextFlyoutAsync = model =>
                     {
                         List<ComicItemViewModel> selection = GetSelection(model);
                         return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                            _actionHandler, comic, model.Playlist,
+                            _actionHandler, comic, playlist,
                             selectedComics: selection.ConvertAll(x => x.Comic), canSelect: true);
                     },
-                    Playlist = playlist,
                 };
                 item.UpdateProgress(false);
                 newItems.Add(item);
