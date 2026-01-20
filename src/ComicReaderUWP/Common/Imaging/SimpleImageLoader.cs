@@ -39,13 +39,11 @@ internal static class SimpleImageLoader
             {
                 foreach (Token token in _tokens)
                 {
-                    double width = token.Width * token.Multiplication;
-                    double height = token.Height * token.Multiplication;
                     LoadImageOptions options = new()
                     {
                         Token = _sessionToken,
-                        FrameWidth = width,
-                        FrameHeight = height,
+                        FrameWidth = token.Width,
+                        FrameHeight = token.Height,
                         StretchMode = token.StretchMode,
                         Handler = token.ImageResultHandler,
                     };
@@ -61,7 +59,6 @@ internal static class SimpleImageLoader
         public double Width { get; set; } = double.PositiveInfinity;
         public double Height { get; set; } = double.PositiveInfinity;
         public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
-        public double Multiplication { get; set; } = 1.0;
         public IImageResultHandler ImageResultHandler { get; set; } = callback;
     }
 }

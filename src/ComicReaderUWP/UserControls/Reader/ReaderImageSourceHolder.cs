@@ -38,7 +38,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                 return;
             }
 
-            double fixedValue = value * DisplayUtils.GetRawPixelPerPixel();
+            double fixedValue = value * DisplayUtils.GetRawPixelPerPixel() * 1.2;
             if (_scale == fixedValue)
             {
                 return;

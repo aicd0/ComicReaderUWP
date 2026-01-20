@@ -88,13 +88,11 @@ internal partial class SimpleImageView : UserControl
 
     private static void LoadImage(CancellationSession.IToken token, Model model, IImageResultHandler handler)
     {
-        double width = model.Width * model.Multiplication;
-        double height = model.Height * model.Multiplication;
         LoadImageOptions options = new()
         {
             Token = token,
-            FrameWidth = width,
-            FrameHeight = height,
+            FrameWidth = model.Width,
+            FrameHeight = model.Height,
             StretchMode = model.StretchMode,
             Handler = handler,
         };
@@ -126,7 +124,6 @@ internal partial class SimpleImageView : UserControl
         public required double Width { get; set; } = double.PositiveInfinity;
         public required double Height { get; set; } = double.PositiveInfinity;
         public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
-        public double Multiplication { get; set; } = DisplayUtils.GetRawPixelPerPixel();
         public required ITaskDispatcher Dispatcher { get; set; }
         public string DebugDescription { get; set; } = string.Empty;
 
@@ -136,8 +133,7 @@ internal partial class SimpleImageView : UserControl
                 Source.GetHashCode(),
                 Width,
                 Height,
-                StretchMode,
-                Multiplication);
+                StretchMode);
         }
     }
 }

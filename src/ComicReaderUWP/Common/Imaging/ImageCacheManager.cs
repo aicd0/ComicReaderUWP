@@ -121,8 +121,11 @@ internal static partial class ImageCacheManager
             return;
         }
 
-        using CacheRequestContext context = new(source);
         options = options.Clone();
+        options.FrameWidth *= DisplayUtils.GetRawPixelPerPixel() * 1.2;
+        options.FrameHeight *= DisplayUtils.GetRawPixelPerPixel() * 1.2;
+
+        using CacheRequestContext context = new(source);
         if (!LoadImage(context, options))
         {
             CoroutineUtils.RunInMainThread(options.Handler.OnFailure);
@@ -763,7 +766,6 @@ internal static partial class ImageCacheManager
         StretchModeEnum stretchMode, double originWidth, double originHeight,
         out bool useOriginalSize, out Size desiredSize)
     {
-        double rawPixelsPerViewPixel = DisplayUtils.GetRawPixelPerPixel();
         double imageRatio = originWidth / originHeight;
         double frameRatio = frameWidth / frameHeight;
         double desiredWidthRaw;
@@ -778,7 +780,7 @@ internal static partial class ImageCacheManager
             }
             else
             {
-                desiredWidthRaw = frameWidth * rawPixelsPerViewPixel;
+                desiredWidthRaw = frameWidth;
                 desiredHeightRaw = desiredWidthRaw / imageRatio;
                 useOriginalSize = desiredWidthRaw >= originWidth;
             }
@@ -793,7 +795,7 @@ internal static partial class ImageCacheManager
             }
             else
             {
-                desiredHeightRaw = frameHeight * rawPixelsPerViewPixel;
+                desiredHeightRaw = frameHeight;
                 desiredWidthRaw = desiredHeightRaw * imageRatio;
                 useOriginalSize = desiredHeightRaw >= originHeight;
             }
