@@ -66,8 +66,9 @@
             <!--  Playback control  -->
             <Grid
                 x:Name="BottomGrid"
+                MinWidth="400"
                 Margin="0,0,0,20"
-                Padding="16,10,16,6"
+                Padding="8,8"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 Background="{ThemeResource FlyoutPresenterBackground}"
@@ -83,7 +84,7 @@
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="&#xE892;" />
+                                    <FontIcon FontSize="14" Glyph="&#xE892;" />
                                 </Button.Content>
                             </Button>
                             <Button
@@ -92,7 +93,7 @@
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind ViewModel.PlayOrPauseButtonTooltip, Mode=OneWay}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
+                                    <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
                                 </Button.Content>
                             </Button>
                             <Button
@@ -101,7 +102,7 @@
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind StringResource.Next}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="&#xE893;" />
+                                    <FontIcon FontSize="14" Glyph="&#xE893;" />
                                 </Button.Content>
                             </Button>
                             <Button
@@ -109,7 +110,7 @@
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind StringResource.ReadingList}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="&#xE7BC;" />
+                                    <FontIcon FontSize="14" Glyph="&#xE7BC;" />
                                 </Button.Content>
                             </Button>
                             <Button
@@ -117,7 +118,7 @@
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind StringResource.More}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="&#xE712;" />
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
                                 </Button.Content>
                             </Button>
                         </StackPanel>
@@ -127,29 +128,29 @@
                                 Orientation="Horizontal"
                                 PointerWheelChanged="PageIndicator_PointerWheelChanged">
                                 <TextBlock
-                                    Margin="0,0,2,3"
+                                    Margin="0,0,6,2"
                                     VerticalAlignment="Center"
                                     FontSize="14"
                                     FontWeight="SemiBold"
                                     Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
                                 <FontIcon
                                     VerticalAlignment="Center"
-                                    FontSize="12"
+                                    FontSize="14"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>
                             <TextBlock
                                 x:Name="PageIndicator2"
-                                Margin="8,0,0,3"
+                                Margin="8,0,4,2"
                                 VerticalAlignment="Center"
                                 FontSize="14"
                                 FontWeight="SemiLight"
-                                Opacity="0.6"
+                                Foreground="{ThemeResource ForegroundGrey2}"
                                 Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
                         </StackPanel>
                     </Grid>
                     <Slider
                         x:Name="PlaybackSlider"
-                        Width="340"
+                        Margin="4,-4"
                         Minimum="1"
                         ValueChanged="PlaybackSlider_ValueChanged" />
                 </StackPanel>
