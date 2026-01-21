@@ -150,7 +150,7 @@
                     </Grid>
                     <Slider
                         x:Name="PlaybackSlider"
-                        Margin="4,-4"
+                        Margin="4,-2,4,-6"
                         Minimum="1"
                         ValueChanged="PlaybackSlider_ValueChanged" />
                 </StackPanel>
