@@ -151,6 +151,7 @@
             <muxc:InfoBar
                 x:Name="ReaderTip"
                 Title="{x:Bind StringResource.Tip}"
+                MaxWidth="500"
                 Margin="10"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Bottom"

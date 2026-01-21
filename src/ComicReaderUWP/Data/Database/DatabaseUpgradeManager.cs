@@ -62,11 +62,6 @@ class DatabaseUpgradeManager
     public void UpgradeDatabaseAfterInitialization()
     {
         DatabaseVersionModel.ExternalModel databaseVersions = DatabaseVersionModel.Instance.GetModel();
-        if (databaseVersions == null)
-        {
-            return;
-        }
-
         List<Func<DatabaseVersionModel.ExternalModel, bool>> tasks = [
             UpgradeVersionModel,
             UpgradeKVStore,

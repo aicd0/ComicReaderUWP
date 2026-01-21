@@ -121,6 +121,9 @@ internal partial class ReaderView : UserControl
     public delegate void ReaderEventReaderStateChangeHandler(ReaderView sender, ReaderState state, string description);
     public event ReaderEventReaderStateChangeHandler? ReaderEventReaderStateChanged;
 
+    public delegate void ReaderEventZoomingChangedEventHandler(ReaderView sender, double zooming);
+    public event ReaderEventZoomingChangedEventHandler? ReaderEventZoomingChanged;
+
     public delegate void ReaderEventAutoScrollingChangedEventHandler(ReaderView sender, bool isAutoScrolling);
     public event ReaderEventAutoScrollingChangedEventHandler? ReaderEventAutoScrollingChanged;
 
@@ -132,6 +135,22 @@ internal partial class ReaderView : UserControl
     private int CurrentPageInt => ToDiscretePage(CurrentPage);
     public int CurrentPageDisplay => CurrentPageInt;
     public bool IsVertical => _isVertical;
+
+    private float _externalZooming = 1F;
+    public float Zooming
+    {
+        get => _externalZooming;
+        set
+        {
+            if (_externalZooming != value)
+            {
+                _externalZooming = value;
+                SetScrollViewer2("SetZooming", ScrollSource.User,
+                    zoom: value, disableAnimation: false);
+                ReaderEventZoomingChanged?.Invoke(this, value);
+            }
+        }
+    }
 
     public int CurrentPagePercentage
     {
@@ -417,9 +436,8 @@ internal partial class ReaderView : UserControl
 
     private bool UpdatePage()
     {
-        if (!_isInitialFrameLoaded)
+        if (!_isInitialFrameLoaded || FrameDataSource.Count == 0)
         {
-            Logger.AssertNotReachHere("3EC47459C554E187");
             return false;
         }
 
@@ -428,11 +446,6 @@ internal partial class ReaderView : UserControl
             double parallelOffset = SCParallelOffsetFinal;
             double zoomFactor = SCZoomFactorFinal;
             offset = (parallelOffset + ViewportParallelLength * 0.5) / zoomFactor;
-        }
-
-        if (FrameDataSource.Count == 0)
-        {
-            return false;
         }
 
         // Locate nearest frames using binary search
@@ -1046,6 +1059,12 @@ internal partial class ReaderView : UserControl
         }
 
         ReaderEventPageChanged?.Invoke(this, !final);
+
+        if (_zoom != _externalZooming)
+        {
+            _externalZooming = _zoom;
+            ReaderEventZoomingChanged?.Invoke(this, _externalZooming);
+        }
     }
 
     #endregion
@@ -1251,7 +1270,7 @@ internal partial class ReaderView : UserControl
     private void OnReaderScrollViewerPointerWheelChanged(PointerRoutedEventArgs e)
     {
         PointerPoint pt = e.GetCurrentPoint(null);
-        int delta = -pt.Properties.MouseWheelDelta / 120;
+        int delta = -pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
 
         if (_isContinuous || _zoom > FORCE_CONTINUOUS_ZOOM_THRESHOLD)
         {

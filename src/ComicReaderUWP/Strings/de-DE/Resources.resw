@@ -744,8 +744,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
     <value>Der Reader wird geladen</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
-    <value>1. Doppeltippen, um an Breite/Höhe anzupassen.
-2. Setzen Sie „Automatisches Scrollen“ auf einen Wert größer als 0, um die mittlere Maustaste zu aktivieren.</value>
+    <value>1. Doppeltippen, um die Seite an die Breite oder Höhe anzupassen.
+2. Setzen Sie „Automatisches Scrollen“ auf einen Wert größer als 0, um automatisches Scrollen und das Scrollen mit der mittleren Maustaste zu aktivieren.
+3. Ziehen Sie die Seite, um die Scrollgeschwindigkeit anzupassen.</value>
   </data>
   <data name="ReadingList" xml:space="preserve">
     <value>Leseliste</value>

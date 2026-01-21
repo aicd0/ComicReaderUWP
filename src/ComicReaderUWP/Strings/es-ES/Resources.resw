@@ -744,8 +744,9 @@ La evaluación se realizará en el siguiente orden:
     <value>El lector esta cargando</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
-    <value>1. Toca dos veces para ajustar al ancho/alto.
-2. Establece “Desplazamiento automático” en un valor mayor que 0 para habilitar el botón central del ratón.</value>
+    <value>1. Toca dos veces para ajustar la página al ancho o a la altura.
+2. Establece “Desplazamiento automático” en un valor mayor que 0 para activar el desplazamiento automático y el botón central del ratón.
+3. Arrastra la página para ajustar la velocidad de desplazamiento automático.</value>
   </data>
   <data name="ReadingList" xml:space="preserve">
     <value>Lista de lectura</value>

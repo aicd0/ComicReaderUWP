@@ -11,7 +11,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:primitiveContract7Present="using:Microsoft.UI.Xaml.Controls.Primitives?IsApiContractPresent(Windows.Foundation.UniversalApiContract,7)"
-    xmlns:readersettingscontrol="using:ComicReaderUWP.UserControls.ReaderSettings"
     xmlns:vm="using:ComicReaderUWP.ViewModels"
     KeyboardAcceleratorPlacementMode="Hidden"
     mc:Ignorable="d">
@@ -261,16 +260,7 @@
                         </Grid>
                     </StackPanel>
 
-                    <!--  Search box  -->
-                    <controls:ExtendedSearchBox
-                        x:Name="SearchBox"
-                        Grid.Column="1"
-                        MinWidth="250"
-                        Margin="15,0,15,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        QuerySubmitted="OnSearchBoxQuerySubmitted"
-                        TextChanged="OnSearchBoxTextChanged" />
+                    <Grid x:Name="CustomNavigationBarGrid" Grid.Column="1" />
 
                     <!--  Right buttons  -->
                     <StackPanel
@@ -302,73 +292,6 @@
                     </StackPanel>
 
                 </Grid>
-
-                <!--  Center buttons  -->
-                <StackPanel
-                    x:Name="SpCenterButtons"
-                    Grid.Row="0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal">
-
-                    <!--  Add to favorites  -->
-                    <AppBarButton
-                        x:Name="AbbAddToFavorite"
-                        Click="OnAddToFavoritesClick"
-                        Style="{StaticResource NavigationPageTopTileAppBarButton}">
-                        <AppBarButton.Content>
-                            <Grid>
-                                <FontIcon x:Name="FiFavoriteUnfilled" Glyph="&#xE734;" />
-                                <FontIcon
-                                    x:Name="FiFavoriteFilled"
-                                    Foreground="{ThemeResource SystemAccentColor}"
-                                    Glyph="&#xE735;" />
-                            </Grid>
-                        </AppBarButton.Content>
-                    </AppBarButton>
-
-                    <!--  Reader grid preview toggle  -->
-                    <AppBarToggleButton
-                        x:Name="AbtbPreviewButton"
-                        Checked="AbtbPreviewButton_Checked"
-                        Style="{StaticResource NavigationPageTopTileAppBarToggleButton}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.AllPages}"
-                        Unchecked="AbtbPreviewButton_Unchecked">
-                        <AppBarToggleButton.Content>
-                            <FontIcon Glyph="&#xF0E2;" />
-                        </AppBarToggleButton.Content>
-                    </AppBarToggleButton>
-
-                    <!--  Reader settings  -->
-                    <AppBarButton x:Uid="ReaderSettingButton" Style="{StaticResource NavigationPageTopTileAppBarButton}">
-                        <AppBarButton.Content>
-                            <FontIcon Glyph="&#xE713;" />
-                        </AppBarButton.Content>
-                        <AppBarButton.Flyout>
-                            <Flyout Closing="ReaderSettingFlyout_Closing">
-                                <Flyout.FlyoutPresenterStyle>
-                                    <Style TargetType="FlyoutPresenter">
-                                        <Setter Property="CornerRadius" Value="8" />
-                                        <Setter Property="Padding" Value="14,12,14,12" />
-                                        <Setter Property="MaxWidth" Value="1000" />
-                                    </Style>
-                                </Flyout.FlyoutPresenterStyle>
-                                <readersettingscontrol:ReaderSettingPanel x:Name="MainReaderSettingPanel" DataChanged="MainReaderSettingPanel_DataChanged" />
-                            </Flyout>
-                        </AppBarButton.Flyout>
-                    </AppBarButton>
-
-                    <!--  Comic info  -->
-                    <AppBarButton
-                        Click="OnComicInfoClick"
-                        Style="{StaticResource NavigationPageTopTileAppBarButton}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.ComicInfo}">
-                        <AppBarButton.Content>
-                            <FontIcon Glyph="&#xE946;" />
-                        </AppBarButton.Content>
-                    </AppBarButton>
-
-                </StackPanel>
 
                 <Rectangle
                     Grid.Row="1"

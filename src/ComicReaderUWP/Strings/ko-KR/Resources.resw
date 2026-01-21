@@ -745,8 +745,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
     <value>리더가 로딩 중입니다</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
-    <value>1. 두 번 탭하여 너비/높이에 맞춥니다.
-2. 마우스 가운데 버튼을 활성화하려면 “자동 스크롤”을 0보다 큰 값으로 설정하세요.</value>
+    <value>1. 두 번 탭하여 페이지를 너비 또는 높이에 맞춥니다.
+2. “자동 스크롤”을 0보다 큰 값으로 설정하면 자동 스크롤과 마우스 가운데 버튼 기능이 활성화됩니다.
+3. 페이지를 드래그하여 자동 스크롤 속도를 조절합니다.</value>
   </data>
   <data name="ReadingList" xml:space="preserve">
     <value>읽기 목록</value>

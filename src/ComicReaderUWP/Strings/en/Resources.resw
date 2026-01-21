@@ -746,8 +746,9 @@ The evaluation will be performed in the following order:
     <value>The reader is loading</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
-    <value>1. Double tap to fit width/height.
-2. Set “Auto scrolling” to a value greater than 0 to enable the mouse middle button.</value>
+    <value>1. Double-tap to fit the page to the width or height.
+2. Set “Auto scrolling” to a value greater than 0 to enable auto scrolling and middle mouse button scrolling.
+3. Drag the page to adjust the auto scrolling speed.</value>
   </data>
   <data name="ReadingList" xml:space="preserve">
     <value>Reading list</value>

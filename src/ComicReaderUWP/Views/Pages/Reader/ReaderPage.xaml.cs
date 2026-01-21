@@ -58,11 +58,13 @@ internal sealed partial class ReaderPage : BasePage
         set
         {
             _gridViewModeEnabled = value;
+            _readerNavigationBar.SetGridViewMode(value);
             UpdateReaderUI();
-            GetNavigationPageAbility().SetGridViewMode(value);
+            FocusReader();
         }
     }
 
+    private readonly ReaderNavigationBar _readerNavigationBar;
     private bool _restoreSidebar = false;
     private bool _readerPointerEntered = false;
     private bool _bottomTileShowed = false;
@@ -76,6 +78,7 @@ internal sealed partial class ReaderPage : BasePage
     public ReaderPage()
     {
         InitializeComponent();
+        _readerNavigationBar = new();
 
         ViewModel.ComicTitle1 = "";
         ViewModel.ComicTitle2 = "";
@@ -92,7 +95,10 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnStart(bundle);
 
-        ViewModel.Initialize(PageActionHandler);
+        AddToActiveTabs();
+
+        GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
+        GetNavigationPageAbility().SetCustomNavigationBar(_readerNavigationBar);
 
         bool tipShown = AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).GetValueOrDefault(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
         if (!tipShown)
@@ -100,7 +106,10 @@ internal sealed partial class ReaderPage : BasePage
             ReaderTip.IsOpen = !tipShown;
         }
 
-        GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
+        MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
+        _readerNavigationBar.SetWindowId(WindowId);
+
+        ViewModel.Initialize(PageActionHandler);
         CoroutineUtils.Start(async () =>
         {
             PlaylistModel playlist = await GetPlaylist(bundle);
@@ -109,18 +118,17 @@ internal sealed partial class ReaderPage : BasePage
         });
 
         ObserveData();
-        AddToActiveTabs();
-        MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
     }
 
     protected override void OnResume()
     {
         base.OnResume();
 
-        ViewModel.ReloadReaderSettings();
-        UpdateReaderUI();
         AddToActiveTabs();
+        ViewModel.ReloadReaderSettings();
         GetEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
+        UpdateReaderUI();
+        FocusReader();
     }
 
     protected override void OnStop()
@@ -186,25 +194,6 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.IsFullscreen = isFullscreen;
         });
 
-        GetNavigationPageAbility().RegisterGridViewModeChangedHandler(this, delegate (bool enabled)
-        {
-            GridViewModeEnabled = enabled;
-        });
-
-        GetNavigationPageAbility().RegisterExpandInfoPaneHandler(this, delegate
-        {
-            InfoPane.IsPaneOpen = true;
-            _restoreSidebar = GetMainPageAbility().GetSidePaneOpenState();
-            GetMainPageAbility().SetSidePaneOpenState(false, force: true);
-        });
-
-        GetNavigationPageAbility().RegisterReaderSettingsChangedEventHandler(this, ApplyReaderSettings);
-
-        GetNavigationPageAbility().RegisterFavoriteChangedEventHandler(this, delegate (bool isFavorite)
-        {
-            ViewModel.SetIsFavorite(isFavorite, true);
-        });
-
         ViewModel.TitleLiveData.ObserveStartSticky(this, title =>
         {
             GetMainPageAbility().SetTitle(title);
@@ -227,7 +216,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             RcRating.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
             SetCompletionStateButton.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
-            GetNavigationPageAbility().SetExternalComic(isExternal);
+            _readerNavigationBar.SetExternalComic(isExternal);
         });
 
         ViewModel.ReaderStatusLiveData.ObserveSticky(this, delegate (ReaderStatusInfo info)
@@ -253,10 +242,7 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        ViewModel.ReaderSettingLiveData.ObserveSticky(this, comic =>
-        {
-            GetNavigationPageAbility().SetReaderSettings(comic);
-        });
+        ViewModel.ReaderSettingLiveData.ObserveSticky(this, _readerNavigationBar.SetReaderSettings);
 
         ViewModel.ComicDescriptionLiveData.ObserveSticky(this, description =>
         {
@@ -264,10 +250,7 @@ internal sealed partial class ReaderPage : BasePage
             TbComicDescription.Visibility = TbComicDescription.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         });
 
-        ViewModel.IsFavoriteLiveData.ObserveSticky(this, isFavorite =>
-        {
-            GetNavigationPageAbility().SetFavorite(isFavorite);
-        });
+        ViewModel.IsFavoriteLiveData.ObserveSticky(this, _readerNavigationBar.SetFavorite);
 
         ViewModel.CompletionStateLiveData.ObserveSticky(this, completionStatus =>
         {
@@ -308,7 +291,32 @@ internal sealed partial class ReaderPage : BasePage
             MainReaderView.SetConfigurationDatabase(new ReaderConfigDatabase());
             MainReaderView.SetInitialPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
+            FocusReader();
         });
+
+        _readerNavigationBar.GridViewModeChanged += delegate (bool enabled)
+        {
+            GridViewModeEnabled = enabled;
+        };
+
+        _readerNavigationBar.InfoPaneExpanded += delegate
+        {
+            InfoPane.IsPaneOpen = true;
+            _restoreSidebar = GetMainPageAbility().GetSidePaneOpenState();
+            GetMainPageAbility().SetSidePaneOpenState(false, force: true);
+        };
+
+        _readerNavigationBar.ReaderSettingsChanged += ApplyReaderSettings;
+
+        _readerNavigationBar.FavoriteChanged += delegate (bool isFavorite)
+        {
+            ViewModel.SetIsFavorite(isFavorite, true);
+        };
+
+        _readerNavigationBar.ZoomingChanged += delta =>
+        {
+            MainReaderView.Zooming += delta * 0.01F;
+        };
 
         MainReaderView.ReaderEventTapped += delegate (ReaderView sender)
         {
@@ -347,6 +355,11 @@ internal sealed partial class ReaderPage : BasePage
                     ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error, description));
                     break;
             }
+        };
+
+        MainReaderView.ReaderEventZoomingChanged += (sender, zooming) =>
+        {
+            _readerNavigationBar.SetZooming((int)Math.Round(zooming * 100F));
         };
 
         MainReaderView.ReaderEventAutoScrollingChanged += delegate (ReaderView sender, bool isAutoScrolling)
@@ -482,7 +495,6 @@ internal sealed partial class ReaderPage : BasePage
     {
         bool isWorking = ViewModel.ReaderStatus == ReaderStatusEnum.Working;
         bool previewVisible = isWorking && _gridViewModeEnabled;
-        bool readerVisible = isWorking && !previewVisible;
 
         // Setting Visibility.Collapsed here prevents GridView from loading eagerly
         PreviewGridView.Opacity = previewVisible ? 1.0 : 0.0;
@@ -491,11 +503,6 @@ internal sealed partial class ReaderPage : BasePage
         // Setting Visibility.Collapsed here prevents ReaderView from locating target page offset
         GMainSection.Opacity = previewVisible ? 0.0 : 1.0;
         GMainSection.IsHitTestVisible = !previewVisible;
-
-        if (readerVisible)
-        {
-            FocusReader();
-        }
     }
 
     private void FocusReader()
@@ -965,6 +972,12 @@ internal sealed partial class ReaderPage : BasePage
     {
         void helper(int attempts)
         {
+            if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible)
+            {
+                Logger.E(TAG, $"Failed to acquired focus for {element.GetType().Name} as it is not interactable");
+                return;
+            }
+
             attempts++;
             if (element.Focus(FocusState.Programmatic))
             {

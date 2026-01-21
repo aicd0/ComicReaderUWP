@@ -99,29 +99,11 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
 
     protected void Save()
     {
-        T? clonedModel = Read(CloneModel);
-        if (clonedModel != null)
+        string json = Read(model => JsonSerializer.Serialize(model, _serializerOptions));
+        _queue.Submit("Save", () =>
         {
-            _queue.Submit("Save", () =>
-            {
-                string json = JsonSerializer.Serialize(clonedModel, _serializerOptions);
-                SimpleConfigDatabase.Instance.TryPutConfig(_fileName, json);
-            });
-        }
-    }
-
-    protected T? CloneModel(T model)
-    {
-        string json = JsonSerializer.Serialize(model, _serializerOptions);
-        try
-        {
-            return JsonSerializer.Deserialize<T>(json, _serializerOptions);
-        }
-        catch (JsonException ex)
-        {
-            Logger.F(TAG, nameof(CloneModel), ex);
-            return null;
-        }
+            SimpleConfigDatabase.Instance.TryPutConfig(_fileName, json);
+        });
     }
 
     private T Initialize()
@@ -154,8 +136,19 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
                 }
             }
 
+            bool needWrite = jsonModel is null;
             jsonModel = InitializeModel(jsonModel);
             _jsonModel = jsonModel;
+
+            if (needWrite)
+            {
+                json = JsonSerializer.Serialize(jsonModel, _serializerOptions);
+                _queue.Submit("Save", () =>
+                {
+                    SimpleConfigDatabase.Instance.TryPutConfig(_fileName, json);
+                });
+            }
+
             return jsonModel;
         }
         finally

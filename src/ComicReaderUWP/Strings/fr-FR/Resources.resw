@@ -744,8 +744,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
     <value>Le lecteur est en cours de chargement</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
-    <value>1. Appuyez deux fois pour ajuster à la largeur/hauteur.
-2. Définissez « Défilement automatique » sur une valeur supérieure à 0 pour activer le bouton central de la souris.</value>
+    <value>1. Appuyez deux fois pour ajuster la page à la largeur ou à la hauteur.
+2. Définissez « Défilement automatique » sur une valeur supérieure à 0 pour activer le défilement automatique et le bouton central de la souris.
+3. Faites glisser la page pour régler la vitesse du défilement automatique.</value>
   </data>
   <data name="ReadingList" xml:space="preserve">
     <value>Liste de lecture</value>

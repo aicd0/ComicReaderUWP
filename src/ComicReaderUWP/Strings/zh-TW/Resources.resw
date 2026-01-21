@@ -744,8 +744,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
     <value>閱讀器載入中</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
-    <value>1. 雙擊以符合寬度/高度。
-2. 將「自動捲動」設為大於 0 的數值以啟用滑鼠中鍵。</value>
+    <value>1. 雙擊以適應頁面寬度或高度。
+2. 將「自動滾動」設定為大於 0 的值，以啟用自動滾動和滑鼠中鍵功能。
+3. 拖動頁面以調整自動滾動速度。</value>
   </data>
   <data name="ReadingList" xml:space="preserve">
     <value>閱讀清單</value>
