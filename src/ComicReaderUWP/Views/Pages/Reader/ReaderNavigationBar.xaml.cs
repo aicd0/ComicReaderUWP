@@ -1,19 +1,24 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.ComponentModel;
+
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Views.Pages.Main;
 
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReaderUWP.Views.Pages.Reader;
 
-internal sealed partial class ReaderNavigationBar : BaseUserControl
+internal sealed partial class ReaderNavigationBar : BaseUserControl, INotifyPropertyChanged
 {
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     public delegate void GridViewModeChangedEventHandler(bool enabled);
     public event GridViewModeChangedEventHandler? GridViewModeChanged;
 
@@ -25,6 +30,20 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl
 
     public delegate void InfoPaneExpandedEventHandler();
     public event InfoPaneExpandedEventHandler? InfoPaneExpanded;
+
+    public delegate void ZoomingChangedEventHandler(int delta);
+    public event ZoomingChangedEventHandler? ZoomingChanged;
+
+    private string _zooming = string.Empty;
+    public string Zooming
+    {
+        get => _zooming;
+        set
+        {
+            _zooming = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Zooming)));
+        }
+    }
 
     private bool _isFavorite = false;
 
@@ -64,6 +83,11 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl
         MainReaderSettingPanel.SetComic(comic);
     }
 
+    public void SetZooming(int zooming)
+    {
+        Zooming = $"{zooming}%";
+    }
+
     private void OnAddToFavoritesClick(object sender, RoutedEventArgs e)
     {
         SetFavorite(!_isFavorite);
@@ -92,5 +116,15 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl
     private void MainReaderSettingPanel_DataChanged(ReaderSettingDataModel model)
     {
         ReaderSettingsChanged?.Invoke(model);
+    }
+
+    private void Zooming_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        PointerPoint pt = e.GetCurrentPoint(null);
+        int delta = pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
+        if (delta != 0)
+        {
+            ZoomingChanged?.Invoke(delta);
+        }
     }
 }

@@ -313,6 +313,11 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.SetIsFavorite(isFavorite, true);
         };
 
+        _readerNavigationBar.ZoomingChanged += delta =>
+        {
+            MainReaderView.Zooming += delta * 0.01F;
+        };
+
         MainReaderView.ReaderEventTapped += delegate (ReaderView sender)
         {
             BottomTileSetHold(!_bottomTileShowed);
@@ -350,6 +355,11 @@ internal sealed partial class ReaderPage : BasePage
                     ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error, description));
                     break;
             }
+        };
+
+        MainReaderView.ReaderEventZoomingChanged += (sender, zooming) =>
+        {
+            _readerNavigationBar.SetZooming((int)Math.Round(zooming * 100F));
         };
 
         MainReaderView.ReaderEventAutoScrollingChanged += delegate (ReaderView sender, bool isAutoScrolling)

@@ -10,3 +10,4 @@ SetWindowPlacement
 SetWindowPos
 ShowWindow
 UnregisterHotKey
+WHEEL_DELTA

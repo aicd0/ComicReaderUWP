@@ -91,6 +91,30 @@
             </AppBarButton.Content>
         </AppBarButton>
 
+        <Rectangle
+            Width="1"
+            Margin="8,12"
+            Fill="{StaticResource ForegroundGrey1}" />
+
+        <!--  Zooming  -->
+        <StackPanel
+            Padding="8,0"
+            HorizontalAlignment="Left"
+            Background="Transparent"
+            Orientation="Horizontal"
+            PointerWheelChanged="Zooming_PointerWheelChanged">
+            <TextBlock
+                Margin="0,0,4,2"
+                VerticalAlignment="Center"
+                FontSize="14"
+                Foreground="{StaticResource ForegroundGrey2}"
+                Text="{x:Bind Zooming, Mode=OneWay}" />
+            <FontIcon
+                VerticalAlignment="Center"
+                FontSize="14"
+                Glyph="&#xEC8F;" />
+        </StackPanel>
+
     </StackPanel>
 
 </base:BaseUserControl>
