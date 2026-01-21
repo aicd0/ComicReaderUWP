@@ -108,6 +108,7 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
         _readerNavigationBar.SetWindowId(WindowId);
+        _readerNavigationBar.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
 
         ViewModel.Initialize(PageActionHandler);
         CoroutineUtils.Start(async () =>
@@ -896,6 +897,19 @@ internal sealed partial class ReaderPage : BasePage
             _restoreSidebar = false;
             GetMainPageAbility().SetSidePaneOpenState(true, force: false);
         }
+    }
+
+    private void PageIndicator_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        PointerPoint pt = e.GetCurrentPoint(null);
+        int delta = -pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
+        int page = MainReaderView.CurrentPageDisplay + delta;
+        if (page <= 0 || page > MainReaderView.PageCount)
+        {
+            return;
+        }
+
+        MainReaderView.SetCurrentPage(page);
     }
 
     //

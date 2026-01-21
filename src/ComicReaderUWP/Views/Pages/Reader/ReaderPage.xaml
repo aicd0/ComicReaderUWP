@@ -121,18 +121,26 @@
                                 </Button.Content>
                             </Button>
                         </StackPanel>
-                        <StackPanel
-                            Margin="0,0,0,3"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Orientation="Horizontal">
-                            <TextBlock
-                                FontSize="14"
-                                FontWeight="SemiBold"
-                                Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
+                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                            <StackPanel
+                                Background="Transparent"
+                                Orientation="Horizontal"
+                                PointerWheelChanged="PageIndicator_PointerWheelChanged">
+                                <TextBlock
+                                    Margin="0,0,2,3"
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
+                                <FontIcon
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Glyph="&#xEC8F;" />
+                            </StackPanel>
                             <TextBlock
                                 x:Name="PageIndicator2"
-                                Margin="8,0,0,0"
+                                Margin="8,0,0,3"
+                                VerticalAlignment="Center"
                                 FontSize="14"
                                 FontWeight="SemiLight"
                                 Opacity="0.6"

@@ -142,12 +142,13 @@ internal partial class ReaderView : UserControl
         get => _externalZooming;
         set
         {
-            if (_externalZooming != value)
+            float fixedValue = Math.Max(0F, value);
+            if (_externalZooming != fixedValue)
             {
-                _externalZooming = value;
+                _externalZooming = fixedValue;
                 SetScrollViewer2("SetZooming", ScrollSource.User,
-                    zoom: value, disableAnimation: false);
-                ReaderEventZoomingChanged?.Invoke(this, value);
+                    zoom: fixedValue, disableAnimation: false);
+                ReaderEventZoomingChanged?.Invoke(this, fixedValue);
             }
         }
     }
