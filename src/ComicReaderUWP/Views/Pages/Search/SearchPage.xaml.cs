@@ -13,6 +13,7 @@ using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.UserControls.ComicItemView;
+using ComicReaderUWP.UserControls.Misc;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -28,11 +29,13 @@ internal sealed partial class SearchPage : BasePage
 
     private SearchPageViewModel ViewModel { get; set; } = new SearchPageViewModel();
 
+    private readonly SearchNavigationBar _searchNavigationBar;
     private string _keyword = "";
 
     public SearchPage()
     {
         InitializeComponent();
+        _searchNavigationBar = new();
     }
 
     //
@@ -46,10 +49,6 @@ internal sealed partial class SearchPage : BasePage
         PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(ViewModel)));
 
         _keyword = bundle.GetString(RouterConstants.ARG_KEYWORD, "");
-
-        ViewModel.Initialize(PageActionHandler, _keyword);
-
-        ObserveData();
 
         string searchText = _keyword.Trim();
         string titleText;
@@ -67,15 +66,20 @@ internal sealed partial class SearchPage : BasePage
 
         GetMainPageAbility().SetTitle(tabTitle);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Find });
+        GetNavigationPageAbility().SetCustomNavigationBar(_searchNavigationBar);
+
+        ViewModel.Initialize(PageActionHandler, _keyword);
         ViewModel.Title = titleText;
         ViewModel.NoResultText = StringResourceProvider.Instance.NoResults.Replace("$keyword", searchText);
+
+        ObserveData();
     }
 
     protected override void OnResume()
     {
         base.OnResume();
 
-        GetNavigationPageAbility().SetSearchBox(_keyword);
+        _searchNavigationBar.SetSearchBox(_keyword);
     }
 
     private void ObserveData()
@@ -89,6 +93,19 @@ internal sealed partial class SearchPage : BasePage
         {
             ViewModel.Refresh();
         });
+
+        _searchNavigationBar.SearchTextSubmitted += text =>
+        {
+            text = text.Trim();
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
+                .WithParam(RouterConstants.ARG_KEYWORD, text);
+            GetMainPageAbility().OpenInCurrentTab(route);
+        };
     }
 
     //

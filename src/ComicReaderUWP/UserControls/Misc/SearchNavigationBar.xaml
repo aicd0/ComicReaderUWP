@@ -1,0 +1,26 @@
+<base:BaseUserControl
+    x:Class="ComicReaderUWP.UserControls.Misc.SearchNavigationBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:ComicReaderUWP.Common.BaseUI"
+    xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
+    xmlns:converters="using:ComicReaderUWP.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:vm="using:ComicReaderUWP.ViewModels"
+    d:DesignHeight="100"
+    d:DesignWidth="100"
+    mc:Ignorable="d">
+
+    <controls:ExtendedSearchBox
+        x:Name="SearchBox"
+        Grid.Column="1"
+        MinWidth="250"
+        Margin="15,0,15,0"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Center"
+        QuerySubmitted="OnSearchBoxQuerySubmitted"
+        TextChanged="OnSearchBoxTextChanged" />
+
+</base:BaseUserControl>

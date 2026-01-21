@@ -10,7 +10,6 @@ using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
@@ -26,7 +25,6 @@ using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -50,7 +48,6 @@ internal sealed partial class MainPage : BasePage
     private bool _contentPresenterLoaded = false;
     private bool _immersiveMode = false;
     private bool _titleBarVisible = true;
-    private bool _isFavorite = false;
     private double _rootTabHeight = 0;
     private double _navigationBarHeight = 0;
     private double _sidePaneWidth = 0;
@@ -233,7 +230,6 @@ internal sealed partial class MainPage : BasePage
     {
         base.OnResume();
 
-        MainReaderSettingPanel.SetWindowId(WindowId);
         ViewModel.UpdateMoreMenuItems();
         NavigationPageSidePane.OpenPaneLength = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<double>(KVNames.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
         RightSidePane.RestoreLastStatus();
@@ -687,8 +683,6 @@ internal sealed partial class MainPage : BasePage
         ViewModel.IsHomePage = isHomePage;
         ViewModel.CanGoBack = ((Frame)tabInfo.Item.Content).CanGoBack;
         ViewModel.CanGoForward = ((Frame)tabInfo.Item.Content).CanGoForward;
-        SearchBox.Visibility = isReaderPage ? Visibility.Collapsed : Visibility.Visible;
-        SpCenterButtons.Visibility = isReaderPage ? Visibility.Visible : Visibility.Collapsed;
 
         if (immersiveMode != _immersiveMode)
         {
@@ -870,37 +864,14 @@ internal sealed partial class MainPage : BasePage
         return tabInfo.NavigationBarAbility;
     }
 
-    //
-    // Search box
-    //
-
-    public void SetSearchBox(string keywords)
+    private void SetCustomNavigationBar(UIElement? element)
     {
-        SearchBox.Focus(FocusState.Programmatic);
-        SearchBox.Text = keywords;
-    }
+        CustomNavigationBarGrid.Children.Clear();
 
-    private void OnSearchBoxTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-    {
-        GetCurrentNavigationBarAbility()?.SendSearchTextChangeEvent(sender.Text);
-    }
-
-    private void OnSearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-    {
-        string queryText = args.QueryText;
-        if (queryText.Trim().Length == 0)
+        if (element is not null)
         {
-            return;
+            CustomNavigationBarGrid.Children.Add(element);
         }
-
-        if (DebugCommand.TryExecute(queryText))
-        {
-            return;
-        }
-
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
-            .WithParam(RouterConstants.ARG_KEYWORD, queryText);
-        _abilityForSidebar.OpenInCurrentTab(route);
     }
 
     //
@@ -1020,52 +991,6 @@ internal sealed partial class MainPage : BasePage
     private void OnRefreshClick(object sender, RoutedEventArgs e)
     {
         GetCurrentNavigationBarAbility()?.SendRefreshEvent();
-    }
-
-    private void OnAddToFavoritesClick(object sender, RoutedEventArgs e)
-    {
-        SetIsFavorite(!_isFavorite);
-    }
-
-    private void OnComicInfoClick(object sender, RoutedEventArgs e)
-    {
-        GetCurrentNavigationBarAbility()?.SendExpandInfoPaneEvent();
-    }
-
-    private void SetIsFavorite(bool isFavorite)
-    {
-        _isFavorite = isFavorite;
-        FiFavoriteFilled.Visibility = isFavorite ? Visibility.Visible : Visibility.Collapsed;
-        FiFavoriteUnfilled.Visibility = isFavorite ? Visibility.Collapsed : Visibility.Visible;
-        string toolTip = isFavorite ? StringResourceProvider.Instance.RemoveFromFavorites :
-            StringResourceProvider.Instance.AddToFavorites;
-        ToolTipService.SetToolTip(AbbAddToFavorite, toolTip);
-        GetCurrentNavigationBarAbility()?.SendFavoriteChangedEvent(isFavorite);
-    }
-
-    private void AbtbPreviewButton_Checked(object sender, RoutedEventArgs e)
-    {
-        GetCurrentNavigationBarAbility()?.SendGridViewModeChangedEvent(true);
-    }
-
-    private void AbtbPreviewButton_Unchecked(object sender, RoutedEventArgs e)
-    {
-        GetCurrentNavigationBarAbility()?.SendGridViewModeChangedEvent(false);
-    }
-
-    private void MainReaderSettingPanel_DataChanged(ReaderSettingDataModel model)
-    {
-        GetCurrentNavigationBarAbility()?.SendReaderSettingsChangedEvent(model);
-    }
-
-    private void SetGridViewModeEnabled(bool enabled)
-    {
-        AbtbPreviewButton.IsChecked = enabled;
-    }
-
-    private void ReaderSettingFlyout_Closing(FlyoutBase sender, FlyoutBaseClosingEventArgs args)
-    {
-        args.Cancel = MainReaderSettingPanel.ActionInProgress;
     }
 
     //
@@ -1443,21 +1368,11 @@ internal sealed partial class MainPage : BasePage
     private class NavigationPageAbility : INavigationPageAbility
     {
         private const string EVENT_REFRESH = "Refresh";
-        private const string EVENT_EXPAND_INFO_PANE = "ExpandInfoPane";
-        private const string EVENT_FAVORITE_CHANGED = "FavoriteChanged";
-        private const string EVENT_GRID_VIEW_MODE_CHANGED = "GridViewModeChanged";
-        private const string EVENT_READER_SETTINGS_CHANGED = "ReaderSettingsChanged";
-        private const string EVENT_SEARCH_TEXT_CHANGED = "SearchTextChanged";
 
         private readonly WeakReference<MainPage> _parent;
+        private WeakReference<UIElement>? _customNavigationBar;
         private readonly EventBus _eventBus = new();
-        private bool _isExternalComic = false;
-        private bool _isFavorite = false;
-        private bool _gridViewMode = false;
-        private string _searchBoxText = string.Empty;
         private bool _fullscreenButtonVisible = true;
-        private ComicModel? _readerSettingComic = null;
-        private ReaderSettingDataModel? _readerSettings = null;
 
         public NavigationPageAbility(MainPage parent)
         {
@@ -1468,13 +1383,7 @@ internal sealed partial class MainPage : BasePage
         public void ClearStates()
         {
             _eventBus.Clear();
-            _isExternalComic = false;
-            _isFavorite = false;
-            _gridViewMode = false;
-            _searchBoxText = string.Empty;
             _fullscreenButtonVisible = true;
-            _readerSettingComic = null;
-            _readerSettings = null;
         }
 
         public void RestoreStates()
@@ -1484,149 +1393,36 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            SetExternalComicInternal(parent);
-            SetFavoriteInternal(parent);
-            SetGridViewModeInternal(parent);
-            SetSearchBoxInternal(parent);
             SetFullscreenButtonVisibleInternal(parent);
-            SetReaderSettingsInternal(parent);
+            SetCustomNavigationBarInternal(parent);
         }
 
         //
-        // External Comic Flag
+        // Custom Navigation Bar
         //
 
-        public void SetExternalComic(bool isExternal)
+        public void SetCustomNavigationBar(UIElement? element)
         {
             if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
 
-            _isExternalComic = isExternal;
-            SetExternalComicInternal(parent);
+            _customNavigationBar = element is null ? null : new WeakReference<UIElement>(element);
+            SetCustomNavigationBarInternal(parent);
         }
 
-        private void SetExternalComicInternal(MainPage page)
+        private void SetCustomNavigationBarInternal(MainPage page)
         {
-            page.AbbAddToFavorite.IsEnabled = !_isExternalComic;
-        }
-
-        //
-        // Favorite Flag
-        //
-
-        public void SetFavorite(bool isFavorite)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
+            if (_customNavigationBar is not null && _customNavigationBar.TryGetTarget(out UIElement? element))
             {
-                return;
+                page.SetCustomNavigationBar(element);
             }
-
-            _isFavorite = isFavorite;
-            SetFavoriteInternal(parent);
-        }
-
-        public void RegisterFavoriteChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.FavoriteChangedEventHandler handler)
-        {
-            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).ObserveSticky(owner, delegate (bool isFavorite)
+            else
             {
-                handler(isFavorite);
-            });
-        }
-
-        public void SendFavoriteChangedEvent(bool isFavorite)
-        {
-            if (isFavorite == _isFavorite)
-            {
-                return;
+                _customNavigationBar = null;
+                page.SetCustomNavigationBar(null);
             }
-
-            _isFavorite = isFavorite;
-            _eventBus.With<bool>(EVENT_FAVORITE_CHANGED).Emit(isFavorite);
-        }
-
-        private void SetFavoriteInternal(MainPage page)
-        {
-            page.SetIsFavorite(_isFavorite);
-        }
-
-        //
-        // Grid View Mode
-        //
-
-        public void SetGridViewMode(bool enabled)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            _gridViewMode = enabled;
-            SetGridViewModeInternal(parent);
-        }
-
-        public void RegisterGridViewModeChangedHandler(ILifecycleOwner owner, INavigationPageAbility.GridViewModeChangedEventHandler handler)
-        {
-            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).ObserveSticky(owner, delegate (bool isGridViewMode)
-            {
-                handler(isGridViewMode);
-            });
-        }
-
-        public void SendGridViewModeChangedEvent(bool isGridViewMode)
-        {
-            if (isGridViewMode == _gridViewMode)
-            {
-                return;
-            }
-
-            _gridViewMode = isGridViewMode;
-            _eventBus.With<bool>(EVENT_GRID_VIEW_MODE_CHANGED).Emit(isGridViewMode);
-        }
-
-        private void SetGridViewModeInternal(MainPage page)
-        {
-            page.SetGridViewModeEnabled(_gridViewMode);
-        }
-
-        //
-        // Search Box
-        //
-
-        public void SetSearchBox(string text)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            _searchBoxText = text;
-            SetSearchBoxInternal(parent);
-        }
-
-        public void RegisterSearchTextChangeHandler(ILifecycleOwner owner, INavigationPageAbility.SearchTextChangeEventHandler handler)
-        {
-            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).ObserveSticky(owner, delegate (string text)
-            {
-                handler(text);
-            });
-        }
-
-        public void SendSearchTextChangeEvent(string text)
-        {
-            if (text == _searchBoxText)
-            {
-                return;
-            }
-
-            _searchBoxText = text;
-            _eventBus.With<string>(EVENT_SEARCH_TEXT_CHANGED).Emit(text);
-        }
-
-        private void SetSearchBoxInternal(MainPage page)
-        {
-            page.SetSearchBox(_searchBoxText);
         }
 
         //
@@ -1650,50 +1446,6 @@ internal sealed partial class MainPage : BasePage
         }
 
         //
-        // Reader Settings
-        //
-
-        public void SetReaderSettings(ComicModel comic)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            _readerSettingComic = comic;
-            SetReaderSettingsInternal(parent);
-        }
-
-        public void RegisterReaderSettingsChangedEventHandler(ILifecycleOwner owner, INavigationPageAbility.ReaderSettingsChangedEventHandler handler)
-        {
-            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).ObserveSticky(owner, delegate (ReaderSettingDataModel settings)
-            {
-                handler(settings);
-            });
-        }
-
-        public void SendReaderSettingsChangedEvent(ReaderSettingDataModel settings)
-        {
-            if (_readerSettings is not null && settings == _readerSettings)
-            {
-                return;
-            }
-
-            _readerSettings = settings.Clone();
-            _eventBus.With<ReaderSettingDataModel>(EVENT_READER_SETTINGS_CHANGED).Emit(_readerSettings);
-        }
-
-        private void SetReaderSettingsInternal(MainPage page)
-        {
-            if (_readerSettingComic is null)
-            {
-                return;
-            }
-
-            page.MainReaderSettingPanel.SetComic(_readerSettingComic);
-        }
-
-        //
         // Refresh
         //
 
@@ -1708,23 +1460,6 @@ internal sealed partial class MainPage : BasePage
         public void SendRefreshEvent()
         {
             _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
-        }
-
-        //
-        // Comic Info Pane
-        //
-
-        public void RegisterExpandInfoPaneHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
-        {
-            _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Observe(owner, delegate
-            {
-                handler();
-            });
-        }
-
-        public void SendExpandInfoPaneEvent()
-        {
-            _eventBus.With<bool>(EVENT_EXPAND_INFO_PANE).Emit(true);
         }
     }
 

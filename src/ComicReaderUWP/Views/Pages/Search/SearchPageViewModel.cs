@@ -352,7 +352,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 };
                 item.UpdateProgress(false);
                 newItems.Add(item);
-                playlist.AddComic(comic);
             }
 
             CoroutineUtils.RunInMainThread(() =>

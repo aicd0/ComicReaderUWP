@@ -18,6 +18,7 @@ using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.UserControls.ComicItemView;
+using ComicReaderUWP.UserControls.Misc;
 using ComicReaderUWP.ViewModels;
 using ComicReaderUWP.Views.Dialogs.EditFilter;
 
@@ -38,6 +39,7 @@ internal sealed partial class HomePage : BasePage
 
     private readonly HomePageViewModel ViewModel = new();
 
+    private readonly SearchNavigationBar _searchNavigationBar;
     private ScrollViewer? _comicGridScrollViewer;
 
     private ComicFilterModel.ViewTypeEnum? _viewType = null;
@@ -48,6 +50,7 @@ internal sealed partial class HomePage : BasePage
     public HomePage()
     {
         InitializeComponent();
+        _searchNavigationBar = new();
     }
 
     //
@@ -58,13 +61,15 @@ internal sealed partial class HomePage : BasePage
     {
         base.OnStart(bundle);
 
-        GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
-        GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
-
         PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(ViewModel)));
 
-        ObserveData();
+        GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
+        GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
+        GetNavigationPageAbility().SetCustomNavigationBar(_searchNavigationBar);
+
         ViewModel.Initialize(PageActionHandler, bundle.GetString(RouterConstants.ARG_FILTER_JSON));
+
+        ObserveData();
     }
 
     private void ObserveData()
@@ -83,8 +88,6 @@ internal sealed partial class HomePage : BasePage
         {
             ViewModel.Refresh(filters: true);
         });
-
-        GetNavigationPageAbility().RegisterSearchTextChangeHandler(this, ViewModel.SetSearchText);
 
         GetNavigationPageAbility().RegisterRefreshHandler(this, () =>
         {
@@ -151,6 +154,21 @@ internal sealed partial class HomePage : BasePage
                     break;
             }
         });
+
+        _searchNavigationBar.SearchTextChange += ViewModel.SetSearchText;
+
+        _searchNavigationBar.SearchTextSubmitted += text =>
+        {
+            text = text.Trim();
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
+                .WithParam(RouterConstants.ARG_KEYWORD, text);
+            GetMainPageAbility().OpenInCurrentTab(route);
+        };
     }
 
     //

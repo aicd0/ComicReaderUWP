@@ -59,10 +59,11 @@ internal sealed partial class ReaderPage : BasePage
         {
             _gridViewModeEnabled = value;
             UpdateReaderUI();
-            GetNavigationPageAbility().SetGridViewMode(value);
+            _readerNavigationBar.SetGridViewMode(value);
         }
     }
 
+    private readonly ReaderNavigationBar _readerNavigationBar;
     private bool _restoreSidebar = false;
     private bool _readerPointerEntered = false;
     private bool _bottomTileShowed = false;
@@ -76,6 +77,7 @@ internal sealed partial class ReaderPage : BasePage
     public ReaderPage()
     {
         InitializeComponent();
+        _readerNavigationBar = new();
 
         ViewModel.ComicTitle1 = "";
         ViewModel.ComicTitle2 = "";
@@ -92,7 +94,10 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnStart(bundle);
 
-        ViewModel.Initialize(PageActionHandler);
+        AddToActiveTabs();
+
+        GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
+        GetNavigationPageAbility().SetCustomNavigationBar(_readerNavigationBar);
 
         bool tipShown = AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).GetValueOrDefault(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
         if (!tipShown)
@@ -100,7 +105,10 @@ internal sealed partial class ReaderPage : BasePage
             ReaderTip.IsOpen = !tipShown;
         }
 
-        GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
+        MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
+        _readerNavigationBar.SetWindowId(WindowId);
+
+        ViewModel.Initialize(PageActionHandler);
         CoroutineUtils.Start(async () =>
         {
             PlaylistModel playlist = await GetPlaylist(bundle);
@@ -109,8 +117,6 @@ internal sealed partial class ReaderPage : BasePage
         });
 
         ObserveData();
-        AddToActiveTabs();
-        MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
     }
 
     protected override void OnResume()
@@ -186,25 +192,6 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.IsFullscreen = isFullscreen;
         });
 
-        GetNavigationPageAbility().RegisterGridViewModeChangedHandler(this, delegate (bool enabled)
-        {
-            GridViewModeEnabled = enabled;
-        });
-
-        GetNavigationPageAbility().RegisterExpandInfoPaneHandler(this, delegate
-        {
-            InfoPane.IsPaneOpen = true;
-            _restoreSidebar = GetMainPageAbility().GetSidePaneOpenState();
-            GetMainPageAbility().SetSidePaneOpenState(false, force: true);
-        });
-
-        GetNavigationPageAbility().RegisterReaderSettingsChangedEventHandler(this, ApplyReaderSettings);
-
-        GetNavigationPageAbility().RegisterFavoriteChangedEventHandler(this, delegate (bool isFavorite)
-        {
-            ViewModel.SetIsFavorite(isFavorite, true);
-        });
-
         ViewModel.TitleLiveData.ObserveStartSticky(this, title =>
         {
             GetMainPageAbility().SetTitle(title);
@@ -227,7 +214,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             RcRating.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
             SetCompletionStateButton.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
-            GetNavigationPageAbility().SetExternalComic(isExternal);
+            _readerNavigationBar.SetExternalComic(isExternal);
         });
 
         ViewModel.ReaderStatusLiveData.ObserveSticky(this, delegate (ReaderStatusInfo info)
@@ -253,10 +240,7 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        ViewModel.ReaderSettingLiveData.ObserveSticky(this, comic =>
-        {
-            GetNavigationPageAbility().SetReaderSettings(comic);
-        });
+        ViewModel.ReaderSettingLiveData.ObserveSticky(this, _readerNavigationBar.SetReaderSettings);
 
         ViewModel.ComicDescriptionLiveData.ObserveSticky(this, description =>
         {
@@ -264,10 +248,7 @@ internal sealed partial class ReaderPage : BasePage
             TbComicDescription.Visibility = TbComicDescription.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         });
 
-        ViewModel.IsFavoriteLiveData.ObserveSticky(this, isFavorite =>
-        {
-            GetNavigationPageAbility().SetFavorite(isFavorite);
-        });
+        ViewModel.IsFavoriteLiveData.ObserveSticky(this, _readerNavigationBar.SetFavorite);
 
         ViewModel.CompletionStateLiveData.ObserveSticky(this, completionStatus =>
         {
@@ -309,6 +290,25 @@ internal sealed partial class ReaderPage : BasePage
             MainReaderView.SetInitialPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
         });
+
+        _readerNavigationBar.GridViewModeChanged += delegate (bool enabled)
+        {
+            GridViewModeEnabled = enabled;
+        };
+
+        _readerNavigationBar.InfoPaneExpanded += delegate
+        {
+            InfoPane.IsPaneOpen = true;
+            _restoreSidebar = GetMainPageAbility().GetSidePaneOpenState();
+            GetMainPageAbility().SetSidePaneOpenState(false, force: true);
+        };
+
+        _readerNavigationBar.ReaderSettingsChanged += ApplyReaderSettings;
+
+        _readerNavigationBar.FavoriteChanged += delegate (bool isFavorite)
+        {
+            ViewModel.SetIsFavorite(isFavorite, true);
+        };
 
         MainReaderView.ReaderEventTapped += delegate (ReaderView sender)
         {
