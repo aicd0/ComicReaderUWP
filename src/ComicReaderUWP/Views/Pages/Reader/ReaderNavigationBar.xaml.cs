@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.BaseUI;
@@ -46,6 +47,8 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl, INotifyProp
     }
 
     private bool _isFavorite = false;
+    private long _lastZoomingTicks = 0;
+    private int _zoomingStep = 1;
 
     public ReaderNavigationBar()
     {
@@ -122,9 +125,29 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl, INotifyProp
     {
         PointerPoint pt = e.GetCurrentPoint(null);
         int delta = pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
-        if (delta != 0)
+        if (delta == 0)
         {
-            ZoomingChanged?.Invoke(delta);
+            return;
         }
+
+        long tick = GetTick();
+        long interval = tick - _lastZoomingTicks;
+        _lastZoomingTicks = tick;
+
+        if (interval < 100)
+        {
+            _zoomingStep = Math.Min(_zoomingStep * 2, 100);
+        }
+        else if (interval > 300)
+        {
+            _zoomingStep = 1;
+        }
+
+        ZoomingChanged?.Invoke(delta * _zoomingStep);
+    }
+
+    private static long GetTick()
+    {
+        return Environment.TickCount;
     }
 }
