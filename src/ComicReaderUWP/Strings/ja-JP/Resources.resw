@@ -744,8 +744,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
     <value>リーダー読み込み中</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
-    <value>1. ダブルタップして幅／高さに合わせます。
-2. マウスの中ボタンを有効にするには、「自動スクロール」を 0 より大きい値に設定してください。</value>
+    <value>1. ダブルタップして、ページを幅または高さに合わせます。
+2. 「自動スクロール」を 0 より大きい値に設定すると、自動スクロールとマウスの中ボタンが有効になります。
+3. ページをドラッグして、自動スクロールの速度を調整します。</value>
   </data>
   <data name="ReadingList" xml:space="preserve">
     <value>読書リスト</value>

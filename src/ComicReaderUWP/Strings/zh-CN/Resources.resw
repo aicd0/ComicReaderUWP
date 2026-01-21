@@ -744,8 +744,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
     <value>阅读器加载中</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
-    <value>1. 双击以适应宽度/高度。
-2. 将“自动滚动”设置为大于 0 的值以启用鼠标中键。</value>
+    <value>1. 双击以适应页面宽度或高度。
+2. 将“自动滚动”设置为大于 0 的值，以启用自动滚动和鼠标中键功能。
+3. 拖动页面以调整自动滚动速度。</value>
   </data>
   <data name="ReadingList" xml:space="preserve">
     <value>阅读列表</value>
