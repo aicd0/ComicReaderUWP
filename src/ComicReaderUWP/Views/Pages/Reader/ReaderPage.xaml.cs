@@ -58,8 +58,9 @@ internal sealed partial class ReaderPage : BasePage
         set
         {
             _gridViewModeEnabled = value;
-            UpdateReaderUI();
             _readerNavigationBar.SetGridViewMode(value);
+            UpdateReaderUI();
+            FocusReader();
         }
     }
 
@@ -123,10 +124,11 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnResume();
 
-        ViewModel.ReloadReaderSettings();
-        UpdateReaderUI();
         AddToActiveTabs();
+        ViewModel.ReloadReaderSettings();
         GetEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
+        UpdateReaderUI();
+        FocusReader();
     }
 
     protected override void OnStop()
@@ -289,6 +291,7 @@ internal sealed partial class ReaderPage : BasePage
             MainReaderView.SetConfigurationDatabase(new ReaderConfigDatabase());
             MainReaderView.SetInitialPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
+            FocusReader();
         });
 
         _readerNavigationBar.GridViewModeChanged += delegate (bool enabled)
@@ -482,7 +485,6 @@ internal sealed partial class ReaderPage : BasePage
     {
         bool isWorking = ViewModel.ReaderStatus == ReaderStatusEnum.Working;
         bool previewVisible = isWorking && _gridViewModeEnabled;
-        bool readerVisible = isWorking && !previewVisible;
 
         // Setting Visibility.Collapsed here prevents GridView from loading eagerly
         PreviewGridView.Opacity = previewVisible ? 1.0 : 0.0;
@@ -491,11 +493,6 @@ internal sealed partial class ReaderPage : BasePage
         // Setting Visibility.Collapsed here prevents ReaderView from locating target page offset
         GMainSection.Opacity = previewVisible ? 0.0 : 1.0;
         GMainSection.IsHitTestVisible = !previewVisible;
-
-        if (readerVisible)
-        {
-            FocusReader();
-        }
     }
 
     private void FocusReader()
@@ -965,6 +962,12 @@ internal sealed partial class ReaderPage : BasePage
     {
         void helper(int attempts)
         {
+            if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible)
+            {
+                Logger.E(TAG, $"Failed to acquired focus for {element.GetType().Name} as it is not interactable");
+                return;
+            }
+
             attempts++;
             if (element.Focus(FocusState.Programmatic))
             {
