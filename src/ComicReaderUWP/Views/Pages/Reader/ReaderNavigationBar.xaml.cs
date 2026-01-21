@@ -136,7 +136,7 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl, INotifyProp
 
         if (interval < 100)
         {
-            _zoomingStep = Math.Min(_zoomingStep * 2, 100);
+            _zoomingStep = Math.Min(_zoomingStep * 2, 25);
         }
         else if (interval > 300)
         {
