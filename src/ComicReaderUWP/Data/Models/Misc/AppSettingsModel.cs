@@ -10,6 +10,7 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.Misc;
 
@@ -24,6 +25,13 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     private const string APP_BACKGROUND_ACRYLIC = "Acrylic";
 
     public static readonly AppSettingsModel Instance = new();
+
+    //
+    // Events
+    //
+
+    private readonly MutableLiveData<bool> _keepScreenOnBehaviorChangeLiveData = new();
+    public ILiveData<bool> KeepScreenOnBehaviorChangedLiveData => _keepScreenOnBehaviorChangeLiveData;
 
     //
     // Properties
@@ -104,6 +112,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         {
             Write(model => model.KeepScreenOnBehavior = ConvertKeepScreenOnBehaviorToJson(value));
             Save();
+            _keepScreenOnBehaviorChangeLiveData.Emit(true);
         }
     }
 
