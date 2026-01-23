@@ -335,12 +335,12 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         LoadReaderSettings();
     }
 
-    public void AddNewTags(string command)
+    public bool AddNewTags(string command)
     {
         ComicModel? comic = _comic;
         if (comic is null || string.IsNullOrWhiteSpace(command))
         {
-            return;
+            return false;
         }
 
         command = command.ReplaceLineEndings(string.Empty);
@@ -388,6 +388,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
 
         CoroutineUtils.Start(() => comic.SetTags(tags));
+        return true;
     }
 
     private void Playback_PlaybackStatusChanged(PlaybackModel.StatusChangeReason reason)

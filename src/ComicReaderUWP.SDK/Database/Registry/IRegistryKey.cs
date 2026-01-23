@@ -7,6 +7,8 @@ namespace ComicReaderUWP.SDK.Database.Registry;
 
 public interface IRegistryKey
 {
+    int Count { get; }
+
     IEnumerable<string> Keys { get; }
 
     bool TryGet<T>(string key, [NotNullWhen(true)] out T? value);

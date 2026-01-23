@@ -333,12 +333,14 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBox
+                            <AutoSuggestBox
                                 Grid.Column="0"
+                                GotFocus="NewTagsAutoSuggestBox_GotFocus"
                                 IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
-                                KeyDown="NewTagsTextBox_KeyDown"
                                 PlaceholderText="{x:Bind StringResource.EnterNewTags}"
-                                Style="{StaticResource SecondaryTextBoxStyle}" />
+                                QuerySubmitted="NewTagsAutoSuggestBox_QuerySubmitted"
+                                SuggestionChosen="NewTagsAutoSuggestBox_SuggestionChosen"
+                                TextChanged="NewTagsAutoSuggestBox_TextChanged" />
                             <Button
                                 Grid.Column="1"
                                 Margin="8,0,0,0"
