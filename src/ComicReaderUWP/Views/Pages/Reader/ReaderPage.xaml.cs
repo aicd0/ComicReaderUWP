@@ -790,25 +790,45 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     //
-    // Events
+    // New tags
     //
 
-    private void OnGridViewItemClicked(object sender, ItemClickEventArgs e)
+    private readonly Lazy<SearchHistoryModel> _tagHistoryModel = new(() =>
     {
-        var ctx = (ReaderImagePreviewViewModel)e.ClickedItem;
-        GridViewModeEnabled = false;
-        MainReaderView.SetCurrentPage(ctx.Page);
+        return SearchHistoryModel.Get("NewTags");
+    });
+
+    private void NewTagsAutoSuggestBox_GotFocus(object sender, RoutedEventArgs e)
+    {
+        var autoSuggestBox = (AutoSuggestBox)sender;
+        autoSuggestBox.ItemsSource = SearchTagHistory(autoSuggestBox.Text);
     }
 
-    private void NewTagsTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    private void NewTagsAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter)
+        string text = sender.Text.Trim();
+        sender.Text = string.Empty;
+        if (ViewModel.AddNewTags(text))
         {
-            var textBox = (TextBox)sender;
-            string text = textBox.Text;
-            textBox.Text = string.Empty;
-            ViewModel.AddNewTags(text);
-            e.Handled = true;
+            _tagHistoryModel.Value.Save(text);
+        }
+    }
+
+    private void NewTagsAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        string text = args.SelectedItem.ToString() ?? string.Empty;
+        sender.Text = string.Empty;
+        if (ViewModel.AddNewTags(text))
+        {
+            _tagHistoryModel.Value.Save(text);
+        }
+    }
+
+    private void NewTagsAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            sender.ItemsSource = SearchTagHistory(sender.Text);
         }
     }
 
@@ -819,6 +839,24 @@ internal sealed partial class ReaderPage : BasePage
             .AddParameter(MessageDialogProvider.PARAM_MESSAGE, StringResourceProvider.Instance.EnterNewTagsHint)
             .Build();
         PageActionHandler.Handle(actionModel);
+    }
+
+    private List<string> SearchTagHistory(string query)
+    {
+        char[] seperators = [.. LocalizationUtils.Colons, .. LocalizationUtils.Commas];
+        string[] keywords = query.Split(seperators, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return [.. _tagHistoryModel.Value.Search(keywords, 10)];
+    }
+
+    //
+    // Events
+    //
+
+    private void OnGridViewItemClicked(object sender, ItemClickEventArgs e)
+    {
+        var ctx = (ReaderImagePreviewViewModel)e.ClickedItem;
+        GridViewModeEnabled = false;
+        MainReaderView.SetCurrentPage(ctx.Page);
     }
 
     private void MarkAsUnreadButton_Click(object sender, RoutedEventArgs e)

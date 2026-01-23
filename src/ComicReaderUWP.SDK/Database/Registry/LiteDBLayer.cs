@@ -356,7 +356,18 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
             return db.GetCollection<RegistryEntryDocument>($"{KEY_PREFIX}{name}");
         });
 
-        public IEnumerable<string> Keys => throw new NotImplementedException();
+        public int Count => _collection.Value.Count();
+
+        public IEnumerable<string> Keys
+        {
+            get
+            {
+                foreach (RegistryEntryDocument entry in _collection.Value.FindAll())
+                {
+                    yield return entry.Key;
+                }
+            }
+        }
 
         public bool TryGet<T>(string key, [NotNullWhen(true)] out T? value)
         {
