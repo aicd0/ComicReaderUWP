@@ -111,25 +111,7 @@
                         Glyph="&#xE736;"
                         IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock x:Uid="TransitionAnimation" TextWrapping="Wrap" />
-                                <ToggleSwitch IsOn="{x:Bind ViewModel.TransitionAnimation, Mode=TwoWay}" />
-                                <TextBlock
-                                    Margin="0,12,0,0"
-                                    Text="{x:Bind StringResource.HideCursorAutomatically}"
-                                    TextWrapping="Wrap" />
-                                <ToggleSwitch IsOn="{x:Bind ViewModel.AutomaticallyHideCursor, Mode=TwoWay}" />
-                                <TextBlock
-                                    Margin="0,12,0,0"
-                                    Text="{x:Bind StringResource.AntiAliasingFilter}"
-                                    TextWrapping="Wrap" />
-                                <ToggleSwitch IsOn="{x:Bind ViewModel.AntiAliasingEnabled, Mode=TwoWay}" />
-                                <CheckBox
-                                    Margin="0,16,0,0"
-                                    Click="RestoreLastReadingPositionCheckBox_Click"
-                                    Content="{x:Bind StringResource.RestoreLastReadingPosition}"
-                                    IsChecked="{x:Bind ViewModel.RestoreLastReadingPosition, Mode=OneWay}" />
-                            </StackPanel>
+                            <settings:ReaderSettingsView x:Name="ReaderSettingsSection" />
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>
 

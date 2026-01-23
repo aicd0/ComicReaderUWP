@@ -10,6 +10,7 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.Misc;
 
@@ -24,6 +25,13 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     private const string APP_BACKGROUND_ACRYLIC = "Acrylic";
 
     public static readonly AppSettingsModel Instance = new();
+
+    //
+    // Events
+    //
+
+    private readonly MutableLiveData<bool> _keepScreenOnBehaviorChangeLiveData = new();
+    public ILiveData<bool> KeepScreenOnBehaviorChangedLiveData => _keepScreenOnBehaviorChangeLiveData;
 
     //
     // Properties
@@ -91,6 +99,20 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         {
             Write(model => model.DefaultArchiveCodePage = value);
             Save();
+        }
+    }
+
+    public KeepScreenOnBehaviorEnum KeepScreenOnBehavior
+    {
+        get
+        {
+            return Read(model => ConvertKeepScreenOnBehaviorFromJson(model.KeepScreenOnBehavior));
+        }
+        set
+        {
+            Write(model => model.KeepScreenOnBehavior = ConvertKeepScreenOnBehaviorToJson(value));
+            Save();
+            _keepScreenOnBehaviorChangeLiveData.Emit(true);
         }
     }
 
@@ -167,6 +189,19 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         set
         {
             Write(model => model.RatingPercentageEnabled = value);
+            Save();
+        }
+    }
+
+    public bool RestoreLastReadingPosition
+    {
+        get
+        {
+            return Read(model => model.RestoreLastReadingPosition ?? true);
+        }
+        set
+        {
+            Write(model => model.RestoreLastReadingPosition = value);
             Save();
         }
     }
@@ -339,6 +374,28 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         };
     }
 
+    private static string ConvertKeepScreenOnBehaviorToJson(KeepScreenOnBehaviorEnum behavior)
+    {
+        return behavior switch
+        {
+            KeepScreenOnBehaviorEnum.None => "None",
+            KeepScreenOnBehaviorEnum.KeepScreenOn => "KeepScreenOn",
+            KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling => "KeepScreenOnDuringAutoScrolling",
+            _ => "KeepScreenOnDuringAutoScrolling",
+        };
+    }
+
+    private static KeepScreenOnBehaviorEnum ConvertKeepScreenOnBehaviorFromJson(string? behavior)
+    {
+        return behavior switch
+        {
+            "None" => KeepScreenOnBehaviorEnum.None,
+            "KeepScreenOn" => KeepScreenOnBehaviorEnum.KeepScreenOn,
+            "KeepScreenOnDuringAutoScrolling" => KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling,
+            _ => KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling,
+        };
+    }
+
     //
     // Types
     //
@@ -349,7 +406,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public bool ScanOnLaunch { get; set; }
         public bool RemoveUnreachableComics { get; set; }
         public bool PromptBeforeRemovingComics { get; set; }
-        public bool RestoreLastReadingPosition { get; set; }
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
         public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
         public Dictionary<string, ReaderSettingModel> ReaderSettingPresets { get; set; } = [];
@@ -363,7 +419,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 ScanOnLaunch = model.ScanOnLaunch ?? true,
                 RemoveUnreachableComics = model.RemoveUnreachableComics ?? true,
                 PromptBeforeRemovingComics = model.PromptBeforeRemovingComics ?? true,
-                RestoreLastReadingPosition = model.RestoreLastReadingPosition ?? true,
                 ComicShuffleRandomSeed = model.ComicShuffleRandomSeed ?? 0,
                 DefaultReaderSettingPresetKey = model.DefaultReaderSettingPresetKey ?? string.Empty,
             };
@@ -421,7 +476,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             model.ComicFolders = [.. ComicFolders];
             model.ScanOnLaunch = ScanOnLaunch;
             model.RemoveUnreachableComics = RemoveUnreachableComics;
-            model.RestoreLastReadingPosition = RestoreLastReadingPosition;
             model.PromptBeforeRemovingComics = PromptBeforeRemovingComics;
             model.Theme = (int)Theme;
             model.ComicShuffleRandomSeed = ComicShuffleRandomSeed;
@@ -513,6 +567,13 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         OpenInLastActiveReaderTab,
     }
 
+    public enum KeepScreenOnBehaviorEnum
+    {
+        None,
+        KeepScreenOn,
+        KeepScreenOnDuringAutoScrolling,
+    }
+
     public enum AppearanceSetting
     {
         Light,
@@ -555,6 +616,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("DefaultReaderSettingPresetKey")]
         public string? DefaultReaderSettingPresetKey { get; set; }
+
+        [JsonPropertyName("KeepScreenOnBehavior")]
+        public string? KeepScreenOnBehavior { get; set; }
 
         [JsonPropertyName("OpenComicDefaultBehavior")]
         public string? OpenComicDefaultBehavior { get; set; }

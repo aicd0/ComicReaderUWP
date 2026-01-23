@@ -65,6 +65,7 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     private readonly ReaderNavigationBar _readerNavigationBar;
+    private bool _displayActive = false;
     private bool _restoreSidebar = false;
     private bool _readerPointerEntered = false;
     private bool _bottomTileShowed = false;
@@ -125,11 +126,19 @@ internal sealed partial class ReaderPage : BasePage
     {
         base.OnResume();
 
+        UpdateDisplayStatus();
         AddToActiveTabs();
         ViewModel.ReloadReaderSettings();
         GetEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
         UpdateReaderUI();
         FocusReader();
+    }
+
+    protected override void OnPause()
+    {
+        base.OnPause();
+
+        UpdateDisplayStatus();
     }
 
     protected override void OnStop()
@@ -158,6 +167,11 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.ReloadComicInfo();
         });
 
+        AppSettingsModel.Instance.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ =>
+        {
+            UpdateDisplayStatus();
+        });
+
         GetEventBus().With<double>(EventId.TopOverlayHeight).ObserveSticky(this, h =>
         {
             Thickness margin = PreviewGridView.Margin;
@@ -176,6 +190,11 @@ internal sealed partial class ReaderPage : BasePage
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
             BottomGrid.Opacity = opacity;
+        });
+
+        GetMainWindowAbility().RegisterMinimizeChangedHandler(this, isMinimized =>
+        {
+            UpdateDisplayStatus();
         });
 
         GetMainPageAbility().RegisterTitleBarVisibilityChangedHandler(this, delegate (bool visible)
@@ -371,6 +390,7 @@ internal sealed partial class ReaderPage : BasePage
             }
 
             ViewModel.IsAutoPlaying = isAutoScrolling;
+            UpdateDisplayStatus();
         };
 
         MainReaderView.ReaderEventOverScroll += (sender, forward) =>
@@ -510,6 +530,34 @@ internal sealed partial class ReaderPage : BasePage
     {
         GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
         TryFocus(MainReaderView);
+    }
+
+    private void UpdateDisplayStatus()
+    {
+        bool minimized = GetMainWindowAbility().IsMinimized;
+        AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.Instance.KeepScreenOnBehavior;
+        bool active = !minimized && IsResumed && behavior switch
+        {
+            AppSettingsModel.KeepScreenOnBehaviorEnum.None => false,
+            AppSettingsModel.KeepScreenOnBehaviorEnum.KeepScreenOn => true,
+            AppSettingsModel.KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling => MainReaderView.IsAutoScrolling,
+            _ => false
+        };
+
+        if (active == _displayActive)
+        {
+            return;
+        }
+
+        _displayActive = active;
+        if (active)
+        {
+            DisplayRequestManager.IncrememtKeepScreenOn();
+        }
+        else
+        {
+            DisplayRequestManager.DecrememtKeepScreenOn();
+        }
     }
 
     //

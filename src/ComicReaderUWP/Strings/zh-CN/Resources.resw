@@ -527,6 +527,12 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>此设备上的图片</value>
   </data>
+  <data name="KeepScreenOn" xml:space="preserve">
+    <value>保持屏幕开启</value>
+  </data>
+  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
+    <value>仅在自动滚动时保持屏幕开启</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>查看所有热键</value>
   </data>
