@@ -527,6 +527,12 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Bilder auf diesem Gerät</value>
   </data>
+  <data name="KeepScreenOn" xml:space="preserve">
+    <value>Bildschirm eingeschaltet lassen</value>
+  </data>
+  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
+    <value>Bildschirm nur bei automatischem Scrollen eingeschaltet lassen</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>Alle Tastaturkürzel ansehen</value>
   </data>

@@ -528,6 +528,12 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Изображения на этом устройстве</value>
   </data>
+  <data name="KeepScreenOn" xml:space="preserve">
+    <value>Не выключать экран</value>
+  </data>
+  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
+    <value>Не выключать экран только во время автоматической прокрутки</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>Ознакомьтесь со всеми сочетаниями клавиш</value>
   </data>

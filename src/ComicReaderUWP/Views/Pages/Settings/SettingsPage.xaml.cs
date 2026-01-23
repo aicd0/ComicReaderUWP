@@ -47,6 +47,7 @@ internal sealed partial class SettingsPage : BasePage
         ViewModel.Shared.ActionHandler = PageActionHandler;
         ViewModel.Initialize(this);
         GeneralSettingsSection.Initialize(ViewModel.Shared);
+        ReaderSettingsSection.Initialize(ViewModel.Shared);
         PluginSettingsSection.Initialize(ViewModel.Shared);
         AdvancedSettingsSection.Initialize(ViewModel.Shared);
         ViewModel.Shared.UpdateStarted += Update;
@@ -135,15 +136,6 @@ internal sealed partial class SettingsPage : BasePage
         if (isChecked.HasValue)
         {
             ViewModel.SetRemoveUnreachableComics(isChecked.Value);
-        }
-    }
-
-    private void RestoreLastReadingPositionCheckBox_Click(object sender, RoutedEventArgs e)
-    {
-        bool? isChecked = ((CheckBox)sender).IsChecked;
-        if (isChecked.HasValue)
-        {
-            ViewModel.SetRestoreLastReadingPosition(isChecked.Value);
         }
     }
 

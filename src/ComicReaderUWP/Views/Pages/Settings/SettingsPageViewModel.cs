@@ -64,17 +64,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _restoreLastReadingPosition = true;
-    public bool RestoreLastReadingPosition
-    {
-        get => _restoreLastReadingPosition;
-        set
-        {
-            _restoreLastReadingPosition = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RestoreLastReadingPosition)));
-        }
-    }
-
     private bool _promptBeforeRemovingComics = true;
     public bool PromptBeforeRemovingComics
     {
@@ -144,45 +133,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         {
             _languageIndex = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LanguageIndex)));
-        }
-    }
-
-    private bool _transitionAnimation = true;
-    public bool TransitionAnimation
-    {
-        get => _transitionAnimation;
-        set
-        {
-            _transitionAnimation = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransitionAnimation)));
-
-            AppSettingsModel.Instance.TransitionAnimation = value;
-        }
-    }
-
-    private bool _automaticallyHideCursor = true;
-    public bool AutomaticallyHideCursor
-    {
-        get => _automaticallyHideCursor;
-        set
-        {
-            _automaticallyHideCursor = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutomaticallyHideCursor)));
-
-            AppSettingsModel.Instance.AutomaticallyHideCursor = value;
-        }
-    }
-
-    private bool _antiAliasingEnabled = true;
-    public bool AntiAliasingEnabled
-    {
-        get => _antiAliasingEnabled;
-        set
-        {
-            _antiAliasingEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AntiAliasingEnabled)));
-
-            AppSettingsModel.Instance.AntiAliasingEnabled = value;
         }
     }
 
@@ -342,14 +292,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         AppSettingsModel.Instance.UpdateModel(model);
     }
 
-    public void SetRestoreLastReadingPosition(bool restoreLastReadingPosition)
-    {
-        _restoreLastReadingPosition = restoreLastReadingPosition;
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
-        model.RestoreLastReadingPosition = restoreLastReadingPosition;
-        AppSettingsModel.Instance.UpdateModel(model);
-    }
-
     public void SetPromptBeforeRemovingComics(bool promptBeforeRemovingComics)
     {
         _promptBeforeRemovingComics = promptBeforeRemovingComics;
@@ -427,7 +369,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         _settingsModel = null;
         AppSettingsModel.ExternalModel model = GetSettingsModel();
         UpdateEncodings();
-        UpdateReaderSettings();
         UpdateHistory(model);
         UpdateAppearance(model);
         UpdateBackground(model);
@@ -473,16 +414,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private void UpdateReaderSettings()
-    {
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            TransitionAnimation = AppSettingsModel.Instance.TransitionAnimation;
-            AntiAliasingEnabled = AppSettingsModel.Instance.AntiAliasingEnabled;
-            AutomaticallyHideCursor = AppSettingsModel.Instance.AutomaticallyHideCursor;
-        });
-    }
-
     private void UpdateHistory(AppSettingsModel.ExternalModel model)
     {
         CoroutineUtils.Start(async () =>
@@ -491,7 +422,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             bool scanOnLaunch = model.ScanOnLaunch;
             bool removeUnreachableComics = model.RemoveUnreachableComics;
             bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
-            bool restoreLastReadingPosition = model.RestoreLastReadingPosition;
             bool saveBrowsingHistory = AppSettingsModel.Instance.SaveBrowsingHistory;
 
             await MainThreadUtils.RunInMainThread(() =>
@@ -501,7 +431,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
                 RemoveUnreachableComics = removeUnreachableComics;
                 PromptBeforeRemovingComics = promptBeforeRemovingComics;
                 HistorySaveBrowsingHistory = saveBrowsingHistory;
-                RestoreLastReadingPosition = restoreLastReadingPosition;
             });
         });
     }
