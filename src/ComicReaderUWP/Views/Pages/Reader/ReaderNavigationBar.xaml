@@ -98,7 +98,7 @@
 
         <!--  Zooming  -->
         <StackPanel
-            Padding="8,0"
+            Padding="12,0"
             HorizontalAlignment="Left"
             Background="Transparent"
             Orientation="Horizontal"
@@ -107,7 +107,6 @@
                 Margin="0,0,4,2"
                 VerticalAlignment="Center"
                 FontSize="14"
-                Foreground="{ThemeResource ForegroundGrey2}"
                 Text="{x:Bind Zooming, Mode=OneWay}" />
             <FontIcon
                 VerticalAlignment="Center"
