@@ -70,6 +70,7 @@ internal partial class ReaderView : UserControl
     private bool _isInitialFrameLoaded = false;
     private bool _isInitialFrameActionPerformed = false;
     private bool _isInitialFrameJumped = false;
+    private bool _isFirstFrameLoaded = false;
     private bool _isLastFrameLoaded = false;
 
     private double _maxLinearVelocity = 0.0;
@@ -582,6 +583,11 @@ internal partial class ReaderView : UserControl
                 _isInitialFrameLoaded = true;
             }
 
+            if (index == 0)
+            {
+                _isFirstFrameLoaded = true;
+            }
+
             if (index == lastFrameIndex)
             {
                 _isLastFrameLoaded = true;
@@ -855,6 +861,7 @@ internal partial class ReaderView : UserControl
         _isInitialFrameLoaded = false;
         _isInitialFrameActionPerformed = false;
         _isInitialFrameJumped = false;
+        _isFirstFrameLoaded = false;
         _isLastFrameLoaded = false;
     }
 
@@ -1868,7 +1875,6 @@ internal partial class ReaderView : UserControl
     private double ViewportParallelLength => IsVertical ? ViewportHeight : ViewportWidth;
     private double ViewportPerpendicularLength => IsVertical ? ViewportWidth : ViewportHeight;
     private double ContentPerpendicularLength => IsVertical ? ThisListView.ActualWidth : ThisListView.ActualHeight;
-    private double ExtentParallelLength => IsVertical ? ThisScrollViewer.ExtentHeight : ThisScrollViewer.ExtentWidth;
 
     private int _SCCurrentPageFinal;
     private int SCCurrentPageFinal
@@ -2466,15 +2472,9 @@ internal partial class ReaderView : UserControl
 
         double screenCenterOffset = ViewportParallelLength * 0.5 + parallelOffset;
 
-        double? movementForward;
-        //FrameworkElement firstContainer = _frameManager.GetContainer(0);
-        //if (firstContainer != null)
+        double? movementForward = null;
+        if (_isFirstFrameLoaded)
         {
-            //double frameParallelLength = _isVertical ? firstContainer.ActualHeight : firstContainer.ActualWidth;
-            //double space = SCPaddingStartFinal * zoom - parallelOffset;
-            //double imageCenterOffset = (SCPaddingStartFinal + frameParallelLength * 0.5) * zoom;
-            //double imageCenterToScreenCenter = imageCenterOffset - screenCenterOffset;
-            //movementForward = Math.Min(space, imageCenterToScreenCenter);
             Thickness firstFrameMargin = FrameDataSource[0].FrameMargin;
             double frameMarginStart = _isVertical ? firstFrameMargin.Top :
                 (_isLeftToRight ? firstFrameMargin.Left : firstFrameMargin.Right);
@@ -2482,22 +2482,16 @@ internal partial class ReaderView : UserControl
             movementForward = imageStartOffset - screenCenterOffset;
         }
 
-        double? movementBackward;
-        //FrameworkElement lastContainer = _frameManager.GetContainer(FrameDataSource.Count - 1);
-        //if (lastContainer != null)
+        double? movementBackward = null;
+        if (_isLastFrameLoaded)
         {
-            //double frameParallelLength = _isVertical ? lastContainer.ActualHeight : lastContainer.ActualWidth;
-            //double extentParallelLength = ExtentParallelLength * zoom / ZoomFactor;
-            //double space = SCPaddingEndFinal * zoom - (extentParallelLength - parallelOffset - ViewportParallelLength);
-            //double imageCenterOffset = extentParallelLength - (SCPaddingEndFinal + frameParallelLength * 0.5) * zoom;
-            //double imageCenterToScreenCenter = screenCenterOffset - imageCenterOffset;
-            //movementBackward = Math.Min(space, imageCenterToScreenCenter);
-            Thickness lastFrameMargin = FrameDataSource[^1].FrameMargin;
-            double frameMarginEnd = _isVertical ? lastFrameMargin.Bottom :
-                (_isLeftToRight ? lastFrameMargin.Right : lastFrameMargin.Left);
-            double extentParallelLength = ExtentParallelLength * zoom / SCZoomFactorFinal;
-            double imageEndOffset = extentParallelLength - frameMarginEnd * zoom;
-            movementBackward = screenCenterOffset - imageEndOffset;
+            // ExtentLength is unreliable, use frame offset instead
+            FrameOffsetData? lastFrameOffset = FrameOffset(FrameDataSource.Count - 1);
+            if (lastFrameOffset.HasValue)
+            {
+                double imageEndOffset = lastFrameOffset.Value.ParallelEnd * zoom;
+                movementBackward = screenCenterOffset - imageEndOffset;
+            }
         }
 
         double movement = 0.0;
