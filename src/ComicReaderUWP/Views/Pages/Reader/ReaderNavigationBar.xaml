@@ -104,7 +104,7 @@
             Orientation="Horizontal"
             PointerWheelChanged="Zooming_PointerWheelChanged">
             <TextBlock
-                Margin="0,0,6,2"
+                Margin="0,0,4,2"
                 VerticalAlignment="Center"
                 FontSize="14"
                 Foreground="{ThemeResource ForegroundGrey2}"

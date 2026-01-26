@@ -66,94 +66,114 @@
             <!--  Playback control  -->
             <Grid
                 x:Name="BottomGrid"
-                MinWidth="400"
+                MinWidth="380"
                 Margin="0,0,0,20"
-                Padding="12,8"
+                Padding="8,8"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 Background="{ThemeResource FlyoutPresenterBackground}"
                 BorderThickness="0"
                 CornerRadius="12"
                 Opacity="0">
-                <StackPanel Orientation="Vertical">
-                    <Grid>
-                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                            <Button
-                                Click="PlaybackPreviousButton_Click"
-                                IsEnabled="{x:Bind ViewModel.IsPlaybackPreviousEnabled, Mode=OneWay}"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
-                                <Button.Content>
-                                    <FontIcon FontSize="14" Glyph="&#xE892;" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Click="PlaybackPlayButton_Click"
-                                IsEnabled="{x:Bind ViewModel.IsAutoPlayEnabled, Mode=OneWay}"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind ViewModel.PlayOrPauseButtonTooltip, Mode=OneWay}">
-                                <Button.Content>
-                                    <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Click="PlaybackNextButton_Click"
-                                IsEnabled="{x:Bind ViewModel.IsPlaybackNextEnabled, Mode=OneWay}"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind StringResource.Next}">
-                                <Button.Content>
-                                    <FontIcon FontSize="14" Glyph="&#xE893;" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Click="PlaybackPlaylistButton_Click"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind StringResource.ReadingList}">
-                                <Button.Content>
-                                    <FontIcon FontSize="14" Glyph="&#xE7BC;" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Click="PlaybackMoreButton_Click"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind StringResource.More}">
-                                <Button.Content>
-                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
-                                </Button.Content>
-                            </Button>
-                        </StackPanel>
-                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                            <StackPanel
-                                Background="Transparent"
-                                Orientation="Horizontal"
-                                PointerWheelChanged="PageIndicator_PointerWheelChanged">
-                                <TextBlock
-                                    Margin="0,0,6,2"
-                                    VerticalAlignment="Center"
-                                    FontSize="14"
-                                    FontWeight="SemiBold"
-                                    Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
-                                <FontIcon
-                                    VerticalAlignment="Center"
-                                    FontSize="14"
-                                    Glyph="&#xEC8F;" />
-                            </StackPanel>
-                            <TextBlock
-                                x:Name="PageIndicator2"
-                                Margin="8,0,0,2"
-                                VerticalAlignment="Center"
-                                FontSize="14"
-                                FontWeight="SemiLight"
-                                Foreground="{ThemeResource ForegroundGrey2}"
-                                Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
-                        </StackPanel>
-                    </Grid>
-                    <Slider
-                        x:Name="PlaybackSlider"
-                        Margin="0,-2,0,-6"
-                        Minimum="1"
-                        ValueChanged="PlaybackSlider_ValueChanged" />
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal">
+                    <Button
+                        Click="PlaybackPreviousButton_Click"
+                        IsEnabled="{x:Bind ViewModel.IsPlaybackPreviousEnabled, Mode=OneWay}"
+                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                        ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
+                        <Button.Content>
+                            <FontIcon FontSize="16" Glyph="&#xE892;" />
+                        </Button.Content>
+                    </Button>
+                    <Button
+                        Click="PlaybackPlayButton_Click"
+                        IsEnabled="{x:Bind ViewModel.IsAutoPlayEnabled, Mode=OneWay}"
+                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.PlayOrPauseButtonTooltip, Mode=OneWay}">
+                        <Button.Content>
+                            <FontIcon FontSize="16" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
+                        </Button.Content>
+                    </Button>
+                    <Button
+                        Click="PlaybackNextButton_Click"
+                        IsEnabled="{x:Bind ViewModel.IsPlaybackNextEnabled, Mode=OneWay}"
+                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                        ToolTipService.ToolTip="{x:Bind StringResource.Next}">
+                        <Button.Content>
+                            <FontIcon FontSize="16" Glyph="&#xE893;" />
+                        </Button.Content>
+                    </Button>
+                    <Button
+                        Click="PlaybackPlaylistButton_Click"
+                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                        ToolTipService.ToolTip="{x:Bind StringResource.ReadingList}">
+                        <Button.Content>
+                            <FontIcon FontSize="14" Glyph="&#xE7BC;" />
+                        </Button.Content>
+                    </Button>
+                    <Button
+                        Click="PlaybackMoreButton_Click"
+                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                        ToolTipService.ToolTip="{x:Bind StringResource.More}">
+                        <Button.Content>
+                            <FontIcon FontSize="14" Glyph="&#xE712;" />
+                        </Button.Content>
+                    </Button>
                 </StackPanel>
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Padding="4,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        x:Name="PageIndicator2"
+                        Margin="0,0,0,2"
+                        VerticalAlignment="Center"
+                        FontSize="14"
+                        FontWeight="SemiLight"
+                        Foreground="{ThemeResource ForegroundGrey2}"
+                        Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Padding="4,0"
+                    Background="Transparent"
+                    Orientation="Horizontal"
+                    PointerWheelChanged="PageIndicator_PointerWheelChanged">
+                    <TextBlock
+                        Margin="0,0,4,2"
+                        VerticalAlignment="Center"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
+                    <FontIcon
+                        VerticalAlignment="Center"
+                        FontSize="14"
+                        Glyph="&#xEC8F;" />
+                </StackPanel>
+                <Slider
+                    x:Name="PlaybackSlider"
+                    Grid.Row="1"
+                    Grid.ColumnSpan="4"
+                    Margin="8,0,8,-4"
+                    Minimum="1"
+                    ValueChanged="PlaybackSlider_ValueChanged" />
             </Grid>
 
             <!--  Tips  -->
