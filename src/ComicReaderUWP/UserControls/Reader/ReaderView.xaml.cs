@@ -87,7 +87,7 @@ internal partial class ReaderView : UserControl
     private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private readonly ReaderFrameManager _frameManager = new();
     private readonly Dictionary<int, ImageDataModel> _dataModel = [];
-    private readonly CancellationSession _dataModelSession;
+    private readonly CancellationSession _reloadSession;
 
     private ObservableCollection<ReaderFrameViewModel> FrameDataSource { get; } = [];
 
@@ -106,7 +106,7 @@ internal partial class ReaderView : UserControl
         _gestureHandler = new(this);
         _gestureRecognizer.SetHandler(_gestureHandler);
 
-        _dataModelSession = new();
+        _reloadSession = new();
     }
 
     #endregion
@@ -209,7 +209,7 @@ internal partial class ReaderView : UserControl
 
         _isDestoryed = true;
         UpdateLoadedState();
-        _dataModelSession.Next();
+        _reloadSession.Next();
 
         foreach (ReaderFrameViewModel frameModel in FrameDataSource)
         {
@@ -554,8 +554,8 @@ internal partial class ReaderView : UserControl
         }
 
         // Refresh token
-        _dataModelSession.Next();
-        CancellationSession.IToken token = _dataModelSession.Token;
+        _reloadSession.Next();
+        CancellationSession.IToken token = _reloadSession.Token;
 
         // Reset internal states
         _minZoomFactor = double.MaxValue;
@@ -884,6 +884,7 @@ internal partial class ReaderView : UserControl
             LoadZoomingConfig(out float zoom, out ZoomType zoomType);
             ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", ScrollSource.Programmatic,
                 zoom: zoom, zoomType: zoomType, page: InitialPage);
+            EnsureInitialPageJumped();
             Log("Load", $"InitialFrameScroll (result={scrollResult})");
 
             UpdateImages("InitialFrameLoaded");
@@ -895,6 +896,38 @@ internal partial class ReaderView : UserControl
         {
             DispatchReaderStateChangeEvent(ReaderState.Ready);
         }
+    }
+
+    private void EnsureInitialPageJumped()
+    {
+        // In some strange cases, ChangeView method completes successfully,
+        // but neither the actual offset has changed or ViewChange callback
+        // is being triggered.
+        // Possible reproducing path: Switch from vertical view to horizontal view.
+        // We check the flag periodically to ensure offset has actually changed.
+        // If not, try set the offset again.
+
+        CancellationSession.IToken token = _reloadSession.Token;
+        CoroutineUtils.Start(async () =>
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                await Task.Delay(100);
+
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                if (_isInitialFrameJumped)
+                {
+                    break;
+                }
+
+                ScrollResult scrollResult = SetScrollViewer3($"JumpToInitialPageRetry{i}", ScrollSource.Programmatic);
+                Log("Load", $"InitialFrameScrollRetry{i} (result={scrollResult})");
+            }
+        });
     }
 
     #endregion
