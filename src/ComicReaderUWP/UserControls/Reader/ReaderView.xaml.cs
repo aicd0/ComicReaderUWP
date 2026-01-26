@@ -1736,7 +1736,7 @@ internal partial class ReaderView : UserControl
 
         if (!_overScrollStarted)
         {
-            OverScrollProgressBar.Visibility = Visibility.Collapsed;
+            OverScrollProgressRing.Visibility = Visibility.Collapsed;
             return;
         }
 
@@ -1745,13 +1745,13 @@ internal partial class ReaderView : UserControl
         {
             bool forward = double.IsPositive(_overScrollAmount);
             _overScrollStarted = false;
-            OverScrollProgressBar.Visibility = Visibility.Collapsed;
+            OverScrollProgressRing.Visibility = Visibility.Collapsed;
             DispatchOverScrollEvent(forward);
             return;
         }
 
-        OverScrollProgressBar.Value = ratio * 100.0;
-        OverScrollProgressBar.Visibility = Visibility.Visible;
+        OverScrollProgressRing.Value = ratio * 100.0;
+        OverScrollProgressRing.Visibility = Visibility.Visible;
     }
 
     private void DispatchOverScrollEvent(bool forward)
