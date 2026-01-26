@@ -317,10 +317,18 @@
             </Grid>
         </ScrollViewer>
         <StackPanel
-            Margin="8,0,0,6"
+            Margin="8,4,0,0"
             HorizontalAlignment="Left"
-            VerticalAlignment="Bottom"
+            VerticalAlignment="Top"
             Orientation="Vertical">
+            <ProgressRing
+                x:Name="OverScrollProgressRing"
+                Width="30"
+                Height="30"
+                Margin="0,4,0,2"
+                HorizontalAlignment="Left"
+                IsIndeterminate="False"
+                Visibility="Collapsed" />
             <TextBlock
                 x:Name="ReaderStatusTextBlock"
                 HorizontalAlignment="Left"
@@ -328,13 +336,6 @@
                 FontSize="16"
                 FontWeight="SemiLight"
                 Opacity="0.3"
-                Visibility="Collapsed" />
-            <ProgressBar
-                x:Name="OverScrollProgressBar"
-                Width="100"
-                Margin="0,2,0,2"
-                HorizontalAlignment="Left"
-                IsIndeterminate="False"
                 Visibility="Collapsed" />
         </StackPanel>
         <FontIcon
