@@ -68,7 +68,7 @@
                 x:Name="BottomGrid"
                 MinWidth="400"
                 Margin="0,0,0,20"
-                Padding="8,8"
+                Padding="12,8"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 Background="{ThemeResource FlyoutPresenterBackground}"
@@ -140,7 +140,7 @@
                             </StackPanel>
                             <TextBlock
                                 x:Name="PageIndicator2"
-                                Margin="8,0,4,2"
+                                Margin="8,0,0,2"
                                 VerticalAlignment="Center"
                                 FontSize="14"
                                 FontWeight="SemiLight"
@@ -150,7 +150,7 @@
                     </Grid>
                     <Slider
                         x:Name="PlaybackSlider"
-                        Margin="4,-2,4,-6"
+                        Margin="0,-2,0,-6"
                         Minimum="1"
                         ValueChanged="PlaybackSlider_ValueChanged" />
                 </StackPanel>
