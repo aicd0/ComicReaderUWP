@@ -629,6 +629,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                             .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
                         ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                             .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                            .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                             .Build();
                         _actionHandler.Handle(actionModel);
                     },
@@ -684,8 +685,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 EditTagLiveData.Emit(new(tagCategory, tag));
             },
         });
-
-        items.Add(new SeparatorMenuFlyoutItemModel());
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {
