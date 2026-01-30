@@ -318,7 +318,7 @@ $comics</value>
     <value>Wenn dir dieses Projekt gefällt, erwäge bitte, den Entwickler über die Schaltfläche unten zu unterstützen. Dadurch werden keine zusätzlichen Funktionen freigeschaltet, aber es hilft erheblich bei der laufenden Pflege des Projekts.</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
-    <value>Du bist jetzt Unterstützer. Vielen Dank für deine Unterstützung!</value>
+    <value>Du bist jetzt Sponsor. Vielen Dank für deine Unterstützung!</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Erledigt</value>
