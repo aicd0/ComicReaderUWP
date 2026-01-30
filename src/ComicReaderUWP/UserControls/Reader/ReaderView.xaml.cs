@@ -884,8 +884,8 @@ internal partial class ReaderView : UserControl
             LoadZoomingConfig(out float zoom, out ZoomType zoomType);
             ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", ScrollSource.Programmatic,
                 zoom: zoom, zoomType: zoomType, page: InitialPage);
-            EnsureInitialPageJumped();
             Log("Load", $"InitialFrameScroll (result={scrollResult})");
+            EnsureInitialPageJumped();
 
             UpdateImages("InitialFrameLoaded");
 
