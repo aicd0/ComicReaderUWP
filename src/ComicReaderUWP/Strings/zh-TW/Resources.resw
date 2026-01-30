@@ -318,7 +318,7 @@ $comics</value>
     <value>如果你喜歡這個專案，請考慮透過下方按鈕支持開發者。這不會解鎖任何額外功能，但能大大幫助專案的持續維護。</value>
   </data>
   <data name="DonationSuccess" xml:space="preserve">
-    <value>您已成為捐贈者。感謝您的支持！</value>
+    <value>您現在是贊助者。感謝您的支持！</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>完成</value>
