@@ -127,7 +127,7 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
 
     private void RequestImageIfNeeded()
     {
-        if (_imageRequested)
+        if (_imageRequested || !_isLoaded)
         {
             return;
         }
