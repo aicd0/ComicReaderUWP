@@ -91,11 +91,6 @@
             </AppBarButton.Content>
         </AppBarButton>
 
-        <Rectangle
-            Width="1"
-            Margin="8,12"
-            Fill="{StaticResource ForegroundGrey1}" />
-
         <!--  Zooming  -->
         <StackPanel
             Padding="12,0"

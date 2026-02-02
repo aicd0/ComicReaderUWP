@@ -172,7 +172,7 @@
                     x:Name="PlaybackSlider"
                     Grid.Row="1"
                     Grid.ColumnSpan="4"
-                    Margin="6,0,6,-6"
+                    Margin="4,2,4,-4"
                     Minimum="1"
                     ValueChanged="PlaybackSlider_ValueChanged" />
             </Grid>
