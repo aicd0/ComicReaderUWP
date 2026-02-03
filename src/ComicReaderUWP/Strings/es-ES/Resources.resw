@@ -153,6 +153,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>Todas las páginas</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>Siempre</value>
+  </data>
   <data name="AntiAliasingFilter" xml:space="preserve">
     <value>Filtro anti-aliasing</value>
   </data>
@@ -322,6 +325,9 @@ $comics</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Hecho</value>
+  </data>
+  <data name="DuringAutoScrolling" xml:space="preserve">
+    <value>Durante el desplazamiento automático</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Editar</value>
@@ -530,9 +536,6 @@ La evaluación se realizará en el siguiente orden:
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Mantener la pantalla encendida</value>
   </data>
-  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
-    <value>Mantener la pantalla encendida solo durante el desplazamiento automático</value>
-  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>Consulta todos los atajos de teclado</value>
   </data>
@@ -595,6 +598,9 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="Name" xml:space="preserve">
     <value>Nombre</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Nunca</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>Nuevo</value>

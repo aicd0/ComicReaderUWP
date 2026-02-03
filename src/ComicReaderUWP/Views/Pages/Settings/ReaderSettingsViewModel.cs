@@ -147,9 +147,9 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
     {
         AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.Instance.KeepScreenOnBehavior;
         List<KeepScreenOnBehaviorEntry> entries = [
-            new(AppSettingsModel.KeepScreenOnBehaviorEnum.None),
-            new(AppSettingsModel.KeepScreenOnBehaviorEnum.KeepScreenOn),
-            new(AppSettingsModel.KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling),
+            new(AppSettingsModel.KeepScreenOnBehaviorEnum.Never),
+            new(AppSettingsModel.KeepScreenOnBehaviorEnum.Always),
+            new(AppSettingsModel.KeepScreenOnBehaviorEnum.DuringAutoScrolling),
         ];
         int selectedIndex = -1;
         for (int i = 0; i < entries.Count; i++)
@@ -184,9 +184,9 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
             {
                 return behavior switch
                 {
-                    AppSettingsModel.KeepScreenOnBehaviorEnum.None => StringResourceProvider.Instance.None,
-                    AppSettingsModel.KeepScreenOnBehaviorEnum.KeepScreenOn => StringResourceProvider.Instance.KeepScreenOn,
-                    AppSettingsModel.KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling => StringResourceProvider.Instance.KeepScreenOnDuringAutoScrolling,
+                    AppSettingsModel.KeepScreenOnBehaviorEnum.Never => StringResourceProvider.Instance.Never,
+                    AppSettingsModel.KeepScreenOnBehaviorEnum.Always => StringResourceProvider.Instance.Always,
+                    AppSettingsModel.KeepScreenOnBehaviorEnum.DuringAutoScrolling => StringResourceProvider.Instance.DuringAutoScrolling,
                     _ => throw new InvalidEnumArgumentException(nameof(Behavior)),
                 };
             }

@@ -22,6 +22,7 @@ public class StringResourceProvider
     public string AllHidden => GetResourceString("AllHidden");
     public string AllMatchedResults => GetResourceString("AllMatchedResults");
     public string AllPages => GetResourceString("AllPages");
+    public string Always => GetResourceString("Always");
     public string AntiAliasingFilter => GetResourceString("AntiAliasingFilter");
     public string AppDescription => GetResourceString("AppDescription");
     public string AppDisplayName => GetResourceString("AppDisplayName");
@@ -67,6 +68,7 @@ public class StringResourceProvider
     public string DonationDescription => GetResourceString("DonationDescription");
     public string DonationSuccess => GetResourceString("DonationSuccess");
     public string Done => GetResourceString("Done");
+    public string DuringAutoScrolling => GetResourceString("DuringAutoScrolling");
     public string Edit => GetResourceString("Edit");
     public string EditPreset => GetResourceString("EditPreset");
     public string Enable => GetResourceString("Enable");
@@ -108,7 +110,6 @@ public class StringResourceProvider
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
     public string KeepScreenOn => GetResourceString("KeepScreenOn");
-    public string KeepScreenOnDuringAutoScrolling => GetResourceString("KeepScreenOnDuringAutoScrolling");
     public string LastReadTime => GetResourceString("LastReadTime");
     public string License => GetResourceString("License");
     public string LinkErrorContent => GetResourceString("LinkErrorContent");
@@ -117,6 +118,7 @@ public class StringResourceProvider
     public string MaintainRelativeSize => GetResourceString("MaintainRelativeSize");
     public string More => GetResourceString("More");
     public string Name => GetResourceString("Name");
+    public string Never => GetResourceString("Never");
     public string New => GetResourceString("New");
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");

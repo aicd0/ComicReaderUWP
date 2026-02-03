@@ -153,6 +153,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>Все страницы</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>Всегда</value>
+  </data>
   <data name="AntiAliasingFilter" xml:space="preserve">
     <value>Фильтр сглаживания</value>
   </data>
@@ -322,6 +325,9 @@ $comics</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Сделанный</value>
+  </data>
+  <data name="DuringAutoScrolling" xml:space="preserve">
+    <value>Во время автопрокрутки</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Редактировать</value>
@@ -531,9 +537,6 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Не выключать экран</value>
   </data>
-  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
-    <value>Не выключать экран только во время автоматической прокрутки</value>
-  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>Ознакомьтесь со всеми сочетаниями клавиш</value>
   </data>
@@ -596,6 +599,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Name" xml:space="preserve">
     <value>Имя</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Никогда</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>Новый</value>

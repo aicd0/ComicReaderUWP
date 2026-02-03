@@ -153,6 +153,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>すべてのページ</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>常に</value>
+  </data>
   <data name="AntiAliasingFilter" xml:space="preserve">
     <value>アンチエイリアシングフィルタ</value>
   </data>
@@ -322,6 +325,9 @@ $comics</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>確認する</value>
+  </data>
+  <data name="DuringAutoScrolling" xml:space="preserve">
+    <value>自動スクロール中</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>編集</value>
@@ -530,9 +536,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="KeepScreenOn" xml:space="preserve">
     <value>画面をオンのままにする</value>
   </data>
-  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
-    <value>自動スクロール中のみ画面をオンのままにする</value>
-  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>すべてのショートカットキーを表示</value>
   </data>
@@ -595,6 +598,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Name" xml:space="preserve">
     <value>名前</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>しない</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>新しい</value>
