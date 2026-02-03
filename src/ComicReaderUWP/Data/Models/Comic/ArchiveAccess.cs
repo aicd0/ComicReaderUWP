@@ -269,7 +269,15 @@ public class ArchiveAccess
                     }
                     catch (Exception e)
                     {
-                        Logger.F(TAG, "Failed to open archive.", e);
+                        if (e is InvalidDataException)
+                        {
+                            Logger.E(TAG, e);
+                        }
+                        else
+                        {
+                            Logger.F(TAG, "Failed to open archive", e);
+                        }
+
                         return;
                     }
 
@@ -282,20 +290,19 @@ public class ArchiveAccess
                             {
                                 hasNext = reader.MoveToNextEntry();
                             }
-                            catch (EndOfStreamException e)
-                            {
-                                Logger.E(TAG, "Unable to read next archive entry: unexpected end of the stream.", e);
-                                break;
-                            }
-                            catch (SharpCompress.Common.CryptographicException)
-                            {
-                                // To be implemented: encrypted archive support
-                                Logger.E(TAG, "Unable to read next archive entry: the archive may be encrypted.");
-                                break;
-                            }
                             catch (Exception e)
                             {
-                                Logger.F(TAG, "ArchiveReaderMoveNext", e);
+                                if (e is EndOfStreamException ||
+                                    e is SharpCompress.Common.IncompleteArchiveException ||
+                                    e is SharpCompress.Common.CryptographicException)
+                                {
+                                    Logger.E(TAG, e);
+                                }
+                                else
+                                {
+                                    Logger.F(TAG, "Failed to read next archive entry", e);
+                                }
+
                                 break;
                             }
 
