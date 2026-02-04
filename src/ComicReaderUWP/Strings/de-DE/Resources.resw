@@ -153,6 +153,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>Alle Seiten</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>Immer</value>
+  </data>
   <data name="AntiAliasingFilter" xml:space="preserve">
     <value>Anti-Aliasing-Filter</value>
   </data>
@@ -322,6 +325,9 @@ $comics</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Erledigt</value>
+  </data>
+  <data name="DuringAutoScrolling" xml:space="preserve">
+    <value>Beim automatischen Scrollen</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Bearbeiten</value>
@@ -530,9 +536,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Bildschirm eingeschaltet lassen</value>
   </data>
-  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
-    <value>Bildschirm nur bei automatischem Scrollen eingeschaltet lassen</value>
-  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>Alle Tastaturkürzel ansehen</value>
   </data>
@@ -595,6 +598,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Name" xml:space="preserve">
     <value>Name</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Nie</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>Neu</value>

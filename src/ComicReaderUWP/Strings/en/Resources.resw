@@ -153,6 +153,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>All pages</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>Always</value>
+  </data>
   <data name="AntiAliasingFilter" xml:space="preserve">
     <value>Anti-aliasing filter</value>
   </data>
@@ -322,6 +325,9 @@ $comics</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>Done</value>
+  </data>
+  <data name="DuringAutoScrolling" xml:space="preserve">
+    <value>During auto scrolling</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Edit</value>
@@ -532,9 +538,6 @@ The evaluation will be performed in the following order:
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Keep screen on</value>
   </data>
-  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
-    <value>Keep screen on during auto scrolling only</value>
-  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>Check out all keyboard shortcuts</value>
   </data>
@@ -597,6 +600,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="Name" xml:space="preserve">
     <value>Name</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>New</value>

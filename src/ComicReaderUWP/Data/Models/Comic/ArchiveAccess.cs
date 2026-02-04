@@ -117,7 +117,7 @@ public class ArchiveAccess
 
         try
         {
-            await TryAccessArchiveStream(stream, baseFile.FileType, subPath, func);
+            await TryAccessArchiveStreamInternal(stream, baseFile.FileType.ToLower(), subPath, func);
         }
         finally
         {
@@ -234,7 +234,15 @@ public class ArchiveAccess
                     }
                     catch (Exception e)
                     {
-                        Logger.F(TAG, "Failed to open 7z archive.", e);
+                        if (e is SharpCompress.Common.CryptographicException) // Encrypted archive not supported for now
+                        {
+                            Logger.E(TAG, e);
+                        }
+                        else
+                        {
+                            Logger.F(TAG, "Failed to open 7zip archive", e);
+                        }
+
                         return;
                     }
 
@@ -269,7 +277,15 @@ public class ArchiveAccess
                     }
                     catch (Exception e)
                     {
-                        Logger.F(TAG, "Failed to open archive.", e);
+                        if (e is InvalidDataException)
+                        {
+                            Logger.E(TAG, e);
+                        }
+                        else
+                        {
+                            Logger.F(TAG, "Failed to open archive", e);
+                        }
+
                         return;
                     }
 
@@ -282,20 +298,19 @@ public class ArchiveAccess
                             {
                                 hasNext = reader.MoveToNextEntry();
                             }
-                            catch (EndOfStreamException e)
-                            {
-                                Logger.E(TAG, "Unable to read next archive entry: unexpected end of the stream.", e);
-                                break;
-                            }
-                            catch (SharpCompress.Common.CryptographicException)
-                            {
-                                // To be implemented: encrypted archive support
-                                Logger.E(TAG, "Unable to read next archive entry: the archive may be encrypted.");
-                                break;
-                            }
                             catch (Exception e)
                             {
-                                Logger.F(TAG, "ArchiveReaderMoveNext", e);
+                                if (e is EndOfStreamException ||
+                                    e is SharpCompress.Common.CryptographicException || // Encrypted archive not supported for now
+                                    e is SharpCompress.Common.IncompleteArchiveException)
+                                {
+                                    Logger.E(TAG, e);
+                                }
+                                else
+                                {
+                                    Logger.F(TAG, "Failed to read next archive entry", e);
+                                }
+
                                 break;
                             }
 
@@ -318,17 +333,6 @@ public class ArchiveAccess
                 Logger.F(TAG, "Unsupported archive format: " + extension);
                 return;
         }
-    }
-
-    private static async Task TryAccessArchiveStream(Stream stream, string extension, string subPath, Func<Stream, Task> func)
-    {
-        if (stream == null)
-        {
-            Logger.AssertNotReachHere("F1487557CF9CC3A7");
-            return;
-        }
-
-        await TryAccessArchiveStreamInternal(stream, extension.ToLower(), subPath, func);
     }
 
     private static async Task TryAccessArchiveStreamInternal(Stream stream,

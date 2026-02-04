@@ -153,6 +153,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>所有頁面</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>始終</value>
+  </data>
   <data name="AntiAliasingFilter" xml:space="preserve">
     <value>抗混疊濾波器</value>
   </data>
@@ -322,6 +325,9 @@ $comics</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>完成</value>
+  </data>
+  <data name="DuringAutoScrolling" xml:space="preserve">
+    <value>自動捲動時</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>編輯</value>
@@ -530,9 +536,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="KeepScreenOn" xml:space="preserve">
     <value>保持螢幕開啟</value>
   </data>
-  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
-    <value>僅在自動滾動時保持螢幕開啟</value>
-  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>查看所有鍵盤快速鍵</value>
   </data>
@@ -595,6 +598,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="Name" xml:space="preserve">
     <value>名稱</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>從不</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>新建</value>

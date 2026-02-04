@@ -538,9 +538,9 @@ internal sealed partial class ReaderPage : BasePage
         AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.Instance.KeepScreenOnBehavior;
         bool active = !minimized && IsResumed && behavior switch
         {
-            AppSettingsModel.KeepScreenOnBehaviorEnum.None => false,
-            AppSettingsModel.KeepScreenOnBehaviorEnum.KeepScreenOn => true,
-            AppSettingsModel.KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling => MainReaderView.IsAutoScrolling,
+            AppSettingsModel.KeepScreenOnBehaviorEnum.Never => false,
+            AppSettingsModel.KeepScreenOnBehaviorEnum.Always => true,
+            AppSettingsModel.KeepScreenOnBehaviorEnum.DuringAutoScrolling => MainReaderView.IsAutoScrolling,
             _ => false
         };
 

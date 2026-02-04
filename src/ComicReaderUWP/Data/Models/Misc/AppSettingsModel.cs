@@ -378,10 +378,10 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         return behavior switch
         {
-            KeepScreenOnBehaviorEnum.None => "None",
-            KeepScreenOnBehaviorEnum.KeepScreenOn => "KeepScreenOn",
-            KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling => "KeepScreenOnDuringAutoScrolling",
-            _ => "KeepScreenOnDuringAutoScrolling",
+            KeepScreenOnBehaviorEnum.Never => "Never",
+            KeepScreenOnBehaviorEnum.Always => "Always",
+            KeepScreenOnBehaviorEnum.DuringAutoScrolling => "DuringAutoScrolling",
+            _ => "DuringAutoScrolling",
         };
     }
 
@@ -389,10 +389,10 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         return behavior switch
         {
-            "None" => KeepScreenOnBehaviorEnum.None,
-            "KeepScreenOn" => KeepScreenOnBehaviorEnum.KeepScreenOn,
-            "KeepScreenOnDuringAutoScrolling" => KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling,
-            _ => KeepScreenOnBehaviorEnum.KeepScreenOnDuringAutoScrolling,
+            "Never" => KeepScreenOnBehaviorEnum.Never,
+            "Always" => KeepScreenOnBehaviorEnum.Always,
+            "DuringAutoScrolling" => KeepScreenOnBehaviorEnum.DuringAutoScrolling,
+            _ => KeepScreenOnBehaviorEnum.DuringAutoScrolling,
         };
     }
 
@@ -569,9 +569,9 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
     public enum KeepScreenOnBehaviorEnum
     {
-        None,
-        KeepScreenOn,
-        KeepScreenOnDuringAutoScrolling,
+        Never,
+        Always,
+        DuringAutoScrolling,
     }
 
     public enum AppearanceSetting

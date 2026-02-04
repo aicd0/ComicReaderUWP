@@ -153,6 +153,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>모든 페이지</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>항상</value>
+  </data>
   <data name="AntiAliasingFilter" xml:space="preserve">
     <value>앤티앨리어싱 필터</value>
   </data>
@@ -322,6 +325,9 @@ $comics</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>완료</value>
+  </data>
+  <data name="DuringAutoScrolling" xml:space="preserve">
+    <value>자동 스크롤 중</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>편집하다</value>
@@ -531,9 +537,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="KeepScreenOn" xml:space="preserve">
     <value>화면 켜짐 유지</value>
   </data>
-  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
-    <value>자동 스크롤 중에만 화면 켜짐 유지</value>
-  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>모든 키보드 단축키를 확인하세요</value>
   </data>
@@ -596,6 +599,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Name" xml:space="preserve">
     <value>이름</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>안 함</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>새로운</value>

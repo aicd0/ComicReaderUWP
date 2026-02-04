@@ -153,6 +153,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>所有页面</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>始终</value>
+  </data>
   <data name="AntiAliasingFilter" xml:space="preserve">
     <value>抗混叠滤波器</value>
   </data>
@@ -322,6 +325,9 @@ $comics</value>
   </data>
   <data name="Done" xml:space="preserve">
     <value>完成</value>
+  </data>
+  <data name="DuringAutoScrolling" xml:space="preserve">
+    <value>自动滚动时</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>编辑</value>
@@ -530,9 +536,6 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="KeepScreenOn" xml:space="preserve">
     <value>保持屏幕开启</value>
   </data>
-  <data name="KeepScreenOnDuringAutoScrolling" xml:space="preserve">
-    <value>仅在自动滚动时保持屏幕开启</value>
-  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
     <value>查看所有热键</value>
   </data>
@@ -595,6 +598,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="Name" xml:space="preserve">
     <value>名称</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>从不</value>
   </data>
   <data name="New" xml:space="preserve">
     <value>新建</value>
