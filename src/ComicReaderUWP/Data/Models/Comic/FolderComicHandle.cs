@@ -247,14 +247,18 @@ internal partial class FolderComicHandle : ComicHandle
             {
                 return new FileStream(imageFile, FileMode.Open, FileAccess.Read);
             }
-            catch (FileNotFoundException)
-            {
-                Logger.I(TAG, $"File not found: {imageFile}");
-                return null;
-            }
             catch (Exception e)
             {
-                Logger.F(TAG, $"Cannot open '{imageFile}'.", e);
+                if (e is FileNotFoundException ||
+                    e is DirectoryNotFoundException)
+                {
+                    Logger.E(TAG, $"Cannot open '{imageFile}'", e);
+                }
+                else
+                {
+                    Logger.F(TAG, $"Cannot open '{imageFile}'", e);
+                }
+
                 return null;
             }
         }
