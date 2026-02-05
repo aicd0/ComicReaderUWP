@@ -124,29 +124,28 @@ internal partial class ArchiveComicHandle : ComicHandle
             return false;
         }
 
-        // Load entries.
-        Logger.I(TAG, $"Retrieving images in '{Location}'...");
         var entries = new List<string>();
         if (IsExternal)
         {
-            var ctx = new SearchContext(Location, PathType.File);
             string basePath = ArchiveAccess.GetBasePath(Location, false) + ArchiveAccess.FileSeperator;
-            while (await ctx.Search(512))
+            foreach (SearchContext.ItemInfo itemInfo in SearchContext.Search(Location, PathType.File))
             {
-                foreach (string filepath in ctx.Files)
+                if (itemInfo.Type != SearchContext.ItemType.File)
                 {
-                    if (filepath.Length <= basePath.Length)
-                    {
-                        Logger.AssertNotReachHere("46158BE005A1988A");
-                        continue;
-                    }
+                    continue;
+                }
 
-                    string filename = StringUtils.ItemNameFromPath(filepath);
-                    string extension = StringUtils.ExtensionFromFilename(filename);
-                    if (AppInfoProvider.IsSupportedImageExtension(extension))
-                    {
-                        entries.Add(filepath[basePath.Length..]);
-                    }
+                if (itemInfo.Path.Length <= basePath.Length)
+                {
+                    Logger.AssertNotReachHere("46158BE005A1988A");
+                    continue;
+                }
+
+                string filename = StringUtils.ItemNameFromPath(itemInfo.Path);
+                string extension = StringUtils.ExtensionFromFilename(filename);
+                if (AppInfoProvider.IsSupportedImageExtension(extension))
+                {
+                    entries.Add(itemInfo.Path[basePath.Length..]);
                 }
             }
         }
