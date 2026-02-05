@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.SDK.Common.Native;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
@@ -19,186 +18,163 @@ public enum PathType
     File,
 }
 
-public class SearchContext
+internal static class SearchContext
 {
-    private const string TAG = nameof(SearchContext);
-
-    public List<string> Folders { get; private set; } = [];
-    public List<string> Files { get; private set; } = [];
-    public List<string> NoAccessItems { get; private set; } = [];
-    public int ItemFound => Folders.Count + Files.Count;
-
-    private bool _initialSearch = true;
-    private readonly List<Node> _stack = [];
-    private readonly int _maxDepth;
-
-    public SearchContext(string path, PathType type, int maxDepth = -1)
+    public static IEnumerable<ItemInfo> Search(string path, PathType type, int maxDepth = -1)
     {
-        var pathInfo = new PathInfo(type, path);
-        _stack.Add(new Node
+        List<PathInfo> paths = [new PathInfo(type, path)];
+        List<PathInfo> nextPaths = [];
+        int depth = 0;
+        while (paths.Count > 0)
         {
-            Paths = [pathInfo]
-        });
-
-        _maxDepth = maxDepth;
-    }
-
-    public Task<bool> Search(int minItems)
-    {
-        return Task.Run(delegate
-        {
-            Folders.Clear();
-            Files.Clear();
-            NoAccessItems.Clear();
-
-            if (_stack.Count == 0)
+            foreach (PathInfo pathInfo in paths)
             {
-                return false;
-            }
-
-            if (_initialSearch)
-            {
-                Logger.Assert(_stack.Count == 1, "A928F82A1210EAEC");
-                _initialSearch = false;
-
-                foreach (PathInfo pathInfo in _stack[0].Paths)
+                foreach (ItemInfo item in pathInfo.Ctx.Search())
                 {
-                    Folders.Add(pathInfo.Path);
-                }
-            }
+                    yield return item;
 
-            bool notEnd = InternalSearch(minItems);
-            return ItemFound > 0 || notEnd;
-        });
-    }
-
-    private bool InternalSearch(int minItems, int depth = 0)
-    {
-        if (depth >= _stack.Count)
-        {
-            // Visit current node
-            PathInfo pathInfo = _stack[^1].CurrentPath;
-            var folders = new List<string>();
-            var files = new List<string>();
-            var noAccessItems = new List<string>();
-            bool notFinish = true;
-
-            while (minItems > ItemFound && notFinish)
-            {
-                folders.Clear();
-                files.Clear();
-                noAccessItems.Clear();
-
-                try
-                {
-                    notFinish = pathInfo.Ctx.Search(folders, files, noAccessItems, minItems - ItemFound);
-                }
-                catch (Exception e)
-                {
-                    Logger.F(TAG, e);
-                    notFinish = false;
-                }
-
-                Folders.AddRange(folders);
-                Files.AddRange(files);
-                NoAccessItems.AddRange(noAccessItems);
-
-                foreach (string file in files)
-                {
-                    string filename = StringUtils.ItemNameFromPath(file);
-                    string extension = StringUtils.ExtensionFromFilename(filename);
-                    if (AppInfoProvider.IsSupportedArchiveExtension(extension))
+                    if (item.Type == ItemType.File)
                     {
-                        pathInfo.SubItems.Add(new PathInfo(PathType.File, file));
+                        string filename = StringUtils.ItemNameFromPath(item.Path);
+                        string extension = StringUtils.ExtensionFromFilename(filename);
+                        if (AppInfoProvider.IsSupportedArchiveExtension(extension))
+                        {
+                            nextPaths.Add(new PathInfo(PathType.File, item.Path));
+                        }
+                    }
+                    else if (item.Type == ItemType.Folder)
+                    {
+                        nextPaths.Add(new PathInfo(PathType.Folder, item.Path));
                     }
                 }
             }
 
-            if (notFinish)
+            if (maxDepth >= 0 && depth >= maxDepth)
             {
-                return true;
+                break;
             }
 
-            if (pathInfo.SubItems.Count == 0)
-            {
-                return false;
-            }
-
-            _stack.Add(new Node
-            {
-                Paths = pathInfo.SubItems,
-            });
-        }
-
-        if (_maxDepth < 0 || depth < _maxDepth)
-        {
-            // Search deeper
-            while (_stack[depth].Index < _stack[depth].Paths.Count)
-            {
-                // Exit if minStep is reached
-                if (ItemFound >= minItems)
-                {
-                    return true;
-                }
-
-                if (InternalSearch(minItems, depth + 1))
-                {
-                    return true;
-                }
-
-                _stack[depth].Index++;
-            }
-        }
-
-        _stack.RemoveAt(_stack.Count - 1);
-        return false;
-    }
-
-    private class PathInfo
-    {
-        public readonly PathType Type;
-        public readonly string Path;
-        public readonly IStorageItemSearchContext Ctx;
-        public readonly List<PathInfo> SubItems = [];
-
-        public PathInfo(PathType pathType, string path)
-        {
-            Type = pathType;
-            Path = path;
-
-            Ctx = pathType switch
-            {
-                PathType.Folder => new FolderSearchContext(path),
-                PathType.File => new ArchiveSearchContext(path),
-                _ => throw new ArgumentException(null, nameof(pathType)),
-            };
+            depth++;
+            (paths, nextPaths) = (nextPaths, paths);
+            nextPaths.Clear();
         }
     }
 
-    private class Node
+    private class PathInfo(PathType pathType, string path)
     {
-        public required List<PathInfo> Paths;
-        public int Index = 0;
+        public readonly PathType Type = pathType;
+        public readonly string Path = path;
 
-        public PathInfo CurrentPath => Paths[Index];
+        public readonly IStorageItemSearchContext Ctx = pathType switch
+        {
+            PathType.Folder => new FolderSearchContext(path),
+            PathType.File => new ArchiveSearchContext(path),
+            _ => throw new ArgumentException(null, nameof(pathType)),
+        };
+    }
+
+    public enum ItemType
+    {
+        Folder,
+        File,
+        NoAccess,
+    }
+
+    public struct ItemInfo
+    {
+        public ItemType Type;
+        public string Path;
     }
 
     private interface IStorageItemSearchContext
     {
-        bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems);
+        IEnumerable<ItemInfo> Search();
     }
 
     private class FolderSearchContext(string path) : IStorageItemSearchContext
     {
-        readonly Win32IO.SubItemDeepContext _ctx = new(path);
+        // System Error Codes
+        // https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-?redirectedfrom=MSDN
+        internal const int ERROR_ACCESS_DENIED = 5;
 
-        public bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems)
+        internal const int FIND_FIRST_EX_CASE_SENSITIVE = 1;
+        internal const int FIND_FIRST_EX_LARGE_FETCH = 2;
+        internal const int FIND_FIRST_EX_ON_DISK_ENTRIES_ONLY = 4;
+
+        internal const int GENERIC_READ = unchecked((int)0x80000000);
+        internal const int GENERIC_ALL = unchecked(0x10000000);
+
+        internal const int CREATE_NEW = 1;
+        internal const int CREATE_ALWAYS = 2;
+        internal const int OPEN_EXISTING = 3;
+        internal const int OPEN_ALWAYS = 4;
+        internal const int TRUNCATE_EXISTING = 5;
+
+        internal const int FILE_ATTRIBUTE_NORMAL = 0x80;
+
+        private readonly string _path = path;
+
+        public IEnumerable<ItemInfo> Search()
         {
-            bool notFinish = _ctx.Search((uint)minItems);
-            folders.AddRange(_ctx.Folders);
-            files.AddRange(_ctx.Files);
-            noAccessItems.AddRange(_ctx.NoAccessFolders);
-            return notFinish;
+            return SubItems(_path, "*");
+        }
+
+        private static IEnumerable<ItemInfo> SubItems(string path, string name)
+        {
+            NativeModels.FindExInfoLevel findInfoLevel;
+            NativeModels.FIndexSearchOps indexSearchOps = NativeModels.FIndexSearchOps.FindExSearchNameMatch;
+            int additionalFlags;
+
+            if (Environment.OSVersion.Version.Major >= 6)
+            {
+                findInfoLevel = NativeModels.FindExInfoLevel.FindExInfoBasic;
+                additionalFlags = FIND_FIRST_EX_LARGE_FETCH;
+            }
+            else
+            {
+                findInfoLevel = NativeModels.FindExInfoLevel.FindExInfoStandard;
+                additionalFlags = 0;
+            }
+
+            if (!path.EndsWith('\\'))
+            {
+                path += "\\";
+            }
+
+            nint hFile = NativeMethods.FindFirstFileExFromApp(path + name, findInfoLevel,
+                out _, indexSearchOps, nint.Zero, additionalFlags);
+            if (hFile.ToInt64() == -1)
+            {
+                yield break;
+            }
+
+            while (NativeMethods.FindNextFile(hFile, out NativeModels.Win32FindData find_data))
+            {
+                string fullpath = path + find_data.cFileName;
+                if (((FileAttributes)find_data.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory)
+                {
+                    if (find_data.cFileName == "..")
+                    {
+                        continue;
+                    }
+
+                    yield return new ItemInfo
+                    {
+                        Type = ItemType.Folder,
+                        Path = fullpath,
+                    };
+                }
+                else
+                {
+                    yield return new ItemInfo
+                    {
+                        Type = ItemType.File,
+                        Path = fullpath,
+                    };
+                }
+            }
+
+            NativeMethods.FindClose(hFile);
         }
     }
 
@@ -207,35 +183,47 @@ public class SearchContext
         private readonly string _path = path;
         private readonly string _extension = StringUtils.ExtensionFromFilename(path);
 
-        public bool Search(List<string> folders, List<string> files, List<string> noAccessItems, int minItems)
+        public IEnumerable<ItemInfo> Search()
         {
             using Stream? stream = ArchiveAccess.TryGetFileStream(_path).Result;
-            var subFolders = new HashSet<string>();
-            ArchiveAccess.TryReadEntries(stream, _extension, (entry) =>
+            List<string> files = [];
+            HashSet<string> folders = [];
+            ArchiveAccess.TryReadEntries(stream, _extension, entry =>
             {
                 string path = entry.FullName.Replace('/', '\\');
                 if (entry.IsDirectory)
                 {
-                    subFolders.Add(path[..^1]);
+                    folders.Add(path[..^1]);
                 }
                 else
                 {
-                    files.Add(_path + ArchiveAccess.FileSeperator + path);
+                    files.Add(path);
                     for (int i = 0; (i = path.IndexOf('\\', i)) >= 0; ++i)
                     {
-                        subFolders.Add(path[..i]);
+                        folders.Add(path[..i]);
                     }
                 }
 
                 return Task.FromResult(ArchiveAccess.ICallbackResult.Continue);
             }).Wait();
 
-            foreach (string subFolder in subFolders)
+            foreach (string file in files)
             {
-                folders.Add(_path + ArchiveAccess.FileSeperator + subFolder);
+                yield return new ItemInfo
+                {
+                    Type = ItemType.File,
+                    Path = _path + ArchiveAccess.FileSeperator + file,
+                };
             }
 
-            return false;
+            foreach (string folder in folders)
+            {
+                yield return new ItemInfo
+                {
+                    Type = ItemType.Folder,
+                    Path = _path + ArchiveAccess.FileSeperator + folder,
+                };
+            }
         }
     }
 }

@@ -10,7 +10,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
@@ -969,8 +968,8 @@ internal abstract class ComicHandle
         AppSettingsModel.ExternalModel appSettings = AppSettingsModel.Instance.GetModel();
         bool comicUpdatedSinceLastBroadcast = false;
 
-        // Fetch all locations in the database
-        var oldLocations = new List<string>();
+        // Get all locations from database
+        HashSet<string> oldLocations = [];
         Enqueue("GetLocationsFromDatabase", delegate
         {
             var command = SelectCommand.Create(ComicTable.Instance);
@@ -984,168 +983,167 @@ internal abstract class ComicHandle
             return true;
         }).Wait();
 
-        // Get all root folders from setting
-        List<string> rootFolders = [];
-        foreach (string path in AppSettingsModel.Instance.GetModel().ComicFolders)
+        // Scan comics
+        Dictionary<string, ComicType> pendingLocations = [];
+        HashSet<string> newLocations = [];
+        HashSet<string> noAccessLocations = [];
+
+        void FlushPendingLocations()
         {
-            rootFolders.Add(path);
+            List<UpdateItemInfo> updateQueue = [];
+            foreach (KeyValuePair<string, ComicType> pair in pendingLocations)
+            {
+                string location = pair.Key;
+                ComicType type = pair.Value;
+                newLocations.Add(location);
+
+                if (!oldLocations.Contains(location))
+                {
+                    updateQueue.Add(new UpdateItemInfo
+                    {
+                        Location = location,
+                        ItemType = type,
+                    });
+                }
+            }
+
+            pendingLocations.Clear();
+
+            if (updateQueue.Count > 0)
+            {
+                comicUpdatedSinceLastBroadcast = true;
+                TransactionBlock(async delegate
+                {
+                    foreach (UpdateItemInfo info in updateQueue)
+                    {
+                        ComicHandle? comic = FromDatabase(info.ItemType, info.Location);
+                        if (comic is null)
+                        {
+                            continue;
+                        }
+
+                        comic.SetAsDefaultInfo();
+                        comic.SaveAllNoLock();
+                    }
+
+                    await Task.CompletedTask;
+                }, "UpdateComic").Wait();
+            }
         }
 
-        // Scan all root folders
-        var newLocations = new List<string>();
-        var noAccessLocations = new List<string>();
         var watch = new Stopwatch();
         watch.Start();
-        foreach (string folderPath in rootFolders)
+        foreach (string folderPath in appSettings.ComicFolders)
         {
-            Logger.I(TAG, $"Scanning: {folderPath}");
             if (!Directory.Exists(folderPath))
             {
                 Logger.I(TAG, $"Folder not exists, skipped: {folderPath}");
                 continue;
             }
 
-            var ctx = new SearchContext(folderPath, PathType.Folder);
-            while (ctx.Search(1024).Result)
+            foreach (SearchContext.ItemInfo itemInfo in SearchContext.Search(folderPath, PathType.Folder))
             {
                 if (_pendingUpdateTaskCount > 0)
                 {
                     return;
                 }
 
-                Logger.I(TAG, $"Scanning {ctx.ItemFound} files/folders...");
-                var scanResult = new Dictionary<string, ComicType>();
-                foreach (string filePath in ctx.Files)
+                if (itemInfo.Type != SearchContext.ItemType.File)
                 {
-                    string filename = StringUtils.ItemNameFromPath(filePath);
-                    string extension = StringUtils.ExtensionFromFilename(filename).ToLower();
-                    if (AppInfoProvider.IsSupportedImageExtension(extension))
+                    if (itemInfo.Type == SearchContext.ItemType.NoAccess)
                     {
-                        string parentPath = StringUtils.ParentLocationFromLocation(filePath);
-                        if (!scanResult.ContainsKey(parentPath))
-                        {
-                            scanResult[parentPath] =
-                                ArchiveAccess.IsArchivePath(filePath) ?
-                                ComicType.Archive : ComicType.Folder;
-                        }
+                        noAccessLocations.Add(itemInfo.Path);
                     }
-                    else
+
+                    continue;
+                }
+
+                string filename = StringUtils.ItemNameFromPath(itemInfo.Path);
+                string extension = StringUtils.ExtensionFromFilename(filename).ToLowerInvariant();
+                if (AppInfoProvider.IsSupportedImageExtension(extension))
+                {
+                    string location = StringUtils.ParentLocationFromLocation(itemInfo.Path);
+                    ComicType type = ArchiveAccess.IsArchivePath(itemInfo.Path) ? ComicType.Archive : ComicType.Folder;
+                    pendingLocations[location] = type;
+                }
+                else
+                {
+                    switch (extension)
                     {
-                        switch (extension)
-                        {
-                            case ".pdf":
-                                scanResult[filePath] = ComicType.PDF;
-                                break;
-                            default:
-                                break;
-                        }
+                        case ".pdf":
+                            pendingLocations[itemInfo.Path] = ComicType.PDF;
+                            break;
+                        default:
+                            break;
                     }
                 }
 
-                List<string> incrementNewLocations = [];
-                incrementNewLocations.AddRange(scanResult.Keys);
-                newLocations.AddRange(incrementNewLocations);
-                noAccessLocations.AddRange(ctx.NoAccessItems);
-
-                // Create/Update comics
-                var queue = new List<UpdateItemInfo>();
-
-                var locationAdded = C3<string, string, string>.Except(
-                    incrementNewLocations, oldLocations,
-                    StringUtils.UniquePath, StringUtils.UniquePath,
-                    new C1<string>.DefaultEqualityComparer()).ToList();
-                foreach (string location in locationAdded)
+                if (watch.LapSpan().TotalSeconds > 2)
                 {
-                    queue.Add(new UpdateItemInfo
+                    FlushPendingLocations();
+
+                    if (comicUpdatedSinceLastBroadcast)
                     {
-                        Location = location,
-                        ItemType = scanResult[location],
-                    });
-                }
+                        comicUpdatedSinceLastBroadcast = false;
+                        DispatchComicUpdateEvent();
+                    }
 
-                if (queue.Count > 0)
-                {
-                    comicUpdatedSinceLastBroadcast = true;
-                    TransactionBlock(async delegate
-                    {
-                        foreach (UpdateItemInfo info in queue)
-                        {
-                            ComicHandle? comic = FromDatabase(info.ItemType, info.Location);
-                            if (comic is null)
-                            {
-                                continue;
-                            }
-
-                            comic.SetAsDefaultInfo();
-                            comic.SaveAllNoLock();
-                        }
-
-                        await Task.CompletedTask;
-                    }, "UpdateComic").Wait();
-                }
-
-                if (watch.LapSpan().TotalSeconds > 2 && comicUpdatedSinceLastBroadcast)
-                {
-                    comicUpdatedSinceLastBroadcast = false;
-                    DispatchComicUpdateEvent();
                     watch.Lap();
                 }
             }
         }
 
-        // Remove comics
-        List<string> locationRemoved = [];
+        FlushPendingLocations();
+
+        // Remove unreachable comics
         if (appSettings.RemoveUnreachableComics)
         {
-            locationRemoved = [.. C3<string, string, string>.Except(
-                oldLocations, newLocations,
-                StringUtils.UniquePath, StringUtils.UniquePath,
-                new C1<string>.DefaultEqualityComparer())];
-        }
+            List<string> locationRemoved = [.. oldLocations.Except(newLocations)];
 
-        for (int i = locationRemoved.Count - 1; i >= 0; i--)
-        {
-            string location = locationRemoved[i];
-            foreach (string noAccessLocation in noAccessLocations)
+            for (int i = locationRemoved.Count - 1; i >= 0; i--)
             {
-                if (StringUtils.FolderContain(noAccessLocation, location))
+                string location = locationRemoved[i];
+                foreach (string noAccessLocation in noAccessLocations)
                 {
-                    locationRemoved.RemoveAt(i);
-                    break;
+                    if (StringUtils.FolderContain(noAccessLocation, location))
+                    {
+                        locationRemoved.RemoveAt(i);
+                        break;
+                    }
                 }
             }
-        }
 
-        if (locationRemoved.Count > 0)
-        {
-            bool proceed = true;
-            if (appSettings.PromptBeforeRemovingComics)
+            if (locationRemoved.Count > 0)
             {
-                string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
-                    .Replace("$count", locationRemoved.Count.ToString())
-                    .Replace("$comics", string.Join('\n', locationRemoved));
-                DialogOptions options = new DialogOptions.Builder()
-                    .SetTitle(StringResourceProvider.Instance.Warning)
-                    .SetContent(promptContent)
-                    .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
-                    .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
-                    .Build();
-                proceed = DialogUtils.EnqueueDialogAsync(options).Result.Result == ContentDialogResult.Primary;
-            }
-
-            if (proceed)
-            {
-                comicUpdatedSinceLastBroadcast = true;
-                TransactionBlock(delegate
+                bool proceed = true;
+                if (appSettings.PromptBeforeRemovingComics)
                 {
-                    foreach (string location in locationRemoved)
-                    {
-                        Logger.I(TAG, $"Removing: {location}");
-                        RemoveWithLocationNoLock(location);
-                    }
+                    string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
+                        .Replace("$count", locationRemoved.Count.ToString())
+                        .Replace("$comics", string.Join('\n', locationRemoved));
+                    DialogOptions options = new DialogOptions.Builder()
+                        .SetTitle(StringResourceProvider.Instance.Warning)
+                        .SetContent(promptContent)
+                        .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
+                        .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
+                        .Build();
+                    proceed = DialogUtils.EnqueueDialogAsync(options).Result.Result == ContentDialogResult.Primary;
+                }
 
-                    return Task.CompletedTask;
-                }, "RemoveLocationsFromDatabase").Wait();
+                if (proceed)
+                {
+                    comicUpdatedSinceLastBroadcast = true;
+                    TransactionBlock(delegate
+                    {
+                        foreach (string location in locationRemoved)
+                        {
+                            Logger.I(TAG, $"Removing: {location}");
+                            RemoveWithLocationNoLock(location);
+                        }
+
+                        return Task.CompletedTask;
+                    }, "RemoveLocationsFromDatabase").Wait();
+                }
             }
         }
 
