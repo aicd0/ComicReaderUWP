@@ -1,8 +1,15 @@
 CallWindowProc
+CommandLineToArgvW
 DwmGetWindowAttribute
+FindClose
+FindFirstFileExFromApp
+FindNextFile
 GetActiveWindow
+GetDeviceCaps
+GetDpiForMonitor
 GetWindowPlacement
 GetWindowRect
+LocalFree
 RegisterHotKey
 SetForegroundWindow
 SetWindowLong
@@ -10,4 +17,5 @@ SetWindowPlacement
 SetWindowPos
 ShowWindow
 UnregisterHotKey
+INVALID_HANDLE_VALUE
 WHEEL_DELTA

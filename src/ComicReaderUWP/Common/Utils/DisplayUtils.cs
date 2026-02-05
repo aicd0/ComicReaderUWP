@@ -5,11 +5,12 @@ using System;
 using System.Drawing;
 
 using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Native;
 using ComicReaderUWP.Views.AppWindows.Main;
 
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
+
+using Windows.Win32;
 
 namespace ComicReaderUWP.Common.Utils;
 
@@ -22,9 +23,9 @@ internal static class DisplayUtils
     public static void GetScreenSize(out int width, out int height)
     {
         using var graphics = Graphics.FromHwnd(nint.Zero);
-        nint hdc = graphics.GetHdc();
-        width = NativeMethods.GetDeviceCaps(hdc, 118);
-        height = NativeMethods.GetDeviceCaps(hdc, 117);
+        Windows.Win32.Graphics.Gdi.HDC hdc = new(graphics.GetHdc());
+        width = PInvoke.GetDeviceCaps(hdc, Windows.Win32.Graphics.Gdi.GET_DEVICE_CAPS_INDEX.DESKTOPHORZRES);
+        height = PInvoke.GetDeviceCaps(hdc, Windows.Win32.Graphics.Gdi.GET_DEVICE_CAPS_INDEX.DESKTOPVERTRES);
     }
 
     public static double GetRawPixelPerPixel()
@@ -48,20 +49,19 @@ internal static class DisplayUtils
     private static double GetScaleAdjustment()
     {
         MainWindow? window = App.Instance.WindowManager.GetAnyWindow();
-        if (window == null)
+        if (window is null)
         {
             Logger.AssertNotReachHere("A10F68C0A70A9EC2");
             return 1.0;
         }
+
         WindowId windowId = Win32Interop.GetWindowIdFromWindow(window.WindowHandle);
         var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
-        nint hMonitor = Win32Interop.GetMonitorFromDisplayId(displayArea.DisplayId);
-
-        int returnCode = NativeMethods.GetDpiForMonitor(hMonitor, NativeModels.MonitorDPIType.MDT_Default, out uint dpiX, out uint _);
+        Windows.Win32.Graphics.Gdi.HMONITOR hMonitor = new(Win32Interop.GetMonitorFromDisplayId(displayArea.DisplayId));
+        int returnCode = PInvoke.GetDpiForMonitor(hMonitor, Windows.Win32.UI.HiDpi.MONITOR_DPI_TYPE.MDT_DEFAULT, out uint dpiX, out uint _);
         if (returnCode != 0)
         {
-            Logger.AssertNotReachHere("9610A388C81E2FA4");
-            throw new Exception("Could not get DPI for monitor.");
+            throw new Exception("Unable get DPI for the current monitor");
         }
 
         uint scaleFactorPercent = (uint)(((long)dpiX * 100 + (96 >> 1)) / 96);

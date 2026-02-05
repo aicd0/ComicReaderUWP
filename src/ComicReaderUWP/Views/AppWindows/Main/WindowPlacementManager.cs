@@ -4,8 +4,8 @@
 using System.Drawing;
 using System.Text.Json.Serialization;
 
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Native;
 
 using Windows.Win32;
 
@@ -99,7 +99,7 @@ internal class WindowPlacementManager(MainWindow window)
 
     private bool IsValidPlacement(Windows.Win32.UI.WindowsAndMessaging.WINDOWPLACEMENT placement, Windows.Win32.Foundation.RECT rect)
     {
-        GetScreenSize(out int screenWidth, out int screenHeight);
+        DisplayUtils.GetScreenSize(out int screenWidth, out int screenHeight);
 
         const int minDimension = 50;
         if (rect.Width <= minDimension || rect.Height <= minDimension)
@@ -141,14 +141,6 @@ internal class WindowPlacementManager(MainWindow window)
         }
 
         return true;
-    }
-
-    private void GetScreenSize(out int width, out int height)
-    {
-        using var graphics = Graphics.FromHwnd(_window.WindowHandle);
-        nint hdc = graphics.GetHdc();
-        width = NativeMethods.GetDeviceCaps(hdc, 118);
-        height = NativeMethods.GetDeviceCaps(hdc, 117);
     }
 
     public class SavedWindowState
