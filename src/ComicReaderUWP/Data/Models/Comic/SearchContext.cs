@@ -4,18 +4,23 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.Native;
+using ComicReaderUWP.SDK.Common.DebugTools;
+
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Storage.FileSystem;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
 public enum PathType
 {
     Folder,
-    File,
+    Archive,
 }
 
 internal static class SearchContext
@@ -39,10 +44,10 @@ internal static class SearchContext
                         string extension = StringUtils.ExtensionFromFilename(filename);
                         if (AppInfoProvider.IsSupportedArchiveExtension(extension))
                         {
-                            nextPaths.Add(new PathInfo(PathType.File, item.Path));
+                            nextPaths.Add(new PathInfo(PathType.Archive, item.Path));
                         }
                     }
-                    else if (item.Type == ItemType.Folder)
+                    else if (item.Type == ItemType.Folder && pathInfo.Type == PathType.Folder)
                     {
                         nextPaths.Add(new PathInfo(PathType.Folder, item.Path));
                     }
@@ -68,7 +73,7 @@ internal static class SearchContext
         public readonly IStorageItemSearchContext Ctx = pathType switch
         {
             PathType.Folder => new FolderSearchContext(path),
-            PathType.File => new ArchiveSearchContext(path),
+            PathType.Archive => new ArchiveSearchContext(path),
             _ => throw new ArgumentException(null, nameof(pathType)),
         };
     }
@@ -77,7 +82,7 @@ internal static class SearchContext
     {
         Folder,
         File,
-        NoAccess,
+        NoAccessFolder,
     }
 
     public struct ItemInfo
@@ -93,6 +98,8 @@ internal static class SearchContext
 
     private class FolderSearchContext(string path) : IStorageItemSearchContext
     {
+        private const string TAG = nameof(FolderSearchContext);
+
         // System Error Codes
         // https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-?redirectedfrom=MSDN
         internal const int ERROR_ACCESS_DENIED = 5;
@@ -121,18 +128,18 @@ internal static class SearchContext
 
         private static IEnumerable<ItemInfo> SubItems(string path, string name)
         {
-            NativeModels.FindExInfoLevel findInfoLevel;
-            NativeModels.FIndexSearchOps indexSearchOps = NativeModels.FIndexSearchOps.FindExSearchNameMatch;
-            int additionalFlags;
+            FINDEX_INFO_LEVELS findInfoLevel;
+            FINDEX_SEARCH_OPS indexSearchOps = FINDEX_SEARCH_OPS.FindExSearchNameMatch;
+            uint additionalFlags;
 
             if (Environment.OSVersion.Version.Major >= 6)
             {
-                findInfoLevel = NativeModels.FindExInfoLevel.FindExInfoBasic;
+                findInfoLevel = FINDEX_INFO_LEVELS.FindExInfoBasic;
                 additionalFlags = FIND_FIRST_EX_LARGE_FETCH;
             }
             else
             {
-                findInfoLevel = NativeModels.FindExInfoLevel.FindExInfoStandard;
+                findInfoLevel = FINDEX_INFO_LEVELS.FindExInfoStandard;
                 additionalFlags = 0;
             }
 
@@ -141,40 +148,80 @@ internal static class SearchContext
                 path += "\\";
             }
 
-            nint hFile = NativeMethods.FindFirstFileExFromApp(path + name, findInfoLevel,
-                out _, indexSearchOps, nint.Zero, additionalFlags);
-            if (hFile.ToInt64() == -1)
+            string searchPath = path + name;
+            HANDLE hFile = FindFirstFileExFromApp(searchPath, findInfoLevel,
+                out WIN32_FIND_DATAW findData, indexSearchOps, additionalFlags);
+            if (hFile == HANDLE.INVALID_HANDLE_VALUE)
             {
+                int errorCode = Marshal.GetLastWin32Error();
+                Logger.I(TAG, $"Unable to access '{searchPath}' ({errorCode})");
+
+                // TODO: Differentiate between non-existing folder and no-access folder
+                yield return new ItemInfo
+                {
+                    Type = ItemType.NoAccessFolder,
+                    Path = path,
+                };
+
                 yield break;
             }
 
-            while (NativeMethods.FindNextFile(hFile, out NativeModels.Win32FindData find_data))
+            try
             {
-                string fullpath = path + find_data.cFileName;
-                if (((FileAttributes)find_data.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory)
+                do
                 {
-                    if (find_data.cFileName == "..")
+                    string cFileName = findData.cFileName.ToString();
+                    string fullpath = path + cFileName;
+                    if (((FileAttributes)findData.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory)
                     {
-                        continue;
+                        if (cFileName == "." || cFileName == "..")
+                        {
+                            continue;
+                        }
+
+                        yield return new ItemInfo
+                        {
+                            Type = ItemType.Folder,
+                            Path = fullpath,
+                        };
                     }
-
-                    yield return new ItemInfo
+                    else
                     {
-                        Type = ItemType.Folder,
-                        Path = fullpath,
-                    };
+                        yield return new ItemInfo
+                        {
+                            Type = ItemType.File,
+                            Path = fullpath,
+                        };
+                    }
                 }
-                else
-                {
-                    yield return new ItemInfo
-                    {
-                        Type = ItemType.File,
-                        Path = fullpath,
-                    };
-                }
+                while (FindNextFile(hFile, out findData));
             }
+            finally
+            {
+                PInvoke.FindClose(hFile);
+            }
+        }
 
-            NativeMethods.FindClose(hFile);
+        private static unsafe HANDLE FindFirstFileExFromApp(
+            string lpFileName, FINDEX_INFO_LEVELS fInfoLevelId,
+            out WIN32_FIND_DATAW findData, FINDEX_SEARCH_OPS fSearchOp,
+            uint dwAdditionalFlags)
+        {
+            fixed (char* lpFileNameLocal = lpFileName)
+            {
+                WIN32_FIND_DATAW findDataLocal;
+                HANDLE handle = PInvoke.FindFirstFileExFromApp(lpFileNameLocal, fInfoLevelId, &findDataLocal, fSearchOp, default, dwAdditionalFlags);
+                findData = findDataLocal;
+                return handle;
+            }
+        }
+
+        private static unsafe BOOL FindNextFile(HANDLE hFindFile, out WIN32_FIND_DATAW lpFindFileData)
+        {
+            WIN32_FIND_DATAW findDataLocal;
+            BOOL result = PInvoke.FindNextFile(hFindFile, &findDataLocal);
+            lpFindFileData = findDataLocal;
+            return result;
         }
     }
 

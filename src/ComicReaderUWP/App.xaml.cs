@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.InitTask;
@@ -15,7 +14,6 @@ using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.AppEnvironment;
 using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Native;
 using ComicReaderUWP.SDK.Common.Storage;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.AppWindows.Main;
@@ -25,6 +23,8 @@ using Microsoft.Windows.AppLifecycle;
 
 using Windows.ApplicationModel.Activation;
 using Windows.Storage;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace ComicReaderUWP;
 
@@ -245,26 +245,28 @@ public partial class App : Application
             return [];
         }
 
-        IntPtr argv = NativeMethods.CommandLineToArgvW(commandLine, out int argc);
-        if (argv == IntPtr.Zero)
+        unsafe
         {
-            return [];
-        }
-
-        try
-        {
-            string[] args = new string[argc];
-            for (int i = 0; i < argc; i++)
+            PWSTR* argv = PInvoke.CommandLineToArgv(commandLine, out int argc);
+            if (argv == null)
             {
-                IntPtr p = Marshal.ReadIntPtr(argv, i * IntPtr.Size);
-                args[i] = Marshal.PtrToStringUni(p)!;
+                return [];
             }
 
-            return args;
-        }
-        finally
-        {
-            NativeMethods.LocalFree(argv);
+            try
+            {
+                string[] args = new string[argc];
+                for (int i = 0; i < argc; i++)
+                {
+                    args[i] = argv[i].ToString();
+                }
+
+                return args;
+            }
+            finally
+            {
+                PInvoke.LocalFree((HLOCAL)argv);
+            }
         }
     }
 

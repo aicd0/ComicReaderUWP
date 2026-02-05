@@ -1050,7 +1050,7 @@ internal abstract class ComicHandle
 
                 if (itemInfo.Type != SearchContext.ItemType.File)
                 {
-                    if (itemInfo.Type == SearchContext.ItemType.NoAccess)
+                    if (itemInfo.Type == SearchContext.ItemType.NoAccessFolder)
                     {
                         noAccessLocations.Add(itemInfo.Path);
                     }
