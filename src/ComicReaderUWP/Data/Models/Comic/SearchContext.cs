@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Native;
 
 namespace ComicReaderUWP.Data.Models.Comic;
@@ -77,7 +79,7 @@ internal static class SearchContext
     {
         Folder,
         File,
-        NoAccess,
+        NoAccessFolder,
     }
 
     public struct ItemInfo
@@ -93,6 +95,8 @@ internal static class SearchContext
 
     private class FolderSearchContext(string path) : IStorageItemSearchContext
     {
+        private const string TAG = nameof(FolderSearchContext);
+
         // System Error Codes
         // https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-?redirectedfrom=MSDN
         internal const int ERROR_ACCESS_DENIED = 5;
@@ -141,19 +145,32 @@ internal static class SearchContext
                 path += "\\";
             }
 
-            nint hFile = NativeMethods.FindFirstFileExFromApp(path + name, findInfoLevel,
+            string searchPath = path + name;
+            nint hFile = NativeMethods.FindFirstFileExFromApp(searchPath, findInfoLevel,
                 out _, indexSearchOps, nint.Zero, additionalFlags);
             if (hFile.ToInt64() == -1)
             {
+                int errorCode = Marshal.GetLastWin32Error();
+                Logger.I(TAG, $"Unable to access '{searchPath}' ({errorCode})");
+
+                if (errorCode == ERROR_ACCESS_DENIED)
+                {
+                    yield return new ItemInfo
+                    {
+                        Type = ItemType.NoAccessFolder,
+                        Path = path,
+                    };
+                }
+
                 yield break;
             }
 
-            while (NativeMethods.FindNextFile(hFile, out NativeModels.Win32FindData find_data))
+            while (NativeMethods.FindNextFile(hFile, out NativeModels.Win32FindData findData))
             {
-                string fullpath = path + find_data.cFileName;
-                if (((FileAttributes)find_data.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory)
+                string fullpath = path + findData.cFileName;
+                if (((FileAttributes)findData.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory)
                 {
-                    if (find_data.cFileName == "..")
+                    if (findData.cFileName == "..")
                     {
                         continue;
                     }
