@@ -97,15 +97,42 @@ internal partial class PdfComicHandle : ComicHandle
 
     private static MemoryStream CreateStreamFromBuffer(nint buffer, int width, int height, int stride)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+        ArgumentOutOfRangeException.ThrowIfNegative(stride);
+
+        if (buffer == nint.Zero)
+        {
+            throw new ArgumentException("Buffer pointer is null.", nameof(buffer));
+        }
+
         var stream = new MemoryStream();
-        using var bitmap = new Bitmap(
-            width,
-            height,
-            stride,
-            PixelFormat.Format32bppPArgb,
-            buffer);
-        bitmap.Save(stream, ImageFormat.Png);
-        stream.Position = 0;
+        try
+        {
+            using var bitmap = new Bitmap(
+                width,
+                height,
+                stride,
+                PixelFormat.Format32bppPArgb,
+                buffer);
+            try
+            {
+                bitmap.Save(stream, ImageFormat.Png);
+            }
+            catch (Exception ex)
+            {
+                Logger.F(TAG, $"CreateStreamFromBuffer#Save (W={width},H={height},S={stride})", ex);
+                throw;
+            }
+
+            stream.Position = 0;
+        }
+        catch (Exception)
+        {
+            stream.Dispose();
+            throw;
+        }
+
         return stream;
     }
 

@@ -50,13 +50,13 @@ internal static partial class ImageCacheManager
         _cacheDirectoryPath = cacheDirectoryPath;
 
         string versionFilePath = Path.Combine(_cacheDirectoryPath, "version.txt");
-        int version = clear ? 0 : ReadVersion(versionFilePath);
+        int version = clear ? -1 : ReadVersion(versionFilePath);
         if (version != VERSION)
         {
             switch (version)
             {
-                case 0:
-                    DeleteDirectory(Path.Combine(StorageLocation.LocalCacheFolderPath, "images"), throwOnError: false);
+                case -1:
+                    DeleteDirectory(Path.Combine(StorageLocation.LocalCacheFolderPath, IMAGES_FOLDER_NAME), throwOnError: false);
                     DeleteDirectory(_cacheDirectoryPath);
                     break;
                 default:
@@ -895,7 +895,7 @@ internal static partial class ImageCacheManager
     {
         if (!File.Exists(versionFilePath))
         {
-            return 0;
+            return -1;
         }
 
         string versionContent;
@@ -906,7 +906,7 @@ internal static partial class ImageCacheManager
         catch (Exception e)
         {
             Logger.E(TAG, e);
-            return 0;
+            return -1;
         }
 
         if (int.TryParse(versionContent, out int version))
@@ -914,7 +914,7 @@ internal static partial class ImageCacheManager
             return version;
         }
 
-        return 0;
+        return -1;
     }
 
     private static void DeleteDirectory(string path, bool throwOnError = true)
