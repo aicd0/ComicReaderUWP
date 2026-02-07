@@ -80,18 +80,20 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
 
     private void TreeView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
+        if (args.OriginalSource is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        if (fe.DataContext is not SimpleTreeViewNodeModel viewModel)
+        {
+            return;
+        }
+
+        args.Handled = true;
+
         CoroutineUtils.Start(async () =>
         {
-            if (args.OriginalSource is not FrameworkElement fe)
-            {
-                return;
-            }
-
-            if (fe.DataContext is not SimpleTreeViewNodeModel viewModel)
-            {
-                return;
-            }
-
             List<SimpleTreeViewNodeModel> selectedItems = [];
             foreach (object? item in MainTreeView.SelectedItems)
             {
@@ -112,8 +114,6 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
             {
                 flyout.ShowAt(fe);
             }
-
-            args.Handled = true;
         });
     }
 }

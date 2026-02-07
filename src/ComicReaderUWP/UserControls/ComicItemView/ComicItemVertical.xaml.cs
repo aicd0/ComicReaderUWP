@@ -8,6 +8,7 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Helpers.Imaging;
+using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -97,7 +98,7 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
         item.OnClick?.Invoke(item);
     }
 
-    private async void RootGrid_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    private void RootGrid_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
         if (sender is not FrameworkElement fe)
         {
@@ -110,22 +111,25 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
             return;
         }
 
-        FlyoutBase? flyout = await viewModel.CreateContextFlyout();
-        if (flyout is null)
-        {
-            return;
-        }
-
-        if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
-        {
-            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
-        }
-        else
-        {
-            flyout.ShowAt(fe);
-        }
-
         args.Handled = true;
+
+        CoroutineUtils.Start(async () =>
+        {
+            FlyoutBase? flyout = await viewModel.CreateContextFlyout();
+            if (flyout is null)
+            {
+                return;
+            }
+
+            if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
+            {
+                flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+            }
+            else
+            {
+                flyout.ShowAt(fe);
+            }
+        });
     }
 
     private void ClearImage()

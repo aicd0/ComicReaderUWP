@@ -62,18 +62,20 @@ internal sealed partial class PlaylistPage : BasePage
 
     private void ListView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
+        if (args.OriginalSource is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        if (fe.DataContext is not PlaylistItemViewModel viewModel)
+        {
+            return;
+        }
+
+        args.Handled = true;
+
         CoroutineUtils.Start(async () =>
         {
-            if (args.OriginalSource is not FrameworkElement fe)
-            {
-                return;
-            }
-
-            if (fe.DataContext is not PlaylistItemViewModel viewModel)
-            {
-                return;
-            }
-
             FlyoutBase? flyout = await viewModel.CreateContextFlyout();
             if (flyout is null)
             {
@@ -88,8 +90,6 @@ internal sealed partial class PlaylistPage : BasePage
             {
                 flyout.ShowAt(fe);
             }
-
-            args.Handled = true;
         });
     }
 

@@ -58,7 +58,10 @@
                 Foreground="{ThemeResource ForegroundGrey2}" />
 
             <!--  Reader  -->
-            <Grid PointerEntered="OnReaderPointerEntered" PointerExited="OnReaderPointerExited">
+            <Grid
+                ContextRequested="Reader_ContextRequested"
+                PointerEntered="OnReaderPointerEntered"
+                PointerExited="OnReaderPointerExited">
                 <Grid x:Name="ManipulationReference" />
                 <readercontrol:ReaderView x:Name="MainReaderView" />
             </Grid>
