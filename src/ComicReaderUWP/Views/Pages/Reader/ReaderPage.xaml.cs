@@ -60,7 +60,19 @@ internal sealed partial class ReaderPage : BasePage
             _gridViewModeEnabled = value;
             _readerNavigationBar.SetGridViewMode(value);
             UpdateReaderUI();
-            FocusReader();
+
+            if (value)
+            {
+                ReaderImagePreviewViewModel? selectedItem = ViewModel.SelectedPreview;
+                if (selectedItem is not null)
+                {
+                    PreviewGridView.ScrollIntoView(selectedItem);
+                }
+            }
+            else
+            {
+                FocusReader();
+            }
         }
     }
 
@@ -996,6 +1008,47 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         MainReaderView.SetCurrentPage(page);
+    }
+
+    private void Reader_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        ComicModel? comic = ViewModel.Comic;
+        if (comic is null)
+        {
+            return;
+        }
+
+        args.Handled = true;
+
+        CoroutineUtils.Start(async () =>
+        {
+            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(PageActionHandler, comic, ViewModel.Playlist.ToBuilder());
+
+            var flyout = new MenuFlyout();
+            foreach (BaseMenuFlyoutItemModel item in menuItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
+
+            if (flyout is null)
+            {
+                return;
+            }
+
+            if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
+            {
+                flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+            }
+            else
+            {
+                flyout.ShowAt(fe);
+            }
+        });
     }
 
     //

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -24,7 +25,7 @@ internal sealed partial class TagButton : UserControl
         ViewModel?.OnClicked?.Invoke();
     }
 
-    private async void Button_ContextRequested(UIElement sender, Microsoft.UI.Xaml.Input.ContextRequestedEventArgs args)
+    private void Button_ContextRequested(UIElement sender, Microsoft.UI.Xaml.Input.ContextRequestedEventArgs args)
     {
         if (sender is not FrameworkElement fe)
         {
@@ -37,21 +38,24 @@ internal sealed partial class TagButton : UserControl
             return;
         }
 
-        FlyoutBase? flyout = await viewModel.CreateContextFlyout();
-        if (flyout is null)
-        {
-            return;
-        }
-
-        if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
-        {
-            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
-        }
-        else
-        {
-            flyout.ShowAt(fe);
-        }
-
         args.Handled = true;
+
+        CoroutineUtils.Start(async () =>
+        {
+            FlyoutBase? flyout = await viewModel.CreateContextFlyout();
+            if (flyout is null)
+            {
+                return;
+            }
+
+            if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
+            {
+                flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+            }
+            else
+            {
+                flyout.ShowAt(fe);
+            }
+        });
     }
 }

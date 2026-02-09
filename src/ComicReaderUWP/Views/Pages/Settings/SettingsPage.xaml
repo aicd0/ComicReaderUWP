@@ -320,15 +320,19 @@
 
                     <!--  About  -->
                     <TextBlock Style="{StaticResource SettingsPageSubTitleTextBlock}" Text="{x:Bind StringResource.About}" />
+                    <Image
+                        Width="50"
+                        Height="50"
+                        Margin="0,0,0,8"
+                        HorizontalAlignment="Left"
+                        Source="ms-appx:///Assets/StoreLogo.scale-400.png" />
                     <TextBlock
                         x:Name="AboutBuildVersionControl"
                         Margin="3,0,0,0"
-                        Text="AboutBuildVersion"
                         TextWrapping="Wrap" />
                     <TextBlock
                         x:Name="AboutCopyrightControl"
                         Margin="3,0,0,0"
-                        Text="© AboutCopyright"
                         TextWrapping="Wrap" />
                     <Grid Height="8" />
                     <RichTextBlock
@@ -346,14 +350,6 @@
                             </Hyperlink>
                         </Paragraph>
                     </RichTextBlock>
-
-                    <!--  Disclaimer  -->
-                    <TextBlock x:Uid="Disclaimer" Style="{StaticResource SettingsPageSubTitleTextBlock}" />
-                    <TextBlock
-                        Margin="3,0,0,0"
-                        IsTextSelectionEnabled="True"
-                        Text="THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
-                        TextWrapping="Wrap" />
 
                     <!--  Debug information  -->
                     <StackPanel Orientation="Vertical" Visibility="{x:Bind ViewModel.Shared.DebugMode, Mode=OneWay}">

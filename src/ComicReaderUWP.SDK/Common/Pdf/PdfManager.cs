@@ -63,7 +63,7 @@ public static partial class PdfManager
             List<SizeF> pageSizes = new(pageCount);
             for (int i = 0; i < pageCount; i++)
             {
-                nint page = Pdfium.FPDF_LoadPage(docPtr, i);
+                nint page = PdfiumLoadPage(docPtr, i);
                 if (page == nint.Zero)
                 {
                     pageSizes.Add(new SizeF());
@@ -118,6 +118,19 @@ public static partial class PdfManager
             taskResult.SetResult(action());
         });
         return await taskResult.Task;
+    }
+
+    private static nint PdfiumLoadPage(nint documentPtr, int pageIndex)
+    {
+        try
+        {
+            return Pdfium.FPDF_LoadPage(documentPtr, pageIndex);
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, ex);
+            return nint.Zero;
+        }
     }
 
     private partial class PdfDocument(
@@ -232,7 +245,7 @@ public static partial class PdfManager
 
                 try
                 {
-                    nint page = Pdfium.FPDF_LoadPage(Document.DocumentPtr, pageIndex);
+                    nint page = PdfiumLoadPage(Document.DocumentPtr, pageIndex);
                     if (page == nint.Zero)
                     {
                         return default;
