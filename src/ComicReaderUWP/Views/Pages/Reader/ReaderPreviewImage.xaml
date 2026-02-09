@@ -24,5 +24,11 @@
                 Foreground="Black"
                 Text="{x:Bind Model.Page}" />
         </Grid>
+        <Border
+            Margin="-4"
+            Background="Transparent"
+            BorderBrush="{ThemeResource SystemAccentColor}"
+            BorderThickness="4"
+            Visibility="{x:Bind Model.Selected, Mode=OneWay}" />
     </Grid>
 </UserControl>

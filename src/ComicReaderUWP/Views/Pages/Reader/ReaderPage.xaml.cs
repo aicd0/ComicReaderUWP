@@ -60,7 +60,19 @@ internal sealed partial class ReaderPage : BasePage
             _gridViewModeEnabled = value;
             _readerNavigationBar.SetGridViewMode(value);
             UpdateReaderUI();
-            FocusReader();
+
+            if (value)
+            {
+                ReaderImagePreviewViewModel? selectedItem = ViewModel.SelectedPreview;
+                if (selectedItem is not null)
+                {
+                    PreviewGridView.ScrollIntoView(selectedItem);
+                }
+            }
+            else
+            {
+                FocusReader();
+            }
         }
     }
 

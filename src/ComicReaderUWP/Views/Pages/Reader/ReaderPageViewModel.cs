@@ -231,7 +231,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public ComicModel? Comic => _comic;
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
     public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];
-    public bool IsFavorite => _isFavorite ?? false;
+    public ReaderImagePreviewViewModel? SelectedPreview => (_pageIndex >= 0 && _pageIndex < PreviewDataSource.Count) ? PreviewDataSource[_pageIndex] : null;
 
     public ReaderPageViewModel() { }
 
@@ -321,7 +321,18 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
+        if (_pageIndex >= 0 && _pageIndex < PreviewDataSource.Count)
+        {
+            PreviewDataSource[_pageIndex].Selected = false;
+        }
+
         _pageIndex = pageIndex;
+
+        if (pageIndex < PreviewDataSource.Count)
+        {
+            PreviewDataSource[pageIndex].Selected = true;
+        }
+
         UpdateImageDescription();
     }
 
