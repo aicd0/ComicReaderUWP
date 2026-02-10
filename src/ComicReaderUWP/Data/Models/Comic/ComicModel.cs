@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Legacy;
+using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Tables;
@@ -88,12 +89,37 @@ internal sealed class ComicModel : IEquatable<ComicModel>, IComicModel
     public DateTimeOffset LastVisit => _internalModel.LastVisit;
     public int Rating => _internalModel.Rating;
     public IReadOnlyList<ComicHandle.TagData> Tags => _internalModel.Tags;
-    public string Title => _internalModel.Title;
     public string Title1 => _internalModel.Title1;
     public string Title2 => _internalModel.Title2;
     public ComicCompletionStatusEnum CompletionState => _internalModel.CompletionState;
     public int PageCount => _internalModel.PageCount;
     public IReadOnlyList<string> FolderViewPath => _internalModel.GetFolderViewPath();
+
+    public string Title
+    {
+        get
+        {
+            if (Title1.Length == 0)
+            {
+                if (Title2.Length == 0)
+                {
+                    return StringResourceProvider.Instance.Untitled;
+                }
+                else
+                {
+                    return Title2;
+                }
+            }
+            else if (Title2.Length == 0)
+            {
+                return Title1;
+            }
+            else
+            {
+                return Title1 + " - " + Title2;
+            }
+        }
+    }
 
     public Dictionary<string, HashSet<string>> TagsCopy
     {

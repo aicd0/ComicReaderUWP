@@ -336,32 +336,6 @@ internal abstract class ComicHandle
     public IReadOnlyList<TagData> Tags { get; private set; } = [];
     public int PageCount { get; private set; } = -1;
 
-    public string Title
-    {
-        get
-        {
-            if (Title1.Length == 0)
-            {
-                if (Title2.Length == 0)
-                {
-                    return StringResourceProvider.Instance.Untitled;
-                }
-                else
-                {
-                    return Title2;
-                }
-            }
-            else if (Title2.Length == 0)
-            {
-                return Title1;
-            }
-            else
-            {
-                return Title1 + " - " + Title2;
-            }
-        }
-    }
-
     public bool IsExternal { get; private set; }
     public abstract bool IsEditable { get; }
     public virtual string FileExplorerPath => Location;
