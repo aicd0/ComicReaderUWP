@@ -17,15 +17,9 @@ using Windows.Win32.Storage.FileSystem;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
-public enum PathType
+internal static class ComicScanner
 {
-    Folder,
-    Archive,
-}
-
-internal static class SearchContext
-{
-    public static IEnumerable<ItemInfo> Search(string path, PathType type, int maxDepth = -1)
+    public static async IAsyncEnumerable<ItemInfo> Search(string path, PathType type, int maxDepth = -1)
     {
         List<PathInfo> paths = [new PathInfo(type, path)];
         List<PathInfo> nextPaths = [];
@@ -34,7 +28,7 @@ internal static class SearchContext
         {
             foreach (PathInfo pathInfo in paths)
             {
-                foreach (ItemInfo item in pathInfo.Ctx.Search())
+                await foreach (ItemInfo item in pathInfo.Ctx.Search())
                 {
                     yield return item;
 
@@ -78,22 +72,9 @@ internal static class SearchContext
         };
     }
 
-    public enum ItemType
-    {
-        Folder,
-        File,
-        NoAccessFolder,
-    }
-
-    public struct ItemInfo
-    {
-        public ItemType Type;
-        public string Path;
-    }
-
     private interface IStorageItemSearchContext
     {
-        IEnumerable<ItemInfo> Search();
+        IAsyncEnumerable<ItemInfo> Search();
     }
 
     private class FolderSearchContext(string path) : IStorageItemSearchContext
@@ -121,9 +102,12 @@ internal static class SearchContext
 
         private readonly string _path = path;
 
-        public IEnumerable<ItemInfo> Search()
+        public async IAsyncEnumerable<ItemInfo> Search()
         {
-            return SubItems(_path, "*");
+            foreach (ItemInfo item in SubItems(_path, "*"))
+            {
+                yield return item;
+            }
         }
 
         private static IEnumerable<ItemInfo> SubItems(string path, string name)
@@ -230,12 +214,12 @@ internal static class SearchContext
         private readonly string _path = path;
         private readonly string _extension = StringUtils.ExtensionFromFilename(path);
 
-        public IEnumerable<ItemInfo> Search()
+        public async IAsyncEnumerable<ItemInfo> Search()
         {
-            using Stream? stream = ArchiveAccess.TryGetFileStream(_path).Result;
+            using Stream? stream = await ArchiveAccess.TryGetFileStream(_path);
             List<string> files = [];
             HashSet<string> folders = [];
-            ArchiveAccess.TryReadEntries(stream, _extension, entry =>
+            await ArchiveAccess.TryReadEntries(stream, _extension, entry =>
             {
                 string path = entry.FullName.Replace('/', '\\');
                 if (entry.IsDirectory)
@@ -252,7 +236,7 @@ internal static class SearchContext
                 }
 
                 return Task.FromResult(ArchiveAccess.ICallbackResult.Continue);
-            }).Wait();
+            });
 
             foreach (string file in files)
             {
@@ -272,5 +256,24 @@ internal static class SearchContext
                 };
             }
         }
+    }
+
+    public enum PathType
+    {
+        Folder,
+        Archive,
+    }
+
+    public enum ItemType
+    {
+        Folder,
+        File,
+        NoAccessFolder,
+    }
+
+    public struct ItemInfo
+    {
+        public ItemType Type;
+        public string Path;
     }
 }

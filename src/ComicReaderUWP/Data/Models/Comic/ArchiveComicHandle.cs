@@ -128,9 +128,9 @@ internal partial class ArchiveComicHandle : ComicHandle
         if (IsExternal)
         {
             string basePath = ArchiveAccess.GetBasePath(Location, false) + ArchiveAccess.FileSeperator;
-            foreach (SearchContext.ItemInfo itemInfo in SearchContext.Search(Location, PathType.Archive))
+            await foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(Location, ComicScanner.PathType.Archive))
             {
-                if (itemInfo.Type != SearchContext.ItemType.File)
+                if (itemInfo.Type != ComicScanner.ItemType.File)
                 {
                     continue;
                 }

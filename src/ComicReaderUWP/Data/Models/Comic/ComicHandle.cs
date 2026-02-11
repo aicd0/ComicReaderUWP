@@ -1015,16 +1015,16 @@ internal abstract class ComicHandle
                 continue;
             }
 
-            foreach (SearchContext.ItemInfo itemInfo in SearchContext.Search(folderPath, PathType.Folder))
+            foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(folderPath, ComicScanner.PathType.Folder).ToBlockingEnumerable())
             {
                 if (_pendingUpdateTaskCount > 0)
                 {
                     return;
                 }
 
-                if (itemInfo.Type != SearchContext.ItemType.File)
+                if (itemInfo.Type != ComicScanner.ItemType.File)
                 {
-                    if (itemInfo.Type == SearchContext.ItemType.NoAccessFolder)
+                    if (itemInfo.Type == ComicScanner.ItemType.NoAccessFolder)
                     {
                         noAccessLocations.Add(itemInfo.Path);
                     }
