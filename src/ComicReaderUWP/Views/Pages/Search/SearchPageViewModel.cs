@@ -28,13 +28,13 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool m_IsLoadingRingVisible;
+    private bool _isLoadingRingVisible;
     public bool IsLoadingRingVisible
     {
-        get => m_IsLoadingRingVisible;
+        get => _isLoadingRingVisible;
         set
         {
-            m_IsLoadingRingVisible = value;
+            _isLoadingRingVisible = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLoadingRingVisible)));
         }
     }
@@ -61,13 +61,13 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool m_IsResultGridVisible;
+    private bool _isResultGridVisible;
     public bool IsResultGridVisible
     {
-        get => m_IsResultGridVisible;
+        get => _isResultGridVisible;
         set
         {
-            m_IsResultGridVisible = value;
+            _isResultGridVisible = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsResultGridVisible)));
         }
     }
@@ -83,13 +83,13 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool m_IsNoResultTextVisible;
+    private bool _isNoResultTextVisible;
     public bool IsNoResultTextVisible
     {
-        get => m_IsNoResultTextVisible;
+        get => _isNoResultTextVisible;
         set
         {
-            m_IsNoResultTextVisible = value;
+            _isNoResultTextVisible = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsNoResultTextVisible)));
         }
     }
@@ -105,13 +105,13 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private ListViewSelectionMode m_ComicItemSelectionMode = ListViewSelectionMode.None;
+    private ListViewSelectionMode _comicItemSelectionMode = ListViewSelectionMode.None;
     public ListViewSelectionMode ComicItemSelectionMode
     {
-        get => m_ComicItemSelectionMode;
+        get => _comicItemSelectionMode;
         set
         {
-            m_ComicItemSelectionMode = value;
+            _comicItemSelectionMode = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{nameof(ComicItemSelectionMode)}"));
         }
     }
@@ -127,46 +127,46 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool m_IsCommandBarFavoriteEnabled = false;
+    private bool _isCommandBarFavoriteEnabled = false;
     public bool IsCommandBarFavoriteEnabled
     {
-        get => m_IsCommandBarFavoriteEnabled;
+        get => _isCommandBarFavoriteEnabled;
         set
         {
-            m_IsCommandBarFavoriteEnabled = value;
+            _isCommandBarFavoriteEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarFavoriteEnabled)));
         }
     }
 
-    private bool m_IsCommandBarUnFavoriteEnabled = false;
+    private bool _isCommandBarUnFavoriteEnabled = false;
     public bool IsCommandBarUnFavoriteEnabled
     {
-        get => m_IsCommandBarUnFavoriteEnabled;
+        get => _isCommandBarUnFavoriteEnabled;
         set
         {
-            m_IsCommandBarUnFavoriteEnabled = value;
+            _isCommandBarUnFavoriteEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnFavoriteEnabled)));
         }
     }
 
-    private bool m_IsCommandBarHideEnabled = false;
+    private bool _isCommandBarHideEnabled = false;
     public bool IsCommandBarHideEnabled
     {
-        get => m_IsCommandBarHideEnabled;
+        get => _isCommandBarHideEnabled;
         set
         {
-            m_IsCommandBarHideEnabled = value;
+            _isCommandBarHideEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarHideEnabled)));
         }
     }
 
-    private bool m_IsCommandBarUnHideEnabled = false;
+    private bool _isCommandBarUnHideEnabled = false;
     public bool IsCommandBarUnHideEnabled
     {
-        get => m_IsCommandBarUnHideEnabled;
+        get => _isCommandBarUnHideEnabled;
         set
         {
-            m_IsCommandBarUnHideEnabled = value;
+            _isCommandBarUnHideEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnHideEnabled)));
         }
     }
@@ -327,9 +327,10 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
     {
         _sharedDispatcher.Submit("OnSearchResult", () =>
         {
+            IEnumerable<ComicModel> sortedComics = comics.OrderBy(x => x.Title);
             List<ComicItemViewModel> newItems = [];
-            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(comics);
-            foreach (ComicModel comic in comics)
+            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sortedComics);
+            foreach (ComicModel comic in sortedComics)
             {
                 ComicItemViewModel item = new(comic)
                 {

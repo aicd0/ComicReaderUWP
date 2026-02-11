@@ -336,32 +336,6 @@ internal abstract class ComicHandle
     public IReadOnlyList<TagData> Tags { get; private set; } = [];
     public int PageCount { get; private set; } = -1;
 
-    public string Title
-    {
-        get
-        {
-            if (Title1.Length == 0)
-            {
-                if (Title2.Length == 0)
-                {
-                    return StringResourceProvider.Instance.Untitled;
-                }
-                else
-                {
-                    return Title2;
-                }
-            }
-            else if (Title2.Length == 0)
-            {
-                return Title1;
-            }
-            else
-            {
-                return Title1 + " - " + Title2;
-            }
-        }
-    }
-
     public bool IsExternal { get; private set; }
     public abstract bool IsEditable { get; }
     public virtual string FileExplorerPath => Location;
@@ -1041,16 +1015,16 @@ internal abstract class ComicHandle
                 continue;
             }
 
-            foreach (SearchContext.ItemInfo itemInfo in SearchContext.Search(folderPath, PathType.Folder))
+            foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(folderPath, ComicScanner.PathType.Folder).ToBlockingEnumerable())
             {
                 if (_pendingUpdateTaskCount > 0)
                 {
                     return;
                 }
 
-                if (itemInfo.Type != SearchContext.ItemType.File)
+                if (itemInfo.Type != ComicScanner.ItemType.File)
                 {
-                    if (itemInfo.Type == SearchContext.ItemType.NoAccessFolder)
+                    if (itemInfo.Type == ComicScanner.ItemType.NoAccessFolder)
                     {
                         noAccessLocations.Add(itemInfo.Path);
                     }
