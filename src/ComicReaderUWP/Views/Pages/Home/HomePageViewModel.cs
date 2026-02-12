@@ -952,7 +952,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             if (comicsGrouped != null)
             {
                 // Disable ME as it's causing a native crash in Microsoft.ui.xaml.dll.
-                // This is not garanteed a fix but so far it works fine. 
+                // This is not guaranteed a fix but so far it works fine. 
                 // How to reproduce: Under group view (with 20+ groups), scroll to bottom (or close to bottom)
                 // of the list. Then switch between different filter presets which share the same group names,
                 // the crash should occur.

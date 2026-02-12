@@ -9,13 +9,5 @@ public interface IVirtualProperty<A>
 
     string DisplayName { get; }
 
-    void Initialize<T>(IEnumerable<T> items) where T : A;
-
-    IEnumerable<T> SortItems<T>(IEnumerable<T> items) where T : A;
-
-    IEnumerable<T> SortGroups<T>(IEnumerable<T> items) where T : IItemGroup<A>;
-
-    double? AsNumber(A item);
-
-    IEnumerable<string> GetGroupNames(A item);
+    IVirtualPropertySorter<A> CreateSorter<T>(IEnumerable<T> items) where T : A;
 }
