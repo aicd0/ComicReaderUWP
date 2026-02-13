@@ -17,6 +17,7 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
+using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.AppWindows.Main;
 
@@ -85,67 +86,53 @@ internal sealed partial class MainPage : BasePage
     // Public Methods
     //
 
-    /// <summary>
-    /// Must be called from the UI thread.
-    /// </summary>
     public void Open(Route route, string targetTabId, string initiateTabId)
     {
+        MainThreadUtils.AssertOnMainThread();
         LoadTabNoLock(route, targetTabId, initiateTabId: initiateTabId);
     }
 
-    /// <summary>
-    /// Closes all currently open tabs and performs any necessary cleanup. Must be called from the UI thread.
-    /// </summary>
     public void CloseAllTabs()
     {
+        MainThreadUtils.AssertOnMainThread();
+
         while (_tabs.Count > 0)
         {
             CloseTabInternalNoLock(_tabs[0]);
         }
     }
 
-    /// <summary>
-    /// Must be called from the UI thread.
-    /// </summary>
-    public LastTabStatusJsonModel GetTabStatus()
+    public LastTabStatusJsonModel? GetTabStatus()
     {
-        TabStatusModel model = new()
+        MainThreadUtils.AssertOnMainThread();
+
+        LastTabStatusJsonModel jsonModel = new()
         {
-            SelectedIndex = RootTabView.SelectedIndex
+            SelectedIndex = RootTabView.SelectedIndex,
+            Tabs = []
         };
 
         foreach (TabInfo item in _tabs)
         {
-            model.Tabs.Add(new TabModel
+            jsonModel.Tabs.Add(new TabJsonModel
             {
                 Id = item.Id,
                 Url = item.CurrentBundle.Url,
             });
         }
 
-        LastTabStatusJsonModel jsonModel = new()
+        if (jsonModel.Tabs.Count == 0)
         {
-            SelectedIndex = model.SelectedIndex,
-            Tabs = []
-        };
-
-        foreach (TabModel tab in model.Tabs)
-        {
-            jsonModel.Tabs.Add(new TabJsonModel
-            {
-                Id = tab.Id,
-                Url = tab.Url,
-            });
+            return null;
         }
 
         return jsonModel;
     }
 
-    /// <summary>
-    /// Must be called from the UI thread.
-    /// </summary>
     public void RestoreTabStatus(LastTabStatusJsonModel? jsonModel)
     {
+        MainThreadUtils.AssertOnMainThread();
+
         TabStatusModel? model = null;
         if (jsonModel is not null)
         {
@@ -177,25 +164,22 @@ internal sealed partial class MainPage : BasePage
             }
         }
 
-        CoroutineUtils.RunInMainThread(() =>
+        if (model is not null)
         {
-            if (model is not null)
+            for (int i = 0; i < model.Tabs.Count; ++i)
             {
-                for (int i = 0; i < model.Tabs.Count; ++i)
+                TabModel tab = model.Tabs[i];
+                if (string.IsNullOrEmpty(tab.Url))
                 {
-                    TabModel tab = model.Tabs[i];
-                    if (string.IsNullOrEmpty(tab.Url))
-                    {
-                        continue;
-                    }
-
-                    var route = Route.Create(tab.Url);
-                    LoadTabNoLock(route, string.Empty, selectTab: i == model.SelectedIndex, newTabId: tab.Id);
+                    continue;
                 }
-            }
 
-            EnsureInitialTabNoLock();
-        });
+                var route = Route.Create(tab.Url);
+                LoadTabNoLock(route, string.Empty, selectTab: i == model.SelectedIndex, newTabId: tab.Id);
+            }
+        }
+
+        EnsureInitialTabNoLock();
     }
 
     //
@@ -615,7 +599,7 @@ internal sealed partial class MainPage : BasePage
                 {
                     if (item is Windows.Storage.StorageFile file)
                     {
-                        App.Instance.OnCommandLine(CurrentWindow, [item.Path]);
+                        await App.Instance.OnCommandLine(CurrentWindow, [item.Path]);
                     }
                 }
             });

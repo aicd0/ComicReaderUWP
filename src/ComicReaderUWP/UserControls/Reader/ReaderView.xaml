@@ -301,12 +301,14 @@
                     x:Name="ContentListView"
                     VerticalAlignment="Top"
                     ContainerContentChanging="OnReaderContainerContentChanging"
+                    IsTabStop="True"
                     ItemsSource="{x:Bind FrameDataSource, Mode=OneWay}"
                     Loaded="OnReaderListViewLoadedOrUnloaded"
                     PreviewKeyDown="OnReaderKeyDown"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
                     SelectionMode="None"
+                    TabFocusNavigation="Local"
                     Unloaded="OnReaderListViewLoadedOrUnloaded">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="readercontrol:ReaderFrameViewModel">

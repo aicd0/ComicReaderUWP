@@ -16,6 +16,14 @@ public static class MainThreadUtils
         _mainDispatcherQueue = dispatcherQueue;
     }
 
+    public static void AssertOnMainThread()
+    {
+        if (!IsMainThread())
+        {
+            throw new InvalidOperationException("This operation must be performed on the main thread.");
+        }
+    }
+
     public static DispatcherQueueTimer CreateTimer()
     {
         DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");

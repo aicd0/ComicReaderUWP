@@ -54,31 +54,22 @@ public partial class App : Application
     // Public Methods
     //
 
-    internal void OnCommandLine(MainWindow window, string[] args)
+    internal async Task OnCommandLine(MainWindow window, string[] args)
     {
-        CoroutineUtils.Start(async () =>
+        Route? route = await GetFileActivatedRoute(args);
+        if (route is not null)
         {
-            if (!window.Alive)
-            {
-                Logger.E(TAG, "Unable to process command line because window is not alive.");
-                return;
-            }
+            window.OpenTab(route.Url, string.Empty, string.Empty);
+        }
 
-            Route? route = await GetFileActivatedRoute(args);
-            if (route is not null)
-            {
-                window.OpenTab(route.Url, string.Empty, string.Empty);
-            }
-
-            window.BringToFront();
-        });
+        window.BringToFront();
     }
 
     //
     // Lifecycle
     //
 
-    protected override async void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs e)
+    protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs e)
     {
         LaunchPerformanceTracker.MarkAppLaunched();
         AppActivationArguments activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
@@ -98,22 +89,33 @@ public partial class App : Application
                 StoreCommandLine();
             }
 
-            await mainInstance.RedirectActivationToAsync(activatedEventArgs);
-            System.Diagnostics.Process.GetCurrentProcess().Kill();
+            CoroutineUtils.Start(async () =>
+            {
+                await mainInstance.RedirectActivationToAsync(activatedEventArgs);
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+            });
+
             return;
         }
 
         _initTaskManager.InitOnAppLaunch();
         mainInstance.Activated += OnActivated;
-        OnActivatedInternal(activatedEventArgs, firstLaunch: true);
+
+        CoroutineUtils.Start(async () =>
+        {
+            await OnActivatedInternal(activatedEventArgs, firstLaunch: true);
+        });
     }
 
     private void OnActivated(object? sender, AppActivationArguments e)
     {
-        OnActivatedInternal(e, firstLaunch: false);
+        CoroutineUtils.RunInMainThreadAsync(async () =>
+        {
+            await OnActivatedInternal(e, firstLaunch: false);
+        });
     }
 
-    private void OnActivatedInternal(AppActivationArguments e, bool firstLaunch)
+    private async Task OnActivatedInternal(AppActivationArguments e, bool firstLaunch)
     {
         string[] cmdArgs;
         if (EnvironmentProvider.IsPortable())
@@ -163,29 +165,26 @@ public partial class App : Application
 
         if (firstLaunch)
         {
-            CoroutineUtils.Start(async () =>
-            {
-                Route? route = await GetFileActivatedRoute(cmdArgs);
-                if (route is null)
-                {
-                    WindowManager.RestoreWindowStatus();
-                    return;
-                }
-
-                MainWindow.Open(route.Url, restorePlacement: true);
-            });
+            WindowManager.RestoreWindowStatus();
         }
-        else
+
+        MainWindow? window = WindowManager.GetAnyWindow();
+        if (window is null)
         {
-            MainWindow? window = WindowManager.GetAnyWindow();
-            if (window is null)
+            Route? route = await GetFileActivatedRoute(cmdArgs);
+            if (route is not null)
             {
-                Logger.F(TAG, "Failed to perform file activation, no window is found.");
-                return;
+                MainWindow.Open(route.Url, restorePlacement: true);
+            }
+            else
+            {
+                MainWindow.Open();
             }
 
-            OnCommandLine(window, cmdArgs);
+            return;
         }
+
+        await OnCommandLine(window, cmdArgs);
     }
 
     private static void StoreCommandLine()
