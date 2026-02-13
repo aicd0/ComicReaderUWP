@@ -149,8 +149,6 @@ internal static class PurchaseManager
 
     private static string CreatePurchaseToken(PurchaseInfo info, string salt)
     {
-        // We sign the purchase token only for fun, since this is an open source project
-        // and everyone can check the encryption implementation.
         string purchaseInfoJson = JsonSerializer.Serialize(info.ToJsonModel());
         string deviceId = EnvironmentProvider.Instance.GetActualDeviceId();
         string payloadStr = $"{salt}|{deviceId}|{purchaseInfoJson}";
