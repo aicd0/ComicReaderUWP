@@ -18,7 +18,6 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.Registry;
 using ComicReaderUWP.UserControls.Reader;
@@ -38,7 +37,6 @@ namespace ComicReaderUWP.Views.Pages.Reader;
 
 internal sealed partial class ReaderPage : BasePage
 {
-    private const string TAG = nameof(ReaderPage);
     private const string REGEX_URL = @"https?:\/\/[a-zA-Z0-9\-._~%]+(?:\.[a-zA-Z0-9\-._~%]+)+(?:\/[^\s]*)?";
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
@@ -541,7 +539,7 @@ internal sealed partial class ReaderPage : BasePage
     private void FocusReader()
     {
         GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
-        TryFocus(MainReaderView);
+        MainReaderView.TryFocus();
     }
 
     private void UpdateDisplayStatus()
@@ -1119,39 +1117,6 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         ActiveTabs = copy;
-    }
-
-    private static void TryFocus(UIElement element)
-    {
-        void helper(int attempts)
-        {
-            if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible)
-            {
-                Logger.E(TAG, $"Failed to acquired focus for {element.GetType().Name} as it is not interactable");
-                return;
-            }
-
-            attempts++;
-            if (element.Focus(FocusState.Programmatic))
-            {
-                Logger.I(TAG, $"Acquired focus for {element.GetType().Name} after {attempts} attempts");
-                return;
-            }
-
-            if (attempts >= 10)
-            {
-                Logger.E(TAG, $"Failed to acquired focus for {element.GetType().Name} after {attempts} attempts");
-                return;
-            }
-
-            CoroutineUtils.PostInMainThreadAsync(async () =>
-            {
-                await Task.Delay(1);
-                helper(attempts);
-            }, Microsoft.UI.Dispatching.DispatcherQueuePriority.Low);
-        }
-
-        helper(0);
     }
 
     [GeneratedRegex(REGEX_URL, RegexOptions.None)]

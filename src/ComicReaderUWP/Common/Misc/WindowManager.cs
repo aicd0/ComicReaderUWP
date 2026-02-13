@@ -154,12 +154,6 @@ class WindowManager
         CleanUpTabResources(model);
 
         List<MainWindow.WindowStatusModel> windows = [.. model?.Windows?.Where(x => x is not null).Select(x => x!) ?? []];
-        if (windows.Count == 0)
-        {
-            MainWindow.Open();
-            return;
-        }
-
         foreach (MainWindow.WindowStatusModel? windowStatus in windows)
         {
             MainWindow.Open(windowStatus);

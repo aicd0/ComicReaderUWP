@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
@@ -15,6 +16,7 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
+using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.Pages.Main;
 
@@ -33,6 +35,8 @@ namespace ComicReaderUWP.Views.AppWindows.Main;
 internal sealed partial class MainWindow : Window
 {
     private const string TAG = nameof(MainWindow);
+
+    private static bool sIsFirstWindow = true;
 
     //
     // Creators
@@ -67,13 +71,18 @@ internal sealed partial class MainWindow : Window
     private WindowMembers? _members;
     private WindowMembers Members => _members!;
 
+    private readonly bool _requestRestorePlacement = false;
+    private bool _minimized = false;
+    private bool _fullscreen = false;
+    private bool _pointerInWindow = false;
+
     //
     // Properties
     //
 
     public int WindowId { get; }
     public IntPtr WindowHandle { get; private set; }
-    public bool Alive { get; private set; } = false;
+    public WindowLifecycleState LifecycleState { get; private set; } = WindowLifecycleState.Initialized;
     public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle);
     public MainPage.ITabInfo? CurrentTab => Members._mainPage?.CurrentTab;
 
@@ -90,7 +99,7 @@ internal sealed partial class MainWindow : Window
 
         _members = new(this);
         Members._requestWindowStatus = windowStatus;
-        Members._requestRestorePlacement = restorePlacement;
+        _requestRestorePlacement = restorePlacement;
 
         if (DebugUtils.DeveloperMode)
         {
@@ -110,68 +119,79 @@ internal sealed partial class MainWindow : Window
 
     public void OpenTab(string url, string targetTabId, string initiateTabId)
     {
-        var route = Route.Create(url);
-        MainPage? mainPage = Members._mainPage;
-        if (mainPage is null)
+        MainThreadUtils.AssertOnMainThread();
+        Enqueue(() =>
         {
-            return;
-        }
+            MainPage? mainPage = Members._mainPage;
+            if (mainPage is null)
+            {
+                return;
+            }
 
-        CoroutineUtils.RunInMainThread(() =>
-        {
+            var route = Route.Create(url);
             mainPage.Open(route, targetTabId, initiateTabId);
         });
     }
 
-    /// <summary>
-    /// Must be called from the UI thread.
-    /// </summary>
-    /// <returns></returns>
+    public void BringToFront()
+    {
+        MainThreadUtils.AssertOnMainThread();
+        Enqueue(() =>
+        {
+            var hWnd = new Windows.Win32.Foundation.HWND(WindowHandle);
+
+            Windows.Win32.UI.WindowsAndMessaging.WINDOWPLACEMENT placement;
+            unsafe
+            {
+                placement = new()
+                {
+                    length = (uint)sizeof(Windows.Win32.UI.WindowsAndMessaging.WINDOWPLACEMENT)
+                };
+            }
+
+            bool gotPlacement = PInvoke.GetWindowPlacement(hWnd, ref placement);
+            if (!gotPlacement || placement.showCmd == Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_SHOWMINIMIZED)
+            {
+                PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
+            }
+
+            PInvoke.SetForegroundWindow(hWnd);
+        });
+    }
+
+    public void EnterFullscreen()
+    {
+        MainThreadUtils.AssertOnMainThread();
+        EnterOrExitFullscreen(true);
+    }
+
+    public void ExitFullscreen()
+    {
+        MainThreadUtils.AssertOnMainThread();
+        EnterOrExitFullscreen(false);
+    }
+
     public WindowStatusModel? GetWindowStatus()
     {
-        if (!Alive || Members._mainPage is null)
+        MainThreadUtils.AssertOnMainThread();
+
+        if (LifecycleState != WindowLifecycleState.Loaded || Members._mainPage is null)
+        {
+            return null;
+        }
+
+        MainPage.LastTabStatusJsonModel? tabStatus = Members._mainPage.GetTabStatus();
+        if (tabStatus is null)
         {
             return null;
         }
 
         return new()
         {
-            Fullscreen = Members._fullscreen,
+            Fullscreen = _fullscreen,
             WindowPlacement = Members._windowPlacementManager.GetWindowPlacement(),
-            TabStatus = Members._mainPage.GetTabStatus()
+            TabStatus = tabStatus,
         };
-    }
-
-    public void BringToFront()
-    {
-        var hWnd = new Windows.Win32.Foundation.HWND(WindowHandle);
-
-        Windows.Win32.UI.WindowsAndMessaging.WINDOWPLACEMENT placement;
-        unsafe
-        {
-            placement = new()
-            {
-                length = (uint)sizeof(Windows.Win32.UI.WindowsAndMessaging.WINDOWPLACEMENT)
-            };
-        }
-
-        bool gotPlacement = PInvoke.GetWindowPlacement(hWnd, ref placement);
-        if (!gotPlacement || placement.showCmd == Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_SHOWMINIMIZED)
-        {
-            PInvoke.ShowWindow(hWnd, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_RESTORE);
-        }
-
-        PInvoke.SetForegroundWindow(hWnd);
-    }
-
-    public void EnterFullscreen()
-    {
-        EnterOrExitFullscreen(true);
-    }
-
-    public void ExitFullscreen()
-    {
-        EnterOrExitFullscreen(false);
     }
 
     //
@@ -201,40 +221,32 @@ internal sealed partial class MainWindow : Window
 
     private void OnWindowClosed(object sender, WindowEventArgs args)
     {
-        bool isLastWindow = App.Instance.WindowManager.GetAllWindowInfo().Count == 1;
-        if (isLastWindow)
+        if (App.Instance.WindowManager.GetAllWindowInfo().Count == 1)
         {
             ApplicationService.StartShuttingDown();
         }
 
-        // Mark the end of the window lifecycle
-        Alive = false;
+        LifecycleState = WindowLifecycleState.Destroyed;
 
-        // Close all tabs and dispatch page stopped event
+        // Close all tabs and dispatch stop events
         Members._mainPage!.CloseAllTabs();
         Members._mainWindowAbility.GetLifecycleAbility().SetCustomState("Window", ILifecycle.State.Stopped);
 
-        // Unsubscribe window events
         UnsubscribeEvents();
-
-        // Unregister message loop
         UnregisterMessageLoop();
-
-        // Unregister window from WindowManager
         App.Instance.WindowManager.UnregisterWindow(WindowId);
+        App.Instance.WindowManager.ScheduleSaveWindowStatus();
 
-        // Dereference all members
+        // Dereference members
         _members = null;
         PageFrame.Content = null;
         PageFrame = null;
         WindowHandle = IntPtr.Zero;
-
-        App.Instance.WindowManager.ScheduleSaveWindowStatus();
     }
 
     private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
     {
-        if (!Alive)
+        if (LifecycleState != WindowLifecycleState.Loaded)
         {
             return;
         }
@@ -242,9 +254,9 @@ internal sealed partial class MainWindow : Window
         if (sender.Presenter is OverlappedPresenter presenter)
         {
             bool minimized = presenter.State == OverlappedPresenterState.Minimized;
-            if (minimized != Members._minimized)
+            if (minimized != _minimized)
             {
-                Members._minimized = minimized;
+                _minimized = minimized;
                 Members._mainWindowAbility.SendMinimizeChangedEvent(minimized);
             }
         }
@@ -275,12 +287,11 @@ internal sealed partial class MainWindow : Window
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
         Members._mainPage = (MainPage)PageFrame.Content;
 
-        // Mark the beginning of the window lifecycle
-        Alive = true;
+        LifecycleState = WindowLifecycleState.Loaded;
 
         // Restore window placement
         WindowStatusModel? windowStatus = Members._requestWindowStatus;
-        if (windowStatus is not null && Members._requestRestorePlacement)
+        if (windowStatus is not null && _requestRestorePlacement)
         {
             if (windowStatus.Fullscreen)
             {
@@ -292,14 +303,14 @@ internal sealed partial class MainWindow : Window
             }
         }
 
-        // Load tabs
+        // Load initial tabs
         Members._mainPage.RestoreTabStatus(windowStatus?.TabStatus);
 
-        if (WindowMembers.sIsFirstWindow)
+        if (sIsFirstWindow)
         {
-            WindowMembers.sIsFirstWindow = false;
+            sIsFirstWindow = false;
 
-            // Show last crash report if applicable
+            // Show crash report if applicable
             if (!App.Instance.ExitedNormallyLastTime && DebugUtils.DebugMode)
             {
                 DebugUtils.ReportLastCrash();
@@ -308,22 +319,23 @@ internal sealed partial class MainWindow : Window
             if (AppSettingsModel.Instance.GetModel().ScanOnLaunch)
             {
                 // Update comic library
-                // We delay this operation to here because it might involve dialog display which requires an active window
+                // This operation is deferred to here because it may involve dialog displaying which requires a loaded window
                 ComicModel.UpdateAllComics("InitOnAppLaunchInternal");
             }
         }
 
+        DequeuePendingActions();
         LaunchPerformanceTracker.MarkTabRestored();
     }
 
     private void OnPageFramePointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        Members._pointerInWindow = true;
+        _pointerInWindow = true;
     }
 
     private void OnPageFramePointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        Members._pointerInWindow = false;
+        _pointerInWindow = false;
     }
 
     //
@@ -408,18 +420,45 @@ internal sealed partial class MainWindow : Window
 
     private void DispatchFullscreenChangeEvent(bool isFullscreen)
     {
-        if (Members._fullscreen == isFullscreen)
+        if (_fullscreen == isFullscreen)
         {
             return;
         }
 
-        Members._fullscreen = isFullscreen;
+        _fullscreen = isFullscreen;
         Members._mainWindowAbility.SendFullscreenChangedEvent(isFullscreen);
     }
 
     //
     // Helpers
     //
+
+    private void Enqueue(Action action)
+    {
+        switch (LifecycleState)
+        {
+            case WindowLifecycleState.Initialized:
+                Members._pendingActions.Add(action);
+                break;
+            case WindowLifecycleState.Loaded:
+                action();
+                break;
+            case WindowLifecycleState.Destroyed:
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void DequeuePendingActions()
+    {
+        List<Action> pendingActions = [.. Members._pendingActions];
+        Members._pendingActions.Clear();
+        foreach (Action action in pendingActions)
+        {
+            action();
+        }
+    }
 
     private void TrySetAcrylicBackdrop()
     {
@@ -463,7 +502,7 @@ internal sealed partial class MainWindow : Window
 
         public bool PointerInWindow()
         {
-            return GetWindow()?.Members?._pointerInWindow ?? false;
+            return GetWindow()?._pointerInWindow ?? false;
         }
 
         public void EnterFullscreen()
@@ -534,18 +573,13 @@ internal sealed partial class MainWindow : Window
 
     private class WindowMembers(MainWindow window)
     {
-        public static bool sIsFirstWindow = true;
-
-        public MainPage? _mainPage;
-        public WindowStatusModel? _requestWindowStatus = null;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _originProc;
         public Windows.Win32.UI.WindowsAndMessaging.WNDPROC? _wndProcDelegate;
+        public readonly WindowPlacementManager _windowPlacementManager = new(window);
         public readonly MainWindowAbility _mainWindowAbility = new(window);
-        public bool _minimized = false;
-        public bool _fullscreen = false;
-        public bool _requestRestorePlacement = false;
-        public bool _pointerInWindow = false;
-        public WindowPlacementManager _windowPlacementManager = new(window);
+        public List<Action> _pendingActions = [];
+        public WindowStatusModel? _requestWindowStatus = null;
+        public MainPage? _mainPage;
     }
 
     public class WindowStatusModel

@@ -323,6 +323,37 @@ internal partial class ReaderView : UserControl
         _internalDB = configDatabase is null ? null : new(configDatabase);
     }
 
+    public void TryFocus()
+    {
+        ListView element = ThisListView;
+        string tag = nameof(TryFocus);
+
+        void PostFocus(int round)
+        {
+            CoroutineUtils.PostInMainThreadAsync(async () =>
+            {
+                await Task.Delay(1);
+                if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible)
+                {
+                    Log(tag, $"Failed to acquired focus as it is not interactable");
+                    return;
+                }
+
+                round++;
+                element.Focus(FocusState.Programmatic);
+
+                if (round >= 10)
+                {
+                    return;
+                }
+
+                PostFocus(round);
+            }, DispatcherQueuePriority.Low);
+        }
+
+        PostFocus(0);
+    }
+
     #endregion
 
     #region UI
