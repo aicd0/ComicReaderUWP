@@ -533,6 +533,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Imágenes en este dispositivo</value>
   </data>
+  <data name="ImageProcessing" xml:space="preserve">
+    <value>Procesamiento de imágenes</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Mantener la pantalla encendida</value>
   </data>

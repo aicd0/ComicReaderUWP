@@ -534,6 +534,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>이 장치의 이미지</value>
   </data>
+  <data name="ImageProcessing" xml:space="preserve">
+    <value>이미지 처리</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>화면 켜짐 유지</value>
   </data>

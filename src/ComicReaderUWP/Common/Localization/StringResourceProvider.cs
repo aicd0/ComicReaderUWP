@@ -109,6 +109,7 @@ public class StringResourceProvider
     public string Hide => GetResourceString("Hide");
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
+    public string ImageProcessing => GetResourceString("ImageProcessing");
     public string KeepScreenOn => GetResourceString("KeepScreenOn");
     public string LastReadTime => GetResourceString("LastReadTime");
     public string License => GetResourceString("License");

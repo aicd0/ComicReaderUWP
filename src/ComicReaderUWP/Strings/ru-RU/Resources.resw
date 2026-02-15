@@ -534,6 +534,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Изображения на этом устройстве</value>
   </data>
+  <data name="ImageProcessing" xml:space="preserve">
+    <value>Обработка изображений</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Не выключать экран</value>
   </data>

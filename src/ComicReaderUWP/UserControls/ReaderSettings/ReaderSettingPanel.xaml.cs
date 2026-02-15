@@ -33,6 +33,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     public ReaderSettingPanel()
     {
         InitializeComponent();
+        SettingsTabSelectorBar.SelectedItem = SelectorBarItem2;
     }
 
     public void SetWindowId(int windowId)
@@ -46,6 +47,21 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         _model = ReaderSettingDataModel.FromComic(comic);
         UpdateUI();
         DispatchDataChangeEvent();
+    }
+
+    private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    {
+        SelectorBarItem selectedItem = sender.SelectedItem;
+        if (selectedItem == SelectorBarItem1)
+        {
+            GeneralSettingsGrid.Visibility = Visibility.Visible;
+            ImageProcessingSettingsGrid.Visibility = Visibility.Collapsed;
+        }
+        else if (selectedItem == SelectorBarItem2)
+        {
+            GeneralSettingsGrid.Visibility = Visibility.Collapsed;
+            ImageProcessingSettingsGrid.Visibility = Visibility.Visible;
+        }
     }
 
     private void LvPageArrangement_SelectionChanged(object sender, SelectionChangedEventArgs e)
