@@ -335,15 +335,17 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                     if (item.BitmapRef is null || item.Source is null)
                     {
                         items[i] = null;
-                        continue;
+                    }
+                    else
+                    {
+                        item.BitmapRef.Ref();
+                        items[i] = new DrawingImageItem
+                        {
+                            Bitmap = item.BitmapRef,
+                            Source = item.Source,
+                        };
                     }
 
-                    item.BitmapRef.Ref();
-                    items[i] = new DrawingImageItem
-                    {
-                        Bitmap = item.BitmapRef,
-                        Source = item.Source,
-                    };
                     frameSizes[i] = item.FrameSize;
                 }
             }
@@ -472,7 +474,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                 CanvasBitmap bitmap = item.Bitmap.Value;
                 ds.DrawImage(
                     item.CanvasImage,
-                    new Vector2((float)destRect.X, (float)destRect.Y),
+                    new Windows.Foundation.Rect((float)destRect.X, (float)destRect.Y, (float)destRect.Width, (float)destRect.Height),
                     new Windows.Foundation.Rect(0, 0, bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height),
                     1F,
                     CanvasImageInterpolation.HighQualityCubic);
