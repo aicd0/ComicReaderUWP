@@ -3,6 +3,7 @@
 
 using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Database.KV;
+using ComicReaderUWP.SDK.Database.Registry;
 
 namespace ComicReaderUWP.SDK.Common.Utils;
 
@@ -56,6 +57,30 @@ public static class Extensions
         {
             _action(value);
         }
+    }
+
+    //
+    // Registry
+    //
+
+    public static T? GetValue<T>(this IRegistryKey registry, string key)
+    {
+        if (registry.TryGet(key, out T? value))
+        {
+            return value;
+        }
+
+        return default;
+    }
+
+    public static T GetValueOrDefault<T>(this IRegistryKey registry, string key, T defaultValue)
+    {
+        if (registry.TryGet(key, out T? value) && value is not null)
+        {
+            return value;
+        }
+
+        return defaultValue;
     }
 
     //

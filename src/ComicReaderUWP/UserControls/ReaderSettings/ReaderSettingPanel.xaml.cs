@@ -5,10 +5,13 @@ using System;
 using System.Collections.Generic;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.Dialogs.EditReaderSettingPreset;
 using ComicReaderUWP.Views.Pages.Main;
 
@@ -20,6 +23,8 @@ namespace ComicReaderUWP.UserControls.ReaderSettings;
 
 internal sealed partial class ReaderSettingPanel : BaseUserControl
 {
+    private const string KEY_SELECTED_TAB = "SelectedReaderSettingsTab";
+
     public delegate void DataChangedEventHandler(ReaderSettingsModel data);
     public event DataChangedEventHandler? DataChanged;
 
@@ -33,7 +38,13 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     public ReaderSettingPanel()
     {
         InitializeComponent();
-        SettingsTabSelectorBar.SelectedItem = SelectorBarItem2;
+
+        string selectedTab = AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).GetValueOrDefault(KEY_SELECTED_TAB, string.Empty);
+        SettingsTabSelectorBar.SelectedItem = selectedTab switch
+        {
+            "ImageProcessing" => SelectorBarItem2,
+            _ => SelectorBarItem1,
+        };
     }
 
     public void SetWindowId(int windowId)
@@ -51,17 +62,22 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
 
     private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
+        string selectedTabKey = string.Empty;
         SelectorBarItem selectedItem = sender.SelectedItem;
         if (selectedItem == SelectorBarItem1)
         {
+            selectedTabKey = "General";
             GeneralSettingsGrid.Visibility = Visibility.Visible;
             ImageProcessingSettingsGrid.Visibility = Visibility.Collapsed;
         }
         else if (selectedItem == SelectorBarItem2)
         {
+            selectedTabKey = "ImageProcessing";
             GeneralSettingsGrid.Visibility = Visibility.Collapsed;
             ImageProcessingSettingsGrid.Visibility = Visibility.Visible;
         }
+
+        AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).Set(KEY_SELECTED_TAB, selectedTabKey);
     }
 
     private void LvPageArrangement_SelectionChanged(object sender, SelectionChangedEventArgs e)
