@@ -808,6 +808,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>Von rechts nach links</value>
   </data>
+  <data name="Rotation" xml:space="preserve">
+    <value>Drehung</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Speichern</value>
   </data>

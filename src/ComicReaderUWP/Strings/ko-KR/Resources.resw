@@ -809,6 +809,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>오른쪽에서 왼쪽으로</value>
   </data>
+  <data name="Rotation" xml:space="preserve">
+    <value>회전</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>구하다</value>
   </data>

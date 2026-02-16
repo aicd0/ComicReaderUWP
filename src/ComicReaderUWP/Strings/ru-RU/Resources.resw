@@ -809,6 +809,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>Справа налево</value>
   </data>
+  <data name="Rotation" xml:space="preserve">
+    <value>Поворот</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Сохранять</value>
   </data>

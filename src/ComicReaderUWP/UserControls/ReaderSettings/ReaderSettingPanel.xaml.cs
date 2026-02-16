@@ -267,8 +267,52 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         PageGapSlider.Value = Math.Clamp(_model.PageGap, 0, 200);
         AutoScrollingSlider.Value = Math.Clamp(_model.AutoScrollSpeed, 0, 100);
 
+        UpdateImageRotation();
+
         PresetDropDownButton.Flyout = CreatePresetContextMenu();
         PresetDropDownButton.Content = _model.PresetKey == ReaderSettingDataModel.PRESET_KEY_CUSTOM ? StringResource.Custom : _model.PresetName;
+    }
+
+    private void UpdateImageRotation()
+    {
+        List<Tuple<string, ImageRotationEnum>> rotations =
+        [
+            new(StringResource.None, ImageRotationEnum.None),
+            new("90º", ImageRotationEnum.Rotate90),
+            new("180º", ImageRotationEnum.Rotate180),
+            new("270º", ImageRotationEnum.Rotate270),
+        ];
+
+        List<BaseMenuFlyoutItemModel> items = [];
+        foreach (Tuple<string, ImageRotationEnum> rotation in rotations)
+        {
+            ImageRotationEnum rotationValue = rotation.Item2;
+            items.Add(new ToggleMenuFlyoutItemModel()
+            {
+                Text = rotation.Item1,
+                IsChecked = _model.ImageRotation == rotationValue,
+                Click = () =>
+                {
+                    if (_model.ImageRotation != rotationValue)
+                    {
+                        _model.ImageRotation = rotationValue;
+                        SaveSettings();
+                        DispatchDataChangeEvent();
+                    }
+
+                    UpdateUI();
+                },
+            });
+        }
+
+        var flyout = new MenuFlyout();
+        foreach (BaseMenuFlyoutItemModel item in items)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        RotationDropDownButton.Flyout = flyout;
+        RotationDropDownButton.Content = rotations.Find(r => r.Item2 == _model.ImageRotation)?.Item1 ?? StringResource.None;
     }
 
     private MenuFlyout CreatePresetContextMenu()

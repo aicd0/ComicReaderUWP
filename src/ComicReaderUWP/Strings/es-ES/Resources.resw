@@ -808,6 +808,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>De derecha a izquierda</value>
   </data>
+  <data name="Rotation" xml:space="preserve">
+    <value>Rotación</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Ahorrar</value>
   </data>

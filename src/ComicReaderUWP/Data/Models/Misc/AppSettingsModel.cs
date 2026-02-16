@@ -18,7 +18,7 @@ using Windows.Globalization;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
-public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
+internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 {
     private const string TAG = nameof(AppSettingsModel);
     private const string APP_BACKGROUND_NONE = "None";
@@ -509,6 +509,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public PageArrangementEnum HorizontalPageArrangement { get; set; }
         public int PageGap { get; set; }
         public int AutoScrollSpeed { get; set; }
+        public ImageRotationEnum ImageRotation { get; set; }
 
         public static ReaderSettingModel From(ReaderSettingJsonModel model)
         {
@@ -524,6 +525,14 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 HorizontalPageArrangement = ParsePageArrangementEnum(model.HorizontalPageArrangement) ?? PageArrangementEnum.DualCoverMirror,
                 PageGap = model.PageGap ?? 100,
                 AutoScrollSpeed = model.AutoScrollSpeed ?? 0,
+                ImageRotation = model.ImageRotation switch
+                {
+                    "None" => ImageRotationEnum.None,
+                    "Rotate90" => ImageRotationEnum.Rotate90,
+                    "Rotate180" => ImageRotationEnum.Rotate180,
+                    "Rotate270" => ImageRotationEnum.Rotate270,
+                    _ => ImageRotationEnum.None,
+                },
             };
         }
 
@@ -541,6 +550,14 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 HorizontalPageArrangement = (int)HorizontalPageArrangement,
                 PageGap = PageGap,
                 AutoScrollSpeed = AutoScrollSpeed,
+                ImageRotation = ImageRotation switch
+                {
+                    ImageRotationEnum.None => "None",
+                    ImageRotationEnum.Rotate90 => "Rotate90",
+                    ImageRotationEnum.Rotate180 => "Rotate180",
+                    ImageRotationEnum.Rotate270 => "Rotate270",
+                    _ => "None",
+                },
             };
         }
 
@@ -698,5 +715,8 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("AutoScrollSpeed")]
         public int? AutoScrollSpeed { get; set; }
+
+        [JsonPropertyName("ImageRotation")]
+        public string? ImageRotation { get; set; }
     }
 }

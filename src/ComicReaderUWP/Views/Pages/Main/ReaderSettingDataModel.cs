@@ -27,6 +27,7 @@ internal class ReaderSettingDataModel
     public PageArrangementEnum HorizontalPageArrangement { get; set; } = PageArrangementEnum.DualCover;
     public int PageGap { get; set; } = 100;
     public int AutoScrollSpeed { get; set; } = 0;
+    public ImageRotationEnum ImageRotation { get; set; } = ImageRotationEnum.None;
 
     public bool IsContinuous
     {
@@ -79,7 +80,8 @@ internal class ReaderSettingDataModel
             PageGap == other.PageGap &&
             AutoScrollSpeed == other.AutoScrollSpeed &&
             IsContinuous == other.IsContinuous &&
-            PageArrangement == other.PageArrangement;
+            PageArrangement == other.PageArrangement &&
+            ImageRotation == other.ImageRotation;
     }
 
     public override int GetHashCode()
@@ -98,6 +100,7 @@ internal class ReaderSettingDataModel
         hash.Add(AutoScrollSpeed);
         hash.Add(IsContinuous);
         hash.Add(PageArrangement);
+        hash.Add(ImageRotation);
         return hash.ToHashCode();
     }
 
@@ -116,6 +119,7 @@ internal class ReaderSettingDataModel
             HorizontalPageArrangement = HorizontalPageArrangement,
             PageGap = PageGap,
             AutoScrollSpeed = AutoScrollSpeed,
+            ImageRotation = ImageRotation,
         };
         return clone;
     }
@@ -134,6 +138,7 @@ internal class ReaderSettingDataModel
             HorizontalPageArrangement = HorizontalPageArrangement,
             PageGap = PageGap,
             AutoScrollSpeed = AutoScrollSpeed,
+            ImageRotation = ImageRotation,
         };
     }
 
@@ -149,6 +154,7 @@ internal class ReaderSettingDataModel
         comic.SetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT, HorizontalPageArrangement.ToString());
         comic.SetExt(ComicExt.PAGE_GAP, PageGap.ToString());
         comic.SetExt(ComicExt.AUTO_SCROLL_SPEED, AutoScrollSpeed.ToString());
+        comic.SetExt(ComicExt.IMAGE_ROTATION, ImageRotation.ToString());
         CoroutineUtils.Start(comic.FlushExt);
     }
 
@@ -169,6 +175,21 @@ internal class ReaderSettingDataModel
             return null;
         }
 
+        ImageRotationEnum ParseImageRotation(string? value)
+        {
+            if (value == null)
+            {
+                return ImageRotationEnum.None;
+            }
+
+            if (Enum.TryParse(value, out ImageRotationEnum rotation))
+            {
+                return rotation;
+            }
+
+            return ImageRotationEnum.None;
+        }
+
         AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
         Dictionary<string, AppSettingsModel.ReaderSettingModel> presets = settingModel.ReaderSettingPresets;
         string presetKey = comic.GetExt(ComicExt.READER_SETTING_PRESET_KEY) ?? settingModel.DefaultReaderSettingPresetKey;
@@ -183,6 +204,7 @@ internal class ReaderSettingDataModel
             model.IsHorizontalContinuous = comic.GetExt(ComicExt.HORIZONTAL_CONTINUOUS)?.Equals("1") ?? model.IsHorizontalContinuous;
             model.VerticalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.VERTICAL_PAGE_ARRANGEMENT)) ?? model.VerticalPageArrangement;
             model.HorizontalPageArrangement = ParsePageArrangement(comic.GetExt(ComicExt.HORIZONTAL_PAGE_ARRANGEMENT)) ?? model.HorizontalPageArrangement;
+            model.ImageRotation = ParseImageRotation(comic.GetExt(ComicExt.IMAGE_ROTATION));
 
             {
                 string? pageGapString = comic.GetExt(ComicExt.PAGE_GAP);
@@ -232,6 +254,7 @@ internal class ReaderSettingDataModel
                 model.HorizontalPageArrangement = presetModel.HorizontalPageArrangement;
                 model.PageGap = presetModel.PageGap;
                 model.AutoScrollSpeed = presetModel.AutoScrollSpeed;
+                model.ImageRotation = presetModel.ImageRotation;
             }
         }
 

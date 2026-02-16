@@ -177,6 +177,7 @@ public class StringResourceProvider
     public string ResetAllSettings => GetResourceString("ResetAllSettings");
     public string ResetAllSettingsMessage => GetResourceString("ResetAllSettingsMessage");
     public string RestoreLastReadingPosition => GetResourceString("RestoreLastReadingPosition");
+    public string Rotation => GetResourceString("Rotation");
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");
     public string SaveViewConfig => GetResourceString("SaveViewConfig");

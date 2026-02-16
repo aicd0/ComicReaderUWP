@@ -808,6 +808,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>自右向左</value>
   </data>
+  <data name="Rotation" xml:space="preserve">
+    <value>旋转</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>保存</value>
   </data>

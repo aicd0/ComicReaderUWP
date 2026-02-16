@@ -443,7 +443,27 @@
 
         <!--  Image Processing Settings  -->
         <StackPanel x:Name="ImageProcessingSettingsGrid" Orientation="Vertical">
-            <TextBlock Text="123" />
+            <Grid Margin="14,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind StringResource.Rotation}" />
+                <DropDownButton
+                    x:Name="RotationDropDownButton"
+                    Grid.Row="0"
+                    Grid.Column="3" />
+            </Grid>
         </StackPanel>
 
         <Rectangle
