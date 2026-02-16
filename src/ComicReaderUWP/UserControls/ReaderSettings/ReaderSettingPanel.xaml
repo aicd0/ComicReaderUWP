@@ -467,7 +467,8 @@
                 <DropDownButton
                     x:Name="RotationDropDownButton"
                     Grid.Row="0"
-                    Grid.Column="3" />
+                    Grid.Column="3"
+                    HorizontalAlignment="Right" />
                 <TextBlock
                     Grid.Row="1"
                     Grid.Column="0"
@@ -478,6 +479,7 @@
                     x:Name="FlipImageToggleSwitch"
                     Grid.Row="1"
                     Grid.Column="3"
+                    HorizontalAlignment="Right"
                     IsOn="False"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="FlipImageToggleSwitch_Toggled" />
@@ -491,6 +493,7 @@
                     x:Name="InvertImageToggleSwitch"
                     Grid.Row="2"
                     Grid.Column="3"
+                    HorizontalAlignment="Right"
                     IsOn="False"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="InvertImageToggleSwitch_Toggled" />
