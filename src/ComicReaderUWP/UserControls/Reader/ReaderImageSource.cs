@@ -6,7 +6,7 @@ using ComicReaderUWP.Data.Models.Misc;
 
 namespace ComicReaderUWP.UserControls.Reader;
 
-internal class ReaderImageModel
+internal class ReaderImageSource
 {
     public required IImageSource Source { get; init; }
     public required ImageRotationEnum Rotation { get; init; }

@@ -30,11 +30,11 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposabl
 
     public Thickness FrameMargin { get; set; } = new(0.0, 0.0, 0.0, 0.0);
 
-    public ReaderImageModel? LeftImageSource { get; set; }
+    public ReaderImageSource? LeftImageSource { get; set; }
     public double LeftImageWidth { get; set; } = 0.0;
     public double LeftImageHeight { get; set; } = 0.0;
 
-    public ReaderImageModel? RightImageSource { get; set; }
+    public ReaderImageSource? RightImageSource { get; set; }
     public double RightImageWidth { get; set; } = 0.0;
     public double RightImageHeight { get; set; } = 0.0;
 

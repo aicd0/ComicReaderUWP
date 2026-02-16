@@ -20,14 +20,14 @@ namespace ComicReaderUWP.UserControls.ReaderSettings;
 
 internal sealed partial class ReaderSettingPanel : BaseUserControl
 {
-    public delegate void DataChangedEventHandler(ReaderSettingDataModel data);
+    public delegate void DataChangedEventHandler(ReaderSettingsModel data);
     public event DataChangedEventHandler? DataChanged;
 
     public bool ActionInProgress { get; private set; } = false;
 
     private int _windowId = -1;
     private ComicModel? _comic;
-    private ReaderSettingDataModel _model = new();
+    private ReaderSettingsModel _model = new();
     private bool _updatingUI = false;
 
     public ReaderSettingPanel()
@@ -44,7 +44,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     public void SetComic(ComicModel comic)
     {
         _comic = comic;
-        _model = ReaderSettingDataModel.FromComic(comic);
+        _model = ReaderSettingsModel.LoadFromComic(comic);
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -168,14 +168,14 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
             ActionInProgress = false;
         }
 
-        _model = ReaderSettingDataModel.FromComic(_comic);
+        _model = ReaderSettingsModel.LoadFromComic(_comic);
         UpdateUI();
         DispatchDataChangeEvent();
     }
 
     private void ResetButton_Click(object sender, RoutedEventArgs e)
     {
-        _model = new ReaderSettingDataModel
+        _model = new ReaderSettingsModel
         {
             PresetKey = _model.PresetKey,
             PresetName = _model.PresetName,
@@ -193,18 +193,18 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
             return;
         }
 
-        if (_model.PresetKey == ReaderSettingDataModel.PRESET_KEY_CUSTOM)
+        if (_model.PresetKey == ReaderSettingsModel.PRESET_KEY_CUSTOM)
         {
             if (_comic is not null && !_comic.IsExternal)
             {
-                _model.ToComic(_comic);
+                _model.SaveToComic(_comic);
             }
         }
         else
         {
-            AppSettingsModel.ExternalModel settingsModel = AppSettingsModel.Instance.GetModel();
-            settingsModel.ReaderSettingPresets[_model.PresetKey] = _model.ToSettingModel();
-            AppSettingsModel.Instance.UpdateModel(settingsModel);
+            Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+            presets[_model.PresetKey] = _model;
+            AppSettingsModel.Instance.ReaderSettingPresets = presets;
         }
     }
 
@@ -270,7 +270,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         UpdateImageRotation();
 
         PresetDropDownButton.Flyout = CreatePresetContextMenu();
-        PresetDropDownButton.Content = _model.PresetKey == ReaderSettingDataModel.PRESET_KEY_CUSTOM ? StringResource.Custom : _model.PresetName;
+        PresetDropDownButton.Content = _model.PresetKey == ReaderSettingsModel.PRESET_KEY_CUSTOM ? StringResource.Custom : _model.PresetName;
     }
 
     private void UpdateImageRotation()
@@ -317,20 +317,19 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
 
     private MenuFlyout CreatePresetContextMenu()
     {
-        AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
         List<Tuple<string, string>> presets = [];
-        foreach (KeyValuePair<string, AppSettingsModel.ReaderSettingModel> kvp in settingModel.ReaderSettingPresets)
+        foreach (KeyValuePair<string, ReaderSettingsModel> kvp in AppSettingsModel.Instance.ReaderSettingPresets)
         {
             presets.Add(new Tuple<string, string>(kvp.Value.PresetName, kvp.Key));
         }
 
         if (presets.Count == 0)
         {
-            presets.Add(new Tuple<string, string>(StringResource.Default, ReaderSettingDataModel.PRESET_KEY_DEFAULT));
+            presets.Add(new Tuple<string, string>(StringResource.Default, ReaderSettingsModel.PRESET_KEY_DEFAULT));
         }
 
         presets.Sort((a, b) => StringComparer.CurrentCultureIgnoreCase.Compare(a.Item1, b.Item1));
-        presets.Add(new Tuple<string, string>(StringResource.Custom, ReaderSettingDataModel.PRESET_KEY_CUSTOM));
+        presets.Add(new Tuple<string, string>(StringResource.Custom, ReaderSettingsModel.PRESET_KEY_CUSTOM));
 
         List<BaseMenuFlyoutItemModel> items = [];
         foreach (Tuple<string, string> preset in presets)
@@ -345,8 +344,8 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
                     if (presetKey != _model.PresetKey && _comic is not null)
                     {
                         _model.PresetKey = presetKey;
-                        _model.ToComic(_comic);
-                        _model = ReaderSettingDataModel.FromComic(_comic);
+                        _model.SaveToComic(_comic);
+                        _model = ReaderSettingsModel.LoadFromComic(_comic);
                         DispatchDataChangeEvent();
                     }
 

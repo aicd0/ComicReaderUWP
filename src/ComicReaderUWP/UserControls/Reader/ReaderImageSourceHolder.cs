@@ -80,7 +80,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         PostDrawTask();
     }
 
-    public void SetImage(int index, ReaderImageModel? source, double frameWidth, double frameHeight)
+    public void SetImage(int index, ReaderImageSource? source, double frameWidth, double frameHeight)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
 
@@ -210,7 +210,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
     private void DecodeImage(ImageItem item)
     {
-        ReaderImageModel? source;
+        ReaderImageSource? source;
         bool clearPrevious;
         Size frameSize;
         lock (item.Lock)
@@ -527,7 +527,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     private class DrawingImageItem
     {
         public required RefCounted<CanvasBitmap> Bitmap;
-        public required ReaderImageModel Source;
+        public required ReaderImageSource Source;
 
         public uint ImageWidth => Source.Rotation switch
         {
@@ -594,7 +594,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     private partial class ImageItem : IDisposable
     {
         public object Lock { get; } = new();
-        public ReaderImageModel? Source { get; set; }
+        public ReaderImageSource? Source { get; set; }
         public Size FrameSize { get; set; }
         public bool SupportVector { get; set; } = false;
         public bool IsLoading { get; set; } = false;

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.Localization;
@@ -82,49 +83,48 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
     }
 
     private ComicModel? _comic = null;
-    private ReaderSettingDataModel _presetModel = new();
+    private ReaderSettingsModel _presetModel = new();
 
     public void Initialize(ComicModel comic)
     {
         _comic = comic;
-        _presetModel = ReaderSettingDataModel.FromComic(comic);
+        _presetModel = ReaderSettingsModel.LoadFromComic(comic);
 
         Title = StringResourceProvider.Instance.EditPreset;
         Name = _presetModel.PresetName;
-        SetAsDefault = _presetModel.PresetKey == AppSettingsModel.Instance.GetModel().DefaultReaderSettingPresetKey;
+        SetAsDefault = _presetModel.PresetKey == AppSettingsModel.Instance.DefaultReaderSettingPresetKey;
         UpdateUI();
     }
 
     public void Delete()
     {
-        if (_presetModel.PresetKey == ReaderSettingDataModel.PRESET_KEY_CUSTOM)
+        if (_presetModel.PresetKey == ReaderSettingsModel.PRESET_KEY_CUSTOM)
         {
             return;
         }
 
-        AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
-        settingModel.ReaderSettingPresets.Remove(_presetModel.PresetKey);
-        AppSettingsModel.Instance.UpdateModel(settingModel);
+        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+        presets.Remove(_presetModel.PresetKey);
+        AppSettingsModel.Instance.ReaderSettingPresets = presets;
     }
 
     public void Save()
     {
         string name = _name.Trim();
-        if (string.IsNullOrEmpty(name) || _presetModel.PresetKey == ReaderSettingDataModel.PRESET_KEY_CUSTOM)
+        if (string.IsNullOrEmpty(name) || _presetModel.PresetKey == ReaderSettingsModel.PRESET_KEY_CUSTOM)
         {
             return;
         }
 
         _presetModel.PresetName = name;
-        AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
-        settingModel.ReaderSettingPresets[_presetModel.PresetKey] = _presetModel.ToSettingModel();
+        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+        presets[_presetModel.PresetKey] = _presetModel;
+        AppSettingsModel.Instance.ReaderSettingPresets = presets;
 
         if (_setAsDefault)
         {
-            settingModel.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+            AppSettingsModel.Instance.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
         }
-
-        AppSettingsModel.Instance.UpdateModel(settingModel);
     }
 
     public void SaveAsNew()
@@ -137,19 +137,18 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
 
         _presetModel.PresetKey = Guid.NewGuid().ToString();
         _presetModel.PresetName = name;
-        AppSettingsModel.ExternalModel settingModel = AppSettingsModel.Instance.GetModel();
-        settingModel.ReaderSettingPresets[_presetModel.PresetKey] = _presetModel.ToSettingModel();
+        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+        presets[_presetModel.PresetKey] = _presetModel;
+        AppSettingsModel.Instance.ReaderSettingPresets = presets;
 
         if (_setAsDefault)
         {
-            settingModel.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+            AppSettingsModel.Instance.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
         }
-
-        AppSettingsModel.Instance.UpdateModel(settingModel);
 
         if (_comic is not null)
         {
-            _presetModel.ToComic(_comic);
+            _presetModel.SaveToComic(_comic);
         }
     }
 
@@ -167,10 +166,10 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
     private void UpdateUI()
     {
         string name = _name.Trim();
-        bool isCustomPreset = _presetModel.PresetKey == ReaderSettingDataModel.PRESET_KEY_CUSTOM;
+        bool isCustomPreset = _presetModel.PresetKey == ReaderSettingsModel.PRESET_KEY_CUSTOM;
         bool isNameValid = !string.IsNullOrEmpty(name);
         bool isNameExisting = false;
-        foreach (AppSettingsModel.ReaderSettingModel preset in AppSettingsModel.Instance.GetModel().ReaderSettingPresets.Values)
+        foreach (ReaderSettingsModel preset in AppSettingsModel.Instance.ReaderSettingPresets.Values)
         {
             if (preset.PresetName == name)
             {

@@ -60,7 +60,7 @@ internal partial class ReaderView : UserControl
     private bool _useOriginalSize = false;
     private int _pageGap = 100;
     private ImageRotationEnum _imageRotation = ImageRotationEnum.None;
-    private bool _imageMirrored = false;
+    private bool _imageFlip = false;
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
@@ -311,14 +311,14 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
-    public void SetImageMirrored(bool mirrored)
+    public void SetImageFlip(bool flip)
     {
-        if (mirrored == _imageMirrored)
+        if (flip == _imageFlip)
         {
             return;
         }
 
-        _imageMirrored = mirrored;
+        _imageFlip = flip;
         _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }
@@ -744,11 +744,11 @@ internal partial class ReaderView : UserControl
     {
         Logger.Assert(index >= 0, "E55E628AD1456D37");
 
-        ReaderImageModel imageSourceModel = new()
+        ReaderImageSource imageSourceModel = new()
         {
             Source = source,
             Rotation = _imageRotation,
-            Flip = false,
+            Flip = _imageFlip,
         };
         int imageWidth = imageSourceModel.Rotation switch
         {
@@ -3117,7 +3117,7 @@ internal partial class ReaderView : UserControl
 
     private class ImageDataModel
     {
-        public required ReaderImageModel Image { get; set; }
+        public required ReaderImageSource Image { get; set; }
         public required int OriginalWidth { get; set; }
         public required int OriginalHeight { get; set; }
         public double AspectRatio

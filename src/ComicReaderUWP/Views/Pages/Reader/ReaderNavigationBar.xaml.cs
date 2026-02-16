@@ -26,7 +26,7 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl, INotifyProp
     public delegate void FavoriteChangedEventHandler(bool isFavorite);
     public event FavoriteChangedEventHandler? FavoriteChanged;
 
-    public delegate void ReaderSettingsChangedEventHandler(ReaderSettingDataModel settings);
+    public delegate void ReaderSettingsChangedEventHandler(ReaderSettingsModel settings);
     public event ReaderSettingsChangedEventHandler? ReaderSettingsChanged;
 
     public delegate void InfoPaneExpandedEventHandler();
@@ -116,7 +116,7 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl, INotifyProp
         args.Cancel = MainReaderSettingPanel.ActionInProgress;
     }
 
-    private void MainReaderSettingPanel_DataChanged(ReaderSettingDataModel model)
+    private void MainReaderSettingPanel_DataChanged(ReaderSettingsModel model)
     {
         ReaderSettingsChanged?.Invoke(model);
     }

@@ -506,7 +506,7 @@ internal sealed partial class ReaderPage : BasePage
     // Reader
     //
 
-    private void ApplyReaderSettings(ReaderSettingDataModel readerSettingModel)
+    private void ApplyReaderSettings(ReaderSettingsModel readerSettingModel)
     {
         ReaderView reader = MainReaderView;
         reader.SetIsVertical(readerSettingModel.IsVertical);
