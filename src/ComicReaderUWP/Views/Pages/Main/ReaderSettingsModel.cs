@@ -33,6 +33,7 @@ internal class ReaderSettingsModel
     public int AutoScrollSpeed { get; set; } = 0;
     public ImageRotationEnum ImageRotation { get; set; } = ImageRotationEnum.None;
     public bool ImageFlip { get; set; } = false;
+    public bool ImageInvert { get; set; } = false;
 
     public bool IsContinuous
     {
@@ -87,7 +88,8 @@ internal class ReaderSettingsModel
             IsContinuous == other.IsContinuous &&
             PageArrangement == other.PageArrangement &&
             ImageRotation == other.ImageRotation &&
-            ImageFlip == other.ImageFlip;
+            ImageFlip == other.ImageFlip &&
+            ImageInvert == other.ImageInvert;
     }
 
     public override int GetHashCode()
@@ -108,6 +110,7 @@ internal class ReaderSettingsModel
         hash.Add(PageArrangement);
         hash.Add(ImageRotation);
         hash.Add(ImageFlip);
+        hash.Add(ImageInvert);
         return hash.ToHashCode();
     }
 
@@ -144,6 +147,7 @@ internal class ReaderSettingsModel
                 _ => "None",
             },
             ImageFlip = ImageFlip,
+            ImageInvert = ImageInvert,
         };
     }
 
@@ -190,6 +194,7 @@ internal class ReaderSettingsModel
                 _ => defaultModel.ImageRotation,
             },
             ImageFlip = model.ImageFlip ?? defaultModel.ImageFlip,
+            ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
         };
     }
 
@@ -289,5 +294,8 @@ internal class ReaderSettingsModel
 
         [JsonPropertyName("ImageFlip")]
         public bool? ImageFlip { get; set; }
+
+        [JsonPropertyName("ImageInvert")]
+        public bool? ImageInvert { get; set; }
     }
 }

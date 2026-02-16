@@ -15,6 +15,7 @@ using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 
 using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
@@ -465,16 +466,18 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                 }
 
                 Matrix3x2 oldTransform = ds.Transform;
-                CanvasBitmap bitmap = item.Bitmap.Value;
                 ImageRect imageRect = imageRects[i];
                 ds.Transform = item.GetTransformMatrix(imageRect, out ImageRect destRect);
+
+                CanvasBitmap bitmap = item.Bitmap.Value;
                 ds.DrawImage(
-                    bitmap,
+                    item.CanvasImage,
                     new Vector2((float)destRect.X, (float)destRect.Y),
                     new Windows.Foundation.Rect(0, 0, bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height),
                     1F,
                     CanvasImageInterpolation.HighQualityCubic);
                 item.Bitmap.Unref();
+
                 ds.Transform = oldTransform;
             }
         });
@@ -528,6 +531,22 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     {
         public required RefCounted<CanvasBitmap> Bitmap;
         public required ReaderImageSource Source;
+
+        public ICanvasImage CanvasImage
+        {
+            get
+            {
+                if (Source.Invert)
+                {
+                    return new InvertEffect()
+                    {
+                        Source = Bitmap.Value,
+                    };
+                }
+
+                return Bitmap.Value;
+            }
+        }
 
         public uint ImageWidth => Source.Rotation switch
         {

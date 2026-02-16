@@ -539,6 +539,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="ImageProcessing" xml:space="preserve">
     <value>Traitement d’images</value>
   </data>
+  <data name="InvertImage" xml:space="preserve">
+    <value>Inverser</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Garder l’écran allumé</value>
   </data>

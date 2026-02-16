@@ -539,6 +539,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="ImageProcessing" xml:space="preserve">
     <value>图像处理</value>
   </data>
+  <data name="InvertImage" xml:space="preserve">
+    <value>反色</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>保持屏幕开启</value>
   </data>

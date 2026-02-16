@@ -539,6 +539,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="ImageProcessing" xml:space="preserve">
     <value>画像処理</value>
   </data>
+  <data name="InvertImage" xml:space="preserve">
+    <value>反転</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>画面をオンのままにする</value>
   </data>
