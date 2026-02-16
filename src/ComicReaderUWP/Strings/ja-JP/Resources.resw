@@ -458,6 +458,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>読み取り $percentage%</value>
   </data>
+  <data name="FlipImage" xml:space="preserve">
+    <value>反転</value>
+  </data>
   <data name="Folders" xml:space="preserve">
     <value>フォルダー</value>
   </data>

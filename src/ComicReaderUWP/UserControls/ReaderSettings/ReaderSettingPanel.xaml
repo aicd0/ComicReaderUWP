@@ -96,15 +96,15 @@
         <SelectorBar
             x:Name="SettingsTabSelectorBar"
             Margin="14,0"
-            Padding="0,12"
+            Padding="0,12,0,8"
             SelectionChanged="SelectorBar_SelectionChanged">
             <SelectorBarItem
                 x:Name="SelectorBarItem1"
-                Padding="12,0,12,6"
+                Padding="12,0,12,4"
                 Text="{x:Bind StringResource.General}" />
             <SelectorBarItem
                 x:Name="SelectorBarItem2"
-                Padding="12,0,12,6"
+                Padding="12,0,12,4"
                 Text="{x:Bind StringResource.ImageProcessing}" />
         </SelectorBar>
 
@@ -442,7 +442,10 @@
         </StackPanel>
 
         <!--  Image Processing Settings  -->
-        <StackPanel x:Name="ImageProcessingSettingsGrid" Orientation="Vertical">
+        <StackPanel
+            x:Name="ImageProcessingSettingsGrid"
+            MinWidth="360"
+            Orientation="Vertical">
             <Grid Margin="14,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -451,6 +454,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="40" />
                     <RowDefinition Height="30" />
                 </Grid.RowDefinitions>
                 <TextBlock
@@ -463,6 +467,19 @@
                     x:Name="RotationDropDownButton"
                     Grid.Row="0"
                     Grid.Column="3" />
+                <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind StringResource.FlipImage}" />
+                <ToggleSwitch
+                    x:Name="FlipImageToggleSwitch"
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    IsOn="False"
+                    Style="{StaticResource CompatToggleSwitchStyle}"
+                    Toggled="FlipImageToggleSwitch_Toggled" />
             </Grid>
         </StackPanel>
 

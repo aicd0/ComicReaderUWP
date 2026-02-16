@@ -458,6 +458,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Completado</value>
   </data>
+  <data name="FlipImage" xml:space="preserve">
+    <value>Voltear</value>
+  </data>
   <data name="Folders" xml:space="preserve">
     <value>Carpetas</value>
   </data>

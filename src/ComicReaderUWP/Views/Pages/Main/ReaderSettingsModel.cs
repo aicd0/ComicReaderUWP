@@ -121,26 +121,6 @@ internal class ReaderSettingsModel
         return !(left == right);
     }
 
-    public ReaderSettingsModel Clone()
-    {
-        var clone = new ReaderSettingsModel
-        {
-            PresetKey = PresetKey,
-            PresetName = PresetName,
-            OriginalSize = OriginalSize,
-            IsVertical = IsVertical,
-            IsLeftToRight = IsLeftToRight,
-            IsVerticalContinuous = IsVerticalContinuous,
-            IsHorizontalContinuous = IsHorizontalContinuous,
-            VerticalPageArrangement = VerticalPageArrangement,
-            HorizontalPageArrangement = HorizontalPageArrangement,
-            PageGap = PageGap,
-            AutoScrollSpeed = AutoScrollSpeed,
-            ImageRotation = ImageRotation,
-        };
-        return clone;
-    }
-
     public JsonModel ToJsonModel()
     {
         return new()

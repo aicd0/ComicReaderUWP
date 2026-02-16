@@ -458,6 +458,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Abgeschlossen</value>
   </data>
+  <data name="FlipImage" xml:space="preserve">
+    <value>Spiegeln</value>
+  </data>
   <data name="Folders" xml:space="preserve">
     <value>Ordner</value>
   </data>

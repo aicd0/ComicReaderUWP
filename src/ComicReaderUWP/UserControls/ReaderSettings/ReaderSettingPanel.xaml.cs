@@ -150,6 +150,13 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         DispatchDataChangeEvent();
     }
 
+    private void FlipImageToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        _model.ImageFlip = FlipImageToggleSwitch.IsOn;
+        SaveSettings();
+        DispatchDataChangeEvent();
+    }
+
     private async void EditPresetButton_Click(object sender, RoutedEventArgs e)
     {
         if (_comic is null || _windowId < 0)
@@ -266,6 +273,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         OriginalSizeToggleSwitch.IsOn = _model.OriginalSize;
         PageGapSlider.Value = Math.Clamp(_model.PageGap, 0, 200);
         AutoScrollingSlider.Value = Math.Clamp(_model.AutoScrollSpeed, 0, 100);
+        FlipImageToggleSwitch.IsOn = _model.ImageFlip;
 
         UpdateImageRotation();
 

@@ -319,6 +319,11 @@ internal partial class ReaderView : UserControl
         }
 
         _imageFlip = flip;
+        foreach (ImageDataModel item in _dataModel.Values)
+        {
+            item.Image.Flip = _imageFlip;
+        }
+
         _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }

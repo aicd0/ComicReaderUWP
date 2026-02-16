@@ -458,6 +458,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>已读$percentage%</value>
   </data>
+  <data name="FlipImage" xml:space="preserve">
+    <value>翻转</value>
+  </data>
   <data name="Folders" xml:space="preserve">
     <value>文件夹</value>
   </data>
