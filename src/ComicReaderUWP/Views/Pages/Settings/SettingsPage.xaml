@@ -252,15 +252,12 @@
 
                     <!--  Feedback  -->
                     <TextBlock x:Uid="Feedback" Style="{StaticResource SettingsPageSubTitleTextBlock}" />
-                    <TextBlock
-                        x:Uid="FeedbackIntroduction"
-                        Margin="3,0,0,0"
-                        TextWrapping="Wrap" />
+                    <TextBlock x:Uid="FeedbackIntroduction" TextWrapping="Wrap" />
                     <Button
                         x:Uid="SendFeedbackButton"
                         Margin="0,10,0,0"
                         Click="OnSendFeedbackButtonClicked" />
-                    <RichTextBlock Margin="3,8,0,0" IsTextSelectionEnabled="False">
+                    <RichTextBlock Margin="0,8,0,0" IsTextSelectionEnabled="False">
                         <Paragraph>
                             <Run x:Name="ContributionRunBeforeLink" />
                             <Hyperlink NavigateUri="https://github.com/aicd0/ComicReaderUWP">
@@ -270,10 +267,7 @@
                         </Paragraph>
                     </RichTextBlock>
                     <Grid Visibility="{x:Bind ViewModel.IsPortable, Converter={StaticResource BooleanToVisibilityNegationConverter}}">
-                        <StackPanel
-                            Margin="3,0,0,0"
-                            Orientation="Vertical"
-                            Visibility="{x:Bind ViewModel.IsDonor, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}">
+                        <StackPanel Orientation="Vertical" Visibility="{x:Bind ViewModel.IsDonor, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}">
                             <RichTextBlock Margin="0,8,0,0" IsTextSelectionEnabled="False">
                                 <Paragraph>
                                     <Run Text="{x:Bind StringResource.DonationDescription}" />
@@ -288,7 +282,7 @@
                                 Content="{x:Bind StringResource.DonationBuyMeACoffee}" />
                         </StackPanel>
                         <RichTextBlock
-                            Margin="3,8,0,0"
+                            Margin="0,8,0,0"
                             IsTextSelectionEnabled="False"
                             Visibility="{x:Bind ViewModel.IsDonor, Mode=OneWay}">
                             <Paragraph>
@@ -320,25 +314,10 @@
 
                     <!--  About  -->
                     <TextBlock Style="{StaticResource SettingsPageSubTitleTextBlock}" Text="{x:Bind StringResource.About}" />
-                    <Image
-                        Width="50"
-                        Height="50"
-                        Margin="0,0,0,8"
-                        HorizontalAlignment="Left"
-                        Source="ms-appx:///Assets/StoreLogo.scale-400.png" />
-                    <TextBlock
-                        x:Name="AboutBuildVersionControl"
-                        Margin="3,0,0,0"
-                        TextWrapping="Wrap" />
-                    <TextBlock
-                        x:Name="AboutCopyrightControl"
-                        Margin="3,0,0,0"
-                        TextWrapping="Wrap" />
+                    <TextBlock x:Name="AboutBuildVersionControl" TextWrapping="Wrap" />
+                    <TextBlock x:Name="AboutCopyrightControl" TextWrapping="Wrap" />
                     <Grid Height="8" />
-                    <RichTextBlock
-                        Margin="3,0,0,0"
-                        HorizontalAlignment="Left"
-                        IsTextSelectionEnabled="False">
+                    <RichTextBlock HorizontalAlignment="Left" IsTextSelectionEnabled="False">
                         <Paragraph>
                             <Hyperlink NavigateUri="https://github.com/aicd0/ComicReaderUWP/blob/develop/docs/PrivacyPolicy.md">
                                 <Run Text="{x:Bind StringResource.PrivacyPolicy}" />
@@ -356,7 +335,6 @@
                         <TextBlock x:Uid="DebugInformation" Style="{StaticResource SettingsPageSubTitleTextBlock}" />
                         <TextBlock
                             x:Name="TbDebugInformation"
-                            Margin="3,0,0,0"
                             IsTextSelectionEnabled="True"
                             TextWrapping="Wrap" />
                     </StackPanel>

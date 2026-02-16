@@ -72,7 +72,7 @@
                     <Flyout.FlyoutPresenterStyle>
                         <Style TargetType="FlyoutPresenter">
                             <Setter Property="CornerRadius" Value="8" />
-                            <Setter Property="Padding" Value="14,12,14,12" />
+                            <Setter Property="Padding" Value="0" />
                             <Setter Property="MaxWidth" Value="1000" />
                         </Style>
                     </Flyout.FlyoutPresenterStyle>

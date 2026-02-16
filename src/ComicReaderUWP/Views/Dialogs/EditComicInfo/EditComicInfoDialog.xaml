@@ -132,14 +132,14 @@
                     Margin="0,7,0,0"
                     VerticalAlignment="Top" />
                 <Button
-                    Margin="6,12,0,0"
+                    Margin="6,12.5,0,0"
                     Padding="0"
                     VerticalAlignment="Top"
                     Background="Transparent"
                     BorderThickness="0"
                     Click="OnShowTagInfoButtonClicked">
                     <Button.Content>
-                        <FontIcon FontSize="13" Glyph="&#xE946;" />
+                        <FontIcon FontSize="12" Glyph="&#xE946;" />
                     </Button.Content>
                 </Button>
             </StackPanel>

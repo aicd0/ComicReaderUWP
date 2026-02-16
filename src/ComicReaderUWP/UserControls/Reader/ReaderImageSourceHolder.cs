@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using System.Threading;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
@@ -78,7 +80,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         PostDrawTask();
     }
 
-    public void SetImage(int index, IImageSource? source, double frameWidth, double frameHeight)
+    public void SetImage(int index, ReaderImageSource? source, double frameWidth, double frameHeight)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
 
@@ -98,7 +100,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         bool supportVector = false;
         if (source is not null)
         {
-            using IVectorImageService? vectorService = source.OpenVectorService();
+            using IVectorImageService? vectorService = source.Source.OpenVectorService();
             supportVector = vectorService is not null;
         }
 
@@ -208,7 +210,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
     private void DecodeImage(ImageItem item)
     {
-        IImageSource? source;
+        ReaderImageSource? source;
         bool clearPrevious;
         Size frameSize;
         lock (item.Lock)
@@ -241,7 +243,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         }
 
         CanvasBitmap? newBitmap;
-        using IVectorImageService? vectorService = source.OpenVectorService();
+        using IVectorImageService? vectorService = source.Source.OpenVectorService();
         if (vectorService is not null)
         {
             double width = frameSize.Width * _scale;
@@ -267,7 +269,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         }
         else
         {
-            using Stream? stream = source.OpenImageStream();
+            using Stream? stream = source.Source.OpenImageStream();
             if (stream is null)
             {
                 return;
@@ -318,50 +320,60 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
     private void Draw()
     {
-        RefCounted<CanvasBitmap>?[] bitmaps;
+        DrawingImageItem?[] items;
         Size[] frameSizes;
         lock (_images)
         {
-            bitmaps = new RefCounted<CanvasBitmap>?[_images.Count];
+            items = new DrawingImageItem[_images.Count];
             frameSizes = new Size[_images.Count];
             for (int i = 0; i < _images.Count; i++)
             {
                 ImageItem item = _images[i];
                 lock (item.Lock)
                 {
-                    item.BitmapRef?.Ref();
-                    bitmaps[i] = item.BitmapRef;
+                    if (item.BitmapRef is null || item.Source is null)
+                    {
+                        items[i] = null;
+                        continue;
+                    }
+
+                    item.BitmapRef.Ref();
+                    items[i] = new DrawingImageItem
+                    {
+                        Bitmap = item.BitmapRef,
+                        Source = item.Source,
+                    };
                     frameSizes[i] = item.FrameSize;
                 }
             }
         }
 
         double maxPixelRatio = 0;
-        for (int i = 0; i < bitmaps.Length; i++)
+        for (int i = 0; i < items.Length; i++)
         {
-            RefCounted<CanvasBitmap>? bitmapRef = bitmaps[i];
-            if (bitmapRef is null)
+            DrawingImageItem? item = items[i];
+            if (item is null)
             {
                 continue;
             }
 
-            CanvasBitmap bitmap = bitmapRef.Value;
+            CanvasBitmap bitmap = item.Bitmap.Value;
             if (bitmap.SizeInPixels.Width < 1 || bitmap.SizeInPixels.Height < 1)
             {
-                bitmaps[i] = null;
-                bitmapRef.Unref();
+                items[i] = null;
+                item.Bitmap.Unref();
                 continue;
             }
 
             Size frameSize = frameSizes[i];
             if (frameSize.Width < 1E-3 || frameSize.Height < 1E-3)
             {
-                bitmaps[i] = null;
-                bitmapRef.Unref();
+                items[i] = null;
+                item.Bitmap.Unref();
                 continue;
             }
 
-            double pixelRatio = bitmap.SizeInPixels.Width / frameSize.Width;
+            double pixelRatio = item.ImageWidth / frameSize.Width;
             maxPixelRatio = Math.Max(maxPixelRatio, pixelRatio);
         }
 
@@ -385,10 +397,10 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         double finalPixelRatio = Math.Min(_scale, maxPixelRatio);
         double accumulatedWidth = 0;
         double maxHeight = 0;
-        for (int i = 0; i < bitmaps.Length; i++)
+        for (int i = 0; i < items.Length; i++)
         {
-            CanvasBitmap? bitmap = bitmaps[i]?.Value;
-            if (bitmap is null && !PlaceholderMode)
+            DrawingImageItem? item = items[i];
+            if (item is null && !PlaceholderMode)
             {
                 continue;
             }
@@ -397,9 +409,9 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             double rectWidth = frameSize.Width * finalPixelRatio;
             accumulatedWidth += rectWidth;
 
-            if (bitmap is not null)
+            if (item is not null)
             {
-                double rectHeight = rectWidth * bitmap.SizeInPixels.Height / bitmap.SizeInPixels.Width;
+                double rectHeight = rectWidth * item.ImageHeight / item.ImageWidth;
                 maxHeight = Math.Max(maxHeight, rectHeight);
             }
         }
@@ -411,13 +423,13 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             scaleRatio = Math.Sqrt(MAX_CANVAS_SIZE / canvasSize);
         }
 
-        var imageRects = new ImageRect[bitmaps.Length];
+        var imageRects = new ImageRect[items.Length];
         accumulatedWidth = 0;
         maxHeight *= scaleRatio;
-        for (int i = 0; i < bitmaps.Length; i++)
+        for (int i = 0; i < items.Length; i++)
         {
-            CanvasBitmap? bitmap = bitmaps[i]?.Value;
-            if (bitmap is null && !PlaceholderMode)
+            DrawingImageItem? item = items[i];
+            if (item is null && !PlaceholderMode)
             {
                 continue;
             }
@@ -429,9 +441,9 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             imageRect.Width = rectWidth;
             accumulatedWidth += rectWidth;
 
-            if (bitmap is not null)
+            if (item is not null)
             {
-                double rectHeight = rectWidth * bitmap.SizeInPixels.Height / bitmap.SizeInPixels.Width;
+                double rectHeight = rectWidth * item.ImageHeight / item.ImageWidth;
                 double rectTop = (maxHeight - rectHeight) * 0.5;
                 imageRect.Y = rectTop;
                 imageRect.Height = rectHeight;
@@ -444,23 +456,26 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         {
             CanvasImageSource imageSource = GetCanvasImageSource((int)accumulatedWidth, (int)maxHeight);
             using CanvasDrawingSession ds = imageSource.CreateDrawingSession(Colors.Transparent);
-            for (int i = 0; i < bitmaps.Length; i++)
+            for (int i = 0; i < items.Length; i++)
             {
-                RefCounted<CanvasBitmap>? bitmapRef = bitmaps[i];
-                if (bitmapRef is null)
+                DrawingImageItem? item = items[i];
+                if (item is null)
                 {
                     continue;
                 }
 
-                CanvasBitmap bitmap = bitmapRef.Value;
+                Matrix3x2 oldTransform = ds.Transform;
+                CanvasBitmap bitmap = item.Bitmap.Value;
                 ImageRect imageRect = imageRects[i];
+                ds.Transform = item.GetTransformMatrix(imageRect, out ImageRect destRect);
                 ds.DrawImage(
                     bitmap,
-                    new Windows.Foundation.Rect(imageRect.X, imageRect.Y, imageRect.Width, imageRect.Height),
+                    new Vector2((float)destRect.X, (float)destRect.Y),
                     new Windows.Foundation.Rect(0, 0, bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height),
                     1F,
                     CanvasImageInterpolation.HighQualityCubic);
-                bitmapRef.Unref();
+                item.Bitmap.Unref();
+                ds.Transform = oldTransform;
             }
         });
     }
@@ -509,10 +524,77 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
         public double Height;
     }
 
+    private class DrawingImageItem
+    {
+        public required RefCounted<CanvasBitmap> Bitmap;
+        public required ReaderImageSource Source;
+
+        public uint ImageWidth => Source.Rotation switch
+        {
+            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => Bitmap.Value.SizeInPixels.Height,
+            _ => Bitmap.Value.SizeInPixels.Width,
+        };
+
+        public uint ImageHeight => Source.Rotation switch
+        {
+            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => Bitmap.Value.SizeInPixels.Width,
+            _ => Bitmap.Value.SizeInPixels.Height,
+        };
+
+        public Matrix3x2 GetTransformMatrix(ImageRect imageRect, out ImageRect destRect)
+        {
+            Matrix3x2 transform = Matrix3x2.Identity;
+
+            var center = new Vector2(
+                (float)(imageRect.X + imageRect.Width / 2.0),
+                (float)(imageRect.Y + imageRect.Height / 2.0));
+
+            if (Source.Flip)
+            {
+                transform *= Matrix3x2.CreateScale(-1, 1, center);
+            }
+
+            switch (Source.Rotation)
+            {
+                case ImageRotationEnum.Rotate90:
+                    transform *= Matrix3x2.CreateRotation(MathF.PI / 2, center);
+                    break;
+                case ImageRotationEnum.Rotate180:
+                    transform *= Matrix3x2.CreateRotation(MathF.PI, center);
+                    break;
+                case ImageRotationEnum.Rotate270:
+                    transform *= Matrix3x2.CreateRotation(MathF.PI * 3 / 2, center);
+                    break;
+                default:
+                    break;
+            }
+
+            switch (Source.Rotation)
+            {
+                case ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270:
+                    var originTransform = Matrix3x2.CreateRotation(-MathF.PI / 2, center);
+                    var p0 = Vector2.Transform(new Vector2((float)(imageRect.X + imageRect.Width), (float)imageRect.Y), originTransform);
+                    destRect = new ImageRect
+                    {
+                        X = p0.X,
+                        Y = p0.Y,
+                        Width = imageRect.Height,
+                        Height = imageRect.Width,
+                    };
+                    break;
+                default:
+                    destRect = imageRect;
+                    break;
+            }
+
+            return transform;
+        }
+    }
+
     private partial class ImageItem : IDisposable
     {
         public object Lock { get; } = new();
-        public IImageSource? Source { get; set; }
+        public ReaderImageSource? Source { get; set; }
         public Size FrameSize { get; set; }
         public bool SupportVector { get; set; } = false;
         public bool IsLoading { get; set; } = false;

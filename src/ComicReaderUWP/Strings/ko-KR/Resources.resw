@@ -459,6 +459,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% 완료됨</value>
   </data>
+  <data name="FlipImage" xml:space="preserve">
+    <value>반전</value>
+  </data>
   <data name="Folders" xml:space="preserve">
     <value>폴더</value>
   </data>
@@ -533,6 +536,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>이 장치의 이미지</value>
+  </data>
+  <data name="ImageProcessing" xml:space="preserve">
+    <value>이미지 처리</value>
   </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>화면 켜짐 유지</value>
@@ -805,6 +811,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>오른쪽에서 왼쪽으로</value>
+  </data>
+  <data name="Rotation" xml:space="preserve">
+    <value>회전</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>구하다</value>

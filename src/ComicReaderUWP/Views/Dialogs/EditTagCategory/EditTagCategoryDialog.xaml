@@ -55,15 +55,11 @@
                     Orientation="Horizontal">
                     <TextBlock
                         Margin="0,7,0,0"
-                        HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Text="{x:Bind StringResource.Links}" />
                     <Button
-                        Grid.Row="4"
-                        Grid.Column="0"
                         Margin="6,12.5,0,0"
                         Padding="0"
-                        HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Background="Transparent"
                         BorderThickness="0"

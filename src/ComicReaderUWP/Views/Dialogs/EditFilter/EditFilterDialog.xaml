@@ -40,13 +40,27 @@
                 Grid.Column="2"
                 TextChanged="NameTextBox_TextChanged"
                 TextWrapping="Wrap" />
-            <TextBlock
-                x:Uid="ExpressionTextBlock"
+            <StackPanel
                 Grid.Row="2"
                 Grid.Column="0"
-                Margin="0,7,0,0"
                 HorizontalAlignment="Right"
-                VerticalAlignment="Top" />
+                Orientation="Horizontal">
+                <TextBlock
+                    x:Uid="ExpressionTextBlock"
+                    Margin="0,7,0,0"
+                    VerticalAlignment="Top" />
+                <Button
+                    Margin="6,12.5,0,0"
+                    Padding="0"
+                    VerticalAlignment="Top"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="ExpressionTipButton_Click">
+                    <Button.Content>
+                        <FontIcon FontSize="12" Glyph="&#xE946;" />
+                    </Button.Content>
+                </Button>
+            </StackPanel>
             <TextBox
                 x:Name="ExpressionTextBox"
                 Grid.Row="2"
@@ -55,20 +69,6 @@
                 IsTextPredictionEnabled="False"
                 TextChanged="ExpressionTextBox_TextChanged"
                 TextWrapping="Wrap" />
-            <Button
-                Grid.Row="4"
-                Grid.Column="0"
-                Margin="0,4.5,0,0"
-                Padding="0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Background="Transparent"
-                BorderThickness="0"
-                Click="ExpressionTipButton_Click">
-                <Button.Content>
-                    <FontIcon FontSize="12" Glyph="&#xE946;" />
-                </Button.Content>
-            </Button>
             <StackPanel
                 Grid.Row="4"
                 Grid.Column="2"

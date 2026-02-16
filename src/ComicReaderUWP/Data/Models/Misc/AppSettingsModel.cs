@@ -13,12 +13,13 @@ using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.Misc;
+using ComicReaderUWP.Views.Pages.Main;
 
 using Windows.Globalization;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
-public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
+internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 {
     private const string TAG = nameof(AppSettingsModel);
     private const string APP_BACKGROUND_NONE = "None";
@@ -232,6 +233,58 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
+    public string DefaultReaderSettingPresetKey
+    {
+        get
+        {
+            return Read(model => model.DefaultReaderSettingPresetKey ?? string.Empty);
+        }
+        set
+        {
+            Write(model => model.DefaultReaderSettingPresetKey = value);
+            Save();
+        }
+    }
+
+    public Dictionary<string, ReaderSettingsModel> ReaderSettingPresets
+    {
+        get
+        {
+            return Read(model =>
+            {
+                Dictionary<string, ReaderSettingsModel> presets = [];
+                if (model.ReaderSettingPresets is not null)
+                {
+                    foreach (KeyValuePair<string, ReaderSettingsModel.JsonModel?> kvp in model.ReaderSettingPresets)
+                    {
+                        string key = kvp.Key;
+                        ReaderSettingsModel.JsonModel? settingJsonModel = kvp.Value;
+                        if (settingJsonModel is not null)
+                        {
+                            presets[key] = ReaderSettingsModel.FromJsonModel(key, settingJsonModel);
+                        }
+                    }
+                }
+
+                return presets;
+            });
+        }
+        set
+        {
+            Write(model =>
+            {
+                model.ReaderSettingPresets = [];
+                foreach (KeyValuePair<string, ReaderSettingsModel> kvp in value)
+                {
+                    string key = kvp.Key;
+                    ReaderSettingsModel setting = kvp.Value;
+                    model.ReaderSettingPresets[key] = setting.ToJsonModel();
+                }
+            });
+            Save();
+        }
+    }
+
     //
     // Constructor
     //
@@ -273,7 +326,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         });
 
         Write(newModel);
-        Language = Language;
+        Language = Language; // Language config needs to be applied immediately to take effect on next launch
     }
 
     public void UpdateModel(ExternalModel model)
@@ -408,8 +461,6 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public bool PromptBeforeRemovingComics { get; set; }
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
         public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
-        public Dictionary<string, ReaderSettingModel> ReaderSettingPresets { get; set; } = [];
-        public string DefaultReaderSettingPresetKey { get; set; } = string.Empty;
         public int ComicShuffleRandomSeed { get; set; }
 
         public static ExternalModel From(JsonModel model)
@@ -420,21 +471,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 RemoveUnreachableComics = model.RemoveUnreachableComics ?? true,
                 PromptBeforeRemovingComics = model.PromptBeforeRemovingComics ?? true,
                 ComicShuffleRandomSeed = model.ComicShuffleRandomSeed ?? 0,
-                DefaultReaderSettingPresetKey = model.DefaultReaderSettingPresetKey ?? string.Empty,
             };
-
-            if (model.ReaderSettingPresets is not null)
-            {
-                foreach (KeyValuePair<string, ReaderSettingJsonModel?> kvp in model.ReaderSettingPresets)
-                {
-                    string key = kvp.Key;
-                    ReaderSettingJsonModel? settingJsonModel = kvp.Value;
-                    if (settingJsonModel is not null)
-                    {
-                        externalModel.ReaderSettingPresets[key] = ReaderSettingModel.From(settingJsonModel);
-                    }
-                }
-            }
 
             if (model.ComicFolders is not null)
             {
@@ -479,78 +516,12 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
             model.PromptBeforeRemovingComics = PromptBeforeRemovingComics;
             model.Theme = (int)Theme;
             model.ComicShuffleRandomSeed = ComicShuffleRandomSeed;
-            model.DefaultReaderSettingPresetKey = DefaultReaderSettingPresetKey;
 
             model.Background = Background switch
             {
                 AppBackgroundEnum.Acrylic => APP_BACKGROUND_ACRYLIC,
                 _ => APP_BACKGROUND_NONE,
             };
-
-            model.ReaderSettingPresets = [];
-            foreach (KeyValuePair<string, ReaderSettingModel> kvp in ReaderSettingPresets)
-            {
-                string key = kvp.Key;
-                ReaderSettingModel settingModel = kvp.Value;
-                model.ReaderSettingPresets[key] = settingModel.To();
-            }
-        }
-    }
-
-    public class ReaderSettingModel
-    {
-        public string PresetName { get; set; } = string.Empty;
-        public bool OriginalSize { get; set; }
-        public bool VerticalReading { get; set; }
-        public bool LeftToRight { get; set; }
-        public bool VerticalContinuous { get; set; }
-        public bool HorizontalContinuous { get; set; }
-        public PageArrangementEnum VerticalPageArrangement { get; set; }
-        public PageArrangementEnum HorizontalPageArrangement { get; set; }
-        public int PageGap { get; set; }
-        public int AutoScrollSpeed { get; set; }
-
-        public static ReaderSettingModel From(ReaderSettingJsonModel model)
-        {
-            return new ReaderSettingModel
-            {
-                PresetName = model.PresetName ?? "?",
-                OriginalSize = model.OriginalSize ?? false,
-                VerticalReading = model.VerticalReading ?? true,
-                LeftToRight = model.LeftToRight ?? false,
-                VerticalContinuous = model.VerticalContinuous ?? true,
-                HorizontalContinuous = model.HorizontalContinuous ?? false,
-                VerticalPageArrangement = ParsePageArrangementEnum(model.VerticalPageArrangement) ?? PageArrangementEnum.Single,
-                HorizontalPageArrangement = ParsePageArrangementEnum(model.HorizontalPageArrangement) ?? PageArrangementEnum.DualCoverMirror,
-                PageGap = model.PageGap ?? 100,
-                AutoScrollSpeed = model.AutoScrollSpeed ?? 0,
-            };
-        }
-
-        public ReaderSettingJsonModel To()
-        {
-            return new()
-            {
-                PresetName = PresetName,
-                OriginalSize = OriginalSize,
-                VerticalReading = VerticalReading,
-                LeftToRight = LeftToRight,
-                VerticalContinuous = VerticalContinuous,
-                HorizontalContinuous = HorizontalContinuous,
-                VerticalPageArrangement = (int)VerticalPageArrangement,
-                HorizontalPageArrangement = (int)HorizontalPageArrangement,
-                PageGap = PageGap,
-                AutoScrollSpeed = AutoScrollSpeed,
-            };
-        }
-
-        private static PageArrangementEnum? ParsePageArrangementEnum(int? value)
-        {
-            if (value.HasValue && Enum.IsDefined(typeof(PageArrangementEnum), value))
-            {
-                return (PageArrangementEnum)value;
-            }
-            return null;
         }
     }
 
@@ -639,7 +610,7 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         public bool? RatingPercentageEnabled { get; set; }
 
         [JsonPropertyName("ReaderSettingPresets")]
-        public Dictionary<string, ReaderSettingJsonModel?>? ReaderSettingPresets { get; set; }
+        public Dictionary<string, ReaderSettingsModel.JsonModel?>? ReaderSettingPresets { get; set; }
 
         [JsonPropertyName("RemoveUnreachableComics")]
         public bool? RemoveUnreachableComics { get; set; }
@@ -665,38 +636,5 @@ public class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("HomePageTapComicBehavior")]
         public string? HomePageTapComicBehavior { get; set; }
-    }
-
-    public class ReaderSettingJsonModel
-    {
-        [JsonPropertyName("PresetName")]
-        public string? PresetName { get; set; }
-
-        [JsonPropertyName("OriginalSize")]
-        public bool? OriginalSize { get; set; }
-
-        [JsonPropertyName("VerticalReading")]
-        public bool? VerticalReading { get; set; }
-
-        [JsonPropertyName("LeftToRight")]
-        public bool? LeftToRight { get; set; }
-
-        [JsonPropertyName("VerticalContinuous")]
-        public bool? VerticalContinuous { get; set; }
-
-        [JsonPropertyName("HorizontalContinuous")]
-        public bool? HorizontalContinuous { get; set; }
-
-        [JsonPropertyName("VerticalPageArrangement")]
-        public int? VerticalPageArrangement { get; set; }
-
-        [JsonPropertyName("HorizontalPageArrangement")]
-        public int? HorizontalPageArrangement { get; set; }
-
-        [JsonPropertyName("PageGap")]
-        public int? PageGap { get; set; }
-
-        [JsonPropertyName("AutoScrollSpeed")]
-        public int? AutoScrollSpeed { get; set; }
     }
 }

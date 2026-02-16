@@ -460,6 +460,9 @@ The evaluation will be performed in the following order:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Completed</value>
   </data>
+  <data name="FlipImage" xml:space="preserve">
+    <value>Flip</value>
+  </data>
   <data name="Folders" xml:space="preserve">
     <value>Folders</value>
   </data>
@@ -534,6 +537,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Images on this device</value>
+  </data>
+  <data name="ImageProcessing" xml:space="preserve">
+    <value>Image Processing</value>
   </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Keep screen on</value>
@@ -806,6 +812,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>R to L</value>
+  </data>
+  <data name="Rotation" xml:space="preserve">
+    <value>Rotation</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>

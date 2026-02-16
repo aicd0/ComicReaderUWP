@@ -59,12 +59,13 @@ internal partial class ReaderView : UserControl
     private PageArrangementEnum _pageArrangement = PageArrangementEnum.Single;
     private bool _useOriginalSize = false;
     private int _pageGap = 100;
+    private ImageRotationEnum _imageRotation = ImageRotationEnum.None;
+    private bool _imageFlip = false;
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
-    private bool _uiStateUpdatedPageArrangement = true;
-    private bool _uiStateUpdatedUseOriginalSize = true;
-    private bool _uiStateUpdatedPageGap = true;
+    private bool _uiStateUpdatedNeedReload = true;
+    private bool _uiStateUpdatedNeedReloadImages = true;
     private bool _postUiStateUpdated = false;
 
     private bool _isInitialFrameLoaded = false;
@@ -270,7 +271,7 @@ internal partial class ReaderView : UserControl
         }
 
         _pageArrangement = type;
-        _uiStateUpdatedPageArrangement = true;
+        _uiStateUpdatedNeedReload = true;
         UpdateUI();
     }
 
@@ -281,8 +282,8 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        _uiStateUpdatedUseOriginalSize = true;
         _useOriginalSize = useOriginalSize;
+        _uiStateUpdatedNeedReload = true;
         UpdateUI();
     }
 
@@ -294,7 +295,36 @@ internal partial class ReaderView : UserControl
         }
 
         _pageGap = pageGap;
-        _uiStateUpdatedPageGap = true;
+        _uiStateUpdatedNeedReload = true;
+        UpdateUI();
+    }
+
+    public void SetImageRotation(ImageRotationEnum rotation)
+    {
+        if (rotation == _imageRotation)
+        {
+            return;
+        }
+
+        _imageRotation = rotation;
+        _uiStateUpdatedNeedReload = true;
+        UpdateUI();
+    }
+
+    public void SetImageFlip(bool flip)
+    {
+        if (flip == _imageFlip)
+        {
+            return;
+        }
+
+        _imageFlip = flip;
+        foreach (ImageDataModel item in _dataModel.Values)
+        {
+            item.Image.Flip = _imageFlip;
+        }
+
+        _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }
 
@@ -379,6 +409,7 @@ internal partial class ReaderView : UserControl
         }
 
         bool needReload = false;
+        bool needReloadImages = false;
 
         if (_uiStateUpdatedOrientation)
         {
@@ -422,22 +453,16 @@ internal partial class ReaderView : UserControl
             _gestureRecognizer.AutoProcessInertia = _isContinuous;
         }
 
-        if (_uiStateUpdatedPageArrangement)
+        if (_uiStateUpdatedNeedReload)
         {
-            _uiStateUpdatedPageArrangement = false;
+            _uiStateUpdatedNeedReload = false;
             needReload = true;
         }
 
-        if (_uiStateUpdatedUseOriginalSize)
+        if (_uiStateUpdatedNeedReloadImages)
         {
-            _uiStateUpdatedUseOriginalSize = false;
-            needReload = true;
-        }
-
-        if (_uiStateUpdatedPageGap)
-        {
-            _uiStateUpdatedPageGap = false;
-            needReload = true;
+            _uiStateUpdatedNeedReloadImages = false;
+            needReloadImages = true;
         }
 
         if (needReload)
@@ -450,6 +475,10 @@ internal partial class ReaderView : UserControl
             }
 
             Reload(_originalDataModel);
+        }
+        else if (needReloadImages)
+        {
+            UpdateImages("UIStateUpdatedNeedReloadImages", clear: true);
         }
     }
 
@@ -516,7 +545,7 @@ internal partial class ReaderView : UserControl
         return true;
     }
 
-    private void UpdateImages(string reason)
+    private void UpdateImages(string reason, bool clear = false)
     {
         if (!ComicLoaded)
         {
@@ -550,6 +579,13 @@ internal partial class ReaderView : UserControl
             }
 
             ReaderFrameViewModel model = FrameDataSource[i];
+
+            if (clear)
+            {
+                model.SetLeftImageVisibility(false);
+                model.SetRightImageVisibility(false);
+            }
+
             model.SetLeftImageVisibility(true);
             model.SetRightImageVisibility(true);
         }
@@ -713,13 +749,30 @@ internal partial class ReaderView : UserControl
     {
         Logger.Assert(index >= 0, "E55E628AD1456D37");
 
-        var model = new ImageDataModel
+        ReaderImageSource imageSourceModel = new()
         {
-            ImageSource = source,
-            OriginalWidth = originalWidth,
-            OriginalHeight = originalHeight,
+            Source = source,
+            Rotation = _imageRotation,
+            Flip = _imageFlip,
         };
-        _dataModel[index] = model;
+        int imageWidth = imageSourceModel.Rotation switch
+        {
+            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => originalHeight,
+            _ => originalWidth,
+        };
+        int imageHeight = imageSourceModel.Rotation switch
+        {
+            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => originalWidth,
+            _ => originalHeight,
+        };
+
+        ImageDataModel imageModel = new()
+        {
+            Image = imageSourceModel,
+            OriginalWidth = imageWidth,
+            OriginalHeight = imageHeight,
+        };
+        _dataModel[index] = imageModel;
 
         int frameIndex = PageToFrame(index + 1, out bool leftSide, out int neighbor);
         bool firstFrame = frameIndex == 0;
@@ -749,14 +802,14 @@ internal partial class ReaderView : UserControl
         verticalPadding *= _pageGap / 100.0;
         horizontalPadding *= _pageGap / 100.0;
 
-        double imageWidth = 0;
-        double imageHeight = 0;
+        double thisImageWidth = 0;
+        double thisImageHeight = 0;
         double neighborImageWidth = 0;
         double neighborImageHeight = 0;
         if (_useOriginalSize)
         {
-            double totalWidth = originalWidth;
-            double maxHeight = originalHeight;
+            double totalWidth = imageWidth;
+            double maxHeight = imageHeight;
             if (neighborModel is not null)
             {
                 totalWidth += neighborModel.OriginalWidth;
@@ -770,8 +823,8 @@ internal partial class ReaderView : UserControl
             }
             else
             {
-                imageWidth = originalWidth;
-                imageHeight = originalHeight;
+                thisImageWidth = imageWidth;
+                thisImageHeight = imageHeight;
                 if (neighborModel is not null)
                 {
                     neighborImageWidth = neighborModel.OriginalWidth;
@@ -781,7 +834,7 @@ internal partial class ReaderView : UserControl
         }
         else
         {
-            double aspectRatio = model.AspectRatio;
+            double aspectRatio = imageModel.AspectRatio;
             if (neighborModel is not null)
             {
                 aspectRatio += neighborModel.AspectRatio;
@@ -801,12 +854,12 @@ internal partial class ReaderView : UserControl
                     defaultWidth *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
                 }
 
-                imageHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
-                imageWidth = imageHeight * model.AspectRatio;
+                thisImageHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
+                thisImageWidth = thisImageHeight * imageModel.AspectRatio;
                 if (neighborModel is not null)
                 {
-                    neighborImageHeight = imageHeight;
-                    neighborImageWidth = imageHeight * neighborModel.AspectRatio;
+                    neighborImageHeight = thisImageHeight;
+                    neighborImageWidth = thisImageHeight * neighborModel.AspectRatio;
                 }
             }
         }
@@ -819,8 +872,8 @@ internal partial class ReaderView : UserControl
 
         ReaderFrameViewModel item = FrameDataSource[frameIndex];
 
-        Logger.Assert(double.IsFinite(imageWidth), $"Invalid image width {imageWidth}");
-        Logger.Assert(double.IsFinite(imageHeight), $"Invalid image height {imageHeight}");
+        Logger.Assert(double.IsFinite(thisImageWidth), $"Invalid image width {thisImageWidth}");
+        Logger.Assert(double.IsFinite(thisImageHeight), $"Invalid image height {thisImageHeight}");
         Logger.Assert(double.IsFinite(neighborImageWidth), $"Invalid neighbor image width {neighborImageWidth}");
         Logger.Assert(double.IsFinite(neighborImageHeight), $"Invalid neighbor image height {neighborImageHeight}");
         Logger.Assert(double.IsFinite(horizontalPadding), "B742A59FA82023CD");
@@ -836,8 +889,8 @@ internal partial class ReaderView : UserControl
 
         if (leftSide)
         {
-            item.LeftImageWidth = imageWidth;
-            item.LeftImageHeight = imageHeight;
+            item.LeftImageWidth = thisImageWidth;
+            item.LeftImageHeight = thisImageHeight;
             item.RightImageWidth = neighborImageWidth;
             item.RightImageHeight = neighborImageHeight;
             item.PageL = page;
@@ -847,17 +900,17 @@ internal partial class ReaderView : UserControl
         {
             item.LeftImageWidth = neighborImageWidth;
             item.LeftImageHeight = neighborImageHeight;
-            item.RightImageWidth = imageWidth;
-            item.RightImageHeight = imageHeight;
+            item.RightImageWidth = thisImageWidth;
+            item.RightImageHeight = thisImageHeight;
             item.PageR = page;
             item.PageL = neighbor;
         }
 
         if (item.PageL != ReaderFrameViewModel.NO_PAGE)
         {
-            if (_dataModel.TryGetValue(item.PageL - 1, out ImageDataModel? imageModel))
+            if (_dataModel.TryGetValue(item.PageL - 1, out ImageDataModel? leftImageModel))
             {
-                item.LeftImageSource = imageModel.ImageSource;
+                item.LeftImageSource = leftImageModel.Image;
             }
 
             Logger.Assert(item.LeftImageSource != null, "A02FF8F8CDE1D47D");
@@ -869,9 +922,9 @@ internal partial class ReaderView : UserControl
 
         if (item.PageR != ReaderFrameViewModel.NO_PAGE)
         {
-            if (_dataModel.TryGetValue(item.PageR - 1, out ImageDataModel? imageModel))
+            if (_dataModel.TryGetValue(item.PageR - 1, out ImageDataModel? rightImageModel))
             {
-                item.RightImageSource = imageModel.ImageSource;
+                item.RightImageSource = rightImageModel.Image;
             }
 
             Logger.Assert(item.RightImageSource != null, "FAFB72226C3D1969");
@@ -3069,7 +3122,7 @@ internal partial class ReaderView : UserControl
 
     private class ImageDataModel
     {
-        public required IImageSource ImageSource { get; set; }
+        public required ReaderImageSource Image { get; set; }
         public required int OriginalWidth { get; set; }
         public required int OriginalHeight { get; set; }
         public double AspectRatio

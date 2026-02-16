@@ -94,6 +94,7 @@ public class StringResourceProvider
     public string FilterSettings => GetResourceString("FilterSettings");
     public string FilteredBy => GetResourceString("FilteredBy");
     public string FinishPercentage => GetResourceString("FinishPercentage");
+    public string FlipImage => GetResourceString("FlipImage");
     public string Folders => GetResourceString("Folders");
     public string FunctionAverage => GetResourceString("FunctionAverage");
     public string FunctionItemCount => GetResourceString("FunctionItemCount");
@@ -109,6 +110,7 @@ public class StringResourceProvider
     public string Hide => GetResourceString("Hide");
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
+    public string ImageProcessing => GetResourceString("ImageProcessing");
     public string KeepScreenOn => GetResourceString("KeepScreenOn");
     public string LastReadTime => GetResourceString("LastReadTime");
     public string License => GetResourceString("License");
@@ -176,6 +178,7 @@ public class StringResourceProvider
     public string ResetAllSettings => GetResourceString("ResetAllSettings");
     public string ResetAllSettingsMessage => GetResourceString("ResetAllSettingsMessage");
     public string RestoreLastReadingPosition => GetResourceString("RestoreLastReadingPosition");
+    public string Rotation => GetResourceString("Rotation");
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");
     public string SaveViewConfig => GetResourceString("SaveViewConfig");

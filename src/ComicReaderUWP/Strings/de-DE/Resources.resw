@@ -458,6 +458,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="FinishPercentage" xml:space="preserve">
     <value>$percentage% Abgeschlossen</value>
   </data>
+  <data name="FlipImage" xml:space="preserve">
+    <value>Spiegeln</value>
+  </data>
   <data name="Folders" xml:space="preserve">
     <value>Ordner</value>
   </data>
@@ -532,6 +535,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Bilder auf diesem Gerät</value>
+  </data>
+  <data name="ImageProcessing" xml:space="preserve">
+    <value>Bildverarbeitung</value>
   </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Bildschirm eingeschaltet lassen</value>
@@ -804,6 +810,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="RightToLeftButton.Label" xml:space="preserve">
     <value>Von rechts nach links</value>
+  </data>
+  <data name="Rotation" xml:space="preserve">
+    <value>Drehung</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Speichern</value>

@@ -506,7 +506,7 @@ internal sealed partial class ReaderPage : BasePage
     // Reader
     //
 
-    private void ApplyReaderSettings(ReaderSettingDataModel readerSettingModel)
+    private void ApplyReaderSettings(ReaderSettingsModel readerSettingModel)
     {
         ReaderView reader = MainReaderView;
         reader.SetIsVertical(readerSettingModel.IsVertical);
@@ -516,6 +516,8 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetUseOriginalSize(readerSettingModel.OriginalSize);
         reader.SetAutoScrollSpeed(readerSettingModel.AutoScrollSpeed);
         reader.SetPageGap(readerSettingModel.PageGap);
+        reader.SetImageRotation(readerSettingModel.ImageRotation);
+        reader.SetImageFlip(readerSettingModel.ImageFlip);
 
         PlaybackSlider.FlowDirection = readerSettingModel.IsLeftToRight || readerSettingModel.IsVertical ?
             FlowDirection.LeftToRight : FlowDirection.RightToLeft;
