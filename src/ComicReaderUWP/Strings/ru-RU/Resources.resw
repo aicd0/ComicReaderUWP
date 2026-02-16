@@ -540,6 +540,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ImageProcessing" xml:space="preserve">
     <value>Обработка изображений</value>
   </data>
+  <data name="InvertImage" xml:space="preserve">
+    <value>Инверсия</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Не выключать экран</value>
   </data>

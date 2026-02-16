@@ -541,6 +541,9 @@ The evaluation will be performed in the following order:
   <data name="ImageProcessing" xml:space="preserve">
     <value>Image Processing</value>
   </data>
+  <data name="InvertImage" xml:space="preserve">
+    <value>Invert</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Keep screen on</value>
   </data>

@@ -61,6 +61,7 @@ internal partial class ReaderView : UserControl
     private int _pageGap = 100;
     private ImageRotationEnum _imageRotation = ImageRotationEnum.None;
     private bool _imageFlip = false;
+    private bool _imageInvert = false;
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
@@ -321,7 +322,24 @@ internal partial class ReaderView : UserControl
         _imageFlip = flip;
         foreach (ImageDataModel item in _dataModel.Values)
         {
-            item.Image.Flip = _imageFlip;
+            item.Image.Flip = flip;
+        }
+
+        _uiStateUpdatedNeedReloadImages = true;
+        UpdateUI();
+    }
+
+    public void SetImageInvert(bool invert)
+    {
+        if (invert == _imageInvert)
+        {
+            return;
+        }
+
+        _imageInvert = invert;
+        foreach (ImageDataModel item in _dataModel.Values)
+        {
+            item.Image.Invert = invert;
         }
 
         _uiStateUpdatedNeedReloadImages = true;
@@ -754,6 +772,7 @@ internal partial class ReaderView : UserControl
             Source = source,
             Rotation = _imageRotation,
             Flip = _imageFlip,
+            Invert = _imageInvert,
         };
         int imageWidth = imageSourceModel.Rotation switch
         {

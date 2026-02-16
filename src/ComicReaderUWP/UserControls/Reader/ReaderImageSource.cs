@@ -11,4 +11,5 @@ internal class ReaderImageSource
     public required IImageSource Source { get; init; }
     public required ImageRotationEnum Rotation { get; init; }
     public required bool Flip { get; set; }
+    public required bool Invert { get; set; }
 }

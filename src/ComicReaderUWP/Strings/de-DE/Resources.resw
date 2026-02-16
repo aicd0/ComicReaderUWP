@@ -539,6 +539,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="ImageProcessing" xml:space="preserve">
     <value>Bildverarbeitung</value>
   </data>
+  <data name="InvertImage" xml:space="preserve">
+    <value>Umkehren</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Bildschirm eingeschaltet lassen</value>
   </data>
