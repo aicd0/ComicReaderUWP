@@ -12,14 +12,19 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
 {
     private readonly ComicModel _comic = comic;
 
-    public string GetUri()
-    {
-        return _comic.CoverImageCacheKey;
-    }
+    public string Uri => _comic.CoverImageCacheKey;
 
-    public string GetContentFingerprint()
+    public bool ValidateFingerprint => false;
+
+    public string CalculateFingerprint()
     {
-        return string.Empty;
+        using IComicConnection? connection = _comic.OpenComicAsync().Result;
+        if (connection is null)
+        {
+            return string.Empty;
+        }
+
+        return connection.GetImageSignature(ComicHandle.COVER_INDEX);
     }
 
     public Stream? OpenImageStream()
@@ -30,7 +35,7 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
             return null;
         }
 
-        return connection.OpenImageStream(0);
+        return connection.OpenImageStream(ComicHandle.COVER_INDEX);
     }
 
     public IVectorImageService? OpenVectorService()
@@ -41,6 +46,6 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
             return null;
         }
 
-        return connection.OpenVectorService(0);
+        return connection.OpenVectorService(ComicHandle.COVER_INDEX);
     }
 }

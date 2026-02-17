@@ -154,7 +154,7 @@ internal static partial class ImageCacheManager
 
     private static ImageMeta? GetImageMeta(CacheRequestContext context)
     {
-        ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(context.Source.GetUri());
+        ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(context.Source.Uri);
         if (record is null)
         {
             return null;
@@ -163,8 +163,8 @@ internal static partial class ImageCacheManager
         record.Lock.AcquireReaderLock(Timeout.Infinite);
         try
         {
-            string sourceFingerprint = context.Source.GetContentFingerprint();
-            ImageMeta? meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+            string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
+            ImageMeta? meta = CreateImageMetaFromCacheRecord(record, fingerprint);
             if (meta is not null)
             {
                 return meta;
@@ -173,7 +173,7 @@ internal static partial class ImageCacheManager
             LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
             try
             {
-                meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+                meta = CreateImageMetaFromCacheRecord(record, fingerprint);
                 if (meta is not null)
                 {
                     return meta;
@@ -191,15 +191,18 @@ internal static partial class ImageCacheManager
                     return null;
                 }
 
-                PutImageMetaToCacheRecord(record, sourceFingerprint, stream.Length, decoder);
-                ImageMeta? imageMeta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+                fingerprint ??= context.GetFingerprint();
+                record.Clear();
+                SaveImageMetaToCacheRecord(record, fingerprint, stream.Length, decoder);
+                record.Save();
+
+                ImageMeta? imageMeta = CreateImageMetaFromCacheRecord(record, fingerprint);
                 if (imageMeta is null)
                 {
                     Logger.F(TAG, "Failed to get image meta from cache record after saving");
                     return null;
                 }
 
-                record.Save();
                 return imageMeta;
             }
             finally
@@ -213,419 +216,9 @@ internal static partial class ImageCacheManager
         }
     }
 
-    private static bool LoadImage(CacheRequestContext context, LoadImageOptions options)
+    private static ImageMeta? CreateImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
     {
-        if (options.Token.IsCancellationRequested)
-        {
-            return false;
-        }
-
-        long startTime = GetCurrentTick();
-        string uri = context.Source.GetUri();
-        if (string.IsNullOrEmpty(uri))
-        {
-            Logger.E(TAG, "Image source URI is null or empty");
-            return false;
-        }
-
-        LRUCache? imageCache = GetImageLRUCache();
-        if (imageCache is null)
-        {
-            Logger.F(TAG, "Image cache is null");
-            return false;
-        }
-
-        string sourceFingerprint = context.Source.GetContentFingerprint();
-
-        // Calculate targe size
-        if (!TryGetOriginalDimension(context, out SizeF originalSize))
-        {
-            Logger.F(TAG, "Unable to fetch image size");
-            return false;
-        }
-
-        CalculateDesiredDimension(
-            options.FrameWidth,
-            options.FrameHeight,
-            options.StretchMode,
-            originalSize.Width,
-            originalSize.Height,
-            out bool useOriginalSize,
-            out Size desiredSize);
-
-        // Schedule ImageSource creation
-        Func<Task<DecodedImageModel>> createFunc;
-        Action cleanupAction;
-        if (useOriginalSize)
-        {
-            IVectorImageService? vectorService = context.GetVectorService();
-            if (vectorService is not null)
-            {
-                CalculateDefaultSizeForVector(originalSize.Width, originalSize.Height, out int width, out int height);
-                SoftwareBitmap? softwareBitmap = vectorService.CreateSoftwareBitmap(width, height);
-
-                if (softwareBitmap is null)
-                {
-                    return false;
-                }
-
-                createFunc = async () =>
-                {
-                    SoftwareBitmapSource source = new();
-                    await source.SetBitmapAsync(softwareBitmap);
-                    return new() { Source = source };
-                };
-                cleanupAction = softwareBitmap.Dispose;
-            }
-            else
-            {
-                Stream? stream = context.GetSourceStream();
-                context.UnrefSourceStream();
-
-                if (stream is null)
-                {
-                    return false;
-                }
-
-                createFunc = async () =>
-                {
-                    BitmapImage bitmap = new();
-                    await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
-                    return new() { Source = bitmap };
-                };
-                cleanupAction = stream.Dispose;
-            }
-        }
-        else
-        {
-            ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(context.Source.GetUri());
-            if (record is null)
-            {
-                Logger.F(TAG, "Cache record is null");
-                return false;
-            }
-
-            Stream? thumbnailStream = null;
-            record.Lock.AcquireReaderLock(Timeout.Infinite);
-            try
-            {
-                thumbnailStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, originalSize, desiredSize, out List<string> cacheEntryKeys);
-                if (thumbnailStream is not null)
-                {
-                    Stream stream = thumbnailStream;
-                    thumbnailStream = null;
-                    createFunc = async () =>
-                    {
-                        var bitmap = new BitmapImage
-                        {
-                            DecodePixelWidth = desiredSize.Width,
-                            DecodePixelHeight = desiredSize.Height,
-                            DecodePixelType = DecodePixelType.Physical,
-                        };
-                        await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
-                        return new() { Source = bitmap };
-                    };
-                    cleanupAction = stream.Dispose;
-                }
-                else
-                {
-                    if (cacheEntryKeys.Count > 0)
-                    {
-                        string cacheEntryKey = cacheEntryKeys[0];
-                        LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
-                        try
-                        {
-                            SaveThumbnail(context, cacheEntryKey, sourceFingerprint, originalSize, imageCache, record);
-                        }
-                        finally
-                        {
-                            record.Lock.DowngradeFromWriterLock(ref lockCookie);
-                        }
-                    }
-
-                    IVectorImageService? vectorService = context.GetVectorService();
-                    if (vectorService is not null)
-                    {
-                        var device = CanvasDevice.GetSharedDevice();
-                        CanvasBitmap? canvasBitmap = vectorService.CreateImageCanvasBitmap(device, desiredSize.Width, desiredSize.Height);
-
-                        if (canvasBitmap is null)
-                        {
-                            return false;
-                        }
-
-                        createFunc = async () =>
-                        {
-                            var source = new CanvasImageSource(device, desiredSize.Width, desiredSize.Height, 96F);
-                            using CanvasDrawingSession ds = source.CreateDrawingSession(Colors.Black);
-                            ds.DrawImage(canvasBitmap);
-                            return new() { Source = source };
-                        };
-                        cleanupAction = canvasBitmap.Dispose;
-                    }
-                    else
-                    {
-                        Stream? stream = context.GetSourceStream();
-                        context.UnrefSourceStream();
-
-                        if (stream is null)
-                        {
-                            return false;
-                        }
-
-                        createFunc = async () =>
-                        {
-                            var bitmap = new BitmapImage
-                            {
-                                DecodePixelWidth = desiredSize.Width,
-                                DecodePixelHeight = desiredSize.Height,
-                                DecodePixelType = DecodePixelType.Physical,
-                            };
-                            await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
-                            return new() { Source = bitmap };
-                        };
-                        cleanupAction = stream.Dispose;
-                    }
-                }
-            }
-            finally
-            {
-                record.Lock.ReleaseReaderLock();
-                thumbnailStream?.Dispose();
-                thumbnailStream = null;
-            }
-        }
-
-        DecodingImageItem decodingItem = new()
-        {
-            CreateFunc = createFunc,
-            CleanupAction = cleanupAction,
-            Options = options,
-            Uri = uri,
-            StartTime = startTime,
-        };
-
-        sDecodeQueue.Enqueue(decodingItem);
-        ScheduleDecoding();
-        return true;
-    }
-
-    private static void ScheduleDecoding()
-    {
-        if (Interlocked.CompareExchange(ref sPostMainThreadTask, 1, 0) == 1)
-        {
-            return;
-        }
-
-        CoroutineUtils.PostInMainThreadAsync(async () =>
-        {
-            long startTime = GetCurrentTick();
-            Interlocked.Exchange(ref sPostMainThreadTask, 0);
-            // Only responsible for rendering tasks that have been queued before this point
-            while (sDecodeQueue.TryDequeue(out DecodingImageItem? item))
-            {
-                DecodedImageModel? result;
-                try
-                {
-                    result = await PerformDecoding(item);
-                }
-                finally
-                {
-                    item.CleanupAction();
-                }
-
-                if (result is not null)
-                {
-                    item.Options.Handler.OnSuccess(result);
-                }
-                else
-                {
-                    item.Options.Handler.OnFailure();
-                }
-
-                // Keep main thread responsive
-                if (GetCurrentTick() - startTime > 50)
-                {
-                    if (sDecodeQueue.TryPeek(out _))
-                    {
-                        ScheduleDecoding();
-                    }
-
-                    break;
-                }
-            }
-        }, DispatcherQueuePriority.Low);
-    }
-
-    private static async Task<DecodedImageModel?> PerformDecoding(DecodingImageItem item)
-    {
-        if (item.Options.Token.IsCancellationRequested)
-        {
-            return null;
-        }
-
-        DecodedImageModel result;
-        try
-        {
-            result = await item.CreateFunc();
-        }
-        catch (Exception ex)
-        {
-            Logger.F(TAG, ex);
-            return null;
-        }
-
-        if (item.Options.Token.IsCancellationRequested)
-        {
-            return null;
-        }
-
-        return result;
-    }
-
-    private static Stream? OpenThumbnailStreamFromCacheRecord(LRUCache imageCache, ImageCacheDatabase.CacheRecord record,
-        SizeF originalSize, Size desiredSize, out List<string> cacheEntryKeys)
-    {
-        cacheEntryKeys = ImageCacheStrategy.CalculateCacheEntryKeys(desiredSize.Width, desiredSize.Height, originalSize);
-        foreach (string cacheEntryKey in cacheEntryKeys)
-        {
-            string? entry = record.GetCacheEntry(cacheEntryKey);
-            if (!string.IsNullOrEmpty(entry))
-            {
-                Stream? thumbnailStream = imageCache.Get(entry);
-                if (thumbnailStream != null)
-                {
-                    return thumbnailStream;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static void SaveThumbnail(CacheRequestContext context, string cacheEntryKey, string fingerprint,
-        SizeF originalSize, LRUCache imageCache, ImageCacheDatabase.CacheRecord record)
-    {
-        if (!CalculateDesiredThumbnailSize(cacheEntryKey, originalSize, out Size thumbnailSize))
-        {
-            return;
-        }
-
-        SoftwareBitmap? thumbnailBitmap;
-        IVectorImageService? vectorService = context.GetVectorService();
-        if (vectorService is not null)
-        {
-            thumbnailBitmap = vectorService.CreateSoftwareBitmap(thumbnailSize.Width, thumbnailSize.Height);
-        }
-        else
-        {
-            BitmapDecoder? decoder = context.GetBitmapDecoder();
-            if (decoder is null)
-            {
-                return;
-            }
-
-            thumbnailBitmap = CreateScaledSoftwareBitmap(decoder, thumbnailSize.Width, thumbnailSize.Height);
-        }
-
-        if (thumbnailBitmap is null)
-        {
-            return;
-        }
-
-        try
-        {
-            string entry = StringUtils.RandomFileName(16);
-            using LRUCacheStream? cacheFileStream = imageCache.Put(entry);
-            if (cacheFileStream is null)
-            {
-                return;
-            }
-
-            try
-            {
-                BitmapEncoder encoder = BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, cacheFileStream.AsRandomAccessStream()).AsTask().Result;
-                encoder.SetSoftwareBitmap(thumbnailBitmap);
-                encoder.IsThumbnailGenerated = false;
-                encoder.FlushAsync().Wait();
-            }
-            catch (Exception e)
-            {
-                Logger.F(TAG, "TryCreateImageCache", e);
-                return;
-            }
-
-            record.ImageCacheFingerprint = fingerprint;
-            record.PutCacheEntry(cacheEntryKey, entry);
-            record.Save();
-        }
-        finally
-        {
-            thumbnailBitmap?.Dispose();
-        }
-    }
-
-    private static SoftwareBitmap? CreateScaledSoftwareBitmap(BitmapDecoder decoder, int scaledWidth, int scaledHeight)
-    {
-        BitmapTransform transform = new()
-        {
-            ScaledWidth = (uint)scaledWidth,
-            ScaledHeight = (uint)scaledHeight,
-            InterpolationMode = BitmapInterpolationMode.Fant,
-        };
-
-        SoftwareBitmap? softwareBitmap = null;
-        try
-        {
-            softwareBitmap = decoder.GetSoftwareBitmapAsync(
-                BitmapPixelFormat.Bgra8,
-                BitmapAlphaMode.Premultiplied,
-                transform,
-                ExifOrientationMode.RespectExifOrientation,
-                ColorManagementMode.DoNotColorManage).AsTask().Result;
-        }
-        catch (Exception ex)
-        {
-            Logger.E(TAG, ex);
-        }
-
-        return softwareBitmap;
-    }
-
-    private static bool CalculateDesiredThumbnailSize(string cacheEntryKey, SizeF originalSize, out Size thumbnailSize)
-    {
-        thumbnailSize = new();
-
-        int cacheResolution = ImageCacheStrategy.GetCacheResolution(cacheEntryKey);
-        if (cacheResolution <= 0)
-        {
-            return false;
-        }
-
-        double sourceResolution = originalSize.Width * originalSize.Height;
-        if (sourceResolution <= cacheResolution)
-        {
-            return false;
-        }
-
-        double scaleRatio = cacheResolution / sourceResolution;
-        double dimensionRatio = Math.Sqrt(scaleRatio);
-        int aspectHeight = (int)Math.Floor(originalSize.Height * dimensionRatio);
-        int aspectWidth = (int)Math.Floor(originalSize.Width * dimensionRatio);
-        thumbnailSize = new(aspectWidth, aspectHeight);
-        return true;
-    }
-
-    private static ImageMeta? GetImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint)
-    {
-        string metaVersion = record.GetExt(ImageCacheExt.IMAGE_META_VERSION) ?? string.Empty;
-        if (metaVersion != IMAGE_META_VERSION.ToString())
-        {
-            return null;
-        }
-
-        string metaFingerprint = record.GetExt(ImageCacheExt.IMAGE_META_FINGERPRINT) ?? string.Empty;
-        if (!string.IsNullOrEmpty(sourceFingerprint) && metaFingerprint != sourceFingerprint)
+        if (!ValidateCacheRecord(record, fingerprint))
         {
             return null;
         }
@@ -717,7 +310,7 @@ internal static partial class ImageCacheManager
         return new(width, height, dpiX, dpiY, decoderName, bitsPerPixel, size);
     }
 
-    private static void PutImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, long size, BitmapDecoder decoder)
+    private static void SaveImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, long size, BitmapDecoder decoder)
     {
         uint width = decoder.OrientedPixelWidth;
         uint height = decoder.OrientedPixelHeight;
@@ -760,6 +353,204 @@ internal static partial class ImageCacheManager
         record.PutExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, bitsPerPixel.ToString());
         record.PutExt(ImageCacheExt.IMAGE_META_DECODER_NAME, decoderName);
         record.PutExt(ImageCacheExt.IMAGE_META_SIZE, size.ToString());
+    }
+
+    private static bool LoadImage(CacheRequestContext context, LoadImageOptions options)
+    {
+        if (options.Token.IsCancellationRequested)
+        {
+            return false;
+        }
+
+        long startTime = GetCurrentTick();
+        string uri = context.Source.Uri;
+        if (string.IsNullOrEmpty(uri))
+        {
+            Logger.E(TAG, "Image source URI is null or empty");
+            return false;
+        }
+
+        LRUCache? imageCache = GetImageLRUCache();
+        if (imageCache is null)
+        {
+            Logger.F(TAG, "Image cache is null");
+            return false;
+        }
+
+        string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
+
+        // Calculate targe size
+        if (!TryGetOriginalDimension(context, out SizeF originalSize))
+        {
+            Logger.F(TAG, "Unable to fetch image size");
+            return false;
+        }
+
+        CalculateDesiredDimension(
+            options.FrameWidth,
+            options.FrameHeight,
+            options.StretchMode,
+            originalSize.Width,
+            originalSize.Height,
+            out bool useOriginalSize,
+            out Size desiredSize);
+
+        // Schedule ImageSource creation
+        Func<Task<DecodedImageModel>> createFunc;
+        Action cleanupAction;
+        if (useOriginalSize)
+        {
+            IVectorImageService? vectorService = context.GetVectorService();
+            if (vectorService is not null)
+            {
+                CalculateDefaultSizeForVector(originalSize.Width, originalSize.Height, out int width, out int height);
+                SoftwareBitmap? softwareBitmap = vectorService.CreateSoftwareBitmap(width, height);
+
+                if (softwareBitmap is null)
+                {
+                    return false;
+                }
+
+                createFunc = async () =>
+                {
+                    SoftwareBitmapSource source = new();
+                    await source.SetBitmapAsync(softwareBitmap);
+                    return new() { Source = source };
+                };
+                cleanupAction = softwareBitmap.Dispose;
+            }
+            else
+            {
+                Stream? stream = context.GetSourceStream();
+                context.UnrefSourceStream();
+
+                if (stream is null)
+                {
+                    return false;
+                }
+
+                createFunc = async () =>
+                {
+                    BitmapImage bitmap = new();
+                    await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+                    return new() { Source = bitmap };
+                };
+                cleanupAction = stream.Dispose;
+            }
+        }
+        else
+        {
+            ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(uri);
+            if (record is null)
+            {
+                Logger.F(TAG, "Cache record is null");
+                return false;
+            }
+
+            Stream? thumbnailStream = null;
+            record.Lock.AcquireReaderLock(Timeout.Infinite);
+            try
+            {
+                thumbnailStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, fingerprint, originalSize, desiredSize, out List<string> cacheEntryKeys);
+                if (thumbnailStream is not null)
+                {
+                    Stream stream = thumbnailStream;
+                    thumbnailStream = null;
+                    createFunc = async () =>
+                    {
+                        var bitmap = new BitmapImage
+                        {
+                            DecodePixelWidth = desiredSize.Width,
+                            DecodePixelHeight = desiredSize.Height,
+                            DecodePixelType = DecodePixelType.Physical,
+                        };
+                        await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+                        return new() { Source = bitmap };
+                    };
+                    cleanupAction = stream.Dispose;
+                }
+                else
+                {
+                    if (cacheEntryKeys.Count > 0)
+                    {
+                        string cacheEntryKey = cacheEntryKeys[0];
+                        fingerprint ??= context.GetFingerprint();
+                        LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
+                        try
+                        {
+                            SaveThumbnail(context, cacheEntryKey, fingerprint, originalSize, imageCache, record);
+                        }
+                        finally
+                        {
+                            record.Lock.DowngradeFromWriterLock(ref lockCookie);
+                        }
+                    }
+
+                    IVectorImageService? vectorService = context.GetVectorService();
+                    if (vectorService is not null)
+                    {
+                        var device = CanvasDevice.GetSharedDevice();
+                        CanvasBitmap? canvasBitmap = vectorService.CreateImageCanvasBitmap(device, desiredSize.Width, desiredSize.Height);
+
+                        if (canvasBitmap is null)
+                        {
+                            return false;
+                        }
+
+                        createFunc = async () =>
+                        {
+                            var source = new CanvasImageSource(device, desiredSize.Width, desiredSize.Height, 96F);
+                            using CanvasDrawingSession ds = source.CreateDrawingSession(Colors.Black);
+                            ds.DrawImage(canvasBitmap);
+                            return new() { Source = source };
+                        };
+                        cleanupAction = canvasBitmap.Dispose;
+                    }
+                    else
+                    {
+                        Stream? stream = context.GetSourceStream();
+                        context.UnrefSourceStream();
+
+                        if (stream is null)
+                        {
+                            return false;
+                        }
+
+                        createFunc = async () =>
+                        {
+                            var bitmap = new BitmapImage
+                            {
+                                DecodePixelWidth = desiredSize.Width,
+                                DecodePixelHeight = desiredSize.Height,
+                                DecodePixelType = DecodePixelType.Physical,
+                            };
+                            await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+                            return new() { Source = bitmap };
+                        };
+                        cleanupAction = stream.Dispose;
+                    }
+                }
+            }
+            finally
+            {
+                record.Lock.ReleaseReaderLock();
+                thumbnailStream?.Dispose();
+                thumbnailStream = null;
+            }
+        }
+
+        DecodingImageItem decodingItem = new()
+        {
+            CreateFunc = createFunc,
+            CleanupAction = cleanupAction,
+            Options = options,
+            Uri = uri,
+            StartTime = startTime,
+        };
+
+        sDecodeQueue.Enqueue(decodingItem);
+        ScheduleDecoding();
+        return true;
     }
 
     private static void CalculateDesiredDimension(double frameWidth, double frameHeight,
@@ -849,6 +640,235 @@ internal static partial class ImageCacheManager
         }
         width = (int)targetWidth;
         height = (int)targetHeight;
+    }
+
+    private static Stream? OpenThumbnailStreamFromCacheRecord(LRUCache imageCache, ImageCacheDatabase.CacheRecord record, string? fingerprint,
+        SizeF originalSize, Size desiredSize, out List<string> cacheEntryKeys)
+    {
+        cacheEntryKeys = ImageCacheStrategy.CalculateCacheEntryKeys(desiredSize.Width, desiredSize.Height, originalSize);
+
+        if (!ValidateCacheRecord(record, fingerprint))
+        {
+            return null;
+        }
+
+        foreach (string cacheEntryKey in cacheEntryKeys)
+        {
+            string? entry = record.GetCacheEntry(cacheEntryKey);
+            if (!string.IsNullOrEmpty(entry))
+            {
+                Stream? thumbnailStream = imageCache.Get(entry);
+                if (thumbnailStream != null)
+                {
+                    return thumbnailStream;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static void SaveThumbnail(CacheRequestContext context, string cacheEntryKey, string fingerprint,
+        SizeF originalSize, LRUCache imageCache, ImageCacheDatabase.CacheRecord record)
+    {
+        if (!CalculateDesiredThumbnailSize(cacheEntryKey, originalSize, out Size thumbnailSize))
+        {
+            return;
+        }
+
+        SoftwareBitmap? thumbnailBitmap;
+        IVectorImageService? vectorService = context.GetVectorService();
+        if (vectorService is not null)
+        {
+            thumbnailBitmap = vectorService.CreateSoftwareBitmap(thumbnailSize.Width, thumbnailSize.Height);
+        }
+        else
+        {
+            BitmapDecoder? decoder = context.GetBitmapDecoder();
+            if (decoder is null)
+            {
+                return;
+            }
+
+            thumbnailBitmap = CreateScaledSoftwareBitmap(decoder, thumbnailSize.Width, thumbnailSize.Height);
+        }
+
+        if (thumbnailBitmap is null)
+        {
+            return;
+        }
+
+        try
+        {
+            string entry = StringUtils.RandomFileName(16);
+            using LRUCacheStream? cacheFileStream = imageCache.Put(entry);
+            if (cacheFileStream is null)
+            {
+                return;
+            }
+
+            try
+            {
+                BitmapEncoder encoder = BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, cacheFileStream.AsRandomAccessStream()).AsTask().Result;
+                encoder.SetSoftwareBitmap(thumbnailBitmap);
+                encoder.IsThumbnailGenerated = false;
+                encoder.FlushAsync().Wait();
+            }
+            catch (Exception e)
+            {
+                Logger.F(TAG, "TryCreateImageCache", e);
+                return;
+            }
+
+            record.PutCacheEntry(cacheEntryKey, entry);
+            record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, fingerprint);
+            record.Save();
+        }
+        finally
+        {
+            thumbnailBitmap?.Dispose();
+        }
+    }
+
+    private static SoftwareBitmap? CreateScaledSoftwareBitmap(BitmapDecoder decoder, int scaledWidth, int scaledHeight)
+    {
+        BitmapTransform transform = new()
+        {
+            ScaledWidth = (uint)scaledWidth,
+            ScaledHeight = (uint)scaledHeight,
+            InterpolationMode = BitmapInterpolationMode.Fant,
+        };
+
+        SoftwareBitmap? softwareBitmap = null;
+        try
+        {
+            softwareBitmap = decoder.GetSoftwareBitmapAsync(
+                BitmapPixelFormat.Bgra8,
+                BitmapAlphaMode.Premultiplied,
+                transform,
+                ExifOrientationMode.RespectExifOrientation,
+                ColorManagementMode.DoNotColorManage).AsTask().Result;
+        }
+        catch (Exception ex)
+        {
+            Logger.E(TAG, ex);
+        }
+
+        return softwareBitmap;
+    }
+
+    private static bool CalculateDesiredThumbnailSize(string cacheEntryKey, SizeF originalSize, out Size thumbnailSize)
+    {
+        thumbnailSize = new();
+
+        int cacheResolution = ImageCacheStrategy.GetCacheResolution(cacheEntryKey);
+        if (cacheResolution <= 0)
+        {
+            return false;
+        }
+
+        double sourceResolution = originalSize.Width * originalSize.Height;
+        if (sourceResolution <= cacheResolution)
+        {
+            return false;
+        }
+
+        double scaleRatio = cacheResolution / sourceResolution;
+        double dimensionRatio = Math.Sqrt(scaleRatio);
+        int aspectHeight = (int)Math.Floor(originalSize.Height * dimensionRatio);
+        int aspectWidth = (int)Math.Floor(originalSize.Width * dimensionRatio);
+        thumbnailSize = new(aspectWidth, aspectHeight);
+        return true;
+    }
+
+    private static void ScheduleDecoding()
+    {
+        if (Interlocked.CompareExchange(ref sPostMainThreadTask, 1, 0) == 1)
+        {
+            return;
+        }
+
+        CoroutineUtils.PostInMainThreadAsync(async () =>
+        {
+            long startTime = GetCurrentTick();
+            Interlocked.Exchange(ref sPostMainThreadTask, 0);
+            // Only responsible for rendering tasks that have been queued before this point
+            while (sDecodeQueue.TryDequeue(out DecodingImageItem? item))
+            {
+                DecodedImageModel? result;
+                try
+                {
+                    result = await PerformDecoding(item);
+                }
+                finally
+                {
+                    item.CleanupAction();
+                }
+
+                if (result is not null)
+                {
+                    item.Options.Handler.OnSuccess(result);
+                }
+                else
+                {
+                    item.Options.Handler.OnFailure();
+                }
+
+                // Keep main thread responsive
+                if (GetCurrentTick() - startTime > 50)
+                {
+                    if (sDecodeQueue.TryPeek(out _))
+                    {
+                        ScheduleDecoding();
+                    }
+
+                    break;
+                }
+            }
+        }, DispatcherQueuePriority.Low);
+    }
+
+    private static async Task<DecodedImageModel?> PerformDecoding(DecodingImageItem item)
+    {
+        if (item.Options.Token.IsCancellationRequested)
+        {
+            return null;
+        }
+
+        DecodedImageModel result;
+        try
+        {
+            result = await item.CreateFunc();
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, ex);
+            return null;
+        }
+
+        if (item.Options.Token.IsCancellationRequested)
+        {
+            return null;
+        }
+
+        return result;
+    }
+
+    private static bool ValidateCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
+    {
+        string metaVersion = record.GetExt(ImageCacheExt.IMAGE_META_VERSION) ?? string.Empty;
+        if (metaVersion != IMAGE_META_VERSION.ToString())
+        {
+            return false;
+        }
+
+        string metaFingerprint = record.GetExt(ImageCacheExt.IMAGE_META_FINGERPRINT) ?? string.Empty;
+        if (fingerprint is not null && metaFingerprint != fingerprint)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static LRUCache? GetImageLRUCache()
@@ -947,6 +967,7 @@ internal static partial class ImageCacheManager
     private partial class CacheRequestContext(IImageSource source) : IDisposable
     {
         private readonly IImageSource _source = source;
+        private string? _fingerprint = null;
         private Stream? _sourceStream = null;
         private BitmapDecoder? _bitmapDecoder = null;
         private IVectorImageService? _vectorService = null;
@@ -960,6 +981,17 @@ internal static partial class ImageCacheManager
             _bitmapDecoder = null;
             _vectorService?.Dispose();
             _vectorService = null;
+        }
+
+        public string GetFingerprint()
+        {
+            if (_fingerprint is not null)
+            {
+                return _fingerprint;
+            }
+
+            _fingerprint = _source.CalculateFingerprint();
+            return _fingerprint;
         }
 
         public Stream? GetSourceStream()
