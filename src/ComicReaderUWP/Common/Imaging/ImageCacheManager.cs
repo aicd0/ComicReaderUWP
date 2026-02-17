@@ -164,7 +164,7 @@ internal static partial class ImageCacheManager
         try
         {
             string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
-            ImageMeta? meta = GetImageMetaFromCacheRecord(record, fingerprint);
+            ImageMeta? meta = CreateImageMetaFromCacheRecord(record, fingerprint);
             if (meta is not null)
             {
                 return meta;
@@ -173,7 +173,7 @@ internal static partial class ImageCacheManager
             LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
             try
             {
-                meta = GetImageMetaFromCacheRecord(record, fingerprint);
+                meta = CreateImageMetaFromCacheRecord(record, fingerprint);
                 if (meta is not null)
                 {
                     return meta;
@@ -193,10 +193,10 @@ internal static partial class ImageCacheManager
 
                 fingerprint ??= context.GetFingerprint();
                 record.Clear();
-                PutImageMetaToCacheRecord(record, fingerprint, stream.Length, decoder);
+                SaveImageMetaToCacheRecord(record, fingerprint, stream.Length, decoder);
                 record.Save();
 
-                ImageMeta? imageMeta = GetImageMetaFromCacheRecord(record, fingerprint);
+                ImageMeta? imageMeta = CreateImageMetaFromCacheRecord(record, fingerprint);
                 if (imageMeta is null)
                 {
                     Logger.F(TAG, "Failed to get image meta from cache record after saving");
@@ -214,6 +214,145 @@ internal static partial class ImageCacheManager
         {
             record.Lock.ReleaseReaderLock();
         }
+    }
+
+    private static ImageMeta? CreateImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
+    {
+        if (!ValidateCacheRecord(record, fingerprint))
+        {
+            return null;
+        }
+
+        bool TryReadStringExt(string key, out string value)
+        {
+            string? valueString = record.GetExt(key);
+            if (valueString is not null)
+            {
+                value = valueString;
+                return true;
+            }
+
+            value = string.Empty;
+            return false;
+        }
+
+        bool TryReadIntExt(string key, out int value)
+        {
+            string? valueString = record.GetExt(key);
+            if (!string.IsNullOrEmpty(valueString) && int.TryParse(valueString, out value))
+            {
+                return true;
+            }
+
+            value = 0;
+            return false;
+        }
+
+        bool TryReadLongExt(string key, out long value)
+        {
+            string? valueString = record.GetExt(key);
+            if (!string.IsNullOrEmpty(valueString) && long.TryParse(valueString, out value))
+            {
+                return true;
+            }
+
+            value = 0;
+            return false;
+        }
+
+        bool TryReadDoubleExt(string key, out double value)
+        {
+            string? valueString = record.GetExt(key);
+            if (!string.IsNullOrEmpty(valueString) && double.TryParse(valueString, out value))
+            {
+                return true;
+            }
+
+            value = 0;
+            return false;
+        }
+
+        if (!TryReadIntExt(ImageCacheExt.IMAGE_META_WIDTH, out int width))
+        {
+            return null;
+        }
+
+        if (!TryReadIntExt(ImageCacheExt.IMAGE_META_HEIGHT, out int height))
+        {
+            return null;
+        }
+
+        if (!TryReadDoubleExt(ImageCacheExt.IMAGE_META_DPI_X, out double dpiX))
+        {
+            return null;
+        }
+
+        if (!TryReadDoubleExt(ImageCacheExt.IMAGE_META_DPI_Y, out double dpiY))
+        {
+            return null;
+        }
+
+        if (!TryReadIntExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, out int bitsPerPixel))
+        {
+            return null;
+        }
+
+        if (!TryReadLongExt(ImageCacheExt.IMAGE_META_SIZE, out long size))
+        {
+            return null;
+        }
+
+        if (!TryReadStringExt(ImageCacheExt.IMAGE_META_DECODER_NAME, out string decoderName))
+        {
+            return null;
+        }
+
+        return new(width, height, dpiX, dpiY, decoderName, bitsPerPixel, size);
+    }
+
+    private static void SaveImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, long size, BitmapDecoder decoder)
+    {
+        uint width = decoder.OrientedPixelWidth;
+        uint height = decoder.OrientedPixelHeight;
+        if (width == 0 || height == 0)
+        {
+            Logger.F(TAG, $"Invalid image dimensions: width={width}, height={height}");
+            return;
+        }
+
+        int bitsPerPixel = decoder.BitmapPixelFormat switch
+        {
+            BitmapPixelFormat.Unknown => 0,
+            BitmapPixelFormat.Rgba16 => 64,
+            BitmapPixelFormat.Rgba8 => 32,
+            BitmapPixelFormat.Gray16 => 16,
+            BitmapPixelFormat.Gray8 => 8,
+            BitmapPixelFormat.Bgra8 => 32,
+            BitmapPixelFormat.Nv12 => 12,
+            BitmapPixelFormat.P010 => 24,
+            BitmapPixelFormat.Yuy2 => 16,
+            _ => 0,
+        };
+        string decoderName = decoder.DecoderInformation.FriendlyName switch
+        {
+            "JPEG Decoder" => "JPEG",
+            "PNG Decoder" => "PNG",
+            "BMP Decoder" => "BMP",
+            "GIF Decoder" => "GIF",
+            "TIFF Decoder" => "TIFF",
+            "Microsoft Webp Decoder" => "WebP",
+            _ => decoder.DecoderInformation.FriendlyName,
+        };
+
+        record.PutExt(ImageCacheExt.IMAGE_META_VERSION, IMAGE_META_VERSION.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
+        record.PutExt(ImageCacheExt.IMAGE_META_WIDTH, width.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_HEIGHT, height.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DPI_X, decoder.DpiX.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DPI_Y, decoder.DpiY.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, bitsPerPixel.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DECODER_NAME, decoderName);
+        record.PutExt(ImageCacheExt.IMAGE_META_SIZE, size.ToString());
     }
 
     private static bool LoadImage(CacheRequestContext context, LoadImageOptions options)
@@ -414,77 +553,93 @@ internal static partial class ImageCacheManager
         return true;
     }
 
-    private static void ScheduleDecoding()
+    private static void CalculateDesiredDimension(double frameWidth, double frameHeight,
+        StretchModeEnum stretchMode, double originWidth, double originHeight,
+        out bool useOriginalSize, out Size desiredSize)
     {
-        if (Interlocked.CompareExchange(ref sPostMainThreadTask, 1, 0) == 1)
+        double imageRatio = originWidth / originHeight;
+        double frameRatio = frameWidth / frameHeight;
+        double desiredWidthRaw;
+        double desiredHeightRaw;
+        if (imageRatio > frameRatio == (stretchMode == StretchModeEnum.Uniform))
         {
+            if (double.IsInfinity(frameWidth))
+            {
+                desiredWidthRaw = originWidth;
+                desiredHeightRaw = originHeight;
+                useOriginalSize = true;
+            }
+            else
+            {
+                desiredWidthRaw = frameWidth;
+                desiredHeightRaw = desiredWidthRaw / imageRatio;
+                useOriginalSize = desiredWidthRaw >= originWidth;
+            }
+        }
+        else
+        {
+            if (double.IsInfinity(frameHeight))
+            {
+                desiredWidthRaw = originWidth;
+                desiredHeightRaw = originHeight;
+                useOriginalSize = true;
+            }
+            else
+            {
+                desiredHeightRaw = frameHeight;
+                desiredWidthRaw = desiredHeightRaw * imageRatio;
+                useOriginalSize = desiredHeightRaw >= originHeight;
+            }
+        }
+
+        desiredSize = new((int)desiredWidthRaw, (int)desiredHeightRaw);
+    }
+
+    private static void CalculateDefaultSizeForVector(float originWidth, float originHeight, out int width, out int height)
+    {
+        int defaultWidth = 764;
+        int defaultHeight = 1080;
+
+        if (!(float.IsFinite(originWidth) && float.IsFinite(originHeight) && originWidth > 0 && originHeight > 0))
+        {
+            width = defaultWidth;
+            height = defaultHeight;
             return;
         }
 
-        CoroutineUtils.PostInMainThreadAsync(async () =>
+        DisplayUtils.GetScreenSize(out int screenWidth, out int screenHeight);
+        if (screenWidth <= 0 || screenHeight <= 0)
         {
-            long startTime = GetCurrentTick();
-            Interlocked.Exchange(ref sPostMainThreadTask, 0);
-            // Only responsible for rendering tasks that have been queued before this point
-            while (sDecodeQueue.TryDequeue(out DecodingImageItem? item))
-            {
-                DecodedImageModel? result;
-                try
-                {
-                    result = await PerformDecoding(item);
-                }
-                finally
-                {
-                    item.CleanupAction();
-                }
-
-                if (result is not null)
-                {
-                    item.Options.Handler.OnSuccess(result);
-                }
-                else
-                {
-                    item.Options.Handler.OnFailure();
-                }
-
-                // Keep main thread responsive
-                if (GetCurrentTick() - startTime > 50)
-                {
-                    if (sDecodeQueue.TryPeek(out _))
-                    {
-                        ScheduleDecoding();
-                    }
-
-                    break;
-                }
-            }
-        }, DispatcherQueuePriority.Low);
-    }
-
-    private static async Task<DecodedImageModel?> PerformDecoding(DecodingImageItem item)
-    {
-        if (item.Options.Token.IsCancellationRequested)
-        {
-            return null;
+            width = (int)originWidth;
+            height = (int)originHeight;
+            return;
         }
 
-        DecodedImageModel result;
-        try
+        float pageAspectRatio = originWidth / originHeight;
+        float screenAspectRatio = (float)screenWidth / screenHeight;
+
+        float targetWidth, targetHeight;
+        if (pageAspectRatio > screenAspectRatio)
         {
-            result = await item.CreateFunc();
+            targetHeight = screenHeight;
+            targetWidth = screenHeight / originHeight * originWidth;
         }
-        catch (Exception ex)
+        else
         {
-            Logger.F(TAG, ex);
-            return null;
+            targetWidth = screenWidth;
+            targetHeight = screenWidth / originWidth * originHeight;
         }
 
-        if (item.Options.Token.IsCancellationRequested)
+        float maxResolution = 10000000;
+        float targetResolution = targetWidth * targetHeight;
+        if (targetResolution > maxResolution)
         {
-            return null;
+            float dimensionFactor = (float)Math.Sqrt(maxResolution / targetResolution);
+            targetWidth *= dimensionFactor;
+            targetHeight *= dimensionFactor;
         }
-
-        return result;
+        width = (int)targetWidth;
+        height = (int)targetHeight;
     }
 
     private static Stream? OpenThumbnailStreamFromCacheRecord(LRUCache imageCache, ImageCacheDatabase.CacheRecord record, string? fingerprint,
@@ -626,98 +781,77 @@ internal static partial class ImageCacheManager
         return true;
     }
 
-    private static ImageMeta? GetImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
+    private static void ScheduleDecoding()
     {
-        if (!ValidateCacheRecord(record, fingerprint))
+        if (Interlocked.CompareExchange(ref sPostMainThreadTask, 1, 0) == 1)
         {
-            return null;
+            return;
         }
 
-        bool TryReadStringExt(string key, out string value)
+        CoroutineUtils.PostInMainThreadAsync(async () =>
         {
-            string? valueString = record.GetExt(key);
-            if (valueString is not null)
+            long startTime = GetCurrentTick();
+            Interlocked.Exchange(ref sPostMainThreadTask, 0);
+            // Only responsible for rendering tasks that have been queued before this point
+            while (sDecodeQueue.TryDequeue(out DecodingImageItem? item))
             {
-                value = valueString;
-                return true;
+                DecodedImageModel? result;
+                try
+                {
+                    result = await PerformDecoding(item);
+                }
+                finally
+                {
+                    item.CleanupAction();
+                }
+
+                if (result is not null)
+                {
+                    item.Options.Handler.OnSuccess(result);
+                }
+                else
+                {
+                    item.Options.Handler.OnFailure();
+                }
+
+                // Keep main thread responsive
+                if (GetCurrentTick() - startTime > 50)
+                {
+                    if (sDecodeQueue.TryPeek(out _))
+                    {
+                        ScheduleDecoding();
+                    }
+
+                    break;
+                }
             }
+        }, DispatcherQueuePriority.Low);
+    }
 
-            value = string.Empty;
-            return false;
-        }
-
-        bool TryReadIntExt(string key, out int value)
-        {
-            string? valueString = record.GetExt(key);
-            if (!string.IsNullOrEmpty(valueString) && int.TryParse(valueString, out value))
-            {
-                return true;
-            }
-
-            value = 0;
-            return false;
-        }
-
-        bool TryReadLongExt(string key, out long value)
-        {
-            string? valueString = record.GetExt(key);
-            if (!string.IsNullOrEmpty(valueString) && long.TryParse(valueString, out value))
-            {
-                return true;
-            }
-
-            value = 0;
-            return false;
-        }
-
-        bool TryReadDoubleExt(string key, out double value)
-        {
-            string? valueString = record.GetExt(key);
-            if (!string.IsNullOrEmpty(valueString) && double.TryParse(valueString, out value))
-            {
-                return true;
-            }
-
-            value = 0;
-            return false;
-        }
-
-        if (!TryReadIntExt(ImageCacheExt.IMAGE_META_WIDTH, out int width))
+    private static async Task<DecodedImageModel?> PerformDecoding(DecodingImageItem item)
+    {
+        if (item.Options.Token.IsCancellationRequested)
         {
             return null;
         }
 
-        if (!TryReadIntExt(ImageCacheExt.IMAGE_META_HEIGHT, out int height))
+        DecodedImageModel result;
+        try
+        {
+            result = await item.CreateFunc();
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, ex);
+            return null;
+        }
+
+        if (item.Options.Token.IsCancellationRequested)
         {
             return null;
         }
 
-        if (!TryReadDoubleExt(ImageCacheExt.IMAGE_META_DPI_X, out double dpiX))
-        {
-            return null;
-        }
-
-        if (!TryReadDoubleExt(ImageCacheExt.IMAGE_META_DPI_Y, out double dpiY))
-        {
-            return null;
-        }
-
-        if (!TryReadIntExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, out int bitsPerPixel))
-        {
-            return null;
-        }
-
-        if (!TryReadLongExt(ImageCacheExt.IMAGE_META_SIZE, out long size))
-        {
-            return null;
-        }
-
-        if (!TryReadStringExt(ImageCacheExt.IMAGE_META_DECODER_NAME, out string decoderName))
-        {
-            return null;
-        }
-
-        return new(width, height, dpiX, dpiY, decoderName, bitsPerPixel, size);
+        return result;
     }
 
     private static bool ValidateCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
@@ -735,140 +869,6 @@ internal static partial class ImageCacheManager
         }
 
         return true;
-    }
-
-    private static void PutImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, long size, BitmapDecoder decoder)
-    {
-        uint width = decoder.OrientedPixelWidth;
-        uint height = decoder.OrientedPixelHeight;
-        if (width == 0 || height == 0)
-        {
-            Logger.F(TAG, $"Invalid image dimensions: width={width}, height={height}");
-            return;
-        }
-
-        int bitsPerPixel = decoder.BitmapPixelFormat switch
-        {
-            BitmapPixelFormat.Unknown => 0,
-            BitmapPixelFormat.Rgba16 => 64,
-            BitmapPixelFormat.Rgba8 => 32,
-            BitmapPixelFormat.Gray16 => 16,
-            BitmapPixelFormat.Gray8 => 8,
-            BitmapPixelFormat.Bgra8 => 32,
-            BitmapPixelFormat.Nv12 => 12,
-            BitmapPixelFormat.P010 => 24,
-            BitmapPixelFormat.Yuy2 => 16,
-            _ => 0,
-        };
-        string decoderName = decoder.DecoderInformation.FriendlyName switch
-        {
-            "JPEG Decoder" => "JPEG",
-            "PNG Decoder" => "PNG",
-            "BMP Decoder" => "BMP",
-            "GIF Decoder" => "GIF",
-            "TIFF Decoder" => "TIFF",
-            "Microsoft Webp Decoder" => "WebP",
-            _ => decoder.DecoderInformation.FriendlyName,
-        };
-
-        record.PutExt(ImageCacheExt.IMAGE_META_VERSION, IMAGE_META_VERSION.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
-        record.PutExt(ImageCacheExt.IMAGE_META_WIDTH, width.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_HEIGHT, height.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DPI_X, decoder.DpiX.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DPI_Y, decoder.DpiY.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, bitsPerPixel.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DECODER_NAME, decoderName);
-        record.PutExt(ImageCacheExt.IMAGE_META_SIZE, size.ToString());
-    }
-
-    private static void CalculateDesiredDimension(double frameWidth, double frameHeight,
-        StretchModeEnum stretchMode, double originWidth, double originHeight,
-        out bool useOriginalSize, out Size desiredSize)
-    {
-        double imageRatio = originWidth / originHeight;
-        double frameRatio = frameWidth / frameHeight;
-        double desiredWidthRaw;
-        double desiredHeightRaw;
-        if (imageRatio > frameRatio == (stretchMode == StretchModeEnum.Uniform))
-        {
-            if (double.IsInfinity(frameWidth))
-            {
-                desiredWidthRaw = originWidth;
-                desiredHeightRaw = originHeight;
-                useOriginalSize = true;
-            }
-            else
-            {
-                desiredWidthRaw = frameWidth;
-                desiredHeightRaw = desiredWidthRaw / imageRatio;
-                useOriginalSize = desiredWidthRaw >= originWidth;
-            }
-        }
-        else
-        {
-            if (double.IsInfinity(frameHeight))
-            {
-                desiredWidthRaw = originWidth;
-                desiredHeightRaw = originHeight;
-                useOriginalSize = true;
-            }
-            else
-            {
-                desiredHeightRaw = frameHeight;
-                desiredWidthRaw = desiredHeightRaw * imageRatio;
-                useOriginalSize = desiredHeightRaw >= originHeight;
-            }
-        }
-
-        desiredSize = new((int)desiredWidthRaw, (int)desiredHeightRaw);
-    }
-
-    private static void CalculateDefaultSizeForVector(float originWidth, float originHeight, out int width, out int height)
-    {
-        int defaultWidth = 764;
-        int defaultHeight = 1080;
-
-        if (!(float.IsFinite(originWidth) && float.IsFinite(originHeight) && originWidth > 0 && originHeight > 0))
-        {
-            width = defaultWidth;
-            height = defaultHeight;
-            return;
-        }
-
-        DisplayUtils.GetScreenSize(out int screenWidth, out int screenHeight);
-        if (screenWidth <= 0 || screenHeight <= 0)
-        {
-            width = (int)originWidth;
-            height = (int)originHeight;
-            return;
-        }
-
-        float pageAspectRatio = originWidth / originHeight;
-        float screenAspectRatio = (float)screenWidth / screenHeight;
-
-        float targetWidth, targetHeight;
-        if (pageAspectRatio > screenAspectRatio)
-        {
-            targetHeight = screenHeight;
-            targetWidth = screenHeight / originHeight * originWidth;
-        }
-        else
-        {
-            targetWidth = screenWidth;
-            targetHeight = screenWidth / originWidth * originHeight;
-        }
-
-        float maxResolution = 10000000;
-        float targetResolution = targetWidth * targetHeight;
-        if (targetResolution > maxResolution)
-        {
-            float dimensionFactor = (float)Math.Sqrt(maxResolution / targetResolution);
-            targetWidth *= dimensionFactor;
-            targetHeight *= dimensionFactor;
-        }
-        width = (int)targetWidth;
-        height = (int)targetHeight;
     }
 
     private static LRUCache? GetImageLRUCache()
