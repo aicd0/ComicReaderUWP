@@ -13,12 +13,11 @@ internal class ComicImageSource(IComicConnection connection, int index) : IImage
     private readonly IComicConnection _connection = connection;
     private readonly int _index = index;
 
-    public string GetUri()
-    {
-        return _connection.GetImageCacheKey(_index);
-    }
+    public string Uri => _connection.GetImageCacheKey(_index);
 
-    public string GetContentFingerprint()
+    public bool ValidateFingerprint => true;
+
+    public string CalculateFingerprint()
     {
         return _connection.GetImageSignature(_index);
     }

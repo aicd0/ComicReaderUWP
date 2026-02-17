@@ -7,9 +7,11 @@ namespace ComicReaderUWP.Common.Imaging;
 
 internal interface IImageSource
 {
-    string GetUri();
+    string Uri { get; }
 
-    string GetContentFingerprint();
+    bool ValidateFingerprint { get; }
+
+    string CalculateFingerprint();
 
     Stream? OpenImageStream();
 

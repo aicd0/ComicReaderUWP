@@ -154,7 +154,7 @@ internal static partial class ImageCacheManager
 
     private static ImageMeta? GetImageMeta(CacheRequestContext context)
     {
-        ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(context.Source.GetUri());
+        ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(context.Source.Uri);
         if (record is null)
         {
             return null;
@@ -163,8 +163,8 @@ internal static partial class ImageCacheManager
         record.Lock.AcquireReaderLock(Timeout.Infinite);
         try
         {
-            string sourceFingerprint = context.Source.GetContentFingerprint();
-            ImageMeta? meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+            string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
+            ImageMeta? meta = GetImageMetaFromCacheRecord(record, fingerprint);
             if (meta is not null)
             {
                 return meta;
@@ -173,7 +173,7 @@ internal static partial class ImageCacheManager
             LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
             try
             {
-                meta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+                meta = GetImageMetaFromCacheRecord(record, fingerprint);
                 if (meta is not null)
                 {
                     return meta;
@@ -191,16 +191,18 @@ internal static partial class ImageCacheManager
                     return null;
                 }
 
+                fingerprint ??= context.GetFingerprint();
                 record.Clear();
-                PutImageMetaToCacheRecord(record, sourceFingerprint, stream.Length, decoder);
-                ImageMeta? imageMeta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
+                PutImageMetaToCacheRecord(record, fingerprint, stream.Length, decoder);
+                record.Save();
+
+                ImageMeta? imageMeta = GetImageMetaFromCacheRecord(record, fingerprint);
                 if (imageMeta is null)
                 {
                     Logger.F(TAG, "Failed to get image meta from cache record after saving");
                     return null;
                 }
 
-                record.Save();
                 return imageMeta;
             }
             finally
@@ -222,7 +224,7 @@ internal static partial class ImageCacheManager
         }
 
         long startTime = GetCurrentTick();
-        string uri = context.Source.GetUri();
+        string uri = context.Source.Uri;
         if (string.IsNullOrEmpty(uri))
         {
             Logger.E(TAG, "Image source URI is null or empty");
@@ -236,7 +238,7 @@ internal static partial class ImageCacheManager
             return false;
         }
 
-        string sourceFingerprint = context.Source.GetContentFingerprint();
+        string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
 
         // Calculate targe size
         if (!TryGetOriginalDimension(context, out SizeF originalSize))
@@ -310,7 +312,7 @@ internal static partial class ImageCacheManager
             record.Lock.AcquireReaderLock(Timeout.Infinite);
             try
             {
-                thumbnailStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, originalSize, desiredSize, out List<string> cacheEntryKeys);
+                thumbnailStream = OpenThumbnailStreamFromCacheRecord(imageCache, record, fingerprint, originalSize, desiredSize, out List<string> cacheEntryKeys);
                 if (thumbnailStream is not null)
                 {
                     Stream stream = thumbnailStream;
@@ -333,10 +335,11 @@ internal static partial class ImageCacheManager
                     if (cacheEntryKeys.Count > 0)
                     {
                         string cacheEntryKey = cacheEntryKeys[0];
+                        fingerprint ??= context.GetFingerprint();
                         LockCookie lockCookie = record.Lock.UpgradeToWriterLock(Timeout.Infinite);
                         try
                         {
-                            SaveThumbnail(context, cacheEntryKey, sourceFingerprint, originalSize, imageCache, record);
+                            SaveThumbnail(context, cacheEntryKey, fingerprint, originalSize, imageCache, record);
                         }
                         finally
                         {
@@ -484,10 +487,16 @@ internal static partial class ImageCacheManager
         return result;
     }
 
-    private static Stream? OpenThumbnailStreamFromCacheRecord(LRUCache imageCache, ImageCacheDatabase.CacheRecord record,
+    private static Stream? OpenThumbnailStreamFromCacheRecord(LRUCache imageCache, ImageCacheDatabase.CacheRecord record, string? fingerprint,
         SizeF originalSize, Size desiredSize, out List<string> cacheEntryKeys)
     {
         cacheEntryKeys = ImageCacheStrategy.CalculateCacheEntryKeys(desiredSize.Width, desiredSize.Height, originalSize);
+
+        if (!ValidateCacheRecord(record, fingerprint))
+        {
+            return null;
+        }
+
         foreach (string cacheEntryKey in cacheEntryKeys)
         {
             string? entry = record.GetCacheEntry(cacheEntryKey);
@@ -617,16 +626,9 @@ internal static partial class ImageCacheManager
         return true;
     }
 
-    private static ImageMeta? GetImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint)
+    private static ImageMeta? GetImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
     {
-        string metaVersion = record.GetExt(ImageCacheExt.IMAGE_META_VERSION) ?? string.Empty;
-        if (metaVersion != IMAGE_META_VERSION.ToString())
-        {
-            return null;
-        }
-
-        string metaFingerprint = record.GetExt(ImageCacheExt.IMAGE_META_FINGERPRINT) ?? string.Empty;
-        if (!string.IsNullOrEmpty(sourceFingerprint) && metaFingerprint != sourceFingerprint)
+        if (!ValidateCacheRecord(record, fingerprint))
         {
             return null;
         }
@@ -716,6 +718,23 @@ internal static partial class ImageCacheManager
         }
 
         return new(width, height, dpiX, dpiY, decoderName, bitsPerPixel, size);
+    }
+
+    private static bool ValidateCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
+    {
+        string metaVersion = record.GetExt(ImageCacheExt.IMAGE_META_VERSION) ?? string.Empty;
+        if (metaVersion != IMAGE_META_VERSION.ToString())
+        {
+            return false;
+        }
+
+        string metaFingerprint = record.GetExt(ImageCacheExt.IMAGE_META_FINGERPRINT) ?? string.Empty;
+        if (fingerprint is not null && metaFingerprint != fingerprint)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static void PutImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, long size, BitmapDecoder decoder)
@@ -948,6 +967,7 @@ internal static partial class ImageCacheManager
     private partial class CacheRequestContext(IImageSource source) : IDisposable
     {
         private readonly IImageSource _source = source;
+        private string? _fingerprint = null;
         private Stream? _sourceStream = null;
         private BitmapDecoder? _bitmapDecoder = null;
         private IVectorImageService? _vectorService = null;
@@ -961,6 +981,17 @@ internal static partial class ImageCacheManager
             _bitmapDecoder = null;
             _vectorService?.Dispose();
             _vectorService = null;
+        }
+
+        public string GetFingerprint()
+        {
+            if (_fingerprint is not null)
+            {
+                return _fingerprint;
+            }
+
+            _fingerprint = _source.CalculateFingerprint();
+            return _fingerprint;
         }
 
         public Stream? GetSourceStream()

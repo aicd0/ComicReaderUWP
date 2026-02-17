@@ -34,8 +34,8 @@ internal abstract class ComicHandle
     // Constants
     //
 
+    public const int COVER_INDEX = 0;
     private const string TAG = nameof(ComicHandle);
-    private const int COVER_INDEX = 0;
 
     //
     // Static Variables
