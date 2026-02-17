@@ -191,6 +191,7 @@ internal static partial class ImageCacheManager
                     return null;
                 }
 
+                record.Clear();
                 PutImageMetaToCacheRecord(record, sourceFingerprint, stream.Length, decoder);
                 ImageMeta? imageMeta = GetImageMetaFromCacheRecord(record, sourceFingerprint);
                 if (imageMeta is null)
@@ -298,7 +299,7 @@ internal static partial class ImageCacheManager
         }
         else
         {
-            ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(context.Source.GetUri());
+            ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(uri);
             if (record is null)
             {
                 Logger.F(TAG, "Cache record is null");
@@ -555,8 +556,8 @@ internal static partial class ImageCacheManager
                 return;
             }
 
-            record.ImageCacheFingerprint = fingerprint;
             record.PutCacheEntry(cacheEntryKey, entry);
+            record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, fingerprint);
             record.Save();
         }
         finally

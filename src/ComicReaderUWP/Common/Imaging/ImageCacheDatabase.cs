@@ -206,7 +206,6 @@ internal class ImageCacheDatabase(string databaseFilePath)
     {
         private const string INTERNAL_EXT_PREFIX = "_";
         private const string CACHE_ENTRY_PREFIX = "_CacheEntry_";
-        public const string IMAGE_CACHE_FINGERPRINT = "_ImageCacheFingerprint";
 
         public static CacheRecord FromDatabase(ImageCacheDatabase db, string key, IReadOnlyDictionary<string, string> ext)
         {
@@ -221,10 +220,6 @@ internal class ImageCacheDatabase(string databaseFilePath)
                 {
                     string cacheKey = entry.Key[CACHE_ENTRY_PREFIX.Length..];
                     record._cacheEntries[cacheKey] = entry.Value;
-                }
-                else if (entry.Key == IMAGE_CACHE_FINGERPRINT)
-                {
-                    record._imageCacheFingerprint = entry.Value;
                 }
                 else
                 {
@@ -246,24 +241,10 @@ internal class ImageCacheDatabase(string databaseFilePath)
         private readonly ImageCacheDatabase _database;
         private readonly string _key;
         private bool _updated;
-        private string _imageCacheFingerprint = string.Empty;
         private readonly Dictionary<string, string> _cacheEntries = [];
         private readonly Dictionary<string, string> _ext = [];
 
         public ReaderWriterLock Lock { get; } = new();
-
-        public string ImageCacheFingerprint
-        {
-            get => _imageCacheFingerprint;
-            set
-            {
-                if (_imageCacheFingerprint != value)
-                {
-                    _imageCacheFingerprint = value;
-                    _updated = true;
-                }
-            }
-        }
 
         private CacheRecord(ImageCacheDatabase db, string key)
         {
@@ -290,11 +271,7 @@ internal class ImageCacheDatabase(string databaseFilePath)
                 _updated = false;
 
                 // Write to database
-                Dictionary<string, string> ext = new(_ext)
-                {
-                    [IMAGE_CACHE_FINGERPRINT] = _imageCacheFingerprint,
-                };
-
+                Dictionary<string, string> ext = new(_ext);
                 foreach (KeyValuePair<string, string> entry in _cacheEntries)
                 {
                     ext[CACHE_ENTRY_PREFIX + entry.Key] = entry.Value;
@@ -317,6 +294,13 @@ internal class ImageCacheDatabase(string databaseFilePath)
                 command.Parameters.AddWithValue("@ext", extJson);
                 command.ExecuteNonQuery();
             }
+        }
+
+        public void Clear()
+        {
+            _cacheEntries.Clear();
+            _ext.Clear();
+            _updated = true;
         }
 
         public string? GetCacheEntry(string key)
