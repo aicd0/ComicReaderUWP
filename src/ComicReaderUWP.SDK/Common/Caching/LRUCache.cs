@@ -6,8 +6,6 @@ using System.Collections.Concurrent;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 
-using Windows.Storage;
-
 namespace ComicReaderUWP.SDK.Common.Caching;
 
 public class LRUCache(string directoryPath, long maxSize)
@@ -22,7 +20,6 @@ public class LRUCache(string directoryPath, long maxSize)
     private readonly long _maxSize = maxSize;
     private readonly LRUCacheDatabase _database = new(Path.Combine(directoryPath, DATABASE_FILE_NAME));
     private readonly ReaderWriterLock _flushLock = new();
-    private volatile StorageFolder? _folder = null;
     private volatile ConcurrentDictionary<string, long> _pendingFlushKeys = [];
     private int _postFlushTask = 0;
 
@@ -70,25 +67,25 @@ public class LRUCache(string directoryPath, long maxSize)
             return;
         }
 
-        IReadOnlyList<StorageFile> files;
+        string[] files;
         try
         {
-            files = GetFolder().GetFilesAsync().AsTask().Result;
+            files = Directory.GetFiles(_directoryPath);
         }
         catch (Exception ex)
         {
-            Logger.F(TAG, "Clean", ex);
+            Logger.F(TAG, ex);
             return;
         }
 
-        List<Tuple<StorageFile, long>> lastUsedTimes = [];
-        for (int i = 0; i < files.Count;)
+        List<Tuple<string, long>> lastUsedTimes = [];
+        for (int i = 0; i < files.Length;)
         {
-            Dictionary<string, StorageFile> batch = [];
-            for (; i < files.Count && batch.Count < BATCH_SIZE; i++)
+            Dictionary<string, string> batch = [];
+            for (; i < files.Length && batch.Count < BATCH_SIZE; i++)
             {
-                StorageFile file = files[i];
-                string fileName = file.Name;
+                string fullPath = files[i];
+                string fileName = Path.GetFileName(fullPath);
 
                 if (fileName == DATABASE_FILE_NAME)
                 {
@@ -105,19 +102,20 @@ public class LRUCache(string directoryPath, long maxSize)
                 {
                     try
                     {
-                        ulong fileSize = file.GetBasicPropertiesAsync().AsTask().Result.Size;
-                        file.DeleteAsync().Wait();
-                        sizeToRemove -= (long)fileSize;
+                        var fileInfo = new FileInfo(fullPath);
+                        long fileSize = fileInfo.Length;
+                        File.Delete(fullPath);
+                        sizeToRemove -= fileSize;
                     }
                     catch (Exception ex)
                     {
-                        Logger.F(TAG, "Clean", ex);
+                        Logger.F(TAG, ex);
                     }
 
                     continue;
                 }
 
-                batch[key] = file;
+                batch[key] = fullPath;
             }
 
             Dictionary<string, long>? result = _database.BatchQuery(batch.Keys);
@@ -134,30 +132,34 @@ public class LRUCache(string directoryPath, long maxSize)
                 }
                 else
                 {
-                    lastUsedTimes.Add(new Tuple<StorageFile, long>(batch[pair.Key], pair.Value));
+                    lastUsedTimes.Add(new Tuple<string, long>(batch[pair.Key], pair.Value));
                 }
             }
         }
 
-        lastUsedTimes.Sort(new Comparison<Tuple<StorageFile, long>>(
-            delegate (Tuple<StorageFile, long> x, Tuple<StorageFile, long> y) { return x.Item2.CompareTo(y.Item2); }));
-        foreach (Tuple<StorageFile, long> item in lastUsedTimes)
+        lastUsedTimes.Sort(new Comparison<Tuple<string, long>>((x, y) =>
+        {
+            return x.Item2.CompareTo(y.Item2);
+        }));
+
+        foreach (Tuple<string, long> item in lastUsedTimes)
         {
             if (sizeToRemove <= 0)
             {
                 break;
             }
 
-            StorageFile file = item.Item1;
+            string fullPath = item.Item1;
             try
             {
-                ulong fileSize = file.GetBasicPropertiesAsync().AsTask().Result.Size;
-                file.DeleteAsync().Wait();
-                sizeToRemove -= (long)fileSize;
+                var fileInfo = new FileInfo(fullPath);
+                long fileSize = fileInfo.Length;
+                File.Delete(fullPath);
+                sizeToRemove -= fileSize;
             }
             catch (Exception ex)
             {
-                Logger.F(TAG, "Clean", ex);
+                Logger.F(TAG, ex);
             }
         }
     }
@@ -211,19 +213,6 @@ public class LRUCache(string directoryPath, long maxSize)
 
             _database.BatchUpdate(pendingFlushKeys);
         });
-    }
-
-    private StorageFolder GetFolder()
-    {
-        StorageFolder? folder = _folder;
-        if (folder != null)
-        {
-            return folder;
-        }
-
-        folder = StorageFolder.GetFolderFromPathAsync(_directoryPath).AsTask().Result;
-        _folder = folder;
-        return folder;
     }
 
     private class CacheEntry
