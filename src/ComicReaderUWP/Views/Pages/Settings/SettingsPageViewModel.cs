@@ -252,8 +252,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public bool IsPortable => EnvironmentProvider.IsPortable();
-
     private readonly ReaderWriterLock _lock = new();
     private readonly ITaskDispatcher _dispatcher = TaskDispatcher.DefaultQueue;
     private AppSettingsModel.ExternalModel? _settingsModel;
