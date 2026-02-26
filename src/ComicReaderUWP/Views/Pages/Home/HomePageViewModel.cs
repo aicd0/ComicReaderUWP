@@ -207,12 +207,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         ComicFilterModel.ViewTypeEnum.Medium,
     ];
 
-    /// <summary>
-    /// Initializes the view model.
-    /// </summary>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
     public void Initialize(ActionHandler actionHandler, string? filterJson)
     {
         _actionHandler = actionHandler;
@@ -240,12 +234,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         Refresh(filters: true, library: true);
     }
 
-    /// <summary>
-    /// Reloads and applies the current filters.
-    /// </summary>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
     public void Refresh(bool clearFilter = false, bool filters = false, bool library = false)
     {
         if (clearFilter)
@@ -277,10 +265,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Search the comics by keywords.
-    /// </summary>
-    /// <param name="searchText">The search text.</param>
     public void SetSearchText(string searchText)
     {
         searchText = searchText.Trim();
@@ -309,13 +293,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Gets the current filter model.
-    /// </summary>
-    /// <returns>The current <see cref="ComicFilterModel.ExternalFilterModel"/>.</returns>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
     public async Task<ComicFilterModel.ExternalFilterModel> GetFilter()
     {
         return await ThreadingUtils.Submit(_sharedDispatcher, "GetFilter", () =>
@@ -324,13 +301,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         });
     }
 
-    /// <summary>
-    /// Set the selection mode.
-    /// </summary>
-    /// <param name="enabled">Is selection mode enabled.</param>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
     public void SetSelectionMode(bool enabled)
     {
         if (IsSelectMode == enabled)
@@ -347,13 +317,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Sets the selected comic items.
-    /// </summary>
-    /// <param name="items">The selected comic items.</param>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
     public void SetSelection(List<ComicItemViewModel> items)
     {
         _selectedComicItems.Clear();
@@ -361,13 +324,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         UpdateCommandBarButtonStates();
     }
 
-    /// <summary>
-    /// Gets the selected comic items according to the triggering comic item.
-    /// </summary>
-    /// <param name="triggerItem">The triggering comic item.</param>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
     public List<ComicItemViewModel> GetSelection(ComicItemViewModel triggerItem)
     {
         List<ComicItemViewModel> selection = [];
@@ -400,13 +356,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return selection;
     }
 
-    /// <summary>
-    /// Applies a batch operation to the selected comic items.
-    /// </summary>
-    /// <param name="operationType">The operation type.</param>
-    /// <remarks>
-    /// Must be called on the UI thread.
-    /// </remarks>
     public void ApplyOperationToSelection(ComicOperationType operationType)
     {
         List<ComicItemViewModel> selectedItems = [.. _selectedComicItems];
@@ -421,24 +370,12 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return _comics;
     }
 
-    /// <summary>
-    /// Toggles the collapsed state of the specified comic group.
-    /// </summary>
-    /// <remarks>This method inverts the current collapsed state of the provided comic group.  It also updates
-    /// the state of the collapse/expand button to reflect the new state.</remarks>
-    /// <param name="groupModel">The comic group to be collapsed or expanded. Cannot be null.</param>
     public void CollapseOrExpandGroup(ComicGroupViewModel groupModel)
     {
         groupModel.Collapsed = !groupModel.Collapsed;
         UpdateCollapseExpandGroupButtonStates();
     }
 
-    /// <summary>
-    /// Collapses all comic groups in the collection.
-    /// </summary>
-    /// <remarks>This method sets the <see cref="ComicGroupViewModel.Collapsed"/> property to <see
-    /// langword="true"/> for each group in the <c>GroupedComicItems</c> collection. It also updates the state of the
-    /// collapse/expand group button to reflect the changes.</remarks>
     public void CollapseAllGroups()
     {
         foreach (ComicGroupViewModel group in GroupedComicItems)
@@ -449,12 +386,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         UpdateCollapseExpandGroupButtonStates();
     }
 
-    /// <summary>
-    /// Expands all comic groups by setting their collapsed state to false.
-    /// </summary>
-    /// <remarks>This method iterates through all comic groups and expands them, ensuring that each group's
-    /// <see cref="ComicGroupViewModel.Collapsed"/> property is set to <see langword="false"/>. After expanding the
-    /// groups, it updates the state of the collapse/expand button to reflect the changes.</remarks>
     public void ExpandAllGroups()
     {
         foreach (ComicGroupViewModel group in GroupedComicItems)
@@ -879,7 +810,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     {
         Logger.I(TAG, "DisplayComicsNoLock");
 
-        ComicItemViewModel comicToViewModel(ComicModel comic, PlaylistModel.Builder playlist)
+        ComicItemViewModel ComicToViewModel(ComicModel comic, PlaylistModel.Builder playlist)
         {
             var item = new ComicItemViewModel(comic)
             {
@@ -923,12 +854,13 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 List<ComicPropertyModel.GroupItem<ComicModel>> groups = groupBy.GroupComics(comics, x => x,
                     filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty);
+                var playlist = PlaylistModel.Builder.Create();
                 comicsGrouped = [];
                 foreach (ComicPropertyModel.GroupItem<ComicModel> group in groups)
                 {
                     List<ComicModel> sorted = SortComicsByProerty(group.Items, sortBy, filter.ComicOrderMethod);
-                    PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sorted);
-                    List<ComicItemViewModel> items = [.. sorted.Select(x => comicToViewModel(x, playlist))];
+                    playlist.AddComics(sorted);
+                    List<ComicItemViewModel> items = [.. sorted.Select(x => ComicToViewModel(x, playlist))];
                     var groupViewModel = new ComicGroupViewModel(group.Name, items, false)
                     {
                         Description = group.Description,
@@ -940,7 +872,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 List<ComicModel> sortedComics = SortComicsByProerty(comics, sortBy, filter.ComicOrderMethod);
                 PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sortedComics);
-                comicsUngrouped = [.. sortedComics.Select(x => comicToViewModel(x, playlist))];
+                comicsUngrouped = [.. sortedComics.Select(x => ComicToViewModel(x, playlist))];
             }
         }
 
