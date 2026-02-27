@@ -145,27 +145,14 @@
                                     FontSize="14"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>
-                            <!--  Fullscreen button  -->
-                            <Grid>
-                                <Button
-                                    Click="FullscreenButton_Click"
-                                    Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                    ToolTipService.ToolTip="{x:Bind StringResource.EnterFullscreen}"
-                                    Visibility="{x:Bind ViewModel.IsFullscreen, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}">
-                                    <Button.Content>
-                                        <FontIcon FontSize="14" Glyph="&#xE740;" />
-                                    </Button.Content>
-                                </Button>
-                                <Button
-                                    Click="BackToWindowButton_Click"
-                                    Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                    ToolTipService.ToolTip="{x:Bind StringResource.ExitFullscreen}"
-                                    Visibility="{x:Bind ViewModel.IsFullscreen, Mode=OneWay}">
-                                    <Button.Content>
-                                        <FontIcon FontSize="14" Glyph="&#xE73F;" />
-                                    </Button.Content>
-                                </Button>
-                            </Grid>
+                            <Button
+                                Click="FullscreenButton_Click"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.FullscreenButtonText, Mode=OneWay}">
+                                <Button.Content>
+                                    <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.FullscreenButtonGlyph, Mode=OneWay}" />
+                                </Button.Content>
+                            </Button>
                         </StackPanel>
                     </Grid>
                     <Slider

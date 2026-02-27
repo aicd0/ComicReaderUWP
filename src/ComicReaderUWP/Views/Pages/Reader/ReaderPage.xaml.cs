@@ -195,10 +195,7 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
-        {
-            ViewModel.IsFullscreen = isFullscreen;
-        });
+        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, ViewModel.SetFullscreen);
 
         ViewModel.TitleLiveData.ObserveStartSticky(this, title =>
         {
@@ -761,12 +758,14 @@ internal sealed partial class ReaderPage : BasePage
 
     private void FullscreenButton_Click(object sender, RoutedEventArgs e)
     {
-        GetMainWindowAbility().EnterFullscreen();
-    }
-
-    private void BackToWindowButton_Click(object sender, RoutedEventArgs e)
-    {
-        GetMainWindowAbility().ExitFullscreen();
+        if (GetMainWindowAbility().IsFullscreen)
+        {
+            GetMainWindowAbility().ExitFullscreen();
+        }
+        else
+        {
+            GetMainWindowAbility().EnterFullscreen();
+        }
     }
 
     //

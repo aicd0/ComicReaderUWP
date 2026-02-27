@@ -55,6 +55,28 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _fullscreenButtonGlyph = string.Empty;
+    public string FullscreenButtonGlyph
+    {
+        get => _fullscreenButtonGlyph;
+        set
+        {
+            _fullscreenButtonGlyph = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FullscreenButtonGlyph)));
+        }
+    }
+
+    private string _fullscreenButtonText = string.Empty;
+    public string FullscreenButtonText
+    {
+        get => _fullscreenButtonText;
+        set
+        {
+            _fullscreenButtonText = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FullscreenButtonText)));
+        }
+    }
+
     private string _primaryPageIndicatorText = string.Empty;
     public string PrimaryPageIndicatorText
     {
@@ -206,6 +228,21 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         if (pageIndex < PreviewDataSource.Count)
         {
             PreviewDataSource[pageIndex].Selected = true;
+        }
+    }
+
+    public void SetFullscreen(bool isFullscreen)
+    {
+        IsFullscreen = isFullscreen;
+        if (isFullscreen)
+        {
+            FullscreenButtonGlyph = "\uE73F";
+            FullscreenButtonText = StringResourceProvider.Instance.ExitFullscreen;
+        }
+        else
+        {
+            FullscreenButtonGlyph = "\uE740";
+            FullscreenButtonText = StringResourceProvider.Instance.EnterFullscreen;
         }
     }
 
