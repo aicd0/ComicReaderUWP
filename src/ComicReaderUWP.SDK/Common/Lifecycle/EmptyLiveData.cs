@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.SDK.Common.Lifecycle;
 
-public class EmptyLiveData<T> : IMutableLiveData<T>
+public class EmptyLiveData<T> : IMutableLiveData<T> where T : notnull
 {
     public void Clear()
     {

@@ -3,11 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Actions;
-using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
@@ -22,22 +19,19 @@ using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.Registry;
 using ComicReaderUWP.UserControls.Reader;
 using ComicReaderUWP.ViewModels;
-using ComicReaderUWP.Views.Dialogs.EditComicInfo;
-using ComicReaderUWP.Views.Dialogs.EditTag;
 using ComicReaderUWP.Views.Pages.Main;
+using ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
 
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 
 namespace ComicReaderUWP.Views.Pages.Reader;
 
 internal sealed partial class ReaderPage : BasePage
 {
-    private const string REGEX_URL = @"https?:\/\/[a-zA-Z0-9\-._~%]+(?:\.[a-zA-Z0-9\-._~%]+)+(?:\/[^\s]*)?";
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
     // Must be accessed on UI thread
@@ -46,8 +40,6 @@ internal sealed partial class ReaderPage : BasePage
     //
     // Variables
     //
-
-    private ReaderPageViewModel ViewModel { get; set; } = new();
 
     private bool _gridViewModeEnabled = false;
     private bool GridViewModeEnabled
@@ -74,9 +66,14 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
+    private ReaderPageViewModel ViewModel { get; set; } = new();
+    private bool PointerOnOverlay => !_readerPointerEntered && GetMainWindowAbility().PointerInWindow();
+
     private readonly ReaderNavigationBar _readerNavigationBar;
+    private double _topOverlayHeight = 0.0;
+    private double _rightOverlayWidth = 0.0;
+    private double _bottomTileHeight = 0.0;
     private bool _displayActive = false;
-    private bool _restoreSidebar = false;
     private bool _readerPointerEntered = false;
     private bool _bottomTileShowed = false;
     private bool _bottomTileHold = false;
@@ -91,10 +88,6 @@ internal sealed partial class ReaderPage : BasePage
         InitializeComponent();
         _readerNavigationBar = new();
 
-        ViewModel.ComicTitle1 = "";
-        ViewModel.ComicTitle2 = "";
-        ViewModel.ComicDir = "";
-        ViewModel.IsEditable = false;
         ViewModel.PreviewDataSource = [];
     }
 
@@ -105,22 +98,30 @@ internal sealed partial class ReaderPage : BasePage
     protected override void OnStart(PageBundle bundle)
     {
         base.OnStart(bundle);
-
         AddToActiveTabs();
-
         GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
         GetNavigationPageAbility().SetCustomNavigationBar(_readerNavigationBar);
 
-        bool tipShown = AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).GetValueOrDefault(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
-        if (!tipShown)
-        {
-            ReaderTip.IsOpen = !tipShown;
-        }
-
+        // Initialize views
         MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
         _readerNavigationBar.SetWindowId(WindowId);
         _readerNavigationBar.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
 
+        {
+            bool tipShown = AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).GetValueOrDefault(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
+            if (!tipShown)
+            {
+                ReaderTip.IsOpen = !tipShown;
+            }
+        }
+
+        {
+            bool pinned = AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).GetValueOrDefault(RegistryNames.SettingsKey.READER_OVERLAY_PINNED, false);
+            ViewModel.SetPinned(pinned);
+            UpdatePinUI();
+        }
+
+        // Initialize view model
         ViewModel.Initialize(PageActionHandler);
         CoroutineUtils.Start(async () =>
         {
@@ -138,7 +139,7 @@ internal sealed partial class ReaderPage : BasePage
 
         UpdateDisplayStatus();
         AddToActiveTabs();
-        ViewModel.ReloadReaderSettings();
+        SyncCurrentComic();
         GetEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
         UpdateReaderUI();
         FocusReader();
@@ -162,21 +163,6 @@ internal sealed partial class ReaderPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
-        {
-            ViewModel.ReloadComicInfo();
-        });
-
-        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
-        {
-            ViewModel.ReloadComicInfo();
-        });
-
-        GlobalEvent.Instance.TagInfoUpdated.Observe(this, delegate
-        {
-            ViewModel.ReloadComicInfo();
-        });
-
         AppSettingsModel.Instance.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ =>
         {
             UpdateDisplayStatus();
@@ -184,17 +170,41 @@ internal sealed partial class ReaderPage : BasePage
 
         GetEventBus().With<double>(EventId.TopOverlayHeight).ObserveSticky(this, h =>
         {
+            if (_topOverlayHeight == h)
+            {
+                return;
+            }
+
+            _topOverlayHeight = h;
+
             Thickness margin = PreviewGridView.Margin;
             margin.Top = h;
             PreviewGridView.Margin = margin;
-            InfoPane.Margin = new Thickness(0, h, -2, 0);
+
+            if (ViewModel.IsPinned)
+            {
+                UpdatePinUI();
+            }
         });
 
         GetEventBus().With<double>(EventId.RightOverlayWidth).ObserveSticky(this, w =>
         {
+            if (_rightOverlayWidth == w)
+            {
+                return;
+            }
+
+            _rightOverlayWidth = w;
+
             Thickness margin = PreviewGridView.Margin;
             margin.Right = w;
             PreviewGridView.Margin = margin;
+            BottomGrid.Margin = new Thickness(0, 0, w, 0);
+
+            if (ViewModel.IsPinned)
+            {
+                UpdatePinUI();
+            }
         });
 
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
@@ -219,10 +229,7 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, delegate (bool isFullscreen)
-        {
-            ViewModel.IsFullscreen = isFullscreen;
-        });
+        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, ViewModel.SetFullscreen);
 
         ViewModel.TitleLiveData.ObserveStartSticky(this, title =>
         {
@@ -236,20 +243,9 @@ internal sealed partial class ReaderPage : BasePage
             GetMainPageAbility().SetUrl(route.Url);
         });
 
-        ViewModel.EditTagLiveData.Observe(this, pair =>
-        {
-            var dialog = new EditTagDialog(pair.Key, pair.Value);
-            CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
-        });
+        ViewModel.IsExternalComicLiveData.ObserveSticky(this, _readerNavigationBar.SetExternalComic);
 
-        ViewModel.IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
-        {
-            RcRating.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
-            SetCompletionStateButton.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
-            _readerNavigationBar.SetExternalComic(isExternal);
-        });
-
-        ViewModel.ReaderStatusLiveData.ObserveSticky(this, delegate (ReaderStatusInfo info)
+        ViewModel.ReaderStatusLiveData.ObserveSticky(this, info =>
         {
             string readerStatusText = info.Description;
             if (string.IsNullOrEmpty(readerStatusText))
@@ -272,49 +268,12 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        ViewModel.ReaderSettingLiveData.ObserveSticky(this, _readerNavigationBar.SetReaderSettings);
-
-        ViewModel.ComicDescriptionLiveData.ObserveSticky(this, description =>
+        ViewModel.ComicChangedLiveData.ObserveSticky(this, delegate
         {
-            FillRichTextInlines(TbComicDescription.Inlines, description);
-            TbComicDescription.Visibility = TbComicDescription.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+            SyncCurrentComic();
         });
 
         ViewModel.IsFavoriteLiveData.ObserveSticky(this, _readerNavigationBar.SetFavorite);
-
-        ViewModel.CompletionStateLiveData.ObserveSticky(this, completionStatus =>
-        {
-            switch (completionStatus)
-            {
-                case ComicCompletionStatusEnum.NotStarted:
-                    SetCompletionStateButton.Icon = new FontIcon
-                    {
-                        Glyph = "\uEA3A"
-                    };
-                    SetCompletionStateButton.Label = StringResource.CompletionStatusUnread;
-                    break;
-                case ComicCompletionStatusEnum.Started:
-                    SetCompletionStateButton.Icon = new FontIcon
-                    {
-                        Glyph = "\uED5A"
-                    };
-                    SetCompletionStateButton.Label = StringResource.CompletionStatusReading;
-                    break;
-                case ComicCompletionStatusEnum.Completed:
-                    SetCompletionStateButton.Icon = new FontIcon
-                    {
-                        Glyph = "\uE8FB"
-                    };
-                    SetCompletionStateButton.Label = StringResource.CompletionStatusFinished;
-                    break;
-                default:
-                    break;
-            }
-
-            MarkAsUnreadButton.IsChecked = completionStatus == ComicCompletionStatusEnum.NotStarted;
-            MarkAsReadingButton.IsChecked = completionStatus == ComicCompletionStatusEnum.Started;
-            MarkAsFinishedButton.IsChecked = completionStatus == ComicCompletionStatusEnum.Completed;
-        });
 
         ViewModel.ReaderLoadingInfoLiveData.ObserveSticky(this, info =>
         {
@@ -324,21 +283,20 @@ internal sealed partial class ReaderPage : BasePage
             FocusReader();
         });
 
-        _readerNavigationBar.GridViewModeChanged += delegate (bool enabled)
+        _readerNavigationBar.GridViewModeChanged += enabled =>
         {
             GridViewModeEnabled = enabled;
         };
 
         _readerNavigationBar.InfoPaneExpanded += delegate
         {
-            InfoPane.IsPaneOpen = true;
-            _restoreSidebar = GetMainPageAbility().GetSidePaneOpenState();
-            GetMainPageAbility().SetSidePaneOpenState(false, force: true);
+            GetMainPageAbility().SetSidePanePage(SidePaneView.PageEnum.ComicInfo);
+            GetMainPageAbility().SetSidePaneOpenState(true, force: true);
         };
 
         _readerNavigationBar.ReaderSettingsChanged += ApplyReaderSettings;
 
-        _readerNavigationBar.FavoriteChanged += delegate (bool isFavorite)
+        _readerNavigationBar.FavoriteChanged += isFavorite =>
         {
             ViewModel.SetIsFavorite(isFavorite, true);
         };
@@ -348,14 +306,14 @@ internal sealed partial class ReaderPage : BasePage
             MainReaderView.Zooming += delta * 0.01F;
         };
 
-        MainReaderView.ReaderEventTapped += delegate (ReaderView sender)
+        MainReaderView.ReaderEventTapped += sender =>
         {
             BottomTileSetHold(!_bottomTileShowed);
         };
 
-        MainReaderView.ReaderEventPageChanged += delegate (ReaderView sender, bool isIntermediate)
+        MainReaderView.ReaderEventPageChanged += (sender, isIntermediate) =>
         {
-            ViewModel.SetPageIndex(MainReaderView.CurrentPageDisplay - 1);
+            ViewModel.SetPageIndex(sender.CurrentPageDisplay - 1);
             UpdatePage();
 
             if (!MainReaderView.IsAutoScrolling)
@@ -368,6 +326,8 @@ internal sealed partial class ReaderPage : BasePage
                 SaveProgress();
                 AddToActiveTabs();
             }
+
+            SyncCurrentComic();
         };
 
         MainReaderView.ReaderEventReaderStateChanged += (sender, state, description) =>
@@ -392,7 +352,7 @@ internal sealed partial class ReaderPage : BasePage
             _readerNavigationBar.SetZooming((int)Math.Round(zooming * 100F));
         };
 
-        MainReaderView.ReaderEventAutoScrollingChanged += delegate (ReaderView sender, bool isAutoScrolling)
+        MainReaderView.ReaderEventAutoScrollingChanged += (sender, isAutoScrolling) =>
         {
             if (isAutoScrolling)
             {
@@ -542,7 +502,31 @@ internal sealed partial class ReaderPage : BasePage
     private void FocusReader()
     {
         GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
-        MainReaderView.TryFocus();
+
+        UIElement element = MainReaderView;
+        void PostFocus(int round)
+        {
+            CoroutineUtils.PostInMainThreadAsync(async () =>
+            {
+                await Task.Delay(1);
+                if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible || !GetMainWindowAbility().IsActive)
+                {
+                    return;
+                }
+
+                round++;
+                element.Focus(FocusState.Programmatic);
+
+                if (round >= 10)
+                {
+                    return;
+                }
+
+                PostFocus(round);
+            }, Microsoft.UI.Dispatching.DispatcherQueuePriority.Low);
+        }
+
+        PostFocus(0);
     }
 
     private void UpdateDisplayStatus()
@@ -613,7 +597,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        if (_bottomTileHold || InfoPane.IsPaneOpen || GridViewModeEnabled || !_readerPointerEntered)
+        if (ViewModel.IsPinned || _bottomTileHold || GridViewModeEnabled || PointerOnOverlay)
         {
             return;
         }
@@ -803,142 +787,65 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     //
-    // New tags
+    // Pin
     //
 
-    private readonly Lazy<SearchHistoryModel> _tagHistoryModel = new(() =>
+    private void PinButton_Click(object sender, RoutedEventArgs e)
     {
-        return SearchHistoryModel.Get("NewTags");
-    });
-
-    private void NewTagsAutoSuggestBox_GotFocus(object sender, RoutedEventArgs e)
-    {
-        var autoSuggestBox = (AutoSuggestBox)sender;
-        autoSuggestBox.ItemsSource = SearchTagHistory(autoSuggestBox.Text);
+        ViewModel.SetPinned(!ViewModel.IsPinned);
+        UpdatePinUI();
+        AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).Set(RegistryNames.SettingsKey.READER_OVERLAY_PINNED, ViewModel.IsPinned);
     }
 
-    private void NewTagsAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    private void UpdatePinUI()
     {
-        string text = sender.Text.Trim();
-        sender.Text = string.Empty;
-        if (ViewModel.AddNewTags(text))
+        if (ViewModel.IsPinned)
         {
-            _tagHistoryModel.Value.Save(text);
+            MainReaderView.Margin = new Thickness(0, _topOverlayHeight, _rightOverlayWidth, _bottomTileHeight);
+            ShowBottomTile();
         }
-    }
-
-    private void NewTagsAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
-    {
-        string text = args.SelectedItem.ToString() ?? string.Empty;
-        sender.Text = string.Empty;
-        if (ViewModel.AddNewTags(text))
+        else
         {
-            _tagHistoryModel.Value.Save(text);
+            MainReaderView.Margin = new Thickness(0);
         }
-    }
-
-    private void NewTagsAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-    {
-        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
-        {
-            sender.ItemsSource = SearchTagHistory(sender.Text);
-        }
-    }
-
-    private void NewTagTipButton_Click(object sender, RoutedEventArgs e)
-    {
-        ActionModel actionModel = ActionModel.Builder.Create(MessageDialogProvider.NAME)
-            .AddParameter(MessageDialogProvider.PARAM_TITLE, StringResourceProvider.Instance.EnterNewTags)
-            .AddParameter(MessageDialogProvider.PARAM_MESSAGE, StringResourceProvider.Instance.EnterNewTagsHint)
-            .Build();
-        PageActionHandler.Handle(actionModel);
-    }
-
-    private List<string> SearchTagHistory(string query)
-    {
-        char[] seperators = [.. LocalizationUtils.Colons, .. LocalizationUtils.Commas];
-        string[] keywords = query.Split(seperators, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        return [.. _tagHistoryModel.Value.Search(keywords, 10)];
     }
 
     //
     // Events
     //
 
+    private void BottomGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_bottomTileHeight == e.NewSize.Height)
+        {
+            return;
+        }
+
+        _bottomTileHeight = e.NewSize.Height;
+
+        if (ViewModel.IsPinned)
+        {
+            UpdatePinUI();
+        }
+    }
+
+    private void FullscreenButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (GetMainWindowAbility().IsFullscreen)
+        {
+            GetMainWindowAbility().ExitFullscreen();
+        }
+        else
+        {
+            GetMainWindowAbility().EnterFullscreen();
+        }
+    }
+
     private void OnGridViewItemClicked(object sender, ItemClickEventArgs e)
     {
         var ctx = (ReaderImagePreviewViewModel)e.ClickedItem;
         GridViewModeEnabled = false;
         MainReaderView.SetCurrentPage(ctx.Page);
-    }
-
-    private void MarkAsUnreadButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.NotStarted);
-    }
-
-    private void MarkAsReadingButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.Started);
-    }
-
-    private void MarkAsFinishedButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.Completed);
-    }
-
-    private async void MoreAppBarButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement fe)
-        {
-            return;
-        }
-
-        ComicModel? comic = ViewModel.Comic;
-        if (comic is null)
-        {
-            return;
-        }
-
-        List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(
-            PageActionHandler, comic, ViewModel.Playlist.ToBuilder());
-        if (menuItems.Count == 0)
-        {
-            return;
-        }
-
-        var flyout = new MenuFlyout();
-        foreach (BaseMenuFlyoutItemModel item in menuItems)
-        {
-            flyout.Items.Add(item.CreateMenuFlyoutItem());
-        }
-
-        flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
-    }
-
-    private void OnRatingControlValueChanged(RatingControl sender, object args)
-    {
-        int value = (int)sender.Value;
-        ViewModel.Comic?.SetRating(value < 1 ? -1 : value * 20);
-    }
-
-    private void OnDirectoryTapped(object sender, TappedRoutedEventArgs e)
-    {
-        var er = EventRecorder.Create("OnDirectoryTapped");
-        ViewModel.Comic?.ShowInFileExplorer(er);
-        er.DisplayErrorMessage(PageActionHandler);
-    }
-
-    private void OnEditInfoClick(object sender, RoutedEventArgs e)
-    {
-        ComicModel? comic = ViewModel.Comic;
-        if (comic == null)
-        {
-            return;
-        }
-
-        var dialog = new EditComicInfoDialog([comic]);
-        CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
     }
 
     private void OnReaderPointerExited(object sender, PointerRoutedEventArgs e)
@@ -953,7 +860,7 @@ internal sealed partial class ReaderPage : BasePage
         // Post detection to allow routed event to be dispatched to root
         CoroutineUtils.PostInMainThread(() =>
         {
-            if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow())
+            if (PointerOnOverlay)
             {
                 ShowBottomTile();
             }
@@ -968,7 +875,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        HideBottomTileDelayed(3000);
+        HideBottomTileDelayed(1000);
     }
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
@@ -981,21 +888,6 @@ internal sealed partial class ReaderPage : BasePage
         var item = args.Item as ReaderImagePreviewViewModel;
         var viewHolder = args.ItemContainer.ContentTemplateRoot as ReaderPreviewImage;
         viewHolder?.SetModel(item, args.InRecycleQueue);
-    }
-
-    private void InfoPane_PaneOpening(SplitView sender, object args)
-    {
-        GetNavigationPageAbility().SetFullscreenButtonVisible(false);
-    }
-
-    private void InfoPane_PaneClosed(SplitView sender, object args)
-    {
-        GetNavigationPageAbility().SetFullscreenButtonVisible(true);
-        if (_restoreSidebar)
-        {
-            _restoreSidebar = false;
-            GetMainPageAbility().SetSidePaneOpenState(true, force: false);
-        }
     }
 
     private void PageIndicator_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
@@ -1071,6 +963,24 @@ internal sealed partial class ReaderPage : BasePage
         return GetAbility<INavigationPageAbility>()!;
     }
 
+    private void SyncCurrentComic()
+    {
+        ComicModel? comic = ViewModel.Comic;
+
+        if (comic is not null)
+        {
+            _readerNavigationBar.SetReaderSettings(comic);
+        }
+
+        ComicChangedEventArgs args = new()
+        {
+            Comic = comic,
+            Playlist = ViewModel.Playlist,
+            PageIndex = MainReaderView.CurrentPageDisplay - 1,
+        };
+        GetEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
+    }
+
     private void AddToActiveTabs()
     {
         if (!IsStarted)
@@ -1120,74 +1030,6 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         ActiveTabs = copy;
-    }
-
-    [GeneratedRegex(REGEX_URL, RegexOptions.None)]
-    private static partial Regex URL_REGEX();
-
-    private static void FillRichTextInlines(InlineCollection inlines, string richText)
-    {
-        inlines.Clear();
-
-        Regex urlRegex = URL_REGEX();
-        MatchCollection matches = urlRegex.Matches(richText);
-        int currentIndex = 0;
-
-        foreach (Match match in matches)
-        {
-            Uri uri;
-            try
-            {
-                uri = new Uri(match.Value);
-            }
-            catch (Exception)
-            {
-                continue;
-            }
-
-            int startIndex = match.Index;
-            int endIndex = match.Index + match.Length;
-            if (endIndex <= currentIndex)
-            {
-                continue;
-            }
-
-            if (startIndex > currentIndex)
-            {
-                var run = new Run
-                {
-                    Text = richText[currentIndex..startIndex]
-                };
-                inlines.Add(run);
-            }
-
-            {
-                var run = new Run
-                {
-                    Text = match.Value
-                };
-
-                var hyperlink = new Hyperlink
-                {
-                    NavigateUri = uri
-                };
-
-                hyperlink.Inlines.Add(run);
-                inlines.Add(hyperlink);
-            }
-
-            currentIndex = endIndex;
-        }
-
-        if (currentIndex < richText.Length)
-        {
-            var run = new Run
-            {
-                Text = richText[currentIndex..]
-            };
-
-            inlines.Add(run);
-        }
     }
 
     private static long GetTick()

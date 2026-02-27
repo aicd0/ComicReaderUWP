@@ -20,19 +20,14 @@
         SelectionChanged="OnNavPaneSelectionChanged">
         <Frame x:Name="ContentFrame" Background="#01FFFFFF" />
         <muxc:NavigationView.MenuItems>
-            <muxc:NavigationViewItem Name="Favorites" ToolTipService.ToolTip="{x:Bind StringResource.Favorites}">
+            <muxc:NavigationViewItem Name="ComicInfo" ToolTipService.ToolTip="{x:Bind StringResource.ComicInfo}">
                 <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE728;" />
+                    <FontIcon Glyph="&#xE946;" />
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Name="History" ToolTipService.ToolTip="{x:Bind StringResource.History}">
+            <muxc:NavigationViewItem Name="Playlist" ToolTipService.ToolTip="{x:Bind StringResource.ReadingList}">
                 <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE81C;" />
-                </muxc:NavigationViewItem.Icon>
-            </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Name="Folders" ToolTipService.ToolTip="{x:Bind StringResource.Folders}">
-                <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE8B7;" />
+                    <FontIcon Glyph="&#xE7BC;" />
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
             <muxc:NavigationViewItem Name="Tags" ToolTipService.ToolTip="{x:Bind StringResource.Tags}">
@@ -40,14 +35,24 @@
                     <FontIcon Glyph="&#xE8EC;" />
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
+            <muxc:NavigationViewItem Name="Favorites" ToolTipService.ToolTip="{x:Bind StringResource.Favorites}">
+                <muxc:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE728;" />
+                </muxc:NavigationViewItem.Icon>
+            </muxc:NavigationViewItem>
             <muxc:NavigationViewItem Name="FilterPresets" ToolTipService.ToolTip="{x:Bind StringResource.FilterPresets}">
                 <muxc:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE71C;" />
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
-            <muxc:NavigationViewItem Name="Playlist" ToolTipService.ToolTip="{x:Bind StringResource.ReadingList}">
+            <muxc:NavigationViewItem Name="Folders" ToolTipService.ToolTip="{x:Bind StringResource.Folders}">
                 <muxc:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE7BC;" />
+                    <FontIcon Glyph="&#xE8B7;" />
+                </muxc:NavigationViewItem.Icon>
+            </muxc:NavigationViewItem>
+            <muxc:NavigationViewItem Name="History" ToolTipService.ToolTip="{x:Bind StringResource.History}">
+                <muxc:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE81C;" />
                 </muxc:NavigationViewItem.Icon>
             </muxc:NavigationViewItem>
         </muxc:NavigationView.MenuItems>

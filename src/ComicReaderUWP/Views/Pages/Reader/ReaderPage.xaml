@@ -18,7 +18,6 @@
 
     <Page.Resources>
         <ResourceDictionary>
-
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/AppBarButton.xaml" />
                 <ResourceDictionary Source="/Styles/Button.xaml" />
@@ -26,37 +25,31 @@
                 <ResourceDictionary Source="/Styles/TextBox.xaml" />
                 <ResourceDictionary Source="/Styles/ToggleButton.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToDoubleConverter x:Key="BooleanToDoubleConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
-
             <cwm:AttachedCardShadow
                 x:Key="CommonShadow"
                 Opacity="0.1"
                 Offset="0" />
-
         </ResourceDictionary>
     </Page.Resources>
 
     <Grid>
         <!--  Reader section  -->
         <Grid x:Name="GMainSection">
-
             <!--  Fullscreen background  -->
             <Rectangle
                 Fill="{ThemeResource ReaderFullscreenBackground}"
                 IsHitTestVisible="False"
                 Visibility="{x:Bind ViewModel.IsFullscreen, Mode=OneWay}" />
-
             <!--  Loading status  -->
             <TextBlock
                 x:Name="TbReaderStatus"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource ForegroundGrey2}" />
-
             <!--  Reader  -->
             <Grid
                 ContextRequested="Reader_ContextRequested"
@@ -65,121 +58,118 @@
                 <Grid x:Name="ManipulationReference" />
                 <readercontrol:ReaderView x:Name="MainReaderView" />
             </Grid>
-
             <!--  Playback control  -->
-            <Grid
+            <StackPanel
                 x:Name="BottomGrid"
-                MinWidth="350"
-                Margin="0,0,0,20"
-                Padding="8,8"
-                HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
-                Background="{ThemeResource FlyoutPresenterBackground}"
-                BorderThickness="0"
-                CornerRadius="12"
-                Opacity="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+                Opacity="0"
+                Orientation="Vertical"
+                SizeChanged="BottomGrid_SizeChanged">
+                <Rectangle Height="1" Fill="{ThemeResource SidePaneBorderBrush}" />
                 <StackPanel
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    HorizontalAlignment="Left"
-                    Orientation="Horizontal">
-                    <Button
-                        Click="PlaybackPreviousButton_Click"
-                        IsEnabled="{x:Bind ViewModel.IsPlaybackPreviousEnabled, Mode=OneWay}"
-                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
-                        <Button.Content>
-                            <FontIcon FontSize="16" Glyph="&#xE892;" />
-                        </Button.Content>
-                    </Button>
-                    <Button
-                        Click="PlaybackPlayButton_Click"
-                        IsEnabled="{x:Bind ViewModel.IsAutoPlayEnabled, Mode=OneWay}"
-                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                        ToolTipService.ToolTip="{x:Bind ViewModel.PlayOrPauseButtonTooltip, Mode=OneWay}">
-                        <Button.Content>
-                            <FontIcon FontSize="16" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
-                        </Button.Content>
-                    </Button>
-                    <Button
-                        Click="PlaybackNextButton_Click"
-                        IsEnabled="{x:Bind ViewModel.IsPlaybackNextEnabled, Mode=OneWay}"
-                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.Next}">
-                        <Button.Content>
-                            <FontIcon FontSize="16" Glyph="&#xE893;" />
-                        </Button.Content>
-                    </Button>
-                    <Button
-                        Click="PlaybackPlaylistButton_Click"
-                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.ReadingList}">
-                        <Button.Content>
-                            <FontIcon FontSize="14" Glyph="&#xE7BC;" />
-                        </Button.Content>
-                    </Button>
-                    <Button
-                        Click="PlaybackMoreButton_Click"
-                        Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                        ToolTipService.ToolTip="{x:Bind StringResource.More}">
-                        <Button.Content>
-                            <FontIcon FontSize="14" Glyph="&#xE712;" />
-                        </Button.Content>
-                    </Button>
+                    Padding="8,8"
+                    Background="{ThemeResource FlyoutPresenterBackground}"
+                    Orientation="Vertical">
+                    <Grid>
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                            <Button
+                                Click="PlaybackPreviousButton_Click"
+                                IsEnabled="{x:Bind ViewModel.IsPlaybackPreviousEnabled, Mode=OneWay}"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
+                                <Button.Content>
+                                    <FontIcon FontSize="16" Glyph="&#xE892;" />
+                                </Button.Content>
+                            </Button>
+                            <Button
+                                Click="PlaybackPlayButton_Click"
+                                IsEnabled="{x:Bind ViewModel.IsAutoPlayEnabled, Mode=OneWay}"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.PlayOrPauseButtonTooltip, Mode=OneWay}">
+                                <Button.Content>
+                                    <FontIcon FontSize="16" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
+                                </Button.Content>
+                            </Button>
+                            <Button
+                                Click="PlaybackNextButton_Click"
+                                IsEnabled="{x:Bind ViewModel.IsPlaybackNextEnabled, Mode=OneWay}"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.Next}">
+                                <Button.Content>
+                                    <FontIcon FontSize="16" Glyph="&#xE893;" />
+                                </Button.Content>
+                            </Button>
+                            <Button
+                                Click="PlaybackPlaylistButton_Click"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.ReadingList}">
+                                <Button.Content>
+                                    <FontIcon FontSize="14" Glyph="&#xE7BC;" />
+                                </Button.Content>
+                            </Button>
+                            <Button
+                                Click="PlaybackMoreButton_Click"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.More}">
+                                <Button.Content>
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                        <StackPanel
+                            Padding="4,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <TextBlock
+                                x:Name="PageIndicator2"
+                                Margin="4,0,4,2"
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="SemiLight"
+                                Foreground="{ThemeResource ForegroundGrey2}"
+                                Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
+                            <StackPanel
+                                Margin="0,0,4,0"
+                                Padding="4,0"
+                                Background="Transparent"
+                                Orientation="Horizontal"
+                                PointerWheelChanged="PageIndicator_PointerWheelChanged">
+                                <TextBlock
+                                    Margin="0,0,4,2"
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
+                                <FontIcon
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    Glyph="&#xEC8F;" />
+                            </StackPanel>
+                            <Button
+                                Click="PinButton_Click"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.PinButtonText, Mode=OneWay}">
+                                <Button.Content>
+                                    <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.PinButtonGlyph, Mode=OneWay}" />
+                                </Button.Content>
+                            </Button>
+                            <Button
+                                Click="FullscreenButton_Click"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.FullscreenButtonText, Mode=OneWay}">
+                                <Button.Content>
+                                    <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.FullscreenButtonGlyph, Mode=OneWay}" />
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <Slider
+                        x:Name="PlaybackSlider"
+                        Margin="4,2,4,-4"
+                        Minimum="1"
+                        ValueChanged="PlaybackSlider_ValueChanged" />
                 </StackPanel>
-                <StackPanel
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    Margin="4,0,0,0"
-                    Padding="4,0"
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal">
-                    <TextBlock
-                        x:Name="PageIndicator2"
-                        Margin="0,0,0,2"
-                        VerticalAlignment="Center"
-                        FontSize="14"
-                        FontWeight="SemiLight"
-                        Foreground="{ThemeResource ForegroundGrey2}"
-                        Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
-                </StackPanel>
-                <StackPanel
-                    Grid.Row="0"
-                    Grid.Column="3"
-                    Padding="4,0"
-                    Background="Transparent"
-                    Orientation="Horizontal"
-                    PointerWheelChanged="PageIndicator_PointerWheelChanged">
-                    <TextBlock
-                        Margin="0,0,4,2"
-                        VerticalAlignment="Center"
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
-                    <FontIcon
-                        VerticalAlignment="Center"
-                        FontSize="14"
-                        Glyph="&#xEC8F;" />
-                </StackPanel>
-                <Slider
-                    x:Name="PlaybackSlider"
-                    Grid.Row="1"
-                    Grid.ColumnSpan="4"
-                    Margin="4,2,4,-4"
-                    Minimum="1"
-                    ValueChanged="PlaybackSlider_ValueChanged" />
-            </Grid>
-
+            </StackPanel>
             <!--  Tips  -->
             <muxc:InfoBar
                 x:Name="ReaderTip"
@@ -194,7 +184,6 @@
                 Message="{x:Bind StringResource.ReaderTipContent}"
                 Severity="Informational" />
         </Grid>
-
         <!--  Preview grid  -->
         <GridView
             x:Name="PreviewGridView"
@@ -223,202 +212,6 @@
                 </ItemsPanelTemplate>
             </GridView.ItemsPanel>
         </GridView>
-
-        <!--  Info pane  -->
-        <SplitView
-            x:Name="InfoPane"
-            Grid.Row="1"
-            DisplayMode="Overlay"
-            PaneBackground="{ThemeResource FlyoutPresenterBackground}"
-            PaneClosed="InfoPane_PaneClosed"
-            PaneOpening="InfoPane_PaneOpening"
-            PanePlacement="Right">
-
-            <SplitView.Pane>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <!--  Information  -->
-                    <ScrollViewer
-                        Grid.Row="0"
-                        Padding="15,0,15,0"
-                        VerticalScrollBarVisibility="Auto">
-                        <StackPanel Orientation="Vertical">
-                            <Grid Height="34" />
-
-                            <!--  Title1  -->
-                            <TextBlock
-                                FontSize="20"
-                                FontWeight="SemiLight"
-                                IsTextSelectionEnabled="True"
-                                Text="{x:Bind ViewModel.ComicTitle1, Mode=OneWay}"
-                                TextWrapping="Wrap" />
-
-                            <!--  Title2  -->
-                            <TextBlock
-                                Margin="0,10,0,0"
-                                FontSize="20"
-                                FontWeight="SemiLight"
-                                IsTextSelectionEnabled="True"
-                                Text="{x:Bind ViewModel.ComicTitle2, Mode=OneWay}"
-                                TextWrapping="Wrap"
-                                Visibility="{x:Bind ViewModel.IsComicTitle2Visible, Mode=OneWay}" />
-
-                            <!--  Description  -->
-                            <TextBlock
-                                x:Name="TbComicDescription"
-                                Margin="0,10,0,0"
-                                FontSize="13"
-                                FontWeight="SemiLight"
-                                IsTextSelectionEnabled="True"
-                                TextWrapping="Wrap" />
-
-                            <!--  Rating  -->
-                            <muxc:RatingControl
-                                x:Name="RcRating"
-                                Margin="0,10,0,0"
-                                HorizontalAlignment="Left"
-                                IsClearEnabled="True"
-                                ValueChanged="OnRatingControlValueChanged"
-                                Value="{x:Bind ViewModel.Rating, Mode=TwoWay}" />
-
-                            <Rectangle
-                                Height="1"
-                                Margin="0,18"
-                                Fill="{ThemeResource ComicInfoSeparatorForeground}" />
-
-                            <!--  Directory  -->
-                            <RichTextBlock Margin="0,0,0,0" VerticalAlignment="Center">
-                                <Paragraph>
-                                    <Run
-                                        FontSize="13"
-                                        FontWeight="SemiLight"
-                                        Text="{x:Bind ViewModel.ComicDir, Mode=OneWay}" />
-                                    <InlineUIContainer>
-                                        <FontIcon
-                                            Margin="0,0,0,-2.5"
-                                            FontSize="13"
-                                            Glyph="&#xE838;"
-                                            Tapped="OnDirectoryTapped"
-                                            ToolTipService.ToolTip="{x:Bind StringResource.OpenInFileExplorer}" />
-                                    </InlineUIContainer>
-                                </Paragraph>
-                            </RichTextBlock>
-
-                            <!--  Image description  -->
-                            <TextBlock
-                                Margin="0,6,0,0"
-                                FontSize="13"
-                                FontWeight="SemiLight"
-                                IsTextSelectionEnabled="True"
-                                Text="{x:Bind ViewModel.ImageDescription, Mode=OneWay}"
-                                TextWrapping="Wrap"
-                                Visibility="{x:Bind ViewModel.ImageDescription, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
-
-                            <Rectangle
-                                Height="1"
-                                Margin="0,20"
-                                Fill="{ThemeResource ComicInfoSeparatorForeground}"
-                                Visibility="{x:Bind ViewModel.HasAnyTags, Mode=OneWay}" />
-
-                            <!--  Tags  -->
-                            <ListView
-                                Margin="0,0,0,0"
-                                ItemsSource="{x:Bind ViewModel.ComicTags}"
-                                SelectionMode="None">
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                        <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                                        <Setter Property="Padding" Value="0" />
-                                    </Style>
-                                </ListView.ItemContainerStyle>
-                                <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:TagCollectionViewModel">
-                                        <reader:TagCategoryView DataContext="{x:Bind}" />
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!--  Bottom controls  -->
-                    <StackPanel
-                        Grid.Row="1"
-                        Margin="15,5,15,3"
-                        Orientation="Vertical">
-
-                        <Grid Margin="0,0,0,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <AutoSuggestBox
-                                Grid.Column="0"
-                                GotFocus="NewTagsAutoSuggestBox_GotFocus"
-                                IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
-                                PlaceholderText="{x:Bind StringResource.EnterNewTags}"
-                                QuerySubmitted="NewTagsAutoSuggestBox_QuerySubmitted"
-                                SuggestionChosen="NewTagsAutoSuggestBox_SuggestionChosen"
-                                TextChanged="NewTagsAutoSuggestBox_TextChanged" />
-                            <Button
-                                Grid.Column="1"
-                                Margin="8,0,0,0"
-                                Padding="0"
-                                VerticalAlignment="Center"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Click="NewTagTipButton_Click">
-                                <Button.Content>
-                                    <FontIcon FontSize="12" Glyph="&#xE946;" />
-                                </Button.Content>
-                            </Button>
-                        </Grid>
-
-                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                            <AppBarButton
-                                Click="OnEditInfoClick"
-                                Icon="Edit"
-                                IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
-                                Label="{x:Bind StringResource.Edit}"
-                                Style="{StaticResource InfoPanelAppBarButtonStyle}" />
-                            <AppBarButton
-                                x:Name="SetCompletionStateButton"
-                                Margin="2,0,0,0"
-                                Style="{StaticResource InfoPanelAppBarButtonStyle}">
-                                <AppBarButton.Flyout>
-                                    <MenuFlyout>
-                                        <ToggleMenuFlyoutItem
-                                            x:Name="MarkAsUnreadButton"
-                                            Click="MarkAsUnreadButton_Click"
-                                            Text="{x:Bind StringResource.CompletionStatusUnread}" />
-                                        <ToggleMenuFlyoutItem
-                                            x:Name="MarkAsReadingButton"
-                                            Click="MarkAsReadingButton_Click"
-                                            Text="{x:Bind StringResource.CompletionStatusReading}" />
-                                        <ToggleMenuFlyoutItem
-                                            x:Name="MarkAsFinishedButton"
-                                            Click="MarkAsFinishedButton_Click"
-                                            Text="{x:Bind StringResource.CompletionStatusFinished}" />
-                                    </MenuFlyout>
-                                </AppBarButton.Flyout>
-                            </AppBarButton>
-                            <AppBarButton
-                                Margin="2,0,0,0"
-                                Click="MoreAppBarButton_Click"
-                                Icon="More"
-                                Label="{x:Bind StringResource.More}"
-                                Style="{StaticResource InfoPanelAppBarButtonStyle}" />
-                        </StackPanel>
-
-                    </StackPanel>
-
-                </Grid>
-            </SplitView.Pane>
-        </SplitView>
     </Grid>
+
 </base:BasePage>

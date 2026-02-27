@@ -13,7 +13,5 @@ internal interface INavigationPageAbility : IPageAbility
 
     void SetCustomNavigationBar(UIElement? element);
 
-    void SetFullscreenButtonVisible(bool visible);
-
     void RegisterRefreshHandler(ILifecycleOwner owner, CommonEventHandler handler);
 }

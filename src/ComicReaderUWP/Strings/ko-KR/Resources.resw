@@ -630,6 +630,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="NoComicsHint" xml:space="preserve">
     <value>여기에 내 만화가 표시됩니다</value>
   </data>
+  <data name="NoContent" xml:space="preserve">
+    <value>표시할 콘텐츠가 없습니다</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>즐겨찾기가 여기에 표시됩니다</value>
   </data>

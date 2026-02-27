@@ -13,6 +13,8 @@ internal interface IMainWindowAbility : IPageAbility
 
     int WindowId { get; }
 
+    bool IsActive { get; }
+
     bool IsMinimized { get; }
 
     bool IsFullscreen { get; }

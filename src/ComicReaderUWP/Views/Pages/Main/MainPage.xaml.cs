@@ -253,7 +253,6 @@ internal sealed partial class MainPage : BasePage
             if (_tabContainerGrid != null)
             {
                 _tabContainerGrid.Opacity = opacity;
-                FullscreenButtonGrid.Opacity = opacity;
                 _tabContainerGrid.IsHitTestVisible = opacity > 0.5;
             }
         });
@@ -517,7 +516,6 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        TabInfo? lastSelectedTab = _currentTab;
         var newSelectedTabItem = (TabViewItem)e.AddedItems[0];
         TabInfo? newSelectedTab = null;
         foreach (TabInfo tabInfo in _tabs)
@@ -662,7 +660,6 @@ internal sealed partial class MainPage : BasePage
         IPageTrait pageTrait = tabInfo.CurrentBundle.PageTrait;
         bool immersiveMode = pageTrait.ImmersiveMode();
         bool isHomePage = pageTrait is HomePageTrait;
-        bool isReaderPage = pageTrait is ReaderPageTrait;
 
         ViewModel.IsHomePage = isHomePage;
         ViewModel.CanGoBack = ((Frame)tabInfo.Item.Content).CanGoBack;
@@ -742,11 +739,8 @@ internal sealed partial class MainPage : BasePage
         _titleBarVisible = show;
         double targetOpacity = show ? 1.0 : 0.0;
 
-        if (_titleBarAnimation != null)
-        {
-            _titleBarAnimation.Stop();
-            _titleBarAnimation = null;
-        }
+        _titleBarAnimation?.Stop();
+        _titleBarAnimation = null;
 
         if (transitionAnimation)
         {
@@ -881,7 +875,7 @@ internal sealed partial class MainPage : BasePage
 
     private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        double newWidth = NavigationPageSidePane.OpenPaneLength;
+        double newWidth = NavigationPageSidePane.OpenPaneLength + NavigationPageSidePane.Margin.Right;
         if (_sidePaneWidth == newWidth)
         {
             return;
@@ -931,25 +925,6 @@ internal sealed partial class MainPage : BasePage
         {
             AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_OPENED, opened);
         }
-    }
-
-    //
-    // Fullscreen
-    //
-
-    private void FullscreenButtonGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        ShowOrHideTitleBar(true, transitionAnimation: true);
-    }
-
-    private void OnFullscreenBtClicked(object sender, RoutedEventArgs e)
-    {
-        GetMainWindowAbility().EnterFullscreen();
-    }
-
-    private void OnBackToWindowBtClicked(object sender, RoutedEventArgs e)
-    {
-        GetMainWindowAbility().ExitFullscreen();
     }
 
     //
@@ -1356,7 +1331,6 @@ internal sealed partial class MainPage : BasePage
         private readonly WeakReference<MainPage> _parent;
         private WeakReference<UIElement>? _customNavigationBar;
         private readonly EventBus _eventBus = new();
-        private bool _fullscreenButtonVisible = true;
 
         public NavigationPageAbility(MainPage parent)
         {
@@ -1367,7 +1341,6 @@ internal sealed partial class MainPage : BasePage
         public void ClearStates()
         {
             _eventBus.Clear();
-            _fullscreenButtonVisible = true;
         }
 
         public void RestoreStates()
@@ -1377,7 +1350,6 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            SetFullscreenButtonVisibleInternal(parent);
             SetCustomNavigationBarInternal(parent);
         }
 
@@ -1407,26 +1379,6 @@ internal sealed partial class MainPage : BasePage
                 _customNavigationBar = null;
                 page.SetCustomNavigationBar(null);
             }
-        }
-
-        //
-        // Fullscreen Button
-        //
-
-        public void SetFullscreenButtonVisible(bool visible)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            _fullscreenButtonVisible = visible;
-            SetFullscreenButtonVisibleInternal(parent);
-        }
-
-        private void SetFullscreenButtonVisibleInternal(MainPage page)
-        {
-            page.FullscreenButtonGrid.Visibility = _fullscreenButtonVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
         //

@@ -21,6 +21,7 @@ internal sealed partial class SidePaneView : BaseUserControl
     private const string FOLDERS = "Folders";
     private const string FILTER_PRESETS = "FilterPresets";
     private const string PLAYLIST = "Playlist";
+    private const string COMIC_INFO = "ComicInfo";
 
     public delegate void PinStateChangedEventHandler(SidePaneView sender, bool pinned);
     public event PinStateChangedEventHandler? PinStateChanged;
@@ -69,6 +70,7 @@ internal sealed partial class SidePaneView : BaseUserControl
             PageEnum.Folders => FOLDERS,
             PageEnum.FilterPresets => FILTER_PRESETS,
             PageEnum.Playlist => PLAYLIST,
+            PageEnum.ComicInfo => COMIC_INFO,
             _ => FAVORITES,
         };
         NavigateToItem(pageName);
@@ -99,6 +101,7 @@ internal sealed partial class SidePaneView : BaseUserControl
 
         ContentFrame.Content = null;
         _currentItem = item;
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
         if (_pageCache.TryGetValue(item, out object? pageCache))
         {
             ContentFrame.Content = pageCache;
@@ -113,13 +116,13 @@ internal sealed partial class SidePaneView : BaseUserControl
             FOLDERS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FOLDERS),
             FILTER_PRESETS => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FILTER_PRESETS),
             PLAYLIST => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_PLAYLIST),
+            COMIC_INFO => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_COMIC_INFO),
             _ => Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
         };
 
         NavigationBundle bundle = AppRouter.Process(route)!;
         _handler.TransferAbility(bundle);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, item);
     }
 
     private void PinButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
@@ -173,5 +176,6 @@ internal sealed partial class SidePaneView : BaseUserControl
         Folders,
         FilterPresets,
         Playlist,
+        ComicInfo,
     }
 }

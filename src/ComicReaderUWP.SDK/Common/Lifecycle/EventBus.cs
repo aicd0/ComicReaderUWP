@@ -10,7 +10,7 @@ public class EventBus : IEventBus
     private readonly Dictionary<string, ILiveDataNoType> _topics = [];
     private bool _clearing = false;
 
-    public IMutableLiveData<T> With<T>(string eventId)
+    public IMutableLiveData<T> With<T>(string eventId) where T : notnull
     {
         if (_clearing)
         {

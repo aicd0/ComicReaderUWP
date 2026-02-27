@@ -355,30 +355,6 @@
             </muxc:TabView.TabStripFooter>
         </muxc:TabView>
 
-        <!--  Fullscreen button  -->
-        <Grid
-            x:Name="FullscreenButtonGrid"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            PointerEntered="FullscreenButtonGrid_PointerEntered">
-            <Button
-                Click="OnFullscreenBtClicked"
-                Style="{StaticResource ReaderFullscreenButtonStyle}"
-                Visibility="{x:Bind ViewModel.IsFullscreen, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}">
-                <Button.Content>
-                    <FontIcon Glyph="&#xE740;" />
-                </Button.Content>
-            </Button>
-            <Button
-                Click="OnBackToWindowBtClicked"
-                Style="{StaticResource ReaderFullscreenButtonStyle}"
-                Visibility="{x:Bind ViewModel.IsFullscreen, Mode=OneWay}">
-                <Button.Content>
-                    <FontIcon Glyph="&#xE73F;" />
-                </Button.Content>
-            </Button>
-        </Grid>
-
         <!--  Busy indicator  -->
         <Grid Background="{ThemeResource BusyBackground}" Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay}">
             <ProgressRing

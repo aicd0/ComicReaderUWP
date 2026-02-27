@@ -10,4 +10,5 @@ internal class EventId
     public const string TitleBarOpacity = "TitleBarOpacity";
     public const string CloseTab = "CloseTab";
     public const string PlaybackChanged = "PlaybackChanged";
+    public const string ComicInfoChanged = "ComicInfoChanged";
 }

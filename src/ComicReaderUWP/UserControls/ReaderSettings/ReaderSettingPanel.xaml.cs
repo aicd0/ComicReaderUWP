@@ -54,6 +54,11 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
 
     public void SetComic(ComicModel comic)
     {
+        if (_comic == comic)
+        {
+            return;
+        }
+
         _comic = comic;
         _model = ReaderSettingsModel.LoadFromComic(comic);
         UpdateUI();

@@ -5,6 +5,7 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.Views.Pages.DevTools;
 using ComicReaderUWP.Views.Pages.Main;
+using ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
 using ComicReaderUWP.Views.Pages.SidePane.Favorite;
 using ComicReaderUWP.Views.Pages.SidePane.FilterPresets;
 using ComicReaderUWP.Views.Pages.SidePane.Folders;
@@ -31,6 +32,7 @@ internal class OpenPageInterceptor : IRouterInterceptor
             RouterConstants.HOST_SIDE_PANE_FOLDERS => new DefaultPageTrait(typeof(FoldersPage)),
             RouterConstants.HOST_SIDE_PANE_FILTER_PRESETS => new DefaultPageTrait(typeof(FilterPresetsPage)),
             RouterConstants.HOST_SIDE_PANE_PLAYLIST => new DefaultPageTrait(typeof(PlaylistPage)),
+            RouterConstants.HOST_SIDE_PANE_COMIC_INFO => new DefaultPageTrait(typeof(ComicInfoPage)),
             RouterConstants.HOST_DEV_TOOLS => DebugUtils.DeveloperMode ? new DefaultPageTrait(typeof(DevToolsPage)) : null,
             _ => null,
         };

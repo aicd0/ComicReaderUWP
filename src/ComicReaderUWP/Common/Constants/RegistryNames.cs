@@ -16,4 +16,9 @@ internal static class RegistryNames
     public const string RUNTIME_RESOURCES = $"{RESOURCES}Runtime/";
     public const string PLAYLISTS = $"{RUNTIME_RESOURCES}Playlists/";
     public const string TAB_RESOURCES = $"{RESOURCES}Tabs/";
+
+    public static class SettingsKey
+    {
+        public const string READER_OVERLAY_PINNED = "ReaderOverlayPinned";
+    }
 }

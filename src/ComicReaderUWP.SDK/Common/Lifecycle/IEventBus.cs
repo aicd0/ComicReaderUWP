@@ -5,7 +5,7 @@ namespace ComicReaderUWP.SDK.Common.Lifecycle;
 
 public interface IEventBus
 {
-    public IMutableLiveData<T> With<T>(string eventId);
+    public IMutableLiveData<T> With<T>(string eventId) where T : notnull;
 
     public IMutableLiveData<object> With(string eventId);
 
