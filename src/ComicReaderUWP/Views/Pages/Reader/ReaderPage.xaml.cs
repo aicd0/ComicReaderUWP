@@ -170,6 +170,7 @@ internal sealed partial class ReaderPage : BasePage
             Thickness margin = PreviewGridView.Margin;
             margin.Right = w;
             PreviewGridView.Margin = margin;
+            BottomGrid.Margin = new Thickness(0, 0, w, 0);
         });
 
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
