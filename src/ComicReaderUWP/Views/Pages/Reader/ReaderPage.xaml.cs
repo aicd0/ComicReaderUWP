@@ -68,6 +68,8 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
+    private bool PointerOnOverlay => !_readerPointerEntered && GetMainWindowAbility().PointerInWindow();
+
     private readonly ReaderNavigationBar _readerNavigationBar;
     private bool _displayActive = false;
     private bool _readerPointerEntered = false;
@@ -478,7 +480,31 @@ internal sealed partial class ReaderPage : BasePage
     private void FocusReader()
     {
         GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
-        MainReaderView.TryFocus();
+
+        UIElement element = MainReaderView;
+        void PostFocus(int round)
+        {
+            CoroutineUtils.PostInMainThreadAsync(async () =>
+            {
+                await Task.Delay(1);
+                if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible || !GetMainWindowAbility().IsActive)
+                {
+                    return;
+                }
+
+                round++;
+                element.Focus(FocusState.Programmatic);
+
+                if (round >= 10)
+                {
+                    return;
+                }
+
+                PostFocus(round);
+            }, Microsoft.UI.Dispatching.DispatcherQueuePriority.Low);
+        }
+
+        PostFocus(0);
     }
 
     private void UpdateDisplayStatus()
@@ -549,7 +575,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        if (_bottomTileHold || GridViewModeEnabled || !_readerPointerEntered)
+        if (_bottomTileHold || GridViewModeEnabled || PointerOnOverlay)
         {
             return;
         }
@@ -761,7 +787,7 @@ internal sealed partial class ReaderPage : BasePage
         // Post detection to allow routed event to be dispatched to root
         CoroutineUtils.PostInMainThread(() =>
         {
-            if (!_readerPointerEntered && GetMainWindowAbility().PointerInWindow())
+            if (PointerOnOverlay)
             {
                 ShowBottomTile();
             }
