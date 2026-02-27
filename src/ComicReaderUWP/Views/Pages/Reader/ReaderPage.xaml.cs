@@ -765,6 +765,20 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     //
+    // Fullscreen
+    //
+
+    private void FullscreenButton_Click(object sender, RoutedEventArgs e)
+    {
+        GetMainWindowAbility().EnterFullscreen();
+    }
+
+    private void BackToWindowButton_Click(object sender, RoutedEventArgs e)
+    {
+        GetMainWindowAbility().ExitFullscreen();
+    }
+
+    //
     // Events
     //
 

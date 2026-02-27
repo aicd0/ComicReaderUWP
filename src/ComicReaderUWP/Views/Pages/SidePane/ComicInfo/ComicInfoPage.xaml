@@ -160,7 +160,7 @@
                         </Button.Content>
                     </Button>
                 </Grid>
-                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                     <AppBarButton
                         Click="OnEditInfoClick"
                         Icon="Edit"
