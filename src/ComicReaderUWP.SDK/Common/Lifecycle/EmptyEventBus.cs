@@ -13,7 +13,7 @@ public class EmptyEventBus : IEventBus
     {
     }
 
-    public IMutableLiveData<T> With<T>(string eventId)
+    public IMutableLiveData<T> With<T>(string eventId) where T : notnull
     {
         return new EmptyLiveData<T>();
     }

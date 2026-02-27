@@ -629,6 +629,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="NoComicsHint" xml:space="preserve">
     <value>你的漫画会显示在这里</value>
   </data>
+  <data name="NoContent" xml:space="preserve">
+    <value>暂无可显示内容</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>您的收藏会显示在此处</value>
   </data>

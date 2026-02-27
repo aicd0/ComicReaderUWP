@@ -6,7 +6,7 @@ using ComicReaderUWP.SDK.Common.Utils;
 
 namespace ComicReaderUWP.SDK.Common.Lifecycle;
 
-public class LiveData<T> : ILiveData<T>, ILiveDataNoType
+public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
 {
     private readonly Dictionary<IObserver<T>, ObserverWrapper> _observers = [];
     private T? _value;

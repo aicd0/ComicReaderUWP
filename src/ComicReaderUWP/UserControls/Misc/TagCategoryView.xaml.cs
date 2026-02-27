@@ -4,7 +4,7 @@
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.ViewModels;
 
-namespace ComicReaderUWP.Views.Pages.Reader;
+namespace ComicReaderUWP.UserControls.Misc;
 
 internal sealed partial class TagCategoryView : BaseUserControl
 {

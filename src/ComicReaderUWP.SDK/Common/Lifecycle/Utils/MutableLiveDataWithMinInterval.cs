@@ -5,7 +5,7 @@ using ComicReaderUWP.SDK.Common.Utils;
 
 namespace ComicReaderUWP.SDK.Common.Lifecycle.Utils;
 
-public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval, int delay = 0) : IMutableLiveData<T>
+public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval, int delay = 0) : IMutableLiveData<T> where T : notnull
 {
     private readonly IMutableLiveData<T> _liveData = liveData;
 

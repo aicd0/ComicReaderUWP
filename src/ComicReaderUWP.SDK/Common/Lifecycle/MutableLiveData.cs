@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.SDK.Common.Lifecycle;
 
-public class MutableLiveData<T> : LiveData<T>, IMutableLiveData<T>
+public class MutableLiveData<T> : LiveData<T>, IMutableLiveData<T> where T : notnull
 {
     public MutableLiveData() : base() { }
 

@@ -31,19 +31,19 @@ public static class Extensions
         return state == ILifecycle.State.Started || state == ILifecycle.State.Resumed;
     }
 
-    public static void Observe<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer)
+    public static void Observe<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
     {
         var wrapper = new Observer<T>(observer);
         liveData.Observe(owner, wrapper, sObserveOptionDefault);
     }
 
-    public static void ObserveSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer)
+    public static void ObserveSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
     {
         var wrapper = new Observer<T>(observer);
         liveData.Observe(owner, wrapper, sObserveOptionSticky);
     }
 
-    public static void ObserveStartSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer)
+    public static void ObserveStartSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
     {
         var wrapper = new Observer<T>(observer);
         liveData.Observe(owner, wrapper, sObserveOptionStartSticky);

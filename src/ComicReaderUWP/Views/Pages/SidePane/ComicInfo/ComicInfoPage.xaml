@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<base:BasePage
+    x:Class="ComicReaderUWP.Views.Pages.SidePane.ComicInfo.ComicInfoPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:ComicReaderUWP.Common.BaseUI"
+    xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
+    xmlns:converters="using:ComicReaderUWP.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:ComicReaderUWP.Views.Pages.SidePane.ComicInfo"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:vm="using:ComicReaderUWP.ViewModels"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/AppBarButton.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid>
+        <TextBlock
+            Margin="0,10"
+            HorizontalAlignment="Center"
+            FontWeight="SemiBold"
+            Text="{x:Bind StringResource.NoContent}"
+            Visibility="{x:Bind ViewModel.IsEmpty, Mode=OneWay}" />
+        <Grid Visibility="{x:Bind ViewModel.IsEmpty, Mode=OneWay, Converter={StaticResource BooleanToVisibilityNegationConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!--  Information  -->
+            <ScrollViewer
+                Grid.Row="0"
+                Padding="15,0,15,0"
+                VerticalScrollBarVisibility="Auto">
+                <StackPanel Orientation="Vertical">
+                    <Grid Height="34" />
+                    <!--  Title1  -->
+                    <TextBlock
+                        FontSize="20"
+                        FontWeight="SemiLight"
+                        IsTextSelectionEnabled="True"
+                        Text="{x:Bind ViewModel.ComicTitle1, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                    <!--  Title2  -->
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        FontSize="20"
+                        FontWeight="SemiLight"
+                        IsTextSelectionEnabled="True"
+                        Text="{x:Bind ViewModel.ComicTitle2, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.IsComicTitle2Visible, Mode=OneWay}" />
+                    <!--  Description  -->
+                    <TextBlock
+                        x:Name="TbComicDescription"
+                        Margin="0,10,0,0"
+                        FontSize="13"
+                        FontWeight="SemiLight"
+                        IsTextSelectionEnabled="True"
+                        TextWrapping="Wrap" />
+                    <!--  Rating  -->
+                    <muxc:RatingControl
+                        x:Name="RcRating"
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Left"
+                        IsClearEnabled="True"
+                        ValueChanged="OnRatingControlValueChanged"
+                        Value="{x:Bind ViewModel.Rating, Mode=TwoWay}" />
+                    <Rectangle
+                        Height="1"
+                        Margin="0,18"
+                        Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+                    <!--  Directory  -->
+                    <RichTextBlock Margin="0,0,0,0" VerticalAlignment="Center">
+                        <Paragraph>
+                            <Run
+                                FontSize="13"
+                                FontWeight="SemiLight"
+                                Text="{x:Bind ViewModel.ComicDir, Mode=OneWay}" />
+                            <InlineUIContainer>
+                                <FontIcon
+                                    Margin="0,0,0,-2.5"
+                                    FontSize="13"
+                                    Glyph="&#xE838;"
+                                    Tapped="OnDirectoryTapped"
+                                    ToolTipService.ToolTip="{x:Bind StringResource.OpenInFileExplorer}" />
+                            </InlineUIContainer>
+                        </Paragraph>
+                    </RichTextBlock>
+                    <!--  Image description  -->
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        FontSize="13"
+                        FontWeight="SemiLight"
+                        IsTextSelectionEnabled="True"
+                        Text="{x:Bind ViewModel.ImageDescription, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.ImageDescription, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
+                    <Rectangle
+                        Height="1"
+                        Margin="0,20"
+                        Fill="{ThemeResource ComicInfoSeparatorForeground}"
+                        Visibility="{x:Bind ViewModel.HasAnyTags, Mode=OneWay}" />
+                    <!--  Tags  -->
+                    <ListView
+                        Margin="0,0,0,0"
+                        ItemsSource="{x:Bind ViewModel.ComicTags}"
+                        SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                <Setter Property="Padding" Value="0" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TagCollectionViewModel">
+                                <controls:TagCategoryView DataContext="{x:Bind}" />
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+            </ScrollViewer>
+            <!--  Bottom controls  -->
+            <StackPanel
+                Grid.Row="1"
+                Margin="15,5,15,3"
+                Orientation="Vertical">
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <AutoSuggestBox
+                        Grid.Column="0"
+                        GotFocus="NewTagsAutoSuggestBox_GotFocus"
+                        IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
+                        PlaceholderText="{x:Bind StringResource.EnterNewTags}"
+                        QuerySubmitted="NewTagsAutoSuggestBox_QuerySubmitted"
+                        SuggestionChosen="NewTagsAutoSuggestBox_SuggestionChosen"
+                        TextChanged="NewTagsAutoSuggestBox_TextChanged" />
+                    <Button
+                        Grid.Column="1"
+                        Margin="8,0,0,0"
+                        Padding="0"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="NewTagTipButton_Click">
+                        <Button.Content>
+                            <FontIcon FontSize="12" Glyph="&#xE946;" />
+                        </Button.Content>
+                    </Button>
+                </Grid>
+                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                    <AppBarButton
+                        Click="OnEditInfoClick"
+                        Icon="Edit"
+                        IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
+                        Label="{x:Bind StringResource.Edit}"
+                        Style="{StaticResource InfoPanelAppBarButtonStyle}" />
+                    <AppBarButton
+                        x:Name="SetCompletionStateButton"
+                        Margin="2,0,0,0"
+                        Style="{StaticResource InfoPanelAppBarButtonStyle}">
+                        <AppBarButton.Flyout>
+                            <MenuFlyout>
+                                <ToggleMenuFlyoutItem
+                                    x:Name="MarkAsUnreadButton"
+                                    Click="MarkAsUnreadButton_Click"
+                                    Text="{x:Bind StringResource.CompletionStatusUnread}" />
+                                <ToggleMenuFlyoutItem
+                                    x:Name="MarkAsReadingButton"
+                                    Click="MarkAsReadingButton_Click"
+                                    Text="{x:Bind StringResource.CompletionStatusReading}" />
+                                <ToggleMenuFlyoutItem
+                                    x:Name="MarkAsFinishedButton"
+                                    Click="MarkAsFinishedButton_Click"
+                                    Text="{x:Bind StringResource.CompletionStatusFinished}" />
+                            </MenuFlyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+                    <AppBarButton
+                        Margin="2,0,0,0"
+                        Click="MoreAppBarButton_Click"
+                        Icon="More"
+                        Label="{x:Bind StringResource.More}"
+                        Style="{StaticResource InfoPanelAppBarButtonStyle}" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Grid>
+
+</base:BasePage>

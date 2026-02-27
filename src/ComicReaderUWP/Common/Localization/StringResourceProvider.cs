@@ -128,6 +128,7 @@ public class StringResourceProvider
     public string NewWindow => GetResourceString("NewWindow");
     public string Next => GetResourceString("Next");
     public string NoComicsHint => GetResourceString("NoComicsHint");
+    public string NoContent => GetResourceString("NoContent");
     public string NoRating => GetResourceString("NoRating");
     public string NoResults => GetResourceString("NoResults");
     public string NoTagsHint => GetResourceString("NoTagsHint");

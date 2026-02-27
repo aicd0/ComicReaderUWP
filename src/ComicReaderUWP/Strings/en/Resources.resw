@@ -631,6 +631,9 @@ The evaluation will be performed in the following order:
   <data name="NoComicsHint" xml:space="preserve">
     <value>Your comics appear here</value>
   </data>
+  <data name="NoContent" xml:space="preserve">
+    <value>No content to display</value>
+  </data>
   <data name="NoFavorite.Text" xml:space="preserve">
     <value>Your favorites appears here</value>
   </data>
