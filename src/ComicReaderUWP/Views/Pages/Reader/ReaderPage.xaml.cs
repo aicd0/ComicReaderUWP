@@ -129,7 +129,7 @@ internal sealed partial class ReaderPage : BasePage
 
         UpdateDisplayStatus();
         AddToActiveTabs();
-        ReloadReaderSettings();
+        SyncCurrentComic();
         GetEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
         UpdateReaderUI();
         FocusReader();
@@ -239,8 +239,7 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.ComicChangedLiveData.ObserveSticky(this, delegate
         {
-            ReloadReaderSettings();
-            SyncComicInfo();
+            SyncCurrentComic();
         });
 
         ViewModel.IsFavoriteLiveData.ObserveSticky(this, _readerNavigationBar.SetFavorite);
@@ -253,7 +252,7 @@ internal sealed partial class ReaderPage : BasePage
             FocusReader();
         });
 
-        _readerNavigationBar.GridViewModeChanged += delegate (bool enabled)
+        _readerNavigationBar.GridViewModeChanged += enabled =>
         {
             GridViewModeEnabled = enabled;
         };
@@ -266,7 +265,7 @@ internal sealed partial class ReaderPage : BasePage
 
         _readerNavigationBar.ReaderSettingsChanged += ApplyReaderSettings;
 
-        _readerNavigationBar.FavoriteChanged += delegate (bool isFavorite)
+        _readerNavigationBar.FavoriteChanged += isFavorite =>
         {
             ViewModel.SetIsFavorite(isFavorite, true);
         };
@@ -276,12 +275,12 @@ internal sealed partial class ReaderPage : BasePage
             MainReaderView.Zooming += delta * 0.01F;
         };
 
-        MainReaderView.ReaderEventTapped += delegate (ReaderView sender)
+        MainReaderView.ReaderEventTapped += sender =>
         {
             BottomTileSetHold(!_bottomTileShowed);
         };
 
-        MainReaderView.ReaderEventPageChanged += delegate (ReaderView sender, bool isIntermediate)
+        MainReaderView.ReaderEventPageChanged += (sender, isIntermediate) =>
         {
             ViewModel.SetPageIndex(sender.CurrentPageDisplay - 1);
             UpdatePage();
@@ -297,7 +296,7 @@ internal sealed partial class ReaderPage : BasePage
                 AddToActiveTabs();
             }
 
-            SyncComicInfo();
+            SyncCurrentComic();
         };
 
         MainReaderView.ReaderEventReaderStateChanged += (sender, state, description) =>
@@ -322,7 +321,7 @@ internal sealed partial class ReaderPage : BasePage
             _readerNavigationBar.SetZooming((int)Math.Round(zooming * 100F));
         };
 
-        MainReaderView.ReaderEventAutoScrollingChanged += delegate (ReaderView sender, bool isAutoScrolling)
+        MainReaderView.ReaderEventAutoScrollingChanged += (sender, isAutoScrolling) =>
         {
             if (isAutoScrolling)
             {
@@ -435,15 +434,6 @@ internal sealed partial class ReaderPage : BasePage
     //
     // Reader
     //
-
-    private void ReloadReaderSettings()
-    {
-        ComicModel? comic = ViewModel.Comic;
-        if (comic is not null)
-        {
-            _readerNavigationBar.SetReaderSettings(comic);
-        }
-    }
 
     private void ApplyReaderSettings(ReaderSettingsModel readerSettingModel)
     {
@@ -817,7 +807,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        HideBottomTileDelayed(3000);
+        HideBottomTileDelayed(1000);
     }
 
     private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
@@ -905,11 +895,18 @@ internal sealed partial class ReaderPage : BasePage
         return GetAbility<INavigationPageAbility>()!;
     }
 
-    private void SyncComicInfo()
+    private void SyncCurrentComic()
     {
+        ComicModel? comic = ViewModel.Comic;
+
+        if (comic is not null)
+        {
+            _readerNavigationBar.SetReaderSettings(comic);
+        }
+
         ComicChangedEventArgs args = new()
         {
-            Comic = ViewModel.Comic,
+            Comic = comic,
             Playlist = ViewModel.Playlist,
             PageIndex = MainReaderView.CurrentPageDisplay - 1,
         };
