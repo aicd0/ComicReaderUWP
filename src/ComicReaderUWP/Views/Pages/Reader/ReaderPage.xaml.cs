@@ -41,8 +41,6 @@ internal sealed partial class ReaderPage : BasePage
     // Variables
     //
 
-    private ReaderPageViewModel ViewModel { get; set; } = new();
-
     private bool _gridViewModeEnabled = false;
     private bool GridViewModeEnabled
     {
@@ -68,9 +66,13 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
+    private ReaderPageViewModel ViewModel { get; set; } = new();
     private bool PointerOnOverlay => !_readerPointerEntered && GetMainWindowAbility().PointerInWindow();
 
     private readonly ReaderNavigationBar _readerNavigationBar;
+    private double _topOverlayHeight = 0.0;
+    private double _rightOverlayWidth = 0.0;
+    private double _bottomTileHeight = 0.0;
     private bool _displayActive = false;
     private bool _readerPointerEntered = false;
     private bool _bottomTileShowed = false;
@@ -96,22 +98,30 @@ internal sealed partial class ReaderPage : BasePage
     protected override void OnStart(PageBundle bundle)
     {
         base.OnStart(bundle);
-
         AddToActiveTabs();
-
         GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
         GetNavigationPageAbility().SetCustomNavigationBar(_readerNavigationBar);
 
-        bool tipShown = AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).GetValueOrDefault(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
-        if (!tipShown)
-        {
-            ReaderTip.IsOpen = !tipShown;
-        }
-
+        // Initialize views
         MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
         _readerNavigationBar.SetWindowId(WindowId);
         _readerNavigationBar.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
 
+        {
+            bool tipShown = AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).GetValueOrDefault(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
+            if (!tipShown)
+            {
+                ReaderTip.IsOpen = !tipShown;
+            }
+        }
+
+        {
+            bool pinned = AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).GetValueOrDefault(RegistryNames.SettingsKey.READER_OVERLAY_PINNED, false);
+            ViewModel.SetPinned(pinned);
+            UpdatePinUI();
+        }
+
+        // Initialize view model
         ViewModel.Initialize(PageActionHandler);
         CoroutineUtils.Start(async () =>
         {
@@ -160,17 +170,41 @@ internal sealed partial class ReaderPage : BasePage
 
         GetEventBus().With<double>(EventId.TopOverlayHeight).ObserveSticky(this, h =>
         {
+            if (_topOverlayHeight == h)
+            {
+                return;
+            }
+
+            _topOverlayHeight = h;
+
             Thickness margin = PreviewGridView.Margin;
             margin.Top = h;
             PreviewGridView.Margin = margin;
+
+            if (ViewModel.IsPinned)
+            {
+                UpdatePinUI();
+            }
         });
 
         GetEventBus().With<double>(EventId.RightOverlayWidth).ObserveSticky(this, w =>
         {
+            if (_rightOverlayWidth == w)
+            {
+                return;
+            }
+
+            _rightOverlayWidth = w;
+
             Thickness margin = PreviewGridView.Margin;
             margin.Right = w;
             PreviewGridView.Margin = margin;
             BottomGrid.Margin = new Thickness(0, 0, w, 0);
+
+            if (ViewModel.IsPinned)
+            {
+                UpdatePinUI();
+            }
         });
 
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
@@ -563,7 +597,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        if (_bottomTileHold || GridViewModeEnabled || PointerOnOverlay)
+        if (ViewModel.IsPinned || _bottomTileHold || GridViewModeEnabled || PointerOnOverlay)
         {
             return;
         }
@@ -753,8 +787,47 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     //
-    // Fullscreen
+    // Pin
     //
+
+    private void PinButton_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SetPinned(!ViewModel.IsPinned);
+        UpdatePinUI();
+        AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).Set(RegistryNames.SettingsKey.READER_OVERLAY_PINNED, ViewModel.IsPinned);
+    }
+
+    private void UpdatePinUI()
+    {
+        if (ViewModel.IsPinned)
+        {
+            MainReaderView.Margin = new Thickness(0, _topOverlayHeight, _rightOverlayWidth, _bottomTileHeight);
+            ShowBottomTile();
+        }
+        else
+        {
+            MainReaderView.Margin = new Thickness(0);
+        }
+    }
+
+    //
+    // Events
+    //
+
+    private void BottomGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_bottomTileHeight == e.NewSize.Height)
+        {
+            return;
+        }
+
+        _bottomTileHeight = e.NewSize.Height;
+
+        if (ViewModel.IsPinned)
+        {
+            UpdatePinUI();
+        }
+    }
 
     private void FullscreenButton_Click(object sender, RoutedEventArgs e)
     {
@@ -767,10 +840,6 @@ internal sealed partial class ReaderPage : BasePage
             GetMainWindowAbility().EnterFullscreen();
         }
     }
-
-    //
-    // Events
-    //
 
     private void OnGridViewItemClicked(object sender, ItemClickEventArgs e)
     {

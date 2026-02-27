@@ -63,7 +63,8 @@
                 x:Name="BottomGrid"
                 VerticalAlignment="Bottom"
                 Opacity="0"
-                Orientation="Vertical">
+                Orientation="Vertical"
+                SizeChanged="BottomGrid_SizeChanged">
                 <Rectangle Height="1" Fill="{ThemeResource SidePaneBorderBrush}" />
                 <StackPanel
                     Padding="8,8"
@@ -116,20 +117,19 @@
                             </Button>
                         </StackPanel>
                         <StackPanel
-                            Margin="4,0,0,0"
                             Padding="4,0"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal">
                             <TextBlock
                                 x:Name="PageIndicator2"
-                                Margin="0,0,0,2"
-                                Padding="4,0"
+                                Margin="4,0,4,2"
                                 VerticalAlignment="Center"
                                 FontSize="14"
                                 FontWeight="SemiLight"
                                 Foreground="{ThemeResource ForegroundGrey2}"
                                 Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
                             <StackPanel
+                                Margin="0,0,4,0"
                                 Padding="4,0"
                                 Background="Transparent"
                                 Orientation="Horizontal"
@@ -145,6 +145,14 @@
                                     FontSize="14"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>
+                            <Button
+                                Click="PinButton_Click"
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.PinButtonText, Mode=OneWay}">
+                                <Button.Content>
+                                    <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.PinButtonGlyph, Mode=OneWay}" />
+                                </Button.Content>
+                            </Button>
                             <Button
                                 Click="FullscreenButton_Click"
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"

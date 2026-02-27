@@ -77,6 +77,39 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isPinned = false;
+    public bool IsPinned
+    {
+        get => _isPinned;
+        set
+        {
+            _isPinned = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPinned)));
+        }
+    }
+
+    private string _pinButtonGlyph = string.Empty;
+    public string PinButtonGlyph
+    {
+        get => _pinButtonGlyph;
+        set
+        {
+            _pinButtonGlyph = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PinButtonGlyph)));
+        }
+    }
+
+    private string _pinButtonText = string.Empty;
+    public string PinButtonText
+    {
+        get => _pinButtonText;
+        set
+        {
+            _pinButtonText = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PinButtonText)));
+        }
+    }
+
     private string _primaryPageIndicatorText = string.Empty;
     public string PrimaryPageIndicatorText
     {
@@ -243,6 +276,21 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             FullscreenButtonGlyph = "\uE740";
             FullscreenButtonText = StringResourceProvider.Instance.EnterFullscreen;
+        }
+    }
+
+    public void SetPinned(bool pinned)
+    {
+        IsPinned = pinned;
+        if (pinned)
+        {
+            PinButtonGlyph = "\uE77A";
+            PinButtonText = StringResourceProvider.Instance.Unpin;
+        }
+        else
+        {
+            PinButtonGlyph = "\uE718";
+            PinButtonText = StringResourceProvider.Instance.Pin;
         }
     }
 
