@@ -412,31 +412,40 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
 
     private async Task UpdateImageDescription()
     {
-        ImageDescription = string.Empty;
+        void ClearDescription()
+        {
+            CoroutineUtils.RunInMainThread(() =>
+            {
+                ImageDescription = string.Empty;
+            });
+        }
 
         ComicModel? comic = _comic;
         int pageIndex = _pageIndex;
         if (comic is null || pageIndex < 0)
         {
+            ClearDescription();
             return;
         }
 
-        using IComicConnection? comicConnection = await comic.OpenComicAsync();
-        if (comicConnection is null)
-        {
-            return;
-        }
-
-        int imageCount = comicConnection.GetImageCount();
-        if (pageIndex >= imageCount)
-        {
-            return;
-        }
-
-        string imageName = comicConnection.GetImageName(pageIndex);
-        var imageSource = new ComicImageSource(comicConnection, pageIndex);
         TaskDispatcher.DefaultQueue.Submit("LoadImageMeta", () =>
         {
+            using IComicConnection? comicConnection = comic.OpenComicAsync().Result;
+            if (comicConnection is null)
+            {
+                ClearDescription();
+                return;
+            }
+
+            int imageCount = comicConnection.GetImageCount();
+            if (pageIndex >= imageCount)
+            {
+                ClearDescription();
+                return;
+            }
+
+            string imageName = comicConnection.GetImageName(pageIndex);
+            var imageSource = new ComicImageSource(comicConnection, pageIndex);
             ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(imageSource);
             StringBuilder imageDescriptionSb = new();
 
