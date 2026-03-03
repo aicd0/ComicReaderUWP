@@ -656,6 +656,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="OK" xml:space="preserve">
     <value>DE ACUERDO</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>Solo se aplica a los cómics con estado "En lectura"</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Abrir</value>
   </data>

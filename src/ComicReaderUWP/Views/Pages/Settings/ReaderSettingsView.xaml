@@ -37,6 +37,12 @@
             Content="{x:Bind StringResource.RestoreLastReadingPosition}"
             IsChecked="{x:Bind ViewModel.RestoreLastReadingPosition, Mode=OneWay}" />
         <CheckBox
+            Margin="16,0,0,0"
+            Click="RestoreLastReadingPositionOnlyAppliesToReadingComicsCheckBox_Click"
+            Content="{x:Bind StringResource.OnlyAppliesToReadingComics}"
+            IsChecked="{x:Bind ViewModel.RestoreLastReadingPositionOnlyAppliesToReadingComics, Mode=OneWay}"
+            IsEnabled="{x:Bind ViewModel.RestoreLastReadingPosition, Mode=OneWay}" />
+        <CheckBox
             Click="UseScrollingAreaAsStartEndCheckBox_Click"
             Content="{x:Bind StringResource.StartEndFromScrollingArea}"
             IsChecked="{x:Bind ViewModel.UseScrollingAreaAsStartEnd, Mode=OneWay}" />

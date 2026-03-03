@@ -134,6 +134,7 @@ public class StringResourceProvider
     public string NoTagsHint => GetResourceString("NoTagsHint");
     public string None => GetResourceString("None");
     public string OK => GetResourceString("OK");
+    public string OnlyAppliesToReadingComics => GetResourceString("OnlyAppliesToReadingComics");
     public string Open => GetResourceString("Open");
     public string OpenComicDefaultBehavior => GetResourceString("OpenComicDefaultBehavior");
     public string OpenHomePage => GetResourceString("OpenHomePage");

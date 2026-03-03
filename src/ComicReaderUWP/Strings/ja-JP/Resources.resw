@@ -656,6 +656,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="OK" xml:space="preserve">
     <value>わかりました</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>「閲覧中」ステータスのマンガにのみ適用</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>開く</value>
   </data>

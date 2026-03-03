@@ -658,6 +658,9 @@ The evaluation will be performed in the following order:
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>Only applies to comics in "Reading" status</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Open</value>
   </data>

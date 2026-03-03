@@ -657,6 +657,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="OK" xml:space="preserve">
     <value>좋아요</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>"읽는 중" 상태의 만화에만 적용됩니다</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>열기</value>
   </data>
