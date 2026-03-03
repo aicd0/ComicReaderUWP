@@ -51,7 +51,7 @@ public class ArchiveAccess
         string base_path = GetBasePath(location, false);
         string sub_path = GetSubPath(location, false);
         Windows.Storage.StorageFile? baseFile = await Storage.TryGetFile(base_path);
-        if (baseFile == null)
+        if (baseFile is null)
         {
             return null;
         }
@@ -192,11 +192,11 @@ public class ArchiveAccess
             async (stream) => await func(stream, ctx));
     }
 
-    public static async Task TryReadEntries(Stream? stream, string extension, Func<IArchiveEntry, Task<ICallbackResult>> callback)
+    public static async Task TryReadEntries(Stream stream, string extension, Func<IArchiveEntry, Task<ICallbackResult>> callback)
     {
-        if (stream is null || !stream.CanRead)
+        if (!stream.CanRead)
         {
-            Logger.F(TAG, "Stream is null or not readable");
+            Logger.F(TAG, "Stream is not readable");
             return;
         }
 
@@ -368,7 +368,7 @@ public class ArchiveAccess
             }
             catch (Exception e)
             {
-                Logger.F(TAG, "Failed to open archive entry stream.", e);
+                Logger.F(TAG, "Unable to open archive entry stream", e);
                 return ICallbackResult.Continue;
             }
 
