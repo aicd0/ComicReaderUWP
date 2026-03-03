@@ -37,6 +37,10 @@
             Content="{x:Bind StringResource.RestoreLastReadingPosition}"
             IsChecked="{x:Bind ViewModel.RestoreLastReadingPosition, Mode=OneWay}" />
         <CheckBox
+            Click="UseScrollingAreaAsStartEndCheckBox_Click"
+            Content="{x:Bind StringResource.StartEndFromScrollingArea}"
+            IsChecked="{x:Bind ViewModel.UseScrollingAreaAsStartEnd, Mode=OneWay}" />
+        <CheckBox
             Click="HideCursorAutomaticallyCheckBox_Click"
             Content="{x:Bind StringResource.HideCursorAutomatically}"
             IsChecked="{x:Bind ViewModel.AutomaticallyHideCursor, Mode=OneWay}" />

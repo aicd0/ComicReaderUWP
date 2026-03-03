@@ -883,6 +883,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="SortingFunction" xml:space="preserve">
     <value>Fonction de tri</value>
   </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>Utiliser le début/la fin de la zone de défilement comme début/fin de lecture</value>
+  </data>
   <data name="Statistics" xml:space="preserve">
     <value>Statistiques</value>
   </data>

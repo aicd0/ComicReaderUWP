@@ -198,6 +198,7 @@ public class StringResourceProvider
     public string ShuffleStable => GetResourceString("ShuffleStable");
     public string Sort => GetResourceString("Sort");
     public string SortingFunction => GetResourceString("SortingFunction");
+    public string StartEndFromScrollingArea => GetResourceString("StartEndFromScrollingArea");
     public string Statistics => GetResourceString("Statistics");
     public string Tag => GetResourceString("Tag");
     public string TagLinkTip => GetResourceString("TagLinkTip");

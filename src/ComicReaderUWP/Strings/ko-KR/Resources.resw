@@ -884,6 +884,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="SortingFunction" xml:space="preserve">
     <value>정렬 기능</value>
   </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>스크롤 영역의 시작/끝 지점을 읽기 시작/끝 위치로 사용</value>
+  </data>
   <data name="Statistics" xml:space="preserve">
     <value>통계</value>
   </data>

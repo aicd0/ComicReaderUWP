@@ -64,6 +64,17 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _useScrollingAreaAsStartEnd = true;
+    public bool UseScrollingAreaAsStartEnd
+    {
+        get => _useScrollingAreaAsStartEnd;
+        set
+        {
+            _useScrollingAreaAsStartEnd = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UseScrollingAreaAsStartEnd)));
+        }
+    }
+
     private bool _automaticallyHideCursor = true;
     public bool AutomaticallyHideCursor
     {
@@ -109,6 +120,12 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         AppSettingsModel.Instance.RestoreLastReadingPosition = restoreLastReadingPosition;
     }
 
+    public void SetUseScrollingAreaAsStartEnd(bool useScrollingAreaAsStartEnd)
+    {
+        _useScrollingAreaAsStartEnd = useScrollingAreaAsStartEnd;
+        AppSettingsModel.Instance.UseScrollingAreaAsStartEnd = useScrollingAreaAsStartEnd;
+    }
+
     public void SetHideCursorAutomatically(bool hideCursorAutomatically)
     {
         _automaticallyHideCursor = hideCursorAutomatically;
@@ -139,6 +156,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
             TransitionAnimation = AppSettingsModel.Instance.TransitionAnimation;
             AntiAliasingEnabled = AppSettingsModel.Instance.AntiAliasingEnabled;
             RestoreLastReadingPosition = AppSettingsModel.Instance.RestoreLastReadingPosition;
+            UseScrollingAreaAsStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
             AutomaticallyHideCursor = AppSettingsModel.Instance.AutomaticallyHideCursor;
         });
     }

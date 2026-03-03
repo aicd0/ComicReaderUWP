@@ -883,6 +883,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="SortingFunction" xml:space="preserve">
     <value>ソート機能</value>
   </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>スクロール範囲の開始位置／終了位置を読書の開始位置／終了位置として使用する</value>
+  </data>
   <data name="Statistics" xml:space="preserve">
     <value>統計</value>
   </data>

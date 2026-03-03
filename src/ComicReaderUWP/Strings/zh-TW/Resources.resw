@@ -883,6 +883,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="SortingFunction" xml:space="preserve">
     <value>排序函數</value>
   </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>使用捲動區域的起始/結束位置作為閱讀起始/結束位置</value>
+  </data>
   <data name="Statistics" xml:space="preserve">
     <value>統計資訊</value>
   </data>

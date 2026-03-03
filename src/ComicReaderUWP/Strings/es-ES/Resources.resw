@@ -883,6 +883,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="SortingFunction" xml:space="preserve">
     <value>Función de clasificación</value>
   </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>Usar el inicio/fin del área de desplazamiento como inicio/fin de lectura</value>
+  </data>
   <data name="Statistics" xml:space="preserve">
     <value>Estadística</value>
   </data>

@@ -207,6 +207,19 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
+    public bool UseScrollingAreaAsStartEnd
+    {
+        get
+        {
+            return Read(model => model.UseScrollingAreaAsStartEnd ?? false);
+        }
+        set
+        {
+            Write(model => model.UseScrollingAreaAsStartEnd = value);
+            Save();
+        }
+    }
+
     public bool SaveBrowsingHistory
     {
         get
@@ -617,6 +630,9 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("RestoreLastReadingPosition")]
         public bool? RestoreLastReadingPosition { get; set; }
+
+        [JsonPropertyName("UseScrollingAreaAsStartEnd")]
+        public bool? UseScrollingAreaAsStartEnd { get; set; }
 
         [JsonPropertyName("SaveBrowsingHistory")]
         public bool? SaveBrowsingHistory { get; set; }

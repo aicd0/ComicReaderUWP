@@ -883,6 +883,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="SortingFunction" xml:space="preserve">
     <value>Sortierfunktion</value>
   </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>Start-/Endpunkt des Scrollbereichs als Leseanfang/-ende verwenden</value>
+  </data>
   <data name="Statistics" xml:space="preserve">
     <value>Statistiken</value>
   </data>

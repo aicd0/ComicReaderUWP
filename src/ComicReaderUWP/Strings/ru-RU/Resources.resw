@@ -884,6 +884,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="SortingFunction" xml:space="preserve">
     <value>Функция сортировки</value>
   </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>Использовать начало/конец области прокрутки как начало/конец чтения</value>
+  </data>
   <data name="Statistics" xml:space="preserve">
     <value>Статистика</value>
   </data>

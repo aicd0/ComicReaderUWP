@@ -885,6 +885,9 @@ The evaluation will be performed in the following order:
   <data name="SortingFunction" xml:space="preserve">
     <value>Sorting function</value>
   </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>Use the start/end of the scrolling area as the reading start/end position</value>
+  </data>
   <data name="Statistics" xml:space="preserve">
     <value>Statistics</value>
   </data>
