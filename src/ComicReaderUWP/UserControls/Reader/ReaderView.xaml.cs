@@ -2405,7 +2405,7 @@ internal partial class ReaderView : UserControl
                     zoom *= zoomCoefficientNew.FitHeight / zoomCoefficientNew.Min();
                     break;
                 default:
-                    Logger.F(TAG, "Unknown zoom type.");
+                    Logger.F(TAG, "Unknown zoom type");
                     goto case ZoomType.CenterInside;
             }
         }

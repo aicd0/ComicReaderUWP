@@ -540,6 +540,7 @@ internal static class MenuFlyoutItemsCreator
                             .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
                         ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                             .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+                            .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                             .Build();
                         actionHandler.Handle(actionModel);
                     }

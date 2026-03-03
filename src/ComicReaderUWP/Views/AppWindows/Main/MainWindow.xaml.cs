@@ -355,7 +355,7 @@ internal sealed partial class MainWindow : Window
 #endif
         if (prevWndProc == IntPtr.Zero)
         {
-            Logger.F(TAG, "Failed to register message loop.");
+            Logger.F(TAG, "Failed to register message loop");
             return;
         }
 
@@ -375,7 +375,7 @@ internal sealed partial class MainWindow : Window
 #endif
             if (prevWndProc == IntPtr.Zero)
             {
-                Logger.F(TAG, "Failed to unregister message loop.");
+                Logger.F(TAG, "Failed to unregister message loop");
             }
         }
 

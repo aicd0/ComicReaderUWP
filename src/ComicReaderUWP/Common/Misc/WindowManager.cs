@@ -84,7 +84,7 @@ class WindowManager
             return wrapper.EventBus;
         }
 
-        Logger.F(TAG, $"Unable to get desired event bus, window ID {windowId} not found.");
+        Logger.F(TAG, $"Unable to get desired event bus, window ID {windowId} not found");
         return EmptyEventBus.Instance;
     }
 

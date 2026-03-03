@@ -121,7 +121,7 @@ internal class ActionHandler
         {
             if (Completed)
             {
-                Logger.F(TAG, "ActionProviderContext is already completed.");
+                Logger.F(TAG, "ActionProviderContext is already completed");
                 return;
             }
 
@@ -135,7 +135,7 @@ internal class ActionHandler
         {
             if (Completed)
             {
-                Logger.F(TAG, "ActionProviderContext is already completed.");
+                Logger.F(TAG, "ActionProviderContext is already completed");
                 return;
             }
 

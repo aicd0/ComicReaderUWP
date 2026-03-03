@@ -196,7 +196,7 @@ public class ArchiveAccess
     {
         if (stream is null || !stream.CanRead)
         {
-            Logger.F(TAG, "Stream is null or not readable.");
+            Logger.F(TAG, "Stream is null or not readable");
             return;
         }
 
@@ -350,25 +350,34 @@ public class ArchiveAccess
         string subExtension = StringUtils.ExtensionFromFilename(filename);
         await TryReadEntries(stream, extension, async (entry) =>
         {
-            do
+            if (entry.IsDirectory)
             {
-                if (entry.IsDirectory)
-                {
-                    break;
-                }
+                return ICallbackResult.Continue;
+            }
 
-                string entryName = entry.FullName.Replace('/', '\\');
-                if (!entryName.Equals(mainEntryName))
-                {
-                    break;
-                }
+            string entryName = entry.FullName.Replace('/', '\\');
+            if (!entryName.Equals(mainEntryName))
+            {
+                return ICallbackResult.Continue;
+            }
 
-                using Stream subStream = entry.Open();
+            Stream subStream;
+            try
+            {
+                subStream = entry.Open();
+            }
+            catch (Exception e)
+            {
+                Logger.F(TAG, "Failed to open archive entry stream.", e);
+                return ICallbackResult.Continue;
+            }
+
+            using (subStream)
+            {
                 await TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
-                return ICallbackResult.StopIteration;
-            } while (false);
+            }
 
-            return ICallbackResult.Continue;
+            return ICallbackResult.StopIteration;
         });
     }
 
