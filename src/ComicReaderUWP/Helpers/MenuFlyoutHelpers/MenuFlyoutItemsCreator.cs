@@ -144,13 +144,9 @@ internal static class MenuFlyoutItemsCreator
             }
 
             {
-                SubItemMenuFlyoutItemModel groupItem = new()
-                {
-                    Text = StringResourceProvider.Instance.SetCompletionState,
-                    Glyph = "\uE7C1",
-                };
+                List<BaseMenuFlyoutItemModel> groupItems = [];
 
-                groupItem.Items.Add(new ToggleMenuFlyoutItemModel()
+                groupItems.Add(new ToggleMenuFlyoutItemModel()
                 {
                     Text = StringResourceProvider.Instance.CompletionStatusUnread,
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.NotStarted,
@@ -163,7 +159,7 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
 
-                groupItem.Items.Add(new ToggleMenuFlyoutItemModel()
+                groupItems.Add(new ToggleMenuFlyoutItemModel()
                 {
                     Text = StringResourceProvider.Instance.CompletionStatusReading,
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Started,
@@ -176,7 +172,7 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
 
-                groupItem.Items.Add(new ToggleMenuFlyoutItemModel()
+                groupItems.Add(new ToggleMenuFlyoutItemModel()
                 {
                     Text = StringResourceProvider.Instance.CompletionStatusFinished,
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Completed,
@@ -189,7 +185,12 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
 
-                items.Add(groupItem);
+                items.Add(new SubItemMenuFlyoutItemModel()
+                {
+                    Text = StringResourceProvider.Instance.SetCompletionState,
+                    Glyph = "\uE7C1",
+                    Items = groupItems,
+                });
             }
 
             if (primaryComic.Hidden)
