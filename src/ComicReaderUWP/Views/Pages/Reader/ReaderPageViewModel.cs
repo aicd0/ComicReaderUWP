@@ -412,15 +412,18 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
+        bool useScrollingAreaStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
+        double startPage = useScrollingAreaStartEnd ? 0.5 : 1.0;
+        double endPage = useScrollingAreaStartEnd ? comic.PageCount + 0.5 : images.Count;
         double initialPage;
         switch (info.LoadReason)
         {
             case PlaybackModel.StatusChangeReason.Next:
             case PlaybackModel.StatusChangeReason.Previous:
-                initialPage = 1.0;
+                initialPage = startPage;
                 break;
             case PlaybackModel.StatusChangeReason.PreviousByOverScroll:
-                initialPage = comic.PageCount;
+                initialPage = endPage;
                 break;
             default:
                 {
@@ -428,11 +431,11 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                     if (restorePosition)
                     {
                         double lastPosition = comic.LastPosition;
-                        initialPage = lastPosition > 1E-2 ? lastPosition : 1.0;
+                        initialPage = lastPosition > 0 ? lastPosition : startPage;
                     }
                     else
                     {
-                        initialPage = 1.0;
+                        initialPage = startPage;
                     }
                 }
                 break;
