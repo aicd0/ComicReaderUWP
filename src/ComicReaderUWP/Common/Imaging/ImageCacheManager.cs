@@ -377,12 +377,8 @@ internal static partial class ImageCacheManager
             return false;
         }
 
-        string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
-
-        // Calculate targe size
         if (!TryGetOriginalDimension(context, out SizeF originalSize))
         {
-            Logger.F(TAG, "Unable to fetch image size");
             return false;
         }
 
@@ -446,6 +442,8 @@ internal static partial class ImageCacheManager
                 Logger.F(TAG, "Cache record is null");
                 return false;
             }
+
+            string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
 
             Stream? thumbnailStream = null;
             record.Lock.AcquireReaderLock(Timeout.Infinite);
