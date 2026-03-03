@@ -159,7 +159,7 @@ internal class ImageCacheDatabase(string databaseFilePath)
         string? databaseFolderPath = Path.GetDirectoryName(databaseFilePath);
         if (string.IsNullOrEmpty(databaseFolderPath))
         {
-            Logger.F(TAG, "Database folder path is null or empty.");
+            Logger.F(TAG, "Database folder path is null or empty");
             return null;
         }
 
@@ -282,7 +282,7 @@ internal class ImageCacheDatabase(string databaseFilePath)
                 SqliteConnection? connection = _database.GetConnectionNoLock();
                 if (connection is null)
                 {
-                    Logger.F(TAG, $"Failed to save cache {_key}, unable to create database connection.");
+                    Logger.F(TAG, $"Failed to save cache {_key}, unable to create database connection");
                     return;
                 }
 

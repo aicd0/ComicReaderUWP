@@ -48,7 +48,6 @@ internal class ComicPropertyModel
     public string DisplayGroupName => Type switch
     {
         PropertyTypeEnum.Tag => StringResourceProvider.Instance.Tag,
-        PropertyTypeEnum.PluginVirtualProperty => StringResourceProvider.Instance.Plugins,
         _ => string.Empty,
     };
 

@@ -51,7 +51,7 @@ public class ArchiveAccess
         string base_path = GetBasePath(location, false);
         string sub_path = GetSubPath(location, false);
         Windows.Storage.StorageFile? baseFile = await Storage.TryGetFile(base_path);
-        if (baseFile == null)
+        if (baseFile is null)
         {
             return null;
         }
@@ -192,11 +192,11 @@ public class ArchiveAccess
             async (stream) => await func(stream, ctx));
     }
 
-    public static async Task TryReadEntries(Stream? stream, string extension, Func<IArchiveEntry, Task<ICallbackResult>> callback)
+    public static async Task TryReadEntries(Stream stream, string extension, Func<IArchiveEntry, Task<ICallbackResult>> callback)
     {
-        if (stream is null || !stream.CanRead)
+        if (!stream.CanRead)
         {
-            Logger.F(TAG, "Stream is null or not readable.");
+            Logger.F(TAG, "Stream is not readable");
             return;
         }
 
@@ -350,25 +350,34 @@ public class ArchiveAccess
         string subExtension = StringUtils.ExtensionFromFilename(filename);
         await TryReadEntries(stream, extension, async (entry) =>
         {
-            do
+            if (entry.IsDirectory)
             {
-                if (entry.IsDirectory)
-                {
-                    break;
-                }
+                return ICallbackResult.Continue;
+            }
 
-                string entryName = entry.FullName.Replace('/', '\\');
-                if (!entryName.Equals(mainEntryName))
-                {
-                    break;
-                }
+            string entryName = entry.FullName.Replace('/', '\\');
+            if (!entryName.Equals(mainEntryName))
+            {
+                return ICallbackResult.Continue;
+            }
 
-                using Stream subStream = entry.Open();
+            Stream subStream;
+            try
+            {
+                subStream = entry.Open();
+            }
+            catch (Exception e)
+            {
+                Logger.F(TAG, "Unable to open archive entry stream", e);
+                return ICallbackResult.Continue;
+            }
+
+            using (subStream)
+            {
                 await TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
-                return ICallbackResult.StopIteration;
-            } while (false);
+            }
 
-            return ICallbackResult.Continue;
+            return ICallbackResult.StopIteration;
         });
     }
 

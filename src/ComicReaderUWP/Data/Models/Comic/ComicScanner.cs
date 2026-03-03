@@ -211,12 +211,20 @@ internal static class ComicScanner
 
     private class ArchiveSearchContext(string path) : IStorageItemSearchContext
     {
+        private const string TAG = nameof(ArchiveSearchContext);
+
         private readonly string _path = path;
         private readonly string _extension = StringUtils.ExtensionFromFilename(path);
 
         public async IAsyncEnumerable<ItemInfo> Search()
         {
             using Stream? stream = await ArchiveAccess.TryGetFileStream(_path);
+            if (stream is null)
+            {
+                Logger.E(TAG, $"Unable to open archive stream: {_path}");
+                yield break;
+            }
+
             List<string> files = [];
             HashSet<string> folders = [];
             await ArchiveAccess.TryReadEntries(stream, _extension, entry =>

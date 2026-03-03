@@ -1146,7 +1146,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         foreach (ComicFilterModel.FunctionTypeEnum function in propertyFunctions)
         {
-            List<BaseMenuFlyoutItemModel> subItems = CreateSortByPropertyMenuItems(properties, function == sortingFunction ? sortingProperty : null, p =>
+            IEnumerable<BaseMenuFlyoutItemModel> subItems = CreateSortByPropertyMenuItems(properties, function == sortingFunction ? sortingProperty : null, p =>
             {
                 clickHandler(function, p);
             });
@@ -1160,7 +1160,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return items;
     }
 
-    private static List<BaseMenuFlyoutItemModel> CreateSortByPropertyMenuItems(List<ComicPropertyModel> properties,
+    private static IEnumerable<BaseMenuFlyoutItemModel> CreateSortByPropertyMenuItems(List<ComicPropertyModel> properties,
         ComicPropertyModel? selectedProperty, Action<ComicPropertyModel> clickHandler)
     {
         Dictionary<string, List<ComicPropertyModel>> propertyGroupMap = [];
@@ -1180,23 +1180,22 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         List<KeyValuePair<string, List<ComicPropertyModel>>> propertyGroupList = [];
         foreach (KeyValuePair<string, List<ComicPropertyModel>> kvp in propertyGroupMap)
         {
-            if (kvp.Key == "")
+            if (kvp.Key == string.Empty)
             {
                 plainProperties = kvp.Value;
                 continue;
             }
+
             propertyGroupList.Add(kvp);
             kvp.Value.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName));
         }
 
-        propertyGroupList.Sort((a, b) => string.Compare(a.Key, b.Key, StringComparison.Ordinal));
-
-        List<BaseMenuFlyoutItemModel> items = [];
-        if (plainProperties != null)
+        List<Tuple<string, BaseMenuFlyoutItemModel>> items = [];
+        if (plainProperties is not null)
         {
             foreach (ComicPropertyModel p in plainProperties)
             {
-                items.Add(new ToggleMenuFlyoutItemModel()
+                items.Add(new(p.DisplayName, new ToggleMenuFlyoutItemModel()
                 {
                     Text = p.DisplayName,
                     IsChecked = p.Equals(selectedProperty),
@@ -1204,7 +1203,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     {
                         clickHandler(p);
                     }
-                });
+                }));
             }
         }
 
@@ -1224,14 +1223,15 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 });
             }
 
-            items.Add(new SubItemMenuFlyoutItemModel()
+            items.Add(new(kvp.Key, new SubItemMenuFlyoutItemModel()
             {
                 Text = kvp.Key,
                 Items = subItems,
-            });
+            }));
         }
 
-        return items;
+        items.Sort((a, b) => string.Compare(a.Item1, b.Item1, StringComparison.InvariantCultureIgnoreCase));
+        return items.Select(x => x.Item2);
     }
 
     private static string ViewTypeToDisplayName(ComicFilterModel.ViewTypeEnum viewType)

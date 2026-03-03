@@ -223,7 +223,7 @@ public class EnvironmentProvider
         }
         catch (CultureNotFoundException)
         {
-            Logger.F(TAG, $"Culture '{languageTag}' not found.");
+            Logger.F(TAG, $"Culture '{languageTag}' not found");
             return CultureInfo.CurrentUICulture;
         }
     }

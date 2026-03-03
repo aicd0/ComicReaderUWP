@@ -314,7 +314,7 @@ internal sealed partial class MainPage : BasePage
         TabInfo? tabInfo = GetTabInfoNoLock(targetTabId);
         if (tabInfo is null)
         {
-            Logger.F(TAG, $"Failed to find tab info for ID {targetTabId}.");
+            Logger.F(TAG, $"Failed to find tab info for ID {targetTabId}");
             return false;
         }
 
@@ -804,7 +804,7 @@ internal sealed partial class MainPage : BasePage
         success = success || ContentGridImmersive.Children.Remove(ContentGrid);
         if (!success)
         {
-            Logger.F(TAG, "Failed to remove ContentGrid from parent panel.");
+            Logger.F(TAG, "Failed to remove ContentGrid from parent panel");
             return;
         }
 
@@ -823,7 +823,7 @@ internal sealed partial class MainPage : BasePage
         TabInfo? tabInfo = _currentTab;
         if (tabInfo is null)
         {
-            Logger.F(TAG, "GetCurrentContentFrame: Current tab not set.");
+            Logger.F(TAG, "GetCurrentContentFrame: Current tab not set");
             return null;
         }
 
@@ -835,7 +835,7 @@ internal sealed partial class MainPage : BasePage
         TabInfo? tabInfo = _currentTab;
         if (tabInfo is null)
         {
-            Logger.F(TAG, "GetCurrentNavigationBarAbility: Current tab not set.");
+            Logger.F(TAG, "GetCurrentNavigationBarAbility: Current tab not set");
             return null;
         }
 

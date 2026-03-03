@@ -30,7 +30,7 @@ internal class DialogUtils
             MainWindow? window = App.Instance.WindowManager.GetActiveWindow() ?? App.Instance.WindowManager.GetAnyWindow();
             if (window is null)
             {
-                Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found.");
+                Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found");
                 resultSource.SetResult(DialogResult.FromFailure());
                 return;
             }
@@ -62,7 +62,7 @@ internal class DialogUtils
             MainWindow? window = App.Instance.WindowManager.GetActiveWindow() ?? App.Instance.WindowManager.GetAnyWindow();
             if (window is null)
             {
-                Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found.");
+                Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found");
                 resultSource.SetResult(DialogResult.FromFailure());
                 return;
             }
@@ -90,7 +90,7 @@ internal class DialogUtils
         {
             if (App.Instance.WindowManager.GetWindow(windowId) is null)
             {
-                Logger.F(TAG, "EnqueueDialogAsync: Window not found.");
+                Logger.F(TAG, "EnqueueDialogAsync: Window not found");
                 resultSource.SetResult(DialogResult.FromFailure());
                 return;
             }

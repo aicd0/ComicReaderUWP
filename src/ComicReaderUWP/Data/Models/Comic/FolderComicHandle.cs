@@ -238,7 +238,7 @@ internal partial class FolderComicHandle : ComicHandle
         {
             if (index < 0 || index >= _imageFiles.Count)
             {
-                Logger.F(TAG, "GetImageStream");
+                Logger.F(TAG, $"OpenImageStream: Index out of range: {index}");
                 return null;
             }
 
@@ -250,7 +250,8 @@ internal partial class FolderComicHandle : ComicHandle
             catch (Exception e)
             {
                 if (e is FileNotFoundException ||
-                    e is DirectoryNotFoundException)
+                    e is DirectoryNotFoundException ||
+                    e is IOException)
                 {
                     Logger.E(TAG, $"Cannot open '{imageFile}'", e);
                 }

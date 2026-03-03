@@ -69,7 +69,7 @@ public static class SqliteDB
     {
         if (_initialized)
         {
-            Logger.F(TAG, "Database is already initialized.");
+            Logger.F(TAG, "Database is already initialized");
             return;
         }
 
@@ -115,7 +115,7 @@ public static class SqliteDB
             case DATABASE_VERSION:
                 break;
             default:
-                Logger.AssertNotReachHere("A39EA189ED8BB40B");
+                Logger.F(TAG, $"Unknown database version: {databaseVersion}");
                 break;
         }
     }

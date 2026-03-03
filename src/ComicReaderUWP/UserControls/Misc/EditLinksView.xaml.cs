@@ -45,7 +45,7 @@ internal sealed partial class EditLinksView : UserControl
     {
         if (Links.Count == 0)
         {
-            Logger.F(TAG, "Cannot add link, collection cannot be empty.");
+            Logger.F(TAG, "Cannot add link, collection cannot be empty");
             return;
         }
 

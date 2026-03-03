@@ -237,7 +237,7 @@ public class LRUCache(string directoryPath, long maxSize)
             {
                 if (_status == Status.Dirty || _readerCount > 0)
                 {
-                    Logger.F(TAG, "Other read/write operation in progress.");
+                    Logger.F(TAG, "Other read/write operation in progress");
                     return null;
                 }
 
