@@ -31,6 +31,24 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         }
     }
 
+    private void RestoreLastReadingPositionOnlyAppliesToReadingComicsCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            ViewModel.SetRestoreLastReadingPositionOnlyAppliesToReadingComics(isChecked.Value);
+        }
+    }
+
+    private void UseScrollingAreaAsStartEndCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            ViewModel.SetUseScrollingAreaAsStartEnd(isChecked.Value);
+        }
+    }
+
     private void HideCursorAutomaticallyCheckBox_Click(object sender, RoutedEventArgs e)
     {
         bool? isChecked = ((CheckBox)sender).IsChecked;

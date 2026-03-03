@@ -368,7 +368,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         _comic = null;
         PreviewDataSource.Clear();
 
-        // Load new comic
         if (comic is null)
         {
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
@@ -377,7 +376,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         _comic = comic;
 
-        IsExternalComicLiveData.Emit(comic.IsExternal);
+        // Load comic info and update status
+        ComicCompletionStatusEnum oldCompletionStatus = comic.CompletionState;
         if (!comic.IsExternal)
         {
             await comic.SetCompletionStateToAtLeastStarted();
@@ -387,9 +387,11 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             }
         }
 
+        IsExternalComicLiveData.Emit(comic.IsExternal);
         bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
         SetIsFavorite(isFavorite, false);
 
+        // Load reader images
         IComicConnection? connection = await comic.OpenComicAsync();
         if (connection is null)
         {
@@ -412,27 +414,31 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
+        bool useScrollingAreaStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
+        double startPage = useScrollingAreaStartEnd ? 0.5 : 1.0;
+        double endPage = useScrollingAreaStartEnd ? comic.PageCount + 0.5 : images.Count;
         double initialPage;
         switch (info.LoadReason)
         {
             case PlaybackModel.StatusChangeReason.Next:
             case PlaybackModel.StatusChangeReason.Previous:
-                initialPage = 1.0;
+                initialPage = startPage;
                 break;
             case PlaybackModel.StatusChangeReason.PreviousByOverScroll:
-                initialPage = comic.PageCount;
+                initialPage = endPage;
                 break;
             default:
                 {
-                    bool restorePosition = AppSettingsModel.Instance.RestoreLastReadingPosition && !comic.IsExternal;
+                    bool restorePosition = !comic.IsExternal && AppSettingsModel.Instance.RestoreLastReadingPosition &&
+                        !(AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics && oldCompletionStatus != ComicCompletionStatusEnum.Started);
                     if (restorePosition)
                     {
                         double lastPosition = comic.LastPosition;
-                        initialPage = lastPosition > 1E-2 ? lastPosition : 1.0;
+                        initialPage = lastPosition > 0 ? lastPosition : startPage;
                     }
                     else
                     {
-                        initialPage = 1.0;
+                        initialPage = startPage;
                     }
                 }
                 break;

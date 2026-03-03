@@ -657,6 +657,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="OK" xml:space="preserve">
     <value>좋아요</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>"읽는 중" 상태의 만화에만 적용됩니다</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>열기</value>
   </data>
@@ -883,6 +886,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="SortingFunction" xml:space="preserve">
     <value>정렬 기능</value>
+  </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>스크롤 영역의 시작/끝 지점을 읽기 시작/끝 위치로 사용</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>통계</value>

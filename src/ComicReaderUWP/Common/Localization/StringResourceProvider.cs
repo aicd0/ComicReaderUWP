@@ -134,6 +134,7 @@ public class StringResourceProvider
     public string NoTagsHint => GetResourceString("NoTagsHint");
     public string None => GetResourceString("None");
     public string OK => GetResourceString("OK");
+    public string OnlyAppliesToReadingComics => GetResourceString("OnlyAppliesToReadingComics");
     public string Open => GetResourceString("Open");
     public string OpenComicDefaultBehavior => GetResourceString("OpenComicDefaultBehavior");
     public string OpenHomePage => GetResourceString("OpenHomePage");
@@ -198,6 +199,7 @@ public class StringResourceProvider
     public string ShuffleStable => GetResourceString("ShuffleStable");
     public string Sort => GetResourceString("Sort");
     public string SortingFunction => GetResourceString("SortingFunction");
+    public string StartEndFromScrollingArea => GetResourceString("StartEndFromScrollingArea");
     public string Statistics => GetResourceString("Statistics");
     public string Tag => GetResourceString("Tag");
     public string TagLinkTip => GetResourceString("TagLinkTip");

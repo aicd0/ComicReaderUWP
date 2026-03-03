@@ -658,6 +658,9 @@ The evaluation will be performed in the following order:
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>Only applies to comics in "Reading" status</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Open</value>
   </data>
@@ -884,6 +887,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="SortingFunction" xml:space="preserve">
     <value>Sorting function</value>
+  </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>Use the start/end of the scrolling area as the reading start/end position</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>Statistics</value>

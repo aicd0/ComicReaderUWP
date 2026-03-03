@@ -656,6 +656,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="OK" xml:space="preserve">
     <value>好的</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>仅对“阅读中”状态的漫画生效</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>打开</value>
   </data>
@@ -882,6 +885,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="SortingFunction" xml:space="preserve">
     <value>排序函数</value>
+  </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>使用滚动区域的起始/结束位置作为阅读起始/结束位置</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>统计信息</value>

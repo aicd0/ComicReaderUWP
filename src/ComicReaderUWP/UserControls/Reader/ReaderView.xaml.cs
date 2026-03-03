@@ -597,7 +597,7 @@ internal partial class ReaderView : UserControl
 
     #region Loader
 
-    private double InitialPage => Math.Min(_initialPage, PageCount);
+    private double InitialPage => Math.Min(_initialPage, PageCount + 0.5);
     private bool ComicLoaded => _isLoaded && PageCount > 0;
 
     private void Reload(List<IImageSource> images)
@@ -2343,12 +2343,7 @@ internal partial class ReaderView : UserControl
         ZoomCoefficient? zoomCoefficientNew = null;
         {
             int pageNew = request.Page.HasValue ? (int)Math.Round(request.Page.Value) : SCCurrentPageFinal;
-
-            if (pageNew < 0)
-            {
-                context.Result = ScrollResult.UnknownFailure;
-                return;
-            }
+            pageNew = Math.Max(1, Math.Min(pageNew, PageCount));
 
             if (pageNew > PageCount)
             {

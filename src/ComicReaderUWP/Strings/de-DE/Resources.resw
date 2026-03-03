@@ -656,6 +656,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>Gilt nur für Comics mit dem Status „Wird gelesen“</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Öffnen</value>
   </data>
@@ -882,6 +885,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="SortingFunction" xml:space="preserve">
     <value>Sortierfunktion</value>
+  </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>Start-/Endpunkt des Scrollbereichs als Leseanfang/-ende verwenden</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>Statistiken</value>

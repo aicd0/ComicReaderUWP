@@ -657,6 +657,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="OK" xml:space="preserve">
     <value>ХОРОШО</value>
   </data>
+  <data name="OnlyAppliesToReadingComics" xml:space="preserve">
+    <value>Применяется только к комиксам со статусом «Читается»</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
   </data>
@@ -883,6 +886,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="SortingFunction" xml:space="preserve">
     <value>Функция сортировки</value>
+  </data>
+  <data name="StartEndFromScrollingArea" xml:space="preserve">
+    <value>Использовать начало/конец области прокрутки как начало/конец чтения</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>Статистика</value>
