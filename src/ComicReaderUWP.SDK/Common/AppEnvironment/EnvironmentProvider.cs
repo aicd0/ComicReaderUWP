@@ -186,6 +186,7 @@ public class EnvironmentProvider
         {
             return languageTag;
         }
+
         if (!IsPortable())
         {
             try
@@ -194,14 +195,16 @@ public class EnvironmentProvider
             }
             catch (Exception e)
             {
-                Logger.AssertNotReachHere("91F609C11120E95E", e);
+                Logger.F(TAG, e);
             }
+
             if (!string.IsNullOrEmpty(languageTag))
             {
                 _appLanguageTag = languageTag;
                 return languageTag;
             }
         }
+
         return CultureInfo.CurrentUICulture.Name;
     }
 
