@@ -203,11 +203,6 @@ public static class Logger
         AssertNotReachHereInternal(message, null);
     }
 
-    public static void AssertNotReachHere(string? message, Exception? exception)
-    {
-        AssertNotReachHereInternal(message, exception);
-    }
-
     private static void AssertNotReachHereInternal(string? message, Exception? exception)
     {
         AssertException exceptionNotNull = new(message, exception);

@@ -8,7 +8,7 @@ using ComicReaderUWP.SDK.Common.Utils;
 
 namespace ComicReaderUWP.SDK.Common.Caching;
 
-public class LRUCache(string directoryPath, long maxSize)
+public class LRUCache(string directoryPath)
 {
     private const string TAG = nameof(LRUCache);
     private const string DATABASE_FILE_NAME = "info.db";
@@ -17,15 +17,24 @@ public class LRUCache(string directoryPath, long maxSize)
     private readonly string _directoryPath = directoryPath;
     private readonly ConcurrentDictionary<string, CacheEntry> _entries = [];
 
-    private readonly long _maxSize = maxSize;
     private readonly LRUCacheDatabase _database = new(Path.Combine(directoryPath, DATABASE_FILE_NAME));
     private readonly ReaderWriterLock _flushLock = new();
     private volatile ConcurrentDictionary<string, long> _pendingFlushKeys = [];
     private int _postFlushTask = 0;
 
-    public void Clear()
+    public LRUCacheStream? Get(string key)
     {
-        _database.Clear();
+        ArgumentNullException.ThrowIfNull(key, nameof(key));
+
+        string hashedKey = ToHashedKey(key);
+        CacheEntry entry = _entries.GetOrAdd(hashedKey, key => new CacheEntry(this, key));
+        LRUCacheStream? stream = entry.StartRead();
+        if (stream != null)
+        {
+            AddPendingFlushKey(key);
+        }
+
+        return stream;
     }
 
     public LRUCacheStream? Put(string key)
@@ -43,25 +52,20 @@ public class LRUCache(string directoryPath, long maxSize)
         return stream;
     }
 
-    public LRUCacheStream? Get(string key)
+    public void Clear()
     {
-        ArgumentNullException.ThrowIfNull(key, nameof(key));
-
-        string hashedKey = ToHashedKey(key);
-        CacheEntry entry = _entries.GetOrAdd(hashedKey, key => new CacheEntry(this, key));
-        LRUCacheStream? stream = entry.StartRead();
-        if (stream != null)
-        {
-            AddPendingFlushKey(key);
-        }
-
-        return stream;
+        _database.Clear();
     }
 
-    public void Cleanup()
+    public long GetApproximateSize()
     {
         var directory = new DirectoryInfo(_directoryPath);
-        long sizeToRemove = FileUtils.GetApproximateDirectorySize(directory) - _maxSize;
+        return FileUtils.GetApproximateDirectorySize(directory);
+    }
+
+    public void Cleanup(long maxSize)
+    {
+        long sizeToRemove = GetApproximateSize() - maxSize;
         if (sizeToRemove <= 0)
         {
             return;

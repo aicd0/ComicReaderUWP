@@ -33,7 +33,7 @@ internal static partial class ImageCacheManager
     private const int IMAGE_META_VERSION = 1;
     private const string IMAGES_FOLDER_NAME = "images";
     private const string MAIN_DATABASE_FILE_NAME = "db_main.db";
-    private const long MAX_CACHE_SIZE = 1024 * 1024 * 1024;
+    private const long MIN_CACHE_CAPACITY = 1024 * 1024 * 1024;
 
     private static string _cacheDirectoryPath = string.Empty;
     private static ImageCacheDatabase? sImageCacheDatabase;
@@ -871,41 +871,76 @@ internal static partial class ImageCacheManager
 
     private static LRUCache? GetImageLRUCache()
     {
+        LRUCache? cache = sImageCache;
+        if (cache is not null)
         {
-            LRUCache? cache = sImageCache;
-            if (cache != null)
-            {
-                return cache;
-            }
+            return cache;
         }
+
+        string folderPath = Path.Combine(_cacheDirectoryPath, IMAGES_FOLDER_NAME);
 
         lock (sLock)
         {
-            LRUCache? cache = sImageCache;
-            if (cache != null)
+            cache = sImageCache;
+            if (cache is not null)
             {
                 return cache;
             }
 
-            string folderPath = Path.Combine(_cacheDirectoryPath, IMAGES_FOLDER_NAME);
             try
             {
                 Directory.CreateDirectory(folderPath);
             }
             catch (Exception e)
             {
-                Logger.AssertNotReachHere("266A35BFD509B7A0", e);
+                Logger.F(TAG, e);
                 return null;
             }
 
-            cache = new(folderPath, MAX_CACHE_SIZE);
+            cache = new(folderPath);
             sImageCache = cache;
+        }
+
+        long cacheSize = cache.GetApproximateSize();
+        long freeSpace = GetFreeSpace(folderPath) + cacheSize;
+        long cacheCapacity = Math.Max(freeSpace / 10, MIN_CACHE_CAPACITY); // Use up to 10% of free space, but at least MIN_CACHE_CAPACITY
+        Logger.I(TAG, $"Image cache initialized (capacity={cacheCapacity})");
+
+        if (cacheSize > cacheCapacity)
+        {
             TaskDispatcher.LongRunningThreadPool.Submit("CleanImageCache", delegate
             {
-                cache.Cleanup();
+                cache.Cleanup(cacheCapacity);
             });
+        }
 
-            return cache;
+        return cache;
+    }
+
+    private static long GetFreeSpace(string path)
+    {
+        string? root = Path.GetPathRoot(path);
+        if (string.IsNullOrEmpty(root))
+        {
+            Logger.F(TAG, $"Failed to get root from path: {path}");
+            return 0;
+        }
+
+        var drive = new DriveInfo(root);
+        if (!drive.IsReady)
+        {
+            Logger.F(TAG, $"Drive is not ready: {root}");
+            return 0;
+        }
+
+        try
+        {
+            return drive.AvailableFreeSpace;
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, $"Failed to access drive info for: {root}", e);
+            return 0;
         }
     }
 

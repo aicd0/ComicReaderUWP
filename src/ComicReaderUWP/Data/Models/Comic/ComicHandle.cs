@@ -174,14 +174,16 @@ internal abstract class ComicHandle
                 if (!string.IsNullOrEmpty(extJson))
                 {
                     Dictionary<string, string>? ext = null;
+
                     try
                     {
                         ext = JsonSerializer.Deserialize<Dictionary<string, string>>(extJson);
                     }
                     catch (Exception ex)
                     {
-                        Logger.AssertNotReachHere("", ex);
+                        Logger.F(TAG, ex);
                     }
+
                     if (ext != null)
                     {
                         foreach (KeyValuePair<string, string> pair in ext)
