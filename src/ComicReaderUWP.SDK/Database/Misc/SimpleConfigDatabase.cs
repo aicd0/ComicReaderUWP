@@ -116,7 +116,7 @@ internal class SimpleConfigDatabase
                 return null;
             }
 
-            cache = new(_directoryPath, 0);
+            cache = new(_directoryPath);
             _lruCache = cache;
             return cache;
         }

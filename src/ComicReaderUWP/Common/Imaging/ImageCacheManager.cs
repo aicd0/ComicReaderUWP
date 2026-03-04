@@ -878,9 +878,6 @@ internal static partial class ImageCacheManager
         }
 
         string folderPath = Path.Combine(_cacheDirectoryPath, IMAGES_FOLDER_NAME);
-        long freeSpace = GetFreeSpace(folderPath);
-        long cacheSize = Math.Max(freeSpace, MIN_CACHE_CAPACITY); // Use up to 50% of free space, but at least MIN_CACHE_CAPACITY
-        Logger.I(TAG, $"Initializing image cache (capacity={cacheSize})");
 
         lock (sLock)
         {
@@ -900,14 +897,22 @@ internal static partial class ImageCacheManager
                 return null;
             }
 
-            cache = new(folderPath, cacheSize);
+            cache = new(folderPath);
             sImageCache = cache;
         }
 
-        TaskDispatcher.LongRunningThreadPool.Submit("CleanImageCache", delegate
+        long cacheSize = cache.GetApproximateSize();
+        long freeSpace = GetFreeSpace(folderPath) + cacheSize;
+        long cacheCapacity = Math.Max(freeSpace / 10, MIN_CACHE_CAPACITY); // Use up to 10% of free space, but at least MIN_CACHE_CAPACITY
+        Logger.I(TAG, $"Image cache initialized (capacity={cacheCapacity})");
+
+        if (cacheSize > cacheCapacity)
         {
-            cache.Cleanup();
-        });
+            TaskDispatcher.LongRunningThreadPool.Submit("CleanImageCache", delegate
+            {
+                cache.Cleanup(cacheCapacity);
+            });
+        }
 
         return cache;
     }
@@ -918,14 +923,14 @@ internal static partial class ImageCacheManager
         if (string.IsNullOrEmpty(root))
         {
             Logger.F(TAG, $"Failed to get root from path: {path}");
-            return -1;
+            return 0;
         }
 
         var drive = new DriveInfo(root);
         if (!drive.IsReady)
         {
             Logger.F(TAG, $"Drive is not ready: {root}");
-            return -1;
+            return 0;
         }
 
         try
@@ -935,7 +940,7 @@ internal static partial class ImageCacheManager
         catch (Exception e)
         {
             Logger.F(TAG, $"Failed to access drive info for: {root}", e);
-            return -1;
+            return 0;
         }
     }
 
