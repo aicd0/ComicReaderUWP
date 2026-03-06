@@ -1434,7 +1434,7 @@ internal partial class ReaderView : UserControl
         }
         else
         {
-            // Touchpad support is experimental as we cannot unreliablely distinguish touchpad and mouse wheel.
+            // Touchpad support is experimental since for now there is no way to reliablely distinguish touchpad and mouse wheel.
             long nowTicks = GetTicks();
             if (nowTicks - _lastTouchpadPageTurnTicks >= 200)
             {
