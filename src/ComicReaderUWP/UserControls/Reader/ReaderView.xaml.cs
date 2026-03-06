@@ -1380,25 +1380,37 @@ internal partial class ReaderView : UserControl
         }
     }
 
+    private long _lastTouchpadPageTurnTicks = 0;
+
     private void OnReaderScrollViewerPointerWheelChanged(PointerRoutedEventArgs e)
     {
         PointerPoint pt = e.GetCurrentPoint(null);
-        int delta = -pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
+        int delta = -pt.Properties.MouseWheelDelta;
+        bool isHorizontal = pt.Properties.IsHorizontalMouseWheel;
+        Log("PointerWheelChanged", $"Delta={delta}", $"Horizontal={isHorizontal}");
+
+        if (isHorizontal && (_isVertical || _isLeftToRight))
+        {
+            delta = -delta;
+        }
 
         if (_isContinuous || _zoom > FORCE_CONTINUOUS_ZOOM_THRESHOLD)
         {
-            // Continuous scrolling
             Windows.UI.Core.CoreVirtualKeyStates menuState = InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Menu);
-            bool verticalScrolling = !menuState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
+            bool altDown = menuState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
+            bool verticalScrolling = !isHorizontal;
 
-            if (verticalScrolling && !_isVertical)
+            if (!_isVertical)
             {
                 int frame = PageToFrame(SCCurrentPageFinal, out _, out _);
                 ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frame);
                 if (zoomCoefficient != null)
                 {
                     double zoomFitHeight = SCZoomFactorFinal / zoomCoefficient.FitHeight;
-                    verticalScrolling = zoomFitHeight > FORCE_CONTINUOUS_ZOOM_THRESHOLD;
+                    if (zoomFitHeight <= FORCE_CONTINUOUS_ZOOM_THRESHOLD)
+                    {
+                        verticalScrolling = false;
+                    }
                 }
                 else
                 {
@@ -1406,21 +1418,52 @@ internal partial class ReaderView : UserControl
                 }
             }
 
+            verticalScrolling = verticalScrolling != altDown;
+
+            double movement = (double)delta / Windows.Win32.PInvoke.WHEEL_DELTA * 140.0;
             if (verticalScrolling)
             {
                 SetScrollViewer3("ContinuousVerticalScrollingUsingPointerWheel", ScrollSource.User,
-                    verticalOffset: SCVerticalOffsetFinal + delta * 140.0, disableAnimation: false);
+                    verticalOffset: SCVerticalOffsetFinal + movement, disableAnimation: false);
             }
             else
             {
                 SetScrollViewer3("ContinuousHorizontalScrollingUsingPointerWheel", ScrollSource.User,
-                    horizontalOffset: SCHorizontalOffsetFinal + delta * 140.0, disableAnimation: false);
+                    horizontalOffset: SCHorizontalOffsetFinal + movement, disableAnimation: false);
             }
         }
         else
         {
-            // Page turning
-            MoveFrameByUser("PageTurningUsingPointerWheel", delta);
+            // Touchpad support is experimental since for now there is no way to reliablely distinguish touchpad and mouse wheel.
+            bool isTouchpad = pt.PointerDeviceType == PointerDeviceType.Touchpad || delta % (int)Windows.Win32.PInvoke.WHEEL_DELTA != 0;
+
+            long nowTicks = GetTicks();
+            if (nowTicks - _lastTouchpadPageTurnTicks < 200)
+            {
+                // Suppress any page turn events since we can't tell whether the event is from touchpad or mouse wheel,
+                // but we know for sure that it's not from mouse wheel if it's too frequent.
+                if (isTouchpad)
+                {
+                    _lastTouchpadPageTurnTicks = nowTicks;
+                }
+            }
+            else
+            {
+                int movement = delta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
+                if (isTouchpad)
+                {
+                    movement = Math.Sign(movement);
+                    if (movement != 0)
+                    {
+                        _lastTouchpadPageTurnTicks = nowTicks;
+                        MoveFrameByUser("PageTurningUsingTouchpadWheel", movement);
+                    }
+                }
+                else
+                {
+                    MoveFrameByUser("PageTurningUsingPointerWheel", movement);
+                }
+            }
         }
 
         e.Handled = true;
