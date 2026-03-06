@@ -1389,7 +1389,7 @@ internal partial class ReaderView : UserControl
         bool isHorizontal = pt.Properties.IsHorizontalMouseWheel;
         Log("PointerWheelChanged", $"Delta={delta}", $"Horizontal={isHorizontal}");
 
-        if (isHorizontal && !_isVertical && _isLeftToRight)
+        if (isHorizontal && (_isVertical || _isLeftToRight))
         {
             delta = -delta;
         }
@@ -1435,14 +1435,14 @@ internal partial class ReaderView : UserControl
         else
         {
             // Touchpad support is experimental since for now there is no way to reliablely distinguish touchpad and mouse wheel.
+            bool isTouchpad = pt.PointerDeviceType == PointerDeviceType.Touchpad || delta % (int)Windows.Win32.PInvoke.WHEEL_DELTA != 0;
+
             long nowTicks = GetTicks();
             if (nowTicks - _lastTouchpadPageTurnTicks >= 200)
             {
                 int movement = delta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
-                bool isTouchpad = pt.PointerDeviceType == PointerDeviceType.Touchpad || delta % (int)Windows.Win32.PInvoke.WHEEL_DELTA != 0;
                 if (isTouchpad)
                 {
-                    _lastTouchpadPageTurnTicks = nowTicks;
                     movement = Math.Sign(movement);
                     if (movement != 0)
                     {
@@ -1453,6 +1453,11 @@ internal partial class ReaderView : UserControl
                 {
                     MoveFrameByUser("PageTurningUsingPointerWheel", movement);
                 }
+            }
+
+            if (isTouchpad)
+            {
+                _lastTouchpadPageTurnTicks = nowTicks;
             }
         }
 
