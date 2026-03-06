@@ -1438,19 +1438,19 @@ internal partial class ReaderView : UserControl
             long nowTicks = GetTicks();
             if (nowTicks - _lastTouchpadPageTurnTicks >= 200)
             {
+                int movement = delta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
                 bool isTouchpad = pt.PointerDeviceType == PointerDeviceType.Touchpad || delta % (int)Windows.Win32.PInvoke.WHEEL_DELTA != 0;
                 if (isTouchpad)
                 {
                     _lastTouchpadPageTurnTicks = nowTicks;
-                    delta = Math.Sign(delta);
-                    if (delta != 0)
+                    movement = Math.Sign(movement);
+                    if (movement != 0)
                     {
-                        MoveFrameByUser("PageTurningUsingTouchpadWheel", delta);
+                        MoveFrameByUser("PageTurningUsingTouchpadWheel", movement);
                     }
                 }
                 else
                 {
-                    int movement = delta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
                     MoveFrameByUser("PageTurningUsingPointerWheel", movement);
                 }
             }
