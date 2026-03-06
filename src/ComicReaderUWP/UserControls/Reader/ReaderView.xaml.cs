@@ -1389,6 +1389,11 @@ internal partial class ReaderView : UserControl
         bool isHorizontal = pt.Properties.IsHorizontalMouseWheel;
         Log("PointerWheelChanged", $"Delta={delta}", $"Horizontal={isHorizontal}");
 
+        if (isHorizontal && !_isVertical && _isLeftToRight)
+        {
+            delta = -delta;
+        }
+
         if (_isContinuous || _zoom > FORCE_CONTINUOUS_ZOOM_THRESHOLD)
         {
             Windows.UI.Core.CoreVirtualKeyStates menuState = InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Menu);
@@ -1415,13 +1420,8 @@ internal partial class ReaderView : UserControl
 
             verticalScrolling = verticalScrolling != altDown;
 
-            if (isHorizontal && !_isVertical && _isLeftToRight)
-            {
-                delta = -delta;
-            }
-
             double movement = (double)delta / Windows.Win32.PInvoke.WHEEL_DELTA * 140.0;
-            if (verticalScrolling != isHorizontal)
+            if (verticalScrolling)
             {
                 SetScrollViewer3("ContinuousVerticalScrollingUsingPointerWheel", ScrollSource.User,
                     verticalOffset: SCVerticalOffsetFinal + movement, disableAnimation: false);
@@ -1435,25 +1435,24 @@ internal partial class ReaderView : UserControl
         else
         {
             // Touchpad support is experimental as we cannot unreliablely distinguish touchpad and mouse wheel.
-            bool isTouchpad = pt.PointerDeviceType == PointerDeviceType.Touchpad || delta % (int)Windows.Win32.PInvoke.WHEEL_DELTA != 0;
-            if (isTouchpad)
+            long nowTicks = GetTicks();
+            if (nowTicks - _lastTouchpadPageTurnTicks >= 200)
             {
-                long nowTicks = GetTicks();
-                if (nowTicks - _lastTouchpadPageTurnTicks >= 250)
+                bool isTouchpad = pt.PointerDeviceType == PointerDeviceType.Touchpad || delta % (int)Windows.Win32.PInvoke.WHEEL_DELTA != 0;
+                if (isTouchpad)
                 {
+                    _lastTouchpadPageTurnTicks = nowTicks;
                     delta = Math.Sign(delta);
                     if (delta != 0)
                     {
                         MoveFrameByUser("PageTurningUsingTouchpadWheel", delta);
                     }
                 }
-
-                _lastTouchpadPageTurnTicks = nowTicks;
-            }
-            else
-            {
-                int movement = delta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
-                MoveFrameByUser("PageTurningUsingPointerWheel", movement);
+                else
+                {
+                    int movement = delta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
+                    MoveFrameByUser("PageTurningUsingPointerWheel", movement);
+                }
             }
         }
 
