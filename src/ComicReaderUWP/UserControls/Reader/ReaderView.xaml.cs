@@ -1438,7 +1438,16 @@ internal partial class ReaderView : UserControl
             bool isTouchpad = pt.PointerDeviceType == PointerDeviceType.Touchpad || delta % (int)Windows.Win32.PInvoke.WHEEL_DELTA != 0;
 
             long nowTicks = GetTicks();
-            if (nowTicks - _lastTouchpadPageTurnTicks >= 200)
+            if (nowTicks - _lastTouchpadPageTurnTicks < 200)
+            {
+                // Suppress any page turn events since we can't tell whether the event is from touchpad or mouse wheel,
+                // but we know for sure that it's not from mouse wheel if it's too frequent.
+                if (isTouchpad)
+                {
+                    _lastTouchpadPageTurnTicks = nowTicks;
+                }
+            }
+            else
             {
                 int movement = delta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
                 if (isTouchpad)
@@ -1446,6 +1455,7 @@ internal partial class ReaderView : UserControl
                     movement = Math.Sign(movement);
                     if (movement != 0)
                     {
+                        _lastTouchpadPageTurnTicks = nowTicks;
                         MoveFrameByUser("PageTurningUsingTouchpadWheel", movement);
                     }
                 }
@@ -1453,11 +1463,6 @@ internal partial class ReaderView : UserControl
                 {
                     MoveFrameByUser("PageTurningUsingPointerWheel", movement);
                 }
-            }
-
-            if (isTouchpad)
-            {
-                _lastTouchpadPageTurnTicks = nowTicks;
             }
         }
 
