@@ -372,7 +372,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             }
 
             Size frameSize = frameSizes[i];
-            if (frameSize.Width < 1E-8 || frameSize.Height < 1E-8)
+            if (frameSize.Width < 1E-3 || frameSize.Height < 1E-3)
             {
                 items[i] = null;
                 continue;
