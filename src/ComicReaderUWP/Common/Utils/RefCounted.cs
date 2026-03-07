@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace ComicReaderUWP.Common.Utils;
@@ -36,6 +37,28 @@ internal sealed partial class RefCounted<T>(T value) : IDisposable where T : IDi
             if (Interlocked.CompareExchange(ref _refCount, current + 1, current) == current)
             {
                 return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Try to increment reference count. Returns false if already disposed.
+    /// </summary>
+    public bool TryRef([NotNullWhen(true)] out T? value)
+    {
+        while (true)
+        {
+            int current = Volatile.Read(ref _refCount);
+            if (current == 0)
+            {
+                value = default;
+                return false;
+            }
+
+            if (Interlocked.CompareExchange(ref _refCount, current + 1, current) == current)
+            {
+                value = _value;
+                return true;
             }
         }
     }

@@ -590,7 +590,9 @@ internal static partial class ImageCacheManager
             }
         }
 
-        desiredSize = new((int)desiredWidthRaw, (int)desiredHeightRaw);
+        int desiredWidth = Math.Max(1, (int)Math.Round(desiredWidthRaw));
+        int desiredHeight = Math.Max(1, (int)Math.Round(desiredHeightRaw));
+        desiredSize = new(desiredWidth, desiredHeight);
     }
 
     private static void CalculateDefaultSizeForVector(float originWidth, float originHeight, out int width, out int height)

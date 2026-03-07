@@ -20,12 +20,15 @@ using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
 
+using Windows.Graphics.Imaging;
+
 namespace ComicReaderUWP.UserControls.Reader;
 
 internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDisposable
 {
     private const string TAG = nameof(ReaderImageSourceHolder);
-    private const int MAX_CANVAS_SIZE = 33177600;
+    private const int MAX_BITMAP_SIZE = 16 * 1024 * 1024;
+    private const int MAX_CANVAS_DIMENSION = 8192;
 
     public delegate void SourceChangedHandler(ImageSource? source);
     public event SourceChangedHandler? SourceChanged;
@@ -62,6 +65,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
     private CanvasDevice? _canvasDevice;
     private CanvasImageSource? _canvasImageSource;
     private int _postDraw = 0;
+    private int _drawVersion = 0;
 
     public void Dispose()
     {
@@ -256,7 +260,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                 return;
             }
 
-            const double maxResolution = 10000000;
+            const double maxResolution = MAX_BITMAP_SIZE;
             if (resolution > maxResolution)
             {
                 double ratio = Math.Sqrt(maxResolution / (frameSize.Width * frameSize.Height));
@@ -314,12 +318,13 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
         _drawDispatcher.Submit(() =>
         {
+            int version = Interlocked.Increment(ref _drawVersion);
             Interlocked.Exchange(ref _postDraw, 0);
-            Draw();
+            Draw(version);
         });
     }
 
-    private void Draw()
+    private void Draw(int version)
     {
         DrawingImageItem?[] items;
         Size[] frameSizes;
@@ -338,11 +343,11 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                     }
                     else
                     {
-                        item.BitmapRef.Ref();
                         items[i] = new DrawingImageItem
                         {
-                            Bitmap = item.BitmapRef,
                             Source = item.Source,
+                            Bitmap = item.BitmapRef,
+                            BitmapSize = item.BitmapRef.Value.SizeInPixels,
                         };
                     }
 
@@ -360,11 +365,9 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                 continue;
             }
 
-            CanvasBitmap bitmap = item.Bitmap.Value;
-            if (bitmap.SizeInPixels.Width < 1 || bitmap.SizeInPixels.Height < 1)
+            if (item.BitmapSize.Width < 1 || item.BitmapSize.Height < 1)
             {
                 items[i] = null;
-                item.Bitmap.Unref();
                 continue;
             }
 
@@ -372,7 +375,6 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             if (frameSize.Width < 1E-3 || frameSize.Height < 1E-3)
             {
                 items[i] = null;
-                item.Bitmap.Unref();
                 continue;
             }
 
@@ -387,6 +389,11 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                 _canvasImageSource = null;
                 CoroutineUtils.RunInMainThread(() =>
                 {
+                    if (Volatile.Read(ref _drawVersion) != version)
+                    {
+                        return;
+                    }
+
                     if (_canvasImageSource is null)
                     {
                         SourceChanged?.Invoke(null);
@@ -419,16 +426,15 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             }
         }
 
-        double canvasSize = (double)accumulatedWidth * maxHeight;
-        double scaleRatio = 1;
-        if (canvasSize > MAX_CANVAS_SIZE)
-        {
-            scaleRatio = Math.Sqrt(MAX_CANVAS_SIZE / canvasSize);
-        }
-
-        var imageRects = new ImageRect[items.Length];
-        accumulatedWidth = 0;
+        double canvasSize = accumulatedWidth * maxHeight;
+        int maxDimension = MAX_CANVAS_DIMENSION;
+        double scaleRatio = Math.Min(1, maxDimension / Math.Max(accumulatedWidth, maxHeight));
+        accumulatedWidth *= scaleRatio;
         maxHeight *= scaleRatio;
+        int canvasWidth = Math.Max(1, Math.Min(maxDimension, (int)Math.Round(accumulatedWidth)));
+        int canvasHeight = Math.Max(1, Math.Min(maxDimension, (int)Math.Round(maxHeight)));
+
+        accumulatedWidth = 0;
         for (int i = 0; i < items.Length; i++)
         {
             DrawingImageItem? item = items[i];
@@ -440,7 +446,7 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             ImageRect imageRect = new();
             Size frameSize = frameSizes[i];
             double rectWidth = frameSize.Width * finalPixelRatio * scaleRatio;
-            imageRect.X = (int)accumulatedWidth;
+            imageRect.X = accumulatedWidth;
             imageRect.Width = rectWidth;
             accumulatedWidth += rectWidth;
 
@@ -450,14 +456,18 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                 double rectTop = (maxHeight - rectHeight) * 0.5;
                 imageRect.Y = rectTop;
                 imageRect.Height = rectHeight;
+                item.TargetRect = imageRect;
             }
-
-            imageRects[i] = imageRect;
         }
 
         CoroutineUtils.RunInMainThread(() =>
         {
-            CanvasImageSource imageSource = GetCanvasImageSource((int)accumulatedWidth, (int)maxHeight);
+            if (Volatile.Read(ref _drawVersion) != version)
+            {
+                return;
+            }
+
+            CanvasImageSource imageSource = GetCanvasImageSource(canvasWidth, canvasHeight);
             using CanvasDrawingSession ds = imageSource.CreateDrawingSession(Colors.Transparent);
             for (int i = 0; i < items.Length; i++)
             {
@@ -467,20 +477,27 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
                     continue;
                 }
 
-                Matrix3x2 oldTransform = ds.Transform;
-                ImageRect imageRect = imageRects[i];
-                ds.Transform = item.GetTransformMatrix(imageRect, out ImageRect destRect);
+                if (!item.Bitmap.TryRef(out CanvasBitmap? bitmap))
+                {
+                    continue;
+                }
 
-                CanvasBitmap bitmap = item.Bitmap.Value;
-                ds.DrawImage(
-                    item.CanvasImage,
-                    new Windows.Foundation.Rect((float)destRect.X, (float)destRect.Y, (float)destRect.Width, (float)destRect.Height),
-                    new Windows.Foundation.Rect(0, 0, bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height),
-                    1F,
-                    CanvasImageInterpolation.HighQualityCubic);
-                item.Bitmap.Unref();
-
-                ds.Transform = oldTransform;
+                try
+                {
+                    Matrix3x2 oldTransform = ds.Transform;
+                    ds.Transform = item.GetTransformMatrix(item.TargetRect, out ImageRect destRect);
+                    ds.DrawImage(
+                        item.CanvasImage,
+                        new Windows.Foundation.Rect((float)destRect.X, (float)destRect.Y, (float)destRect.Width, (float)destRect.Height),
+                        new Windows.Foundation.Rect(0, 0, item.BitmapSize.Width, item.BitmapSize.Height),
+                        1F,
+                        CanvasImageInterpolation.HighQualityCubic);
+                    ds.Transform = oldTransform;
+                }
+                finally
+                {
+                    item.Bitmap.Unref();
+                }
             }
         });
     }
@@ -531,8 +548,10 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
     private class DrawingImageItem
     {
-        public required RefCounted<CanvasBitmap> Bitmap;
         public required ReaderImageSource Source;
+        public required RefCounted<CanvasBitmap> Bitmap;
+        public required BitmapSize BitmapSize;
+        public ImageRect TargetRect;
 
         public ICanvasImage CanvasImage
         {
@@ -552,13 +571,13 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
         public uint ImageWidth => Source.Rotation switch
         {
-            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => Bitmap.Value.SizeInPixels.Height,
+            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => BitmapSize.Height,
             _ => Bitmap.Value.SizeInPixels.Width,
         };
 
         public uint ImageHeight => Source.Rotation switch
         {
-            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => Bitmap.Value.SizeInPixels.Width,
+            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => BitmapSize.Width,
             _ => Bitmap.Value.SizeInPixels.Height,
         };
 
