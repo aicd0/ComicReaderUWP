@@ -10,7 +10,7 @@ namespace ComicReaderUWP.SDK.Common.Utils;
 
 public static class CoroutineUtils
 {
-    public static void Start(Func<Task> task)
+    public static void Run(Func<Task> task)
     {
         task().ContinueWith(t =>
         {
@@ -50,7 +50,7 @@ public static class CoroutineUtils
         TaskCompletionSource<T> completionSource = new();
         dispatcher.Submit(() =>
         {
-            Start(async () =>
+            Run(async () =>
             {
                 completionSource.SetResult(await function());
             });
@@ -61,21 +61,21 @@ public static class CoroutineUtils
 
     public static void RunInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        Start(() => MainThreadUtils.RunInMainThread(action, priority));
+        Run(() => MainThreadUtils.RunInMainThread(action, priority));
     }
 
     public static void PostInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        Start(() => MainThreadUtils.PostInMainThread(action, priority));
+        Run(() => MainThreadUtils.PostInMainThread(action, priority));
     }
 
     public static void RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        Start(() => MainThreadUtils.RunInMainThreadAsync(action, priority));
+        Run(() => MainThreadUtils.RunInMainThreadAsync(action, priority));
     }
 
     public static void PostInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        Start(() => MainThreadUtils.PostInMainThreadAsync(action, priority));
+        Run(() => MainThreadUtils.PostInMainThreadAsync(action, priority));
     }
 }

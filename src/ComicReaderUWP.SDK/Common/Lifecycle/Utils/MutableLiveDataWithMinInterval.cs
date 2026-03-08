@@ -54,7 +54,7 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
             }
 
             _notifyScheduled = true;
-            CoroutineUtils.Start(async () =>
+            CoroutineUtils.Run(async () =>
             {
                 try
                 {

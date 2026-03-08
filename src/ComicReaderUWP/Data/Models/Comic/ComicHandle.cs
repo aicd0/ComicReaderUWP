@@ -752,7 +752,7 @@ internal abstract class ComicHandle
         LastVisit = DateTimeOffset.Now;
         Progress = Math.Max(Progress, 0);
 
-        CoroutineUtils.Start(() => Enqueue("SetAsRead", delegate
+        CoroutineUtils.Run(() => Enqueue("SetAsRead", delegate
         {
             SaveNoLock(delegate
             {
@@ -770,7 +770,7 @@ internal abstract class ComicHandle
     {
         CoverCacheKey = key;
 
-        CoroutineUtils.Start(() => Enqueue("SetCoverCacheKey", delegate
+        CoroutineUtils.Run(() => Enqueue("SetCoverCacheKey", delegate
         {
             SaveNoLock(delegate
             {

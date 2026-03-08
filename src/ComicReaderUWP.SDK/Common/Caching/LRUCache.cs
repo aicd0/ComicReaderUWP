@@ -199,7 +199,7 @@ public class LRUCache(string directoryPath)
             _flushLock.ReleaseReaderLock();
         }
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             await Task.Delay(1000);
             IDictionary<string, long> pendingFlushKeys;

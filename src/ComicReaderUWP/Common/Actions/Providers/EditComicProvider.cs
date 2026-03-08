@@ -48,13 +48,13 @@ internal class EditComicProvider : IActionProvider
             return;
         }
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             List<ComicModel> comics = await ComicModel.BatchFromId("EditComicProvider", ids);
             if (comics.Count > 0)
             {
                 var dialog = new EditComicInfoDialog(comics);
-                CoroutineUtils.Start(() => dialog.ShowAsync(mainWindowCom.WindowId));
+                CoroutineUtils.Run(() => dialog.ShowAsync(mainWindowCom.WindowId));
             }
 
             context.SetSuccess();

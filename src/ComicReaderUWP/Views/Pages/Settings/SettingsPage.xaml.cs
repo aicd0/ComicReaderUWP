@@ -77,7 +77,7 @@ internal sealed partial class SettingsPage : BasePage
 
     private void ChooseLocationsClick(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             var dialog = new ChooseLocationsDialog(WindowId);
             await dialog.ShowAsync(WindowId);
@@ -86,13 +86,13 @@ internal sealed partial class SettingsPage : BasePage
 
     private void OnHistoryClearAllClicked(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(() => ComicHistoryItemModel.ClearAsync());
+        CoroutineUtils.Run(() => ComicHistoryItemModel.ClearAsync());
         ViewModel.IsClearHistoryEnabled = false;
     }
 
     private void OnSendFeedbackButtonClicked(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             var uri = new Uri(@"https://github.com/aicd0/ComicReaderUWP/issues/new/choose");
             await Windows.System.Launcher.LaunchUriAsync(uri);
@@ -155,7 +155,7 @@ internal sealed partial class SettingsPage : BasePage
 
     private void DonationButton_Click(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
         {
             PurchaseManager.OperationResult result = await PurchaseManager.PurchaseDonor(WindowId);
             if (!result.Successful)
@@ -173,7 +173,7 @@ internal sealed partial class SettingsPage : BasePage
 
     private void DonationAlreadyPurchasedHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
     {
-        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
         {
             PurchaseManager.OperationResult result = await PurchaseManager.UpdatePurchaseStatus(WindowId);
             if (!result.Successful)

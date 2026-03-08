@@ -266,12 +266,12 @@ internal sealed partial class FavoritePage : BasePage
 
     private void MainTreeViewBackgroundPressed(object sender, PointerRoutedEventArgs e)
     {
-        CoroutineUtils.Start(ResetItems);
+        CoroutineUtils.Run(ResetItems);
     }
 
     private void MainTreeViewItemPressed(object sender, PointerRoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             var item = (Microsoft.UI.Xaml.Controls.TreeViewItem)sender;
             var ctx = (FavoriteItemViewModel)item.DataContext;
@@ -288,7 +288,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void MainTreeViewItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             var item = (FavoriteItemViewModel)e.InvokedItem;
 
@@ -341,7 +341,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void RenameTextBoxKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             if (e.Key == Windows.System.VirtualKey.Enter)
             {
@@ -411,7 +411,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void OpenInNewTabClick(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             var item = (FavoriteItemViewModel)((MenuFlyoutItem)sender).DataContext;
             ComicModel? comic = await ComicModel.FromId(item.Id, "FavoriteOpenInNewTabLoadComic");

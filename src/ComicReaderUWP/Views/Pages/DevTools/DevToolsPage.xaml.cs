@@ -87,7 +87,7 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void ShowDialogOnActiveWindowButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             await Task.Delay(3000);
             DialogOptions options = new DialogOptions.Builder()

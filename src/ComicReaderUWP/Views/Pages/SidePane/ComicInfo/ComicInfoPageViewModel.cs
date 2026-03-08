@@ -150,7 +150,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         _comic = comic;
         _pageIndex = -1;
         LoadComicInfo();
-        CoroutineUtils.Start(UpdateImageDescription);
+        CoroutineUtils.Run(UpdateImageDescription);
     }
 
     public void SetPageIndex(int pageIndex)
@@ -161,7 +161,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         }
 
         _pageIndex = pageIndex;
-        CoroutineUtils.Start(UpdateImageDescription);
+        CoroutineUtils.Run(UpdateImageDescription);
     }
 
     public void SetPlaylist(PlaylistModel playlist)
@@ -179,7 +179,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
 
         if (comic.CompletionState != completionState && !comic.IsExternal)
         {
-            CoroutineUtils.Start(async () =>
+            CoroutineUtils.Run(async () =>
             {
                 switch (completionState)
                 {
@@ -253,7 +253,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             categoryTags.Add(tag);
         }
 
-        CoroutineUtils.Start(() => comic.SetTags(tags));
+        CoroutineUtils.Run(() => comic.SetTags(tags));
         return true;
     }
 
@@ -387,7 +387,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             Glyph = "\uE74D",
             Click = () =>
             {
-                CoroutineUtils.Start(async () =>
+                CoroutineUtils.Run(async () =>
                 {
                     ComicModel? comic = _comic;
                     if (comic == null)

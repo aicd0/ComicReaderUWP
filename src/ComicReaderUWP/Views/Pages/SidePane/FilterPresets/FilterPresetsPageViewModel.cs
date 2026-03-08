@@ -108,7 +108,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         }
 
         _searchSubmitted = true;
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             await Task.Delay(SEARCH_DELAY);
             _searchSubmitted = false;

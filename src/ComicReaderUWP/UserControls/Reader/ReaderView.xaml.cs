@@ -980,7 +980,7 @@ internal partial class ReaderView : UserControl
         // If not, try set the offset again.
 
         CancellationSession.IToken token = _reloadSession.Token;
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             for (int i = 0; i < 10; i++)
             {
@@ -1483,7 +1483,7 @@ internal partial class ReaderView : UserControl
 
             _tapPending = true;
             _tapCancelled = false;
-            CoroutineUtils.Start(async () =>
+            CoroutineUtils.Run(async () =>
             {
                 await Task.Delay(100);
                 _tapPending = false;
@@ -3115,7 +3115,7 @@ internal partial class ReaderView : UserControl
 
     private static void PostToCurrentThread(Action action, int delayMilliseconds = 0)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             await Task.Delay(delayMilliseconds + 1);
             action();

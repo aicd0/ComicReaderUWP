@@ -319,7 +319,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             Glyph = "\uE895",
             Click = () =>
             {
-                CoroutineUtils.Start(async () =>
+                CoroutineUtils.Run(async () =>
                 {
                     var uri = new Uri(@"https://github.com/aicd0/ComicReaderUWP/releases");
                     await Windows.System.Launcher.LaunchUriAsync(uri);

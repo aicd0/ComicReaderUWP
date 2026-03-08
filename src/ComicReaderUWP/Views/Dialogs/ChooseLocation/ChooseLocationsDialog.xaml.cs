@@ -63,7 +63,7 @@ public sealed partial class ChooseLocationsDialog : BaseContentDialog
 
     private void AddNewPointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             if (!IsPrimaryButtonEnabled)
             {

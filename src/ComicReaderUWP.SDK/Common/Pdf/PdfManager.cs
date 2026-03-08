@@ -154,7 +154,7 @@ public static partial class PdfManager
                 return;
             }
 
-            CoroutineUtils.Start(() => Enqueue(() =>
+            CoroutineUtils.Run(() => Enqueue(() =>
             {
                 Pdfium.FPDF_CloseDocument(DocumentPtr);
                 DocumentPtr = nint.Zero;

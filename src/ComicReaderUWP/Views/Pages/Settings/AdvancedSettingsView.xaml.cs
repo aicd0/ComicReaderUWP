@@ -40,7 +40,7 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
             return;
         }
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             if (debugMode)
             {
@@ -92,7 +92,7 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
 
     private void ResetAllSettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             DialogOptions options = new DialogOptions.Builder()
                 .SetTitle(StringResourceProvider.Instance.ResetAllSettings)

@@ -111,7 +111,7 @@ class WindowManager
         }
 
         _saveWindowStatusScheduled = true;
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             await Task.Delay(500);
             _saveWindowStatusScheduled = false;
@@ -162,7 +162,7 @@ class WindowManager
 
     private void SaveWindowStatus()
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             WindowStatusModel model = new()
             {

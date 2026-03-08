@@ -120,7 +120,7 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         TagName = tag;
         UpdateSaveButtonStates();
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             TagInfoModel tagInfoModel = await TagInfoModel.GetOrCreate(tagCategory, tag);
             _tagInfoModel = tagInfoModel;
@@ -166,7 +166,7 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
             return;
         }
 
-        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
         {
             if (!IsSameTag)
             {
@@ -187,7 +187,7 @@ internal partial class EditTagDialogViewModel : INotifyPropertyChanged
         _isNameValid = !string.IsNullOrEmpty(_tagCategoryName) && !string.IsNullOrEmpty(_tagName);
         SaveEnabled = _isNameValid;
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             OverwriteWarning = !IsSameTag && await TagInfoModel.Get(_tagCategoryName, _tagName) != null;
         });

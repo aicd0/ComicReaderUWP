@@ -86,7 +86,7 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             await Task.Delay(SEARCH_DELAY);
             Interlocked.Exchange(ref _searchSubmitted, 0);
@@ -101,7 +101,7 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
 
     private void OnComicSearchResult(IReadOnlyList<ComicModel> items)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             List<SimpleTreeViewNodeModel> dataSource = await GenerateNodeTree(items);
 

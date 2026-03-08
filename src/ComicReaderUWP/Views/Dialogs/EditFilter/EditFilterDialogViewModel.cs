@@ -67,7 +67,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
 
     public void Initialize(ComicFilterModel.ExternalFilterModel filter)
     {
-        CoroutineUtils.Start(() => InitializeAsync(filter));
+        CoroutineUtils.Run(() => InitializeAsync(filter));
     }
 
     public void UpdateName(string name)

@@ -103,7 +103,7 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
 
         args.Handled = true;
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             FlyoutBase? flyout = await viewModel.CreateContextFlyout();
             if (flyout is null)

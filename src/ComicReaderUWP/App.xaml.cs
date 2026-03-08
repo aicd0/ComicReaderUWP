@@ -89,7 +89,7 @@ public partial class App : Application
                 StoreCommandLine();
             }
 
-            CoroutineUtils.Start(async () =>
+            CoroutineUtils.Run(async () =>
             {
                 await mainInstance.RedirectActivationToAsync(activatedEventArgs);
                 System.Diagnostics.Process.GetCurrentProcess().Kill();
@@ -101,7 +101,7 @@ public partial class App : Application
         _initTaskManager.InitOnAppLaunch();
         mainInstance.Activated += OnActivated;
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             await OnActivatedInternal(activatedEventArgs, firstLaunch: true);
         });
