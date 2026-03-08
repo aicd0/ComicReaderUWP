@@ -212,7 +212,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public void LoadPlaylist(PlaylistModel playlist, string? serializedPlayback)
     {
         Playlist = playlist;
-        Playback.SetPlaylist(playlist, serializedPlayback);
+        Playback.LoadState(playlist, serializedPlayback);
     }
 
     public void SetIsFavorite(bool isFavorite, bool writeDatabase)

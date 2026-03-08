@@ -56,13 +56,14 @@ internal class PlaybackModel
                 _isShuffle = value;
                 AppSettingsModel.Instance.PlaybackDefaultShuffle = value;
 
+                string? currentId = CurrentItem?.Id;
                 if (value)
                 {
                     _randomSeed = Random.Shared.Next();
-                    _firstId = CurrentItem?.Id;
+                    _firstId = currentId;
                 }
 
-                UpdatePlaylist();
+                UpdateInternalStates(currentId);
             }
         }
     }
@@ -96,7 +97,7 @@ internal class PlaybackModel
         }
     }
 
-    public void SetPlaylist(PlaylistModel playlist, string? serializedPlayback)
+    public void LoadState(PlaylistModel playlist, string? serializedPlayback)
     {
         _playlist = playlist;
 
@@ -105,7 +106,9 @@ internal class PlaybackModel
             return;
         }
 
-        UpdatePlaylist();
+        string? firstId = playlist.Items.Count > 0 ? playlist.Items[0].Id : null;
+        _firstId = firstId;
+        UpdateInternalStates(firstId);
     }
 
     public void Next()
@@ -165,20 +168,10 @@ internal class PlaybackModel
         return JsonSerializer.Serialize(model);
     }
 
-    private void UpdatePlaylist()
+    private void UpdateInternalStates(string? currentId)
     {
-        PlaylistModel.PlaylistItem? currentItem = CurrentItem;
         PopulateItems();
-        if (currentItem is not null)
-        {
-            _cursor = Math.Max(0, _items.FindIndex(x => x.Id == currentItem.Id));
-        }
-        else
-        {
-            _cursor = 0;
-        }
-
-        ClampCursor();
+        SetCursorById(currentId);
         DispatchPlaylistChange();
         DispatchPlaybackStatusChange(StatusChangeReason.Other);
     }
@@ -204,23 +197,8 @@ internal class PlaybackModel
         _isRepeat = model.IsRepeat ?? AppSettingsModel.Instance.PlaybackDefaultRepeat;
         _isShuffle = model.IsShuffle ?? AppSettingsModel.Instance.PlaybackDefaultShuffle;
         _randomSeed = model.RandomSeed ?? Random.Shared.Next();
-        _firstId = model.FirstId;
-        PopulateItems();
-
-        _cursor = 0;
-        string? currentId = model.CurrentId;
-        if (!string.IsNullOrEmpty(currentId))
-        {
-            int cursor = _items.FindIndex(x => x.Id == currentId);
-            if (cursor >= 0)
-            {
-                _cursor = cursor;
-            }
-        }
-
-        ClampCursor();
-        DispatchPlaylistChange();
-        DispatchPlaybackStatusChange(StatusChangeReason.Other);
+        _firstId = model.FirstId ?? model.CurrentId;
+        UpdateInternalStates(model.CurrentId);
         return true;
     }
 
@@ -249,6 +227,20 @@ internal class PlaybackModel
                 }
             }
         }
+    }
+
+    private void SetCursorById(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            _cursor = 0;
+        }
+        else
+        {
+            _cursor = Math.Max(0, _items.FindIndex(x => x.Id == id));
+        }
+
+        ClampCursor();
     }
 
     private void ClampCursor()
