@@ -93,6 +93,10 @@ internal class ReaderGestureRecognizer
         {
             _gestureRecognizer.ProcessMoveEvents(value);
         }
+        catch (ArgumentException e)
+        {
+            Logger.E(TAG, "ProcessMoveEvents", e);
+        }
         catch (Exception e)
         {
             Logger.F(TAG, "ProcessMoveEvents", e);

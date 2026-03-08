@@ -70,8 +70,14 @@ internal partial class PdfComicHandle : ComicHandle
         }
 
         PdfManager.IPdfConnection? connection = await PdfManager.OpenPdf(file.Path, null);
-        if (connection == null)
+        if (connection is null)
         {
+            return null;
+        }
+
+        if (connection.GetPageCount() == 0)
+        {
+            connection.Dispose();
             return null;
         }
 

@@ -167,11 +167,6 @@ internal partial class ArchiveComicHandle : ComicHandle
                 ArchiveAccess.TryGetSubFiles(archive.Path, subPath, subfiles);
             });
 
-            if (subfiles.Count == 0)
-            {
-                return false;
-            }
-
             foreach (string subfile in subfiles)
             {
                 string extension = StringUtils.ExtensionFromFilename(subfile);
@@ -182,6 +177,11 @@ internal partial class ArchiveComicHandle : ComicHandle
 
                 entries.Add(subfile);
             }
+        }
+
+        if (entries.Count == 0)
+        {
+            return false;
         }
 
         _entries = [.. entries.OrderBy(x => StringUtils.SmartFileNameKeySelector(x), StringUtils.SmartFileNameComparer)];
