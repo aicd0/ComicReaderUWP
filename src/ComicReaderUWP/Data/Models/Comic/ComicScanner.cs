@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
@@ -19,7 +18,7 @@ namespace ComicReaderUWP.Data.Models.Comic;
 
 internal static class ComicScanner
 {
-    public static async IAsyncEnumerable<ItemInfo> Search(string path, PathType type, int maxDepth = -1)
+    public static IEnumerable<ItemInfo> Search(string path, PathType type, int maxDepth = -1)
     {
         List<PathInfo> paths = [new PathInfo(type, path)];
         List<PathInfo> nextPaths = [];
@@ -28,7 +27,7 @@ internal static class ComicScanner
         {
             foreach (PathInfo pathInfo in paths)
             {
-                await foreach (ItemInfo item in pathInfo.Ctx.Search())
+                foreach (ItemInfo item in pathInfo.Ctx.Search())
                 {
                     yield return item;
 
@@ -74,7 +73,7 @@ internal static class ComicScanner
 
     private interface IStorageItemSearchContext
     {
-        IAsyncEnumerable<ItemInfo> Search();
+        IEnumerable<ItemInfo> Search();
     }
 
     private class FolderSearchContext(string path) : IStorageItemSearchContext
@@ -102,7 +101,7 @@ internal static class ComicScanner
 
         private readonly string _path = path;
 
-        public async IAsyncEnumerable<ItemInfo> Search()
+        public IEnumerable<ItemInfo> Search()
         {
             foreach (ItemInfo item in SubItems(_path, "*"))
             {
@@ -143,7 +142,7 @@ internal static class ComicScanner
                 // TODO: Differentiate between non-existing folder and no-access folder
                 yield return new ItemInfo
                 {
-                    Type = ItemType.NoAccessFolder,
+                    Type = ItemType.NoAccessLocation,
                     Path = path,
                 };
 
@@ -216,18 +215,23 @@ internal static class ComicScanner
         private readonly string _path = path;
         private readonly string _extension = StringUtils.ExtensionFromFilename(path);
 
-        public async IAsyncEnumerable<ItemInfo> Search()
+        public IEnumerable<ItemInfo> Search()
         {
-            using Stream? stream = await ArchiveAccess.TryGetFileStream(_path);
+            using Stream? stream = ArchiveAccess.TryGetFileStream(_path);
             if (stream is null)
             {
                 Logger.E(TAG, $"Unable to open archive stream: {_path}");
+                yield return new ItemInfo
+                {
+                    Type = ItemType.NoAccessLocation,
+                    Path = _path,
+                };
                 yield break;
             }
 
             List<string> files = [];
             HashSet<string> folders = [];
-            await ArchiveAccess.TryReadEntries(stream, _extension, entry =>
+            ArchiveAccess.TryReadEntries(stream, _extension, entry =>
             {
                 string path = entry.FullName.Replace('/', '\\');
                 if (entry.IsDirectory)
@@ -243,7 +247,7 @@ internal static class ComicScanner
                     }
                 }
 
-                return Task.FromResult(ArchiveAccess.ICallbackResult.Continue);
+                return ArchiveAccess.ICallbackResult.Continue;
             });
 
             foreach (string file in files)
@@ -276,7 +280,7 @@ internal static class ComicScanner
     {
         Folder,
         File,
-        NoAccessFolder,
+        NoAccessLocation,
     }
 
     public struct ItemInfo
