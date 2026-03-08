@@ -196,7 +196,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         List<TagLinkModel.LinkModel> addedLinks = DiffLink(newLinks, oldLinks);
         List<TagLinkModel.LinkModel> removedLinks = DiffLink(oldLinks, newLinks);
 
-        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
         {
             List<Task> tasks = [];
             foreach (ComicModel comic in _comics)

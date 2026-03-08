@@ -123,7 +123,7 @@ internal sealed partial class ReaderPage : BasePage
 
         // Initialize view model
         ViewModel.Initialize(PageActionHandler);
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             PlaylistModel playlist = await GetPlaylist(bundle);
             string? serializedPlayback = bundle.GetString(RouterConstants.ARG_PLAYBACK);
@@ -432,7 +432,7 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             _savingProgress = true;
             try
@@ -572,7 +572,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             void PostHideTask(int delay)
             {
-                CoroutineUtils.Start(async () =>
+                CoroutineUtils.Run(async () =>
                 {
                     await Task.Delay(delayMilliseconds + 1);
 
@@ -918,7 +918,7 @@ internal sealed partial class ReaderPage : BasePage
 
         args.Handled = true;
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(PageActionHandler, comic, ViewModel.Playlist.ToBuilder());
 

@@ -33,7 +33,7 @@ internal class MessageDialogProvider : IActionProvider
             .SetTitle(title)
             .SetContent(message)
             .Build();
-        CoroutineUtils.Start(() => DialogUtils.EnqueueDialogAsync(mainWindowCom.WindowId, options));
+        CoroutineUtils.Run(() => DialogUtils.EnqueueDialogAsync(mainWindowCom.WindowId, options));
         context.SetSuccess();
     }
 }

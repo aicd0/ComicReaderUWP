@@ -92,7 +92,7 @@ internal sealed partial class SimpleTreeView : BaseUserControl, INotifyPropertyC
 
         args.Handled = true;
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             List<SimpleTreeViewNodeModel> selectedItems = [];
             foreach (object? item in MainTreeView.SelectedItems)

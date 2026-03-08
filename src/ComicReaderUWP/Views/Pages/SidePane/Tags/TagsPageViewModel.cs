@@ -75,7 +75,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
 
     public void UpdateTags()
     {
-        CoroutineUtils.Start(ScheduleUpdateTags);
+        CoroutineUtils.Run(ScheduleUpdateTags);
     }
 
     public void SetSearchText(string searchText)
@@ -93,7 +93,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         }
 
         _searchSubmitted = true;
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             await Task.Delay(SEARCH_DELAY);
             _searchSubmitted = false;
@@ -355,7 +355,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             Glyph = "\uE74D",
             Click = () =>
             {
-                CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+                CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                 {
                     await Task.WhenAll(selectedCategories.Select(x => TagCategoryInfoModel.Delete(x.Name)));
                 }));
@@ -406,7 +406,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             Glyph = "\uE74D",
             Click = () =>
             {
-                CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+                CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                 {
                     await Task.WhenAll(selectedTags.Select(x => TagInfoModel.Delete(x.CategoryName, x.Name)));
                 }));

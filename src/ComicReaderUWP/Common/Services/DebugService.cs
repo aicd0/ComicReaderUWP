@@ -26,7 +26,7 @@ internal class DebugService : IDebugService
                 e.Cancel = true;
             })
             .Build();
-        CoroutineUtils.Start(() => DialogUtils.EnqueueDialogAsync(options));
+        CoroutineUtils.Run(() => DialogUtils.EnqueueDialogAsync(options));
     }
 
     public bool HandleDebugCommand(string command)

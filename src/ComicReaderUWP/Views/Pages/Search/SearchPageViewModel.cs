@@ -260,7 +260,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
     public void ApplyOperationToComicSelection(ComicOperationType operationType)
     {
         List<ComicItemViewModel> selectedItems = [.. _selectedItems];
-        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
         {
             await HomePageViewModel.BatchApplyOperation(operationType, selectedItems);
         }));

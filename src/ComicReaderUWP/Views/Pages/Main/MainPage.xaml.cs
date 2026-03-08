@@ -590,7 +590,7 @@ internal sealed partial class MainPage : BasePage
         // Handle file drop
         if (e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
         {
-            CoroutineUtils.Start(async () =>
+            CoroutineUtils.Run(async () =>
             {
                 IReadOnlyList<Windows.Storage.IStorageItem> items = await e.DataView.GetStorageItemsAsync();
                 foreach (Windows.Storage.IStorageItem? item in items)

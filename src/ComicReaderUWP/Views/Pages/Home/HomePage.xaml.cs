@@ -438,7 +438,7 @@ internal sealed partial class HomePage : BasePage
 
     private void EditFilterButton_Click(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             var dialog = new EditFilterDialog(await ViewModel.GetFilter());
             await dialog.ShowAsync(WindowId);
@@ -451,7 +451,7 @@ internal sealed partial class HomePage : BasePage
 
     private void AddNewFolder()
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             StorageFolder? folder = await FilePickerUtils.PickFolder(WindowId);
             if (folder == null)
@@ -480,7 +480,7 @@ internal sealed partial class HomePage : BasePage
 
     private void MoreButton_Click(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             if (sender is not FrameworkElement fe)
             {

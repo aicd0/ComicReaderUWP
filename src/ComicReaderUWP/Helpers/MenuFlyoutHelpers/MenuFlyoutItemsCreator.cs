@@ -152,7 +152,7 @@ internal static class MenuFlyoutItemsCreator
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.NotStarted,
                     Click = () =>
                     {
-                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                         {
                             await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToNotStarted()));
                         }));
@@ -165,7 +165,7 @@ internal static class MenuFlyoutItemsCreator
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Started,
                     Click = () =>
                     {
-                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                         {
                             await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToStarted()));
                         }));
@@ -178,7 +178,7 @@ internal static class MenuFlyoutItemsCreator
                     IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Completed,
                     Click = () =>
                     {
-                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                         {
                             await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToCompleted()));
                         }));
@@ -201,7 +201,7 @@ internal static class MenuFlyoutItemsCreator
                     Glyph = "\uE7B3",
                     Click = () =>
                     {
-                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                         {
                             await Task.WhenAll(selectedComics.Select(x => x.SetHidden(false)));
                         }));
@@ -216,7 +216,7 @@ internal static class MenuFlyoutItemsCreator
                     Glyph = "\uED1A",
                     Click = () =>
                     {
-                        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                         {
                             await Task.WhenAll(selectedComics.Select(x => x.SetHidden(true)));
                         }));
@@ -492,7 +492,7 @@ internal static class MenuFlyoutItemsCreator
                     {
                         if (StringUtils.TryNormalizeWebUrl(link.Link, out Uri? uri))
                         {
-                            CoroutineUtils.Start(async () => await Windows.System.Launcher.LaunchUriAsync(uri));
+                            CoroutineUtils.Run(async () => await Windows.System.Launcher.LaunchUriAsync(uri));
                         }
                         else
                         {

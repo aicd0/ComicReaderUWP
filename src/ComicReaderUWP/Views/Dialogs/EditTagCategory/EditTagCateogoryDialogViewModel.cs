@@ -90,7 +90,7 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
         Name = tagCategory;
         UpdateSaveButtonStates();
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             TagCategoryInfoModel tagCategoryInfoModel = await TagCategoryInfoModel.GetOrCreate(tagCategory);
             _tagCategoryInfoModel = tagCategoryInfoModel;
@@ -118,7 +118,7 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
             return;
         }
 
-        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
         {
             if (!IsSameCategory)
             {
@@ -138,7 +138,7 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
         _isNameValid = !string.IsNullOrEmpty(_name);
         SaveEnabled = _isNameValid;
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             OverwriteWarning = !IsSameCategory && await MayOverwriteExistingEntries(_name);
         });

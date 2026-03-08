@@ -284,7 +284,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
         else
         {
-            CoroutineUtils.Start(async () =>
+            CoroutineUtils.Run(async () =>
             {
                 await Task.Delay(timeRemain);
                 _lastSearchTime = GetTick();
@@ -359,7 +359,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     public void ApplyOperationToSelection(ComicOperationType operationType)
     {
         List<ComicItemViewModel> selectedItems = [.. _selectedComicItems];
-        CoroutineUtils.Start(() => BusyStateManager.WithBusyState(async () =>
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
         {
             await BatchApplyOperation(operationType, selectedItems);
         }));

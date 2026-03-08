@@ -414,7 +414,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void UpdateHistory(AppSettingsModel.ExternalModel model)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             bool hasHistory = !await ComicHistoryItemModel.IsEmptyAsync();
             bool scanOnLaunch = model.ScanOnLaunch;

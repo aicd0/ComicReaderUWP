@@ -327,7 +327,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     private void LoadComic(LoadingComicInfo comic)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             if (_isLoading)
             {

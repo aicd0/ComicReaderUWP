@@ -77,7 +77,7 @@ internal sealed partial class ComicInfoPage : BasePage
         ViewModel.EditTagLiveData.Observe(this, pair =>
         {
             var dialog = new EditTagDialog(pair.Key, pair.Value);
-            CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
+            CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
         });
 
         ViewModel.CompletionStateLiveData.ObserveSticky(this, completionStatus =>
@@ -193,7 +193,7 @@ internal sealed partial class ComicInfoPage : BasePage
         }
 
         var dialog = new EditComicInfoDialog([comic]);
-        CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
+        CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
     }
 
     //

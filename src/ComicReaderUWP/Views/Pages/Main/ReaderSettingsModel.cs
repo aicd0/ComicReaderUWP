@@ -157,7 +157,7 @@ internal class ReaderSettingsModel
         string customSettingsJson = JsonSerializer.Serialize(jsonModel);
         comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, PresetKey);
         comic.SetExt(ComicExt.CUSTOM_READER_SETTINGS, customSettingsJson);
-        CoroutineUtils.Start(comic.FlushExt);
+        CoroutineUtils.Run(comic.FlushExt);
     }
 
     public static ReaderSettingsModel FromJsonModel(string key, JsonModel? model)

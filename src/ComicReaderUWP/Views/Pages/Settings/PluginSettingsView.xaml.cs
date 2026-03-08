@@ -52,7 +52,7 @@ internal sealed partial class PluginSettingsView : BaseUserControl
 
     private void OpenPluginsFolderButton_Click(object sender, RoutedEventArgs e)
     {
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             string path = PluginManager.PluginsFolderPath;
             var er = EventRecorder.Create("OpenPluginsFolderClick");

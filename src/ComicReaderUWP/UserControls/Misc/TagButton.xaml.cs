@@ -40,7 +40,7 @@ internal sealed partial class TagButton : UserControl
 
         args.Handled = true;
 
-        CoroutineUtils.Start(async () =>
+        CoroutineUtils.Run(async () =>
         {
             FlyoutBase? flyout = await viewModel.CreateContextFlyout();
             if (flyout is null)

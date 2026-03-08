@@ -54,13 +54,13 @@ internal sealed partial class TagsPage : BasePage
         ViewModel.EditTagCategoryLiveData.Observe(this, tagCategory =>
         {
             var dialog = new EditTagCateogoryDialog(tagCategory);
-            CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
+            CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
         });
 
         ViewModel.EditTagLiveData.Observe(this, pair =>
         {
             var dialog = new EditTagDialog(pair.Key, pair.Value);
-            CoroutineUtils.Start(() => dialog.ShowAsync(WindowId));
+            CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
         });
     }
 
