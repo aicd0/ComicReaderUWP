@@ -581,7 +581,7 @@ internal abstract class ComicHandle
         int pageCount = connection.GetImageCount();
         if (pageCount <= 0)
         {
-            Logger.F(TAG, "OpenComicAsync: Comic has zero images");
+            Logger.F(TAG, "Comic connection has no images: " + Location);
             return false;
         }
 
