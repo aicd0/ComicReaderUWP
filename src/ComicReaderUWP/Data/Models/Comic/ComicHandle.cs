@@ -1017,21 +1017,25 @@ internal abstract class ComicHandle
                 continue;
             }
 
-            foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(folderPath, ComicScanner.PathType.Folder).ToBlockingEnumerable())
+            foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(folderPath, ComicScanner.PathType.Folder))
             {
                 if (_pendingUpdateTaskCount > 0)
                 {
                     return;
                 }
 
-                if (itemInfo.Type != ComicScanner.ItemType.File)
+                switch (itemInfo.Type)
                 {
-                    if (itemInfo.Type == ComicScanner.ItemType.NoAccessFolder)
-                    {
+                    case ComicScanner.ItemType.Folder:
+                        continue;
+                    case ComicScanner.ItemType.File:
+                        break;
+                    case ComicScanner.ItemType.NoAccessLocation:
                         noAccessLocations.Add(itemInfo.Path);
-                    }
-
-                    continue;
+                        continue;
+                    default:
+                        Logger.F(TAG, $"Unknown item type '{itemInfo.Type}' for path '{itemInfo.Path}'");
+                        continue;
                 }
 
                 string filename = StringUtils.ItemNameFromPath(itemInfo.Path);

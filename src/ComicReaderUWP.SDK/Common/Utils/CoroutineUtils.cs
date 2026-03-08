@@ -22,6 +22,43 @@ public static class CoroutineUtils
         });
     }
 
+    public static async Task Run(ITaskDispatcher dispatcher, Action action)
+    {
+        TaskCompletionSource<bool> completionSource = new();
+        dispatcher.Submit(() =>
+        {
+            action();
+            completionSource.SetResult(true);
+        });
+
+        await completionSource.Task;
+    }
+
+    public static async Task<T> Run<T>(ITaskDispatcher dispatcher, Func<T> function)
+    {
+        TaskCompletionSource<T> completionSource = new();
+        dispatcher.Submit(() =>
+        {
+            completionSource.SetResult(function());
+        });
+
+        return await completionSource.Task;
+    }
+
+    public static async Task<T> RunAsyncTask<T>(ITaskDispatcher dispatcher, Func<Task<T>> function)
+    {
+        TaskCompletionSource<T> completionSource = new();
+        dispatcher.Submit(() =>
+        {
+            Start(async () =>
+            {
+                completionSource.SetResult(await function());
+            });
+        });
+
+        return await completionSource.Task;
+    }
+
     public static void RunInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
         Start(() => MainThreadUtils.RunInMainThread(action, priority));
@@ -40,30 +77,5 @@ public static class CoroutineUtils
     public static void PostInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
         Start(() => MainThreadUtils.PostInMainThreadAsync(action, priority));
-    }
-
-    public static async Task<T> CreateTask<T>(string taskName, ITaskDispatcher dispatcher, Func<T> function)
-    {
-        TaskCompletionSource<T> completionSource = new();
-        dispatcher.Submit(taskName, () =>
-        {
-            completionSource.SetResult(function());
-        });
-
-        return await completionSource.Task;
-    }
-
-    public static async Task<T> CreateTaskAsync<T>(string taskName, ITaskDispatcher dispatcher, Func<Task<T>> function)
-    {
-        TaskCompletionSource<T> completionSource = new();
-        dispatcher.Submit(taskName, () =>
-        {
-            Start(async () =>
-            {
-                completionSource.SetResult(await function());
-            });
-        });
-
-        return await completionSource.Task;
     }
 }

@@ -95,8 +95,9 @@ class StringUtils
     {
         if (!list.Any())
         {
-            return "";
+            return string.Empty;
         }
+
         StringBuilder res = new(list.First());
         bool first = true;
         foreach (string s in list)
@@ -106,8 +107,10 @@ class StringUtils
                 first = false;
                 continue;
             }
+
             res.Append(seperator).Append(s);
         }
+
         return res.ToString();
     }
 
@@ -183,6 +186,7 @@ class StringUtils
         {
             return false;
         }
+
         return text[..subText.Length].Equals(subText);
     }
 
@@ -194,6 +198,7 @@ class StringUtils
         {
             return false;
         }
+
         return childPath[..parentPath.Length].Equals(parentPath);
     }
 
@@ -204,10 +209,12 @@ class StringUtils
         {
             return path;
         }
+
         if (path[^1] != '\\')
         {
             path += '\\';
         }
+
         return path;
     }
 
@@ -218,6 +225,7 @@ class StringUtils
         {
             return path;
         }
+
         return path[(i + 1)..];
     }
 
@@ -228,10 +236,12 @@ class StringUtils
         {
             return "";
         }
+
         if (i > 0 && location[i - 1] == '\\')
         {
             i--;
         }
+
         return location[..i];
 
     }
@@ -243,6 +253,7 @@ class StringUtils
         {
             return "";
         }
+
         return filename[i..];
     }
 
@@ -253,6 +264,7 @@ class StringUtils
         {
             return filename;
         }
+
         return filename[..i];
     }
 
@@ -262,10 +274,12 @@ class StringUtils
         {
             return path;
         }
+
         if (path[^1] == '\\')
         {
             return path[..^1];
         }
+
         return path;
     }
 
@@ -277,6 +291,7 @@ class StringUtils
         {
             sb.Append(symbols[Random.Shared.Next(symbols.Length)]);
         }
+
         return sb.ToString();
     }
 

@@ -67,7 +67,7 @@ internal partial class FolderComicHandle : ComicHandle
 
     protected override Task<bool> MoveToLocationInternal(string newLocation)
     {
-        return CoroutineUtils.CreateTaskAsync("MoveToLocationInternal", TaskDispatcher.LongRunningThreadPool, async () =>
+        return CoroutineUtils.RunAsyncTask(TaskDispatcher.LongRunningThreadPool, async () =>
         {
             string sourceDir = Location;
             string targetDir = newLocation;

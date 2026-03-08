@@ -12,6 +12,7 @@ using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 
 using Windows.Storage;
@@ -70,7 +71,7 @@ internal partial class ArchiveComicHandle : ComicHandle
         StorageFile? archive = _archive;
         if (archive is null)
         {
-            Logger.AssertNotReachHere("");
+            Logger.F(TAG, "Archive file is null");
             return null;
         }
 
@@ -104,7 +105,11 @@ internal partial class ArchiveComicHandle : ComicHandle
 
     private string GetSubPathFromFilename(string filename)
     {
-        Logger.Assert(!IsExternal, "E811B52BC50C1652");
+        if (IsExternal)
+        {
+            Logger.F(TAG, "GetSubPathFromFilename should not be called for external comics");
+        }
+
         string subPath = ArchiveAccess.GetSubPath(Location, false);
         if (subPath.Length == 0)
         {
@@ -128,32 +133,40 @@ internal partial class ArchiveComicHandle : ComicHandle
         if (IsExternal)
         {
             string basePath = ArchiveAccess.GetBasePath(Location, false) + ArchiveAccess.FileSeperator;
-            await foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(Location, ComicScanner.PathType.Archive))
+            await CoroutineUtils.Run(TaskDispatcher.DefaultThreadPool, () =>
             {
-                if (itemInfo.Type != ComicScanner.ItemType.File)
+                foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(Location, ComicScanner.PathType.Archive))
                 {
-                    continue;
-                }
+                    if (itemInfo.Type != ComicScanner.ItemType.File)
+                    {
+                        continue;
+                    }
 
-                if (itemInfo.Path.Length <= basePath.Length)
-                {
-                    Logger.AssertNotReachHere("46158BE005A1988A");
-                    continue;
-                }
+                    if (itemInfo.Path.Length <= basePath.Length)
+                    {
+                        Logger.F(TAG, $"Full path '{itemInfo.Path}' is shorter than base path '{basePath}'");
+                        continue;
+                    }
 
-                string filename = StringUtils.ItemNameFromPath(itemInfo.Path);
-                string extension = StringUtils.ExtensionFromFilename(filename);
-                if (AppInfoProvider.IsSupportedImageExtension(extension))
-                {
-                    entries.Add(itemInfo.Path[basePath.Length..]);
+                    string filename = StringUtils.ItemNameFromPath(itemInfo.Path);
+                    string extension = StringUtils.ExtensionFromFilename(filename);
+                    if (AppInfoProvider.IsSupportedImageExtension(extension))
+                    {
+                        entries.Add(itemInfo.Path[basePath.Length..]);
+                    }
                 }
-            }
+            });
         }
         else
         {
             string subPath = ArchiveAccess.GetSubPath(Location, false);
             var subfiles = new List<string>();
-            await ArchiveAccess.TryGetSubFiles(archive, subPath, subfiles);
+
+            await CoroutineUtils.Run(TaskDispatcher.DefaultThreadPool, () =>
+            {
+                ArchiveAccess.TryGetSubFiles(archive.Path, subPath, subfiles);
+            });
+
             if (subfiles.Count == 0)
             {
                 return false;
@@ -233,10 +246,11 @@ internal partial class ArchiveComicHandle : ComicHandle
             }
 
             string path = _entries[index];
-            Stream? stream = ArchiveAccess.TryGetFileStream(_archiveFile, path).Result;
-            if (stream == null)
+
+            Stream? stream = ArchiveAccess.TryGetFileStream(_archiveFile.Path, path);
+            if (stream is null)
             {
-                Logger.I(TAG, "Failed to access entry '" + _entries[index] + "'");
+                Logger.I(TAG, $"Failed to access entry :{path}");
                 return null;
             }
 

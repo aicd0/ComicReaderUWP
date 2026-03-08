@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Common.DebugTools;
@@ -46,39 +44,25 @@ public class ArchiveAccess
         return location[(i + FileSeperator.Length)..];
     }
 
-    public static async Task<Stream?> TryGetFileStream(string location)
+    public static Stream? TryGetFileStream(string location)
     {
-        string base_path = GetBasePath(location, false);
-        string sub_path = GetSubPath(location, false);
-        Windows.Storage.StorageFile? baseFile = await Storage.TryGetFile(base_path);
-        if (baseFile is null)
-        {
-            return null;
-        }
-
-        return await TryGetFileStream(baseFile, sub_path);
+        string basePath = GetBasePath(location, false);
+        string subPath = GetSubPath(location, false);
+        return TryGetFileStream(basePath, subPath);
     }
 
-    public static async Task<Stream?> TryGetFileStream(Windows.Storage.StorageFile baseFile, string subPath)
+    public static Stream? TryGetFileStream(string basePath, string subPath)
     {
         if (subPath.Length == 0)
         {
-            try
-            {
-                return await baseFile.OpenStreamForReadAsync();
-            }
-            catch (Exception e)
-            {
-                Logger.F(TAG, e);
-                return null;
-            }
+            return TryReadFile(basePath);
         }
 
         var memStream = new MemoryStream();
         bool successful = false;
         try
         {
-            await TryAccessArchiveStream(baseFile, subPath, async (stream) =>
+            TryAccessArchiveStream(basePath, subPath, stream =>
             {
                 stream.CopyTo(memStream);
                 memStream.Position = 0;
@@ -97,42 +81,23 @@ public class ArchiveAccess
         return memStream;
     }
 
-    public static async Task TryAccessArchiveStream(Windows.Storage.StorageFile baseFile, string subPath, Func<Stream, Task> func)
+    public static void TryAccessArchiveStream(string basePath, string subPath, Action<Stream> callback)
     {
-        if (baseFile is null)
+        using Stream? stream = TryReadFile(basePath);
+        if (stream is null)
         {
             return;
         }
 
-        Stream stream;
-        try
-        {
-            stream = await baseFile.OpenStreamForReadAsync();
-        }
-        catch (Exception e)
-        {
-            Logger.F(TAG, e);
-            return;
-        }
-
-        try
-        {
-            await TryAccessArchiveStreamInternal(stream, baseFile.FileType.ToLower(), subPath, func);
-        }
-        finally
-        {
-            stream.Dispose();
-        }
+        string extension = Path.GetExtension(basePath).ToLower();
+        TryAccessArchiveStreamInternal(stream, extension, subPath, callback);
     }
 
-    public static async Task TryGetSubFiles(Windows.Storage.StorageFile baseFile, string subPath, List<string> output)
+    public static void TryGetSubFiles(string basePath, string subPath, List<string> output)
     {
-        await TryAccessDeepestArchive(baseFile, subPath, async (stream, ctx) =>
+        TryAccessDeepestArchive(basePath, subPath, (stream, ctx) =>
         {
-            await Task.Run(() =>
-            {
-                return TryGetFileEntries(stream, ctx.Extension, ctx.Entry, output);
-            });
+            TryGetFileEntries(stream, ctx.Extension, ctx.Entry, output);
         });
     }
 
@@ -162,24 +127,50 @@ public class ArchiveAccess
         return i;
     }
 
-    private class ArchiveAccessContext
+    private static FileStream? TryReadFile(string path)
     {
-        public required string Entry;
-        public required string Extension;
+        string ErrorMessage()
+        {
+            return $"Unable to read file: {path}";
+        }
+
+        try
+        {
+            return File.OpenRead(path);
+        }
+        catch (FileNotFoundException e)
+        {
+            Logger.E(TAG, ErrorMessage(), e);
+            return null;
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            Logger.E(TAG, ErrorMessage(), e);
+            return null;
+        }
+        catch (IOException e)
+        {
+            Logger.E(TAG, ErrorMessage(), e);
+            return null;
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, ErrorMessage(), e);
+            return null;
+        }
     }
 
-    private static async Task TryAccessDeepestArchive(Windows.Storage.StorageFile baseFile, string subPath,
-        Func<Stream, ArchiveAccessContext, Task> func)
+    private static void TryAccessDeepestArchive(string basePath, string subPath, Action<Stream, ArchiveAccessContext> callback)
     {
         string subBasePath = GetBasePath(subPath, reverse: true);
         string entry = GetSubPath(subPath, reverse: true);
-        string extension = StringUtils.ExtensionFromFilename(subBasePath);
+        string extension = Path.GetExtension(subBasePath);
 
         if (entry.Length == 0)
         {
             entry = subBasePath;
-            subBasePath = "";
-            extension = baseFile.FileType;
+            subBasePath = string.Empty;
+            extension = Path.GetExtension(basePath);
         }
 
         var ctx = new ArchiveAccessContext
@@ -188,11 +179,10 @@ public class ArchiveAccess
             Extension = extension,
         };
 
-        await TryAccessArchiveStream(baseFile, subBasePath,
-            async (stream) => await func(stream, ctx));
+        TryAccessArchiveStream(basePath, subBasePath, stream => callback(stream, ctx));
     }
 
-    public static async Task TryReadEntries(Stream stream, string extension, Func<IArchiveEntry, Task<ICallbackResult>> callback)
+    public static void TryReadEntries(Stream stream, string extension, Func<IArchiveEntry, ICallbackResult> callback)
     {
         if (!stream.CanRead)
         {
@@ -251,7 +241,7 @@ public class ArchiveAccess
                         foreach (SharpCompress.Archives.SevenZip.SevenZipArchiveEntry rawEntry in archive.Entries)
                         {
                             var entry = new SevenZipArchiveEntry(rawEntry);
-                            ICallbackResult result = await callback(entry);
+                            ICallbackResult result = callback(entry);
                             if (result == ICallbackResult.StopIteration)
                             {
                                 break;
@@ -320,7 +310,7 @@ public class ArchiveAccess
                             }
 
                             var entry = new ReaderArchiveEntry(reader);
-                            ICallbackResult result = await callback(entry);
+                            ICallbackResult result = callback(entry);
                             if (result == ICallbackResult.StopIteration)
                             {
                                 break;
@@ -335,12 +325,11 @@ public class ArchiveAccess
         }
     }
 
-    private static async Task TryAccessArchiveStreamInternal(Stream stream,
-        string extension, string subPath, Func<Stream, Task> callback)
+    private static void TryAccessArchiveStreamInternal(Stream stream, string extension, string subPath, Action<Stream> callback)
     {
         if (subPath.Length == 0)
         {
-            await callback(stream);
+            callback(stream);
             return;
         }
 
@@ -348,7 +337,7 @@ public class ArchiveAccess
         string subEntryName = GetSubPath(subPath, false);
         string filename = StringUtils.ItemNameFromPath(mainEntryName);
         string subExtension = StringUtils.ExtensionFromFilename(filename);
-        await TryReadEntries(stream, extension, async (entry) =>
+        TryReadEntries(stream, extension, entry =>
         {
             if (entry.IsDirectory)
             {
@@ -374,14 +363,14 @@ public class ArchiveAccess
 
             using (subStream)
             {
-                await TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
+                TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
             }
 
             return ICallbackResult.StopIteration;
         });
     }
 
-    private static async Task TryGetFileEntries(Stream stream, string extension, string baseEntryName, List<string> output)
+    private static void TryGetFileEntries(Stream stream, string extension, string baseEntryName, List<string> output)
     {
         baseEntryName = baseEntryName.Replace('/', '\\');
         if (baseEntryName.Length > 0 && baseEntryName[^1] != '\\')
@@ -389,7 +378,7 @@ public class ArchiveAccess
             baseEntryName += '\\';
         }
 
-        await TryReadEntries(stream, extension, (entry) =>
+        TryReadEntries(stream, extension, entry =>
         {
             do
             {
@@ -413,8 +402,14 @@ public class ArchiveAccess
                 output.Add(subpath);
             } while (false);
 
-            return Task.FromResult(ICallbackResult.Continue);
+            return ICallbackResult.Continue;
         });
+    }
+
+    private class ArchiveAccessContext
+    {
+        public required string Entry;
+        public required string Extension;
     }
 
     public interface IArchiveEntry
