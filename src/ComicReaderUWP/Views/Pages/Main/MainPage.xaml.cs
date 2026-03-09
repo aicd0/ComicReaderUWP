@@ -204,7 +204,6 @@ internal sealed partial class MainPage : BasePage
         titleBar.ButtonPressedBackgroundColor = MainTitleBar.ButtonPressedBackground?.Color;
         titleBar.ButtonPressedForegroundColor = MainTitleBar.ButtonPressedForeground?.Color;
 
-        OnscreenLogger.Initialize();
         ViewModel.Initialize(PageActionHandler);
         ObserveData();
         SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen, initialSync: true);
@@ -237,9 +236,6 @@ internal sealed partial class MainPage : BasePage
         {
             ViewModel.IsBusy = busy;
         });
-
-        OnscreenLogger.Started.ObserveSticky(this, ViewModel.SetLogStarted);
-        OnscreenLogger.Visible.ObserveSticky(this, ViewModel.SetLogVisibility);
 
         ComicHandle.IsScanningLibrary.ObserveSticky(this, scanning =>
         {
@@ -1030,21 +1026,21 @@ internal sealed partial class MainPage : BasePage
         switch (args.KeyboardAccelerator.Key)
         {
             case Windows.System.VirtualKey.Escape:
-                GetMainWindowAbility().ExitFullscreen();
                 handled = true;
+                GetMainWindowAbility().ExitFullscreen();
                 break;
             case Windows.System.VirtualKey.F10:
                 if (ctrlDown)
                 {
-                    OnscreenLogger.StartOrPause();
                     handled = true;
+                    ViewModel.StartOrStopLogger();
                 }
                 break;
             case Windows.System.VirtualKey.F11:
                 if (ctrlDown)
                 {
-                    OnscreenLogger.ShowOrHide();
                     handled = true;
+                    ViewModel.ShowOrHideLogger();
                 }
                 break;
         }

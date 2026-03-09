@@ -244,7 +244,7 @@ internal partial class PluginContext(IPlugin plugin, string pluginFilePath, stri
         }
         catch (Exception ex)
         {
-            Logger.F(TAG, $"({_pluginName}) SafeAction: Caught exception", ex);
+            Logger.F(TAG, $"Unhandled exception thrown from plugin: {_pluginName}", ex);
             Status = PluginStatusEnum.Error;
             return false;
         }
@@ -263,7 +263,7 @@ internal partial class PluginContext(IPlugin plugin, string pluginFilePath, stri
         }
         catch (Exception ex)
         {
-            Logger.F(TAG, $"({_pluginName}) SafeAction: Unhandled plugin exception", ex);
+            Logger.F(TAG, $"Unhandled exception thrown from plugin: {_pluginName}", ex);
             Status = PluginStatusEnum.Error;
             return defaultValue;
         }

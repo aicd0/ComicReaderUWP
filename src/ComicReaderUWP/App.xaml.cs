@@ -31,15 +31,16 @@ namespace ComicReaderUWP;
 public partial class App : Application
 {
     private const string TAG = nameof(App);
-    private const string COMMAND_LINE_FILE_NAME = "command_line.txt";
+    private const string COMMAND_LINE_FILE_NAME = "CommandLine.txt";
 
     private static App? _instance;
     public static App Instance => _instance!;
 
     private readonly InitTaskManager _initTaskManager;
 
-    internal readonly WindowManager WindowManager = new();
-    internal bool ExitedNormallyLastTime => _initTaskManager.IsExitedNormallyLastTime;
+    internal bool SafeMode => _initTaskManager.SafeMode;
+    internal bool ExitedNormallyLastTime => _initTaskManager.ExitedNormallyLastTime;
+    internal WindowManager WindowManager { get; } = new();
 
     public App()
     {
@@ -75,14 +76,17 @@ public partial class App : Application
         AppActivationArguments activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
 
         var mainInstance = AppInstance.FindOrRegisterForKey("main");
-        if (mainInstance.IsCurrent && !_initTaskManager.IsFirstInstance)
+        bool isFirstInstance = _initTaskManager.IsFirstInstance;
+        bool isMainInstance = mainInstance.IsCurrent;
+
+        if (isMainInstance != isFirstInstance)
         {
-            DebugUtils.CaptureFatalError("Inconsistent state: main instance is current but not first instance.", new InvalidOperationException());
+            Logger.F(TAG, $"Inconsistent startup state: FirstInstance={isFirstInstance}, MainInstance={isMainInstance}");
             System.Diagnostics.Process.GetCurrentProcess().Kill();
             return;
         }
 
-        if (!mainInstance.IsCurrent)
+        if (!isMainInstance)
         {
             if (EnvironmentProvider.IsPortable())
             {
@@ -163,7 +167,7 @@ public partial class App : Application
         string cmd = string.Join(' ', cmdArgs);
         Logger.I(TAG, $"OnActivated: firstLaunch={firstLaunch}, cmd={cmd}");
 
-        if (firstLaunch)
+        if (firstLaunch && !SafeMode)
         {
             WindowManager.RestoreWindowStatus();
         }

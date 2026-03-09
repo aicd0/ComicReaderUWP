@@ -10,6 +10,7 @@ GetDpiForMonitor
 GetWindowPlacement
 GetWindowRect
 LocalFree
+MessageBox
 RegisterHotKey
 SetForegroundWindow
 SetWindowLongPtr

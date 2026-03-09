@@ -76,7 +76,8 @@ internal partial class PluginManager
 
                 PluginContext context = new(plugin, pluginFile, result.ResourceFolderPath);
                 _plugins.Add(name, context);
-                if (_disabledPlugins.ContainsKey(name))
+
+                if (App.Instance.SafeMode || _disabledPlugins.ContainsKey(name))
                 {
                     continue;
                 }
@@ -162,6 +163,11 @@ internal partial class PluginManager
 
     public void SetPluginEnabled(string pluginName, bool enabled)
     {
+        if (!_pluginInitialized)
+        {
+            return;
+        }
+
         if (enabled)
         {
             _disabledPlugins.TryRemove(pluginName, out _);

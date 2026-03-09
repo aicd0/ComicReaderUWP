@@ -5,13 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-using ComicReaderUWP.Common.Actions;
-using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
@@ -241,11 +239,7 @@ internal sealed partial class ComicInfoPage : BasePage
 
     private void NewTagTipButton_Click(object sender, RoutedEventArgs e)
     {
-        ActionModel actionModel = ActionModel.Builder.Create(MessageDialogProvider.NAME)
-            .AddParameter(MessageDialogProvider.PARAM_TITLE, StringResourceProvider.Instance.EnterNewTags)
-            .AddParameter(MessageDialogProvider.PARAM_MESSAGE, StringResourceProvider.Instance.EnterNewTagsHint)
-            .Build();
-        PageActionHandler.Handle(actionModel);
+        ThirdPartyLauncher.StartTemporaryTextFile("NewTagsHelp.txt", StringResourceProvider.Instance.EnterNewTagsHint);
     }
 
     private List<string> SearchTagHistory(string query)
@@ -258,11 +252,6 @@ internal sealed partial class ComicInfoPage : BasePage
     //
     // Utilities
     //
-
-    private INavigationPageAbility GetNavigationPageAbility()
-    {
-        return GetAbility<INavigationPageAbility>()!;
-    }
 
     private static void FillRichTextInlines(InlineCollection inlines, string richText)
     {

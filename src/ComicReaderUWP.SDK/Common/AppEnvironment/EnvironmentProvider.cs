@@ -63,7 +63,6 @@ public class EnvironmentProvider
         sb.SafeAppend("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
         sb.SafeAppend("Current app language", GetCurrentAppLanguage);
         sb.SafeAppend("Current system language", GetCurrentSystemLanguage);
-        sb.SafeAppend("Developer ID", GetDeveloperId);
         sb.SafeAppend("Device ID", GetDeviceId);
         sb.SafeAppend("Device model", DeviceInformationHelper.Instance.GetDeviceModel);
         sb.SafeAppend("Host version", GetHostVersion);
@@ -229,16 +228,6 @@ public class EnvironmentProvider
             Logger.F(TAG, $"Culture '{languageTag}' not found");
             return CultureInfo.CurrentUICulture;
         }
-    }
-
-    public string GetDeveloperId()
-    {
-        List<string> info = [];
-        info.Add(GetActualDeviceId());
-        info.Add(GetHostVersion());
-        string combined = string.Join('-', info);
-        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
-        return Convert.ToHexString(hash)[..8];
     }
 
     public DateTimeOffset GetLaunchTime()

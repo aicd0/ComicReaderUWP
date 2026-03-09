@@ -25,12 +25,14 @@ namespace ComicReaderUWP.Common.InitTask;
 
 internal class InitTaskManager(Application application)
 {
-    private readonly Application _application = application;
+    private const string TAG = nameof(InitTaskManager);
 
+    private readonly Application _application = application;
     private object? _appLock;
 
+    public bool ExitedNormallyLastTime { get; private set; } = true;
     public bool IsFirstInstance { get; private set; } = true;
-    public bool IsExitedNormallyLastTime { get; private set; } = true;
+    public bool SafeMode { get; private set; } = false;
 
     public void InitOnAppCreate()
     {
@@ -56,75 +58,34 @@ internal class InitTaskManager(Application application)
         ServiceManager.RegisterService<IApplicationService>(new ApplicationService());
         ServiceManager.RegisterService<IDebugService>(new DebugService());
 
-        // Initialize main thread dispatcher
         MainThreadUtils.Initialize(DispatcherQueue.GetForCurrentThread());
 
         IsFirstInstance = TryRegisterFirstInstance();
-        if (IsFirstInstance)
+        if (!IsFirstInstance)
         {
-            // Register exit handler
-            RegisterExitHandler();
-
-            // Initialize environment information
-            EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
-
-            // Initialize Sentry
-            SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
-
-            // Initialize databases
-            AppDB.Initialize();
-
-            // Initialize app language
-            InitializeAppLanguage();
-
-            // Initialize app theme
-            InitializeAppTheme();
+            return;
         }
+
+        if (!ExitedNormallyLastTime)
+        {
+            SafeMode = SafeModeDialog.Show();
+        }
+
+        Logger.I(TAG, $"App launched (SafeMode={SafeMode})");
+        RegisterExitHandler();
+        EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
+        SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
+        AppDB.Initialize();
+        InitializeAppLanguage();
+        InitializeAppTheme();
     }
 
     private void InitOnAppLaunchInternal()
     {
-        // Initialize debug tools
         DebugUtils.Initialize();
-
-        // Initialize imaging service
         ImageCacheManager.Initialize(Path.Combine(StorageLocation.LocalCacheFolderPath, "image_cache"), clear: false);
-
-        // Initialize focus tracker
         FocusTracker.Initialize();
-
-        // Load plugins
         PluginManager.Instance.LoadPlugins();
-    }
-
-    private void InitializeAppTheme()
-    {
-        AppSettingsModel.AppearanceSetting themeSetting = AppSettingsModel.Instance.GetModel().Theme;
-        switch (themeSetting)
-        {
-            case AppSettingsModel.AppearanceSetting.Light:
-                Application.Current.RequestedTheme = ApplicationTheme.Light;
-                break;
-            case AppSettingsModel.AppearanceSetting.Dark:
-                Application.Current.RequestedTheme = ApplicationTheme.Dark;
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void InitializeAppLanguage()
-    {
-        if (EnvironmentProvider.IsPortable())
-        {
-            string languageTag = AppSettingsModel.Instance.Language;
-            if (string.IsNullOrEmpty(languageTag))
-            {
-                languageTag = EnvironmentProvider.GetCurrentSystemLanguage();
-            }
-            ApplicationLanguages.PrimaryLanguageOverride = languageTag;
-            EnvironmentProvider.Instance.SetCurrentAppLanguage(languageTag);
-        }
     }
 
     private bool TryRegisterFirstInstance()
@@ -134,7 +95,7 @@ internal class InitTaskManager(Application application)
         string lockFilePath = Path.Combine(lockFileDirPath, "app.lock");
         if (File.Exists(lockFilePath))
         {
-            IsExitedNormallyLastTime = false;
+            ExitedNormallyLastTime = false;
         }
 
         try
@@ -175,5 +136,35 @@ internal class InitTaskManager(Application application)
                 }
             }
         };
+    }
+
+    private static void InitializeAppTheme()
+    {
+        AppSettingsModel.AppearanceSetting themeSetting = AppSettingsModel.Instance.GetModel().Theme;
+        switch (themeSetting)
+        {
+            case AppSettingsModel.AppearanceSetting.Light:
+                Application.Current.RequestedTheme = ApplicationTheme.Light;
+                break;
+            case AppSettingsModel.AppearanceSetting.Dark:
+                Application.Current.RequestedTheme = ApplicationTheme.Dark;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static void InitializeAppLanguage()
+    {
+        if (EnvironmentProvider.IsPortable())
+        {
+            string languageTag = AppSettingsModel.Instance.Language;
+            if (string.IsNullOrEmpty(languageTag))
+            {
+                languageTag = EnvironmentProvider.GetCurrentSystemLanguage();
+            }
+            ApplicationLanguages.PrimaryLanguageOverride = languageTag;
+            EnvironmentProvider.Instance.SetCurrentAppLanguage(languageTag);
+        }
     }
 }
