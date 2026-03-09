@@ -167,7 +167,7 @@ public partial class App : Application
         string cmd = string.Join(' ', cmdArgs);
         Logger.I(TAG, $"OnActivated: firstLaunch={firstLaunch}, cmd={cmd}");
 
-        if (firstLaunch)
+        if (firstLaunch && !SafeMode)
         {
             WindowManager.RestoreWindowStatus();
         }

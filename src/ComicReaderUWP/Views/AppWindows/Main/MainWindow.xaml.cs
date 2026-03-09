@@ -311,7 +311,7 @@ internal sealed partial class MainWindow : Window
             sIsFirstWindow = false;
 
             // Show crash report if applicable
-            if (!App.Instance.ExitedNormallyLastTime && DebugUtils.DebugMode)
+            if (!App.Instance.ExitedNormallyLastTime)
             {
                 DebugUtils.ReportLastCrash();
             }
