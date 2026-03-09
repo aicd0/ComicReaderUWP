@@ -38,8 +38,9 @@ public partial class App : Application
 
     private readonly InitTaskManager _initTaskManager;
 
-    internal readonly WindowManager WindowManager = new();
-    internal bool ExitedNormallyLastTime => _initTaskManager.IsExitedNormallyLastTime;
+    internal bool SafeMode => _initTaskManager.SafeMode;
+    internal bool ExitedNormallyLastTime => _initTaskManager.ExitedNormallyLastTime;
+    internal WindowManager WindowManager { get; } = new();
 
     public App()
     {

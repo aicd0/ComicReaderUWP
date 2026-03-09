@@ -29,8 +29,9 @@ internal class InitTaskManager(Application application)
 
     private object? _appLock;
 
+    public bool ExitedNormallyLastTime { get; private set; } = true;
     public bool IsFirstInstance { get; private set; } = true;
-    public bool IsExitedNormallyLastTime { get; private set; } = true;
+    public bool SafeMode { get; private set; } = false;
 
     public void InitOnAppCreate()
     {
@@ -62,6 +63,11 @@ internal class InitTaskManager(Application application)
         IsFirstInstance = TryRegisterFirstInstance();
         if (IsFirstInstance)
         {
+            if (!ExitedNormallyLastTime)
+            {
+                SafeMode = SafeModeDialog.Show();
+            }
+
             // Register exit handler
             RegisterExitHandler();
 
@@ -134,7 +140,7 @@ internal class InitTaskManager(Application application)
         string lockFilePath = Path.Combine(lockFileDirPath, "app.lock");
         if (File.Exists(lockFilePath))
         {
-            IsExitedNormallyLastTime = false;
+            ExitedNormallyLastTime = false;
         }
 
         try
