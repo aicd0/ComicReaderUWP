@@ -122,7 +122,7 @@
                             Orientation="Horizontal">
                             <TextBlock
                                 x:Name="PageIndicator2"
-                                Margin="4,0,4,2"
+                                Margin="0,0,8,2"
                                 VerticalAlignment="Center"
                                 FontSize="14"
                                 FontWeight="SemiLight"
