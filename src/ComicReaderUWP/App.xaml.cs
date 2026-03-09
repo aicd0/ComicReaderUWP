@@ -75,14 +75,17 @@ public partial class App : Application
         AppActivationArguments activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
 
         var mainInstance = AppInstance.FindOrRegisterForKey("main");
-        if (mainInstance.IsCurrent && !_initTaskManager.IsFirstInstance)
+        bool isFirstInstance = _initTaskManager.IsFirstInstance;
+        bool isMainInstance = mainInstance.IsCurrent;
+
+        if (isMainInstance != isFirstInstance)
         {
-            DebugUtils.CaptureFatalError("Inconsistent state: main instance is current but not first instance.", new InvalidOperationException());
+            Logger.F($"Inconsistent startup state: FirstInstance={isFirstInstance}, MainInstance={isMainInstance}");
             System.Diagnostics.Process.GetCurrentProcess().Kill();
             return;
         }
 
-        if (!mainInstance.IsCurrent)
+        if (!isMainInstance)
         {
             if (EnvironmentProvider.IsPortable())
             {
