@@ -51,6 +51,6 @@ internal sealed partial class EditTagDialog : BaseContentDialog
 
     private void LinksTipButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        ThirdPartyLauncher.StartTemporaryTextFile("tag_link_reference.txt", StringResource.TagLinkTip);
+        ThirdPartyLauncher.StartTemporaryTextFile("TagLinkHelp.txt", StringResource.TagLinkTip);
     }
 }

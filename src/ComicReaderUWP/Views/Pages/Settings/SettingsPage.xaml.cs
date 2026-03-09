@@ -200,7 +200,7 @@ internal sealed partial class SettingsPage : BasePage
 
     private void LicenseHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
     {
-        ThirdPartyLauncher.StartTemporaryTextFile("license.txt", StaticStringResources.LICENSE);
+        ThirdPartyLauncher.StartTemporaryTextFile("License.txt", StaticStringResources.LICENSE);
     }
 
     //
