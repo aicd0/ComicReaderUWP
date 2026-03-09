@@ -207,7 +207,7 @@ public class ArchiveAccess
             }
             catch (Exception e)
             {
-                Logger.F(TAG, "Failed to set up decoder.", e);
+                Logger.F(TAG, "Failed to set up a decoder", e);
             }
         }
 

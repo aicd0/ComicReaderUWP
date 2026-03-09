@@ -93,7 +93,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
         }
         catch (Exception e)
         {
-            Logger.F(TAG, "Error verifying signature.", e);
+            Logger.F(TAG, "Error verifying signature", e);
             return false;
         }
     }
