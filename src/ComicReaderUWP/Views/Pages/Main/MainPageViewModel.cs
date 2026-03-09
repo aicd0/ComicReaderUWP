@@ -10,9 +10,11 @@ using System.Linq;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
+using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Services;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.DebugTools;
@@ -175,6 +177,8 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
     public void Initialize(ActionHandler actionHandler)
     {
         _actionHandler = actionHandler;
+        ShowOrHideLogger(AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_LOG_VISIBLE, false));
+        StartOrStopLogger(AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_LOG_STARTED, true));
     }
 
     public void OnStop()
@@ -347,7 +351,17 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
     private readonly LogListener _logListener;
     private bool _logStarted = false;
 
-    public void SetLogStarted(bool started)
+    public void StartOrStopLogger()
+    {
+        StartOrStopLogger(!_logStarted);
+    }
+
+    public void ShowOrHideLogger()
+    {
+        ShowOrHideLogger(!_isLogVisible);
+    }
+
+    private void StartOrStopLogger(bool started)
     {
         if (started && !DebugUtils.DeveloperMode)
         {
@@ -359,6 +373,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             return;
         }
 
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_LOG_STARTED, started);
         _logStarted = started;
         if (started)
         {
@@ -366,7 +381,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public void SetLogVisibility(bool visible)
+    public void ShowOrHideLogger(bool visible)
     {
         if (visible && !DebugUtils.DeveloperMode)
         {
@@ -378,6 +393,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             return;
         }
 
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_LOG_VISIBLE, visible);
         IsLogVisible = visible;
     }
 
