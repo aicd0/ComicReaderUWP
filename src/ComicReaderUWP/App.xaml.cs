@@ -31,7 +31,7 @@ namespace ComicReaderUWP;
 public partial class App : Application
 {
     private const string TAG = nameof(App);
-    private const string COMMAND_LINE_FILE_NAME = "command_line.txt";
+    private const string COMMAND_LINE_FILE_NAME = "CommandLine.txt";
 
     private static App? _instance;
     public static App Instance => _instance!;
@@ -80,7 +80,7 @@ public partial class App : Application
 
         if (isMainInstance != isFirstInstance)
         {
-            Logger.F($"Inconsistent startup state: FirstInstance={isFirstInstance}, MainInstance={isMainInstance}");
+            Logger.F(TAG, $"Inconsistent startup state: FirstInstance={isFirstInstance}, MainInstance={isMainInstance}");
             System.Diagnostics.Process.GetCurrentProcess().Kill();
             return;
         }
