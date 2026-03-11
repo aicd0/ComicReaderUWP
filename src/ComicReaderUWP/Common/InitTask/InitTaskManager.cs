@@ -66,6 +66,11 @@ internal class InitTaskManager(Application application)
             return;
         }
 
+        EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
+        SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
+        AppDB.Initialize();
+        InitializeAppLanguage();
+
         if (!ExitedNormallyLastTime)
         {
             SafeModeDialog.DialogResult result = SafeModeDialog.Show();
@@ -79,7 +84,7 @@ internal class InitTaskManager(Application application)
                     break;
                 case SafeModeDialog.DialogResult.Cancel:
                 default:
-                    UnregisterFirstInstance();
+                    AppExitHandler();
                     System.Diagnostics.Process.GetCurrentProcess().Kill();
                     return;
             }
@@ -87,10 +92,6 @@ internal class InitTaskManager(Application application)
 
         Logger.I(TAG, $"App launched (SafeMode={SafeMode})");
         RegisterExitHandler();
-        EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
-        SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
-        AppDB.Initialize();
-        InitializeAppLanguage();
         InitializeAppTheme();
     }
 
@@ -133,14 +134,15 @@ internal class InitTaskManager(Application application)
     {
         AppDomain.CurrentDomain.ProcessExit += (s, e) =>
         {
-            Logger.Flush();
-            AppDB.Dispose();
-            UnregisterFirstInstance();
+            AppExitHandler();
         };
     }
 
-    private void UnregisterFirstInstance()
+    private void AppExitHandler()
     {
+        Logger.Flush();
+        AppDB.Dispose();
+
         if (_appLock is FileStream fileStream)
         {
             try
@@ -181,6 +183,7 @@ internal class InitTaskManager(Application application)
             {
                 languageTag = EnvironmentProvider.GetCurrentSystemLanguage();
             }
+
             ApplicationLanguages.PrimaryLanguageOverride = languageTag;
             EnvironmentProvider.Instance.SetCurrentAppLanguage(languageTag);
         }
