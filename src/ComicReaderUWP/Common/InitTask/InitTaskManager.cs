@@ -68,7 +68,21 @@ internal class InitTaskManager(Application application)
 
         if (!ExitedNormallyLastTime)
         {
-            SafeMode = SafeModeDialog.Show();
+            SafeModeDialog.DialogResult result = SafeModeDialog.Show();
+            switch (result)
+            {
+                case SafeModeDialog.DialogResult.Yes:
+                    SafeMode = true;
+                    break;
+                case SafeModeDialog.DialogResult.No:
+                    SafeMode = false;
+                    break;
+                case SafeModeDialog.DialogResult.Cancel:
+                default:
+                    UnregisterFirstInstance();
+                    System.Diagnostics.Process.GetCurrentProcess().Kill();
+                    return;
+            }
         }
 
         Logger.I(TAG, $"App launched (SafeMode={SafeMode})");
@@ -121,21 +135,25 @@ internal class InitTaskManager(Application application)
         {
             Logger.Flush();
             AppDB.Dispose();
-
-            if (_appLock is FileStream fileStream)
-            {
-                try
-                {
-                    fileStream.Unlock(0, 0);
-                    fileStream.Dispose();
-                    File.Delete(fileStream.Name);
-                    _appLock = null;
-                }
-                catch (Exception)
-                {
-                }
-            }
+            UnregisterFirstInstance();
         };
+    }
+
+    private void UnregisterFirstInstance()
+    {
+        if (_appLock is FileStream fileStream)
+        {
+            try
+            {
+                fileStream.Unlock(0, 0);
+                fileStream.Dispose();
+                File.Delete(fileStream.Name);
+                _appLock = null;
+            }
+            catch (Exception)
+            {
+            }
+        }
     }
 
     private static void InitializeAppTheme()

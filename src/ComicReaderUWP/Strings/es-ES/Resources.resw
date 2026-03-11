@@ -823,6 +823,10 @@ La evaluación se realizará en el siguiente orden:
   <data name="Rotation" xml:space="preserve">
     <value>Rotación</value>
   </data>
+  <data name="SafeModeMessage" xml:space="preserve">
+    <value>La aplicación no se cerró correctamente la última vez.
+¿Iniciar en modo seguro?</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Ahorrar</value>
   </data>

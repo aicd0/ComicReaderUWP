@@ -823,6 +823,10 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Rotation" xml:space="preserve">
     <value>Drehung</value>
   </data>
+  <data name="SafeModeMessage" xml:space="preserve">
+    <value>Die App wurde beim letzten Mal nicht ordnungsgemäß beendet.
+Im abgesicherten Modus starten?</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Speichern</value>
   </data>

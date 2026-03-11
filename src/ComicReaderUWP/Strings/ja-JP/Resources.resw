@@ -823,6 +823,10 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Rotation" xml:space="preserve">
     <value>回転</value>
   </data>
+  <data name="SafeModeMessage" xml:space="preserve">
+    <value>前回、アプリは正常に終了しませんでした。
+セーフモードで起動しますか？</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>保存</value>
   </data>
