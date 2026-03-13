@@ -825,6 +825,10 @@ The evaluation will be performed in the following order:
   <data name="Rotation" xml:space="preserve">
     <value>Rotation</value>
   </data>
+  <data name="SafeModeMessage" xml:space="preserve">
+    <value>The app didn’t close properly last time.
+Start in Safe Mode?</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
   </data>

@@ -824,6 +824,10 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Rotation" xml:space="preserve">
     <value>Поворот</value>
   </data>
+  <data name="SafeModeMessage" xml:space="preserve">
+    <value>В прошлый раз приложение было закрыто некорректно.
+Запустить в безопасном режиме?</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Сохранять</value>
   </data>

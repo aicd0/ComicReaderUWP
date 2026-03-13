@@ -66,17 +66,32 @@ internal class InitTaskManager(Application application)
             return;
         }
 
-        if (!ExitedNormallyLastTime)
-        {
-            SafeMode = SafeModeDialog.Show();
-        }
-
-        Logger.I(TAG, $"App launched (SafeMode={SafeMode})");
-        RegisterExitHandler();
         EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
         SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
         AppDB.Initialize();
         InitializeAppLanguage();
+
+        if (!ExitedNormallyLastTime)
+        {
+            SafeModeDialog.DialogResult result = SafeModeDialog.Show();
+            switch (result)
+            {
+                case SafeModeDialog.DialogResult.Yes:
+                    SafeMode = true;
+                    break;
+                case SafeModeDialog.DialogResult.No:
+                    SafeMode = false;
+                    break;
+                case SafeModeDialog.DialogResult.Cancel:
+                default:
+                    AppExitHandler();
+                    System.Diagnostics.Process.GetCurrentProcess().Kill();
+                    return;
+            }
+        }
+
+        Logger.I(TAG, $"App launched (SafeMode={SafeMode})");
+        RegisterExitHandler();
         InitializeAppTheme();
     }
 
@@ -119,23 +134,28 @@ internal class InitTaskManager(Application application)
     {
         AppDomain.CurrentDomain.ProcessExit += (s, e) =>
         {
-            Logger.Flush();
-            AppDB.Dispose();
-
-            if (_appLock is FileStream fileStream)
-            {
-                try
-                {
-                    fileStream.Unlock(0, 0);
-                    fileStream.Dispose();
-                    File.Delete(fileStream.Name);
-                    _appLock = null;
-                }
-                catch (Exception)
-                {
-                }
-            }
+            AppExitHandler();
         };
+    }
+
+    private void AppExitHandler()
+    {
+        Logger.Flush();
+        AppDB.Dispose();
+
+        if (_appLock is FileStream fileStream)
+        {
+            try
+            {
+                fileStream.Unlock(0, 0);
+                fileStream.Dispose();
+                File.Delete(fileStream.Name);
+                _appLock = null;
+            }
+            catch (Exception)
+            {
+            }
+        }
     }
 
     private static void InitializeAppTheme()
@@ -163,6 +183,7 @@ internal class InitTaskManager(Application application)
             {
                 languageTag = EnvironmentProvider.GetCurrentSystemLanguage();
             }
+
             ApplicationLanguages.PrimaryLanguageOverride = languageTag;
             EnvironmentProvider.Instance.SetCurrentAppLanguage(languageTag);
         }

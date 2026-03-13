@@ -824,6 +824,10 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Rotation" xml:space="preserve">
     <value>회전</value>
   </data>
+  <data name="SafeModeMessage" xml:space="preserve">
+    <value>앱이 지난번에 정상적으로 종료되지 않았습니다.
+안전 모드로 시작하시겠습니까?</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>구하다</value>
   </data>

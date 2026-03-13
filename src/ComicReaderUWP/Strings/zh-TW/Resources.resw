@@ -823,6 +823,10 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Rotation" xml:space="preserve">
     <value>旋轉</value>
   </data>
+  <data name="SafeModeMessage" xml:space="preserve">
+    <value>應用程式上次未正常結束。
+是否以安全模式啟動？</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>儲存</value>
   </data>
