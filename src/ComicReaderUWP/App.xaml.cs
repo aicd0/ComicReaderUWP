@@ -103,23 +103,16 @@ public partial class App : Application
         }
 
         _initTaskManager.InitOnAppLaunch();
-        mainInstance.Activated += OnActivated;
 
-        CoroutineUtils.Run(async () =>
+        mainInstance.Activated += (sender, e) =>
         {
-            await OnActivatedInternal(activatedEventArgs, firstLaunch: true);
-        });
+            OnActivated(e, firstLaunch: false);
+        };
+
+        OnActivated(activatedEventArgs, firstLaunch: true);
     }
 
-    private void OnActivated(object? sender, AppActivationArguments e)
-    {
-        CoroutineUtils.RunInMainThreadAsync(async () =>
-        {
-            await OnActivatedInternal(e, firstLaunch: false);
-        });
-    }
-
-    private async Task OnActivatedInternal(AppActivationArguments e, bool firstLaunch)
+    private void OnActivated(AppActivationArguments e, bool firstLaunch)
     {
         string[] cmdArgs;
         if (EnvironmentProvider.IsPortable())
@@ -167,28 +160,31 @@ public partial class App : Application
         string cmd = string.Join(' ', cmdArgs);
         Logger.I(TAG, $"OnActivated: firstLaunch={firstLaunch}, cmd={cmd}");
 
-        if (firstLaunch && !SafeMode)
+        CoroutineUtils.RunInMainThreadAsync(async () =>
         {
-            WindowManager.RestoreWindowStatus();
-        }
-
-        MainWindow? window = WindowManager.GetAnyWindow();
-        if (window is null)
-        {
-            Route? route = await GetFileActivatedRoute(cmdArgs);
-            if (route is not null)
+            if (firstLaunch && !SafeMode)
             {
-                MainWindow.Open(route.Url, restorePlacement: true);
-            }
-            else
-            {
-                MainWindow.Open();
+                WindowManager.RestoreWindowStatus();
             }
 
-            return;
-        }
+            MainWindow? window = WindowManager.GetAnyWindow();
+            if (window is null)
+            {
+                Route? route = await GetFileActivatedRoute(cmdArgs);
+                if (route is not null)
+                {
+                    MainWindow.Open(route.Url, restorePlacement: true);
+                }
+                else
+                {
+                    MainWindow.Open();
+                }
 
-        await OnCommandLine(window, cmdArgs);
+                return;
+            }
+
+            await OnCommandLine(window, cmdArgs);
+        });
     }
 
     private static void StoreCommandLine()
