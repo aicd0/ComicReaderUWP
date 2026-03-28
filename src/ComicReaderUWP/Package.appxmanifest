@@ -10,7 +10,7 @@
   <Identity
     Name="49915aicd.ComicReaderUWP.Dev"
     Publisher="CN=EDF29702-407F-438D-9326-040AAE6557ED"
-    Version="2.11.0.0" />
+    Version="2.11.1.0" />
 
   <mp:PhoneIdentity PhoneProductId="1e81f69a-4700-45d0-8a1b-04de29e5f072" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
