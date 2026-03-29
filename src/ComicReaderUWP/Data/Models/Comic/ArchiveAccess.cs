@@ -222,17 +222,14 @@ public class ArchiveAccess
                     {
                         archive = SharpCompress.Archives.SevenZip.SevenZipArchive.Open(stream, opts);
                     }
+                    catch (SharpCompress.Common.CryptographicException e)
+                    {
+                        Logger.E(TAG, e);
+                        return;
+                    }
                     catch (Exception e)
                     {
-                        if (e is SharpCompress.Common.CryptographicException) // Encrypted archive not supported for now
-                        {
-                            Logger.E(TAG, e);
-                        }
-                        else
-                        {
-                            Logger.F(TAG, "Failed to open 7zip archive", e);
-                        }
-
+                        Logger.F(TAG, e);
                         return;
                     }
 
@@ -265,17 +262,19 @@ public class ArchiveAccess
                     {
                         reader = SharpCompress.Readers.ReaderFactory.Open(stream, opts);
                     }
+                    catch (EndOfStreamException e)
+                    {
+                        Logger.E(TAG, e);
+                        return;
+                    }
+                    catch (InvalidDataException e)
+                    {
+                        Logger.E(TAG, e);
+                        return;
+                    }
                     catch (Exception e)
                     {
-                        if (e is InvalidDataException)
-                        {
-                            Logger.E(TAG, e);
-                        }
-                        else
-                        {
-                            Logger.F(TAG, "Failed to open archive", e);
-                        }
-
+                        Logger.F(TAG, e);
                         return;
                     }
 
@@ -288,19 +287,24 @@ public class ArchiveAccess
                             {
                                 hasNext = reader.MoveToNextEntry();
                             }
+                            catch (EndOfStreamException e)
+                            {
+                                Logger.E(TAG, e);
+                                break;
+                            }
+                            catch (SharpCompress.Common.CryptographicException e)
+                            {
+                                Logger.E(TAG, e);
+                                break;
+                            }
+                            catch (SharpCompress.Common.IncompleteArchiveException e)
+                            {
+                                Logger.E(TAG, e);
+                                break;
+                            }
                             catch (Exception e)
                             {
-                                if (e is EndOfStreamException ||
-                                    e is SharpCompress.Common.CryptographicException || // Encrypted archive not supported for now
-                                    e is SharpCompress.Common.IncompleteArchiveException)
-                                {
-                                    Logger.E(TAG, e);
-                                }
-                                else
-                                {
-                                    Logger.F(TAG, "Failed to read next archive entry", e);
-                                }
-
+                                Logger.F(TAG, e);
                                 break;
                             }
 
@@ -357,13 +361,28 @@ public class ArchiveAccess
             }
             catch (Exception e)
             {
-                Logger.F(TAG, "Unable to open archive entry stream", e);
-                return ICallbackResult.Continue;
+                Logger.F(TAG, e);
+                return ICallbackResult.StopIteration;
             }
 
-            using (subStream)
+            try
             {
                 TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
+            }
+            finally
+            {
+                try
+                {
+                    subStream.Dispose();
+                }
+                catch (SharpCompress.Compressors.Deflate.ZlibException e)
+                {
+                    Logger.E(TAG, e);
+                }
+                catch (Exception e)
+                {
+                    Logger.F(TAG, e);
+                }
             }
 
             return ICallbackResult.StopIteration;
