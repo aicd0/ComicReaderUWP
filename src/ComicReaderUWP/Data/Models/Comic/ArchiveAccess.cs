@@ -38,7 +38,7 @@ public class ArchiveAccess
         int i = GetFileSeperatorIndex(location, reverse);
         if (i <= -1)
         {
-            return "";
+            return string.Empty;
         }
 
         return location[(i + FileSeperator.Length)..];
@@ -124,6 +124,7 @@ public class ArchiveAccess
         {
             i = reverse ? path.LastIndexOf(FileSeperator) : path.IndexOf(FileSeperator);
         }
+
         return i;
     }
 
@@ -247,6 +248,7 @@ public class ArchiveAccess
                     }
                 }
                 break;
+
             case ".bz2":
             case ".cbr":
             case ".cbt":
@@ -287,7 +289,7 @@ public class ArchiveAccess
                             {
                                 hasNext = reader.MoveToNextEntry();
                             }
-                            catch (EndOfStreamException e)
+                            catch (SharpCompress.Compressors.Deflate.ZlibException e)
                             {
                                 Logger.E(TAG, e);
                                 break;
@@ -298,6 +300,21 @@ public class ArchiveAccess
                                 break;
                             }
                             catch (SharpCompress.Common.IncompleteArchiveException e)
+                            {
+                                Logger.E(TAG, e);
+                                break;
+                            }
+                            catch (SharpCompress.Common.InvalidFormatException e)
+                            {
+                                Logger.E(TAG, e);
+                                break;
+                            }
+                            catch (SharpCompress.Common.MultiVolumeExtractionException e)
+                            {
+                                Logger.E(TAG, e);
+                                break;
+                            }
+                            catch (EndOfStreamException e)
                             {
                                 Logger.E(TAG, e);
                                 break;
@@ -323,6 +340,7 @@ public class ArchiveAccess
                     }
                 }
                 break;
+
             default:
                 Logger.F(TAG, "Unsupported archive format: " + extension);
                 return;
