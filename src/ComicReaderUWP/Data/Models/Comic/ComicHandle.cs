@@ -151,13 +151,14 @@ internal abstract class ComicHandle
                 int pageCount = pageCountToken.GetValue();
                 string extJson = extToken.GetValue();
 
-                ComicHandle? comic = FromDatabase(type, location);
-                if (comic == null)
+                ComicHandle? comic = FromType(type);
+                if (comic is null)
                 {
                     continue;
                 }
 
                 comic.Id = id;
+                comic.Location = location;
                 comic.Title1 = title1;
                 comic.Title2 = title2;
                 comic.Hidden = hidden;
@@ -287,18 +288,18 @@ internal abstract class ComicHandle
         return FromIdNoLock(comicId);
     }
 
-    private static ComicHandle? FromDatabase(ComicType type, string location)
+    private static ComicHandle? FromType(ComicType type)
     {
         switch (type)
         {
             case ComicType.Folder:
-                return FolderComicHandle.FromDatabase(location);
+                return new FolderComicHandle();
             case ComicType.Archive:
-                return ArchiveComicHandle.FromDatabase(location);
+                return new ArchiveComicHandle();
             case ComicType.PDF:
-                return PdfComicHandle.FromDatabase(location);
+                return new PdfComicHandle();
             default:
-                Logger.AssertNotReachHere("419CBCB3E803A525");
+                Logger.F(TAG, $"Unknown comic type: {type}");
                 return null;
         }
     }
@@ -325,35 +326,24 @@ internal abstract class ComicHandle
 
     public long Id { get; private set; } = -1;
     public ComicCompletionStatusEnum CompletionState { get; private set; }
-    public string Location { get; protected set; } = "";
-    public string Title1 { get; protected set; } = "";
-    public string Title2 { get; protected set; } = "";
+    public string Location { get; protected set; } = string.Empty;
+    public string Title1 { get; protected set; } = string.Empty;
+    public string Title2 { get; protected set; } = string.Empty;
     public bool Hidden { get; protected set; } = false;
     public int Rating { get; protected set; } = -1;
     public int Progress { get; protected set; } = -1;
     public DateTimeOffset LastVisit { get; protected set; } = DateTimeOffset.MinValue;
     public double LastPosition { get; protected set; } = 0.0;
-    public string CoverCacheKey { get; private set; } = "";
-    public string Description { get; private set; } = "";
+    public string CoverCacheKey { get; private set; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
     public IReadOnlyList<TagData> Tags { get; private set; } = [];
     public int PageCount { get; private set; } = -1;
 
-    public bool IsExternal { get; private set; }
     public abstract bool IsEditable { get; }
     public virtual string FileExplorerPath => Location;
+    public bool IsExternal => Id < 0;
 
-    private ComicType Type { get; set; }
-
-    //
-    // Constructor
-    //
-
-    protected ComicHandle(ComicType type, bool is_external)
-    {
-        Id = -1;
-        Type = type;
-        IsExternal = is_external;
-    }
+    protected abstract ComicType Type { get; }
 
     //
     // Getters
@@ -678,22 +668,6 @@ internal abstract class ComicHandle
     // Unsorted
     //
 
-    private void SaveAllNoLock()
-    {
-        SaveNoLock(delegate
-        {
-            UpdateCommand command = UpdateCommand.Create(ComicTable.Instance)
-                .AppendCondition(ComicTable.ColumnId, Id);
-            foreach (IColumnTypeless column in _allNonIdColumns.Value)
-            {
-                command.AppendColumn(column, GetColumnValue(column));
-            }
-
-            command.Execute();
-            InternalSaveTagsNoLock();
-        });
-    }
-
     public async Task SaveHiddenAsync(bool hidden)
     {
         Hidden = hidden;
@@ -861,14 +835,11 @@ internal abstract class ComicHandle
         });
     }
 
-    private void InternalSaveTagsNoLock(bool removeOld = true)
+    private void InternalSaveTagsNoLock()
     {
-        if (removeOld)
-        {
-            DeleteCommand.Create(TagCategoryTable.Instance)
-                .AppendCondition(TagCategoryTable.ColumnComicId, Id)
-                .Execute();
-        }
+        DeleteCommand.Create(TagCategoryTable.Instance)
+            .AppendCondition(TagCategoryTable.ColumnComicId, Id)
+            .Execute();
 
         foreach (TagData category in Tags)
         {
@@ -888,18 +859,6 @@ internal abstract class ComicHandle
         }
     }
 
-    private void InternalInsertNoLock()
-    {
-        var command = InsertCommand.Create(ComicTable.Instance);
-        foreach (IColumnTypeless column in _allNonIdColumns.Value)
-        {
-            command.AppendColumn(column, GetColumnValue(column));
-        }
-
-        Id = command.Execute();
-        InternalSaveTagsNoLock(removeOld: false);
-    }
-
     private void SaveNoLock(Action action)
     {
         if (IsExternal)
@@ -909,7 +868,7 @@ internal abstract class ComicHandle
 
         if (Id < 0)
         {
-            InternalInsertNoLock();
+            Logger.F(TAG, "SaveNoLock: Cannot save comic with invalid id");
             return;
         }
 
@@ -992,14 +951,23 @@ internal abstract class ComicHandle
                 {
                     foreach (UpdateItemInfo info in updateQueue)
                     {
-                        ComicHandle? comic = FromDatabase(info.ItemType, info.Location);
+                        ComicHandle? comic = FromType(info.ItemType);
                         if (comic is null)
                         {
                             continue;
                         }
 
+                        comic.Location = info.Location;
                         comic.SetAsDefaultInfo();
-                        comic.SaveAllNoLock();
+
+                        var command = InsertCommand.Create(ComicTable.Instance);
+                        foreach (IColumnTypeless column in _allNonIdColumns.Value)
+                        {
+                            command.AppendColumn(column, comic.GetColumnValue(column));
+                        }
+
+                        comic.Id = command.Execute();
+                        comic.InternalSaveTagsNoLock();
                     }
 
                     await Task.CompletedTask;

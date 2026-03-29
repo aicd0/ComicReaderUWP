@@ -24,11 +24,6 @@ internal partial class FolderComicHandle : ComicHandle
 {
     private const string TAG = nameof(FolderComicHandle);
 
-    public static ComicHandle FromDatabase(string location)
-    {
-        return new FolderComicHandle(location, false);
-    }
-
     public static ComicHandle? FromExternal(string directory, List<StorageFile> imageFiles)
     {
         if (imageFiles.Count == 0)
@@ -36,23 +31,21 @@ internal partial class FolderComicHandle : ComicHandle
             return null;
         }
 
-        return new FolderComicHandle(directory, true)
+        return new FolderComicHandle()
         {
+            Location = directory,
+            Title1 = Path.GetFileName(directory),
             _imageFiles = [.. imageFiles
                 .OrderBy(x => StringUtils.SmartFileNameKeySelector(x.DisplayName), StringUtils.SmartFileNameComparer)
                 .Select(x => x.Path)],
-            Title1 = Path.GetFileName(directory),
         };
     }
 
-    public override bool IsEditable => !IsExternal;
-
     private List<string> _imageFiles = [];
 
-    private FolderComicHandle(string location, bool external) : base(ComicType.Folder, external)
-    {
-        Location = location;
-    }
+    public override bool IsEditable => !IsExternal;
+
+    protected override ComicType Type => ComicType.Folder;
 
     public override IReadOnlyList<string> GetFolderViewPath()
     {
