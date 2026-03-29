@@ -71,6 +71,25 @@ public class LRUCache(string directoryPath)
             return;
         }
 
+        void DeleteFile(string path)
+        {
+            try
+            {
+                var fileInfo = new FileInfo(path);
+                long fileSize = fileInfo.Length;
+                File.Delete(path);
+                sizeToRemove -= fileSize;
+            }
+            catch (IOException e)
+            {
+                Logger.E(TAG, e);
+            }
+            catch (Exception e)
+            {
+                Logger.F(TAG, e);
+            }
+        }
+
         string[] files;
         try
         {
@@ -104,18 +123,7 @@ public class LRUCache(string directoryPath)
 
                 if (string.IsNullOrEmpty(key))
                 {
-                    try
-                    {
-                        var fileInfo = new FileInfo(fullPath);
-                        long fileSize = fileInfo.Length;
-                        File.Delete(fullPath);
-                        sizeToRemove -= fileSize;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.F(TAG, ex);
-                    }
-
+                    DeleteFile(fullPath);
                     continue;
                 }
 
@@ -153,18 +161,7 @@ public class LRUCache(string directoryPath)
                 break;
             }
 
-            string fullPath = item.Item1;
-            try
-            {
-                var fileInfo = new FileInfo(fullPath);
-                long fileSize = fileInfo.Length;
-                File.Delete(fullPath);
-                sizeToRemove -= fileSize;
-            }
-            catch (Exception ex)
-            {
-                Logger.F(TAG, ex);
-            }
+            DeleteFile(item.Item1);
         }
     }
 

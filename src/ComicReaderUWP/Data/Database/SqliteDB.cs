@@ -1,6 +1,8 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 
 using ComicReaderUWP.Data.Tables;
@@ -8,6 +10,8 @@ using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Storage;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
+
+using Microsoft.Data.Sqlite;
 
 namespace ComicReaderUWP.Data.Database;
 
@@ -158,6 +162,40 @@ public static class SqliteDB
             "," + TagTable.ColumnComicId.Name + " INTEGER NOT NULL" +
             "," + TagTable.ColumnTagCategoryId.Name + " INTEGER REFERENCES " + tagCategoryTable + "(" + TagCategoryTable.ColumnId.Name + ") ON DELETE CASCADE" +
             ")");
+
+        // Fix for broken DB migration
+        EnsureMainTableColumns();
+    }
+
+    private static void EnsureMainTableColumns()
+    {
+        try
+        {
+            string comicTable = ComicTable.Instance.GetTableName();
+            CommandWrapper cmd = new();
+            cmd.SetCommandText($"PRAGMA table_info({comicTable})");
+            var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (SqliteDataReader reader = cmd.ExecuteReader(MainDatabase))
+            {
+                // PRAGMA table_info returns columns: cid, name, type, notnull, dflt_value, pk
+                while (reader.Read())
+                {
+                    if (!reader.IsDBNull(1))
+                    {
+                        existingColumns.Add(reader.GetString(1));
+                    }
+                }
+            }
+
+            if (!existingColumns.Contains(ComicTable.ColumnCompletionState.Name))
+            {
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCompletionState.Name} INTEGER NOT NULL DEFAULT 0");
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, e);
+        }
     }
 
     private static void InitializeTagInfoDatabase()
