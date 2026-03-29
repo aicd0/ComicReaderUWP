@@ -23,15 +23,11 @@ internal partial class ArchiveComicHandle : ComicHandle
 {
     private const string TAG = nameof(ArchiveComicHandle);
 
-    public static ComicHandle FromDatabase(string location)
-    {
-        return new ArchiveComicHandle(location, false);
-    }
-
     public static ComicHandle FromExternal(StorageFile archive)
     {
-        var comic = new ArchiveComicHandle(archive.Path, true)
+        var comic = new ArchiveComicHandle()
         {
+            Location = archive.Path,
             Title1 = archive.DisplayName,
             _archive = archive,
         };
@@ -39,16 +35,13 @@ internal partial class ArchiveComicHandle : ComicHandle
         return comic;
     }
 
-    public override bool IsEditable => !IsExternal;
-    public override string FileExplorerPath => ArchiveAccess.GetBasePath(Location, false);
-
     private StorageFile? _archive;
     private List<string> _entries = [];
 
-    private ArchiveComicHandle(string location, bool external) : base(ComicType.Archive, external)
-    {
-        Location = location;
-    }
+    public override bool IsEditable => !IsExternal;
+    public override string FileExplorerPath => ArchiveAccess.GetBasePath(Location, false);
+
+    protected override ComicType Type => ComicType.Archive;
 
     public override IReadOnlyList<string> GetFolderViewPath()
     {

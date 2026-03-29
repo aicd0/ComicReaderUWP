@@ -120,16 +120,24 @@
                             Padding="4,0"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal">
-                            <TextBlock
-                                x:Name="PageIndicator2"
-                                Margin="0,0,8,2"
-                                VerticalAlignment="Center"
-                                FontSize="14"
-                                FontWeight="SemiLight"
-                                Foreground="{ThemeResource ForegroundGrey2}"
-                                Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
                             <StackPanel
-                                Margin="0,0,4,0"
+                                Margin="0,0,8,0"
+                                Padding="4,0"
+                                Background="Transparent"
+                                Orientation="Horizontal"
+                                PointerWheelChanged="Zooming_PointerWheelChanged">
+                                <TextBlock
+                                    Margin="0,0,4,2"
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    Text="{x:Bind ViewModel.Zooming, Mode=OneWay}" />
+                                <FontIcon
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    Glyph="&#xEC8F;" />
+                            </StackPanel>
+                            <StackPanel
+                                Margin="0,0,8,0"
                                 Padding="4,0"
                                 Background="Transparent"
                                 Orientation="Horizontal"
@@ -140,6 +148,14 @@
                                     FontSize="14"
                                     FontWeight="SemiBold"
                                     Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
+                                <TextBlock
+                                    x:Name="PageIndicator2"
+                                    Margin="0,0,4,2"
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="SemiLight"
+                                    Foreground="{ThemeResource ForegroundGrey2}"
+                                    Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
                                 <FontIcon
                                     VerticalAlignment="Center"
                                     FontSize="14"

@@ -28,7 +28,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
 
-    // Comic states
+    // Comic Status
     private ComicModel? _comic;
     private LoadingComicInfo? _pendingComic;
     private bool _isLoading = false;
@@ -107,6 +107,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             _pinButtonText = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PinButtonText)));
+        }
+    }
+
+    private string _zooming = string.Empty;
+    public string Zooming
+    {
+        get => _zooming;
+        set
+        {
+            _zooming = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Zooming)));
         }
     }
 
@@ -292,6 +303,11 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             PinButtonGlyph = "\uE718";
             PinButtonText = StringResourceProvider.Instance.Pin;
         }
+    }
+
+    public void SetZooming(int zooming)
+    {
+        Zooming = $"{zooming}%";
     }
 
     private void Playback_PlaybackStatusChanged(PlaybackModel.StatusChangeReason reason)

@@ -27,20 +27,12 @@ internal partial class PdfComicHandle : ComicHandle
 {
     private const string TAG = nameof(PdfComicHandle);
 
-    public static ComicHandle FromDatabase(string location)
-    {
-        return new PdfComicHandle(false)
-        {
-            Location = location,
-        };
-    }
-
     public static ComicHandle FromExternal(StorageFile file)
     {
-        var comic = new PdfComicHandle(true)
+        var comic = new PdfComicHandle()
         {
-            Title1 = file.DisplayName,
             Location = file.Path,
+            Title1 = file.DisplayName,
         };
 
         return comic;
@@ -48,7 +40,7 @@ internal partial class PdfComicHandle : ComicHandle
 
     public override bool IsEditable => !IsExternal;
 
-    private PdfComicHandle(bool is_external) : base(ComicType.PDF, is_external) { }
+    protected override ComicType Type => ComicType.PDF;
 
     public override IReadOnlyList<string> GetFolderViewPath()
     {

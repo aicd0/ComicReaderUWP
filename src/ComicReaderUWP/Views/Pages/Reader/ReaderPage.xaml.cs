@@ -78,6 +78,8 @@ internal sealed partial class ReaderPage : BasePage
     private bool _bottomTileShowed = false;
     private bool _bottomTileHold = false;
     private long _bottomTileTargetHideTime = -1;
+    private long _lastZoomingTicks = 0;
+    private int _zoomingStep = 1;
 
     //
     // Constructor
@@ -105,7 +107,7 @@ internal sealed partial class ReaderPage : BasePage
         // Initialize views
         MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
         _readerNavigationBar.SetWindowId(WindowId);
-        _readerNavigationBar.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
+        ViewModel.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
 
         {
             bool tipShown = AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).GetValueOrDefault(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
@@ -301,11 +303,6 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.SetIsFavorite(isFavorite, true);
         };
 
-        _readerNavigationBar.ZoomingChanged += delta =>
-        {
-            MainReaderView.Zooming += delta * 0.01F;
-        };
-
         MainReaderView.ReaderEventTapped += sender =>
         {
             BottomTileSetHold(!_bottomTileShowed);
@@ -349,7 +346,7 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventZoomingChanged += (sender, zooming) =>
         {
-            _readerNavigationBar.SetZooming((int)Math.Round(zooming * 100F));
+            ViewModel.SetZooming((int)Math.Round(zooming * 100F));
         };
 
         MainReaderView.ReaderEventAutoScrollingChanged += (sender, isAutoScrolling) =>
@@ -771,7 +768,7 @@ internal sealed partial class ReaderPage : BasePage
         int currentPage = reader.CurrentPageDisplay;
         int percentage = reader.CurrentPagePercentage;
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
-        ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
+        ViewModel.SecondaryPageIndicatorText = $"({percentage}%)";
 
         // Use different order to prevent unwanted change events
         if (PlaybackSlider.Maximum > currentPage)
@@ -827,6 +824,31 @@ internal sealed partial class ReaderPage : BasePage
         {
             UpdatePinUI();
         }
+    }
+
+    private void Zooming_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        PointerPoint pt = e.GetCurrentPoint(null);
+        int delta = pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
+        if (delta == 0)
+        {
+            return;
+        }
+
+        long tick = GetTick();
+        long interval = tick - _lastZoomingTicks;
+        _lastZoomingTicks = tick;
+
+        if (interval < 100)
+        {
+            _zoomingStep = Math.Min(_zoomingStep * 2, 25);
+        }
+        else if (interval > 300)
+        {
+            _zoomingStep = 1;
+        }
+
+        MainReaderView.Zooming += delta * _zoomingStep * 0.01F;
     }
 
     private void FullscreenButton_Click(object sender, RoutedEventArgs e)

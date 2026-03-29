@@ -69,11 +69,11 @@ public class EnvironmentProvider
         sb.SafeAppend("Installed system language", GetInstalledSystemLanguage);
         sb.SafeAppend("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
         sb.SafeAppend("OEM name", DeviceInformationHelper.Instance.GetDeviceOemName);
-        sb.SafeAppend("OS architecture", () => RuntimeInformation.OSArchitecture);
+        sb.SafeAppend("OS architecture", GetSystemArchitecture);
         sb.SafeAppend("OS build", DeviceInformationHelper.Instance.GetOsBuild);
         sb.SafeAppend("OS version", DeviceInformationHelper.Instance.GetOsVersion);
         sb.SafeAppend("Portable", () => IsPortable());
-        sb.SafeAppend("Process architecture", () => RuntimeInformation.ProcessArchitecture);
+        sb.SafeAppend("Process architecture", GetProcessArchitecture);
         sb.SafeAppend("Processor count", () => Environment.ProcessorCount);
         sb.SafeAppend("SDK version", GetSDKVersion);
 
@@ -243,13 +243,15 @@ public class EnvironmentProvider
     public Dictionary<string, string> GetEnvironmentTags()
     {
         Dictionary<string, string> tags = [];
-        tags["cr-device-id"] = Instance.GetDeviceId();
-        tags["cr-host-version"] = GetHostVersion();
-        tags["cr-lang-app"] = Instance.GetCurrentAppLanguage();
-        tags["cr-lang-current"] = GetCurrentSystemLanguage();
-        tags["cr-lang-installed"] = GetInstalledSystemLanguage();
-        tags["cr-portable"] = IsPortable() ? "true" : "false";
-        tags["cr-sdk-version"] = GetSDKVersion();
+        tags["c-arch-os"] = GetSystemArchitecture();
+        tags["c-arch-process"] = GetProcessArchitecture();
+        tags["c-device-id"] = Instance.GetDeviceId();
+        tags["c-host-version"] = GetHostVersion();
+        tags["c-lang-app"] = Instance.GetCurrentAppLanguage();
+        tags["c-lang-os-current"] = GetCurrentSystemLanguage();
+        tags["c-lang-os-installed"] = GetInstalledSystemLanguage();
+        tags["c-portable"] = IsPortable() ? "true" : "false";
+        tags["c-sdk-version"] = GetSDKVersion();
         return tags;
     }
 
@@ -266,6 +268,16 @@ public class EnvironmentProvider
     public static bool IsPortable()
     {
         return ServiceManager.GetService<IApplicationService>().IsPortableBuild();
+    }
+
+    private static string GetSystemArchitecture()
+    {
+        return RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
+    }
+
+    private static string GetProcessArchitecture()
+    {
+        return RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
     }
 
     private static string RecalculateDeviceId()
