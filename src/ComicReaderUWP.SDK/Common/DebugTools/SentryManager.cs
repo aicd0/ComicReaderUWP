@@ -9,8 +9,8 @@ namespace ComicReaderUWP.SDK.Common.DebugTools;
 
 public static class SentryManager
 {
-    private const string TAG_USER_LEVEL = "user-level";
-    private const string TAG_SHUTTING_DOWN = "shutting-down";
+    private const string TAG_USER_LEVEL = "c-user-level";
+    private const string TAG_SHUTTING_DOWN = "c-shutting-down";
     private const string LEVEL_INFO = "info";
     private const string LEVEL_WARNING = "warning";
     private const string LEVEL_ERROR = "error";
