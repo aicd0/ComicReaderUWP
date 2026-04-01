@@ -14,6 +14,7 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
+using ComicReaderUWP.UserControls.Reader.Models;
 
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
