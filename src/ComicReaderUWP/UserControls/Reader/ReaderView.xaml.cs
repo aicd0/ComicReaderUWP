@@ -2867,7 +2867,7 @@ internal partial class ReaderView : UserControl
         }
 
         ReaderFrameViewModel item = FrameDataSource[frame];
-        GeneralTransform frameTransform = container.TransformToVisual(ThisListView);
+        GeneralTransform frameTransform = container.TransformToVisual(ThisListView.ItemsPanelRoot);
         Windows.Foundation.Point framePosition = frameTransform.TransformPoint(new(0.0, 0.0));
 
         double parallelOffset = IsVertical ? framePosition.Y : framePosition.X;
