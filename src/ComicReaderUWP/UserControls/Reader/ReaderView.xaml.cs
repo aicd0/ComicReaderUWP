@@ -500,8 +500,8 @@ internal partial class ReaderView : UserControl
         // Locate nearest frames using binary search
         InvalidateFrameOffsetCache();
         int lo = 0;
-        int hi = FrameDataSource.Count - 1;
-        while (lo + 1 < hi)
+        int hi = FrameDataSource.Count;
+        while (hi - lo > 2)
         {
             int i = (lo + hi) / 2;
             FrameOffsetData? offsets = FrameOffset(i);
@@ -511,13 +511,13 @@ internal partial class ReaderView : UserControl
                 continue;
             }
 
-            if ((offsets.Value.ParallelStart + offsets.Value.ParallelEnd) * 0.5 <= offset)
+            if ((offsets.Value.ParallelStart + offsets.Value.ParallelEnd) * 0.5 < offset)
             {
                 lo = i;
             }
             else
             {
-                hi = i;
+                hi = i + 1;
             }
         }
 
@@ -2729,7 +2729,7 @@ internal partial class ReaderView : UserControl
         int nearestFrame = PageToFrame(nearestPage, out _, out _);
 
         InvalidateFrameOffsetCache();
-        AnchorConverter? converter = CreateAnchorConverter(nearestFrame, nearestFrame);
+        AnchorConverter? converter = CreateAnchorConverter(nearestFrame, nearestFrame + 1);
         if (converter is null)
         {
             return null;
@@ -2762,32 +2762,28 @@ internal partial class ReaderView : UserControl
 
     private AnchorConverter? CreateAnchorConverter(int startFrame, int endFrame)
     {
-        if (FrameDataSource.Count == 0 || startFrame > endFrame || startFrame < 0 || endFrame >= FrameDataSource.Count)
+        if (FrameDataSource.Count == 0 || startFrame >= endFrame || startFrame < 0 || endFrame > FrameDataSource.Count)
         {
             return null;
         }
 
         var anchorConverter = new AnchorConverter();
 
-        int maxFrame = Math.Min(endFrame + 1, FrameDataSource.Count - 1);
+        int minFrame = Math.Max(startFrame - 1, 0);
+        int maxFrame = Math.Min(endFrame + 1, FrameDataSource.Count);
         FrameOffsetData? lastOffset = null;
-        for (int frame = Math.Max(startFrame - 1, 0); frame <= maxFrame; frame++)
+        for (int frame = minFrame; frame < maxFrame; frame++)
         {
             FrameOffsetData? offset = FrameOffset(frame);
             if (!offset.HasValue)
             {
-                if (frame == maxFrame)
-                {
-                    break;
-                }
-
-                return null;
+                break;
             }
 
             ReaderFrameViewModel frameModel = FrameDataSource[frame];
             if (frameModel.IsEmpty)
             {
-                return null;
+                break;
             }
 
             if (frame == 0)
@@ -2843,7 +2839,12 @@ internal partial class ReaderView : UserControl
             lastOffset = offset;
         }
 
-        return anchorConverter.Count > 0 ? anchorConverter : null;
+        if (anchorConverter.Count == 0)
+        {
+            return null;
+        }
+
+        return anchorConverter;
     }
 
     private FrameOffsetData? FrameOffset(int frame)
