@@ -1,7 +1,7 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-namespace ComicReaderUWP.UserControls.Reader;
+namespace ComicReaderUWP.UserControls.Reader.Models;
 
 internal struct FrameOffsetData
 {
