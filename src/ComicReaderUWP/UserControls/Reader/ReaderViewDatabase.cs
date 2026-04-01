@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.UserControls.Reader;
 
-internal class ReaderViewInternalDatabase(ReaderView.IConfigurationDatabase db)
+internal class ReaderViewDatabase(ReaderView.IConfigurationDatabase db)
 {
     private const string KEY_CENTER_INSIDE_ZOOMING = "CenterInsideZooming";
     private const string KEY_VERTICAL_ZOOMING = "VerticalZooming";

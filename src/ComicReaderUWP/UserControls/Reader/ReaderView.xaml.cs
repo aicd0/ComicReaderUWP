@@ -81,7 +81,7 @@ internal partial class ReaderView : UserControl
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
     private double _initialPage = 1.0;
-    private ReaderViewInternalDatabase? _internalDB = null;
+    private ReaderViewDatabase? _internalDB = null;
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
     private List<IImageSource> _originalDataModel = [];
@@ -2935,7 +2935,7 @@ internal partial class ReaderView : UserControl
 
     private void SaveZoomingConfig()
     {
-        ReaderViewInternalDatabase? db = _internalDB;
+        ReaderViewDatabase? db = _internalDB;
         if (db is null)
         {
             return;
@@ -2983,7 +2983,7 @@ internal partial class ReaderView : UserControl
         zoom = _zoom;
         zoomType = ZoomType.CenterInside;
 
-        ReaderViewInternalDatabase? db = _internalDB;
+        ReaderViewDatabase? db = _internalDB;
         if (db is null)
         {
             return;
