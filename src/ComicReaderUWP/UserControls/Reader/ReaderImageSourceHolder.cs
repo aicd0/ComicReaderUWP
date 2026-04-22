@@ -644,9 +644,12 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
 
         public void Dispose()
         {
-            BitmapRef?.Unref();
-            BitmapRef = null;
-            Source = null;
+            lock (Lock)
+            {
+                BitmapRef?.Unref();
+                BitmapRef = null;
+                Source = null;
+            }
         }
     }
 }
