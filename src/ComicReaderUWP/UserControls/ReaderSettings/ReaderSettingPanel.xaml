@@ -111,190 +111,73 @@
         <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
 
         <!--  General Settings  -->
-        <StackPanel x:Name="GeneralSettingsGrid" Orientation="Vertical">
-            <!--  Page arrangement  -->
-            <ListView
-                x:Name="LvPageArrangement"
-                Margin="-36,8"
-                Padding="50,0"
-                SelectionChanged="LvPageArrangement_SelectionChanged"
-                SelectionMode="Single">
-
-                <!--  Single  -->
-                <ListViewItem Style="{StaticResource PageArrangementListViewItemStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            MaxWidth="200"
-                            Margin="0,0,12,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind StringResource.PageLayoutSingle}"
-                            TextWrapping="WrapWholeWords" />
-                        <StackPanel
-                            x:Name="SpDemoSingle"
-                            Grid.Column="1"
-                            Margin="3,0"
-                            Orientation="Horizontal"
-                            Spacing="6">
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoSingle1" Header="1" />
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoSingle2" Header="2" />
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoSingle3" Header="3" />
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoSingle4" Header="4" />
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoSingle5" Header="5" />
-                        </StackPanel>
-                    </Grid>
-                </ListViewItem>
-
-                <!--  DualCover  -->
-                <ListViewItem Style="{StaticResource PageArrangementListViewItemStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            MaxWidth="200"
-                            Margin="0,0,12,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind StringResource.PageLayoutDualWithCover}"
-                            TextWrapping="WrapWholeWords" />
-                        <StackPanel
-                            x:Name="SpDemoDualCover"
-                            Grid.Column="1"
-                            Margin="3,0"
-                            Orientation="Horizontal"
-                            Spacing="6">
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoDual1" Header="1" />
-                            <readersettingscontrol:PageDemoDual
-                                x:Name="PdsDemoDual2"
-                                FlowDirection="LeftToRight"
-                                HeaderL="2"
-                                HeaderR="3" />
-                            <readersettingscontrol:PageDemoDual
-                                x:Name="PdsDemoDual3"
-                                FlowDirection="LeftToRight"
-                                HeaderL="4"
-                                HeaderR="5" />
-                        </StackPanel>
-                    </Grid>
-                </ListViewItem>
-
-                <!--  DualCoverMirror  -->
-                <ListViewItem Style="{StaticResource PageArrangementListViewItemStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            MaxWidth="200"
-                            Margin="0,0,12,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind StringResource.PageLayoutDualWithCoverMirrored}"
-                            TextWrapping="WrapWholeWords" />
-                        <StackPanel
-                            x:Name="SpDemoDualCoverMirror"
-                            Grid.Column="1"
-                            Margin="3,0"
-                            Orientation="Horizontal"
-                            Spacing="6">
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoDualCoverMirror1" Header="1" />
-                            <readersettingscontrol:PageDemoDual
-                                x:Name="PdsDemoDualCoverMirror2"
-                                FlowDirection="LeftToRight"
-                                HeaderL="3"
-                                HeaderR="2" />
-                            <readersettingscontrol:PageDemoDual
-                                x:Name="PdsDemoDualCoverMirror3"
-                                FlowDirection="LeftToRight"
-                                HeaderL="5"
-                                HeaderR="4" />
-                        </StackPanel>
-                    </Grid>
-                </ListViewItem>
-
-                <!--  DualNoCover  -->
-                <ListViewItem Style="{StaticResource PageArrangementListViewItemStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            MaxWidth="200"
-                            Margin="0,0,12,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind StringResource.PageLayoutDualNoCover}"
-                            TextWrapping="WrapWholeWords" />
-                        <StackPanel
-                            x:Name="SpDemoDualNoCover"
-                            Grid.Column="1"
-                            Margin="3,0"
-                            Orientation="Horizontal"
-                            Spacing="6">
-                            <readersettingscontrol:PageDemoDual
-                                x:Name="PdsDemoDualNoCover1"
-                                FlowDirection="LeftToRight"
-                                HeaderL="1"
-                                HeaderR="2" />
-                            <readersettingscontrol:PageDemoDual
-                                x:Name="PdsDemoDualNoCover2"
-                                FlowDirection="LeftToRight"
-                                HeaderL="3"
-                                HeaderR="4" />
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoDualNoCover3" Header="5" />
-                        </StackPanel>
-                    </Grid>
-                </ListViewItem>
-
-                <!--  DualNoCoverMirror  -->
-                <ListViewItem Style="{StaticResource PageArrangementListViewItemStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            MaxWidth="200"
-                            Margin="0,0,12,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind StringResource.PageLayoutDualNoCoverMirrored}"
-                            TextWrapping="WrapWholeWords" />
-                        <StackPanel
-                            x:Name="SpDemoDualNoCoverMirror"
-                            Grid.Column="1"
-                            Margin="3,0"
-                            Orientation="Horizontal"
-                            Spacing="6">
-                            <readersettingscontrol:PageDemoDual
-                                x:Name="PdsDemoDualNoCoverMirror1"
-                                FlowDirection="LeftToRight"
-                                HeaderL="2"
-                                HeaderR="1" />
-                            <readersettingscontrol:PageDemoDual
-                                x:Name="PdsDemoDualNoCoverMirror2"
-                                FlowDirection="LeftToRight"
-                                HeaderL="4"
-                                HeaderR="3" />
-                            <readersettingscontrol:PageDemoSingle x:Name="PdsDemoDualNoCoverMirror3" Header="5" />
-                        </StackPanel>
-                    </Grid>
-                </ListViewItem>
-
-            </ListView>
+        <StackPanel
+            x:Name="GeneralSettingsGrid"
+            MinWidth="360"
+            Orientation="Vertical">
+            <!--  Page layout  -->
+            <Grid Margin="14,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind StringResource.TwoPageMode}" />
+                <ToggleSwitch
+                    x:Name="TwoPageModeToggleSwitch"
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Style="{StaticResource CompatToggleSwitchStyle}"
+                    Toggled="TwoPageModeToggleSwitch_Toggled" />
+                <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind StringResource.AddCover}" />
+                <ToggleSwitch
+                    x:Name="AddCoverToggleSwitch"
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    Style="{StaticResource CompatToggleSwitchStyle}"
+                    Toggled="AddCoverToggleSwitch_Toggled" />
+                <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind StringResource.SwapLeftAndRightPages}" />
+                <ToggleSwitch
+                    x:Name="SwapLeftAndRightPagesToggleSwitch"
+                    Grid.Row="2"
+                    Grid.Column="3"
+                    Style="{StaticResource CompatToggleSwitchStyle}"
+                    Toggled="SwapLeftAndRightPagesToggleSwitch_Toggled" />
+                <TextBlock
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind StringResource.SpreadDetection}" />
+                <ToggleSwitch
+                    x:Name="SpreadDetectionToggleSwitch"
+                    Grid.Row="3"
+                    Grid.Column="3"
+                    Style="{StaticResource CompatToggleSwitchStyle}"
+                    Toggled="SpreadDetectionToggleSwitch_Toggled" />
+            </Grid>
             <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
             <Grid Margin="14,4">
                 <Grid.ColumnDefinitions>
@@ -435,7 +318,6 @@
                     x:Name="OriginalSizeToggleSwitch"
                     Grid.Row="0"
                     Grid.Column="3"
-                    IsOn="False"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="OriginalSizeToggleSwitch_Toggled" />
             </Grid>
@@ -480,7 +362,6 @@
                     Grid.Row="1"
                     Grid.Column="3"
                     HorizontalAlignment="Right"
-                    IsOn="False"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="FlipImageToggleSwitch_Toggled" />
                 <TextBlock
@@ -494,7 +375,6 @@
                     Grid.Row="2"
                     Grid.Column="3"
                     HorizontalAlignment="Right"
-                    IsOn="False"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="InvertImageToggleSwitch_Toggled" />
             </Grid>

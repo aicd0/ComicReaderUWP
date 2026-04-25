@@ -126,6 +126,9 @@
   <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
+  <data name="AddCover" xml:space="preserve">
+    <value>Add cover</value>
+  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Add a folder</value>
   </data>
@@ -700,21 +703,6 @@ The evaluation will be performed in the following order:
   <data name="PageGap" xml:space="preserve">
     <value>Page spacing</value>
   </data>
-  <data name="PageLayoutDualNoCover" xml:space="preserve">
-    <value>Dual, no cover</value>
-  </data>
-  <data name="PageLayoutDualNoCoverMirrored" xml:space="preserve">
-    <value>Dual, no cover, mirrored</value>
-  </data>
-  <data name="PageLayoutDualWithCover" xml:space="preserve">
-    <value>Dual, with cover</value>
-  </data>
-  <data name="PageLayoutDualWithCoverMirrored" xml:space="preserve">
-    <value>Dual, with cover, mirrored</value>
-  </data>
-  <data name="PageLayoutSingle" xml:space="preserve">
-    <value>Single</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>Page $page</value>
   </data>
@@ -892,11 +880,17 @@ Start in Safe Mode?</value>
   <data name="SortingFunction" xml:space="preserve">
     <value>Sorting function</value>
   </data>
+  <data name="SpreadDetection" xml:space="preserve">
+    <value>Spread detection</value>
+  </data>
   <data name="StartEndFromScrollingArea" xml:space="preserve">
     <value>Use the start/end of the scrolling area as the reading start/end position</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>Statistics</value>
+  </data>
+  <data name="SwapLeftAndRightPages" xml:space="preserve">
+    <value>Swap left &amp; right pages</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Tag</value>
@@ -949,6 +943,9 @@ Special variables:
   </data>
   <data name="TransitionAnimation.Text" xml:space="preserve">
     <value>Transition animation</value>
+  </data>
+  <data name="TwoPageMode" xml:space="preserve">
+    <value>Two-page mode</value>
   </data>
   <data name="Unfavorite" xml:space="preserve">
     <value>Unfavorite</value>

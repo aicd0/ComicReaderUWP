@@ -4,20 +4,35 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-using ComicReaderUWP.Data.Models.Misc;
-
 namespace ComicReaderUWP.UserControls.Reader.PageLayout;
 
-internal class SimplePageLayoutManager(PageArrangementEnum arrangement) : IPageLayoutManager
+internal class SimplePageLayoutManager : IPageLayoutManager
 {
-    private readonly PageArrangementEnum _arrangement = arrangement;
+    public bool TwoPageMode { get; init; } = false;
+    public bool AddCover { get; init; } = true;
+    public bool RightToLeft { get; init; } = false;
+    public bool SpreadDetection { get; init; } = true;
+
     private PageInfo?[] _pages = [];
 
     private int PageCount => _pages.Length;
 
     public bool Equals(IPageLayoutManager? other)
     {
-        return other is SimplePageLayoutManager manager && _arrangement == manager._arrangement;
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        if (other is not SimplePageLayoutManager obj)
+        {
+            return false;
+        }
+
+        return TwoPageMode == obj.TwoPageMode
+            && AddCover == obj.AddCover
+            && RightToLeft == obj.RightToLeft
+            && SpreadDetection == obj.SpreadDetection;
     }
 
     public void Reset(int pageCount)
@@ -58,40 +73,50 @@ internal class SimplePageLayoutManager(PageArrangementEnum arrangement) : IPageL
         bool leftSide;
         int neighbor;
         bool lastFrame;
-        switch (_arrangement)
+
+        if (TwoPageMode)
         {
-            case PageArrangementEnum.Single:
-                frameIndex = page - 1;
-                leftSide = true;
-                neighbor = ReaderFrameViewModel.NO_PAGE;
-                lastFrame = page == PageCount;
-                break;
-            case PageArrangementEnum.DualCover:
-                frameIndex = page / 2;
-                leftSide = page == 1 || page % 2 == 0;
-                neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
-                lastFrame = page == PageCount || (page == PageCount - 1 && neighbor != ReaderFrameViewModel.NO_PAGE);
-                break;
-            case PageArrangementEnum.DualCoverMirror:
-                frameIndex = page / 2;
-                leftSide = page == PageCount || page % 2 == 1;
-                neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
-                lastFrame = page == PageCount || (page == PageCount - 1 && neighbor != ReaderFrameViewModel.NO_PAGE);
-                break;
-            case PageArrangementEnum.DualNoCover:
-                frameIndex = (page - 1) / 2;
-                leftSide = page % 2 == 1;
-                neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
-                lastFrame = page == PageCount || (page == PageCount - 1 && neighbor != ReaderFrameViewModel.NO_PAGE);
-                break;
-            case PageArrangementEnum.DualNoCoverMirror:
-                frameIndex = (page - 1) / 2;
-                leftSide = page == PageCount || page % 2 == 0;
-                neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
-                lastFrame = page == PageCount || (page == PageCount - 1 && neighbor != ReaderFrameViewModel.NO_PAGE);
-                break;
-            default:
-                throw new InvalidOperationException($"Unsupported page arrangement: {_arrangement}");
+            if (AddCover)
+            {
+                if (RightToLeft)
+                {
+                    frameIndex = page / 2;
+                    leftSide = page == PageCount || page % 2 == 1;
+                    neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
+                    lastFrame = page == PageCount || (page == PageCount - 1 && neighbor != ReaderFrameViewModel.NO_PAGE);
+                }
+                else
+                {
+                    frameIndex = page / 2;
+                    leftSide = page == 1 || page % 2 == 0;
+                    neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
+                    lastFrame = page == PageCount || (page == PageCount - 1 && neighbor != ReaderFrameViewModel.NO_PAGE);
+                }
+            }
+            else
+            {
+                if (RightToLeft)
+                {
+                    frameIndex = (page - 1) / 2;
+                    leftSide = page == PageCount || page % 2 == 0;
+                    neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
+                    lastFrame = page == PageCount || (page == PageCount - 1 && neighbor != ReaderFrameViewModel.NO_PAGE);
+                }
+                else
+                {
+                    frameIndex = (page - 1) / 2;
+                    leftSide = page % 2 == 1;
+                    neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
+                    lastFrame = page == PageCount || (page == PageCount - 1 && neighbor != ReaderFrameViewModel.NO_PAGE);
+                }
+            }
+        }
+        else
+        {
+            frameIndex = page - 1;
+            leftSide = true;
+            neighbor = ReaderFrameViewModel.NO_PAGE;
+            lastFrame = page == PageCount;
         }
 
         layout = new()

@@ -91,7 +91,7 @@ internal partial class ReaderView : UserControl
     private readonly ReaderFrameManager _frameManager = new();
     private readonly Dictionary<int, ImageDataModel> _dataModel = [];
     private readonly CancellationSession _reloadSession;
-    private IPageLayoutManager _pageLayoutManager = new SimplePageLayoutManager(PageArrangementEnum.Single);
+    private IPageLayoutManager _pageLayoutManager = new SimplePageLayoutManager();
     private readonly Dictionary<int, int> _pageToFrameMapper = [];
 
     private ObservableCollection<ReaderFrameViewModel> FrameDataSource { get; } = [];
@@ -658,7 +658,7 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            if (!_isInitialFrameLoaded && frame.MinPage == 1)
+            if (!_isInitialFrameLoaded && (frame.PageL == initialPage || frame.PageR == initialPage))
             {
                 _isInitialFrameLoaded = true;
             }
