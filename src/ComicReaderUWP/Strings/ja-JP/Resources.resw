@@ -126,9 +126,6 @@
   <data name="Add" xml:space="preserve">
     <value>追加</value>
   </data>
-  <data name="AddCover" xml:space="preserve">
-    <value>表紙を追加</value>
-  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>フォルダを追加する</value>
   </data>
@@ -340,6 +337,9 @@ $comics</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>有効にする</value>
+  </data>
+  <data name="EnableCover" xml:space="preserve">
+    <value>表紙を有効にする</value>
   </data>
   <data name="Enabled" xml:space="preserve">
     <value>有効</value>

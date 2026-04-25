@@ -93,10 +93,10 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         DispatchDataChangeEvent();
     }
 
-    private void AddCoverToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    private void EnableCoverToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
         PageLayoutSettings pageLayoutSettings = _model.IsVertical ? _model.VerticalPageLayout : _model.HorizontalPageLayout;
-        pageLayoutSettings.AddCover = ((ToggleSwitch)sender).IsOn;
+        pageLayoutSettings.EnableCover = ((ToggleSwitch)sender).IsOn;
         SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
@@ -283,10 +283,10 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
     {
         PageLayoutSettings pageLayoutSettings = _model.IsVertical ? _model.VerticalPageLayout : _model.HorizontalPageLayout;
         TwoPageModeToggleSwitch.IsOn = pageLayoutSettings.TwoPageMode;
-        AddCoverToggleSwitch.IsOn = pageLayoutSettings.AddCover;
+        EnableCoverToggleSwitch.IsOn = pageLayoutSettings.EnableCover;
         SwapLeftAndRightPagesToggleSwitch.IsOn = pageLayoutSettings.SwapLeftAndRightPages;
         SpreadDetectionToggleSwitch.IsOn = pageLayoutSettings.SpreadDetection;
-        AddCoverToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
+        EnableCoverToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
         SwapLeftAndRightPagesToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
         SpreadDetectionToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
 

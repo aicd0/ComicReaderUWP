@@ -124,10 +124,10 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="32" />
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"
@@ -146,13 +146,13 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.AddCover}" />
+                    Text="{x:Bind StringResource.EnableCover}" />
                 <ToggleSwitch
-                    x:Name="AddCoverToggleSwitch"
+                    x:Name="EnableCoverToggleSwitch"
                     Grid.Row="1"
                     Grid.Column="3"
                     Style="{StaticResource CompatToggleSwitchStyle}"
-                    Toggled="AddCoverToggleSwitch_Toggled" />
+                    Toggled="EnableCoverToggleSwitch_Toggled" />
                 <TextBlock
                     Grid.Row="2"
                     Grid.Column="0"
@@ -262,8 +262,8 @@
                         MaxWidth="140" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="32" />
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"
@@ -306,7 +306,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
+                    <RowDefinition Height="32" />
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"
@@ -337,8 +337,8 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40" />
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="32" />
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"

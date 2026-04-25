@@ -259,7 +259,7 @@ internal class ReaderSettingsModel
         return new()
         {
             TwoPageMode = value != 0,
-            AddCover = value <= 2,
+            EnableCover = value <= 2,
             SwapLeftAndRightPages = value == 2 || value == 4,
             SpreadDetection = defaultModel.SpreadDetection,
         };

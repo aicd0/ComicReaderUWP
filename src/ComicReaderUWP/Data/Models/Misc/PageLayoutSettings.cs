@@ -10,7 +10,7 @@ namespace ComicReaderUWP.Data.Models.Misc;
 internal class PageLayoutSettings
 {
     public bool TwoPageMode { get; set; } = false;
-    public bool AddCover { get; set; } = true;
+    public bool EnableCover { get; set; } = true;
     public bool SwapLeftAndRightPages { get; set; } = false;
     public bool SpreadDetection { get; set; } = true;
 
@@ -27,7 +27,7 @@ internal class PageLayoutSettings
         }
 
         return TwoPageMode == other.TwoPageMode &&
-            AddCover == other.AddCover &&
+            EnableCover == other.EnableCover &&
             SwapLeftAndRightPages == other.SwapLeftAndRightPages &&
             SpreadDetection == other.SpreadDetection;
     }
@@ -36,7 +36,7 @@ internal class PageLayoutSettings
     {
         var hash = new HashCode();
         hash.Add(TwoPageMode);
-        hash.Add(AddCover);
+        hash.Add(EnableCover);
         hash.Add(SwapLeftAndRightPages);
         hash.Add(SpreadDetection);
         return hash.ToHashCode();
@@ -57,7 +57,7 @@ internal class PageLayoutSettings
         return new()
         {
             TwoPageMode = TwoPageMode,
-            AddCover = AddCover,
+            EnableCover = EnableCover,
             SwapLeftAndRightPages = SwapLeftAndRightPages,
             SpreadDetection = SpreadDetection,
         };
@@ -75,7 +75,7 @@ internal class PageLayoutSettings
         return new()
         {
             TwoPageMode = jsonModel.TwoPageMode ?? defaultModel.TwoPageMode,
-            AddCover = jsonModel.AddCover ?? defaultModel.AddCover,
+            EnableCover = jsonModel.EnableCover ?? defaultModel.EnableCover,
             SwapLeftAndRightPages = jsonModel.SwapLeftAndRightPages ?? defaultModel.SwapLeftAndRightPages,
             SpreadDetection = jsonModel.SpreadDetection ?? defaultModel.SpreadDetection,
         };
@@ -86,8 +86,8 @@ internal class PageLayoutSettings
         [JsonPropertyName("TwoPageMode")]
         public bool? TwoPageMode { get; set; }
 
-        [JsonPropertyName("AddCover")]
-        public bool? AddCover { get; set; }
+        [JsonPropertyName("EnableCover")]
+        public bool? EnableCover { get; set; }
 
         [JsonPropertyName("SwapLeftAndRightPages")]
         public bool? SwapLeftAndRightPages { get; set; }

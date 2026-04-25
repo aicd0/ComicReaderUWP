@@ -126,9 +126,6 @@
   <data name="Add" xml:space="preserve">
     <value>Agregar</value>
   </data>
-  <data name="AddCover" xml:space="preserve">
-    <value>Agregar portada</value>
-  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Agregar una carpeta</value>
   </data>
@@ -340,6 +337,9 @@ $comics</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>Habilitar</value>
+  </data>
+  <data name="EnableCover" xml:space="preserve">
+    <value>Activar portada</value>
   </data>
   <data name="Enabled" xml:space="preserve">
     <value>Habilitado</value>

@@ -126,9 +126,6 @@
   <data name="Add" xml:space="preserve">
     <value>添加</value>
   </data>
-  <data name="AddCover" xml:space="preserve">
-    <value>新增封面</value>
-  </data>
   <data name="AddFolder" xml:space="preserve">
     <value>新增資料夾</value>
   </data>
@@ -340,6 +337,9 @@ $comics</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>啟用</value>
+  </data>
+  <data name="EnableCover" xml:space="preserve">
+    <value>啟用封面</value>
   </data>
   <data name="Enabled" xml:space="preserve">
     <value>已啟用</value>

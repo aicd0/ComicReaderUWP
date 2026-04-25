@@ -15,7 +15,6 @@ public class StringResourceProvider
     public string About => GetResourceString("About");
     public string AboutCopyright => GetResourceString("AboutCopyright");
     public string Add => GetResourceString("Add");
-    public string AddCover => GetResourceString("AddCover");
     public string AddFolder => GetResourceString("AddFolder");
     public string AddToFavorites => GetResourceString("AddToFavorites");
     public string AllComics => GetResourceString("AllComics");
@@ -73,6 +72,7 @@ public class StringResourceProvider
     public string Edit => GetResourceString("Edit");
     public string EditPreset => GetResourceString("EditPreset");
     public string Enable => GetResourceString("Enable");
+    public string EnableCover => GetResourceString("EnableCover");
     public string Enabled => GetResourceString("Enabled");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
     public string EnterNewTags => GetResourceString("EnterNewTags");
