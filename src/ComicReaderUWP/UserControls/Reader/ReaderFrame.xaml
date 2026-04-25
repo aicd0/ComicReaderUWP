@@ -9,10 +9,9 @@
     mc:Ignorable="d">
 
     <Grid
-        x:Name="MainFrame"
         Padding="{x:Bind ViewModel.FrameMargin, Mode=OneWay}"
-        Loaded="OnFrameLoaded"
-        SizeChanged="OnFrameSizeChanged">
+        Loaded="ReaderFrame_Loaded"
+        SizeChanged="ReaderFrame_SizeChanged">
         <Image
             x:Name="ImageMerged"
             Width="{x:Bind ViewModel.FrameWidth, Mode=OneWay}"
