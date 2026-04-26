@@ -81,18 +81,18 @@ internal partial class ReaderView : UserControl
     private readonly GestureHandler _gestureHandler;
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
-    private double _initialPage = 1.0;
-    private ReaderViewDatabase? _internalDB = null;
-    private double _minZoomFactor = double.MaxValue;
-    private double _maxZoomFactor = double.MinValue;
-    private List<IImageSource> _originalDataModel = [];
     private readonly ITaskDispatcher _loadInfoDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadInfoQueue");
     private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
-    private readonly ReaderFrameManager _frameManager = new();
-    private readonly Dictionary<int, ImageDataModel> _dataModel = [];
+    private ReaderViewDatabase? _internalDB = null;
+    private IReadOnlyList<IImageSource> _originalDataModel = [];
+    private double _initialPage = 1.0;
+
     private readonly CancellationSession _reloadSession;
+    private readonly ReaderFrameManager _frameManager = new();
     private IPageLayoutManager _pageLayoutManager = new SimplePageLayoutManager();
-    private readonly Dictionary<int, int> _pageToFrameMapper = [];
+    private PageModel?[] _pageModels = [];
+    private double _minZoomFactor = double.MaxValue;
+    private double _maxZoomFactor = double.MinValue;
 
     private ObservableCollection<ReaderFrameViewModel> FrameDataSource { get; } = [];
     private int CurrentFrameIndex { get; set; } = 0;
@@ -323,9 +323,12 @@ internal partial class ReaderView : UserControl
         }
 
         _imageFlip = flip;
-        foreach (ImageDataModel item in _dataModel.Values)
+        foreach (PageModel? item in _pageModels)
         {
-            item.Image.Flip = flip;
+            if (item is not null)
+            {
+                item.Image.Flip = flip;
+            }
         }
 
         _uiStateUpdatedNeedReloadImages = true;
@@ -340,9 +343,12 @@ internal partial class ReaderView : UserControl
         }
 
         _imageInvert = invert;
-        foreach (ImageDataModel item in _dataModel.Values)
+        foreach (PageModel? item in _pageModels)
         {
-            item.Image.Invert = invert;
+            if (item is not null)
+            {
+                item.Image.Invert = invert;
+            }
         }
 
         _uiStateUpdatedNeedReloadImages = true;
@@ -533,7 +539,7 @@ internal partial class ReaderView : UserControl
         double page = converter.CalculatePage(offset);
         page = Math.Min(page, PageCount + 0.5);
         int discretePage = ToDiscretePage(page);
-        if (!_pageToFrameMapper.TryGetValue(discretePage, out int frameIndex))
+        if (!TryConvertPageToFrameIndex(discretePage, out int frameIndex))
         {
             return false;
         }
@@ -611,7 +617,7 @@ internal partial class ReaderView : UserControl
     private double InitialPage => Math.Min(_initialPage, PageCount + 0.5);
     private bool ComicLoaded => _isLoaded && PageCount > 0;
 
-    private void Reload(List<IImageSource> images)
+    private void Reload(IReadOnlyList<IImageSource> images)
     {
         if (images.Count == 0 || _isDestoryed)
         {
@@ -623,12 +629,12 @@ internal partial class ReaderView : UserControl
         CancellationSession.IToken token = _reloadSession.Token;
 
         // Reset internal states
-        _minZoomFactor = double.MaxValue;
-        _maxZoomFactor = double.MinValue;
-        _dataModel.Clear();
         PageCount = images.Count;
+        _pageModels = new PageModel?[PageCount];
         CurrentPage = 1;
         CurrentFrameIndex = 0;
+        _minZoomFactor = double.MaxValue;
+        _maxZoomFactor = double.MinValue;
         SCClearFinalVal("Reload");
 
         // Reset loader
@@ -636,7 +642,6 @@ internal partial class ReaderView : UserControl
         Log("Reload", $"IP={InitialPage},LP={PageCount}");
         ResetLoader();
         _pageLayoutManager.Reset(PageCount);
-        _pageToFrameMapper.Clear();
         _frameManager.ResetReadyIndex();
         _frameManager.SetFrameReadyHandler(index =>
         {
@@ -715,7 +720,7 @@ internal partial class ReaderView : UserControl
 
                     foreach (PengingImageItem item in pendingListCopy)
                     {
-                        SetImageData(item.Page, item.OriginalWidth, item.OriginalHeight, item.Source);
+                        AddPage(item.Page, item.OriginalWidth, item.OriginalHeight, item.Source);
                     }
                 });
             }
@@ -758,9 +763,10 @@ internal partial class ReaderView : UserControl
         });
     }
 
-    private void SetImageData(int page, int originalWidth, int originalHeight, IImageSource source)
+    private void AddPage(int page, int originalWidth, int originalHeight, IImageSource source)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(page, nameof(page));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(page, PageCount, nameof(page));
 
         ReaderImageSource imageSourceModel = new()
         {
@@ -780,13 +786,19 @@ internal partial class ReaderView : UserControl
             _ => originalHeight,
         };
 
-        ImageDataModel imageModel = new()
+        PageModel pageModel = new()
         {
             Image = imageSourceModel,
             OriginalWidth = imageWidth,
             OriginalHeight = imageHeight,
         };
-        _dataModel[page - 1] = imageModel;
+
+        if (_pageModels[page - 1] is not null)
+        {
+            throw new InvalidOperationException($"Page {page} has already been added.");
+        }
+
+        _pageModels[page - 1] = pageModel;
 
         _pageLayoutManager.AddPage(page, originalWidth, originalHeight);
         if (!_pageLayoutManager.TryGetPageLayout(page, out PageLayoutInfo? pageLayout))
@@ -794,18 +806,18 @@ internal partial class ReaderView : UserControl
             return;
         }
 
+        pageModel.LayoutInfo = pageLayout;
         int frameIndex = pageLayout.FrameIndex;
-        _pageToFrameMapper.Add(page, frameIndex);
         int neighbour = pageLayout.NeighbourPage;
         bool firstFrame = frameIndex == 0;
         bool lastFrame = pageLayout.IsLastFrame;
         bool dual = neighbour != ReaderFrameViewModel.NO_PAGE;
 
-        ImageDataModel? neighbourModel = null;
+        PageModel? neighbourModel = null;
         if (dual)
         {
-            int neighbourIndex = neighbour - 1;
-            if (!_dataModel.TryGetValue(neighbourIndex, out neighbourModel))
+            neighbourModel = _pageModels[neighbour - 1];
+            if (neighbourModel is null)
             {
                 // Neighbor page not loaded yet, wait for next update
                 return;
@@ -851,7 +863,7 @@ internal partial class ReaderView : UserControl
         }
         else
         {
-            double aspectRatio = imageModel.AspectRatio;
+            double aspectRatio = pageModel.AspectRatio;
             if (neighbourModel is not null)
             {
                 aspectRatio += neighbourModel.AspectRatio;
@@ -872,7 +884,7 @@ internal partial class ReaderView : UserControl
                 }
 
                 thisImageHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
-                thisImageWidth = thisImageHeight * imageModel.AspectRatio;
+                thisImageWidth = thisImageHeight * pageModel.AspectRatio;
                 if (neighbourModel is not null)
                 {
                     neighbourImageHeight = thisImageHeight;
@@ -925,7 +937,8 @@ internal partial class ReaderView : UserControl
 
         if (item.PageL != ReaderFrameViewModel.NO_PAGE)
         {
-            if (_dataModel.TryGetValue(item.PageL - 1, out ImageDataModel? leftImageModel))
+            PageModel? leftImageModel = _pageModels[item.PageL - 1];
+            if (leftImageModel is not null)
             {
                 item.LeftImageSource = leftImageModel.Image;
             }
@@ -939,7 +952,8 @@ internal partial class ReaderView : UserControl
 
         if (item.PageR != ReaderFrameViewModel.NO_PAGE)
         {
-            if (_dataModel.TryGetValue(item.PageR - 1, out ImageDataModel? rightImageModel))
+            PageModel? rightImageModel = _pageModels[item.PageR - 1];
+            if (rightImageModel is not null)
             {
                 item.RightImageSource = rightImageModel.Image;
             }
@@ -2388,7 +2402,7 @@ internal partial class ReaderView : UserControl
         if (request.Page.HasValue)
         {
             int targetPage = ToDiscretePage(request.Page.Value);
-            if (!_pageToFrameMapper.TryGetValue(targetPage, out int targetFrameIndex))
+            if (!TryConvertPageToFrameIndex(targetPage, out int targetFrameIndex))
             {
                 context.Result = ScrollResult.UnknownFailure;
                 return;
@@ -2444,7 +2458,7 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            if (!_pageToFrameMapper.TryGetValue(pageNew, out newFrameIndex))
+            if (!TryConvertPageToFrameIndex(pageNew, out newFrameIndex))
             {
                 context.Result = ScrollResult.UnknownFailure;
                 return;
@@ -2781,7 +2795,7 @@ internal partial class ReaderView : UserControl
         page = Math.Max(page, 0.5);
 
         int nearestPage = Math.Clamp((int)Math.Round(page, MidpointRounding.AwayFromZero), 1, PageCount);
-        if (!_pageToFrameMapper.TryGetValue(nearestPage, out int nearestFrame))
+        if (!TryConvertPageToFrameIndex(nearestPage, out int nearestFrame))
         {
             return null;
         }
@@ -3134,6 +3148,31 @@ internal partial class ReaderView : UserControl
         }
     }
 
+    private bool TryConvertPageToFrameIndex(int page, out int frameIndex)
+    {
+        if (page <= 0 || page > PageCount)
+        {
+            frameIndex = -1;
+            return false;
+        }
+
+        PageModel? pageModel = _pageModels[page - 1];
+        if (pageModel is null)
+        {
+            frameIndex = -1;
+            return false;
+        }
+
+        if (pageModel.LayoutInfo is null)
+        {
+            frameIndex = -1;
+            return false;
+        }
+
+        frameIndex = pageModel.LayoutInfo.FrameIndex;
+        return true;
+    }
+
     private static void Log(string tag, params object?[] values)
     {
         Logger.I(LogTag.N(TAG, tag), string.Join(',', values));
@@ -3172,11 +3211,14 @@ internal partial class ReaderView : UserControl
         void WriteConfiguration(string key, string value);
     }
 
-    private class ImageDataModel
+    private class PageModel
     {
         public required ReaderImageSource Image { get; set; }
         public required int OriginalWidth { get; set; }
         public required int OriginalHeight { get; set; }
+
+        public PageLayoutInfo? LayoutInfo { get; set; }
+
         public double AspectRatio
         {
             get
