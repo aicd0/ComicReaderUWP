@@ -826,14 +826,33 @@ internal partial class ReaderView : UserControl
                 pageModel.LayoutInfo = pageLayout;
             }
 
-            int frameIndex = pageLayout.FrameIndex;
-            int neighbour = pageLayout.NeighbourPage;
-            bool firstFrame = frameIndex == 0;
-            bool lastFrame = pageLayout.IsLastFrame;
-            bool dual = neighbour != ReaderFrameViewModel.NO_PAGE;
+            bool isDoubleWidth;
+            bool isLeftSide;
+            switch (pageLayout.LayoutType)
+            {
+                case PageLayoutType.Single:
+                    isLeftSide = true;
+                    isDoubleWidth = false;
+                    break;
+                case PageLayoutType.Spread:
+                    isLeftSide = true;
+                    isDoubleWidth = true;
+                    break;
+                case PageLayoutType.Left:
+                    isLeftSide = true;
+                    isDoubleWidth = true;
+                    break;
+                case PageLayoutType.Right:
+                    isLeftSide = false;
+                    isDoubleWidth = true;
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown layout type '{pageLayout.LayoutType}'.");
+            }
 
+            int neighbour = pageLayout.NeighbourPage;
             PageModel? neighbourModel = null;
-            if (dual)
+            if (neighbour != ReaderFrameViewModel.NO_PAGE)
             {
                 neighbourModel = _pageModels[neighbour - 1];
                 if (neighbourModel is null)
@@ -896,7 +915,7 @@ internal partial class ReaderView : UserControl
                 {
                     double defaultWidth = 500.0;
                     double defaultHeight = 300.0;
-                    if (dual)
+                    if (isDoubleWidth)
                     {
                         defaultWidth *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
                     }
@@ -911,6 +930,7 @@ internal partial class ReaderView : UserControl
                 }
             }
 
+            int frameIndex = pageLayout.FrameIndex;
             while (frameIndex >= FrameDataSource.Count)
             {
                 _frameManager.MarkModelInstanceOutOfDate(frameIndex, "DataAppended");
@@ -926,15 +946,17 @@ internal partial class ReaderView : UserControl
             Logger.Assert(double.IsFinite(horizontalPadding), "B742A59FA82023CD");
             Logger.Assert(double.IsFinite(verticalPadding), "37E400F20758C487");
 
-            double topPadding = _isVertical && firstFrame ? 10000 : verticalPadding;
-            double bottomPadding = _isVertical && lastFrame ? 10000 : verticalPadding;
-            double startPadding = !_isVertical && firstFrame ? 10000 : horizontalPadding;
-            double endPadding = !_isVertical && lastFrame ? 10000 : horizontalPadding;
+            bool isFirstFrame = frameIndex == 0;
+            bool isLastFrame = pageLayout.IsLastFrame;
+            double topPadding = _isVertical && isFirstFrame ? 10000 : verticalPadding;
+            double bottomPadding = _isVertical && isLastFrame ? 10000 : verticalPadding;
+            double startPadding = !_isVertical && isFirstFrame ? 10000 : horizontalPadding;
+            double endPadding = !_isVertical && isLastFrame ? 10000 : horizontalPadding;
             item.FrameMargin = _isLeftToRight ?
                 new Thickness(startPadding, topPadding, endPadding, bottomPadding) :
                 new Thickness(endPadding, topPadding, startPadding, bottomPadding);
 
-            if (pageLayout.IsLeftSide)
+            if (isLeftSide)
             {
                 item.LeftImageWidth = thisImageWidth;
                 item.LeftImageHeight = thisImageHeight;

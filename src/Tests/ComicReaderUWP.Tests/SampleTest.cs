@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.Tests;
 
-public class Tests
+public class SampleTest
 {
     [SetUp]
     public void Setup()

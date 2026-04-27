@@ -12,7 +12,7 @@ internal class PageLayoutSettings
     public bool TwoPageMode { get; set; } = false;
     public bool EnableCover { get; set; } = true;
     public bool SwapLeftAndRightPages { get; set; } = false;
-    public bool SpreadDetection { get; set; } = true;
+    public bool SpreadDetection { get; set; } = false;
 
     public override bool Equals(object? obj)
     {

@@ -2,19 +2,22 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ComicReaderUWP.UserControls.Reader.PageLayout;
 
 internal class SimplePageLayoutManager : IPageLayoutManager
 {
+
     public bool TwoPageMode { get; init; } = false;
     public bool EnableCover { get; init; } = true;
     public bool RightToLeft { get; init; } = false;
-    public bool SpreadDetection { get; init; } = true;
+    public bool SpreadDetection { get; init; } = false;
 
     private PageInfo?[] _pages = [];
     private int _readyPageCount = 0;
+    private readonly SpreadDetectionHelper.PageSamples _samples = new();
 
     private int PageCount => _pages.Length;
 
@@ -41,6 +44,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageCount, nameof(pageCount));
         _pages = new PageInfo?[pageCount];
         _readyPageCount = 0;
+        _samples.Clear();
     }
 
     public void AddPage(int page, int width, int height)
@@ -56,6 +60,13 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         }
 
         _pages[page - 1] = new PageInfo { Width = width, Height = height };
+
+        if (Math.Min(width, height) > 0)
+        {
+            float aspectRatio = (float)width / height;
+            _samples.Add(aspectRatio);
+        }
+
         IncreaseReadyIndex();
     }
 
@@ -84,62 +95,120 @@ internal class SimplePageLayoutManager : IPageLayoutManager
                 break;
             }
 
-            int frameIndex;
-            bool leftSide;
-            int neighbor;
-            do
+            if (!TryCreateLayout(page, out PageLayoutInfo? layout))
             {
-                if (!TwoPageMode)
-                {
-                    frameIndex = page - 1;
-                    leftSide = true;
-                    neighbor = ReaderFrameViewModel.NO_PAGE;
-                    break;
-                }
+                break;
+            }
 
-                if (page >= 2)
-                {
-                    PageLayoutInfo previousPageLayout = _pages[page - 2]!.Layout!;
-                    if (previousPageLayout.NeighbourPage == page)
-                    {
-                        frameIndex = previousPageLayout.FrameIndex;
-                        leftSide = !previousPageLayout.IsLeftSide;
-                        neighbor = page - 1;
-                        break;
-                    }
-                }
-                else if (EnableCover)
-                {
-                    frameIndex = 0;
-                    leftSide = true;
-                    neighbor = ReaderFrameViewModel.NO_PAGE;
-                    break;
-                }
-
-                if (page >= 2)
-                {
-                    PageLayoutInfo previousPageLayout = _pages[page - 2]!.Layout!;
-                    frameIndex = previousPageLayout.FrameIndex + 1;
-                }
-                else
-                {
-                    frameIndex = 0;
-                }
-
-                leftSide = !RightToLeft || page == PageCount;
-                neighbor = page == PageCount ? ReaderFrameViewModel.NO_PAGE : page + 1;
-            } while (false);
-
-            PageLayoutInfo layout = new()
-            {
-                FrameIndex = frameIndex,
-                IsLeftSide = leftSide,
-                NeighbourPage = neighbor,
-                IsLastFrame = page == PageCount || neighbor == PageCount,
-            };
             pageInfo.Layout = layout;
             _readyPageCount = page;
         }
+    }
+
+    private bool TryCreateLayout(int page, [NotNullWhen(true)] out PageLayoutInfo? layout)
+    {
+        if (!TwoPageMode)
+        {
+            layout = CreateLayout(page, page - 1, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
+            return true;
+        }
+
+        PageLayoutInfo? previousPageLayout = page >= 2 ? _pages[page - 2]!.Layout! : null;
+        if (previousPageLayout?.NeighbourPage == page)
+        {
+            PageLayoutType layoutType = previousPageLayout.LayoutType == PageLayoutType.Left ? PageLayoutType.Right : PageLayoutType.Left;
+            layout = CreateLayout(page, previousPageLayout.FrameIndex, layoutType, page - 1);
+            return true;
+        }
+
+        if (previousPageLayout is null && EnableCover)
+        {
+            layout = CreateLayout(page, 0, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
+            return true;
+        }
+
+        int frameIndex = previousPageLayout is null ? 0 : previousPageLayout.FrameIndex + 1;
+        bool isLastPage = page == PageCount;
+
+        if (SpreadDetection)
+        {
+            if (_samples.Count <= 6 && !isLastPage)
+            {
+                // Requires at least 6 samples to be reliable
+                layout = null;
+                return false;
+            }
+
+            if (!TryCheckSpreadPage(page, out bool isSpreadPage))
+            {
+                throw new InvalidOperationException("Failed to check if current page is a spread page.");
+            }
+
+            if (isSpreadPage)
+            {
+                layout = CreateLayout(page, frameIndex, PageLayoutType.Spread, ReaderFrameViewModel.NO_PAGE);
+                return true;
+            }
+
+            if (!isLastPage)
+            {
+                if (!TryCheckSpreadPage(page + 1, out isSpreadPage))
+                {
+                    // Next page is not ready, cannot determine the layout of the current page
+                    layout = null;
+                    return false;
+                }
+
+                if (isSpreadPage)
+                {
+                    layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
+                    return true;
+                }
+            }
+        }
+
+        {
+            PageLayoutType layoutType = isLastPage ? PageLayoutType.Single : (RightToLeft ? PageLayoutType.Right : PageLayoutType.Left);
+            int neighbor = isLastPage ? ReaderFrameViewModel.NO_PAGE : page + 1;
+            layout = CreateLayout(page, frameIndex, layoutType, neighbor);
+            return true;
+        }
+    }
+
+    private PageLayoutInfo CreateLayout(int page, int frameIndex, PageLayoutType layoutType, int neighbor)
+    {
+        return new PageLayoutInfo
+        {
+            FrameIndex = frameIndex,
+            IsLastFrame = page == PageCount || neighbor == PageCount,
+            LayoutType = layoutType,
+            NeighbourPage = neighbor,
+        };
+    }
+
+    private bool TryCheckSpreadPage(int page, out bool isSpreadPage)
+    {
+        isSpreadPage = false;
+        if (page < 1 || page > PageCount)
+        {
+            return false;
+        }
+
+        PageInfo? pageInfo = _pages[page - 1];
+        if (pageInfo is null)
+        {
+            return false;
+        }
+
+        if (Math.Min(pageInfo.Width, pageInfo.Height) <= 0)
+        {
+            isSpreadPage = false;
+            return true;
+        }
+
+        float aspectRatio = (float)pageInfo.Width / pageInfo.Height;
+        isSpreadPage = _samples.IsSpreadPage(aspectRatio);
+        return true;
     }
 
     private class PageInfo
@@ -147,5 +216,79 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         public int Width { get; init; }
         public int Height { get; init; }
         public PageLayoutInfo? Layout { get; set; }
+    }
+}
+
+public static class SpreadDetectionHelper
+{
+    public class PageSamples
+    {
+        private const float MIN_ASPECT_RATIO = 0.6F;
+
+        private readonly SortedDictionary<float, int> _aspectRatios = [];
+        private int _aspectRatiosCount = 0;
+
+        public int Count => _aspectRatiosCount;
+
+        public void Clear()
+        {
+            _aspectRatiosCount = 0;
+            _aspectRatios.Clear();
+        }
+
+        public void Add(float aspectRatio)
+        {
+            _aspectRatiosCount++;
+            if (_aspectRatios.TryGetValue(aspectRatio, out int appearingTimes))
+            {
+                _aspectRatios[aspectRatio] = appearingTimes + 1;
+            }
+            else
+            {
+                _aspectRatios[aspectRatio] = 1;
+            }
+        }
+
+        public bool IsSpreadPage(float aspectRatio)
+        {
+            if (Count <= 2)
+            {
+                return false;
+            }
+
+            if (aspectRatio < MIN_ASPECT_RATIO)
+            {
+                // Too narrow to be a spread page
+                return false;
+            }
+
+            float previous = -1F;
+            float threshold = -1F;
+            int accumulatedCount = 0;
+            foreach (KeyValuePair<float, int> kvp in _aspectRatios)
+            {
+                float current = kvp.Key;
+                int count = kvp.Value;
+
+                if (previous >= MIN_ASPECT_RATIO &&
+                    current >= MIN_ASPECT_RATIO &&
+                    current / previous >= 1.5F &&
+                    (float)accumulatedCount / Count > 0.5F)
+                {
+                    threshold = (previous + current) * 0.5F;
+                    break;
+                }
+
+                accumulatedCount += count;
+                previous = current;
+            }
+
+            if (threshold < 0)
+            {
+                return false;
+            }
+
+            return aspectRatio > threshold;
+        }
     }
 }
