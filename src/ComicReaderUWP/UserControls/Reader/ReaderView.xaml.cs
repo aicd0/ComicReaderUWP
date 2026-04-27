@@ -986,7 +986,7 @@ internal partial class ReaderView : UserControl
             UpdateMinMaxZoomFactor(frameIndex);
             item.RebindEntireViewModel();
             _frameManager.MarkModelContentUpdateToDate(frameIndex, "ViewBindByProperty");
-            _readyPageCount++;
+            _readyPageCount = page;
         }
     }
 

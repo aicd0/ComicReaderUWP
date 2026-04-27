@@ -14,7 +14,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
     public bool SpreadDetection { get; init; } = true;
 
     private PageInfo?[] _pages = [];
-    private int _nextLayoutIndex = 0;
+    private int _readyPageCount = 0;
 
     private int PageCount => _pages.Length;
 
@@ -40,7 +40,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageCount, nameof(pageCount));
         _pages = new PageInfo?[pageCount];
-        _nextLayoutIndex = 0;
+        _readyPageCount = 0;
     }
 
     public void AddPage(int page, int width, int height)
@@ -64,7 +64,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(page, nameof(page));
         ArgumentOutOfRangeException.ThrowIfGreaterThan(page, PageCount, nameof(page));
 
-        if (page > _nextLayoutIndex)
+        if (page > _readyPageCount)
         {
             layout = null;
             return false;
@@ -76,58 +76,59 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
     private void IncreaseReadyIndex()
     {
-        while (_nextLayoutIndex < PageCount)
+        for (int page = _readyPageCount + 1; page <= PageCount; page++)
         {
-            PageInfo? pageInfo = _pages[_nextLayoutIndex];
+            PageInfo? pageInfo = _pages[page - 1];
             if (pageInfo is null)
             {
                 break;
             }
 
-            int page = _nextLayoutIndex + 1;
             int frameIndex;
             bool leftSide;
             int neighbor;
-
-            if (TwoPageMode)
+            do
             {
-                if (EnableCover)
+                if (!TwoPageMode)
                 {
-                    if (RightToLeft)
+                    frameIndex = page - 1;
+                    leftSide = true;
+                    neighbor = ReaderFrameViewModel.NO_PAGE;
+                    break;
+                }
+
+                if (page >= 2)
+                {
+                    PageLayoutInfo previousPageLayout = _pages[page - 2]!.Layout!;
+                    if (previousPageLayout.NeighbourPage == page)
                     {
-                        frameIndex = page / 2;
-                        leftSide = page == PageCount || page % 2 == 1;
-                        neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
+                        frameIndex = previousPageLayout.FrameIndex;
+                        leftSide = !previousPageLayout.IsLeftSide;
+                        neighbor = page - 1;
+                        break;
                     }
-                    else
-                    {
-                        frameIndex = page / 2;
-                        leftSide = page == 1 || page % 2 == 0;
-                        neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
-                    }
+                }
+                else if (EnableCover)
+                {
+                    frameIndex = 0;
+                    leftSide = true;
+                    neighbor = ReaderFrameViewModel.NO_PAGE;
+                    break;
+                }
+
+                if (page >= 2)
+                {
+                    PageLayoutInfo previousPageLayout = _pages[page - 2]!.Layout!;
+                    frameIndex = previousPageLayout.FrameIndex + 1;
                 }
                 else
                 {
-                    if (RightToLeft)
-                    {
-                        frameIndex = (page - 1) / 2;
-                        leftSide = page == PageCount || page % 2 == 0;
-                        neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
-                    }
-                    else
-                    {
-                        frameIndex = (page - 1) / 2;
-                        leftSide = page % 2 == 1;
-                        neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
-                    }
+                    frameIndex = 0;
                 }
-            }
-            else
-            {
-                frameIndex = page - 1;
-                leftSide = true;
-                neighbor = ReaderFrameViewModel.NO_PAGE;
-            }
+
+                leftSide = !RightToLeft || page == PageCount;
+                neighbor = page == PageCount ? ReaderFrameViewModel.NO_PAGE : page + 1;
+            } while (false);
 
             PageLayoutInfo layout = new()
             {
@@ -137,8 +138,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
                 IsLastFrame = page == PageCount || neighbor == PageCount,
             };
             pageInfo.Layout = layout;
-
-            _nextLayoutIndex++;
+            _readyPageCount = page;
         }
     }
 
