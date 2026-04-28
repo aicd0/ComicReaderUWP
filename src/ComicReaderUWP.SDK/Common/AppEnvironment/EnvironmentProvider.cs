@@ -245,6 +245,7 @@ public class EnvironmentProvider
         Dictionary<string, string> tags = [];
         tags["c-arch-os"] = GetSystemArchitecture();
         tags["c-arch-process"] = GetProcessArchitecture();
+        tags["c-debug-mode"] = DebugUtils.DebugMode ? "true" : "false";
         tags["c-device-id"] = Instance.GetDeviceId();
         tags["c-host-version"] = GetHostVersion();
         tags["c-lang-app"] = Instance.GetCurrentAppLanguage();

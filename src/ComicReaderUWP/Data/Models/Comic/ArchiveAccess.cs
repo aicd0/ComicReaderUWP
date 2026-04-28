@@ -64,7 +64,17 @@ public class ArchiveAccess
         {
             TryAccessArchiveStream(basePath, subPath, stream =>
             {
-                stream.CopyTo(memStream);
+                try
+                {
+                    stream.CopyTo(memStream);
+                }
+                catch (IOException e)
+                {
+                    // Stream was too long.
+                    Logger.F(TAG, e);
+                    return;
+                }
+
                 memStream.Position = 0;
                 successful = true;
             });
