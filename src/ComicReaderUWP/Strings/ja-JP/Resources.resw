@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="About" xml:space="preserve">
-    <value>について</value>
+    <value>このアプリについて</value>
   </data>
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. 無断複写・転載を禁じます。</value>
@@ -221,6 +221,9 @@
   </data>
   <data name="ClearCache" xml:space="preserve">
     <value>キャッシュをクリアする</value>
+  </data>
+  <data name="ClearReaderSettings" xml:space="preserve">
+    <value>リーダー設定をクリア</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>最後のタブを閉じたときの動作</value>

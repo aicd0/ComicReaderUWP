@@ -20,7 +20,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
     private int PageCount => _pages.Length;
 
-    public bool Equals(IPageLayoutManager? other)
+    public bool EquivalentTo(IPageLayoutManager other)
     {
         if (ReferenceEquals(this, other))
         {

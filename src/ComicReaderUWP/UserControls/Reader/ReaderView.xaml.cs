@@ -89,6 +89,7 @@ internal partial class ReaderView : UserControl
 
     private readonly CancellationSession _reloadSession;
     private readonly ReaderFrameManager _frameManager = new();
+    private IPageLayoutManager? _pendingPageLayoutManager = null;
     private IPageLayoutManager _pageLayoutManager = new SimplePageLayoutManager();
     private PageModel?[] _pageModels = [];
     private int _readyPageCount = 0;
@@ -270,12 +271,12 @@ internal partial class ReaderView : UserControl
 
     public void SetPageLayoutManager(IPageLayoutManager manager)
     {
-        if (_pageLayoutManager.Equals(manager))
+        if (manager.EquivalentTo(_pendingPageLayoutManager ?? _pageLayoutManager))
         {
             return;
         }
 
-        _pageLayoutManager = manager;
+        _pendingPageLayoutManager = manager;
         _uiStateUpdatedNeedReload = true;
         UpdateUI();
     }
@@ -643,7 +644,18 @@ internal partial class ReaderView : UserControl
         int initialPage = ToDiscretePage(InitialPage);
         Log("Reload", $"IP={InitialPage},LP={PageCount}");
         ResetLoader();
+
+        // Reset page layout manager
+        if (_pendingPageLayoutManager is not null)
+        {
+            // The actual instance can only be replaced here to guarantee the calling order
+            _pageLayoutManager = _pendingPageLayoutManager;
+            _pendingPageLayoutManager = null;
+        }
+
         _pageLayoutManager.Reset(PageCount);
+
+        // Reset frame manager
         _frameManager.ResetReadyIndex();
         _frameManager.SetFrameReadyHandler(index =>
         {

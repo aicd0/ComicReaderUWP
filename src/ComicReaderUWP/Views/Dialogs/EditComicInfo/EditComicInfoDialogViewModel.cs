@@ -102,6 +102,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
     private string _tags = string.Empty;
     private bool _tagDiffMode = true;
     private bool _tagIdMode = false;
+    private bool _clearReaderSettings = false;
     private bool _title1Changed = false;
     private bool _title2Changed = false;
     private bool _descriptionChanged = false;
@@ -201,6 +202,8 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             List<Task> tasks = [];
             foreach (ComicModel comic in _comics)
             {
+                bool needFlushExt = false;
+
                 if (_title1Changed)
                 {
                     tasks.Add(comic.SetTitle1(_title1));
@@ -234,7 +237,20 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
 
                 if (addedLinks.Count + removedLinks.Count > 0)
                 {
-                    tasks.Add(MergeLinks(comic, addedLinks, removedLinks));
+                    MergeLinks(comic, addedLinks, removedLinks);
+                    needFlushExt = true;
+                }
+
+                if (_clearReaderSettings)
+                {
+                    comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, null);
+                    comic.SetExt(ComicExt.CUSTOM_READER_SETTINGS, null);
+                    needFlushExt = true;
+                }
+
+                if (needFlushExt)
+                {
+                    tasks.Add(comic.FlushExt());
                 }
             }
 
@@ -363,6 +379,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         {
             return;
         }
+
         _tags = text;
         MarkTagChange(true);
     }
@@ -379,9 +396,14 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         {
             return;
         }
-        _tagIdMode = tagIdMode;
 
+        _tagIdMode = tagIdMode;
         InitializeTags(tagIdMode);
+    }
+
+    public void SetClearReaderSettings(bool clearReaderSettings)
+    {
+        _clearReaderSettings = clearReaderSettings;
     }
 
     private T ExtractCommonValue<T>(Func<ComicModel, T> extractor, T defaultValue)
@@ -883,7 +905,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         });
     }
 
-    private async Task MergeLinks(ComicModel comic, List<TagLinkModel.LinkModel> addedLinks, List<TagLinkModel.LinkModel> removedLinks)
+    private static void MergeLinks(ComicModel comic, List<TagLinkModel.LinkModel> addedLinks, List<TagLinkModel.LinkModel> removedLinks)
     {
         string? linkJson = comic.GetExt(ComicExt.LINKS);
         var linkModel = TagLinkModel.Parse(linkJson);
@@ -932,7 +954,6 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         if (newLinkJson != linkJson)
         {
             comic.SetExt(ComicExt.LINKS, newLinkJson);
-            await comic.FlushExt();
         }
     }
 

@@ -222,6 +222,9 @@
   <data name="ClearCache" xml:space="preserve">
     <value>清空缓存</value>
   </data>
+  <data name="ClearReaderSettings" xml:space="preserve">
+    <value>清除阅读器设置</value>
+  </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>关闭最后一个标签页时的行为</value>
   </data>
