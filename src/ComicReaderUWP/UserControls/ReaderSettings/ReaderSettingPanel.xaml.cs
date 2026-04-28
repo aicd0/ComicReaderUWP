@@ -10,7 +10,6 @@ using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
-using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.Dialogs.EditReaderSettingPreset;
 using ComicReaderUWP.Views.Pages.Main;
@@ -85,18 +84,37 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).Set(KEY_SELECTED_TAB, selectedTabKey);
     }
 
-    private void LvPageArrangement_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void TwoPageModeToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
-        PageArrangementEnum pageArrangement = IndexToPageArrangement(LvPageArrangement.SelectedIndex);
-        if (_model.IsVertical)
-        {
-            _model.VerticalPageArrangement = pageArrangement;
-        }
-        else
-        {
-            _model.HorizontalPageArrangement = pageArrangement;
-        }
+        PageLayoutSettings pageLayoutSettings = _model.IsVertical ? _model.VerticalPageLayout : _model.HorizontalPageLayout;
+        pageLayoutSettings.TwoPageMode = ((ToggleSwitch)sender).IsOn;
+        SaveSettings();
+        UpdateUI();
+        DispatchDataChangeEvent();
+    }
 
+    private void EnableCoverToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        PageLayoutSettings pageLayoutSettings = _model.IsVertical ? _model.VerticalPageLayout : _model.HorizontalPageLayout;
+        pageLayoutSettings.EnableCover = ((ToggleSwitch)sender).IsOn;
+        SaveSettings();
+        UpdateUI();
+        DispatchDataChangeEvent();
+    }
+
+    private void SwapLeftAndRightPagesToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        PageLayoutSettings pageLayoutSettings = _model.IsVertical ? _model.VerticalPageLayout : _model.HorizontalPageLayout;
+        pageLayoutSettings.SwapLeftAndRightPages = ((ToggleSwitch)sender).IsOn;
+        SaveSettings();
+        UpdateUI();
+        DispatchDataChangeEvent();
+    }
+
+    private void SpreadDetectionToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        PageLayoutSettings pageLayoutSettings = _model.IsVertical ? _model.VerticalPageLayout : _model.HorizontalPageLayout;
+        pageLayoutSettings.SpreadDetection = ((ToggleSwitch)sender).IsOn;
         SaveSettings();
         UpdateUI();
         DispatchDataChangeEvent();
@@ -263,38 +281,19 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
 
     private void UpdateUIInternal()
     {
-        PageArrangementEnum pageArrangement = _model.IsVertical ? _model.VerticalPageArrangement : _model.HorizontalPageArrangement;
-        LvPageArrangement.SelectedIndex = PageArrangementToIndex(pageArrangement);
-        PdsDemoSingle1.IsHighlight = pageArrangement == PageArrangementEnum.Single;
-        PdsDemoSingle2.IsHighlight = pageArrangement == PageArrangementEnum.Single;
-        PdsDemoSingle3.IsHighlight = pageArrangement == PageArrangementEnum.Single;
-        PdsDemoSingle4.IsHighlight = pageArrangement == PageArrangementEnum.Single;
-        PdsDemoSingle5.IsHighlight = pageArrangement == PageArrangementEnum.Single;
-        PdsDemoDual1.IsHighlight = pageArrangement == PageArrangementEnum.DualCover;
-        PdsDemoDual2.IsHighlight = pageArrangement == PageArrangementEnum.DualCover;
-        PdsDemoDual3.IsHighlight = pageArrangement == PageArrangementEnum.DualCover;
-        PdsDemoDualCoverMirror1.IsHighlight = pageArrangement == PageArrangementEnum.DualCoverMirror;
-        PdsDemoDualCoverMirror2.IsHighlight = pageArrangement == PageArrangementEnum.DualCoverMirror;
-        PdsDemoDualCoverMirror3.IsHighlight = pageArrangement == PageArrangementEnum.DualCoverMirror;
-        PdsDemoDualNoCover1.IsHighlight = pageArrangement == PageArrangementEnum.DualNoCover;
-        PdsDemoDualNoCover2.IsHighlight = pageArrangement == PageArrangementEnum.DualNoCover;
-        PdsDemoDualNoCover3.IsHighlight = pageArrangement == PageArrangementEnum.DualNoCover;
-        PdsDemoDualNoCoverMirror1.IsHighlight = pageArrangement == PageArrangementEnum.DualNoCoverMirror;
-        PdsDemoDualNoCoverMirror2.IsHighlight = pageArrangement == PageArrangementEnum.DualNoCoverMirror;
-        PdsDemoDualNoCoverMirror3.IsHighlight = pageArrangement == PageArrangementEnum.DualNoCoverMirror;
-
-        FlowDirection flowDirection = _model.IsLeftToRight ? FlowDirection.LeftToRight : FlowDirection.RightToLeft;
-        FlowDirection demoPageFlowDirection = _model.IsVertical ? FlowDirection.LeftToRight : flowDirection;
-        SpDemoSingle.FlowDirection = demoPageFlowDirection;
-        SpDemoDualCover.FlowDirection = demoPageFlowDirection;
-        SpDemoDualCoverMirror.FlowDirection = demoPageFlowDirection;
-        SpDemoDualNoCover.FlowDirection = demoPageFlowDirection;
-        SpDemoDualNoCoverMirror.FlowDirection = demoPageFlowDirection;
+        PageLayoutSettings pageLayoutSettings = _model.IsVertical ? _model.VerticalPageLayout : _model.HorizontalPageLayout;
+        TwoPageModeToggleSwitch.IsOn = pageLayoutSettings.TwoPageMode;
+        EnableCoverToggleSwitch.IsOn = pageLayoutSettings.EnableCover;
+        SwapLeftAndRightPagesToggleSwitch.IsOn = pageLayoutSettings.SwapLeftAndRightPages;
+        SpreadDetectionToggleSwitch.IsOn = pageLayoutSettings.SpreadDetection;
+        EnableCoverToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
+        SwapLeftAndRightPagesToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
+        SpreadDetectionToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
 
         AbbVertical.Visibility = _model.IsVertical ? Visibility.Visible : Visibility.Collapsed;
         AbbHorizontal.Visibility = _model.IsVertical ? Visibility.Collapsed : Visibility.Visible;
-        AbbLeftToRight.Visibility = !_model.IsVertical && _model.IsLeftToRight ? Visibility.Visible : Visibility.Collapsed;
-        AbbRightToLeft.Visibility = !_model.IsVertical && !_model.IsLeftToRight ? Visibility.Visible : Visibility.Collapsed;
+        AbbLeftToRight.Visibility = (!_model.IsVertical || _model.VerticalPageLayout.TwoPageMode) && _model.IsLeftToRight ? Visibility.Visible : Visibility.Collapsed;
+        AbbRightToLeft.Visibility = (!_model.IsVertical || _model.VerticalPageLayout.TwoPageMode) && !_model.IsLeftToRight ? Visibility.Visible : Visibility.Collapsed;
         AbbContinuous.Visibility = _model.IsContinuous ? Visibility.Visible : Visibility.Collapsed;
         AbbSeperate.Visibility = _model.IsContinuous ? Visibility.Collapsed : Visibility.Visible;
 
@@ -408,45 +407,5 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         }
 
         DataChanged?.Invoke(_model);
-    }
-
-    private static int PageArrangementToIndex(PageArrangementEnum pageArrangement)
-    {
-        switch (pageArrangement)
-        {
-            case PageArrangementEnum.Single:
-                return 0;
-            case PageArrangementEnum.DualCover:
-                return 1;
-            case PageArrangementEnum.DualCoverMirror:
-                return 2;
-            case PageArrangementEnum.DualNoCover:
-                return 3;
-            case PageArrangementEnum.DualNoCoverMirror:
-                return 4;
-            default:
-                Logger.AssertNotReachHere("979D38CE673E1BC0");
-                return 0;
-        }
-    }
-
-    private static PageArrangementEnum IndexToPageArrangement(int index)
-    {
-        switch (index)
-        {
-            case 0:
-                return PageArrangementEnum.Single;
-            case 1:
-                return PageArrangementEnum.DualCover;
-            case 2:
-                return PageArrangementEnum.DualCoverMirror;
-            case 3:
-                return PageArrangementEnum.DualNoCover;
-            case 4:
-                return PageArrangementEnum.DualNoCoverMirror;
-            default:
-                Logger.AssertNotReachHere("B8CA81937666C2FB");
-                return PageArrangementEnum.Single;
-        }
     }
 }

@@ -13,12 +13,6 @@ namespace ComicReaderUWP.UserControls.Reader;
 internal class ReaderFrameManager
 {
     //
-    // Constants
-    //
-
-    private const string TAG = "ReaderFrameManager";
-
-    //
     // Variables
     //
 
@@ -77,7 +71,7 @@ internal class ReaderFrameManager
         OnFrameUpdated(index, frameInfo, reason);
     }
 
-    public void MarkViewReady(int index, FrameworkElement container, string reason)
+    public void MarkViewReady(int index, ReaderFrame container, string reason)
     {
         FrameInfo frameInfo = GetFrame(index);
         frameInfo.IsViewReady = true;
@@ -85,9 +79,14 @@ internal class ReaderFrameManager
         OnFrameUpdated(index, frameInfo, reason);
     }
 
-    public void MarkViewNotReady(int index, string reason)
+    public void MarkViewNotReady(int index, ReaderFrame container, string reason)
     {
         FrameInfo frameInfo = GetFrame(index);
+        if (!ReferenceEquals(container, frameInfo.Container))
+        {
+            return;
+        }
+
         frameInfo.IsViewReady = false;
         OnFrameUpdated(index, frameInfo, reason);
     }

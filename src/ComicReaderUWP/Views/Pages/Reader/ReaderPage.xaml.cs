@@ -18,6 +18,7 @@ using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Database.Registry;
 using ComicReaderUWP.UserControls.Reader;
+using ComicReaderUWP.UserControls.Reader.PageLayout;
 using ComicReaderUWP.ViewModels;
 using ComicReaderUWP.Views.Pages.Main;
 using ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
@@ -310,7 +311,7 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventPageChanged += (sender, isIntermediate) =>
         {
-            ViewModel.SetPageIndex(sender.CurrentPageDisplay - 1);
+            ViewModel.SetPageIndex(sender.CurrentPageDiscrete - 1);
             UpdatePage();
 
             if (!MainReaderView.IsAutoScrolling)
@@ -466,9 +467,9 @@ internal sealed partial class ReaderPage : BasePage
     private void ApplyReaderSettings(ReaderSettingsModel readerSettingModel)
     {
         ReaderView reader = MainReaderView;
+
         reader.SetIsVertical(readerSettingModel.IsVertical);
         reader.SetIsContinuous(readerSettingModel.IsContinuous);
-        reader.SetPageArrangement(readerSettingModel.PageArrangement);
         reader.SetFlowDirection(readerSettingModel.IsLeftToRight);
         reader.SetUseOriginalSize(readerSettingModel.OriginalSize);
         reader.SetAutoScrollSpeed(readerSettingModel.AutoScrollSpeed);
@@ -476,6 +477,14 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetImageRotation(readerSettingModel.ImageRotation);
         reader.SetImageFlip(readerSettingModel.ImageFlip);
         reader.SetImageInvert(readerSettingModel.ImageInvert);
+
+        reader.SetPageLayoutManager(new SimplePageLayoutManager()
+        {
+            TwoPageMode = readerSettingModel.PageLayout.TwoPageMode,
+            EnableCover = readerSettingModel.PageLayout.EnableCover,
+            RightToLeft = readerSettingModel.IsLeftToRight == readerSettingModel.PageLayout.SwapLeftAndRightPages,
+            SpreadDetection = readerSettingModel.PageLayout.SpreadDetection,
+        });
 
         PlaybackSlider.FlowDirection = readerSettingModel.IsLeftToRight || readerSettingModel.IsVertical ?
             FlowDirection.LeftToRight : FlowDirection.RightToLeft;
@@ -650,7 +659,7 @@ internal sealed partial class ReaderPage : BasePage
     private void PlaybackSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         ReaderView reader = MainReaderView;
-        double currentValue = reader.CurrentPageDisplay;
+        double currentValue = reader.CurrentPageDiscrete;
         double newValue = e.NewValue;
         if (Math.Abs(currentValue - newValue) < 0.5)
         {
@@ -765,7 +774,7 @@ internal sealed partial class ReaderPage : BasePage
     {
         ReaderView reader = MainReaderView;
         int totalPages = Math.Max(0, reader.PageCount);
-        int currentPage = reader.CurrentPageDisplay;
+        int currentPage = reader.CurrentPageDiscrete;
         int percentage = reader.CurrentPagePercentage;
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
         ViewModel.SecondaryPageIndicatorText = $"({percentage}%)";
@@ -916,7 +925,7 @@ internal sealed partial class ReaderPage : BasePage
     {
         PointerPoint pt = e.GetCurrentPoint(null);
         int delta = -pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
-        int page = MainReaderView.CurrentPageDisplay + delta;
+        int page = MainReaderView.CurrentPageDiscrete + delta;
         if (page <= 0 || page > MainReaderView.PageCount)
         {
             return;
@@ -998,7 +1007,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             Comic = comic,
             Playlist = ViewModel.Playlist,
-            PageIndex = MainReaderView.CurrentPageDisplay - 1,
+            PageIndex = MainReaderView.CurrentPageDiscrete - 1,
         };
         GetEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
     }

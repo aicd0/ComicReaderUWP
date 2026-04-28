@@ -72,6 +72,7 @@ public class StringResourceProvider
     public string Edit => GetResourceString("Edit");
     public string EditPreset => GetResourceString("EditPreset");
     public string Enable => GetResourceString("Enable");
+    public string EnableCover => GetResourceString("EnableCover");
     public string Enabled => GetResourceString("Enabled");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
     public string EnterNewTags => GetResourceString("EnterNewTags");
@@ -148,11 +149,6 @@ public class StringResourceProvider
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
     public string PageCount => GetResourceString("PageCount");
     public string PageGap => GetResourceString("PageGap");
-    public string PageLayoutDualNoCover => GetResourceString("PageLayoutDualNoCover");
-    public string PageLayoutDualNoCoverMirrored => GetResourceString("PageLayoutDualNoCoverMirrored");
-    public string PageLayoutDualWithCover => GetResourceString("PageLayoutDualWithCover");
-    public string PageLayoutDualWithCoverMirrored => GetResourceString("PageLayoutDualWithCoverMirrored");
-    public string PageLayoutSingle => GetResourceString("PageLayoutSingle");
     public string PageN => GetResourceString("PageN");
     public string Pause => GetResourceString("Pause");
     public string Pin => GetResourceString("Pin");
@@ -200,8 +196,10 @@ public class StringResourceProvider
     public string ShuffleStable => GetResourceString("ShuffleStable");
     public string Sort => GetResourceString("Sort");
     public string SortingFunction => GetResourceString("SortingFunction");
+    public string SpreadDetection => GetResourceString("SpreadDetection");
     public string StartEndFromScrollingArea => GetResourceString("StartEndFromScrollingArea");
     public string Statistics => GetResourceString("Statistics");
+    public string SwapLeftAndRightPages => GetResourceString("SwapLeftAndRightPages");
     public string Tag => GetResourceString("Tag");
     public string TagLinkTip => GetResourceString("TagLinkTip");
     public string Tags => GetResourceString("Tags");
@@ -212,6 +210,7 @@ public class StringResourceProvider
     public string Title2 => GetResourceString("Title2");
     public string ToggleAutoScroll => GetResourceString("ToggleAutoScroll");
     public string TotalComics => GetResourceString("TotalComics");
+    public string TwoPageMode => GetResourceString("TwoPageMode");
     public string Unfavorite => GetResourceString("Unfavorite");
     public string Ungrouped => GetResourceString("Ungrouped");
     public string UnhandledExceptionContent => GetResourceString("UnhandledExceptionContent");

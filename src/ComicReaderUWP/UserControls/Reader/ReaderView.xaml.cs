@@ -15,6 +15,7 @@ using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Threading;
 using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.UserControls.Reader.Models;
+using ComicReaderUWP.UserControls.Reader.PageLayout;
 
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
@@ -57,7 +58,6 @@ internal partial class ReaderView : UserControl
     private bool _isVertical = true;
     private bool _isContinuous = true;
     private bool _isLeftToRight = true;
-    private PageArrangementEnum _pageArrangement = PageArrangementEnum.Single;
     private bool _useOriginalSize = false;
     private int _pageGap = 100;
     private ImageRotationEnum _imageRotation = ImageRotationEnum.None;
@@ -81,18 +81,22 @@ internal partial class ReaderView : UserControl
     private readonly GestureHandler _gestureHandler;
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
-    private double _initialPage = 1.0;
-    private ReaderViewDatabase? _internalDB = null;
-    private double _minZoomFactor = double.MaxValue;
-    private double _maxZoomFactor = double.MinValue;
-    private List<IImageSource> _originalDataModel = [];
     private readonly ITaskDispatcher _loadInfoDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadInfoQueue");
     private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
-    private readonly ReaderFrameManager _frameManager = new();
-    private readonly Dictionary<int, ImageDataModel> _dataModel = [];
+    private ReaderViewDatabase? _internalDB = null;
+    private IReadOnlyList<IImageSource> _originalDataModel = [];
+    private double _initialPage = 1.0;
+
     private readonly CancellationSession _reloadSession;
+    private readonly ReaderFrameManager _frameManager = new();
+    private IPageLayoutManager _pageLayoutManager = new SimplePageLayoutManager();
+    private PageModel?[] _pageModels = [];
+    private int _readyPageCount = 0;
+    private double _minZoomFactor = double.MaxValue;
+    private double _maxZoomFactor = double.MinValue;
 
     private ObservableCollection<ReaderFrameViewModel> FrameDataSource { get; } = [];
+    private int CurrentFrameIndex { get; set; } = 0;
 
     #endregion
 
@@ -136,8 +140,7 @@ internal partial class ReaderView : UserControl
 
     public int PageCount { get; private set; } = 0;
     public double CurrentPage { get; private set; } = 0.0;
-    private int CurrentPageInt => ToDiscretePage(CurrentPage);
-    public int CurrentPageDisplay => CurrentPageInt;
+    public int CurrentPageDiscrete => ToDiscretePage(CurrentPage);
     public bool IsVertical => _isVertical;
 
     private float _externalZooming = 1F;
@@ -166,7 +169,7 @@ internal partial class ReaderView : UserControl
                 return 0;
             }
 
-            if (PageToFrame(CurrentPageDisplay, out _, out _) >= FrameDataSource.Count - 1)
+            if (CurrentFrameIndex >= FrameDataSource.Count - 1)
             {
                 return 100;
             }
@@ -265,14 +268,14 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
-    public void SetPageArrangement(PageArrangementEnum type)
+    public void SetPageLayoutManager(IPageLayoutManager manager)
     {
-        if (_pageArrangement == type)
+        if (_pageLayoutManager.Equals(manager))
         {
             return;
         }
 
-        _pageArrangement = type;
+        _pageLayoutManager = manager;
         _uiStateUpdatedNeedReload = true;
         UpdateUI();
     }
@@ -321,9 +324,12 @@ internal partial class ReaderView : UserControl
         }
 
         _imageFlip = flip;
-        foreach (ImageDataModel item in _dataModel.Values)
+        foreach (PageModel? item in _pageModels)
         {
-            item.Image.Flip = flip;
+            if (item is not null)
+            {
+                item.Image.Flip = flip;
+            }
         }
 
         _uiStateUpdatedNeedReloadImages = true;
@@ -338,9 +344,12 @@ internal partial class ReaderView : UserControl
         }
 
         _imageInvert = invert;
-        foreach (ImageDataModel item in _dataModel.Values)
+        foreach (PageModel? item in _pageModels)
         {
-            item.Image.Invert = invert;
+            if (item is not null)
+            {
+                item.Image.Invert = invert;
+            }
         }
 
         _uiStateUpdatedNeedReloadImages = true;
@@ -529,7 +538,15 @@ internal partial class ReaderView : UserControl
         }
 
         double page = converter.CalculatePage(offset);
-        CurrentPage = Math.Min(page, PageCount + 0.5);
+        page = Math.Min(page, PageCount + 0.5);
+        int discretePage = ToDiscretePage(page);
+        if (!TryConvertPageToFrameIndex(discretePage, out int frameIndex))
+        {
+            return false;
+        }
+
+        CurrentPage = page;
+        CurrentFrameIndex = frameIndex;
         return true;
     }
 
@@ -540,10 +557,10 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        int frame = PageToFrame(CurrentPageInt, out _, out _);
+        int frame = CurrentFrameIndex;
         int preloadWindowBegin = Math.Max(frame - PRELOAD_FRAMES_BEFORE, 0);
         int preloadWindowEnd = Math.Min(frame + PRELOAD_FRAMES_AFTER, FrameDataSource.Count - 1);
-        Log("LoadImage", $"Reason={reason},P={CurrentPageInt}");
+        Log("LoadImage", $"Reason={reason},P={CurrentPageDiscrete}");
 
         for (int i = 0; i < FrameDataSource.Count; ++i)
         {
@@ -601,7 +618,7 @@ internal partial class ReaderView : UserControl
     private double InitialPage => Math.Min(_initialPage, PageCount + 0.5);
     private bool ComicLoaded => _isLoaded && PageCount > 0;
 
-    private void Reload(List<IImageSource> images)
+    private void Reload(IReadOnlyList<IImageSource> images)
     {
         if (images.Count == 0 || _isDestoryed)
         {
@@ -613,27 +630,42 @@ internal partial class ReaderView : UserControl
         CancellationSession.IToken token = _reloadSession.Token;
 
         // Reset internal states
+        PageCount = images.Count;
+        _pageModels = new PageModel?[PageCount];
+        _readyPageCount = 0;
+        CurrentPage = 1;
+        CurrentFrameIndex = 0;
         _minZoomFactor = double.MaxValue;
         _maxZoomFactor = double.MinValue;
-        _dataModel.Clear();
-        PageCount = images.Count;
-        CurrentPage = InitialPage;
         SCClearFinalVal("Reload");
 
         // Reset loader
-        int initialFrameIndex = PageToFrame(ToDiscretePage(InitialPage), out bool _, out int _);
-        int lastFrameIndex = PageToFrame(PageCount, out bool _, out int _);
-        Log("Reload", $"IP={InitialPage},IF={initialFrameIndex},LP={PageCount},LF={lastFrameIndex}");
+        int initialPage = ToDiscretePage(InitialPage);
+        Log("Reload", $"IP={InitialPage},LP={PageCount}");
         ResetLoader();
+        _pageLayoutManager.Reset(PageCount);
         _frameManager.ResetReadyIndex();
-        _frameManager.SetFrameReadyHandler(delegate (int index)
+        _frameManager.SetFrameReadyHandler(index =>
         {
             if (token.IsCancellationRequested)
             {
                 return;
             }
 
-            if (index == initialFrameIndex)
+            if (index < 0 || index >= FrameDataSource.Count)
+            {
+                Logger.F(TAG, $"Invalid frame index {index} in ready handler");
+                return;
+            }
+
+            ReaderFrameViewModel frame = FrameDataSource[index];
+            if (frame.MaxPage == ReaderFrameViewModel.NO_PAGE)
+            {
+                Logger.F(TAG, $"Invalid max page for frame index {index} in ready handler");
+                return;
+            }
+
+            if (!_isInitialFrameLoaded && (frame.PageL == initialPage || frame.PageR == initialPage))
             {
                 _isInitialFrameLoaded = true;
             }
@@ -643,21 +675,21 @@ internal partial class ReaderView : UserControl
                 _isFirstFrameLoaded = true;
             }
 
-            if (index == lastFrameIndex)
+            if (!_isLastFrameLoaded && frame.MaxPage == PageCount)
             {
                 _isLastFrameLoaded = true;
             }
 
             UpdateLoader($"FrameReady,i={index}");
 
-            int progress = Math.Min(99, (int)((index + 1) * 100.0 / (initialFrameIndex + 1)));
+            int progress = Math.Min(99, (int)(frame.MaxPage * 100.0 / PageCount));
             DispatchReaderStateChangeEvent(_state, $"{StringResourceProvider.Instance.ReaderStatusLoading} ({progress}%)");
         });
 
         // Start loading frames
         DispatchReaderStateChangeEvent(ReaderState.Loading, StringResourceProvider.Instance.ReaderStatusLoading);
 
-        for (int i = FrameDataSource.Count - 1; i > lastFrameIndex; --i)
+        for (int i = FrameDataSource.Count - 1; i >= 0; --i)
         {
             FrameDataSource[i].Dispose();
             FrameDataSource.RemoveAt(i);
@@ -690,7 +722,7 @@ internal partial class ReaderView : UserControl
 
                     foreach (PengingImageItem item in pendingListCopy)
                     {
-                        SetImageData(item.Index, item.OriginalWidth, item.OriginalHeight, item.Source, lastFrameIndex);
+                        AddPage(item.Page, item.OriginalWidth, item.OriginalHeight, item.Source);
                     }
                 });
             }
@@ -716,7 +748,7 @@ internal partial class ReaderView : UserControl
 
                 pendingList.Add(new()
                 {
-                    Index = i,
+                    Page = i + 1,
                     OriginalWidth = width,
                     OriginalHeight = height,
                     Source = image,
@@ -733,9 +765,10 @@ internal partial class ReaderView : UserControl
         });
     }
 
-    private void SetImageData(int index, int originalWidth, int originalHeight, IImageSource source, int lastFrameIndex)
+    private void AddPage(int page, int originalWidth, int originalHeight, IImageSource source)
     {
-        Logger.Assert(index >= 0, "E55E628AD1456D37");
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(page, nameof(page));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(page, PageCount, nameof(page));
 
         ReaderImageSource imageSourceModel = new()
         {
@@ -755,177 +788,228 @@ internal partial class ReaderView : UserControl
             _ => originalHeight,
         };
 
-        ImageDataModel imageModel = new()
+        PageModel pageModel = new()
         {
             Image = imageSourceModel,
             OriginalWidth = imageWidth,
             OriginalHeight = imageHeight,
         };
-        _dataModel[index] = imageModel;
 
-        int frameIndex = PageToFrame(index + 1, out bool leftSide, out int neighbor);
-        bool firstFrame = frameIndex == 0;
-        bool lastFrame = frameIndex == lastFrameIndex;
-
-        Logger.Assert(frameIndex >= 0, "50AEE34F38D316D0");
-        Logger.Assert(neighbor >= -1, "01CA2D7BCADC4663");
-
-        int page = index + 1;
-        bool dual = neighbor != ReaderFrameViewModel.NO_PAGE;
-
-        ImageDataModel? neighborModel = null;
-        if (dual)
+        if (_pageModels[page - 1] is not null)
         {
-            int neighborIndex = neighbor - 1;
-            if (!_dataModel.TryGetValue(neighborIndex, out neighborModel))
-            {
-                // Neighbor page not loaded yet, wait for next update
-                return;
-            }
+            throw new InvalidOperationException($"Page {page} has already been added.");
         }
 
-        double verticalPadding = DEFAULT_VERTICAL_PAGE_SPACING;
-        double horizontalPadding = DEFAULT_HORIZONTAL_PAGE_SPACING;
-        verticalPadding = _isVertical ? verticalPadding : 0;
-        horizontalPadding = _isVertical ? 0 : horizontalPadding;
-        verticalPadding *= _pageGap / 100.0;
-        horizontalPadding *= _pageGap / 100.0;
+        _pageModels[page - 1] = pageModel;
+        _pageLayoutManager.AddPage(page, originalWidth, originalHeight);
+        IncreaseReadyPageIndex();
+    }
 
-        double thisImageWidth = 0;
-        double thisImageHeight = 0;
-        double neighborImageWidth = 0;
-        double neighborImageHeight = 0;
-        if (_useOriginalSize)
+    private void IncreaseReadyPageIndex()
+    {
+        for (int page = _readyPageCount + 1; page <= PageCount; page++)
         {
-            double totalWidth = imageWidth;
-            double maxHeight = imageHeight;
-            if (neighborModel is not null)
+            PageModel? pageModel = _pageModels[page - 1];
+            if (pageModel is null)
             {
-                totalWidth += neighborModel.OriginalWidth;
-                maxHeight = Math.Max(maxHeight, neighborModel.OriginalHeight);
+                break;
             }
 
-            if (totalWidth < 1 || maxHeight < 1)
+            PageLayoutInfo? pageLayout = pageModel.LayoutInfo;
+            if (pageLayout is null)
             {
-                verticalPadding = 0;
-                horizontalPadding = 0;
+                if (!_pageLayoutManager.TryGetPageLayout(page, out pageLayout))
+                {
+                    break;
+                }
+
+                pageModel.LayoutInfo = pageLayout;
+            }
+
+            bool isDoubleWidth;
+            bool isLeftSide;
+            switch (pageLayout.LayoutType)
+            {
+                case PageLayoutType.Single:
+                    isLeftSide = true;
+                    isDoubleWidth = false;
+                    break;
+                case PageLayoutType.Spread:
+                    isLeftSide = true;
+                    isDoubleWidth = true;
+                    break;
+                case PageLayoutType.Left:
+                    isLeftSide = true;
+                    isDoubleWidth = true;
+                    break;
+                case PageLayoutType.Right:
+                    isLeftSide = false;
+                    isDoubleWidth = true;
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown layout type '{pageLayout.LayoutType}'.");
+            }
+
+            int neighbour = pageLayout.NeighbourPage;
+            PageModel? neighbourModel = null;
+            if (neighbour != ReaderFrameViewModel.NO_PAGE)
+            {
+                neighbourModel = _pageModels[neighbour - 1];
+                if (neighbourModel is null)
+                {
+                    break;
+                }
+            }
+
+            double verticalPadding = DEFAULT_VERTICAL_PAGE_SPACING;
+            double horizontalPadding = DEFAULT_HORIZONTAL_PAGE_SPACING;
+            verticalPadding = _isVertical ? verticalPadding : 0;
+            horizontalPadding = _isVertical ? 0 : horizontalPadding;
+            verticalPadding *= _pageGap / 100.0;
+            horizontalPadding *= _pageGap / 100.0;
+
+            double thisImageWidth = 0;
+            double thisImageHeight = 0;
+            double neighbourImageWidth = 0;
+            double neighbourImageHeight = 0;
+            if (_useOriginalSize)
+            {
+                double totalWidth = pageModel.OriginalWidth;
+                double maxHeight = pageModel.OriginalHeight;
+                if (neighbourModel is not null)
+                {
+                    totalWidth += neighbourModel.OriginalWidth;
+                    maxHeight = Math.Max(maxHeight, neighbourModel.OriginalHeight);
+                }
+
+                if (totalWidth < 1 || maxHeight < 1)
+                {
+                    verticalPadding = 0;
+                    horizontalPadding = 0;
+                }
+                else
+                {
+                    thisImageWidth = pageModel.OriginalWidth;
+                    thisImageHeight = pageModel.OriginalHeight;
+                    if (neighbourModel is not null)
+                    {
+                        neighbourImageWidth = neighbourModel.OriginalWidth;
+                        neighbourImageHeight = neighbourModel.OriginalHeight;
+                    }
+                }
             }
             else
             {
-                thisImageWidth = imageWidth;
-                thisImageHeight = imageHeight;
-                if (neighborModel is not null)
+                double aspectRatio = pageModel.AspectRatio;
+                if (neighbourModel is not null)
                 {
-                    neighborImageWidth = neighborModel.OriginalWidth;
-                    neighborImageHeight = neighborModel.OriginalHeight;
+                    aspectRatio += neighbourModel.AspectRatio;
+                }
+
+                if (aspectRatio < 1e-3)
+                {
+                    verticalPadding = 0;
+                    horizontalPadding = 0;
+                }
+                else
+                {
+                    double defaultWidth = 500.0;
+                    double defaultHeight = 300.0;
+                    if (isDoubleWidth)
+                    {
+                        defaultWidth *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
+                    }
+
+                    thisImageHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
+                    thisImageWidth = thisImageHeight * pageModel.AspectRatio;
+                    if (neighbourModel is not null)
+                    {
+                        neighbourImageHeight = thisImageHeight;
+                        neighbourImageWidth = thisImageHeight * neighbourModel.AspectRatio;
+                    }
                 }
             }
-        }
-        else
-        {
-            double aspectRatio = imageModel.AspectRatio;
-            if (neighborModel is not null)
+
+            int frameIndex = pageLayout.FrameIndex;
+            while (frameIndex >= FrameDataSource.Count)
             {
-                aspectRatio += neighborModel.AspectRatio;
+                _frameManager.MarkModelInstanceOutOfDate(frameIndex, "DataAppended");
+                FrameDataSource.Add(new ReaderFrameViewModel(_loadImageDispatcher));
             }
 
-            if (aspectRatio < 1e-3)
+            ReaderFrameViewModel item = FrameDataSource[frameIndex];
+
+            Logger.Assert(double.IsFinite(thisImageWidth), $"Invalid image width {thisImageWidth}");
+            Logger.Assert(double.IsFinite(thisImageHeight), $"Invalid image height {thisImageHeight}");
+            Logger.Assert(double.IsFinite(neighbourImageWidth), $"Invalid neighbour image width {neighbourImageWidth}");
+            Logger.Assert(double.IsFinite(neighbourImageHeight), $"Invalid neighbour image height {neighbourImageHeight}");
+            Logger.Assert(double.IsFinite(horizontalPadding), "B742A59FA82023CD");
+            Logger.Assert(double.IsFinite(verticalPadding), "37E400F20758C487");
+
+            bool isFirstFrame = frameIndex == 0;
+            bool isLastFrame = pageLayout.IsLastFrame;
+            double topPadding = _isVertical && isFirstFrame ? 10000 : verticalPadding;
+            double bottomPadding = _isVertical && isLastFrame ? 10000 : verticalPadding;
+            double startPadding = !_isVertical && isFirstFrame ? 10000 : horizontalPadding;
+            double endPadding = !_isVertical && isLastFrame ? 10000 : horizontalPadding;
+            item.FrameMargin = _isLeftToRight ?
+                new Thickness(startPadding, topPadding, endPadding, bottomPadding) :
+                new Thickness(endPadding, topPadding, startPadding, bottomPadding);
+
+            if (isLeftSide)
             {
-                verticalPadding = 0;
-                horizontalPadding = 0;
+                item.LeftImageWidth = thisImageWidth;
+                item.LeftImageHeight = thisImageHeight;
+                item.RightImageWidth = neighbourImageWidth;
+                item.RightImageHeight = neighbourImageHeight;
+                item.PageL = page;
+                item.PageR = neighbour;
             }
             else
             {
-                double defaultWidth = 500.0;
-                double defaultHeight = 300.0;
-                if (dual)
+                item.LeftImageWidth = neighbourImageWidth;
+                item.LeftImageHeight = neighbourImageHeight;
+                item.RightImageWidth = thisImageWidth;
+                item.RightImageHeight = thisImageHeight;
+                item.PageR = page;
+                item.PageL = neighbour;
+            }
+
+            if (item.PageL != ReaderFrameViewModel.NO_PAGE)
+            {
+                PageModel? leftImageModel = _pageModels[item.PageL - 1];
+                if (leftImageModel is not null)
                 {
-                    defaultWidth *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
+                    item.LeftImageSource = leftImageModel.Image;
                 }
 
-                thisImageHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
-                thisImageWidth = thisImageHeight * imageModel.AspectRatio;
-                if (neighborModel is not null)
+                Logger.Assert(item.LeftImageSource != null, "A02FF8F8CDE1D47D");
+            }
+            else
+            {
+                item.LeftImageSource = null;
+            }
+
+            if (item.PageR != ReaderFrameViewModel.NO_PAGE)
+            {
+                PageModel? rightImageModel = _pageModels[item.PageR - 1];
+                if (rightImageModel is not null)
                 {
-                    neighborImageHeight = thisImageHeight;
-                    neighborImageWidth = thisImageHeight * neighborModel.AspectRatio;
+                    item.RightImageSource = rightImageModel.Image;
                 }
+
+                Logger.Assert(item.RightImageSource != null, "FAFB72226C3D1969");
             }
-        }
-
-        while (frameIndex >= FrameDataSource.Count)
-        {
-            _frameManager.MarkModelInstanceOutOfDate(frameIndex, "DataAppended");
-            FrameDataSource.Add(new ReaderFrameViewModel(_loadImageDispatcher));
-        }
-
-        ReaderFrameViewModel item = FrameDataSource[frameIndex];
-
-        Logger.Assert(double.IsFinite(thisImageWidth), $"Invalid image width {thisImageWidth}");
-        Logger.Assert(double.IsFinite(thisImageHeight), $"Invalid image height {thisImageHeight}");
-        Logger.Assert(double.IsFinite(neighborImageWidth), $"Invalid neighbor image width {neighborImageWidth}");
-        Logger.Assert(double.IsFinite(neighborImageHeight), $"Invalid neighbor image height {neighborImageHeight}");
-        Logger.Assert(double.IsFinite(horizontalPadding), "B742A59FA82023CD");
-        Logger.Assert(double.IsFinite(verticalPadding), "37E400F20758C487");
-
-        double topPadding = _isVertical && firstFrame ? 10000 : verticalPadding;
-        double bottomPadding = _isVertical && lastFrame ? 10000 : verticalPadding;
-        double startPadding = !_isVertical && firstFrame ? 10000 : horizontalPadding;
-        double endPadding = !_isVertical && lastFrame ? 10000 : horizontalPadding;
-        item.FrameMargin = _isLeftToRight ?
-            new Thickness(startPadding, topPadding, endPadding, bottomPadding) :
-            new Thickness(endPadding, topPadding, startPadding, bottomPadding);
-
-        if (leftSide)
-        {
-            item.LeftImageWidth = thisImageWidth;
-            item.LeftImageHeight = thisImageHeight;
-            item.RightImageWidth = neighborImageWidth;
-            item.RightImageHeight = neighborImageHeight;
-            item.PageL = page;
-            item.PageR = neighbor;
-        }
-        else
-        {
-            item.LeftImageWidth = neighborImageWidth;
-            item.LeftImageHeight = neighborImageHeight;
-            item.RightImageWidth = thisImageWidth;
-            item.RightImageHeight = thisImageHeight;
-            item.PageR = page;
-            item.PageL = neighbor;
-        }
-
-        if (item.PageL != ReaderFrameViewModel.NO_PAGE)
-        {
-            if (_dataModel.TryGetValue(item.PageL - 1, out ImageDataModel? leftImageModel))
+            else
             {
-                item.LeftImageSource = leftImageModel.Image;
+                item.RightImageSource = null;
             }
 
-            Logger.Assert(item.LeftImageSource != null, "A02FF8F8CDE1D47D");
+            UpdateMinMaxZoomFactor(frameIndex);
+            item.RebindEntireViewModel();
+            _frameManager.MarkModelContentUpdateToDate(frameIndex, "ViewBindByProperty");
+            _readyPageCount = page;
         }
-        else
-        {
-            item.LeftImageSource = null;
-        }
-
-        if (item.PageR != ReaderFrameViewModel.NO_PAGE)
-        {
-            if (_dataModel.TryGetValue(item.PageR - 1, out ImageDataModel? rightImageModel))
-            {
-                item.RightImageSource = rightImageModel.Image;
-            }
-
-            Logger.Assert(item.RightImageSource != null, "FAFB72226C3D1969");
-        }
-        else
-        {
-            item.RightImageSource = null;
-        }
-
-        UpdateMinMaxZoomFactor(frameIndex);
-        item.RebindEntireViewModel();
-        _frameManager.MarkModelContentUpdateToDate(frameIndex, "ViewBindByProperty");
     }
 
     private void ResetLoader()
@@ -1148,7 +1232,7 @@ internal partial class ReaderView : UserControl
 
             if (_zoom < FORCE_CONTINUOUS_ZOOM_THRESHOLD)
             {
-                int frame = PageToFrame(SCCurrentPageFinal, out _, out _);
+                int frame = SCCurrentFrameIndexFinal;
                 frame = Math.Max(0, Math.Min(FrameDataSource.Count - 1, frame));
                 if (frame < FrameDataSource.Count)
                 {
@@ -1403,7 +1487,7 @@ internal partial class ReaderView : UserControl
 
             if (!_isVertical)
             {
-                int frame = PageToFrame(SCCurrentPageFinal, out _, out _);
+                int frame = SCCurrentFrameIndexFinal;
                 ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frame);
                 if (zoomCoefficient != null)
                 {
@@ -1606,24 +1690,22 @@ internal partial class ReaderView : UserControl
     private void OnReaderContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
     {
         var item = args.Item as ReaderFrameViewModel;
-        var viewHolder = args.ItemContainer.ContentTemplateRoot as ReaderFrame;
 
-        if (viewHolder == null)
+        if (args.ItemContainer.ContentTemplateRoot is not ReaderFrame viewHolder)
         {
             return;
         }
 
         if (args.InRecycleQueue)
         {
-            _frameManager.MarkViewNotReady(args.ItemIndex, "ViewRecycled");
+            _frameManager.MarkViewNotReady(args.ItemIndex, viewHolder, "ViewRecycled");
             viewHolder.SetReadyStateChangeHandler(null);
             viewHolder.Bind(null);
         }
         else
         {
             int index = args.ItemIndex;
-
-            viewHolder.SetReadyStateChangeHandler(delegate (FrameworkElement container, bool isReady, string reason)
+            viewHolder.SetReadyStateChangeHandler((container, isReady, reason) =>
             {
                 if (isReady)
                 {
@@ -1631,7 +1713,7 @@ internal partial class ReaderView : UserControl
                 }
                 else
                 {
-                    _frameManager.MarkViewNotReady(index, "ViewNotReady");
+                    _frameManager.MarkViewNotReady(index, container, "ViewNotReady");
                 }
             });
 
@@ -1804,7 +1886,7 @@ internal partial class ReaderView : UserControl
             {
                 double targetDelay = 1000.0 / Math.Abs(_autoScrollParallelVelocity); // (0, PositiveInfinite)
 
-                int frameIndex = PageToFrame(SCCurrentPageFinal, out _, out _);
+                int frameIndex = SCCurrentFrameIndexFinal;
                 if (frameIndex >= 0 && frameIndex < FrameDataSource.Count)
                 {
                     ReaderFrameViewModel frame = FrameDataSource[frameIndex];
@@ -2025,6 +2107,21 @@ internal partial class ReaderView : UserControl
     private double ViewportPerpendicularLength => IsVertical ? ViewportWidth : ViewportHeight;
     private double ContentPerpendicularLength => IsVertical ? ThisListView.ActualWidth : ThisListView.ActualHeight;
 
+    private int _SCCurrentFrameIndexFinal;
+    private int SCCurrentFrameIndexFinal
+    {
+        get
+        {
+            SCSyncFinalVal();
+            return _SCCurrentFrameIndexFinal;
+        }
+        set
+        {
+            SCSyncFinalVal();
+            _SCCurrentFrameIndexFinal = value;
+        }
+    }
+
     private int _SCCurrentPageFinal;
     private int SCCurrentPageFinal
     {
@@ -2111,7 +2208,8 @@ internal partial class ReaderView : UserControl
         }
 
         _finalValueSynced = true;
-        _SCCurrentPageFinal = CurrentPageInt;
+        _SCCurrentFrameIndexFinal = CurrentFrameIndex;
+        _SCCurrentPageFinal = CurrentPageDiscrete;
         _SCHorizontalOffsetFinal = HorizontalOffset;
         _SCVerticalOffsetFinal = VerticalOffset;
         _SCZoomFactorFinal = ZoomFactor;
@@ -2136,8 +2234,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        int frame = PageToFrame(SCCurrentPageFinal, out _, out _);
-        frame += increment;
+        int frame = SCCurrentFrameIndexFinal + increment;
 
         if (frame >= FrameDataSource.Count)
         {
@@ -2328,7 +2425,7 @@ internal partial class ReaderView : UserControl
             + $",V={context.VerticalOffset}"
             + $",D={context.DisableAnimation}");
 
-        AdjustParallelOffset(request, context);
+        AdjustParallelOffset(context);
 
         Logger.Assert(float.IsFinite(context.Zoom ?? 0), "6BC2B5793E12AFA4");
         Logger.Assert(!float.IsNegative(context.Zoom ?? 0), "CF5A68638CB59852");
@@ -2346,7 +2443,15 @@ internal partial class ReaderView : UserControl
 
         if (request.Page.HasValue)
         {
-            SCCurrentPageFinal = ToDiscretePage(request.Page.Value);
+            int targetPage = ToDiscretePage(request.Page.Value);
+            if (!TryConvertPageToFrameIndex(targetPage, out int targetFrameIndex))
+            {
+                context.Result = ScrollResult.UnknownFailure;
+                return;
+            }
+
+            SCCurrentFrameIndexFinal = targetFrameIndex;
+            SCCurrentPageFinal = targetPage;
         }
 
         if (context.Zoom.HasValue)
@@ -2395,7 +2500,12 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            newFrameIndex = PageToFrame(pageNew, out _, out _);
+            if (!TryConvertPageToFrameIndex(pageNew, out newFrameIndex))
+            {
+                context.Result = ScrollResult.UnknownFailure;
+                return;
+            }
+
             if (newFrameIndex < 0 || newFrameIndex >= FrameDataSource.Count)
             {
                 newFrameIndex = 0;
@@ -2450,7 +2560,7 @@ internal partial class ReaderView : UserControl
         }
         else
         {
-            int frame = PageToFrame(SCCurrentPageFinal, out _, out _);
+            int frame = SCCurrentFrameIndexFinal;
             if (frame < 0 || frame >= FrameDataSource.Count)
             {
                 frame = 0;
@@ -2586,7 +2696,7 @@ internal partial class ReaderView : UserControl
         return successful;
     }
 
-    private void AdjustParallelOffset(ScrollRequest request, ScrollContext context)
+    private void AdjustParallelOffset(ScrollContext context)
     {
         if (FrameDataSource.Count == 0)
         {
@@ -2727,7 +2837,10 @@ internal partial class ReaderView : UserControl
         page = Math.Max(page, 0.5);
 
         int nearestPage = Math.Clamp((int)Math.Round(page, MidpointRounding.AwayFromZero), 1, PageCount);
-        int nearestFrame = PageToFrame(nearestPage, out _, out _);
+        if (!TryConvertPageToFrameIndex(nearestPage, out int nearestFrame))
+        {
+            return null;
+        }
 
         InvalidateFrameOffsetCache();
         AnchorConverter? converter = CreateAnchorConverter(nearestFrame, nearestFrame + 1);
@@ -2942,7 +3055,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        int frameIdx = PageToFrame(SCCurrentPageFinal, out _, out _);
+        int frameIdx = SCCurrentFrameIndexFinal;
         if (frameIdx < 0 || frameIdx >= FrameDataSource.Count)
         {
             return;
@@ -3044,39 +3157,6 @@ internal partial class ReaderView : UserControl
         return 0;
     }
 
-    private int PageToFrame(int page, out bool leftSide, out int neighbor)
-    {
-        Logger.Assert(int.IsPositive(page), "6A1624FDFE839510");
-        Logger.Assert(page <= PageCount, "F8C3257028D32ED3");
-
-        switch (_pageArrangement)
-        {
-            case PageArrangementEnum.Single:
-                leftSide = true;
-                neighbor = ReaderFrameViewModel.NO_PAGE;
-                return page - 1;
-            case PageArrangementEnum.DualCover:
-                leftSide = page == 1 || page % 2 == 0;
-                neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
-                return page / 2;
-            case PageArrangementEnum.DualCoverMirror:
-                leftSide = page == PageCount || page % 2 == 1;
-                neighbor = (page > 1 && (PageCount % 2 == 1 || page < PageCount)) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
-                return page / 2;
-            case PageArrangementEnum.DualNoCover:
-                leftSide = page % 2 == 1;
-                neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page + 1 : page - 1) : ReaderFrameViewModel.NO_PAGE;
-                return (page - 1) / 2;
-            case PageArrangementEnum.DualNoCoverMirror:
-                leftSide = page == PageCount || page % 2 == 0;
-                neighbor = (PageCount % 2 == 0 || page < PageCount) ? (leftSide ? page - 1 : page + 1) : ReaderFrameViewModel.NO_PAGE;
-                return (page - 1) / 2;
-            default:
-                Logger.AssertNotReachHere("734FF3964EFE8681");
-                goto case PageArrangementEnum.Single;
-        }
-    }
-
     private int ToDiscretePage(double pageContinuous)
     {
         return Math.Max(1, Math.Min(PageCount, (int)Math.Round(pageContinuous)));
@@ -3108,6 +3188,31 @@ internal partial class ReaderView : UserControl
                 toVertical = fromPerpendicular;
             }
         }
+    }
+
+    private bool TryConvertPageToFrameIndex(int page, out int frameIndex)
+    {
+        if (page <= 0 || page > PageCount)
+        {
+            frameIndex = -1;
+            return false;
+        }
+
+        PageModel? pageModel = _pageModels[page - 1];
+        if (pageModel is null)
+        {
+            frameIndex = -1;
+            return false;
+        }
+
+        if (pageModel.LayoutInfo is null)
+        {
+            frameIndex = -1;
+            return false;
+        }
+
+        frameIndex = pageModel.LayoutInfo.FrameIndex;
+        return true;
     }
 
     private static void Log(string tag, params object?[] values)
@@ -3148,11 +3253,14 @@ internal partial class ReaderView : UserControl
         void WriteConfiguration(string key, string value);
     }
 
-    private class ImageDataModel
+    private class PageModel
     {
         public required ReaderImageSource Image { get; set; }
         public required int OriginalWidth { get; set; }
         public required int OriginalHeight { get; set; }
+
+        public PageLayoutInfo? LayoutInfo { get; set; }
+
         public double AspectRatio
         {
             get
@@ -3257,7 +3365,7 @@ internal partial class ReaderView : UserControl
 
     private class PengingImageItem
     {
-        public required int Index;
+        public required int Page;
         public required int OriginalWidth;
         public required int OriginalHeight;
         public required IImageSource Source;

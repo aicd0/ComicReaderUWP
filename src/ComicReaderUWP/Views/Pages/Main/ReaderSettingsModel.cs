@@ -27,8 +27,8 @@ internal class ReaderSettingsModel
     public bool IsLeftToRight { get; set; } = false;
     public bool IsVerticalContinuous { get; set; } = false;
     public bool IsHorizontalContinuous { get; set; } = false;
-    public PageArrangementEnum VerticalPageArrangement { get; set; } = PageArrangementEnum.Single;
-    public PageArrangementEnum HorizontalPageArrangement { get; set; } = PageArrangementEnum.DualCover;
+    public PageLayoutSettings VerticalPageLayout { get; set; } = new();
+    public PageLayoutSettings HorizontalPageLayout { get; set; } = new();
     public int PageGap { get; set; } = 100;
     public int AutoScrollSpeed { get; set; } = 0;
     public ImageRotationEnum ImageRotation { get; set; } = ImageRotationEnum.None;
@@ -54,11 +54,11 @@ internal class ReaderSettingsModel
         }
     }
 
-    public PageArrangementEnum PageArrangement
+    public PageLayoutSettings PageLayout
     {
         get
         {
-            return IsVertical ? VerticalPageArrangement : HorizontalPageArrangement;
+            return IsVertical ? VerticalPageLayout : HorizontalPageLayout;
         }
     }
 
@@ -81,12 +81,10 @@ internal class ReaderSettingsModel
             IsLeftToRight == other.IsLeftToRight &&
             IsVerticalContinuous == other.IsVerticalContinuous &&
             IsHorizontalContinuous == other.IsHorizontalContinuous &&
-            VerticalPageArrangement == other.VerticalPageArrangement &&
-            HorizontalPageArrangement == other.HorizontalPageArrangement &&
+            VerticalPageLayout == other.VerticalPageLayout &&
+            HorizontalPageLayout == other.HorizontalPageLayout &&
             PageGap == other.PageGap &&
             AutoScrollSpeed == other.AutoScrollSpeed &&
-            IsContinuous == other.IsContinuous &&
-            PageArrangement == other.PageArrangement &&
             ImageRotation == other.ImageRotation &&
             ImageFlip == other.ImageFlip &&
             ImageInvert == other.ImageInvert;
@@ -102,12 +100,10 @@ internal class ReaderSettingsModel
         hash.Add(IsLeftToRight);
         hash.Add(IsVerticalContinuous);
         hash.Add(IsHorizontalContinuous);
-        hash.Add(VerticalPageArrangement);
-        hash.Add(HorizontalPageArrangement);
+        hash.Add(VerticalPageLayout);
+        hash.Add(HorizontalPageLayout);
         hash.Add(PageGap);
         hash.Add(AutoScrollSpeed);
-        hash.Add(IsContinuous);
-        hash.Add(PageArrangement);
         hash.Add(ImageRotation);
         hash.Add(ImageFlip);
         hash.Add(ImageInvert);
@@ -134,8 +130,8 @@ internal class ReaderSettingsModel
             LeftToRight = IsLeftToRight,
             VerticalContinuous = IsVerticalContinuous,
             HorizontalContinuous = IsHorizontalContinuous,
-            VerticalPageArrangement = (int)VerticalPageArrangement,
-            HorizontalPageArrangement = (int)HorizontalPageArrangement,
+            VerticalPageLayout = VerticalPageLayout.ToJsonModel(),
+            HorizontalPageLayout = HorizontalPageLayout.ToJsonModel(),
             PageGap = PageGap,
             AutoScrollSpeed = AutoScrollSpeed,
             ImageRotation = ImageRotation switch
@@ -181,8 +177,12 @@ internal class ReaderSettingsModel
             IsLeftToRight = model.LeftToRight ?? defaultModel.IsLeftToRight,
             IsVerticalContinuous = model.VerticalContinuous ?? defaultModel.IsVerticalContinuous,
             IsHorizontalContinuous = model.HorizontalContinuous ?? defaultModel.IsHorizontalContinuous,
-            VerticalPageArrangement = ParsePageArrangementEnum(model.VerticalPageArrangement) ?? defaultModel.VerticalPageArrangement,
-            HorizontalPageArrangement = ParsePageArrangementEnum(model.HorizontalPageArrangement) ?? defaultModel.HorizontalPageArrangement,
+            VerticalPageLayout = model.VerticalPageLayout is null ?
+                ParseLegacyPageLayout(model.LegacyVerticalPageArrangement) :
+                PageLayoutSettings.FromJsonModel(model.VerticalPageLayout),
+            HorizontalPageLayout = model.HorizontalPageLayout is null ?
+                ParseLegacyPageLayout(model.LegacyHorizontalPageArrangement) :
+                PageLayoutSettings.FromJsonModel(model.HorizontalPageLayout),
             PageGap = model.PageGap ?? defaultModel.PageGap,
             AutoScrollSpeed = model.AutoScrollSpeed ?? defaultModel.AutoScrollSpeed,
             ImageRotation = model.ImageRotation switch
@@ -247,14 +247,22 @@ internal class ReaderSettingsModel
         return presetModel;
     }
 
-    private static PageArrangementEnum? ParsePageArrangementEnum(int? value)
+    private static PageLayoutSettings ParseLegacyPageLayout(int? value)
     {
-        if (value.HasValue && Enum.IsDefined(typeof(PageArrangementEnum), value))
+        PageLayoutSettings defaultModel = new();
+
+        if (value is null)
         {
-            return (PageArrangementEnum)value;
+            return defaultModel;
         }
 
-        return null;
+        return new()
+        {
+            TwoPageMode = value != 0,
+            EnableCover = value <= 2,
+            SwapLeftAndRightPages = value == 2 || value == 4,
+            SpreadDetection = defaultModel.SpreadDetection,
+        };
     }
 
     public class JsonModel
@@ -277,11 +285,11 @@ internal class ReaderSettingsModel
         [JsonPropertyName("HorizontalContinuous")]
         public bool? HorizontalContinuous { get; set; }
 
-        [JsonPropertyName("VerticalPageArrangement")]
-        public int? VerticalPageArrangement { get; set; }
+        [JsonPropertyName("VerticalPageLayout")]
+        public PageLayoutSettings.JsonModel? VerticalPageLayout { get; set; }
 
-        [JsonPropertyName("HorizontalPageArrangement")]
-        public int? HorizontalPageArrangement { get; set; }
+        [JsonPropertyName("HorizontalPageLayout")]
+        public PageLayoutSettings.JsonModel? HorizontalPageLayout { get; set; }
 
         [JsonPropertyName("PageGap")]
         public int? PageGap { get; set; }
@@ -297,5 +305,15 @@ internal class ReaderSettingsModel
 
         [JsonPropertyName("ImageInvert")]
         public bool? ImageInvert { get; set; }
+
+        //
+        // Legacy fields
+        //
+
+        [JsonPropertyName("VerticalPageArrangement")]
+        public int? LegacyVerticalPageArrangement { get; set; }
+
+        [JsonPropertyName("HorizontalPageArrangement")]
+        public int? LegacyHorizontalPageArrangement { get; set; }
     }
 }

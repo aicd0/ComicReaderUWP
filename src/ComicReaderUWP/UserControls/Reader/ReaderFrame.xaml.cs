@@ -13,11 +13,10 @@ internal sealed partial class ReaderFrame : UserControl
     private bool _isLoaded = false;
     private bool? _isReady = null;
 
-    public delegate void ReadyStateChangeListener(FrameworkElement container, bool isReady, string reason);
+    public delegate void ReadyStateChangeListener(ReaderFrame container, bool isReady, string reason);
     private event ReadyStateChangeListener? ReadyStateChanged;
 
     private ReaderFrameViewModel? ViewModel { get; set; }
-    private FrameworkElement Container => MainFrame;
 
     public ReaderFrame()
     {
@@ -68,12 +67,12 @@ internal sealed partial class ReaderFrame : UserControl
         ReadyStateChanged = handler;
     }
 
-    private void OnFrameLoaded(object sender, RoutedEventArgs e)
+    private void ReaderFrame_Loaded(object sender, RoutedEventArgs e)
     {
         DispatchReadyStateChangeEvent("FrameLoaded");
     }
 
-    private void OnFrameSizeChanged(object sender, SizeChangedEventArgs e)
+    private void ReaderFrame_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         DispatchReadyStateChangeEvent($"SizeChanged (W={e.NewSize.Width},H={e.NewSize.Height})");
     }
@@ -99,28 +98,27 @@ internal sealed partial class ReaderFrame : UserControl
         if (isReady != _isReady)
         {
             _isReady = isReady;
-            ReadyStateChanged?.Invoke(Container, isReady, reason);
+            ReadyStateChanged?.Invoke(this, isReady, reason);
         }
     }
 
     private bool IsReady()
     {
-        FrameworkElement container = Container;
         ReaderFrameViewModel? model = ViewModel;
-        if (container == null || model == null)
+        if (model is null)
         {
             return false;
         }
 
-        double desired_width = model.FrameWidth + model.FrameMargin.Left + model.FrameMargin.Right;
-        double desired_height = model.FrameHeight + model.FrameMargin.Top + model.FrameMargin.Bottom;
+        double desiredWidth = model.FrameWidth + model.FrameMargin.Left + model.FrameMargin.Right;
+        double desiredHeight = model.FrameHeight + model.FrameMargin.Top + model.FrameMargin.Bottom;
 
-        if (Math.Abs(container.ActualWidth - desired_width) > 5.0)
+        if (Math.Abs(ActualWidth - desiredWidth) > 5.0)
         {
             return false;
         }
 
-        if (Math.Abs(container.ActualHeight - desired_height) > 5.0)
+        if (Math.Abs(ActualHeight - desiredHeight) > 5.0)
         {
             return false;
         }

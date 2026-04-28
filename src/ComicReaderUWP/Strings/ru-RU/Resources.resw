@@ -338,6 +338,9 @@ $comics</value>
   <data name="Enable" xml:space="preserve">
     <value>Включить</value>
   </data>
+  <data name="EnableCover" xml:space="preserve">
+    <value>Включить обложку</value>
+  </data>
   <data name="Enabled" xml:space="preserve">
     <value>Включено</value>
   </data>
@@ -699,21 +702,6 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="PageGap" xml:space="preserve">
     <value>интервал</value>
   </data>
-  <data name="PageLayoutDualNoCover" xml:space="preserve">
-    <value>Две страницы, без обложки</value>
-  </data>
-  <data name="PageLayoutDualNoCoverMirrored" xml:space="preserve">
-    <value>Две страницы, без обложки, зеркально отраженный</value>
-  </data>
-  <data name="PageLayoutDualWithCover" xml:space="preserve">
-    <value>Две страницы, обложка</value>
-  </data>
-  <data name="PageLayoutDualWithCoverMirrored" xml:space="preserve">
-    <value>Две страницы, обложка, зеркально отраженный</value>
-  </data>
-  <data name="PageLayoutSingle" xml:space="preserve">
-    <value>Одна страница</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>Страница $page</value>
   </data>
@@ -891,11 +879,17 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="SortingFunction" xml:space="preserve">
     <value>Функция сортировки</value>
   </data>
+  <data name="SpreadDetection" xml:space="preserve">
+    <value>Определение разворотов</value>
+  </data>
   <data name="StartEndFromScrollingArea" xml:space="preserve">
     <value>Использовать начало/конец области прокрутки как начало/конец чтения</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>Статистика</value>
+  </data>
+  <data name="SwapLeftAndRightPages" xml:space="preserve">
+    <value>Поменять страницы местами</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Ярлык</value>
@@ -948,6 +942,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="TransitionAnimation.Text" xml:space="preserve">
     <value>Анимация перелистывания страниц</value>
+  </data>
+  <data name="TwoPageMode" xml:space="preserve">
+    <value>Режим разворота</value>
   </data>
   <data name="Unfavorite" xml:space="preserve">
     <value>Удалить из избранного</value>

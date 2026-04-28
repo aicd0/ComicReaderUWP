@@ -338,6 +338,9 @@ $comics</value>
   <data name="Enable" xml:space="preserve">
     <value>啟用</value>
   </data>
+  <data name="EnableCover" xml:space="preserve">
+    <value>啟用封面</value>
+  </data>
   <data name="Enabled" xml:space="preserve">
     <value>已啟用</value>
   </data>
@@ -698,21 +701,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="PageGap" xml:space="preserve">
     <value>頁面間距</value>
   </data>
-  <data name="PageLayoutDualNoCover" xml:space="preserve">
-    <value>兩頁，無封面</value>
-  </data>
-  <data name="PageLayoutDualNoCoverMirrored" xml:space="preserve">
-    <value>兩頁，無封面，鏡像</value>
-  </data>
-  <data name="PageLayoutDualWithCover" xml:space="preserve">
-    <value>兩頁，封面</value>
-  </data>
-  <data name="PageLayoutDualWithCoverMirrored" xml:space="preserve">
-    <value>兩頁，封面，鏡像</value>
-  </data>
-  <data name="PageLayoutSingle" xml:space="preserve">
-    <value>單頁</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>第$page頁</value>
   </data>
@@ -890,11 +878,17 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="SortingFunction" xml:space="preserve">
     <value>排序函數</value>
   </data>
+  <data name="SpreadDetection" xml:space="preserve">
+    <value>跨頁偵測</value>
+  </data>
   <data name="StartEndFromScrollingArea" xml:space="preserve">
     <value>使用捲動區域的起始/結束位置作為閱讀起始/結束位置</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>統計資訊</value>
+  </data>
+  <data name="SwapLeftAndRightPages" xml:space="preserve">
+    <value>左右頁對調</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>標籤</value>
@@ -947,6 +941,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="TransitionAnimation.Text" xml:space="preserve">
     <value>翻頁動畫</value>
+  </data>
+  <data name="TwoPageMode" xml:space="preserve">
+    <value>雙頁模式</value>
   </data>
   <data name="Unfavorite" xml:space="preserve">
     <value>取消收藏</value>

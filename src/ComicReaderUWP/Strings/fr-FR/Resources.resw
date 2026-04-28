@@ -338,6 +338,9 @@ $comics</value>
   <data name="Enable" xml:space="preserve">
     <value>Activer</value>
   </data>
+  <data name="EnableCover" xml:space="preserve">
+    <value>Activer la couverture</value>
+  </data>
   <data name="Enabled" xml:space="preserve">
     <value>Activé</value>
   </data>
@@ -698,21 +701,6 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="PageGap" xml:space="preserve">
     <value>Espacement</value>
   </data>
-  <data name="PageLayoutDualNoCover" xml:space="preserve">
-    <value>Deux pages, pas de couverture</value>
-  </data>
-  <data name="PageLayoutDualNoCoverMirrored" xml:space="preserve">
-    <value>Deux pages, pas de couverture, en miroir</value>
-  </data>
-  <data name="PageLayoutDualWithCover" xml:space="preserve">
-    <value>Deux pages, couverture</value>
-  </data>
-  <data name="PageLayoutDualWithCoverMirrored" xml:space="preserve">
-    <value>Deux pages, couverture, en miroir</value>
-  </data>
-  <data name="PageLayoutSingle" xml:space="preserve">
-    <value>Page unique</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>Page $page</value>
   </data>
@@ -890,11 +878,17 @@ Démarrer en mode sans échec ?</value>
   <data name="SortingFunction" xml:space="preserve">
     <value>Fonction de tri</value>
   </data>
+  <data name="SpreadDetection" xml:space="preserve">
+    <value>Détection des pages doubles</value>
+  </data>
   <data name="StartEndFromScrollingArea" xml:space="preserve">
     <value>Utiliser le début/la fin de la zone de défilement comme début/fin de lecture</value>
   </data>
   <data name="Statistics" xml:space="preserve">
     <value>Statistiques</value>
+  </data>
+  <data name="SwapLeftAndRightPages" xml:space="preserve">
+    <value>Inverser pages gauche/droite</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Étiquette</value>
@@ -947,6 +941,9 @@ Variables spéciales :
   </data>
   <data name="TransitionAnimation.Text" xml:space="preserve">
     <value>Animation de transition</value>
+  </data>
+  <data name="TwoPageMode" xml:space="preserve">
+    <value>Mode double page</value>
   </data>
   <data name="Unfavorite" xml:space="preserve">
     <value>Défavori</value>
