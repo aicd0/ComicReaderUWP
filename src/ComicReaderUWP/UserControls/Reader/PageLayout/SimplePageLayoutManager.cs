@@ -9,7 +9,6 @@ namespace ComicReaderUWP.UserControls.Reader.PageLayout;
 
 internal class SimplePageLayoutManager : IPageLayoutManager
 {
-
     public bool TwoPageMode { get; init; } = false;
     public bool EnableCover { get; init; } = true;
     public bool RightToLeft { get; init; } = false;
