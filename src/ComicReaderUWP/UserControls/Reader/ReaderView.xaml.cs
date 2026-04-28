@@ -814,10 +814,10 @@ internal partial class ReaderView : UserControl
 
         _pageModels[page - 1] = pageModel;
         _pageLayoutManager.AddPage(page, originalWidth, originalHeight);
-        IncreaseReadyPageIndex();
+        IncreaseReadyPageIndex(page == PageCount);
     }
 
-    private void IncreaseReadyPageIndex()
+    private void IncreaseReadyPageIndex(bool assertCompletion)
     {
         for (int page = _readyPageCount + 1; page <= PageCount; page++)
         {
@@ -832,6 +832,11 @@ internal partial class ReaderView : UserControl
             {
                 if (!_pageLayoutManager.TryGetPageLayout(page, out pageLayout))
                 {
+                    if (assertCompletion)
+                    {
+                        Logger.F(TAG, $"Failed to acquire layout for page {page}");
+                    }
+
                     break;
                 }
 
