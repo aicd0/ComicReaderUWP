@@ -222,6 +222,9 @@
   <data name="ClearCache" xml:space="preserve">
     <value>清空快取</value>
   </data>
+  <data name="ClearReaderSettings" xml:space="preserve">
+    <value>清除閱讀器設定</value>
+  </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>關閉最後一個分頁時的行為</value>
   </data>

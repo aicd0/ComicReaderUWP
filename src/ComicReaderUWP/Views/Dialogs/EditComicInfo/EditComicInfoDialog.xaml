@@ -39,6 +39,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="8" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <TextBlock
@@ -181,6 +182,13 @@
                 Grid.Column="2"
                 Links="{x:Bind ViewModel.Links}" />
 
+            <CheckBox
+                Grid.Row="13"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Click="ClearReaderSettingsCheckBox_Click"
+                Content="{x:Bind StringResource.ClearReaderSettings}"
+                IsChecked="False" />
         </Grid>
     </ScrollView>
 </base:BaseContentDialog>

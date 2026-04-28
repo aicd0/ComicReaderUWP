@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="About" xml:space="preserve">
-    <value>О</value>
+    <value>О приложении</value>
   </data>
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. Все права защищены.</value>
@@ -221,6 +221,9 @@
   </data>
   <data name="ClearCache" xml:space="preserve">
     <value>Очистить кэш</value>
+  </data>
+  <data name="ClearReaderSettings" xml:space="preserve">
+    <value>Сбросить настройки чтения</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Поведение при закрытии последней вкладки</value>

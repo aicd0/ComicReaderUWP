@@ -222,6 +222,9 @@
   <data name="ClearCache" xml:space="preserve">
     <value>Borrar caché</value>
   </data>
+  <data name="ClearReaderSettings" xml:space="preserve">
+    <value>Borrar ajustes de lectura</value>
+  </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Comportamiento al cerrar la última pestaña</value>
   </data>

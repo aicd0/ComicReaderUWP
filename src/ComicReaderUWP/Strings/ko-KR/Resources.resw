@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="About" xml:space="preserve">
-    <value>에 대한</value>
+    <value>앱 정보</value>
   </data>
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. 모든 권리 보유.</value>
@@ -221,6 +221,9 @@
   </data>
   <data name="ClearCache" xml:space="preserve">
     <value>캐시 지우기</value>
+  </data>
+  <data name="ClearReaderSettings" xml:space="preserve">
+    <value>뷰어 설정 초기화</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>마지막 탭을 닫을 때의 동작</value>

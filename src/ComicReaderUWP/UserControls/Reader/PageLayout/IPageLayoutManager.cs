@@ -1,13 +1,14 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ComicReaderUWP.UserControls.Reader.PageLayout;
 
-internal interface IPageLayoutManager : IEquatable<IPageLayoutManager>
+internal interface IPageLayoutManager
 {
+    bool EquivalentTo(IPageLayoutManager other);
+
     void Reset(int pageCount);
 
     void AddPage(int page, int width, int height);
