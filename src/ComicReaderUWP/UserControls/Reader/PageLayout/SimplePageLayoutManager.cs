@@ -15,10 +15,11 @@ internal class SimplePageLayoutManager : IPageLayoutManager
     public bool SpreadDetection { get; init; } = false;
 
     private PageInfo?[] _pages = [];
-    private int _readyPageCount = 0;
     private readonly SpreadDetectionHelper.PageSamples _samples = new();
 
     private int PageCount => _pages.Length;
+    private int AddedPageCount { get; set; } = 0;
+    private int ReadyPageCount { get; set; } = 0;
 
     public bool EquivalentTo(IPageLayoutManager other)
     {
@@ -42,8 +43,9 @@ internal class SimplePageLayoutManager : IPageLayoutManager
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageCount, nameof(pageCount));
         _pages = new PageInfo?[pageCount];
-        _readyPageCount = 0;
         _samples.Clear();
+        AddedPageCount = 0;
+        ReadyPageCount = 0;
     }
 
     public void AddPage(int page, int width, int height)
@@ -59,6 +61,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         }
 
         _pages[page - 1] = new PageInfo { Width = width, Height = height };
+        AddedPageCount++;
 
         if (Math.Min(width, height) > 0)
         {
@@ -74,7 +77,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(page, nameof(page));
         ArgumentOutOfRangeException.ThrowIfGreaterThan(page, PageCount, nameof(page));
 
-        if (page > _readyPageCount)
+        if (page > ReadyPageCount)
         {
             layout = null;
             return false;
@@ -86,7 +89,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
     private void IncreaseReadyIndex()
     {
-        for (int page = _readyPageCount + 1; page <= PageCount; page++)
+        for (int page = ReadyPageCount + 1; page <= PageCount; page++)
         {
             PageInfo? pageInfo = _pages[page - 1];
             if (pageInfo is null)
@@ -100,7 +103,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
             }
 
             pageInfo.Layout = layout;
-            _readyPageCount = page;
+            ReadyPageCount = page;
         }
     }
 
@@ -131,7 +134,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
         if (SpreadDetection)
         {
-            if (_samples.Count <= 6 && !isLastPage)
+            if (_samples.Count <= 6 && AddedPageCount < PageCount)
             {
                 // Requires at least 6 samples to be reliable
                 layout = null;
