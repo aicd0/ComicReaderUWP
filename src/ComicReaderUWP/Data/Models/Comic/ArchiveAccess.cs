@@ -387,6 +387,11 @@ public class ArchiveAccess
             {
                 subStream = entry.Open();
             }
+            catch (SharpCompress.Common.CryptographicException e)
+            {
+                Logger.E(TAG, e);
+                return ICallbackResult.StopIteration;
+            }
             catch (Exception e)
             {
                 Logger.F(TAG, e);
