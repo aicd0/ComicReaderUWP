@@ -11,7 +11,6 @@ internal static class KVNames
     public const string KV_LIB_READER_STATE = "reader_state";
     public const string KV_LIB_TIPS = "tips";
 
-    public const string KV_KEY_APP_ANTI_ALIASING_ENABLED = "anti_aliasing_enabled";
     public const string KV_KEY_APP_AUTO_HIDE_CURSOR = "AutoHideCursor";
     public const string KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE = "default_archive_code_page";
     public const string KV_KEY_APP_RATING_PERCENTAGE_ENABLED = "RatingPercentageEnabled";

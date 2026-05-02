@@ -63,6 +63,7 @@ internal partial class ReaderView : UserControl
     private ImageRotationEnum _imageRotation = ImageRotationEnum.None;
     private bool _imageFlip = false;
     private bool _imageInvert = false;
+    private bool _antiAliasingFilter = false;
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
@@ -357,6 +358,18 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
+    public void SetAntiAliasingFilter(bool enabled)
+    {
+        if (enabled == _antiAliasingFilter)
+        {
+            return;
+        }
+
+        _antiAliasingFilter = enabled;
+        _uiStateUpdatedNeedReloadImages = true;
+        UpdateUI();
+    }
+
     public void SetInitialPage(double page)
     {
         _initialPage = Math.Max(0.5, page);
@@ -573,7 +586,7 @@ internal partial class ReaderView : UserControl
             }
             else
             {
-                model.SetScale(AppSettingsModel.Instance.AntiAliasingEnabled ? SCZoomFactorFinal : double.PositiveInfinity);
+                model.SetScale(_antiAliasingFilter ? SCZoomFactorFinal : double.PositiveInfinity);
             }
         }
 

@@ -40,19 +40,6 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _antiAliasingEnabled = true;
-    public bool AntiAliasingEnabled
-    {
-        get => _antiAliasingEnabled;
-        set
-        {
-            _antiAliasingEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AntiAliasingEnabled)));
-
-            AppSettingsModel.Instance.AntiAliasingEnabled = value;
-        }
-    }
-
     private bool _restoreLastReadingPosition = true;
     public bool RestoreLastReadingPosition
     {
@@ -171,7 +158,6 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         CoroutineUtils.RunInMainThread(() =>
         {
             TransitionAnimation = AppSettingsModel.Instance.TransitionAnimation;
-            AntiAliasingEnabled = AppSettingsModel.Instance.AntiAliasingEnabled;
             RestoreLastReadingPosition = AppSettingsModel.Instance.RestoreLastReadingPosition;
             RestoreLastReadingPositionOnlyAppliesToReadingComics = AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics;
             UseScrollingAreaAsStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
