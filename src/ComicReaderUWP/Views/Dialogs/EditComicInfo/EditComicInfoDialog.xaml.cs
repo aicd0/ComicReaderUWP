@@ -106,13 +106,15 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
     // Events
     //
 
-    private void ContentDialogPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    private void DoneButton_Click(object sender, RoutedEventArgs args)
     {
         ViewModel.Save();
+        Hide();
     }
 
-    private void ContentDialogSecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    private void CancelButton_Click(object sender, RoutedEventArgs args)
     {
+        Hide();
     }
 
     private void OnShowTagInfoButtonClicked(object sender, RoutedEventArgs e)

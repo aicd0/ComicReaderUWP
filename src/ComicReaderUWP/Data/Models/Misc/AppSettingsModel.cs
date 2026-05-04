@@ -38,19 +38,6 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     // Properties
     //
 
-    public bool AntiAliasingEnabled
-    {
-        get
-        {
-            return Read(model => model.AntiAliasingEnabled ?? false);
-        }
-        set
-        {
-            Write(model => model.AntiAliasingEnabled = value);
-            Save();
-        }
-    }
-
     public bool AutomaticallyHideCursor
     {
         get
@@ -321,7 +308,6 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         model ??= new();
         model.OpenComicDefaultBehavior ??= model.HomePageTapComicBehavior;
-        model.AntiAliasingEnabled ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_ANTI_ALIASING_ENABLED, false);
         model.AutomaticallyHideCursor ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
         model.DefaultArchiveCodePage ??= (int)AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<long>(KVNames.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
         model.RatingPercentageEnabled ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
@@ -587,9 +573,6 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
     public class JsonModel
     {
-        [JsonPropertyName("AntiAliasingEnabled")]
-        public bool? AntiAliasingEnabled { get; set; }
-
         [JsonPropertyName("AutomaticallyHideCursor")]
         public bool? AutomaticallyHideCursor { get; set; }
 

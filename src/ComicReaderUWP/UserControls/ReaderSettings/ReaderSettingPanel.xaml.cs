@@ -203,6 +203,13 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         DispatchDataChangeEvent();
     }
 
+    private void AntiAliasingFilterToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        _model.AntiAliasingFilter = AntiAliasingFilterToggleSwitch.IsOn;
+        SaveSettings();
+        DispatchDataChangeEvent();
+    }
+
     private async void EditPresetButton_Click(object sender, RoutedEventArgs e)
     {
         if (_comic is null || _windowId < 0)
@@ -302,6 +309,7 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         AutoScrollingSlider.Value = Math.Clamp(_model.AutoScrollSpeed, 0, 100);
         FlipImageToggleSwitch.IsOn = _model.ImageFlip;
         InvertImageToggleSwitch.IsOn = _model.ImageInvert;
+        AntiAliasingFilterToggleSwitch.IsOn = _model.AntiAliasingFilter;
 
         UpdateImageRotation();
 

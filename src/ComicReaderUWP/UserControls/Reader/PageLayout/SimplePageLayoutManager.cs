@@ -52,8 +52,8 @@ internal class SimplePageLayoutManager : IPageLayoutManager
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(page, nameof(page));
         ArgumentOutOfRangeException.ThrowIfGreaterThan(page, PageCount, nameof(page));
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width, nameof(width));
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height, nameof(height));
+        ArgumentOutOfRangeException.ThrowIfNegative(width, nameof(width));
+        ArgumentOutOfRangeException.ThrowIfNegative(height, nameof(height));
 
         if (_pages[page - 1] is not null)
         {
@@ -131,10 +131,11 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
         int frameIndex = previousPageLayout is null ? 0 : previousPageLayout.FrameIndex + 1;
         bool isLastPage = page == PageCount;
+        bool requireCompletion = AddedPageCount == PageCount;
 
         if (SpreadDetection)
         {
-            if (_samples.Count <= 6 && AddedPageCount < PageCount)
+            if (_samples.Count <= 6 && !requireCompletion)
             {
                 // Requires at least 6 samples to be reliable
                 layout = null;
@@ -154,17 +155,19 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
             if (!isLastPage)
             {
-                if (!TryCheckSpreadPage(page + 1, out isSpreadPage))
+                if (TryCheckSpreadPage(page + 1, out isSpreadPage))
+                {
+                    if (isSpreadPage)
+                    {
+                        layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
+                        return true;
+                    }
+                }
+                else if (!requireCompletion)
                 {
                     // Next page is not ready, cannot determine the layout of the current page
                     layout = null;
                     return false;
-                }
-
-                if (isSpreadPage)
-                {
-                    layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
-                    return true;
                 }
             }
         }

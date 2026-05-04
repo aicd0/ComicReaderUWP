@@ -34,6 +34,7 @@ internal class ReaderSettingsModel
     public ImageRotationEnum ImageRotation { get; set; } = ImageRotationEnum.None;
     public bool ImageFlip { get; set; } = false;
     public bool ImageInvert { get; set; } = false;
+    public bool AntiAliasingFilter { get; set; } = false;
 
     public bool IsContinuous
     {
@@ -87,7 +88,8 @@ internal class ReaderSettingsModel
             AutoScrollSpeed == other.AutoScrollSpeed &&
             ImageRotation == other.ImageRotation &&
             ImageFlip == other.ImageFlip &&
-            ImageInvert == other.ImageInvert;
+            ImageInvert == other.ImageInvert &&
+            AntiAliasingFilter == other.AntiAliasingFilter;
     }
 
     public override int GetHashCode()
@@ -107,6 +109,7 @@ internal class ReaderSettingsModel
         hash.Add(ImageRotation);
         hash.Add(ImageFlip);
         hash.Add(ImageInvert);
+        hash.Add(AntiAliasingFilter);
         return hash.ToHashCode();
     }
 
@@ -144,6 +147,7 @@ internal class ReaderSettingsModel
             },
             ImageFlip = ImageFlip,
             ImageInvert = ImageInvert,
+            AntiAliasingFilter = AntiAliasingFilter,
         };
     }
 
@@ -195,6 +199,7 @@ internal class ReaderSettingsModel
             },
             ImageFlip = model.ImageFlip ?? defaultModel.ImageFlip,
             ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
+            AntiAliasingFilter = model.AntiAliasingFilter ?? defaultModel.AntiAliasingFilter,
         };
     }
 
@@ -305,6 +310,9 @@ internal class ReaderSettingsModel
 
         [JsonPropertyName("ImageInvert")]
         public bool? ImageInvert { get; set; }
+
+        [JsonPropertyName("AntiAliasingFilter")]
+        public bool? AntiAliasingFilter { get; set; }
 
         //
         // Legacy fields
