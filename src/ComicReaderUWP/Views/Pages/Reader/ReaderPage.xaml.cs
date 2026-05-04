@@ -778,7 +778,7 @@ internal sealed partial class ReaderPage : BasePage
         int currentPage = reader.CurrentPageDiscrete;
         int percentage = reader.CurrentPagePercentage;
         ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
-        ViewModel.SecondaryPageIndicatorText = $"({percentage}%)";
+        ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
 
         // Use different order to prevent unwanted change events
         if (PlaybackSlider.Maximum > currentPage)
@@ -926,13 +926,7 @@ internal sealed partial class ReaderPage : BasePage
     {
         PointerPoint pt = e.GetCurrentPoint(null);
         int delta = -pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
-        int page = MainReaderView.CurrentPageDiscrete + delta;
-        if (page <= 0 || page > MainReaderView.PageCount)
-        {
-            return;
-        }
-
-        MainReaderView.SetCurrentPage(page);
+        MainReaderView.MoveFrame(delta);
     }
 
     private void Reader_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
