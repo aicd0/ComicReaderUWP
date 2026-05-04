@@ -155,17 +155,19 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
             if (!isLastPage)
             {
-                if (!TryCheckSpreadPage(page + 1, out isSpreadPage) && !requireCompletion)
+                if (TryCheckSpreadPage(page + 1, out isSpreadPage))
+                {
+                    if (isSpreadPage)
+                    {
+                        layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
+                        return true;
+                    }
+                }
+                else if (!requireCompletion)
                 {
                     // Next page is not ready, cannot determine the layout of the current page
                     layout = null;
                     return false;
-                }
-
-                if (isSpreadPage)
-                {
-                    layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
-                    return true;
                 }
             }
         }
