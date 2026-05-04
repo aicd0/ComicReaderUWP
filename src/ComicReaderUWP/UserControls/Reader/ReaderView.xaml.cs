@@ -233,6 +233,11 @@ internal partial class ReaderView : UserControl
         Reload(_originalDataModel);
     }
 
+    public void MoveFrame(int increment)
+    {
+        MoveFrameByUser("MoveFrameAPI", increment);
+    }
+
     public void SetIsVertical(bool isVertical)
     {
         if (isVertical == _isVertical)
