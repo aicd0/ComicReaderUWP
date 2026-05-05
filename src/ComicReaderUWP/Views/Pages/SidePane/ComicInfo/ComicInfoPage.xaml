@@ -95,30 +95,48 @@
                             </InlineUIContainer>
                         </Paragraph>
                     </RichTextBlock>
-                    <!--  Image description  -->
-                    <TextBlock
-                        Margin="0,6,0,0"
-                        FontSize="13"
-                        FontWeight="SemiLight"
-                        IsTextSelectionEnabled="True"
-                        Text="{x:Bind ViewModel.ImageDescription, Mode=OneWay}"
-                        TextWrapping="Wrap"
-                        Visibility="{x:Bind ViewModel.ImageDescription, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
-                    <Rectangle
-                        Height="1"
-                        Margin="0,20"
-                        Fill="{ThemeResource ComicInfoSeparatorForeground}"
-                        Visibility="{x:Bind ViewModel.HasAnyTags, Mode=OneWay}" />
-                    <!--  Tags  -->
+                    <!--  Image descriptions  -->
                     <ListView
-                        Margin="0,0,0,0"
-                        ItemsSource="{x:Bind ViewModel.ComicTags}"
+                        Margin="0"
+                        Padding="0"
+                        ItemsSource="{x:Bind ViewModel.ImageDescriptions}"
                         SelectionMode="None">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                                 <Setter Property="VerticalContentAlignment" Value="Stretch" />
                                 <Setter Property="Padding" Value="0" />
+                                <Setter Property="MinHeight" Value="0" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemContainerTransitions>
+                            <TransitionCollection />
+                        </ListView.ItemContainerTransitions>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock
+                                    Margin="0,8,0,0"
+                                    FontSize="13"
+                                    FontWeight="SemiLight"
+                                    IsTextSelectionEnabled="True"
+                                    Text="{x:Bind}"
+                                    TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                    <Rectangle
+                        Height="1"
+                        Margin="0,20"
+                        Fill="{ThemeResource ComicInfoSeparatorForeground}"
+                        Visibility="{x:Bind ViewModel.HasAnyTags, Mode=OneWay}" />
+                    <!--  Tags  -->
+                    <ListView ItemsSource="{x:Bind ViewModel.ComicTags}" SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="MinHeight" Value="0" />
                             </Style>
                         </ListView.ItemContainerStyle>
                         <ListView.ItemTemplate>

@@ -99,17 +99,6 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _imageDescription = string.Empty;
-    public string ImageDescription
-    {
-        get => _imageDescription;
-        set
-        {
-            _imageDescription = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageDescription)));
-        }
-    }
-
     private bool _hasAnyTags = false;
     public bool HasAnyTags
     {
@@ -125,6 +114,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
     public PlaylistModel Playlist { get; private set; } = PlaylistModel.CreateEmpty();
     public bool IsComicTitle2Visible => ComicTitle2.Length > 0;
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
+    public ObservableCollection<string> ImageDescriptions { get; } = [];
 
     public readonly MutableLiveData<string> ComicDescriptionLiveData = new();
     public readonly MutableLiveData<bool> IsExternalComicLiveData = new(true);
@@ -133,7 +123,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private ComicModel? _comic;
-    private int _pageIndex = -1;
+    private readonly HashSet<int> _pageIndices = [];
 
     public void Initialize(ActionHandler actionHandler)
     {
@@ -148,19 +138,24 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         }
 
         _comic = comic;
-        _pageIndex = -1;
+        _pageIndices.Clear();
         LoadComicInfo();
         CoroutineUtils.Run(UpdateImageDescription);
     }
 
-    public void SetPageIndex(int pageIndex)
+    public void SetPageIndices(ISet<int> pageIndices)
     {
-        if (_pageIndex == pageIndex)
+        if (_pageIndices.SetEquals(pageIndices))
         {
             return;
         }
 
-        _pageIndex = pageIndex;
+        _pageIndices.Clear();
+        foreach (int i in pageIndices)
+        {
+            _pageIndices.Add(i);
+        }
+
         CoroutineUtils.Run(UpdateImageDescription);
     }
 
@@ -414,15 +409,12 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
     {
         void ClearDescription()
         {
-            CoroutineUtils.RunInMainThread(() =>
-            {
-                ImageDescription = string.Empty;
-            });
+            CoroutineUtils.RunInMainThread(ImageDescriptions.Clear);
         }
 
         ComicModel? comic = _comic;
-        int pageIndex = _pageIndex;
-        if (comic is null || pageIndex < 0)
+        List<int> pageIndices = [.. _pageIndices];
+        if (comic is null || pageIndices.Count == 0)
         {
             ClearDescription();
             return;
@@ -438,29 +430,34 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             }
 
             int imageCount = comicConnection.GetImageCount();
-            if (pageIndex >= imageCount)
+            pageIndices.RemoveAll(i => i < 0 || i >= imageCount);
+            if (pageIndices.Count == 0)
             {
                 ClearDescription();
                 return;
             }
 
-            string imageName = comicConnection.GetImageName(pageIndex);
-            var imageSource = new ComicImageSource(comicConnection, pageIndex);
-            ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(imageSource);
-            StringBuilder imageDescriptionSb = new();
+            pageIndices.Sort();
 
-            if (!string.IsNullOrEmpty(imageName))
+            List<string> imageDescriptions = [];
+            foreach (int pageIndex in pageIndices)
             {
-                imageDescriptionSb.Append(imageName);
-            }
+                string imageName = comicConnection.GetImageName(pageIndex);
+                var imageSource = new ComicImageSource(comicConnection, pageIndex);
+                ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(imageSource);
 
-            if (imageMeta is not null)
-            {
-                if (imageDescriptionSb.Length > 0)
+                if (imageMeta is null)
                 {
-                    imageDescriptionSb.Append('\n');
+                    continue;
                 }
 
+                StringBuilder imageDescriptionSb = new();
+                if (string.IsNullOrEmpty(imageName))
+                {
+                    imageName = StringResourceProvider.Instance.PageN.Replace("$page", (pageIndex + 1).ToString());
+                }
+
+                imageDescriptionSb.Append(imageName).Append('\n');
                 imageDescriptionSb.Append(imageMeta.Format);
                 imageDescriptionSb.Append(' ').Append(imageMeta.Width).Append(" x ").Append(imageMeta.Height);
                 imageDescriptionSb.Append(' ').Append(FormatBytes(imageMeta.Size));
@@ -471,12 +468,22 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
                 }
 
                 imageDescriptionSb.Append(' ').Append(imageMeta.BitsPerPixel).Append(" bits");
+                imageDescriptions.Add(imageDescriptionSb.ToString());
             }
 
-            string imageDescription = imageDescriptionSb.ToString();
+            if (imageDescriptions.Count == 0)
+            {
+                ClearDescription();
+                return;
+            }
+
             CoroutineUtils.RunInMainThread(() =>
             {
-                ImageDescription = imageDescription;
+                ImageDescriptions.Clear();
+                foreach (string imageDescription in imageDescriptions)
+                {
+                    ImageDescriptions.Add(imageDescription);
+                }
             });
         });
     }

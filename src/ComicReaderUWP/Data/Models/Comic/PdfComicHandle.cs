@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Legacy;
-using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Common.Pdf;
 using ComicReaderUWP.SDK.Common.Utils;
@@ -148,7 +147,7 @@ internal partial class PdfComicHandle : ComicHandle
 
         public string GetImageName(int index)
         {
-            return StringResourceProvider.Instance.PageN.Replace("$page", (index + 1).ToString());
+            return string.Empty;
         }
 
         public string GetImageCacheKey(int index)

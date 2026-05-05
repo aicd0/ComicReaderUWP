@@ -68,7 +68,7 @@ internal sealed partial class ComicInfoPage : BasePage
         GetEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).ObserveSticky(this, args =>
         {
             ViewModel.SetComic(args.Comic);
-            ViewModel.SetPageIndex(args.PageIndex);
+            ViewModel.SetPageIndices(args.PageIndices);
             ViewModel.SetPlaylist(args.Playlist);
         });
 
