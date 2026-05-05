@@ -323,9 +323,8 @@ internal sealed partial class ReaderPage : BasePage
             {
                 SaveProgress();
                 AddToActiveTabs();
+                SyncCurrentComic();
             }
-
-            SyncCurrentComic();
         };
 
         MainReaderView.ReaderEventReaderStateChanged += (sender, state, description) =>
@@ -1002,7 +1001,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             Comic = comic,
             Playlist = ViewModel.Playlist,
-            PageIndex = MainReaderView.CurrentPageDiscrete - 1,
+            PageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount),
         };
         GetEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
     }
@@ -1056,6 +1055,25 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         ActiveTabs = copy;
+    }
+
+    private static HashSet<int> GetPageIndicesFromPage(double page, int pageCount)
+    {
+        HashSet<int> indices = [];
+        int floor = (int)Math.Floor(page);
+        int ceiling = (int)Math.Ceiling(page);
+
+        if (floor > 0 && floor <= pageCount && page - floor <= 0.75)
+        {
+            indices.Add(floor - 1);
+        }
+
+        if (ceiling != floor && ceiling > 0 && ceiling <= pageCount && ceiling - page <= 0.75)
+        {
+            indices.Add(ceiling - 1);
+        }
+
+        return indices;
     }
 
     private static long GetTick()
