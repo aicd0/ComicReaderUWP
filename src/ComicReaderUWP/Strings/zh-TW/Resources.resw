@@ -242,7 +242,6 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>以下 $count 本漫畫將永久從你的庫中移除：
-（你可以在設定中停用此警告）
 $comics</value>
   </data>
   <data name="CompletionState" xml:space="preserve">
@@ -388,9 +387,7 @@ $comics</value>
     <value>或</value>
   </data>
   <data name="ExpressionReference" xml:space="preserve">
-    <value>（本文檔可能為機器翻譯）
-
-表達式參考
+    <value>表達式參考
 
 1. 變數
 
@@ -902,9 +899,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
 類別2: 標籤4, 標籤5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
-    <value>（本文檔可能由機器翻譯）
-
-特殊變數：
+    <value>特殊變數：
 
 {%tag}          - 替換為轉義標籤名稱
 {%tag_category} - 替換為轉義標籤類別</value>
@@ -956,7 +951,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
     <value>以下資訊將有助於開發者定位錯誤原因。
-=================================
+====================================================
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

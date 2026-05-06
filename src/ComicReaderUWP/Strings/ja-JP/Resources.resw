@@ -242,7 +242,6 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>以下の $count 件のコミックがライブラリから完全に削除されます：
-（この警告は設定で無効にできます）
 $comics</value>
   </data>
   <data name="CompletionState" xml:space="preserve">
@@ -388,9 +387,7 @@ $comics</value>
     <value>または</value>
   </data>
   <data name="ExpressionReference" xml:space="preserve">
-    <value>(このドキュメントは機械翻訳されている可能性があります)
-
-式リファレンス
+    <value>式リファレンス
 
 1. 変数
 
@@ -902,9 +899,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
 カテゴリー2: タグ4, タグ5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
-    <value>（このドキュメントは機械翻訳されている場合があります）
-
-特殊変数：
+    <value>特殊変数：
 
 {%tag}          - エスケープされたタグ名に置換
 {%tag_category} - エスケープされたタグカテゴリに置換</value>
@@ -956,7 +951,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
     <value>以下の情報は、開発者がエラーの原因を特定するのに役立ちます。
-===============================
+====================================================
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

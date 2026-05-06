@@ -242,7 +242,6 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>다음 $count개의 만화가 라이브러리에서 영구적으로 삭제됩니다:
-(이 경고는 설정에서 비활성화할 수 있습니다)
 $comics</value>
   </data>
   <data name="CompletionState" xml:space="preserve">
@@ -388,9 +387,7 @@ $comics</value>
     <value>또는</value>
   </data>
   <data name="ExpressionReference" xml:space="preserve">
-    <value>(이 문서는 기계 번역되었을 수 있습니다.)
-
-표현식 참조
+    <value>표현식 참조
 
 1. 변수
 
@@ -903,9 +900,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
 카테고리2: 태그4, 태그5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
-    <value>(이 문서는 기계 번역될 수 있습니다.)
-
-특수 변수:
+    <value>특수 변수:
 
 {%tag}            - 이스케이프된 태그 이름으로 대체됨
 {%tag_category}   - 이스케이프된 태그 범주로 대체됨</value>
@@ -957,7 +952,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
     <value>다음 정보는 개발자가 오류의 원인을 찾는 데 도움이 됩니다.
-=============================
+====================================================
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

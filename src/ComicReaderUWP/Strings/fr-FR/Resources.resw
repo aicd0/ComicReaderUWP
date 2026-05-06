@@ -242,7 +242,6 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>Les $count bandes dessinées suivantes seront définitivement supprimées de votre bibliothèque :
-(Vous pouvez désactiver cet avertissement dans les paramètres)
 $comics</value>
   </data>
   <data name="CompletionState" xml:space="preserve">
@@ -388,9 +387,7 @@ Catégorie :: Tag1, Tag2    - Remplacez « Catégorie » par « Tag1 » et « Ta
     <value>Ou</value>
   </data>
   <data name="ExpressionReference" xml:space="preserve">
-    <value>(Ce document peut être traduit automatiquement)
-
-Référence des expressions
+    <value>Référence des expressions
 
 1. Variables
 
@@ -902,9 +899,7 @@ Catégorie 1 : Étiquette 1, Étiquette 2, Étiquette 3
 Catégorie 2 : Étiquette 4, Étiquette 5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
-    <value>(Ce document peut être traduit automatiquement.)
-
-Variables spéciales :
+    <value>Variables spéciales :
 
 {%tag}          - Remplacé par le nom de la balise échappée
 {%tag_category} - Remplacé par la catégorie de la balise échappée</value>
@@ -956,7 +951,7 @@ Variables spéciales :
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
     <value>Les informations suivantes aideront les développeurs à identifier la cause de l'erreur.
-==============================
+====================================================
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

@@ -242,7 +242,6 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>Следующие $count комиксов будут безвозвратно удалены из вашей библиотеки:
-(Вы можете отключить это предупреждение в настройках)
 $comics</value>
   </data>
   <data name="CompletionState" xml:space="preserve">
@@ -388,9 +387,7 @@ $comics</value>
     <value>Или</value>
   </data>
   <data name="ExpressionReference" xml:space="preserve">
-    <value>(Этот документ может быть переведен с помощью машины)
-
-Справочник по выражениям
+    <value>Справочник по выражениям
 
 1. Переменные
 
@@ -903,9 +900,7 @@ NOT                      - Логическое не. Например: NOT %tag
 Категория2: Тег4, Тег5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
-    <value>(Этот документ может быть переведен автоматически)
-
-Специальные переменные:
+    <value>Специальные переменные:
 
 {%tag}          — Заменено на экранированное имя тега
 {%tag_category} — Заменено на экранированную категорию тега</value>
@@ -957,7 +952,7 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
     <value>Следующая информация поможет разработчикам определить причину ошибки.
-==============================
+====================================================
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">
