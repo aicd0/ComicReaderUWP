@@ -111,15 +111,15 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         size += GetCacheDirectorySize(StorageLocation.LocalCacheFolderPath);
         size += GetCacheDirectorySize(StorageLocation.TemporaryFolderPath);
 
-        string[] sizes = ["B", "KB", "MB", "GB", "TB"];
-        int order = 0;
-        while (size >= 1024 && order < sizes.Length - 1)
+        string[] units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"];
+        if (size < 1024)
         {
-            order++;
-            size /= 1024;
+            return $"{size} B";
         }
 
-        return string.Format("{0:0.##} {1}", size, sizes[order]);
+        int unitIndex = (int)Math.Floor(Math.Log(size, 1024));
+        double adjustedSize = size / Math.Pow(1024, unitIndex);
+        return $"{adjustedSize:0.#} {units[unitIndex]}";
     }
 
     private static void ClearCacheInternal()
