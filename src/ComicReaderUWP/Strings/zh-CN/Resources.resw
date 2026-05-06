@@ -242,7 +242,6 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>以下 $count 本漫画将被永久从你的库中移除：
-（你可以在设置中禁用此警告）
 $comics</value>
   </data>
   <data name="CompletionState" xml:space="preserve">
@@ -388,9 +387,7 @@ $comics</value>
     <value>或</value>
   </data>
   <data name="ExpressionReference" xml:space="preserve">
-    <value>（本文档可能为机器翻译）
-
-表达式参考
+    <value>表达式参考
 
 1. 变量
 
@@ -902,9 +899,7 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
 类别2: 标签4, 标签5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
-    <value>（本文档可能由机器翻译）
-
-特殊变量：
+    <value>特殊变量：
 
 {%tag}          - 替换为转义标签名称
 {%tag_category} - 替换为转义标签类别</value>
@@ -956,7 +951,7 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
     <value>以下信息将有助于开发者定位错误原因。
-===============================
+====================================================
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

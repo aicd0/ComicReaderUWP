@@ -242,7 +242,6 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>The following $count comics will be permanently removed from your library:
-(You can disable this warning in settings)
 $comics</value>
   </data>
   <data name="CompletionState" xml:space="preserve">
@@ -388,9 +387,7 @@ Category:: Tag1, Tag2    - Overwrite "Category" with "Tag1" and "Tag2".</value>
     <value>Or</value>
   </data>
   <data name="ExpressionReference" xml:space="preserve">
-    <value>(This document might be machine translated)
-
-Expression Reference
+    <value>Expression Reference
 
 1. Variables
 
@@ -904,9 +901,7 @@ Category1: Tag1, Tag2, Tag3
 Category2: Tag4, Tag5</value>
   </data>
   <data name="TagLinkTip" xml:space="preserve">
-    <value>(This document may be machine translated)
-
-Special variables:
+    <value>Special variables:
 
 {%tag}           - Replaced with escaped tag name
 {%tag_category}  - Replaced with escaped tag category</value>
@@ -958,7 +953,7 @@ Special variables:
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
     <value>The following information will help developers locate the cause of the error.
-==============================
+====================================================
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">
