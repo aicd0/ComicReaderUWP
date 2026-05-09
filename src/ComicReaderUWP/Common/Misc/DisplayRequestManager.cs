@@ -11,17 +11,18 @@ internal static class DisplayRequestManager
 {
     private const string TAG = nameof(DisplayRequestManager);
 
+    private static readonly object _lock = new();
     private static DisplayRequest? _displayRequest;
     private static int _keepScreenOnCounter = 0;
 
     public static void IncrememtKeepScreenOn()
     {
-        DisplayRequest displayRequest = GetDisplayRequest();
-        lock (displayRequest)
+        lock (_lock)
         {
             _keepScreenOnCounter++;
             if (_keepScreenOnCounter == 1)
             {
+                DisplayRequest displayRequest = GetDisplayRequestNoLock();
                 displayRequest.RequestActive();
                 Logger.I(TAG, "RequestActive");
             }
@@ -30,24 +31,25 @@ internal static class DisplayRequestManager
 
     public static void DecrememtKeepScreenOn()
     {
-        DisplayRequest displayRequest = GetDisplayRequest();
-        lock (displayRequest)
+        lock (_lock)
         {
             if (_keepScreenOnCounter == 0)
             {
+                Logger.F(TAG, "Decrement operation must be preceded by an increment operation");
                 return;
             }
 
             _keepScreenOnCounter--;
             if (_keepScreenOnCounter == 0)
             {
+                DisplayRequest displayRequest = GetDisplayRequestNoLock();
                 displayRequest.RequestRelease();
                 Logger.I(TAG, "RequestRelease");
             }
         }
     }
 
-    private static DisplayRequest GetDisplayRequest()
+    private static DisplayRequest GetDisplayRequestNoLock()
     {
         DisplayRequest? displayRequest = _displayRequest;
         if (displayRequest is null)

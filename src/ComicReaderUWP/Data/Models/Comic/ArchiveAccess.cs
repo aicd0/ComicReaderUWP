@@ -68,9 +68,13 @@ public class ArchiveAccess
                 {
                     stream.CopyTo(memStream);
                 }
-                catch (IOException e)
+                catch (SharpCompress.Compressors.Deflate.ZlibException e)
                 {
-                    // Stream was too long.
+                    Logger.E(TAG, e);
+                    return;
+                }
+                catch (Exception e)
+                {
                     Logger.F(TAG, e);
                     return;
                 }

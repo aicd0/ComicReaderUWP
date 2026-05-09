@@ -244,9 +244,9 @@ public static class SpreadDetectionHelper
         public void Add(float aspectRatio)
         {
             _aspectRatiosCount++;
-            if (_aspectRatios.TryGetValue(aspectRatio, out int appearingTimes))
+            if (_aspectRatios.TryGetValue(aspectRatio, out int count))
             {
-                _aspectRatios[aspectRatio] = appearingTimes + 1;
+                _aspectRatios[aspectRatio] = count + 1;
             }
             else
             {
@@ -269,22 +269,18 @@ public static class SpreadDetectionHelper
 
             float previous = -1F;
             float threshold = -1F;
-            int accumulatedCount = 0;
             foreach (KeyValuePair<float, int> kvp in _aspectRatios)
             {
                 float current = kvp.Key;
-                int count = kvp.Value;
 
                 if (previous >= MIN_ASPECT_RATIO &&
                     current >= MIN_ASPECT_RATIO &&
-                    current / previous >= 1.5F &&
-                    (float)accumulatedCount / Count > 0.5F)
+                    current / previous >= 1.5F)
                 {
                     threshold = (previous + current) * 0.5F;
                     break;
                 }
 
-                accumulatedCount += count;
                 previous = current;
             }
 
