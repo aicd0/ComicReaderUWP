@@ -133,7 +133,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         bool isLastPage = page == PageCount;
         bool requireCompletion = AddedPageCount == PageCount;
 
-        if (SpreadDetection)
+        if (SpreadDetection && previousPageLayout is not null)
         {
             if (_samples.Count <= 6 && !requireCompletion)
             {
