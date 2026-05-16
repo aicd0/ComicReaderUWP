@@ -88,15 +88,16 @@
                     </muxc:ItemsRepeater.Layout>
                 </muxc:ItemsRepeater>
             </StackPanel>
-            <CheckBox
-                Grid.Row="5"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Margin="0,16,0,0"
-                Click="SaveViewConfigCheckBox_Click"
-                Content="{x:Bind StringResource.SaveViewConfig}"
-                IsChecked="{x:Bind ViewModel.SaveViewConfig, Mode=OneWay}" />
         </Grid>
+        <CheckBox
+            Margin="0,16,0,0"
+            Click="SaveViewSettingsCheckBox_Click"
+            Content="{x:Bind StringResource.SaveViewSettings}"
+            IsChecked="{x:Bind ViewModel.SaveViewSettings, Mode=OneWay}" />
+        <CheckBox
+            Click="SaveSortingAndGroupingSettingsCheckBox_Click"
+            Content="{x:Bind StringResource.SaveSortingAndGroupingSettings}"
+            IsChecked="{x:Bind ViewModel.SaveSortingAndGroupingSettings, Mode=OneWay}" />
         <Grid Margin="0,16,0,0" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
