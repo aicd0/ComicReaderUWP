@@ -1,7 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
@@ -46,54 +48,6 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         Write(model.To);
         Save();
         GlobalEvent.Instance.FilterUpdated.Emit(0);
-    }
-
-    public class JsonModel
-    {
-        [JsonPropertyName("LastFilter")]
-        public FilterModel? LastFilter { get; set; }
-
-        [JsonPropertyName("Filters")]
-        public List<FilterModel?>? Filters { get; set; }
-    }
-
-    public class FilterModel
-    {
-        [JsonPropertyName("Name")]
-        public string? Name { get; set; }
-
-        [JsonPropertyName("Modified")]
-        public bool? Modified { get; set; }
-
-        [JsonPropertyName("SortBy")]
-        public JsonNode? SortBy { get; set; }
-
-        [JsonPropertyName("ComicOrderMethod")]
-        public string? ComicOrderMethod { get; set; }
-
-        [JsonPropertyName("GroupBy")]
-        public JsonNode? GroupBy { get; set; }
-
-        [JsonPropertyName("GroupOrderMethod")]
-        public string? GroupOrderMethod { get; set; }
-
-        [JsonPropertyName("GroupSortingFunction")]
-        public string? GroupSortingFunction { get; set; }
-
-        [JsonPropertyName("GroupSortingProperty")]
-        public JsonNode? GroupSortingProperty { get; set; }
-
-        [JsonPropertyName("ViewType")]
-        public string? ViewType { get; set; }
-
-        [JsonPropertyName("SaveViewConfig")]
-        public bool? SaveViewSettings { get; set; }
-
-        [JsonPropertyName("SaveSortingAndGroupingSettings")]
-        public bool? SaveSortingAndGroupingSettings { get; set; }
-
-        [JsonPropertyName("Expression")]
-        public string? Expression { get; set; }
     }
 
     public class ExternalModel
@@ -145,6 +99,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         public OrderMethodEnum GroupOrderMethod { get; set; } = OrderMethodEnum.Ascending;
         public FunctionTypeEnum GroupSortingFunction { get; set; } = FunctionTypeEnum.None;
         public ComicPropertyModel? GroupSortingProperty { get; set; } = null;
+        public IReadOnlySet<string> CollapsedGroups { get; set; } = FrozenSet<string>.Empty;
         public ViewTypeEnum ViewType { get; set; } = ViewTypeEnum.Large;
         public bool SaveViewSettings { get; set; } = false;
         public bool SaveSortingAndGroupingSettings { get; set; } = true;
@@ -169,6 +124,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 GroupOrderMethod = OrderMethodToString(GroupOrderMethod),
                 GroupSortingFunction = FunctionTypeToString(GroupSortingFunction),
                 GroupSortingProperty = GroupSortingProperty?.ToJson(),
+                CollapsedGroups = [.. CollapsedGroups],
                 ViewType = ViewTypeToString(ViewType),
                 SaveViewSettings = SaveViewSettings,
                 SaveSortingAndGroupingSettings = SaveSortingAndGroupingSettings,
@@ -194,6 +150,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 GroupSortingFunction = string.IsNullOrEmpty(model.GroupSortingFunction) ?
                     defaultModel.GroupSortingFunction : StringToFunctionType(model.GroupSortingFunction),
                 GroupSortingProperty = ComicPropertyModel.FromJson(model.GroupSortingProperty),
+                CollapsedGroups = (model.CollapsedGroups ?? []).Where(x => !string.IsNullOrEmpty(x)).Select(x => x!).ToFrozenSet(),
                 ViewType = string.IsNullOrEmpty(model.ViewType) ?
                     defaultModel.ViewType : StringToViewType(model.ViewType),
                 SaveViewSettings = model.SaveViewSettings ?? defaultModel.SaveViewSettings,
@@ -306,5 +263,56 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         Min,
         Sum,
         Average,
+    }
+
+    public class JsonModel
+    {
+        [JsonPropertyName("LastFilter")]
+        public FilterModel? LastFilter { get; set; }
+
+        [JsonPropertyName("Filters")]
+        public List<FilterModel?>? Filters { get; set; }
+    }
+
+    public class FilterModel
+    {
+        [JsonPropertyName("Name")]
+        public string? Name { get; set; }
+
+        [JsonPropertyName("Modified")]
+        public bool? Modified { get; set; }
+
+        [JsonPropertyName("SortBy")]
+        public JsonNode? SortBy { get; set; }
+
+        [JsonPropertyName("ComicOrderMethod")]
+        public string? ComicOrderMethod { get; set; }
+
+        [JsonPropertyName("GroupBy")]
+        public JsonNode? GroupBy { get; set; }
+
+        [JsonPropertyName("GroupOrderMethod")]
+        public string? GroupOrderMethod { get; set; }
+
+        [JsonPropertyName("GroupSortingFunction")]
+        public string? GroupSortingFunction { get; set; }
+
+        [JsonPropertyName("GroupSortingProperty")]
+        public JsonNode? GroupSortingProperty { get; set; }
+
+        [JsonPropertyName("CollapsedGroups")]
+        public List<string?>? CollapsedGroups { get; set; }
+
+        [JsonPropertyName("ViewType")]
+        public string? ViewType { get; set; }
+
+        [JsonPropertyName("SaveViewConfig")]
+        public bool? SaveViewSettings { get; set; }
+
+        [JsonPropertyName("SaveSortingAndGroupingSettings")]
+        public bool? SaveSortingAndGroupingSettings { get; set; }
+
+        [JsonPropertyName("Expression")]
+        public string? Expression { get; set; }
     }
 }

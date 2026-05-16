@@ -501,6 +501,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 filter.GroupOrderMethod = lastFilter.GroupOrderMethod;
                 filter.GroupSortingFunction = lastFilter.GroupSortingFunction;
                 filter.GroupSortingProperty = lastFilter.GroupSortingProperty;
+                filter.CollapsedGroups = lastFilter.CollapsedGroups;
             }
         }
 
