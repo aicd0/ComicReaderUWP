@@ -372,15 +372,45 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     public void CollapseOrExpandGroup(ComicGroupViewModel groupModel)
     {
-        groupModel.Collapsed = !groupModel.Collapsed;
+        bool collapsed = !groupModel.Collapsed;
+        groupModel.Collapsed = collapsed;
+
+        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
+        if (filter is not null)
+        {
+            var collapsedGroups = filter.CollapsedGroups.ToHashSet();
+            if (collapsed)
+            {
+                collapsedGroups.Add(groupModel.GroupName);
+            }
+            else
+            {
+                collapsedGroups.Remove(groupModel.GroupName);
+            }
+
+            filter.CollapsedGroups = collapsedGroups;
+            filter.Modified = filter.SaveSortingAndGroupingSettings;
+            UpdateLastFilter(filter);
+        }
+
         UpdateCollapseExpandGroupButtonStates();
     }
 
     public void CollapseAllGroups()
     {
+        HashSet<string> collapsedGroups = _filterModel?.CollapsedGroups.ToHashSet() ?? [];
         foreach (ComicGroupViewModel group in GroupedComicItems)
         {
             group.Collapsed = true;
+            collapsedGroups.Add(group.GroupName);
+        }
+
+        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
+        if (filter is not null)
+        {
+            filter.CollapsedGroups = collapsedGroups;
+            filter.Modified = filter.SaveSortingAndGroupingSettings;
+            UpdateLastFilter(filter);
         }
 
         UpdateCollapseExpandGroupButtonStates();
@@ -388,43 +418,40 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     public void ExpandAllGroups()
     {
+        HashSet<string> collapsedGroups = _filterModel?.CollapsedGroups.ToHashSet() ?? [];
         foreach (ComicGroupViewModel group in GroupedComicItems)
         {
             group.Collapsed = false;
+            collapsedGroups.Remove(group.GroupName);
+        }
+
+        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
+        if (filter is not null)
+        {
+            filter.CollapsedGroups = collapsedGroups;
+            filter.Modified = filter.SaveSortingAndGroupingSettings;
+            UpdateLastFilter(filter);
         }
 
         UpdateCollapseExpandGroupButtonStates();
     }
 
     //
-    // Click handlers
+    // Filters
     //
 
     private void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
     {
         _sharedDispatcher.Submit("SelectViewType", delegate
         {
-            bool modified = false;
             ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
             if (filter.ViewType != viewType)
             {
-                modified = filter.SaveViewSettings;
                 filter.ViewType = viewType;
+                filter.Modified = filter.SaveViewSettings;
             }
 
-            if (modified)
-            {
-                filter.Modified = true;
-                ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
-                if (filterSettings is not null)
-                {
-                    filterSettings.LastFilter = filter.Clone();
-                    ComicFilterModel.Instance.UpdateModel(filterSettings);
-                }
-
-                UpdateUrl();
-            }
-
+            UpdateLastFilter(filter);
             ScheduleUpdateFilters(false);
         });
     }
@@ -434,22 +461,22 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit("SelectSortOrGroup", delegate
         {
             ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
-            bool modified = handler(filter) && filter.SaveSortingAndGroupingSettings;
-            if (modified)
-            {
-                filter.Modified = true;
-                ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
-                if (filterSettings is not null)
-                {
-                    filterSettings.LastFilter = filter.Clone();
-                    ComicFilterModel.Instance.UpdateModel(filterSettings);
-                }
-
-                UpdateUrl();
-            }
-
+            filter.Modified = handler(filter) && filter.SaveSortingAndGroupingSettings;
+            UpdateLastFilter(filter);
             ScheduleUpdateFilters(false);
         });
+    }
+
+    private void UpdateLastFilter(ComicFilterModel.ExternalFilterModel filter)
+    {
+        ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
+        if (filterSettings is not null)
+        {
+            filterSettings.LastFilter = filter.Clone();
+            ComicFilterModel.Instance.UpdateModel(filterSettings);
+        }
+
+        UpdateUrl();
     }
 
     private void SelectFilterPreset(string? name)
@@ -864,7 +891,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             ComicPropertyModel sortBy = filter.SortBy;
             ComicPropertyModel? groupBy = filter.GroupBy;
 
-            if (groupBy != null)
+            if (groupBy is not null)
             {
                 List<ComicPropertyModel.GroupItem<ComicModel>> groups = groupBy.GroupComics(comics, x => x,
                     filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty);
@@ -875,7 +902,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     List<ComicModel> sorted = SortComicsByProerty(group.Items, sortBy, filter.ComicOrderMethod);
                     playlist.AddComics(sorted);
                     List<ComicItemViewModel> items = [.. sorted.Select(x => ComicToViewModel(x, playlist))];
-                    var groupViewModel = new ComicGroupViewModel(group.Name, items, false)
+                    var groupViewModel = new ComicGroupViewModel(group.Name, items, filter.CollapsedGroups.Contains(group.Name))
                     {
                         Description = group.Description,
                     };
@@ -906,6 +933,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 // stack trace indicates that it relates to a MAUI collection component (likely GridView).
                 DiffUtils.UpdateCollection(GroupedComicItems, comicsGrouped, (x, y) => x.GroupName == y.GroupName, (x, y) =>
                 {
+                    x.Collapsed = y.Collapsed;
                     x.Description = y.Description;
                     x.UpdateItems(y.Items, ComicComparer, ComicUpdater);
                 }, disableME: true);

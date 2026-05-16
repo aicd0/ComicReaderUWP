@@ -47,6 +47,11 @@ internal partial class SimpleGroupViewModel<T> : INotifyPropertyChanged
         get => _collaped;
         set
         {
+            if (value == _collaped)
+            {
+                return;
+            }
+
             _collaped = value;
             NotifyPropertyChanged(nameof(Collapsed));
 
