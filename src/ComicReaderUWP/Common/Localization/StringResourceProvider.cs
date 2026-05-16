@@ -182,7 +182,8 @@ public class StringResourceProvider
     public string SafeModeMessage => GetResourceString("SafeModeMessage");
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");
-    public string SaveViewConfig => GetResourceString("SaveViewConfig");
+    public string SaveSortingAndGroupingSettings => GetResourceString("SaveSortingAndGroupingSettings");
+    public string SaveViewSettings => GetResourceString("SaveViewSettings");
     public string ScanOnLaunch => GetResourceString("ScanOnLaunch");
     public string Search => GetResourceString("Search");
     public string SearchResults => GetResourceString("SearchResults");

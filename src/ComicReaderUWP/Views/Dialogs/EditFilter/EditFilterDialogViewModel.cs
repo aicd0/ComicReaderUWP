@@ -51,16 +51,30 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _saveViewConfig = false;
-    public bool SaveViewConfig
+    private bool _saveViewSettings = false;
+    public bool SaveViewSettings
     {
-        get => _saveViewConfig;
+        get => _saveViewSettings;
         set
         {
-            if (_saveViewConfig != value)
+            if (_saveViewSettings != value)
             {
-                _saveViewConfig = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveViewConfig)));
+                _saveViewSettings = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveViewSettings)));
+            }
+        }
+    }
+
+    private bool _saveSortingAndGroupingSettings = true;
+    public bool SaveSortingAndGroupingSettings
+    {
+        get => _saveSortingAndGroupingSettings;
+        set
+        {
+            if (_saveSortingAndGroupingSettings != value)
+            {
+                _saveSortingAndGroupingSettings = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveSortingAndGroupingSettings)));
             }
         }
     }
@@ -139,9 +153,9 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         UpdateButtonStates();
     }
 
-    public void SetSaveViewConfig(bool save)
+    public void SetSaveViewSettings(bool save)
     {
-        _saveViewConfig = save;
+        _saveViewSettings = save;
 
         ComicFilterModel.ExternalFilterModel? filter = _filter;
         if (filter == null)
@@ -149,7 +163,20 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             return;
         }
 
-        filter.SaveViewConfig = save;
+        filter.SaveViewSettings = save;
+    }
+
+    public void SetSaveSortingAndGroupingSettings(bool save)
+    {
+        _saveSortingAndGroupingSettings = save;
+
+        ComicFilterModel.ExternalFilterModel? filter = _filter;
+        if (filter == null)
+        {
+            return;
+        }
+
+        filter.SaveSortingAndGroupingSettings = save;
     }
 
     public void Save()
@@ -269,13 +296,14 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         ComicFilterModel.ExternalModel? filterModel = ComicFilterModel.Instance.GetModel();
         _filterModel = filterModel;
         _filter = filter;
-        if (filter != null)
+        if (filter is not null)
         {
             UpdateName(filter.Name);
             NameLiveData.Emit(filter.Name);
             UpdateExpression(filter.Expression);
             ExpressionLiveData.Emit(filter.Expression);
-            SaveViewConfig = filter.SaveViewConfig;
+            SaveViewSettings = filter.SaveViewSettings;
+            SaveSortingAndGroupingSettings = filter.SaveSortingAndGroupingSettings;
         }
     }
 

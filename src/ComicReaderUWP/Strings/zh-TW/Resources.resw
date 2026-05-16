@@ -824,8 +824,11 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>記錄您的瀏覽紀錄</value>
   </data>
-  <data name="SaveViewConfig" xml:space="preserve">
-    <value>儲存視圖配置</value>
+  <data name="SaveSortingAndGroupingSettings" xml:space="preserve">
+    <value>儲存排序與分組設定</value>
+  </data>
+  <data name="SaveViewSettings" xml:space="preserve">
+    <value>儲存檢視設定</value>
   </data>
   <data name="ScanOnLaunch" xml:space="preserve">
     <value>啟動時掃描</value>

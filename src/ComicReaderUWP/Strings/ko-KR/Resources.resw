@@ -825,8 +825,11 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="SaveHistory.Text" xml:space="preserve">
     <value>검색 기록을 기록하세요</value>
   </data>
-  <data name="SaveViewConfig" xml:space="preserve">
-    <value>뷰 구성 저장</value>
+  <data name="SaveSortingAndGroupingSettings" xml:space="preserve">
+    <value>정렬 및 그룹화 설정 저장</value>
+  </data>
+  <data name="SaveViewSettings" xml:space="preserve">
+    <value>보기 설정 저장</value>
   </data>
   <data name="ScanOnLaunch" xml:space="preserve">
     <value>시작 시 스캔</value>

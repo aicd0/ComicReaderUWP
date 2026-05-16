@@ -408,7 +408,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
             if (filter.ViewType != viewType)
             {
-                modified = filter.SaveViewConfig;
+                modified = filter.SaveViewSettings;
                 filter.ViewType = viewType;
             }
 
@@ -434,7 +434,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit("SelectSortOrGroup", delegate
         {
             ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
-            bool modified = handler(filter);
+            bool modified = handler(filter) && filter.SaveSortingAndGroupingSettings;
             if (modified)
             {
                 filter.Modified = true;
@@ -486,9 +486,22 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         filter = filter.Clone();
         ComicFilterModel.ExternalFilterModel? lastFilter = _filterModel;
-        if (lastFilter is not null && !filter.SaveViewConfig)
+        if (lastFilter is not null)
         {
-            filter.ViewType = lastFilter.ViewType;
+            if (!filter.SaveViewSettings)
+            {
+                filter.ViewType = lastFilter.ViewType;
+            }
+
+            if (!filter.SaveSortingAndGroupingSettings)
+            {
+                filter.SortBy = lastFilter.SortBy;
+                filter.ComicOrderMethod = lastFilter.ComicOrderMethod;
+                filter.GroupBy = lastFilter.GroupBy;
+                filter.GroupOrderMethod = lastFilter.GroupOrderMethod;
+                filter.GroupSortingFunction = lastFilter.GroupSortingFunction;
+                filter.GroupSortingProperty = lastFilter.GroupSortingProperty;
+            }
         }
 
         filter.Modified = false;

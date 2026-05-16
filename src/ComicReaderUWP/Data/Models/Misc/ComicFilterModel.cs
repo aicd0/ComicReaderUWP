@@ -71,19 +71,11 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         [JsonPropertyName("ComicOrderMethod")]
         public string? ComicOrderMethod { get; set; }
 
-        // Deprecated, use ComicOrderMethod instead
-        [JsonPropertyName("SortByAscending")]
-        public bool? SortByAscending { get; set; }
-
         [JsonPropertyName("GroupBy")]
         public JsonNode? GroupBy { get; set; }
 
         [JsonPropertyName("GroupOrderMethod")]
         public string? GroupOrderMethod { get; set; }
-
-        // Deprecated, use GroupOrderMethod instead
-        [JsonPropertyName("GroupByAscending")]
-        public bool? GroupByAscending { get; set; }
 
         [JsonPropertyName("GroupSortingFunction")]
         public string? GroupSortingFunction { get; set; }
@@ -95,7 +87,10 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         public string? ViewType { get; set; }
 
         [JsonPropertyName("SaveViewConfig")]
-        public bool? SaveViewConfig { get; set; }
+        public bool? SaveViewSettings { get; set; }
+
+        [JsonPropertyName("SaveSortingAndGroupingSettings")]
+        public bool? SaveSortingAndGroupingSettings { get; set; }
 
         [JsonPropertyName("Expression")]
         public string? Expression { get; set; }
@@ -142,17 +137,20 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
     public class ExternalFilterModel
     {
-        public string Name { get; set; } = "";
+        public string Name { get; set; } = string.Empty;
         public bool Modified { get; set; } = false;
         public ComicPropertyModel SortBy { get; set; } = new();
-        public OrderMethodEnum ComicOrderMethod { get; set; }
-        public ComicPropertyModel? GroupBy { get; set; }
-        public OrderMethodEnum GroupOrderMethod { get; set; }
+        public OrderMethodEnum ComicOrderMethod { get; set; } = OrderMethodEnum.Ascending;
+        public ComicPropertyModel? GroupBy { get; set; } = null;
+        public OrderMethodEnum GroupOrderMethod { get; set; } = OrderMethodEnum.Ascending;
         public FunctionTypeEnum GroupSortingFunction { get; set; } = FunctionTypeEnum.None;
-        public ComicPropertyModel? GroupSortingProperty { get; set; }
-        public ViewTypeEnum ViewType { get; set; }
-        public bool SaveViewConfig { get; set; }
-        public string Expression { get; set; } = "";
+        public ComicPropertyModel? GroupSortingProperty { get; set; } = null;
+        public ViewTypeEnum ViewType { get; set; } = ViewTypeEnum.Large;
+        public bool SaveViewSettings { get; set; } = false;
+        public bool SaveSortingAndGroupingSettings { get; set; } = true;
+        public string Expression { get; set; } = string.Empty;
+
+        private ExternalFilterModel() { }
 
         public ExternalFilterModel Clone()
         {
@@ -172,30 +170,35 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 GroupSortingFunction = FunctionTypeToString(GroupSortingFunction),
                 GroupSortingProperty = GroupSortingProperty?.ToJson(),
                 ViewType = ViewTypeToString(ViewType),
-                SaveViewConfig = SaveViewConfig,
+                SaveViewSettings = SaveViewSettings,
+                SaveSortingAndGroupingSettings = SaveSortingAndGroupingSettings,
                 Expression = Expression,
             };
         }
 
         public static ExternalFilterModel From(FilterModel model)
         {
+            ExternalFilterModel defaultModel = FromDefault();
             return new ExternalFilterModel
             {
-                Name = model.Name ?? "",
+                Name = model.Name ?? string.Empty,
                 Modified = model.Modified ?? false,
-                SortBy = ComicPropertyModel.FromJson(model.SortBy) ?? new(),
+                SortBy = ComicPropertyModel.FromJson(model.SortBy) ?? defaultModel.SortBy,
                 ComicOrderMethod = string.IsNullOrEmpty(model.ComicOrderMethod) ?
-                    (model.SortByAscending ?? false ? OrderMethodEnum.Ascending : OrderMethodEnum.Descending) :
+                    defaultModel.ComicOrderMethod :
                     StringToOrderMethod(model.ComicOrderMethod),
                 GroupBy = ComicPropertyModel.FromJson(model.GroupBy),
                 GroupOrderMethod = string.IsNullOrEmpty(model.GroupOrderMethod) ?
-                    (model.GroupByAscending ?? false ? OrderMethodEnum.Ascending : OrderMethodEnum.Descending) :
+                    defaultModel.GroupOrderMethod :
                     StringToOrderMethod(model.GroupOrderMethod),
-                GroupSortingFunction = StringToFunctionType(model.GroupSortingFunction ?? FUNCTION_TYPE_NONE),
+                GroupSortingFunction = string.IsNullOrEmpty(model.GroupSortingFunction) ?
+                    defaultModel.GroupSortingFunction : StringToFunctionType(model.GroupSortingFunction),
                 GroupSortingProperty = ComicPropertyModel.FromJson(model.GroupSortingProperty),
-                ViewType = StringToViewType(model.ViewType ?? ""),
-                SaveViewConfig = model.SaveViewConfig ?? true,
-                Expression = model.Expression ?? "",
+                ViewType = string.IsNullOrEmpty(model.ViewType) ?
+                    defaultModel.ViewType : StringToViewType(model.ViewType),
+                SaveViewSettings = model.SaveViewSettings ?? defaultModel.SaveViewSettings,
+                SaveSortingAndGroupingSettings = model.SaveSortingAndGroupingSettings ?? defaultModel.SaveSortingAndGroupingSettings,
+                Expression = model.Expression ?? defaultModel.Expression,
             };
         }
 
@@ -205,13 +208,6 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             {
                 Name = StringResourceProvider.Instance.Default,
                 Modified = false,
-                ViewType = ViewTypeEnum.Large,
-                SaveViewConfig = false,
-                SortBy = new(),
-                ComicOrderMethod = OrderMethodEnum.Ascending,
-                GroupBy = null,
-                GroupOrderMethod = OrderMethodEnum.Ascending,
-                Expression = string.Empty,
             };
         }
 
@@ -227,10 +223,6 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
         private static ViewTypeEnum StringToViewType(string value)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return ViewTypeEnum.Large;
-            }
             return value switch
             {
                 VIEW_TYPE_LARGE => ViewTypeEnum.Large,
