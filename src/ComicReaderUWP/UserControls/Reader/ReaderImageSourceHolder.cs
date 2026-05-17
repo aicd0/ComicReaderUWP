@@ -404,60 +404,69 @@ internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDi
             return;
         }
 
-        double finalPixelRatio = Math.Min(_scale, maxPixelRatio);
-        double accumulatedWidth = 0;
-        double maxHeight = 0;
-        for (int i = 0; i < items.Length; i++)
+        int canvasWidth;
+        int canvasHeight;
         {
-            DrawingImageItem? item = items[i];
-            if (item is null && !PlaceholderMode)
+            double finalPixelRatio = Math.Min(_scale, maxPixelRatio);
+            double accumulatedWidth = 0;
+            double maxHeight = 0;
+            for (int i = 0; i < items.Length; i++)
             {
-                continue;
+                DrawingImageItem? item = items[i];
+                if (item is null && !PlaceholderMode)
+                {
+                    continue;
+                }
+
+                Size frameSize = frameSizes[i];
+                double rectWidth = frameSize.Width * finalPixelRatio;
+                accumulatedWidth += rectWidth;
+
+                if (item is not null)
+                {
+                    double rectHeight = rectWidth * item.ImageHeight / item.ImageWidth;
+                    maxHeight = Math.Max(maxHeight, rectHeight);
+                }
             }
 
-            Size frameSize = frameSizes[i];
-            double rectWidth = frameSize.Width * finalPixelRatio;
-            accumulatedWidth += rectWidth;
+            int maxDimension = MAX_CANVAS_DIMENSION;
+            double scaleRatio = Math.Min(1, maxDimension / Math.Max(accumulatedWidth, maxHeight));
+            accumulatedWidth *= scaleRatio;
+            maxHeight *= scaleRatio;
 
-            if (item is not null)
+            accumulatedWidth = 0;
+            double roundedAccumulatedWidth = 0;
+            for (int i = 0; i < items.Length; i++)
             {
-                double rectHeight = rectWidth * item.ImageHeight / item.ImageWidth;
-                maxHeight = Math.Max(maxHeight, rectHeight);
+                DrawingImageItem? item = items[i];
+                if (item is null && !PlaceholderMode)
+                {
+                    continue;
+                }
+
+                ImageRect imageRect = new();
+                Size frameSize = frameSizes[i];
+                double rectWidth = frameSize.Width * finalPixelRatio * scaleRatio;
+
+                // Round left and right sides to the nearest pixel to prevent gaps
+                imageRect.X = roundedAccumulatedWidth;
+                accumulatedWidth += rectWidth;
+                double newRoundedAccumulatedWidth = Math.Round(accumulatedWidth);
+                imageRect.Width = Math.Max(1.0, newRoundedAccumulatedWidth - roundedAccumulatedWidth);
+                roundedAccumulatedWidth = newRoundedAccumulatedWidth;
+
+                if (item is not null)
+                {
+                    double rectHeight = rectWidth * item.ImageHeight / item.ImageWidth;
+                    double rectTop = (maxHeight - rectHeight) * 0.5;
+                    imageRect.Y = rectTop;
+                    imageRect.Height = rectHeight;
+                    item.TargetRect = imageRect;
+                }
             }
-        }
 
-        double canvasSize = accumulatedWidth * maxHeight;
-        int maxDimension = MAX_CANVAS_DIMENSION;
-        double scaleRatio = Math.Min(1, maxDimension / Math.Max(accumulatedWidth, maxHeight));
-        accumulatedWidth *= scaleRatio;
-        maxHeight *= scaleRatio;
-        int canvasWidth = Math.Max(1, Math.Min(maxDimension, (int)Math.Round(accumulatedWidth)));
-        int canvasHeight = Math.Max(1, Math.Min(maxDimension, (int)Math.Round(maxHeight)));
-
-        accumulatedWidth = 0;
-        for (int i = 0; i < items.Length; i++)
-        {
-            DrawingImageItem? item = items[i];
-            if (item is null && !PlaceholderMode)
-            {
-                continue;
-            }
-
-            ImageRect imageRect = new();
-            Size frameSize = frameSizes[i];
-            double rectWidth = frameSize.Width * finalPixelRatio * scaleRatio;
-            imageRect.X = accumulatedWidth;
-            imageRect.Width = rectWidth;
-            accumulatedWidth += rectWidth;
-
-            if (item is not null)
-            {
-                double rectHeight = rectWidth * item.ImageHeight / item.ImageWidth;
-                double rectTop = (maxHeight - rectHeight) * 0.5;
-                imageRect.Y = rectTop;
-                imageRect.Height = rectHeight;
-                item.TargetRect = imageRect;
-            }
+            canvasWidth = Math.Max(1, Math.Min(maxDimension, (int)roundedAccumulatedWidth));
+            canvasHeight = Math.Max(1, Math.Min(maxDimension, (int)Math.Ceiling(maxHeight)));
         }
 
         CoroutineUtils.RunInMainThread(() =>

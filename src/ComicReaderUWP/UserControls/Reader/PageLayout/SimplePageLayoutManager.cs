@@ -133,7 +133,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         bool isLastPage = page == PageCount;
         bool requireCompletion = AddedPageCount == PageCount;
 
-        if (SpreadDetection && previousPageLayout is not null)
+        if (SpreadDetection)
         {
             if (_samples.Count <= 6 && !requireCompletion)
             {
@@ -170,6 +170,15 @@ internal class SimplePageLayoutManager : IPageLayoutManager
                     return false;
                 }
             }
+        }
+
+        if (page == 2 && !EnableCover)
+        {
+            // Special case: normally page 2 should be combined with page 1 when cover is disabled,
+            // but if that is not possible (e.g. page 1 is a spread page), make page 2 a single page
+            // to ensure correct layout for the following pages
+            layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
+            return true;
         }
 
         {
