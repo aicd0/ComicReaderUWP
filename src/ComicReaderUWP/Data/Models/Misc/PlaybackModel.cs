@@ -2,11 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.SDK.Common.Utils;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
@@ -209,11 +212,16 @@ internal class PlaybackModel
 
         if (_isShuffle)
         {
-            var rng = new Random(_randomSeed);
-            for (int i = _items.Count - 1; i > 0; i--)
+            List<PlaylistModel.PlaylistItem> newOrder = [.. _items.OrderBy(x =>
             {
-                int j = rng.Next(i + 1);
-                (_items[i], _items[j]) = (_items[j], _items[i]);
+                Span<byte> buffer = stackalloc byte[sizeof(int) + sizeof(long)];
+                BinaryPrimitives.WriteInt32LittleEndian(buffer, _randomSeed);
+                BinaryPrimitives.WriteInt64LittleEndian(buffer[sizeof(int)..], x.Comic.Id);
+                return HashUtils.GetXxHash64Int(buffer);
+            })];
+            for (int i = 0; i < _items.Count; i++)
+            {
+                _items[i] = newOrder[i];
             }
 
             if (!string.IsNullOrEmpty(_firstId))

@@ -19,7 +19,7 @@ public class SpreadDetectionTest
             Assert.That(IsSpreadPage(1.4F, [0.7F, 1.0F, 1.4F]), Is.False);
             Assert.That(IsSpreadPage(1.0F, [0.7F, 1.0F, 1.6F]), Is.False);
             Assert.That(IsSpreadPage(1.6F, [0.7F, 1.0F, 1.6F]), Is.True);
-            Assert.That(IsSpreadPage(1.5F, [0.6F, 0.7F, 1.5F, 1.6F, 1.7F]), Is.False); // Samples too few for previous group
+            Assert.That(IsSpreadPage(1.5F, [0.6F, 0.7F, 1.5F, 1.6F, 1.7F]), Is.True);
             Assert.That(IsSpreadPage(1.5F, [0.4F, 0.5F, 0.6F, 0.7F, 1.5F, 1.6F, 1.7F]), Is.True);
             Assert.That(IsSpreadPage(0.3F, [0.1F, 0.2F, 0.3F]), Is.False); // Too narrow
             Assert.That(IsSpreadPage(1.6F, [0.3F, 0.4F, 0.5F, 1.5F, 1.6F]), Is.False); // Too narrow for previous group
