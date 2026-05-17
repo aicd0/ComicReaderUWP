@@ -176,7 +176,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         {
             // Special case: normally page 2 should be combined with page 1 when cover is disabled,
             // but if that is not possible (e.g. page 1 is a spread page), make page 2 a single page
-            // to maintain correct layout for following pages
+            // to ensure correct layout for the following pages
             layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
             return true;
         }
