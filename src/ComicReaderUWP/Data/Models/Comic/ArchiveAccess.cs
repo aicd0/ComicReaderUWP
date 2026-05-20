@@ -205,37 +205,44 @@ public class ArchiveAccess
             return;
         }
 
-        // Reader options
-        var opts = new SharpCompress.Readers.ReaderOptions();
-        int defaultCodePage = AppSettingsModel.Instance.DefaultArchiveCodePage;
-        if (defaultCodePage > 0)
+        SharpCompress.Readers.ReaderOptions opts;
         {
-            try
+            SharpCompress.Common.IArchiveEncoding? archiveEncoding = null;
+            int defaultCodePage = AppSettingsModel.Instance.DefaultArchiveCodePage;
+            if (defaultCodePage > 0)
             {
-                EncoderFallback encoderFallback = Encoding.Default.GetEncoder().Fallback ?? EncoderFallback.ReplacementFallback;
-                DecoderFallback decoderFallback = Encoding.Default.GetDecoder().Fallback ?? DecoderFallback.ReplacementFallback;
-                var encoding = Encoding.GetEncoding(defaultCodePage, encoderFallback, decoderFallback);
-                opts.ArchiveEncoding = new SharpCompress.Common.ArchiveEncoding
+                try
                 {
-                    CustomDecoder = (data, x, y) => encoding.GetString(data)
-                };
+                    EncoderFallback encoderFallback = Encoding.Default.GetEncoder().Fallback ?? EncoderFallback.ReplacementFallback;
+                    DecoderFallback decoderFallback = Encoding.Default.GetDecoder().Fallback ?? DecoderFallback.ReplacementFallback;
+                    var encoding = Encoding.GetEncoding(defaultCodePage, encoderFallback, decoderFallback);
+                    archiveEncoding = new SharpCompress.Common.ArchiveEncoding()
+                    {
+                        CustomDecoder = (data, x, y, type) => encoding.GetString(data)
+                    };
+                }
+                catch (Exception e)
+                {
+                    Logger.F(TAG, "Failed to set up a decoder", e);
+                }
             }
-            catch (Exception e)
+
+            opts = new()
             {
-                Logger.F(TAG, "Failed to set up a decoder", e);
-            }
+                ArchiveEncoding = archiveEncoding ?? new SharpCompress.Common.ArchiveEncoding(),
+                ExtensionHint = extension,
+            };
         }
 
-        // Iterate entries
         switch (extension.ToLower())
         {
             case ".7z":
             case ".cb7":
                 {
-                    SharpCompress.Archives.SevenZip.SevenZipArchive archive;
+                    SharpCompress.Archives.IArchive archive;
                     try
                     {
-                        archive = SharpCompress.Archives.SevenZip.SevenZipArchive.Open(stream, opts);
+                        archive = SharpCompress.Archives.SevenZip.SevenZipArchive.OpenArchive(stream, opts);
                     }
                     catch (SharpCompress.Common.CryptographicException e)
                     {
@@ -250,8 +257,28 @@ public class ArchiveAccess
 
                     using (archive)
                     {
-                        foreach (SharpCompress.Archives.SevenZip.SevenZipArchiveEntry rawEntry in archive.Entries)
+                        IEnumerable<SharpCompress.Archives.IArchiveEntry> entries = archive.Entries;
+                        using IEnumerator<SharpCompress.Archives.IArchiveEntry> entryEnumerator = entries.GetEnumerator();
+                        while (true)
                         {
+                            try
+                            {
+                                if (!entryEnumerator.MoveNext())
+                                {
+                                    break;
+                                }
+                            }
+                            catch (SharpCompress.Common.CryptographicException e)
+                            {
+                                Logger.E(TAG, e);
+                                return;
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.F(TAG, e);
+                            }
+
+                            SharpCompress.Archives.IArchiveEntry rawEntry = entryEnumerator.Current;
                             var entry = new SevenZipArchiveEntry(rawEntry);
                             ICallbackResult result = callback(entry);
                             if (result == ICallbackResult.StopIteration)
@@ -276,7 +303,12 @@ public class ArchiveAccess
                     SharpCompress.Readers.IReader reader;
                     try
                     {
-                        reader = SharpCompress.Readers.ReaderFactory.Open(stream, opts);
+                        reader = SharpCompress.Readers.ReaderFactory.OpenReader(stream, opts);
+                    }
+                    catch (SharpCompress.Common.InvalidFormatException e)
+                    {
+                        Logger.E(TAG, e);
+                        return;
                     }
                     catch (EndOfStreamException e)
                     {
@@ -489,9 +521,9 @@ public class ArchiveAccess
         }
     }
 
-    private class SevenZipArchiveEntry(SharpCompress.Archives.SevenZip.SevenZipArchiveEntry entry) : IArchiveEntry
+    private class SevenZipArchiveEntry(SharpCompress.Archives.IArchiveEntry entry) : IArchiveEntry
     {
-        private readonly SharpCompress.Archives.SevenZip.SevenZipArchiveEntry _entry = entry;
+        private readonly SharpCompress.Archives.IArchiveEntry _entry = entry;
 
         public string FullName => _entry.Key ?? string.Empty;
         public bool IsDirectory => _entry.IsDirectory;

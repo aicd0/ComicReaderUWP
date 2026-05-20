@@ -39,5 +39,7 @@ public interface IComicModel
 
     Task SetCompletionStatus(CompletionStatusEnum status);
 
+    Task<IComicConnection?> Open();
+
     Task<bool> MoveToLocation(string location);
 }

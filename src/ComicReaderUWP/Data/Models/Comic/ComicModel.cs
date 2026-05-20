@@ -17,13 +17,12 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
-using ComicReaderUWP.SDK.Plugins.Comic;
 
 using Windows.Storage;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
-internal sealed class ComicModel : IEquatable<ComicModel>, IComicModel
+internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.Comic.IComicModel
 {
     private const string TAG = nameof(ComicModel);
 
@@ -275,85 +274,96 @@ internal sealed class ComicModel : IEquatable<ComicModel>, IComicModel
     }
 
     //
-    // IComicModel Implementation
+    // SDK.Plugins.Comic.IComicModel Implementation
     //
 
-    long IComicModel.Id => Id;
+    long SDK.Plugins.Comic.IComicModel.Id => Id;
 
-    string IComicModel.Location => Location;
+    string SDK.Plugins.Comic.IComicModel.Location => Location;
 
-    int IComicModel.PageCount => PageCount;
+    int SDK.Plugins.Comic.IComicModel.PageCount => PageCount;
 
-    string IComicModel.Title1 => Title1;
+    string SDK.Plugins.Comic.IComicModel.Title1 => Title1;
 
-    string IComicModel.Title2 => Title2;
+    string SDK.Plugins.Comic.IComicModel.Title2 => Title2;
 
-    string IComicModel.Description => Description;
+    string SDK.Plugins.Comic.IComicModel.Description => Description;
 
-    int IComicModel.Rating => Rating;
+    int SDK.Plugins.Comic.IComicModel.Rating => Rating;
 
-    IReadOnlyList<IComicTagCategory> IComicModel.Tags => Tags;
+    IReadOnlyList<SDK.Plugins.Comic.IComicTagCategory> SDK.Plugins.Comic.IComicModel.Tags => Tags;
 
-    bool IComicModel.IsHidden => Hidden;
+    bool SDK.Plugins.Comic.IComicModel.IsHidden => Hidden;
 
-    CompletionStatusEnum IComicModel.CompletionStatus
+    SDK.Plugins.Comic.CompletionStatusEnum SDK.Plugins.Comic.IComicModel.CompletionStatus
     {
         get
         {
             return CompletionState switch
             {
-                ComicCompletionStatusEnum.NotStarted => CompletionStatusEnum.NotStarted,
-                ComicCompletionStatusEnum.Started => CompletionStatusEnum.Started,
-                ComicCompletionStatusEnum.Completed => CompletionStatusEnum.Completed,
+                ComicCompletionStatusEnum.NotStarted => SDK.Plugins.Comic.CompletionStatusEnum.NotStarted,
+                ComicCompletionStatusEnum.Started => SDK.Plugins.Comic.CompletionStatusEnum.Started,
+                ComicCompletionStatusEnum.Completed => SDK.Plugins.Comic.CompletionStatusEnum.Completed,
                 _ => throw new ArgumentOutOfRangeException(nameof(CompletionState), "Invalid ComicCompletionStatusEnum value."),
             };
         }
     }
 
-    Task IComicModel.SetTitle1(string title)
+    Task SDK.Plugins.Comic.IComicModel.SetTitle1(string title)
     {
         return SetTitle1(title);
     }
 
-    Task IComicModel.SetTitle2(string title)
+    Task SDK.Plugins.Comic.IComicModel.SetTitle2(string title)
     {
         return SetTitle2(title);
     }
 
-    Task IComicModel.SetDescription(string description)
+    Task SDK.Plugins.Comic.IComicModel.SetDescription(string description)
     {
         return SetDescription(description);
     }
 
-    Task IComicModel.SetRating(int rating)
+    Task SDK.Plugins.Comic.IComicModel.SetRating(int rating)
     {
         return SetRating(rating);
     }
 
-    Task IComicModel.SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
+    Task SDK.Plugins.Comic.IComicModel.SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
     {
         return SetTags(tags);
     }
 
-    Task IComicModel.SetHidden(bool isHidden)
+    Task SDK.Plugins.Comic.IComicModel.SetHidden(bool isHidden)
     {
         return SetHidden(isHidden);
     }
 
-    async Task IComicModel.SetCompletionStatus(CompletionStatusEnum status)
+    async Task SDK.Plugins.Comic.IComicModel.SetCompletionStatus(SDK.Plugins.Comic.CompletionStatusEnum status)
     {
         ComicCompletionStatusEnum convertedStatus = status switch
         {
-            CompletionStatusEnum.NotStarted => ComicCompletionStatusEnum.NotStarted,
-            CompletionStatusEnum.Started => ComicCompletionStatusEnum.Started,
-            CompletionStatusEnum.Completed => ComicCompletionStatusEnum.Completed,
+            SDK.Plugins.Comic.CompletionStatusEnum.NotStarted => ComicCompletionStatusEnum.NotStarted,
+            SDK.Plugins.Comic.CompletionStatusEnum.Started => ComicCompletionStatusEnum.Started,
+            SDK.Plugins.Comic.CompletionStatusEnum.Completed => ComicCompletionStatusEnum.Completed,
             _ => throw new ArgumentOutOfRangeException(nameof(status), "Invalid CompletionStatusEnum value."),
         };
         await _internalModel.SaveCompletionState(convertedStatus);
         DispatchUpdateEvent();
     }
 
-    async Task<bool> IComicModel.MoveToLocation(string location)
+    async Task<SDK.Plugins.Comic.IComicConnection?> SDK.Plugins.Comic.IComicModel.Open()
+    {
+        IComicConnection? connection = await OpenComicAsync();
+        if (connection is null)
+        {
+            return null;
+        }
+
+        return new PluginComicConnection(connection);
+    }
+
+    async Task<bool> SDK.Plugins.Comic.IComicModel.MoveToLocation(string location)
     {
         string oldLocation = Location;
         bool success = await _internalModel.MoveToLocation(location);
@@ -365,6 +375,26 @@ internal sealed class ComicModel : IEquatable<ComicModel>, IComicModel
         }
 
         return success;
+    }
+
+    private sealed partial class PluginComicConnection(IComicConnection connection) : SDK.Plugins.Comic.IComicConnection
+    {
+        public int ImageCount => connection.GetImageCount();
+
+        public void Dispose()
+        {
+            connection.Dispose();
+        }
+
+        public string GetImageName(int index)
+        {
+            return connection.GetImageName(index);
+        }
+
+        public Stream? OpenImageStream(int index)
+        {
+            return connection.OpenImageStream(index);
+        }
     }
 
     //
