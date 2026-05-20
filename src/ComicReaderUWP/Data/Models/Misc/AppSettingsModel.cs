@@ -55,7 +55,7 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     {
         get
         {
-            return Read(model => model.AutoSwitch ?? false);
+            return Read(model => model.AutoSwitch ?? true);
         }
         set
         {
