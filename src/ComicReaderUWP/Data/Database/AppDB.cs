@@ -58,7 +58,7 @@ internal static class AppDB
         byte[] bytes = Encoding.UTF8.GetBytes(pluginName);
         byte[] hash = HashUtils.GetXxHash64(bytes);
         string hashString = Convert.ToHexString(hash)[..8].ToUpperInvariant();
-        string databasePath = Path.Combine(KvDirectory, $"PluginRegistry_{hashString}.db");
+        string databasePath = Path.Combine(RegistryDirectory, $"PluginRegistry_{hashString}.db");
         db = RegistryStore.CreateDatabase(databasePath);
         if (sPluginRegistryDatabases.TryAdd(pluginName, db))
         {
