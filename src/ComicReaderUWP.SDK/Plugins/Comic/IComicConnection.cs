@@ -9,5 +9,7 @@ public interface IComicConnection : IDisposable
 
     string GetImageName(int index);
 
+    string GetImageSignature(int index);
+
     Stream? OpenImageStream(int index);
 }

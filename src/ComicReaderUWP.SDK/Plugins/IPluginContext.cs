@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Database.KV;
+using ComicReaderUWP.SDK.Database.Registry;
 using ComicReaderUWP.SDK.DataModels;
 using ComicReaderUWP.SDK.Plugins.Comic;
 using ComicReaderUWP.SDK.Plugins.Common;
@@ -15,7 +15,7 @@ public interface IPluginContext
 {
     string ResourceFolderPath { get; }
 
-    IKVDatabase GetKVDatabase();
+    IRegistryDatabase GetRegistryDatabase();
 
     Task Busy(Func<Task> action);
 
