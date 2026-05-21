@@ -391,6 +391,11 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
             return connection.GetImageName(index);
         }
 
+        public string GetImageSignature(int index)
+        {
+            return connection.GetImageSignature(index);
+        }
+
         public Stream? OpenImageStream(int index)
         {
             return connection.OpenImageStream(index);

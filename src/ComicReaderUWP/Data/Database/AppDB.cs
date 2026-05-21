@@ -46,26 +46,26 @@ internal static class AppDB
     // Plugins Databases
     //
 
-    private static readonly ConcurrentDictionary<string, IKVDatabase> sPluginKvDatabases = [];
+    private static readonly ConcurrentDictionary<string, IRegistryDatabase> sPluginRegistryDatabases = [];
 
-    public static IKVDatabase PluginKV(string pluginName)
+    public static IRegistryDatabase PluginRegistry(string pluginName)
     {
-        if (sPluginKvDatabases.TryGetValue(pluginName, out IKVDatabase? db))
+        if (sPluginRegistryDatabases.TryGetValue(pluginName, out IRegistryDatabase? db))
         {
             return db;
         }
 
         byte[] bytes = Encoding.UTF8.GetBytes(pluginName);
         byte[] hash = HashUtils.GetXxHash64(bytes);
-        string hashString = Convert.ToHexString(hash)[..8].ToLowerInvariant();
-        string databasePath = Path.Combine(KvDirectory, $"plugin_{hashString}.db");
-        db = KVStore.CreateDatabase(databasePath);
-        if (sPluginKvDatabases.TryAdd(pluginName, db))
+        string hashString = Convert.ToHexString(hash)[..8].ToUpperInvariant();
+        string databasePath = Path.Combine(KvDirectory, $"PluginRegistry_{hashString}.db");
+        db = RegistryStore.CreateDatabase(databasePath);
+        if (sPluginRegistryDatabases.TryAdd(pluginName, db))
         {
             return db;
         }
 
-        return sPluginKvDatabases[pluginName];
+        return sPluginRegistryDatabases[pluginName];
     }
 
     //
@@ -86,13 +86,12 @@ internal static class AppDB
             _appKvDatabase.Value.Dispose();
         }
 
-        foreach (IKVDatabase db in sPluginKvDatabases.Values)
+        foreach (IRegistryDatabase db in sPluginRegistryDatabases.Values)
         {
             db.Dispose();
         }
 
-        sPluginKvDatabases.Clear();
-
+        sPluginRegistryDatabases.Clear();
         SdkDB.Dispose();
     }
 

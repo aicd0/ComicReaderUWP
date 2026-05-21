@@ -16,7 +16,7 @@ using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Database.KV;
+using ComicReaderUWP.SDK.Database.Registry;
 using ComicReaderUWP.SDK.Database.SqlHelpers;
 using ComicReaderUWP.SDK.DataModels;
 using ComicReaderUWP.SDK.Plugins;
@@ -138,9 +138,9 @@ internal partial class PluginContext(IPlugin plugin, string pluginFilePath, stri
 
     string IPluginContext.ResourceFolderPath => resourceFolderPath;
 
-    IKVDatabase IPluginContext.GetKVDatabase()
+    IRegistryDatabase IPluginContext.GetRegistryDatabase()
     {
-        return AppDB.PluginKV(_pluginName);
+        return AppDB.PluginRegistry(_pluginName);
     }
 
     Task IPluginContext.Busy(Func<Task> action)
