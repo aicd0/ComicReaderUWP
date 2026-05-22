@@ -460,7 +460,7 @@ internal partial class ReaderView : UserControl
                 ContentScrollViewer.FlowDirection = _isLeftToRight ? FlowDirection.LeftToRight : FlowDirection.RightToLeft;
             }
 
-            needReload = oldFlowDirection != ContentScrollViewer.FlowDirection;
+            needReload = needReload || oldFlowDirection != ContentScrollViewer.FlowDirection;
         }
 
         if (_uiStateUpdatedContinuous)
