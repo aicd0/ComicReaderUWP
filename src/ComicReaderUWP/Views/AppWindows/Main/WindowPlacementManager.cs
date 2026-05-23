@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 using Windows.Win32;
 

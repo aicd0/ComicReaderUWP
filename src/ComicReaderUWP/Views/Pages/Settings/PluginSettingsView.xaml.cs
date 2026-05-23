@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
-using ComicReaderUWP.SDK.Common.Utils;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

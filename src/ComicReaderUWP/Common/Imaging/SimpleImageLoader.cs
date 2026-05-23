@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.Threading;
+using ComicReaderUWP.Core.Common.Threading;
 
 namespace ComicReaderUWP.Common.Imaging;
 

@@ -7,11 +7,11 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Storage;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Storage;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.DataModels;
+using ComicReaderUWP.SDK.Models;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

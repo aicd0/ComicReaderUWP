@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 using Microsoft.UI.Input;
 

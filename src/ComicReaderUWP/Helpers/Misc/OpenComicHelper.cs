@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.SDK.Common.DebugTools;
 using ComicReaderUWP.Views.Pages.Reader;
 
 namespace ComicReaderUWP.Helpers.Misc;

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.DataModels;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.SDK.Models;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

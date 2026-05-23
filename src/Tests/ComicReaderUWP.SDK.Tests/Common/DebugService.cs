@@ -1,9 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.ServiceManagement;
 
-namespace ComicReaderUWP.SDK.Tests.Common;
+namespace ComicReaderUWP.Core.Tests.Common;
 
 internal class DebugService : IDebugService
 {

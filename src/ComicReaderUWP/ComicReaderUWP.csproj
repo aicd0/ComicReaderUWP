@@ -83,11 +83,13 @@
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <AssemblyTitle>Comic Reader UWP</AssemblyTitle>
   </PropertyGroup>
+
   <ItemGroup Condition="'$(IsPackaged)' == 'true'">
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="bblanchon.PDFium.Win32" Version="145.0.7606" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.2.251219" />
@@ -100,7 +102,9 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="SharpCompress" Version="0.48.1" />
   </ItemGroup>
+
   <ItemGroup>
+    <ProjectReference Include="..\ComicReaderUWP.Core\ComicReaderUWP.Core.csproj" />
     <ProjectReference Include="..\ComicReaderUWP.SDK\ComicReaderUWP.SDK.csproj" />
   </ItemGroup>
 

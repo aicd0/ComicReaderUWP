@@ -3,7 +3,7 @@
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Components;
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.SDK.Plugins.Common;
 
 namespace ComicReaderUWP.Common.Plugins;

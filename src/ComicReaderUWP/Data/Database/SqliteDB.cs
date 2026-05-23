@@ -3,11 +3,11 @@
 
 using System.IO;
 
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Storage;
+using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Tables;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Storage;
-using ComicReaderUWP.SDK.Common.Threading;
-using ComicReaderUWP.SDK.Database.SqlHelpers;
 
 namespace ComicReaderUWP.Data.Database;
 

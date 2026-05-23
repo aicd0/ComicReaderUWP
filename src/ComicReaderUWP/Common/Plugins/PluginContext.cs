@@ -10,15 +10,14 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Search;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Database.Registry;
-using ComicReaderUWP.SDK.Database.SqlHelpers;
-using ComicReaderUWP.SDK.DataModels;
+using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.SDK.Plugins;
 using ComicReaderUWP.SDK.Plugins.Comic;
 using ComicReaderUWP.SDK.Plugins.Common;
@@ -29,7 +28,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Common.Plugins;
 
-internal partial class PluginContext(IPlugin plugin, string pluginFilePath, string resourceFolderPath) : IPluginContext
+internal partial class PluginContext : IPluginContext
 {
     private const string TAG = nameof(PluginContext);
 
@@ -37,9 +36,9 @@ internal partial class PluginContext(IPlugin plugin, string pluginFilePath, stri
     public event StatusChangedEventHandler? StatusChanged;
 
     public string Name => _pluginName;
-    public string PluginFilePath => pluginFilePath;
-    public string Publisher => plugin.Publisher;
-    public string Version => $"{plugin.MajorVersion}.{plugin.MinorVersion}";
+    public string PluginFilePath { get; init; }
+    public string Publisher => _plugin.Publisher;
+    public string Version => $"{_plugin.MajorVersion}.{_plugin.MinorVersion}";
     public bool IsActive => Status == PluginStatusEnum.Initialized;
 
     private PluginStatusEnum _status = PluginStatusEnum.NotInitialized;
@@ -56,11 +55,25 @@ internal partial class PluginContext(IPlugin plugin, string pluginFilePath, stri
         }
     }
 
-    private readonly string _pluginName = plugin.Name;
+    private readonly IPlugin _plugin;
+    private readonly string _pluginName;
+    private readonly PluginLoader.PluginFileLoadResult _loadContext;
+    private readonly Lazy<ILogger> _logger;
+    private readonly Lazy<IRegistryDatabase> _registryDatabase;
     private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
     private ICommonMenuItemCreator? _mainPageMoreMenuItemCreator = null;
     private IComicMenuItemCreator? _comicMenuItemCreator = null;
     private IComicEditedHandler? _comicEditedHandlers = null;
+
+    public PluginContext(IPlugin plugin, string pluginFilePath, PluginLoader.PluginFileLoadResult loadContext)
+    {
+        PluginFilePath = pluginFilePath;
+        _plugin = plugin;
+        _pluginName = plugin.Name;
+        _loadContext = loadContext;
+        _logger = new Lazy<ILogger>(() => new PluginLogger(_pluginName));
+        _registryDatabase = new Lazy<IRegistryDatabase>(() => AppDB.PluginRegistry(_pluginName));
+    }
 
     //
     // Internal API
@@ -74,7 +87,7 @@ internal partial class PluginContext(IPlugin plugin, string pluginFilePath, stri
             return;
         }
 
-        if (SafeAction(() => plugin.Initialize(this)))
+        if (SafeAction(() => _plugin.Initialize(this)))
         {
             Status = PluginStatusEnum.Initialized;
         }
@@ -136,12 +149,11 @@ internal partial class PluginContext(IPlugin plugin, string pluginFilePath, stri
     // IPluginContext Implementation
     //
 
-    string IPluginContext.ResourceFolderPath => resourceFolderPath;
+    string IPluginContext.ResourceFolderPath => _loadContext.ResourceFolderPath;
 
-    IRegistryDatabase IPluginContext.GetRegistryDatabase()
-    {
-        return AppDB.PluginRegistry(_pluginName);
-    }
+    ILogger IPluginContext.Logger => _logger.Value;
+
+    IRegistryDatabase IPluginContext.RegistryDatabase => _registryDatabase.Value;
 
     Task IPluginContext.Busy(Func<Task> action)
     {

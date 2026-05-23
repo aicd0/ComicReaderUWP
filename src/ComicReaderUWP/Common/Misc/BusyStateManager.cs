@@ -5,8 +5,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.Common.Utils;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Common.Misc;
 

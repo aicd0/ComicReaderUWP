@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 
 using ComicReaderUWP.Common.Actions.Components;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.Dialogs.EditComicInfo;
 
 namespace ComicReaderUWP.Common.Actions.Providers;

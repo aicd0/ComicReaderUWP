@@ -4,7 +4,7 @@
 using System;
 using System.Drawing;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Views.AppWindows.Main;
 
 using Microsoft.UI;

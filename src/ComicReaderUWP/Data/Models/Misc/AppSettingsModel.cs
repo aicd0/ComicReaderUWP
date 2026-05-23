@@ -7,12 +7,12 @@ using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.AppEnvironment;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Database.Misc;
 using ComicReaderUWP.Data.Database;
-using ComicReaderUWP.SDK.Common.AppEnvironment;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.Misc;
 using ComicReaderUWP.Views.Pages.Main;
 
 using Windows.Globalization;

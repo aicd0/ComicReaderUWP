@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.DataModels;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.Views.AppWindows.Main;
 
 using Microsoft.UI.Xaml;

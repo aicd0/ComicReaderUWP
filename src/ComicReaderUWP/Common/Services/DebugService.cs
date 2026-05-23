@@ -3,10 +3,10 @@
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.SDK.Common.ServiceManagement;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.DataModels;
+using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.Views.AppWindows.Main;
 
 namespace ComicReaderUWP.Common.Services;

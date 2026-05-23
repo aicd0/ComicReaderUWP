@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Tables;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Threading;
-using ComicReaderUWP.SDK.Database.SqlHelpers;
 
 namespace ComicReaderUWP.Helpers.Search;
 

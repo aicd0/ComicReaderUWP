@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 using Windows.Storage;
 

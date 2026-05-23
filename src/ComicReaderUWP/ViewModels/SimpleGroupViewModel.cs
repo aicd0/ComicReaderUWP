@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-using ComicReaderUWP.SDK.Common.Algorithm;
+using ComicReaderUWP.Core.Common.Algorithm;
 
 namespace ComicReaderUWP.ViewModels;
 

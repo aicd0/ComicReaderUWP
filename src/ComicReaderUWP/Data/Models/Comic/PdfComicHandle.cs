@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Legacy;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Pdf;
-using ComicReaderUWP.SDK.Common.Utils;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Pdf;
+using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.Graphics.Canvas;
 

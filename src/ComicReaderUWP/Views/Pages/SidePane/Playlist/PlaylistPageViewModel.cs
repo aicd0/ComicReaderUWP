@@ -9,12 +9,12 @@ using System.Linq;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Core.Common.Algorithm;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
-using ComicReaderUWP.SDK.Common.Algorithm;
-using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.Common.Utils;
 
 namespace ComicReaderUWP.Views.Pages.SidePane.Playlist;
 

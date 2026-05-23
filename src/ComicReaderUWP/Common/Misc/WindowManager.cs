@@ -10,11 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.Common.Threading;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.AppWindows.Main;
 using ComicReaderUWP.Views.Pages.Main;
 

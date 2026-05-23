@@ -5,8 +5,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Storage;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Storage;
 
 namespace ComicReaderUWP.Common.Utils;
 

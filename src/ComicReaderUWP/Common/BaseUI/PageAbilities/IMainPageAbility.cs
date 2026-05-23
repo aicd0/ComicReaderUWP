@@ -1,8 +1,8 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.SDK.Common.Lifecycle;
 using ComicReaderUWP.Views.Pages.Main;
 
 namespace ComicReaderUWP.Common.BaseUI.PageAbilities;

@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 namespace ComicReaderUWP.Common.Misc;
 

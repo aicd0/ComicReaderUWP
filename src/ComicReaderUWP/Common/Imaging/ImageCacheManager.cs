@@ -10,11 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.Caching;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Storage;
-using ComicReaderUWP.SDK.Common.Threading;
-using ComicReaderUWP.SDK.Common.Utils;
+using ComicReaderUWP.Core.Common.Caching;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Storage;
+using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;

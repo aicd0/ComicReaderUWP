@@ -3,8 +3,8 @@
 
 using System.Text.Json.Serialization;
 
+using ComicReaderUWP.Core.Database.Misc;
 using ComicReaderUWP.Data.Database;
-using ComicReaderUWP.SDK.Database.Misc;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 

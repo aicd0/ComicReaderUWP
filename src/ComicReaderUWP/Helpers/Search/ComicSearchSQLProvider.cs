@@ -3,8 +3,8 @@
 
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Expression.Search.Sql;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Tables;
-using ComicReaderUWP.SDK.Database.SqlHelpers;
 
 namespace ComicReaderUWP.Helpers.Search;
 

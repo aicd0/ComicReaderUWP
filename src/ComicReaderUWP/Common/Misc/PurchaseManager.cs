@@ -11,10 +11,10 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Core.Common.AppEnvironment;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
-using ComicReaderUWP.SDK.Common.AppEnvironment;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.AppWindows.Main;
 
 using Windows.Services.Store;

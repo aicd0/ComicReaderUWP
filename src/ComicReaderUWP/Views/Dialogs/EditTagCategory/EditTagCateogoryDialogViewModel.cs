@@ -6,10 +6,10 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Data.Tables;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.SqlHelpers;
 using ComicReaderUWP.ViewModels;
 
 namespace ComicReaderUWP.Views.Dialogs.EditTagCategory;

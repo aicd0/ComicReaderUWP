@@ -8,9 +8,9 @@ using System.Linq;
 
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.Registry;
+using ComicReaderUWP.SDK.Models;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 

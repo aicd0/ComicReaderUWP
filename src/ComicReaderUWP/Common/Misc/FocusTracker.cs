@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 using Microsoft.UI.Xaml.Input;
 
@@ -11,9 +11,9 @@ internal static class FocusTracker
 {
     private const string TAG = nameof(FocusTracker);
 
-    private readonly static LogTag _gotFocusTag = LogTag.N(TAG, "GotFocus");
-    private readonly static LogTag _losingFocusTag = LogTag.N(TAG, "LosingFocus");
-    private readonly static LogTag _lostFocusTag = LogTag.N(TAG, "LostFocus");
+    private static readonly LogTag _gotFocusTag = LogTag.N(TAG, "GotFocus");
+    private static readonly LogTag _losingFocusTag = LogTag.N(TAG, "LosingFocus");
+    private static readonly LogTag _lostFocusTag = LogTag.N(TAG, "LostFocus");
 
     public static void Initialize()
     {

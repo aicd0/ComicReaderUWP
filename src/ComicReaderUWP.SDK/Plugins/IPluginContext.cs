@@ -1,8 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Database.Registry;
-using ComicReaderUWP.SDK.DataModels;
+using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.SDK.Plugins.Comic;
 using ComicReaderUWP.SDK.Plugins.Common;
 using ComicReaderUWP.SDK.Plugins.Property;
@@ -15,7 +14,9 @@ public interface IPluginContext
 {
     string ResourceFolderPath { get; }
 
-    IRegistryDatabase GetRegistryDatabase();
+    ILogger Logger { get; }
+
+    IRegistryDatabase RegistryDatabase { get; }
 
     Task Busy(Func<Task> action);
 

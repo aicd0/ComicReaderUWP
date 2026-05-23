@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Storage;
 
 namespace ComicReaderUWP.Data.Database;
 

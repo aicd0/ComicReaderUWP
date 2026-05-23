@@ -7,11 +7,12 @@ using System.IO;
 using System.Text;
 
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.SDK.Common.Storage;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.KV;
-using ComicReaderUWP.SDK.Database.Misc;
-using ComicReaderUWP.SDK.Database.Registry;
+using ComicReaderUWP.Core.Common.Storage;
+using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Database.KV;
+using ComicReaderUWP.Core.Database.Misc;
+using ComicReaderUWP.Core.Database.Registry;
+using ComicReaderUWP.SDK.Models;
 
 namespace ComicReaderUWP.Data.Database;
 

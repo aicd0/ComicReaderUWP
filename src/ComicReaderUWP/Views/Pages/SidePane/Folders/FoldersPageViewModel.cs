@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.Algorithm;
+using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Search;
-using ComicReaderUWP.SDK.Common.Algorithm;
-using ComicReaderUWP.SDK.Common.Threading;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
 namespace ComicReaderUWP.Views.Pages.SidePane.Folders;

@@ -10,13 +10,13 @@ using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Expression.Filter;
 using ComicReaderUWP.Common.Expression.Filter.Sql;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.Helpers.Search;
-using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.Database.SqlHelpers;
 using ComicReaderUWP.ViewModels;
 
 namespace ComicReaderUWP.Views.Dialogs.EditFilter;
