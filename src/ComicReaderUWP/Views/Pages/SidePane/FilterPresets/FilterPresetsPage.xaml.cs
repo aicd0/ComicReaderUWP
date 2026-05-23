@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Utils;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

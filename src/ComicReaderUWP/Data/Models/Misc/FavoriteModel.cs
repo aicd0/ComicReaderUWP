@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Misc;
-using ComicReaderUWP.SDK.Database.Misc;
+using ComicReaderUWP.Core.Database.Misc;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 

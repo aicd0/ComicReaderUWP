@@ -5,8 +5,8 @@ using System.Collections.Specialized;
 
 using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.Utils;
-using ComicReaderUWP.SDK.DataModels;
+using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.SDK.Models;
 
 namespace ComicReaderUWP.Common.Actions.Providers;
 

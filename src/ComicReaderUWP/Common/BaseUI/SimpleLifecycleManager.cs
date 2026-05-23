@@ -3,8 +3,8 @@
 
 using System;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
 
 namespace ComicReaderUWP.Common.BaseUI;
 

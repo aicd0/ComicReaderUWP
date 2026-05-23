@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
-using ComicReaderUWP.SDK.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Lifecycle;
 
 namespace ComicReaderUWP.Common.BaseUI;
 

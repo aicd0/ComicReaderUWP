@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Database.SqlHelpers;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 
 namespace ComicReaderUWP.Common.Expression.Search.Sql;
 

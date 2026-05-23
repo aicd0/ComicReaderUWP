@@ -7,8 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Storage;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.SDK.Plugins;
 
 using Microsoft.UI.Xaml.Markup;
@@ -59,33 +59,43 @@ internal static class PluginLoader
             return null;
         }
 
-        string[] dllFiles = Directory.GetFiles(extractDir, "*.dll", SearchOption.TopDirectoryOnly);
-        PluginFileLoadResult finalResult = new()
+        string[] depFiles = Directory.GetFiles(extractDir, "*.deps.json", SearchOption.TopDirectoryOnly);
+        if (depFiles.Length != 1)
         {
-            ResourceFolderPath = extractDir,
-        };
-        foreach (string dllFile in dllFiles)
-        {
-            PluginFileLoadResult? result = LoadDllPlugin(dllFile);
-            if (result is null || result.Plugins.Count == 0)
-            {
-                Logger.E(TAG, $"Failed to load assembly '{Path.GetFileName(dllFile)}' from zip plugin '{pluginFileName}'");
-                continue;
-            }
-
-            finalResult.Plugins.AddRange(result.Plugins);
-            finalResult.XamlMetadataProviders.AddRange(result.XamlMetadataProviders);
+            Logger.E(TAG, $"Expected exactly one .deps.json file in plugin '{pluginFile}', but found {depFiles.Length}");
+            return null;
         }
 
-        return finalResult;
+        string dllFile = depFiles[0][..^10] + ".dll";
+        if (!File.Exists(dllFile))
+        {
+            string dllFileName = Path.GetFileName(dllFile);
+            Logger.E(TAG, $"Main assembly '{dllFileName}' not found in plugin '{pluginFile}'");
+            return null;
+        }
+
+        PluginFileLoadResult? loadDllResult = LoadDllPlugin(dllFile);
+        if (loadDllResult is null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            LoadContext = loadDllResult.LoadContext,
+            Plugins = loadDllResult.Plugins,
+            XamlMetadataProviders = loadDllResult.XamlMetadataProviders,
+            ResourceFolderPath = extractDir,
+        };
     }
 
     private static PluginFileLoadResult? LoadDllPlugin(string pluginFile)
     {
+        PluginLoadContext loadContext = new(pluginFile);
         Assembly assembly;
         try
         {
-            assembly = Assembly.LoadFrom(pluginFile);
+            assembly = loadContext.LoadFromAssemblyPath(pluginFile);
         }
         catch (Exception e)
         {
@@ -97,6 +107,7 @@ internal static class PluginLoader
         List<IXamlMetadataProvider> xamlMetadataProviders = CreateInstancesFromAssembly<IXamlMetadataProvider>(assembly);
         return new()
         {
+            LoadContext = loadContext,
             Plugins = plugins,
             XamlMetadataProviders = xamlMetadataProviders,
         };
@@ -139,6 +150,7 @@ internal static class PluginLoader
 
     public class PluginFileLoadResult
     {
+        public required PluginLoadContext LoadContext { get; init; }
         public List<IPlugin> Plugins { get; init; } = [];
         public List<IXamlMetadataProvider> XamlMetadataProviders { get; init; } = [];
         public string ResourceFolderPath { get; init; } = string.Empty;

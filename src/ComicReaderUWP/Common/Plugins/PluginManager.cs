@@ -9,11 +9,11 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Storage;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.Common.Storage;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Plugins;
 
 namespace ComicReaderUWP.Common.Plugins;
@@ -23,7 +23,7 @@ internal partial class PluginManager
     private const string TAG = nameof(PluginManager);
     private const string KEY_DISABLED_PLUGINS = "DisabledPlugins";
 
-    public readonly static PluginManager Instance = new();
+    public static readonly PluginManager Instance = new();
 
     public static string PluginsFolderPath => Path.Combine(StorageLocation.LocalFolderPath, "plugins");
 
@@ -74,7 +74,7 @@ internal partial class PluginManager
                     continue;
                 }
 
-                PluginContext context = new(plugin, pluginFile, result.ResourceFolderPath);
+                PluginContext context = new(plugin, pluginFile, result);
                 _plugins.Add(name, context);
 
                 if (App.Instance.SafeMode || _disabledPlugins.ContainsKey(name))

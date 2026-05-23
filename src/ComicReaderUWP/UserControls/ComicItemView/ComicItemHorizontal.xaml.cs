@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Helpers.Imaging;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;

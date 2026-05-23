@@ -9,8 +9,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Utils;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.Data.Sqlite;
 

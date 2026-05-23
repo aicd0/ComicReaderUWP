@@ -3,9 +3,9 @@
 
 using System.Collections.ObjectModel;
 
-using ComicReaderUWP.SDK.Common.Algorithm;
+using ComicReaderUWP.Core.Common.Algorithm;
 
-namespace ComicReaderUWP.SDK.Tests;
+namespace ComicReaderUWP.Core.Tests;
 
 [TestFixture]
 public class DiffUtilsTests

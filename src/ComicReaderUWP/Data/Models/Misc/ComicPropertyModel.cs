@@ -12,10 +12,10 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.AppEnvironment;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
-using ComicReaderUWP.SDK.Common.AppEnvironment;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.SDK.Plugins.Comic;
 using ComicReaderUWP.SDK.Plugins.Property;
 

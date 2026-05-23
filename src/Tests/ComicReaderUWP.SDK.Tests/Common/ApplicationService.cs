@@ -1,10 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Common.ServiceManagement;
-using ComicReaderUWP.SDK.Plugins;
+using ComicReaderUWP.Core.Common.ServiceManagement;
 
-namespace ComicReaderUWP.SDK.Tests.Common;
+namespace ComicReaderUWP.Core.Tests.Common;
 
 internal class ApplicationService : IApplicationService
 {
@@ -58,10 +57,5 @@ internal class ApplicationService : IApplicationService
     public bool IsShuttingDown()
     {
         return false;
-    }
-
-    public IEnumerable<IPlugin> GetLoadedPlugins()
-    {
-        yield break;
     }
 }

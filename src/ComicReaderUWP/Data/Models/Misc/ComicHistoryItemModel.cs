@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Tables;
-using ComicReaderUWP.SDK.Database.SqlHelpers;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 

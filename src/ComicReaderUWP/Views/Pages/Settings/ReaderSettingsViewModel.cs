@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.SDK.Common.Utils;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 

@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.SDK.Common.Utils;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;

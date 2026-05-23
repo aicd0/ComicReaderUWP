@@ -11,14 +11,14 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Lifecycle;
-using ComicReaderUWP.SDK.Common.Threading;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.Views.AppWindows.Main;
 
 using Microsoft.UI;

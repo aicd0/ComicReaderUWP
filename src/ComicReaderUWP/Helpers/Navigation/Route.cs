@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 namespace ComicReaderUWP.Helpers.Navigation;
 

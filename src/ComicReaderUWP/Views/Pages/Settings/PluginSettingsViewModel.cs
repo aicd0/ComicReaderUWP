@@ -7,8 +7,8 @@ using System.ComponentModel;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Plugins;
+using ComicReaderUWP.Core.Common.Algorithm;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
-using ComicReaderUWP.SDK.Common.Algorithm;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 

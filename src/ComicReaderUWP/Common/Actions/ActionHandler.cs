@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 namespace ComicReaderUWP.Common.Actions;
 

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

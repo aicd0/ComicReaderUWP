@@ -7,11 +7,11 @@ using System.IO;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Storage;
+using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Storage;
-using ComicReaderUWP.SDK.Common.Threading;
-using ComicReaderUWP.SDK.Common.Utils;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 

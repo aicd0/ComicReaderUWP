@@ -14,9 +14,9 @@ using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Tables;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Database.SqlHelpers;
 
 using Windows.Storage;
 

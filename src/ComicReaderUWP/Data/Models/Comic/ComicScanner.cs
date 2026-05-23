@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 
 using Windows.Win32;
 using Windows.Win32.Foundation;

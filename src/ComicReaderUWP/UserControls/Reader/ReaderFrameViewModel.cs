@@ -4,7 +4,7 @@
 using System;
 using System.ComponentModel;
 
-using ComicReaderUWP.SDK.Common.Threading;
+using ComicReaderUWP.Core.Common.Threading;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;

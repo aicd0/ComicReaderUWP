@@ -1,11 +1,11 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.ServiceManagement;
-using ComicReaderUWP.SDK.Common.Storage;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.Storage;
 
-namespace ComicReaderUWP.SDK.Tests.Common;
+namespace ComicReaderUWP.Core.Tests.Common;
 
 internal static class SetUp
 {

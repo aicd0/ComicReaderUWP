@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComicReaderUWP", "ComicRead
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.SDK", "ComicReaderUWP.SDK\ComicReaderUWP.SDK.csproj", "{3A555A1B-826E-41A4-8808-29C2E214F671}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.SDK.Tests", "Tests\ComicReaderUWP.SDK.Tests\ComicReaderUWP.SDK.Tests.csproj", "{A57B0BCD-96D2-4E88-9E91-03CDE828B3C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.Core.Tests", "Tests\ComicReaderUWP.SDK.Tests\ComicReaderUWP.Core.Tests.csproj", "{A57B0BCD-96D2-4E88-9E91-03CDE828B3C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.Core", "ComicReaderUWP.Core\ComicReaderUWP.Core.csproj", "{8FF13018-C61D-43E1-81E2-2DD337844CF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,18 @@ Global
 		{A57B0BCD-96D2-4E88-9E91-03CDE828B3C4}.Release|x64.Build.0 = Release|Any CPU
 		{A57B0BCD-96D2-4E88-9E91-03CDE828B3C4}.Release|x86.ActiveCfg = Release|Any CPU
 		{A57B0BCD-96D2-4E88-9E91-03CDE828B3C4}.Release|x86.Build.0 = Release|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Debug|x64.Build.0 = Debug|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Debug|x86.Build.0 = Debug|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Release|ARM64.Build.0 = Release|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Release|x64.ActiveCfg = Release|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Release|x64.Build.0 = Release|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Release|x86.ActiveCfg = Release|Any CPU
+		{8FF13018-C61D-43E1-81E2-2DD337844CF3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

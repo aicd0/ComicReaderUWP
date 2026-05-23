@@ -3,7 +3,7 @@
 
 using System.Collections.ObjectModel;
 
-using ComicReaderUWP.SDK.Common.DebugTools;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml.Controls;

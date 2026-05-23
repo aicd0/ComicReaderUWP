@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.SDK.Common.DebugTools;
-using ComicReaderUWP.SDK.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

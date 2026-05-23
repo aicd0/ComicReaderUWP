@@ -8,8 +8,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Data.Models.Comic;
-using ComicReaderUWP.SDK.Common.DebugTools;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 

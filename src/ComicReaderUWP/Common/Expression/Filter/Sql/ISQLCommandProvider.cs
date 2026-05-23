@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-using ComicReaderUWP.SDK.Database.SqlHelpers;
+using ComicReaderUWP.Core.Database.SqlHelpers;
 
 namespace ComicReaderUWP.Common.Expression.Filter.Sql;
 

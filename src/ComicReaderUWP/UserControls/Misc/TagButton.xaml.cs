@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Common.Utils;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;

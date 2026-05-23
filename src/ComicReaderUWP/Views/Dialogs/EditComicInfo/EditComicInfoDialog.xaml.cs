@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
-using ComicReaderUWP.SDK.Common.Utils;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

@@ -5,8 +5,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.TagInfo;
-using ComicReaderUWP.SDK.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
 namespace ComicReaderUWP.Views.Dialogs.EditTag;

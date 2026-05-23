@@ -7,8 +7,8 @@ using System.IO;
 using System.Text;
 
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.SDK.Common.DebugTools;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
