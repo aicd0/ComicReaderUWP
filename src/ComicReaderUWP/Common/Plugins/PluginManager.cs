@@ -5,6 +5,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -15,6 +17,8 @@ using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Plugins;
+
+using Microsoft.UI.Xaml.Markup;
 
 namespace ComicReaderUWP.Common.Plugins;
 
@@ -50,16 +54,16 @@ internal partial class PluginManager
         string[] pluginFiles = Directory.GetFiles(pluginsDir);
         foreach (string pluginFile in pluginFiles)
         {
-            PluginLoader.PluginFileLoadResult? result = PluginLoader.LoadPluginFile(pluginFile);
-            if (result is null || result.Plugins.Count == 0)
+            PluginFileLoadContext? loadContext = LoadPluginFile(pluginFile);
+            if (loadContext is null || loadContext.Plugins.Count == 0)
             {
                 Logger.E(TAG, $"Failed to load assembly '{Path.GetFileName(pluginFile)}'");
                 continue;
             }
 
             Logger.I(TAG, $"Loaded assembly '{pluginFile}'");
-            bool registeredXaml = false;
-            foreach (IPlugin plugin in result.Plugins)
+            List<PluginContext> plugins = [];
+            foreach (IPlugin plugin in loadContext.Plugins)
             {
                 string name = plugin.Name;
                 if (!PluginNameRegex().IsMatch(name))
@@ -74,22 +78,57 @@ internal partial class PluginManager
                     continue;
                 }
 
-                PluginContext context = new(plugin, pluginFile, result);
-                _plugins.Add(name, context);
+                PluginContext pluginContext = new(plugin, pluginFile, loadContext);
+                _plugins.Add(name, pluginContext);
 
-                if (App.Instance.SafeMode || _disabledPlugins.ContainsKey(name))
+                if (!App.Instance.SafeMode && !_disabledPlugins.ContainsKey(pluginContext.Name))
                 {
-                    continue;
+                    plugins.Add(pluginContext);
+                }
+            }
+
+            if (plugins.Count > 0)
+            {
+                foreach (PluginContext plugin in plugins)
+                {
+                    foreach (string assembly in plugin.Plugin.SharedAssemblies)
+                    {
+                        loadContext.AssemblyLoader.AddSharedAssemblyName(assembly);
+                    }
                 }
 
-                if (!registeredXaml)
+                List<IXamlMetadataProvider> xamlMetaProviders = [.. loadContext.XamlMetadataProviders];
+
+                foreach (string assemblyName in loadContext.AssemblyLoader.SharedAssemblies)
                 {
-                    registeredXaml = true;
-                    PluginXamlMetadataProvider.AddProviders(result.XamlMetadataProviders);
+                    if (!loadContext.Assemblies.TryGetValue(assemblyName, out string? assemblyPath))
+                    {
+                        Logger.E(TAG, $"Failed to find shared assembly '{assemblyName}' for plugin '{pluginFile}'");
+                        continue;
+                    }
+
+                    Assembly assembly;
+                    try
+                    {
+                        assembly = Assembly.LoadFrom(assemblyPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.E(TAG, $"Failed to load shared assembly '{assemblyName}' for plugin '{pluginFile}'", ex);
+                        continue;
+                    }
+
+                    xamlMetaProviders.AddRange(CreateInstancesFromAssembly<IXamlMetadataProvider>(assembly));
+                    Logger.I(TAG, $"Loaded shared assembly '{assemblyName}' for plugin '{pluginFile}'");
                 }
 
-                context.Initialize();
-                Logger.I(TAG, $"Loaded plugin '{name}'");
+                PluginXamlMetadataProvider.AddProviders(xamlMetaProviders);
+
+                foreach (PluginContext plugin in plugins)
+                {
+                    plugin.Initialize();
+                    Logger.I(TAG, $"Loaded plugin '{plugin.Name}'");
+                }
             }
         }
 
@@ -239,6 +278,145 @@ internal partial class PluginManager
     private static void NotifyPluginsChanged()
     {
         _pluginsChanged.Emit(true);
+    }
+
+    private static PluginFileLoadContext? LoadPluginFile(string pluginFile)
+    {
+        string extension = Path.GetExtension(pluginFile).ToLowerInvariant();
+        return extension switch
+        {
+            ".dll" => LoadDllPlugin(pluginFile),
+            ".zip" => LoadZipPlugin(pluginFile),
+            _ => null,
+        };
+    }
+
+    private static PluginFileLoadContext? LoadZipPlugin(string pluginFile)
+    {
+        string pluginFileName = Path.GetFileNameWithoutExtension(pluginFile);
+        string extractDir = Path.Combine(StorageLocation.TemporaryFolderPath, "plugins", pluginFileName);
+        try
+        {
+            Directory.Delete(extractDir, true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Ignore
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, e);
+            return null;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(extractDir);
+            System.IO.Compression.ZipFile.ExtractToDirectory(pluginFile, extractDir);
+        }
+        catch (Exception e)
+        {
+            Logger.F(TAG, e);
+            return null;
+        }
+
+        string[] depFiles = Directory.GetFiles(extractDir, "*.deps.json", SearchOption.TopDirectoryOnly);
+        if (depFiles.Length != 1)
+        {
+            Logger.E(TAG, $"Expected exactly one .deps.json file in plugin '{pluginFile}', but found {depFiles.Length}");
+            return null;
+        }
+
+        string[] dllFiles = Directory.GetFiles(extractDir, "*.dll", SearchOption.TopDirectoryOnly);
+        Dictionary<string, string> assemblies = [];
+        foreach (string dllFile in dllFiles)
+        {
+            string assemblyName = Path.GetFileNameWithoutExtension(dllFile);
+            assemblies.Add(assemblyName, dllFile);
+        }
+
+        string mainAssemblyName = Path.GetFileName(depFiles[0])[..^10];
+        if (!assemblies.TryGetValue(mainAssemblyName, out _))
+        {
+            Logger.E(TAG, $"Main assembly '{mainAssemblyName}' not found in plugin '{pluginFile}'");
+            return null;
+        }
+
+        string mainAssemblyPath = assemblies[mainAssemblyName];
+        PluginFileLoadContext? loadDllResult = LoadDllPlugin(mainAssemblyPath);
+        if (loadDllResult is null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            AssemblyLoader = loadDllResult.AssemblyLoader,
+            Plugins = loadDllResult.Plugins,
+            XamlMetadataProviders = loadDllResult.XamlMetadataProviders,
+            ResourceFolderPath = extractDir,
+            Assemblies = assemblies,
+        };
+    }
+
+    private static PluginFileLoadContext? LoadDllPlugin(string pluginFile)
+    {
+        PluginAssemblyLoader loadContext = new(pluginFile);
+        Assembly assembly;
+        try
+        {
+            assembly = loadContext.LoadFromAssemblyPath(pluginFile);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+            return null;
+        }
+
+        List<IPlugin> plugins = CreateInstancesFromAssembly<IPlugin>(assembly);
+        List<IXamlMetadataProvider> xamlMetadataProviders = CreateInstancesFromAssembly<IXamlMetadataProvider>(assembly);
+        return new()
+        {
+            AssemblyLoader = loadContext,
+            Plugins = plugins,
+            XamlMetadataProviders = xamlMetadataProviders,
+            Assemblies = new Dictionary<string, string> { { Path.GetFileNameWithoutExtension(pluginFile), pluginFile } },
+        };
+    }
+
+    private static List<T> CreateInstancesFromAssembly<T>(Assembly assembly) where T : class
+    {
+        IEnumerable<Type> types;
+        try
+        {
+            types = assembly
+                .GetTypes()
+                .Where(t => typeof(T).IsAssignableFrom(t) && !t.IsAbstract);
+        }
+        catch (Exception e)
+        {
+            Logger.E(TAG, e);
+            return [];
+        }
+
+        List<T> instances = [];
+        foreach (Type type in types)
+        {
+            T instance;
+            try
+            {
+                instance = (T)Activator.CreateInstance(type)!;
+            }
+            catch (Exception e)
+            {
+                Logger.E(TAG, e);
+                continue;
+            }
+
+            instances.Add(instance);
+        }
+
+        return instances;
     }
 
     [GeneratedRegex(@"^[a-zA-Z0-9_]+$")]
