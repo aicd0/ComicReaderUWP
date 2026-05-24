@@ -9,9 +9,9 @@ public interface IPlugin
 
     string Publisher { get; }
 
-    int MajorVersion { get; }
+    string Version { get; }
 
-    int MinorVersion { get; }
+    public IReadOnlyCollection<string> SharedAssemblies { get; }
 
     void Initialize(IPluginContext context);
 }

@@ -35,10 +35,12 @@ internal partial class PluginContext : IPluginContext
     public delegate void StatusChangedEventHandler(PluginStatusEnum newStatus);
     public event StatusChangedEventHandler? StatusChanged;
 
-    public string Name => _pluginName;
+    public IPlugin Plugin { get; init; }
+    public string Name { get; init; }
     public string PluginFilePath { get; init; }
-    public string Publisher => _plugin.Publisher;
-    public string Version => $"{_plugin.MajorVersion}.{_plugin.MinorVersion}";
+    public PluginFileLoadContext LoadContext { get; init; }
+    public string Publisher => Plugin.Publisher;
+    public string Version => Plugin.Version;
     public bool IsActive => Status == PluginStatusEnum.Initialized;
 
     private PluginStatusEnum _status = PluginStatusEnum.NotInitialized;
@@ -55,9 +57,6 @@ internal partial class PluginContext : IPluginContext
         }
     }
 
-    private readonly IPlugin _plugin;
-    private readonly string _pluginName;
-    private readonly PluginLoader.PluginFileLoadResult _loadContext;
     private readonly Lazy<ILogger> _logger;
     private readonly Lazy<IRegistryDatabase> _registryDatabase;
     private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
@@ -65,14 +64,14 @@ internal partial class PluginContext : IPluginContext
     private IComicMenuItemCreator? _comicMenuItemCreator = null;
     private IComicEditedHandler? _comicEditedHandlers = null;
 
-    public PluginContext(IPlugin plugin, string pluginFilePath, PluginLoader.PluginFileLoadResult loadContext)
+    public PluginContext(IPlugin plugin, string pluginFilePath, PluginFileLoadContext loadContext)
     {
+        Plugin = plugin;
         PluginFilePath = pluginFilePath;
-        _plugin = plugin;
-        _pluginName = plugin.Name;
-        _loadContext = loadContext;
-        _logger = new Lazy<ILogger>(() => new PluginLogger(_pluginName));
-        _registryDatabase = new Lazy<IRegistryDatabase>(() => AppDB.PluginRegistry(_pluginName));
+        Name = plugin.Name;
+        LoadContext = loadContext;
+        _logger = new Lazy<ILogger>(() => new PluginLogger(Name));
+        _registryDatabase = new Lazy<IRegistryDatabase>(() => AppDB.PluginRegistry(Name));
     }
 
     //
@@ -83,11 +82,11 @@ internal partial class PluginContext : IPluginContext
     {
         if (Status != PluginStatusEnum.NotInitialized)
         {
-            Logger.F(TAG, $"({_pluginName}) Initialize: Plugin already initialized or in error state");
+            Logger.F(TAG, $"({Name}) Initialize: Plugin already initialized or in error state");
             return;
         }
 
-        if (SafeAction(() => _plugin.Initialize(this)))
+        if (SafeAction(() => Plugin.Initialize(this)))
         {
             Status = PluginStatusEnum.Initialized;
         }
@@ -149,7 +148,7 @@ internal partial class PluginContext : IPluginContext
     // IPluginContext Implementation
     //
 
-    string IPluginContext.ResourceFolderPath => _loadContext.ResourceFolderPath;
+    string IPluginContext.ResourceFolderPath => LoadContext.ResourceFolderPath;
 
     ILogger IPluginContext.Logger => _logger.Value;
 
@@ -213,13 +212,13 @@ internal partial class PluginContext : IPluginContext
         string name = property.Name;
         if (string.IsNullOrEmpty(name) || !VirtualPropertyNameRegex().IsMatch(name))
         {
-            Logger.F(TAG, $"({_pluginName}) RegisterComicVirtualProperty: Invalid name '{name}'");
+            Logger.F(TAG, $"({Name}) RegisterComicVirtualProperty: Invalid name '{name}'");
             return;
         }
 
         if (!_comicVirtualProperties.TryAdd(name, property))
         {
-            Logger.F(TAG, $"({_pluginName}) RegisterComicVirtualProperty: Property '{name}' already registered");
+            Logger.F(TAG, $"({Name}) RegisterComicVirtualProperty: Property '{name}' already registered");
         }
     }
 
@@ -256,7 +255,7 @@ internal partial class PluginContext : IPluginContext
         }
         catch (Exception ex)
         {
-            Logger.F(TAG, $"Unhandled exception thrown from plugin: {_pluginName}", ex);
+            Logger.F(TAG, $"Unhandled exception thrown from plugin: {Name}", ex);
             Status = PluginStatusEnum.Error;
             return false;
         }
@@ -275,7 +274,7 @@ internal partial class PluginContext : IPluginContext
         }
         catch (Exception ex)
         {
-            Logger.F(TAG, $"Unhandled exception thrown from plugin: {_pluginName}", ex);
+            Logger.F(TAG, $"Unhandled exception thrown from plugin: {Name}", ex);
             Status = PluginStatusEnum.Error;
             return defaultValue;
         }
