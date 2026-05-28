@@ -903,19 +903,18 @@ internal static partial class ImageCacheManager
             sImageCache = cache;
         }
 
-        long cacheSize = cache.GetApproximateSize();
-        long freeSpace = GetFreeSpace(folderPath) + cacheSize;
-        long cacheCapacity = Math.Max(freeSpace / 10, MIN_CACHE_CAPACITY); // Use up to 10% of free space, but at least MIN_CACHE_CAPACITY
-        Logger.I(TAG, $"Image cache initialized (capacity={cacheCapacity})");
-
-        if (cacheSize > cacheCapacity)
+        TaskDispatcher.LongRunningThreadPool.Submit("CleanupImageCache", delegate
         {
-            TaskDispatcher.LongRunningThreadPool.Submit("CleanImageCache", delegate
+            long cacheSize = cache.GetApproximateSize();
+            long freeSpace = GetFreeSpace(folderPath) + cacheSize;
+            long cacheCapacity = Math.Max(freeSpace / 10, MIN_CACHE_CAPACITY); // Use up to 10% of free space, but at least MIN_CACHE_CAPACITY
+            if (cacheSize > cacheCapacity)
             {
                 cache.Cleanup(cacheCapacity);
-            });
-        }
+            }
+        });
 
+        Logger.I(TAG, $"Image cache initialized");
         return cache;
     }
 
