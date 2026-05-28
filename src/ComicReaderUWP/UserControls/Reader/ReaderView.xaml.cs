@@ -17,6 +17,7 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.UserControls.Reader.Models;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
 
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
@@ -1726,7 +1727,16 @@ internal partial class ReaderView : UserControl
     {
         var item = args.Item as ReaderFrameViewModel;
 
-        if (args.ItemContainer.ContentTemplateRoot is not ReaderFrame viewHolder)
+        if (args.ItemContainer is not ListViewItem container)
+        {
+            return;
+        }
+
+        // Remove focus visuals
+        container.FocusVisualPrimaryBrush = new SolidColorBrush(Colors.Transparent);
+        container.FocusVisualSecondaryBrush = new SolidColorBrush(Colors.Transparent);
+
+        if (container.ContentTemplateRoot is not ReaderFrame viewHolder)
         {
             return;
         }

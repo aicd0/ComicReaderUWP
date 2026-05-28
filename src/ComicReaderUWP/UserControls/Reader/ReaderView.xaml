@@ -301,6 +301,8 @@
                     x:Name="ContentListView"
                     VerticalAlignment="Top"
                     ContainerContentChanging="OnReaderContainerContentChanging"
+                    FocusVisualPrimaryBrush="Transparent"
+                    FocusVisualSecondaryBrush="Transparent"
                     IsTabStop="True"
                     ItemsSource="{x:Bind FrameDataSource, Mode=OneWay}"
                     Loaded="OnReaderListViewLoadedOrUnloaded"
