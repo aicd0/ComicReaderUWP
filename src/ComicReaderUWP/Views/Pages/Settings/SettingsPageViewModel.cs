@@ -544,24 +544,31 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             return true;
         }).Wait();
 
-        string textWithColon = StringResourceProvider.Instance.TextWithColon;
         StringBuilder sb = new();
         sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.TotalComics))
             .Append(comicCount.ToString("#,#0", CultureInfo.InvariantCulture));
-        sb.Append('\n');
-        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusUnread))
-            .Append(unreadComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
-            .Append(" (").Append(100 * unreadComicCount / Math.Max(1, comicCount)).Append("%)");
-        sb.Append('\n');
-        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusReading))
-            .Append(readingComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
-            .Append(" (").Append(100 * readingComicCount / Math.Max(1, comicCount)).Append("%)");
-        sb.Append('\n');
-        sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusFinished))
-            .Append(finishedComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
-            .Append(" (").Append(100 * finishedComicCount / Math.Max(1, comicCount)).Append("%)");
-        string statisticText = sb.ToString();
 
+        {
+            int unreadPercentage = (int)Math.Round(100.0 * unreadComicCount / Math.Max(1, comicCount));
+            sb.Append('\n')
+                .Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusUnread))
+                .Append(unreadComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
+                .Append(" (").Append(unreadPercentage).Append("%)");
+
+            int readingPercentage = (int)Math.Round(100.0 * readingComicCount / Math.Max(1, comicCount));
+            sb.Append('\n')
+                .Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusReading))
+                .Append(readingComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
+                .Append(" (").Append(readingPercentage).Append("%)");
+
+            int finishedPercentage = (int)Math.Round(100.0 * finishedComicCount / Math.Max(1, comicCount));
+            sb.Append('\n')
+                .Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusFinished))
+                .Append(finishedComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
+                .Append(" (").Append(finishedPercentage).Append("%)");
+        }
+
+        string statisticText = sb.ToString();
         CoroutineUtils.RunInMainThread(() =>
         {
             StatisticText = statisticText;
