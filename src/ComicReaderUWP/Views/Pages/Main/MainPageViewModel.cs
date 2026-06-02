@@ -14,6 +14,7 @@ using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Services;
+using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
@@ -325,10 +326,16 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             {
                 CoroutineUtils.Run(async () =>
                 {
-                    var uri = new Uri(@"https://github.com/aicd0/ComicReaderUWP/releases");
-                    await Windows.System.Launcher.LaunchUriAsync(uri);
+                    if (EnvironmentProvider.IsPortable())
+                    {
+                        await Windows.System.Launcher.LaunchUriAsync(new Uri(StaticStringResources.GITHUB_RELEASES_URL));
+                    }
+                    else
+                    {
+                        await Windows.System.Launcher.LaunchUriAsync(new Uri(StaticStringResources.MS_STORE_DEEP_LINK));
+                    }
                 });
-            },
+            }
         });
 
         items.Add(new SimpleMenuFlyoutItemModel()

@@ -94,7 +94,7 @@ internal sealed partial class SettingsPage : BasePage
     {
         CoroutineUtils.Run(async () =>
         {
-            var uri = new Uri(@"https://github.com/aicd0/ComicReaderUWP/issues/new/choose");
+            var uri = new Uri(StaticStringResources.SEND_FEEDBACK_URL);
             await Windows.System.Launcher.LaunchUriAsync(uri);
         });
     }
@@ -201,6 +201,16 @@ internal sealed partial class SettingsPage : BasePage
     private void LicenseHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
     {
         ThirdPartyLauncher.StartTemporaryTextFile("License.txt", StaticStringResources.LICENSE);
+    }
+
+    private void GithubHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    {
+        CoroutineUtils.Run(async () => await Windows.System.Launcher.LaunchUriAsync(new Uri(StaticStringResources.GITHUB_REPO_URL)));
+    }
+
+    private void PrivacyPolicyHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    {
+        CoroutineUtils.Run(async () => await Windows.System.Launcher.LaunchUriAsync(new Uri(StaticStringResources.PRIVACY_POLICY_URL)));
     }
 
     //
