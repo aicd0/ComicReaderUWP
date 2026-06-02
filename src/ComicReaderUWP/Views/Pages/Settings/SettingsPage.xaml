@@ -260,13 +260,13 @@
                     <RichTextBlock Margin="0,8,0,0" IsTextSelectionEnabled="False">
                         <Paragraph>
                             <Run x:Name="ContributionRunBeforeLink" />
-                            <Hyperlink NavigateUri="https://github.com/aicd0/ComicReaderUWP">
+                            <Hyperlink Click="GithubHyperlink_Click">
                                 <Run Text="GitHub" />
                             </Hyperlink>
                             <Run x:Name="ContributionRunAfterLink" />
                         </Paragraph>
                     </RichTextBlock>
-                    <StackPanel Orientation="Vertical" Visibility="{x:Bind ViewModel.IsDonor, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}">
+                    <StackPanel Orientation="Vertical" Visibility="Collapsed">
                         <RichTextBlock Margin="0,8,0,0" IsTextSelectionEnabled="False">
                             <Paragraph>
                                 <Run Text="{x:Bind StringResource.DonationDescription}" />
@@ -283,7 +283,7 @@
                     <RichTextBlock
                         Margin="0,8,0,0"
                         IsTextSelectionEnabled="False"
-                        Visibility="{x:Bind ViewModel.IsDonor, Mode=OneWay}">
+                        Visibility="Collapsed">
                         <Paragraph>
                             <Run FontWeight="Bold" Text="{x:Bind StringResource.DonationSuccess}" />
                             <InlineUIContainer>
@@ -317,7 +317,7 @@
                     <Grid Height="8" />
                     <RichTextBlock HorizontalAlignment="Left" IsTextSelectionEnabled="False">
                         <Paragraph>
-                            <Hyperlink NavigateUri="https://github.com/aicd0/ComicReaderUWP/blob/develop/docs/PrivacyPolicy.md">
+                            <Hyperlink Click="PrivacyPolicyHyperlink_Click">
                                 <Run Text="{x:Bind StringResource.PrivacyPolicy}" />
                             </Hyperlink>
                         </Paragraph>
