@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.Common.Constants;
 
-internal class StaticStringResources
+internal static class StaticStringResources
 {
     public const string MS_STORE_DEEP_LINK = $"ms-windows-store://pdp/?productid=9NS9FG32DCP5";
     public const string GITHUB_REPO_URL = @"https://github.com/aicd0/ComicReaderUWP";
