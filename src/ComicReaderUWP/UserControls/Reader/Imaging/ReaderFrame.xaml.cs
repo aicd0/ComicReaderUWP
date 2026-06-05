@@ -3,24 +3,32 @@
 
 using System;
 
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 
-namespace ComicReaderUWP.UserControls.Reader;
+namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
 internal sealed partial class ReaderFrame : UserControl
 {
-    private bool _isLoaded = false;
-    private bool? _isReady = null;
-
     public delegate void ReadyStateChangeListener(ReaderFrame container, bool isReady, string reason);
     private event ReadyStateChangeListener? ReadyStateChanged;
 
     private ReaderFrameViewModel? ViewModel { get; set; }
 
+    private bool _isLoaded = false;
+    private bool? _isReady = null;
+    private readonly Compositor _compositor;
+    private readonly ContainerVisual _root;
+
     public ReaderFrame()
     {
         InitializeComponent();
+
+        _compositor = ElementCompositionPreview.GetElementVisual(ImageHost).Compositor;
+        _root = _compositor.CreateContainerVisual();
+        ElementCompositionPreview.SetElementChildVisual(ImageHost, _root);
 
         Loaded += OnLoadedOrUnloaded;
         Unloaded += OnLoadedOrUnloaded;

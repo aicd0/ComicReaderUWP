@@ -22,7 +22,7 @@ using Microsoft.UI.Xaml.Media;
 
 using Windows.Graphics.Imaging;
 
-namespace ComicReaderUWP.UserControls.Reader;
+namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
 internal partial class ReaderImageSourceHolder(ITaskDispatcher dispatcher) : IDisposable
 {

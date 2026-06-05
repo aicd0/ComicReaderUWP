@@ -14,6 +14,7 @@ using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.UserControls.Reader.Imaging;
 using ComicReaderUWP.UserControls.Reader.Models;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
 
@@ -3013,8 +3014,8 @@ internal partial class ReaderView : UserControl
             return frameOffsetData;
         }
 
-        FrameworkElement container = _frameManager.GetContainer(frame);
-        if (container == null)
+        FrameworkElement? container = _frameManager.GetContainer(frame);
+        if (container is null)
         {
             return null;
         }
@@ -3192,9 +3193,8 @@ internal partial class ReaderView : UserControl
 
     private double FrameParallelLength(int i)
     {
-        FrameworkElement container = _frameManager.GetContainer(i);
-
-        if (container != null)
+        FrameworkElement? container = _frameManager.GetContainer(i);
+        if (container is not null)
         {
             return IsVertical ? container.ActualHeight : container.ActualWidth;
         }

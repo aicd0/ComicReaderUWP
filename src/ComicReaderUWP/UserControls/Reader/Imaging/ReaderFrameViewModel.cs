@@ -9,7 +9,7 @@ using ComicReaderUWP.Core.Common.Threading;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
-namespace ComicReaderUWP.UserControls.Reader;
+namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
 internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposable
 {

@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
+using ComicReaderUWP.UserControls.Reader.Imaging;
+
 namespace ComicReaderUWP.UserControls.Reader.PageLayout;
 
 internal class SimplePageLayoutManager : IPageLayoutManager
