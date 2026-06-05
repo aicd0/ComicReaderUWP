@@ -72,18 +72,18 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposabl
 
     public void SetLeftImageVisibility(bool visible)
     {
-        _imageSourceHolder.PlaceholderMode = IsDualPage;
-        _imageSourceHolder.SetImage(0, visible ? LeftImageSource : null, LeftImageWidth, LeftImageHeight);
+        _imageSourceHolder.SetImage(0, visible ? LeftImageSource : null,
+            (float)LeftImageWidth, (float)LeftImageHeight);
     }
 
     public void SetRightImageVisibility(bool visible)
     {
-        _imageSourceHolder.PlaceholderMode = IsDualPage;
-        _imageSourceHolder.SetImage(1, visible ? RightImageSource : null, RightImageWidth, RightImageHeight);
+        _imageSourceHolder.SetImage(1, visible ? RightImageSource : null,
+            (float)RightImageWidth, (float)RightImageHeight);
     }
 
     public void SetScale(double scale)
     {
-        _imageSourceHolder.Scale = scale;
+        _imageSourceHolder.Scale = (float)scale;
     }
 };
