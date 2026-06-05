@@ -14,4 +14,5 @@ internal static class ImageCacheExt
     public const string IMAGE_META_DPI_Y = "ImageMetaDpiY";
     public const string IMAGE_META_BITS_PER_PIXEL = "ImageMetaBitsPerPixel";
     public const string IMAGE_META_FINGERPRINT = "ImageMetaFingerprint";
+    public const string IMAGE_META_FRAME_COUNT = "ImageMetaFrameCount";
 }

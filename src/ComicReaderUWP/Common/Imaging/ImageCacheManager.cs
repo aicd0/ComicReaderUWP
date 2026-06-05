@@ -30,7 +30,7 @@ internal static partial class ImageCacheManager
 {
     private const string TAG = "ImageCacheManager";
     private const int VERSION = 1;
-    private const int IMAGE_META_VERSION = 1;
+    private const int IMAGE_META_VERSION = 2;
     private const string IMAGES_FOLDER_NAME = "images";
     private const string MAIN_DATABASE_FILE_NAME = "db_main.db";
     private const long MIN_CACHE_CAPACITY = 1024 * 1024 * 1024;
@@ -307,7 +307,22 @@ internal static partial class ImageCacheManager
             return null;
         }
 
-        return new(width, height, dpiX, dpiY, decoderName, bitsPerPixel, size);
+        if (!TryReadIntExt(ImageCacheExt.IMAGE_META_FRAME_COUNT, out int frameCount))
+        {
+            return null;
+        }
+
+        return new ImageMeta
+        {
+            Width = width,
+            Height = height,
+            DpiX = dpiX,
+            DpiY = dpiY,
+            Format = decoderName,
+            BitsPerPixel = bitsPerPixel,
+            Size = size,
+            FrameCount = frameCount
+        };
     }
 
     private static void SaveImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, long size, BitmapDecoder decoder)
@@ -353,6 +368,7 @@ internal static partial class ImageCacheManager
         record.PutExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, bitsPerPixel.ToString());
         record.PutExt(ImageCacheExt.IMAGE_META_DECODER_NAME, decoderName);
         record.PutExt(ImageCacheExt.IMAGE_META_SIZE, size.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_FRAME_COUNT, decoder.FrameCount.ToString());
     }
 
     private static bool LoadImage(CacheRequestContext context, LoadImageOptions options)
@@ -1100,14 +1116,15 @@ internal static partial class ImageCacheManager
         public long StartTime;
     }
 
-    public class ImageMeta(int width, int height, double dpiX, double dpiY, string format, int bitsPerPixel, long size)
+    public class ImageMeta
     {
-        public int Width => width;
-        public int Height => height;
-        public double DpiX => dpiX;
-        public double DpiY => dpiY;
-        public string Format => format;
-        public int BitsPerPixel => bitsPerPixel;
-        public long Size => size;
+        public required int Width { get; init; }
+        public required int Height { get; init; }
+        public required double DpiX { get; init; }
+        public required double DpiY { get; init; }
+        public required string Format { get; init; }
+        public required int BitsPerPixel { get; init; }
+        public required long Size { get; init; }
+        public required int FrameCount { get; init; }
     }
 }
