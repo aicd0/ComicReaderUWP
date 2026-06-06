@@ -10,6 +10,7 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
@@ -234,9 +235,13 @@ internal sealed partial class ReaderPage : BasePage
 
         GetMainWindowAbility().RegisterFullscreenChangedHandler(this, ViewModel.SetFullscreen);
 
-        ViewModel.TitleLiveData.ObserveStartSticky(this, title =>
+        ViewModel.TitleLiveData.Observe(this, title =>
         {
             GetMainPageAbility().SetTitle(title);
+        }, new ObserveOptions()
+        {
+            Sticky = true,
+            PublishBehavior = LiveDataPublishBehavior.ActiveOnStart,
         });
 
         ViewModel.PlaybackChangeLiveData.ObserveSticky(this, _ =>

@@ -17,19 +17,8 @@ public static class Extensions
 
     private static readonly ObserveOptions sObserveOptionSticky = new()
     {
-        StickyOnObserve = true,
+        Sticky = true,
     };
-
-    private static readonly ObserveOptions sObserveOptionStartSticky = new()
-    {
-        StickyOnObserve = true,
-        ActiveOnStart = true,
-    };
-
-    public static bool IsStarted(this ILifecycle.State state)
-    {
-        return state == ILifecycle.State.Started || state == ILifecycle.State.Resumed;
-    }
 
     public static void Observe<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
     {
@@ -43,10 +32,10 @@ public static class Extensions
         liveData.Observe(owner, wrapper, sObserveOptionSticky);
     }
 
-    public static void ObserveStartSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
+    public static void Observe<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer, ObserveOptions options) where T : notnull
     {
         var wrapper = new Observer<T>(observer);
-        liveData.Observe(owner, wrapper, sObserveOptionStartSticky);
+        liveData.Observe(owner, wrapper, options);
     }
 
     private class Observer<U>(Action<U> action) : Lifecycle.IObserver<U>

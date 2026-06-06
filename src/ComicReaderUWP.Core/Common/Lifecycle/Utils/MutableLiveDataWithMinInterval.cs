@@ -59,7 +59,7 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
                 try
                 {
                     await Task.Delay(timeRemaining);
-                    if (owner is not null && !owner.GetLifecycle().GetState().IsStarted())
+                    if (owner is not null && owner.GetLifecycle().GetState() < ILifecycle.State.Started)
                     {
                         return;
                     }

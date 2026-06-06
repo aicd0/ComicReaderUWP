@@ -12,6 +12,7 @@ using System.Threading;
 
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
@@ -30,8 +31,8 @@ internal partial class PluginManager
 
     public static string PluginsFolderPath => Path.Combine(StorageLocation.LocalFolderPath, "plugins");
 
-    public delegate void PluginsChangedEventHandler();
-    public static event PluginsChangedEventHandler? PluginsChanged;
+    private static readonly MutableLiveData<bool> _pluginsChanged = new(false);
+    public static ILiveData<bool> PluginsChanged => _pluginsChanged;
 
     private int _pluginLoaded = 0;
     private volatile bool _pluginInitialized = false;
@@ -276,7 +277,7 @@ internal partial class PluginManager
 
     private static void NotifyPluginsChanged()
     {
-        PluginsChanged?.Invoke();
+        _pluginsChanged.Emit(true);
     }
 
     private static PluginFileLoadContext? LoadPluginFile(string pluginFile)

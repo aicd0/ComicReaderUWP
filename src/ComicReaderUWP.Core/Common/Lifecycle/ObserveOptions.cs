@@ -5,6 +5,6 @@ namespace ComicReaderUWP.Core.Common.Lifecycle;
 
 public class ObserveOptions
 {
-    public bool StickyOnObserve = false;
-    public bool ActiveOnStart = false;
+    public bool Sticky { get; init; } = false;
+    public LiveDataPublishBehavior PublishBehavior { get; init; } = LiveDataPublishBehavior.Default;
 }

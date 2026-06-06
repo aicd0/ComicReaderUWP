@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
+using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
@@ -34,13 +35,7 @@ internal sealed partial class PluginSettingsView : BaseUserControl
     protected override void OnResume()
     {
         base.OnResume();
-        PluginManager.PluginsChanged += PluginManager_PluginsChanged;
-    }
-
-    protected override void OnPause()
-    {
-        base.OnPause();
-        PluginManager.PluginsChanged -= PluginManager_PluginsChanged;
+        ObserveData();
     }
 
     public void Initialize(SettingsSharedViewModel shared)
@@ -48,9 +43,16 @@ internal sealed partial class PluginSettingsView : BaseUserControl
         ViewModel.Initialize(shared);
     }
 
-    private void PluginManager_PluginsChanged()
+    private void ObserveData()
     {
-        ViewModel.UpdatePlugins();
+        PluginManager.PluginsChanged.Observe(this, _ =>
+        {
+            ViewModel.UpdatePlugins();
+        }, new ObserveOptions()
+        {
+            Sticky = true,
+            PublishBehavior = LiveDataPublishBehavior.ResumeOnly,
+        });
     }
 
     private void OpenPluginsFolderButton_Click(object sender, RoutedEventArgs e)
