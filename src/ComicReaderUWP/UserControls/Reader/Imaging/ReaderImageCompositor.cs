@@ -459,6 +459,28 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (pixelRatio < 1E-3)
         {
+            CoroutineUtils.RunInMainThread(() =>
+            {
+                if (Volatile.Read(ref _layoutVersion) != version)
+                {
+                    return;
+                }
+
+                if (!_resourceRef.TryRef(out InstanceResourceModel? res))
+                {
+                    return;
+                }
+
+                try
+                {
+                    res.DisposeCompositionComponents();
+                }
+                finally
+                {
+                    _resourceRef.Unref();
+                }
+            });
+
             return;
         }
 
@@ -678,14 +700,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         public void Dispose()
         {
-            _rootVisual.Children.RemoveAll();
-
-            _compositionSurfaceRef?.Unref();
-            _compositionSurfaceRef = null;
-            _compositionBrush?.Dispose();
-            _compositionBrush = null;
-            _compositionVisual?.Dispose();
-            _compositionVisual = null;
+            DisposeCompositionComponents();
 
             foreach (ImageItem item in _images)
             {
@@ -696,6 +711,17 @@ internal partial class ReaderImageCompositor : IDisposable
 
             _rootVisual.Dispose();
             _graphicsDevice.Dispose();
+        }
+
+        public void DisposeCompositionComponents()
+        {
+            _rootVisual.Children.RemoveAll();
+            _compositionSurfaceRef?.Unref();
+            _compositionSurfaceRef = null;
+            _compositionBrush?.Dispose();
+            _compositionBrush = null;
+            _compositionVisual?.Dispose();
+            _compositionVisual = null;
         }
     }
 }

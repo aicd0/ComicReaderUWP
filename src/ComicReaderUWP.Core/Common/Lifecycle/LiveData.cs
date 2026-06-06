@@ -71,11 +71,6 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
             return;
         }
 
-        if (!owner.GetLifecycle().GetState().IsStarted())
-        {
-            return;
-        }
-
         if (_observers.TryGetValue(observer, out ObserverWrapper? wrapper))
         {
             if (wrapper.IsSameOwner(owner))
@@ -86,9 +81,31 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
             return;
         }
 
-        ILifecycle.State activeState = options.ActiveOnStart ? ILifecycle.State.Started : ILifecycle.State.Resumed;
-        ObserverWrapper observerWrapper = new LifecycleObserverWrapper(this, owner, observer, activeState);
-        if (!options.StickyOnObserve)
+        ILifecycle.State aliveState;
+        ILifecycle.State activeState;
+        switch (options.PublishBehavior)
+        {
+            case LiveDataPublishBehavior.ActiveOnStart:
+                aliveState = ILifecycle.State.Started;
+                activeState = ILifecycle.State.Started;
+                break;
+            case LiveDataPublishBehavior.ResumeOnly:
+                aliveState = ILifecycle.State.Resumed;
+                activeState = ILifecycle.State.Resumed;
+                break;
+            default:
+                aliveState = ILifecycle.State.Started;
+                activeState = ILifecycle.State.Resumed;
+                break;
+        }
+
+        if (owner.GetLifecycle().GetState() < aliveState)
+        {
+            return;
+        }
+
+        ObserverWrapper observerWrapper = new LifecycleObserverWrapper(this, owner, observer, aliveState, activeState);
+        if (!options.Sticky)
         {
             observerWrapper.Version = _version;
         }
@@ -160,16 +177,19 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
     {
         private readonly LiveData<T> _liveData;
         private readonly ILifecycleOwner _owner;
+        private readonly ILifecycle.State _aliveState;
         private readonly ILifecycle.State _activeState;
 
         public LifecycleObserverWrapper(
             LiveData<T> liveData,
             ILifecycleOwner owner,
             IObserver<T> observer,
+            ILifecycle.State aliveState,
             ILifecycle.State activeState) : base(observer)
         {
             _liveData = liveData;
             _owner = owner;
+            _aliveState = aliveState;
             _activeState = activeState;
             _owner.GetLifecycle().AddObserver(this);
         }
@@ -192,7 +212,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
 
         void ILifecycleObserver.OnLifecycleEvent(ILifecycle.State fromState, ILifecycle.State toState)
         {
-            if (toState == ILifecycle.State.Stopped)
+            if (toState < _aliveState)
             {
                 Remove();
             }
