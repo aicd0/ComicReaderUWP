@@ -700,7 +700,11 @@ internal partial class ReaderImageCompositor : IDisposable
 
         public void Dispose()
         {
-            DisposeCompositionComponents();
+            CoroutineUtils.RunInMainThread(() =>
+            {
+                DisposeCompositionComponents();
+                _rootVisual.Dispose();
+            });
 
             foreach (ImageItem item in _images)
             {
@@ -708,8 +712,6 @@ internal partial class ReaderImageCompositor : IDisposable
             }
 
             _images.Clear();
-
-            _rootVisual.Dispose();
             _graphicsDevice.Dispose();
         }
 
