@@ -9,8 +9,6 @@ using System.Threading;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
 
-using Microsoft.Graphics.Canvas;
-
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
 internal class CompositionItemModel
@@ -18,7 +16,7 @@ internal class CompositionItemModel
     private static int _idCounter = 0;
 
     public int Id { get; } = Interlocked.Increment(ref _idCounter);
-    public required RefCounted<CanvasBitmap> BitmapRef { get; init; }
+    public required RefCounted<AnimatedBitmapModel> BitmapRef { get; init; }
     public required ReaderImageSource ImageSource { get; init; }
     public required RectangleF CanvasRect { get; init; }
 

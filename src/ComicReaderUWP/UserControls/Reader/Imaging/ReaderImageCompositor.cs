@@ -21,8 +21,6 @@ using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Hosting;
 
-using Windows.Graphics.Imaging;
-
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
 internal partial class ReaderImageCompositor : IDisposable
@@ -109,6 +107,12 @@ internal partial class ReaderImageCompositor : IDisposable
 
     public void Dispose()
     {
+        if (_compositionGroup is not null)
+        {
+            ReaderImageUpdateScheduler.Instance.RemoveGroup(_compositionGroup);
+            _compositionGroup = null;
+        }
+
         _resourceRef.Unref();
     }
 
@@ -274,7 +278,8 @@ internal partial class ReaderImageCompositor : IDisposable
             return;
         }
 
-        CanvasBitmap? newBitmap;
+        AnimatedBitmapModel? newBitmap = null;
+
         using IVectorImageService? vectorService = source.Source.OpenVectorService();
         if (vectorService is not null)
         {
@@ -295,10 +300,15 @@ internal partial class ReaderImageCompositor : IDisposable
                 height = frameSize.Height * ratio;
             }
 
-            newBitmap = vectorService.CreateImageCanvasBitmap(_canvasDevice,
+            CanvasBitmap? bitmap = vectorService.CreateImageCanvasBitmap(_canvasDevice,
                 (int)Math.Round(width), (int)Math.Round(height));
+            if (bitmap is not null)
+            {
+                newBitmap = AnimatedBitmapModel.FromCanvasBitmap(bitmap);
+            }
         }
-        else
+
+        if (newBitmap is null)
         {
             using Stream? stream = source.Source.OpenImageStream();
             if (stream is null)
@@ -306,15 +316,27 @@ internal partial class ReaderImageCompositor : IDisposable
                 return;
             }
 
-            try
+            ImageCacheManager.ImageMeta? meta = ImageCacheManager.GetImageMeta(source.Source);
+            if (meta is not null && meta.FrameCount > 1)
             {
-                newBitmap = CanvasBitmap.LoadAsync(_canvasDevice,
-                    stream.AsRandomAccessStream()).AsTask().Result;
+                newBitmap = AnimatedBitmapModel.FromStream(_canvasDevice, stream);
             }
-            catch (Exception e)
+
+            if (newBitmap is null)
             {
-                Logger.E(TAG, e);
-                return;
+                CanvasBitmap bitmap;
+                try
+                {
+                    bitmap = CanvasBitmap.LoadAsync(_canvasDevice,
+                        stream.AsRandomAccessStream()).AsTask().Result;
+                }
+                catch (Exception e)
+                {
+                    Logger.E(TAG, e);
+                    return;
+                }
+
+                newBitmap = AnimatedBitmapModel.FromCanvasBitmap(bitmap);
             }
         }
 
@@ -323,8 +345,8 @@ internal partial class ReaderImageCompositor : IDisposable
             return;
         }
 
-        RefCounted<CanvasBitmap>? newBitmapRef = new(newBitmap);
-        RefCounted<CanvasBitmap>? oldBitmapRef;
+        RefCounted<AnimatedBitmapModel>? newBitmapRef = new(newBitmap);
+        RefCounted<AnimatedBitmapModel>? oldBitmapRef;
         lock (item.Lock)
         {
             oldBitmapRef = item.BitmapRef;
@@ -387,7 +409,7 @@ internal partial class ReaderImageCompositor : IDisposable
                             OriginalItem = item,
                             Source = item.Source,
                             BitmapRef = item.BitmapRef,
-                            BitmapSize = item.BitmapRef.Value.SizeInPixels,
+                            ImageSize = item.BitmapRef.Value.SizeInPixels,
                         };
                     }
 
@@ -422,13 +444,16 @@ internal partial class ReaderImageCompositor : IDisposable
                 continue;
             }
 
-            if (Math.Min(item.BitmapSize.Width, item.BitmapSize.Height) < 1 || Math.Min(frameSize.Width, frameSize.Height) < 1E-3)
+            if (Math.Min(item.ImageSize.Width, item.ImageSize.Height) < 1 ||
+                Math.Min(frameSize.Width, frameSize.Height) < 1E-3)
             {
                 items[i] = null;
                 continue;
             }
 
-            float currentPixelRatio = Math.Max(item.ImageWidth / frameSize.Width, item.ImageHeight / frameSize.Height);
+            float currentPixelRatio = Math.Max(
+                item.ImageWidth / frameSize.Width,
+                item.ImageHeight / frameSize.Height);
             pixelRatio = Math.Max(pixelRatio, currentPixelRatio);
         }
 
@@ -562,11 +587,12 @@ internal partial class ReaderImageCompositor : IDisposable
             if (res._compositionVisual is null)
             {
                 SpriteVisual visual = _compositor.CreateSpriteVisual();
-                visual.Size = new Vector2(frameSize.Width, frameSize.Height);
-                visual.Brush = res._compositionBrush;
                 res._compositionVisual = visual;
                 res._rootVisual.Children.InsertAtTop(visual);
             }
+
+            res._compositionVisual.Size = new Vector2(frameSize.Width, frameSize.Height);
+            res._compositionVisual.Brush = res._compositionBrush;
         }
 
         if (_compositionGroup is not null)
@@ -610,7 +636,7 @@ internal partial class ReaderImageCompositor : IDisposable
         public bool SupportVector { get; set; } = false;
         public bool ClearPrevious { get; set; } = false;
 
-        public RefCounted<CanvasBitmap>? BitmapRef { get; set; }
+        public RefCounted<AnimatedBitmapModel>? BitmapRef { get; set; }
 
         public void Dispose()
         {
@@ -624,20 +650,20 @@ internal partial class ReaderImageCompositor : IDisposable
     {
         public required ImageItem OriginalItem { get; init; }
         public required ReaderImageSource Source { get; init; }
-        public required RefCounted<CanvasBitmap> BitmapRef { get; init; }
-        public required BitmapSize BitmapSize { get; init; }
+        public required RefCounted<AnimatedBitmapModel> BitmapRef { get; init; }
+        public required Size ImageSize { get; init; }
         public RectangleF CanvasRect { get; set; }
 
-        public uint ImageWidth => Source.Rotation switch
+        public int ImageWidth => Source.Rotation switch
         {
-            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => BitmapSize.Height,
-            _ => BitmapRef.Value.SizeInPixels.Width,
+            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => ImageSize.Height,
+            _ => ImageSize.Width,
         };
 
-        public uint ImageHeight => Source.Rotation switch
+        public int ImageHeight => Source.Rotation switch
         {
-            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => BitmapSize.Width,
-            _ => BitmapRef.Value.SizeInPixels.Height,
+            ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => ImageSize.Width,
+            _ => ImageSize.Height,
         };
     }
 
