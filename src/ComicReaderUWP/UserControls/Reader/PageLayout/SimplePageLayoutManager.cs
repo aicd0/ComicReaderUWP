@@ -16,6 +16,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
     private PageInfo?[] _pages = [];
     private readonly SpreadDetectionHelper.PageSamples _samples = new();
+    private bool _coverCreated = false;
 
     private int PageCount => _pages.Length;
     private int AddedPageCount { get; set; } = 0;
@@ -44,6 +45,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageCount, nameof(pageCount));
         _pages = new PageInfo?[pageCount];
         _samples.Clear();
+        _coverCreated = false;
         AddedPageCount = 0;
         ReadyPageCount = 0;
     }
@@ -109,23 +111,11 @@ internal class SimplePageLayoutManager : IPageLayoutManager
 
     private bool TryCreateLayout(int page, [NotNullWhen(true)] out PageLayoutInfo? layout)
     {
-        if (!TwoPageMode)
-        {
-            layout = CreateLayout(page, page - 1, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
-            return true;
-        }
-
         PageLayoutInfo? previousPageLayout = page >= 2 ? _pages[page - 2]!.Layout! : null;
         if (previousPageLayout?.NeighbourPage == page)
         {
             PageLayoutType layoutType = previousPageLayout.LayoutType == PageLayoutType.Left ? PageLayoutType.Right : PageLayoutType.Left;
             layout = CreateLayout(page, previousPageLayout.FrameIndex, layoutType, page - 1);
-            return true;
-        }
-
-        if (previousPageLayout is null && EnableCover)
-        {
-            layout = CreateLayout(page, 0, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
             return true;
         }
 
@@ -172,11 +162,15 @@ internal class SimplePageLayoutManager : IPageLayoutManager
             }
         }
 
-        if (page == 2 && !EnableCover)
+        if (!TwoPageMode)
         {
-            // Special case: normally page 2 should be combined with page 1 when cover is disabled,
-            // but if that is not possible (e.g. page 1 is a spread page), make page 2 a single page
-            // to ensure correct layout for the following pages
+            layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
+            return true;
+        }
+
+        if (EnableCover && !_coverCreated)
+        {
+            _coverCreated = true;
             layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
             return true;
         }

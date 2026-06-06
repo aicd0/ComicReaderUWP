@@ -295,7 +295,6 @@ internal sealed partial class ReaderSettingPanel : BaseUserControl
         SpreadDetectionToggleSwitch.IsOn = pageLayoutSettings.SpreadDetection;
         EnableCoverToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
         SwapLeftAndRightPagesToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
-        SpreadDetectionToggleSwitch.IsEnabled = pageLayoutSettings.TwoPageMode;
 
         AbbVertical.Visibility = _model.IsVertical ? Visibility.Visible : Visibility.Collapsed;
         AbbHorizontal.Visibility = _model.IsVertical ? Visibility.Collapsed : Visibility.Visible;
