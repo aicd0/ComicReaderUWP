@@ -3,54 +3,25 @@
 
 using System;
 
-using Microsoft.UI.Composition;
+using ComicReaderUWP.Common.BaseUI;
+
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Hosting;
 
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
-internal sealed partial class ReaderFrame : UserControl
+internal sealed partial class ReaderFrame : BaseUserControl
 {
     public delegate void ReadyStateChangeListener(ReaderFrame container, bool isReady, string reason);
     private event ReadyStateChangeListener? ReadyStateChanged;
 
     private ReaderFrameViewModel? ViewModel { get; set; }
 
-    private bool _isLoaded = false;
     private bool? _isReady = null;
-    private readonly Compositor _compositor;
-    private readonly ContainerVisual _root;
+    private ReaderImageCompositor? _imageCompositor;
 
     public ReaderFrame()
     {
         InitializeComponent();
-
-        _compositor = ElementCompositionPreview.GetElementVisual(ImageHost).Compositor;
-        _root = _compositor.CreateContainerVisual();
-        ElementCompositionPreview.SetElementChildVisual(ImageHost, _root);
-
-        Loaded += OnLoadedOrUnloaded;
-        Unloaded += OnLoadedOrUnloaded;
-    }
-
-    private void OnLoadedOrUnloaded(object sender, RoutedEventArgs e)
-    {
-        if (IsLoaded == _isLoaded)
-        {
-            return;
-        }
-
-        _isLoaded = IsLoaded;
-
-        if (ViewModel != null)
-        {
-            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
-            if (_isLoaded)
-            {
-                ViewModel.PropertyChanged += OnViewModelPropertyChanged;
-            }
-        }
     }
 
     public void Bind(ReaderFrameViewModel? model)
@@ -75,22 +46,83 @@ internal sealed partial class ReaderFrame : UserControl
         ReadyStateChanged = handler;
     }
 
-    private void ReaderFrame_Loaded(object sender, RoutedEventArgs e)
+    protected override void OnResume()
     {
-        DispatchReadyStateChangeEvent("FrameLoaded");
+        base.OnResume();
+
+        if (ViewModel is not null)
+        {
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        }
     }
 
-    private void ReaderFrame_SizeChanged(object sender, SizeChangedEventArgs e)
+    protected override void OnPause()
     {
-        DispatchReadyStateChangeEvent($"SizeChanged (W={e.NewSize.Width},H={e.NewSize.Height})");
+        base.OnPause();
+
+        if (ViewModel is not null)
+        {
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+    }
+
+    private void ImageHost_Loaded(object sender, RoutedEventArgs e)
+    {
+        _imageCompositor = new(ImageHost);
+    }
+
+    private void ImageHost_Unloaded(object sender, RoutedEventArgs e)
+    {
+        _imageCompositor?.Dispose();
+        _imageCompositor = null;
     }
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ReaderFrameViewModel))
+        ReaderFrameViewModel? vm = ViewModel;
+        if (vm is null)
         {
-            RebindViewModel("Rebind by property");
+            return;
         }
+
+        ReaderImageCompositor? compositor = _imageCompositor;
+        if (compositor is null)
+        {
+            return;
+        }
+
+        switch (e.PropertyName)
+        {
+            case nameof(ReaderFrameViewModel):
+                RebindViewModel("Rebind by property");
+                break;
+            case nameof(ReaderFrameViewModel.LeftImageVisible):
+                compositor.PlaceholderMode = vm.IsDualPage;
+                compositor.SetImage(0, vm.LeftImageVisible ? vm.LeftImageSource : null,
+                    (float)vm.LeftImageWidth, (float)vm.LeftImageHeight);
+                break;
+            case nameof(ReaderFrameViewModel.RightImageVisible):
+                compositor.PlaceholderMode = vm.IsDualPage;
+                compositor.SetImage(1, vm.RightImageVisible ? vm.RightImageSource : null,
+                    (float)vm.RightImageWidth, (float)vm.RightImageHeight);
+                break;
+            case nameof(ReaderFrameViewModel.Scale):
+                compositor.Scale = (float)vm.Scale;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void Boundary_Loaded(object sender, RoutedEventArgs e)
+    {
+        DispatchReadyStateChangeEvent("FrameLoaded");
+    }
+
+    private void Boundary_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        DispatchReadyStateChangeEvent($"SizeChanged (W={e.NewSize.Width},H={e.NewSize.Height})");
     }
 
     private void RebindViewModel(string reason)

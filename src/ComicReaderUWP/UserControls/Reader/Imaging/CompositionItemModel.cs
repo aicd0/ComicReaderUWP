@@ -4,51 +4,23 @@
 using System;
 using System.Drawing;
 using System.Numerics;
+using System.Threading;
 
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
 
 using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.Effects;
-
-using Windows.Graphics.Imaging;
 
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
-internal class DrawingImageItem
+internal class CompositionItemModel
 {
-    public required ReaderImageSource Source;
-    public required RefCounted<CanvasBitmap> Bitmap;
-    public required BitmapSize BitmapSize;
-    public RectangleF TargetRect;
+    private static int _idCounter = 0;
 
-    public ICanvasImage CanvasImage
-    {
-        get
-        {
-            if (Source.Invert)
-            {
-                return new InvertEffect()
-                {
-                    Source = Bitmap.Value,
-                };
-            }
-
-            return Bitmap.Value;
-        }
-    }
-
-    public uint ImageWidth => Source.Rotation switch
-    {
-        ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => BitmapSize.Height,
-        _ => Bitmap.Value.SizeInPixels.Width,
-    };
-
-    public uint ImageHeight => Source.Rotation switch
-    {
-        ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => BitmapSize.Width,
-        _ => Bitmap.Value.SizeInPixels.Height,
-    };
+    public int Id { get; } = Interlocked.Increment(ref _idCounter);
+    public required RefCounted<CanvasBitmap> BitmapRef { get; init; }
+    public required ReaderImageSource ImageSource { get; init; }
+    public required RectangleF CanvasRect { get; init; }
 
     public Matrix3x2 GetTransformMatrix(RectangleF imageRect, out RectangleF destRect)
     {
@@ -58,12 +30,12 @@ internal class DrawingImageItem
             imageRect.X + imageRect.Width / 2.0F,
             imageRect.Y + imageRect.Height / 2.0F);
 
-        if (Source.Flip)
+        if (ImageSource.Flip)
         {
             transform *= Matrix3x2.CreateScale(-1, 1, center);
         }
 
-        switch (Source.Rotation)
+        switch (ImageSource.Rotation)
         {
             case ImageRotationEnum.Rotate90:
                 transform *= Matrix3x2.CreateRotation(MathF.PI / 2, center);
@@ -78,7 +50,7 @@ internal class DrawingImageItem
                 break;
         }
 
-        switch (Source.Rotation)
+        switch (ImageSource.Rotation)
         {
             case ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270:
                 var originTransform = Matrix3x2.CreateRotation(-MathF.PI / 2, center);
