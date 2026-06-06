@@ -4,40 +4,56 @@
 using System;
 using System.ComponentModel;
 
-using ComicReaderUWP.Core.Common.Threading;
-
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
 
-namespace ComicReaderUWP.UserControls.Reader;
+namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
-internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposable
+internal partial class ReaderFrameViewModel : INotifyPropertyChanged
 {
     public const int NO_PAGE = -1;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private ImageSource? _imageMerged;
-    public ImageSource? ImageMerged
+    private bool _leftImageVisible = false;
+    public bool LeftImageVisible
     {
-        get => _imageMerged;
+        get => _leftImageVisible;
         set
         {
-            _imageMerged = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageMerged)));
+            _leftImageVisible = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftImageVisible)));
+        }
+    }
+
+    private bool _rightImageVisible = false;
+    public bool RightImageVisible
+    {
+        get => _rightImageVisible;
+        set
+        {
+            _rightImageVisible = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightImageVisible)));
+        }
+    }
+
+    private double _scale = 1.0;
+    public double Scale
+    {
+        get => _scale;
+        set
+        {
+            _scale = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Scale)));
         }
     }
 
     public Thickness FrameMargin { get; set; } = new(0.0, 0.0, 0.0, 0.0);
-
     public ReaderImageSource? LeftImageSource { get; set; }
     public double LeftImageWidth { get; set; } = 0.0;
     public double LeftImageHeight { get; set; } = 0.0;
-
     public ReaderImageSource? RightImageSource { get; set; }
     public double RightImageWidth { get; set; } = 0.0;
     public double RightImageHeight { get; set; } = 0.0;
-
     public double FrameWidth => LeftImageWidth + RightImageWidth;
     public double FrameHeight => Math.Max(LeftImageHeight, RightImageHeight);
 
@@ -49,22 +65,6 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposabl
     public int MaxPage => Math.Max(PageL, PageR);
     public int MinPage => PageL == NO_PAGE ? PageR : (PageR == NO_PAGE ? PageL : Math.Min(PageL, PageR));
 
-    private readonly ReaderImageSourceHolder _imageSourceHolder;
-
-    public ReaderFrameViewModel(ITaskDispatcher loadImageDispatcher)
-    {
-        _imageSourceHolder = new(loadImageDispatcher);
-        _imageSourceHolder.SourceChanged += source =>
-        {
-            ImageMerged = source;
-        };
-    }
-
-    public void Dispose()
-    {
-        _imageSourceHolder.Dispose();
-    }
-
     public void RebindEntireViewModel()
     {
         PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ReaderFrameViewModel)));
@@ -72,18 +72,16 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged, IDisposabl
 
     public void SetLeftImageVisibility(bool visible)
     {
-        _imageSourceHolder.PlaceholderMode = IsDualPage;
-        _imageSourceHolder.SetImage(0, visible ? LeftImageSource : null, LeftImageWidth, LeftImageHeight);
+        LeftImageVisible = visible;
     }
 
     public void SetRightImageVisibility(bool visible)
     {
-        _imageSourceHolder.PlaceholderMode = IsDualPage;
-        _imageSourceHolder.SetImage(1, visible ? RightImageSource : null, RightImageWidth, RightImageHeight);
+        RightImageVisible = visible;
     }
 
     public void SetScale(double scale)
     {
-        _imageSourceHolder.Scale = scale;
+        Scale = scale;
     }
 };

@@ -78,7 +78,7 @@
 
   <PropertyGroup Condition="'$(IsPackaged)' != 'true'">
     <WindowsPackageType>None</WindowsPackageType>
-    <Version>2.14.2.0</Version>
+    <Version>2.15.0.0</Version>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <AssemblyTitle>Comic Reader UWP</AssemblyTitle>
@@ -101,6 +101,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="SharpCompress" Version="0.48.1" />
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
   </ItemGroup>
 
   <ItemGroup>

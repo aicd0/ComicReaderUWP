@@ -14,6 +14,7 @@ using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.UserControls.Reader.Imaging;
 using ComicReaderUWP.UserControls.Reader.Models;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
 
@@ -84,7 +85,6 @@ internal partial class ReaderView : UserControl
     private readonly ReaderGestureRecognizer _gestureRecognizer = new();
 
     private readonly ITaskDispatcher _loadInfoDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadInfoQueue");
-    private readonly ITaskDispatcher _loadImageDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private ReaderViewDatabase? _internalDB = null;
     private IReadOnlyList<IImageSource> _originalDataModel = [];
     private double _initialPage = 1.0;
@@ -219,12 +219,6 @@ internal partial class ReaderView : UserControl
         _isDestoryed = true;
         UpdateLoadedState();
         _reloadSession.Next();
-
-        foreach (ReaderFrameViewModel frameModel in FrameDataSource)
-        {
-            frameModel.Dispose();
-        }
-
         FrameDataSource.Clear();
     }
 
@@ -722,7 +716,6 @@ internal partial class ReaderView : UserControl
 
         for (int i = FrameDataSource.Count - 1; i >= 0; --i)
         {
-            FrameDataSource[i].Dispose();
             FrameDataSource.RemoveAt(i);
         }
 
@@ -970,7 +963,7 @@ internal partial class ReaderView : UserControl
             while (frameIndex >= FrameDataSource.Count)
             {
                 _frameManager.MarkModelInstanceOutOfDate(frameIndex, "DataAppended");
-                FrameDataSource.Add(new ReaderFrameViewModel(_loadImageDispatcher));
+                FrameDataSource.Add(new());
             }
 
             ReaderFrameViewModel item = FrameDataSource[frameIndex];
@@ -3013,8 +3006,8 @@ internal partial class ReaderView : UserControl
             return frameOffsetData;
         }
 
-        FrameworkElement container = _frameManager.GetContainer(frame);
-        if (container == null)
+        FrameworkElement? container = _frameManager.GetContainer(frame);
+        if (container is null)
         {
             return null;
         }
@@ -3192,9 +3185,8 @@ internal partial class ReaderView : UserControl
 
     private double FrameParallelLength(int i)
     {
-        FrameworkElement container = _frameManager.GetContainer(i);
-
-        if (container != null)
+        FrameworkElement? container = _frameManager.GetContainer(i);
+        if (container is not null)
         {
             return IsVertical ? container.ActualHeight : container.ActualWidth;
         }

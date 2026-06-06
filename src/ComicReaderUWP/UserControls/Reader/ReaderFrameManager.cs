@@ -1,10 +1,10 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+
+using ComicReaderUWP.UserControls.Reader.Imaging;
 
 using Microsoft.UI.Xaml;
 
@@ -20,15 +20,15 @@ internal class ReaderFrameManager
     private readonly Dictionary<int, FrameInfo> _frameInfoDictionary = [];
 
     public delegate void FrameReadyHandler(int index);
-    private FrameReadyHandler _frameReadyHandler;
+    private FrameReadyHandler? _frameReadyHandler;
 
     //
     // Methods
     //
 
-    public FrameworkElement GetContainer(int index)
+    public FrameworkElement? GetContainer(int index)
     {
-        if (_frameInfoDictionary.TryGetValue(index, out FrameInfo frameInfo))
+        if (_frameInfoDictionary.TryGetValue(index, out FrameInfo? frameInfo))
         {
             if (frameInfo.IsReady)
             {
@@ -95,7 +95,7 @@ internal class ReaderFrameManager
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        if (!_frameInfoDictionary.TryGetValue(index, out FrameInfo frameInfo))
+        if (!_frameInfoDictionary.TryGetValue(index, out FrameInfo? frameInfo))
         {
             frameInfo = new FrameInfo();
             _frameInfoDictionary.Add(index, frameInfo);
@@ -130,7 +130,7 @@ internal class ReaderFrameManager
         int readyFrameIndex = _readyFrameIndex + 1;
         for (; true; ++readyFrameIndex)
         {
-            if (_frameInfoDictionary.TryGetValue(readyFrameIndex, out FrameInfo frameInfo))
+            if (_frameInfoDictionary.TryGetValue(readyFrameIndex, out FrameInfo? frameInfo))
             {
                 if (!frameInfo.IsReady)
                 {
@@ -176,7 +176,7 @@ internal class ReaderFrameManager
         public bool IsViewReady { get; set; } = false;
         public bool IsModelInstanceUpdateToDate { get; set; } = true;
         public bool IsModelContentUpdateToDate { get; set; } = false;
-        public FrameworkElement Container { get; set; }
+        public FrameworkElement? Container { get; set; }
 
         public bool IsReady { get; set; } = false;
     }

@@ -31,10 +31,16 @@ internal sealed partial class PluginSettingsView : BaseUserControl
         };
     }
 
-    protected override void OnStart()
+    protected override void OnResume()
     {
-        base.OnStart();
-        ObserveData();
+        base.OnResume();
+        PluginManager.PluginsChanged += PluginManager_PluginsChanged;
+    }
+
+    protected override void OnPause()
+    {
+        base.OnPause();
+        PluginManager.PluginsChanged -= PluginManager_PluginsChanged;
     }
 
     public void Initialize(SettingsSharedViewModel shared)
@@ -42,12 +48,9 @@ internal sealed partial class PluginSettingsView : BaseUserControl
         ViewModel.Initialize(shared);
     }
 
-    private void ObserveData()
+    private void PluginManager_PluginsChanged()
     {
-        PluginManager.PluginsChanged.ObserveSticky(this, _ =>
-        {
-            ViewModel.UpdatePlugins();
-        });
+        ViewModel.UpdatePlugins();
     }
 
     private void OpenPluginsFolderButton_Click(object sender, RoutedEventArgs e)
