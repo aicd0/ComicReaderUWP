@@ -10,16 +10,14 @@
     mc:Ignorable="d">
 
     <Grid
-        Padding="{x:Bind ViewModel.FrameMargin, Mode=OneWay}"
+        Padding="{x:Bind ViewModel.FrameMargin}"
         Loaded="Boundary_Loaded"
         SizeChanged="Boundary_SizeChanged">
         <Grid
             x:Name="ImageHost"
-            Width="{x:Bind ViewModel.FrameWidth, Mode=OneWay}"
-            Height="{x:Bind ViewModel.FrameHeight, Mode=OneWay}"
-            VerticalAlignment="Center"
-            Loaded="ImageHost_Loaded"
-            Unloaded="ImageHost_Unloaded" />
+            Width="{x:Bind ViewModel.FrameWidth}"
+            Height="{x:Bind ViewModel.FrameHeight}"
+            VerticalAlignment="Center" />
     </Grid>
 
 </base:BaseUserControl>

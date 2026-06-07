@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -51,20 +52,25 @@ internal sealed partial class AnimatedBitmapModel : IDisposable
                 dur = 100;
             }
 
-            // Copy pixels from SKBitmap (BGRA, premultiplied) directly into a managed byte[]
             int bytes = bmp.RowBytes * bmp.Height;
-            byte[] buffer = new byte[bytes];
-            IntPtr ptr = bmp.GetPixels();
-            Marshal.Copy(ptr, buffer, 0, bytes);
-
-            // Create a Win2D CanvasBitmap directly from the byte array; keep it cached for rendering
-            var canvasBitmap = CanvasBitmap.CreateFromBytes(
-                canvasDevice,
-                buffer,
-                info.Width,
-                info.Height,
-                Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized,
-                96);
+            CanvasBitmap canvasBitmap;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bytes);
+            try
+            {
+                IntPtr ptr = bmp.GetPixels();
+                Marshal.Copy(ptr, buffer, 0, bytes);
+                canvasBitmap = CanvasBitmap.CreateFromBytes(
+                    canvasDevice,
+                    buffer,
+                    info.Width,
+                    info.Height,
+                    Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized,
+                    96);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
 
             frames.Add(new()
             {

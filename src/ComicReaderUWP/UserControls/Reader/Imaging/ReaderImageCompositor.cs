@@ -32,6 +32,8 @@ internal partial class ReaderImageCompositor : IDisposable
     private static readonly ITaskDispatcher _decodeDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private static readonly ITaskDispatcher _layoutDispatcher = TaskDispatcher.Factory.NewQueue("ReaderImageLayoutWorker");
 
+    public string Name { get; set; } = string.Empty;
+
     private float _scale = float.PositiveInfinity;
     public float Scale
     {
@@ -140,7 +142,7 @@ internal partial class ReaderImageCompositor : IDisposable
                 while (index >= res._images.Count)
                 {
                     needDraw = true;
-                    res._images.Add(new());
+                    res._images.Add(new(res._images.Count));
                 }
 
                 item = res._images[index];
@@ -246,6 +248,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PerformDecode(ImageItem item)
     {
+        Logger.I(TAG, $"Decode (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
         ReaderImageSource? source;
         bool clearPrevious;
         SizeF frameSize;
@@ -289,6 +292,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             if (resolution < 1E-2)
             {
+                Logger.W(TAG, $"Decode failed (Invalid resolution) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
                 return;
             }
 
@@ -313,6 +317,7 @@ internal partial class ReaderImageCompositor : IDisposable
             using Stream? stream = source.Source.OpenImageStream();
             if (stream is null)
             {
+                Logger.W(TAG, $"Decode failed (Cannot open stream) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
                 return;
             }
 
@@ -342,6 +347,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (newBitmap is null)
         {
+            Logger.W(TAG, $"Decode failed (Unknown format) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
             return;
         }
 
@@ -387,6 +393,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PerformLayout(InstanceResourceModel res, int version)
     {
+        Logger.I(TAG, $"Layout (i={Name},v={version})");
         DrawingItem?[] items;
         SizeF[] frameSizes;
         lock (res._images)
@@ -473,6 +480,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
                 try
                 {
+                    Logger.I(TAG, $"Clear (i={Name},v={version})");
                     res.DisposeCompositionComponents();
                 }
                 finally
@@ -576,6 +584,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             try
             {
+                Logger.I(TAG, $"Composite (i={Name},v={version})");
                 PerformComposition(res, items, mergedFrameSize, canvasSize);
             }
             finally
@@ -619,6 +628,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (_compositionGroup is not null)
         {
+            Logger.I(TAG, $"Composite remove group (i={Name},gi={_compositionGroup.Id})");
             ReaderImageUpdateScheduler.Instance.RemoveGroup(_compositionGroup);
             _compositionGroup = null;
         }
@@ -645,13 +655,15 @@ internal partial class ReaderImageCompositor : IDisposable
             SurfaceRef = res._compositionSurfaceRef,
             Items = compositionItems
         };
+        Logger.I(TAG, $"Composite add group (i={Name},gi={_compositionGroup.Id})");
         ReaderImageUpdateScheduler.Instance.AddGroup(_compositionGroup);
     }
 
-    private sealed partial class ImageItem : IDisposable
+    private sealed partial class ImageItem(int index) : IDisposable
     {
         public int InDecodeQueue = 0;
 
+        public int Index { get; } = index;
         public object Lock { get; } = new();
         public ReaderImageSource? Source { get; set; }
         public SizeF FrameSize { get; set; }
@@ -700,19 +712,17 @@ internal partial class ReaderImageCompositor : IDisposable
 
         public void Dispose()
         {
-            CoroutineUtils.RunInMainThread(() =>
-            {
-                DisposeCompositionComponents();
-                _rootVisual.Dispose();
-            });
-
             foreach (ImageItem item in _images)
             {
                 item.Dispose();
             }
 
-            _images.Clear();
-            _graphicsDevice.Dispose();
+            CoroutineUtils.RunInMainThread(() =>
+            {
+                DisposeCompositionComponents();
+                _rootVisual.Dispose();
+                _graphicsDevice.Dispose();
+            });
         }
 
         public void DisposeCompositionComponents()

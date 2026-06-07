@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.Core.Common.Lifecycle;
 
-public interface IObserver<T>
+public interface IValueObserver<in T>
 {
     void OnChanged(T value);
 }

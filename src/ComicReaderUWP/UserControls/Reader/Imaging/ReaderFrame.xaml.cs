@@ -4,6 +4,9 @@
 using System;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Lifecycle.Utils;
+using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.UI.Xaml;
 
@@ -19,26 +22,60 @@ internal sealed partial class ReaderFrame : BaseUserControl
     private bool? _isReady = null;
     private ReaderImageCompositor? _imageCompositor;
 
+    private readonly IValueObserver<bool> _rebindObserver;
+    private readonly IValueObserver<bool> _leftImageVisibleObserver;
+    private readonly IValueObserver<bool> _rightImageVisibleObserver;
+    private readonly IValueObserver<double> _scaleObserver;
+
     public ReaderFrame()
     {
         InitializeComponent();
-    }
 
-    public void Bind(ReaderFrameViewModel? model)
-    {
-        if (ViewModel != null)
+        _rebindObserver = ObserverUtils.Create<bool>(_ =>
         {
-            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
-        }
+            UpdateBindings("RebindByUpdate");
+        });
 
-        ViewModel = model;
-
-        if (ViewModel != null)
+        _leftImageVisibleObserver = ObserverUtils.Create<bool>(visible =>
         {
-            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
-        }
+            ReaderFrameViewModel? vm = ViewModel;
+            ReaderImageCompositor? compositor = _imageCompositor;
+            if (vm is null || compositor is null)
+            {
+                return;
+            }
 
-        RebindViewModel("Rebind by container");
+            compositor.Name = vm.Page.ToString();
+            compositor.PlaceholderMode = vm.IsDualPage;
+            compositor.SetImage(0, visible ? vm.LeftImageSource : null,
+                (float)vm.LeftImageWidth, (float)vm.LeftImageHeight);
+        });
+
+        _rightImageVisibleObserver = ObserverUtils.Create<bool>(visible =>
+        {
+            ReaderFrameViewModel? vm = ViewModel;
+            ReaderImageCompositor? compositor = _imageCompositor;
+            if (vm is null || compositor is null)
+            {
+                return;
+            }
+
+            compositor.Name = vm.Page.ToString();
+            compositor.PlaceholderMode = vm.IsDualPage;
+            compositor.SetImage(1, visible ? vm.RightImageSource : null,
+                (float)vm.RightImageWidth, (float)vm.RightImageHeight);
+        });
+
+        _scaleObserver = ObserverUtils.Create<double>(scale =>
+        {
+            ReaderImageCompositor? compositor = _imageCompositor;
+            if (compositor is null)
+            {
+                return;
+            }
+
+            compositor.Scale = (float)scale;
+        });
     }
 
     public void SetReadyStateChangeHandler(ReadyStateChangeListener? handler)
@@ -46,73 +83,31 @@ internal sealed partial class ReaderFrame : BaseUserControl
         ReadyStateChanged = handler;
     }
 
+    public void SetViewModel(ReaderFrameViewModel? model)
+    {
+        DisconnectViewModel();
+        ViewModel = model;
+        if (IsResumed)
+        {
+            ConnectViewModel();
+        }
+
+        UpdateBindings("RebindByContainer");
+    }
+
     protected override void OnResume()
     {
         base.OnResume();
-
-        if (ViewModel is not null)
-        {
-            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
-            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
-        }
+        _imageCompositor = new(ImageHost);
+        ConnectViewModel();
     }
 
     protected override void OnPause()
     {
         base.OnPause();
-
-        if (ViewModel is not null)
-        {
-            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
-        }
-    }
-
-    private void ImageHost_Loaded(object sender, RoutedEventArgs e)
-    {
-        _imageCompositor = new(ImageHost);
-    }
-
-    private void ImageHost_Unloaded(object sender, RoutedEventArgs e)
-    {
+        DisconnectViewModel();
         _imageCompositor?.Dispose();
         _imageCompositor = null;
-    }
-
-    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        ReaderFrameViewModel? vm = ViewModel;
-        if (vm is null)
-        {
-            return;
-        }
-
-        ReaderImageCompositor? compositor = _imageCompositor;
-        if (compositor is null)
-        {
-            return;
-        }
-
-        switch (e.PropertyName)
-        {
-            case nameof(ReaderFrameViewModel):
-                RebindViewModel("Rebind by property");
-                break;
-            case nameof(ReaderFrameViewModel.LeftImageVisible):
-                compositor.PlaceholderMode = vm.IsDualPage;
-                compositor.SetImage(0, vm.LeftImageVisible ? vm.LeftImageSource : null,
-                    (float)vm.LeftImageWidth, (float)vm.LeftImageHeight);
-                break;
-            case nameof(ReaderFrameViewModel.RightImageVisible):
-                compositor.PlaceholderMode = vm.IsDualPage;
-                compositor.SetImage(1, vm.RightImageVisible ? vm.RightImageSource : null,
-                    (float)vm.RightImageWidth, (float)vm.RightImageHeight);
-                break;
-            case nameof(ReaderFrameViewModel.Scale):
-                compositor.Scale = (float)vm.Scale;
-                break;
-            default:
-                break;
-        }
     }
 
     private void Boundary_Loaded(object sender, RoutedEventArgs e)
@@ -125,7 +120,35 @@ internal sealed partial class ReaderFrame : BaseUserControl
         DispatchReadyStateChangeEvent($"SizeChanged (W={e.NewSize.Width},H={e.NewSize.Height})");
     }
 
-    private void RebindViewModel(string reason)
+    private void ConnectViewModel()
+    {
+        ReaderFrameViewModel? vm = ViewModel;
+        if (vm is null)
+        {
+            return;
+        }
+
+        vm.RebindLiveData.ObserveSticky(this, _rebindObserver);
+        vm.LeftImageVisibleLiveData.ObserveSticky(this, _leftImageVisibleObserver);
+        vm.RightImageVisibleLiveData.ObserveSticky(this, _rightImageVisibleObserver);
+        vm.ScaleLiveData.ObserveSticky(this, _scaleObserver);
+    }
+
+    private void DisconnectViewModel()
+    {
+        ReaderFrameViewModel? vm = ViewModel;
+        if (vm is null)
+        {
+            return;
+        }
+
+        vm.RebindLiveData.RemoveObserver(_rebindObserver);
+        vm.LeftImageVisibleLiveData.RemoveObserver(_leftImageVisibleObserver);
+        vm.RightImageVisibleLiveData.RemoveObserver(_rightImageVisibleObserver);
+        vm.ScaleLiveData.RemoveObserver(_scaleObserver);
+    }
+
+    private void UpdateBindings(string reason)
     {
         Bindings.Update();
         _isReady = null;
