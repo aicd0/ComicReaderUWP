@@ -310,6 +310,15 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         Zooming = $"{zooming}%";
     }
 
+    public void UpdateFavoriteStatus()
+    {
+        ComicModel? comic = _comic;
+        if (comic is not null)
+        {
+            UpdateFavoriteStatusInternal(comic);
+        }
+    }
+
     private void Playback_PlaybackStatusChanged(PlaybackModel.StatusChangeReason reason)
     {
         IsPlaybackNextEnabled = Playback.CanGoNext;
@@ -392,8 +401,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         _comic = comic;
 
-        // Load comic info and update status
-        ComicCompletionStatusEnum oldCompletionStatus = comic.CompletionState;
+        // Save history
         if (!comic.IsExternal)
         {
             await comic.SetCompletionStateToAtLeastStarted();
@@ -404,8 +412,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
 
         IsExternalComicLiveData.Emit(comic.IsExternal);
-        bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
-        SetIsFavorite(isFavorite, false);
+        UpdateFavoriteStatusInternal(comic);
 
         // Load reader images
         IComicConnection? connection = await comic.OpenComicAsync();
@@ -430,6 +437,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
+        ComicCompletionStatusEnum oldCompletionStatus = comic.CompletionState;
         bool useScrollingAreaStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
         double startPage = useScrollingAreaStartEnd ? 0.5 : 1.0;
         double endPage = useScrollingAreaStartEnd ? comic.PageCount + 0.5 : images.Count;
@@ -480,6 +488,12 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 Page = i + 1,
             });
         }
+    }
+
+    private void UpdateFavoriteStatusInternal(ComicModel comic)
+    {
+        bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
+        SetIsFavorite(isFavorite, false);
     }
 
     //

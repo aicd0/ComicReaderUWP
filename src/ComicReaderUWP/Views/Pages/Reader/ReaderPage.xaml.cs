@@ -167,6 +167,11 @@ internal sealed partial class ReaderPage : BasePage
 
     private void ObserveData()
     {
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
+        {
+            ViewModel.UpdateFavoriteStatus();
+        });
+
         AppSettingsModel.Instance.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ =>
         {
             UpdateDisplayStatus();
