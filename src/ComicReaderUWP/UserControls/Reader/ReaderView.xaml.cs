@@ -1633,25 +1633,25 @@ internal partial class ReaderView : UserControl
         switch (e.Key)
         {
             case Windows.System.VirtualKey.Right:
-                if (!_isVertical && !_isLeftToRight)
+                if (_isLeftToRight)
                 {
-                    MoveFrameByUser("JumpToPreviousPageUsingRightKey", -1);
+                    MoveFrameByUser("JumpToNextPageUsingRightKey", 1);
                 }
                 else
                 {
-                    MoveFrameByUser("JumpToNextPageUsingRightKey", 1);
+                    MoveFrameByUser("JumpToPreviousPageUsingRightKey", -1);
                 }
 
                 break;
 
             case Windows.System.VirtualKey.Left:
-                if (!_isVertical && !_isLeftToRight)
+                if (_isLeftToRight)
                 {
-                    MoveFrameByUser("JumpToNextPageUsingLeftKey", 1);
+                    MoveFrameByUser("JumpToPreviousPageUsingLeftKey", -1);
                 }
                 else
                 {
-                    MoveFrameByUser("JumpToPreviousPageUsingLeftKey", -1);
+                    MoveFrameByUser("JumpToNextPageUsingLeftKey", 1);
                 }
 
                 break;
