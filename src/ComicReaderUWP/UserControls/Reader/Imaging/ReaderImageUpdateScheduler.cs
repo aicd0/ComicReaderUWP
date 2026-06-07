@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 
+using ComicReaderUWP.Core.Common.DebugTools;
+
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI.Composition;
@@ -17,6 +19,8 @@ namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
 internal class ReaderImageUpdateScheduler
 {
+    private const string TAG = nameof(ReaderImageUpdateScheduler);
+
     public static ReaderImageUpdateScheduler Instance { get; } = new();
 
     private readonly Dictionary<int, CompositionGroupModel> _groups = [];
@@ -32,6 +36,7 @@ internal class ReaderImageUpdateScheduler
     {
         if (_groups.TryAdd(group.Id, group))
         {
+            Logger.I(TAG, $"Add group (i={group.Id})");
             DrawGroup(group);
             EnsureTimerRunning();
         }
@@ -39,6 +44,7 @@ internal class ReaderImageUpdateScheduler
 
     public void RemoveGroup(CompositionGroupModel group)
     {
+        Logger.I(TAG, $"Remove group (i={group.Id})");
         _groups.Remove(group.Id);
 
         // Remove any cached frame indices for items belonging to this group
@@ -71,6 +77,7 @@ internal class ReaderImageUpdateScheduler
         // Start stopwatch and timer if there are animated frames
         if (!_timer.IsRunning && HasAnimatedContent())
         {
+            Logger.I(TAG, $"Timer start");
             _stopwatch.Restart();
             _timer.Interval = TimeSpan.FromMilliseconds(16); // initial baseline
             _timer.Start();
@@ -81,6 +88,7 @@ internal class ReaderImageUpdateScheduler
     {
         if (_timer is not null && _timer.IsRunning)
         {
+            Logger.I(TAG, $"Timer stop");
             _timer.Stop();
         }
 

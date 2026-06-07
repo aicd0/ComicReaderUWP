@@ -26,6 +26,11 @@ public static class Extensions
         liveData.Observe(owner, wrapper, sObserveOptionDefault);
     }
 
+    public static void ObserveSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, IValueObserver<T> observer) where T : notnull
+    {
+        liveData.Observe(owner, observer, sObserveOptionSticky);
+    }
+
     public static void ObserveSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
     {
         var wrapper = new Observer<T>(observer);
@@ -38,7 +43,7 @@ public static class Extensions
         liveData.Observe(owner, wrapper, options);
     }
 
-    private class Observer<U>(Action<U> action) : Lifecycle.IObserver<U>
+    private class Observer<U>(Action<U> action) : Lifecycle.IValueObserver<U>
     {
         private readonly Action<U> _action = action;
 

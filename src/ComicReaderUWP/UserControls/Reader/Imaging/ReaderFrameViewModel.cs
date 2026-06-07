@@ -2,50 +2,21 @@
 // Licensed under the MIT License.
 
 using System;
-using System.ComponentModel;
+
+using ComicReaderUWP.Core.Common.Lifecycle;
 
 using Microsoft.UI.Xaml;
 
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
-internal partial class ReaderFrameViewModel : INotifyPropertyChanged
+internal class ReaderFrameViewModel
 {
     public const int NO_PAGE = -1;
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private bool _leftImageVisible = false;
-    public bool LeftImageVisible
-    {
-        get => _leftImageVisible;
-        set
-        {
-            _leftImageVisible = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftImageVisible)));
-        }
-    }
-
-    private bool _rightImageVisible = false;
-    public bool RightImageVisible
-    {
-        get => _rightImageVisible;
-        set
-        {
-            _rightImageVisible = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightImageVisible)));
-        }
-    }
-
-    private double _scale = 1.0;
-    public double Scale
-    {
-        get => _scale;
-        set
-        {
-            _scale = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Scale)));
-        }
-    }
+    public readonly MutableLiveData<bool> RebindLiveData = new();
+    public readonly MutableLiveData<bool> LeftImageVisibleLiveData = new(false);
+    public readonly MutableLiveData<bool> RightImageVisibleLiveData = new(false);
+    public readonly MutableLiveData<double> ScaleLiveData = new(1.0);
 
     public Thickness FrameMargin { get; set; } = new(0.0, 0.0, 0.0, 0.0);
     public ReaderImageSource? LeftImageSource { get; set; }
@@ -67,21 +38,21 @@ internal partial class ReaderFrameViewModel : INotifyPropertyChanged
 
     public void RebindEntireViewModel()
     {
-        PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ReaderFrameViewModel)));
+        RebindLiveData.Emit(true);
     }
 
     public void SetLeftImageVisibility(bool visible)
     {
-        LeftImageVisible = visible;
+        LeftImageVisibleLiveData.Emit(visible);
     }
 
     public void SetRightImageVisibility(bool visible)
     {
-        RightImageVisible = visible;
+        RightImageVisibleLiveData.Emit(visible);
     }
 
     public void SetScale(double scale)
     {
-        Scale = scale;
+        ScaleLiveData.Emit(scale);
     }
 };

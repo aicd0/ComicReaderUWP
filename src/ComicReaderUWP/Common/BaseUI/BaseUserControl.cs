@@ -15,6 +15,8 @@ public partial class BaseUserControl : UserControl, ILifecycleOwner
     private readonly SimpleLifecycleManager _lifecycleManager = new();
     private bool _isLoaded = false;
 
+    public bool IsResumed => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Resumed;
+
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
 
     public BaseUserControl()

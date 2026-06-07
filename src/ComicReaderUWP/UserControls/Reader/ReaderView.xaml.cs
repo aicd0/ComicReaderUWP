@@ -1738,7 +1738,7 @@ internal partial class ReaderView : UserControl
         {
             _frameManager.MarkViewNotReady(args.ItemIndex, viewHolder, "ViewRecycled");
             viewHolder.SetReadyStateChangeHandler(null);
-            viewHolder.Bind(null);
+            viewHolder.SetViewModel(null);
         }
         else
         {
@@ -1755,7 +1755,7 @@ internal partial class ReaderView : UserControl
                 }
             });
 
-            viewHolder.Bind(item);
+            viewHolder.SetViewModel(item);
             _frameManager.MarkModelInstanceUpdateToDate(index, "ViewBindByContainer");
         }
     }

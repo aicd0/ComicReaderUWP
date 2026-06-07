@@ -8,7 +8,7 @@ namespace ComicReaderUWP.Core.Common.Lifecycle;
 
 public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
 {
-    private readonly Dictionary<IObserver<T>, ObserverWrapper> _observers = [];
+    private readonly Dictionary<IValueObserver<T>, ObserverWrapper> _observers = [];
     private T? _value;
     private int _version = 0;
     private bool _dispatchingValue = false;
@@ -26,9 +26,17 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
         _version = 1;
     }
 
-    public void Observe(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options)
+    public void Observe(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)
     {
         ObserveInternal(owner, observer, options);
+    }
+
+    public void RemoveObserver(IValueObserver<T> observer)
+    {
+        if (_observers.TryGetValue(observer, out ObserverWrapper? wrapper))
+        {
+            wrapper.Remove();
+        }
     }
 
     public T? GetValue()
@@ -58,7 +66,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
         });
     }
 
-    private void ObserveInternal(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options)
+    private void ObserveInternal(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)
     {
         if (_clearing)
         {
@@ -161,9 +169,9 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
         observer.Observer.OnChanged(value);
     }
 
-    private abstract class ObserverWrapper(IObserver<T> observer)
+    private abstract class ObserverWrapper(IValueObserver<T> observer)
     {
-        public readonly IObserver<T> Observer = observer;
+        public readonly IValueObserver<T> Observer = observer;
         public int Version { get; set; } = 0;
 
         public abstract bool IsSameOwner(ILifecycleOwner owner);
@@ -183,7 +191,7 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
         public LifecycleObserverWrapper(
             LiveData<T> liveData,
             ILifecycleOwner owner,
-            IObserver<T> observer,
+            IValueObserver<T> observer,
             ILifecycle.State aliveState,
             ILifecycle.State activeState) : base(observer)
         {
@@ -212,21 +220,20 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
 
         void ILifecycleObserver.OnLifecycleEvent(ILifecycle.State fromState, ILifecycle.State toState)
         {
-            if (toState < _aliveState)
+            if (fromState >= _aliveState && toState < _aliveState)
             {
                 Remove();
+                return;
             }
-            else if (toState >= _activeState)
+
+            if (toState >= _activeState && _liveData._version > Version)
             {
-                if (_liveData._version > Version)
-                {
-                    _liveData.DispatchValue(this);
-                }
+                _liveData.DispatchValue(this);
             }
         }
     }
 
-    private class ForeverObserverWrapper(LiveData<T> liveData, IObserver<T> observer) : ObserverWrapper(observer)
+    private class ForeverObserverWrapper(LiveData<T> liveData, IValueObserver<T> observer) : ObserverWrapper(observer)
     {
         private readonly LiveData<T> _liveData = liveData;
 

@@ -13,7 +13,11 @@ public class EmptyLiveData<T> : IMutableLiveData<T> where T : notnull
     {
     }
 
-    public void Observe(ILifecycleOwner owner, IObserver<T> observer, ObserveOptions options)
+    public void Observe(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)
+    {
+    }
+
+    public void RemoveObserver(IValueObserver<T> observer)
     {
     }
 
