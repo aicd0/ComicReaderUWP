@@ -268,6 +268,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             SimpleTreeViewNodeModel tagCategoryNode = new()
             {
                 DataContext = tagCategoryModel,
+                Glyph = "\uE8EC",
                 Title = tagCategory,
                 CanExpand = true,
                 IsExpanded = true,
