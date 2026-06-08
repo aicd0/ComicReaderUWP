@@ -29,10 +29,11 @@ internal class ApplicationService : IApplicationService
         return Path.Combine(GetDeploymentPath(), DIR_USER, "temporary");
     });
 
-    public bool IsPortableBuild()
-    {
-        return true;
-    }
+    public bool PortableBuild => true;
+
+    public bool SafeMode => false;
+
+    public bool ShuttingDown => false;
 
     public string GetLocalFolderPath()
     {
@@ -52,10 +53,5 @@ internal class ApplicationService : IApplicationService
     public string GetEnvironmentDebugInfo()
     {
         return string.Empty;
-    }
-
-    public bool IsShuttingDown()
-    {
-        return false;
     }
 }

@@ -87,6 +87,6 @@ public static class SentryManager
 
     private static void PushRuntimeTags()
     {
-        SentrySdk.SetTag(TAG_SHUTTING_DOWN, ServiceManager.GetServiceNullable<IApplicationService>()?.IsShuttingDown() == true ? "true" : "false");
+        SentrySdk.SetTag(TAG_SHUTTING_DOWN, ServiceManager.GetServiceNullable<IApplicationService>()?.ShuttingDown == true ? "true" : "false");
     }
 }

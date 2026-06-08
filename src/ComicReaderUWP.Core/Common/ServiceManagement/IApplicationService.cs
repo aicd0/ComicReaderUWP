@@ -5,7 +5,11 @@ namespace ComicReaderUWP.Core.Common.ServiceManagement;
 
 public interface IApplicationService : IService
 {
-    bool IsPortableBuild();
+    bool PortableBuild { get; }
+
+    bool SafeMode { get; }
+
+    bool ShuttingDown { get; }
 
     string GetLocalFolderPath();
 
@@ -14,6 +18,4 @@ public interface IApplicationService : IService
     string GetTemporaryFolderPath();
 
     string GetEnvironmentDebugInfo();
-
-    bool IsShuttingDown();
 }

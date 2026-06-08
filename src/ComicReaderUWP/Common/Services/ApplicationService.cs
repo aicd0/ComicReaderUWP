@@ -159,10 +159,11 @@ internal class ApplicationService : IApplicationService
         }
     }
 
-    public bool IsPortableBuild()
-    {
-        return PORTABLE;
-    }
+    public bool PortableBuild => PORTABLE;
+
+    public bool SafeMode => App.Instance.SafeMode;
+
+    public bool ShuttingDown => _shuttingDown;
 
     public string GetLocalFolderPath()
     {
@@ -184,11 +185,6 @@ internal class ApplicationService : IApplicationService
         StringBuilder sb = new();
         EnvironmentProvider.Instance.AppendDebugText(sb);
         return sb.ToString();
-    }
-
-    public bool IsShuttingDown()
-    {
-        return _shuttingDown;
     }
 
     private class ConfigJsonModel

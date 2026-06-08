@@ -75,6 +75,7 @@ public class EnvironmentProvider
         sb.SafeAppend("Portable", () => IsPortable());
         sb.SafeAppend("Process architecture", GetProcessArchitecture);
         sb.SafeAppend("Processor count", () => Environment.ProcessorCount);
+        sb.SafeAppend("Safe mode", () => IsSafeMode());
         sb.SafeAppend("SDK version", GetSDKVersion);
 
         if (_additionalDebugInformation.Length > 0)
@@ -252,6 +253,7 @@ public class EnvironmentProvider
         tags["c-lang-os-current"] = GetCurrentSystemLanguage();
         tags["c-lang-os-installed"] = GetInstalledSystemLanguage();
         tags["c-portable"] = IsPortable() ? "true" : "false";
+        tags["c-safe-mode"] = IsSafeMode() ? "true" : "false";
         tags["c-sdk-version"] = GetSDKVersion();
         return tags;
     }
@@ -268,7 +270,12 @@ public class EnvironmentProvider
 
     public static bool IsPortable()
     {
-        return ServiceManager.GetService<IApplicationService>().IsPortableBuild();
+        return ServiceManager.GetService<IApplicationService>().PortableBuild;
+    }
+
+    public static bool IsSafeMode()
+    {
+        return ServiceManager.GetService<IApplicationService>().SafeMode;
     }
 
     private static string GetSystemArchitecture()
