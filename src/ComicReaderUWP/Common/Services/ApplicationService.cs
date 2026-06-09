@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
-using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 
 using Windows.Storage;
 

@@ -5,6 +5,7 @@ using System.Text;
 
 using ComicReaderUWP.Core.Common.Constants;
 using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.Misc;
@@ -13,16 +14,18 @@ namespace ComicReaderUWP.Core.Common.DebugTools;
 
 internal static class CrashHandler
 {
-    public static void OnUnhandledException(Exception e)
+    public static void OnUnhandledException(Exception exception)
     {
+        IApplicationService? appService = ServiceManager.GetServiceNullable<IApplicationService>();
+
         StringBuilder sb = new();
 
         sb.Append("Message:\n");
-        sb.Append(e.Message);
+        sb.Append(exception.Message);
 
         sb.Append("\n\n");
         sb.Append("Exception stack trace:\n");
-        sb.Append(e.ToString());
+        sb.Append(exception.ToString());
 
         sb.Append("\n\n");
         sb.Append("Caller stack trace:\n");
@@ -32,7 +35,6 @@ internal static class CrashHandler
         sb.Append("Environment information:\n");
         sb.Append("Crash time: ");
         sb.Append(DateTimeOffset.Now.ToString("yyyy/M/d HH:mm:ss.fff"));
-        IApplicationService? appService = ServiceManager.GetServiceNullable<IApplicationService>();
         if (appService is not null)
         {
             sb.Append('\n');

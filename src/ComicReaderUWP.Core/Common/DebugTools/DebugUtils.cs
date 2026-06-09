@@ -1,9 +1,16 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Text;
+
 using ComicReaderUWP.Core.Common.Constants;
+using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.ServiceManagement.Models;
+using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.Misc;
+
+using Windows.ApplicationModel.DataTransfer;
 
 namespace ComicReaderUWP.Core.Common.DebugTools;
 
@@ -106,23 +113,45 @@ public static class DebugUtils
         CrashHandler.ReportLastCrash();
     }
 
-    public static void CaptureFatalError(string message, Exception e, bool fastFail = false)
+    public static void CaptureFatalError(string message, Exception ex, bool fastFail = false)
     {
-        CaptureFatalErrorInternal(message, e, fastFail);
-    }
+        IApplicationService? appService = ServiceManager.GetServiceNullable<IApplicationService>();
+        INativeService? nativeService = ServiceManager.GetServiceNullable<INativeService>();
 
-    private static void CaptureFatalErrorInternal(string message, Exception e, bool fastFail)
-    {
-        Logger.E(TAG, message, e);
-        AppUnhandledException appException = new(message, e);
+        // Handle launch crash
+        if (appService?.Launching != false && nativeService is not null)
+        {
+            StringBuilder sb = new();
+            sb.Append("A fatal error occurred during app launch. Click 'Yes' to copy this message to clipboard:\n");
+            sb.Append("Message:\n");
+            sb.Append(message);
+            sb.Append('\n');
+            sb.Append("Exception stack trace:\n");
+            sb.Append(ex.ToString());
+            sb.Append('\n');
+            sb.Append("Caller stack trace:\n");
+            sb.Append(new System.Diagnostics.StackTrace(true).ToString());
+            string text = sb.ToString();
+            NativeDialogResult dialogResult = nativeService.ShowYesNoDialog("Comic Reader UWP", text);
+            if (dialogResult == NativeDialogResult.Yes)
+            {
+                var dataPackage = new DataPackage();
+                dataPackage.SetText(text);
+                Clipboard.SetContent(dataPackage);
+                Clipboard.Flush();
+            }
+        }
+
+        Logger.E(TAG, message, ex);
+        AppUnhandledException appException = new(message, ex);
         SentryManager.CaptureError(appException);
         CrashHandler.OnUnhandledException(appException);
 
         if (fastFail)
         {
-            Environment.FailFast(message, e);
+            Environment.FailFast(message, ex);
         }
     }
 
-    private class AppUnhandledException(string message, Exception innerException) : Exception(message, innerException) { }
+    private class AppUnhandledException(string message, Exception ex) : Exception(message, ex) { }
 }
