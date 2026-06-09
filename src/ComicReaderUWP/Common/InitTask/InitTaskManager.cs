@@ -13,6 +13,7 @@ using ComicReaderUWP.Common.Services;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.ServiceManagement.Models;
 using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Threading;
@@ -68,18 +69,20 @@ internal class InitTaskManager(Application application)
 
         if (!ExitedNormallyLastTime)
         {
-            NativeDialog.DialogResult result = NativeDialog.ShowYesNoCancel(
+            INativeService nativeService = ServiceManager.GetService<INativeService>();
+            NativeDialogResult dialogResult = nativeService.ShowDialog(
+                NativeDialogButtonType.YesNoCancel,
+                NativeDialogIconType.Info,
                 StringResourceProvider.Instance.AppDisplayName,
                 StringResourceProvider.Instance.SafeModeMessage);
-            switch (result)
+            switch (dialogResult)
             {
-                case NativeDialog.DialogResult.Yes:
+                case NativeDialogResult.Yes:
                     SafeMode = true;
                     break;
-                case NativeDialog.DialogResult.No:
+                case NativeDialogResult.No:
                     SafeMode = false;
                     break;
-                case NativeDialog.DialogResult.Cancel:
                 default:
                     AppExitHandler();
                     System.Diagnostics.Process.GetCurrentProcess().Kill();

@@ -132,13 +132,20 @@ public static class DebugUtils
             sb.Append("Caller stack trace:\n");
             sb.Append(new System.Diagnostics.StackTrace(true).ToString());
             string text = sb.ToString();
-            NativeDialogResult dialogResult = nativeService.ShowYesNoDialog("Comic Reader UWP", text);
+            NativeDialogResult dialogResult = nativeService.ShowDialog(
+                NativeDialogButtonType.YesNo,
+                NativeDialogIconType.Error,
+                "Comic Reader UWP",
+                text);
             if (dialogResult == NativeDialogResult.Yes)
             {
-                var dataPackage = new DataPackage();
-                dataPackage.SetText(text);
-                Clipboard.SetContent(dataPackage);
-                Clipboard.Flush();
+                CoroutineUtils.RunInMainThread(() =>
+                {
+                    var dataPackage = new DataPackage();
+                    dataPackage.SetText(text);
+                    Clipboard.SetContent(dataPackage);
+                    Clipboard.Flush();
+                });
             }
         }
 
