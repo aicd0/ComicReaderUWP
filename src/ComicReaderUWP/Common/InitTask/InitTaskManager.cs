@@ -6,12 +6,14 @@ using System.IO;
 using System.Threading;
 
 using ComicReaderUWP.Common.Imaging;
+using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Services;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Data.Database;
@@ -36,7 +38,10 @@ internal class InitTaskManager(Application application)
 
     public void InitOnAppCreate()
     {
-        LaunchPerformanceTracker.MarkAppEntry();
+        // Register services
+        ServiceManager.RegisterService<IApplicationService>(new ApplicationService());
+        ServiceManager.RegisterService<IDebugService>(new DebugService());
+        ServiceManager.RegisterService<INativeService>(new NativeService());
 
         // Register crash handler
         _application.UnhandledException += (_, e) =>
@@ -46,9 +51,7 @@ internal class InitTaskManager(Application application)
         SynchronizationContext.SetSynchronizationContext(
             new AppSynchronizationContext(SynchronizationContext.Current!));
 
-        // Register services
-        ServiceManager.RegisterService<IApplicationService>(new ApplicationService());
-        ServiceManager.RegisterService<IDebugService>(new DebugService());
+        LaunchPerformanceTracker.MarkAppEntry();
 
         MainThreadUtils.Initialize(DispatcherQueue.GetForCurrentThread());
 
@@ -65,16 +68,18 @@ internal class InitTaskManager(Application application)
 
         if (!ExitedNormallyLastTime)
         {
-            SafeModeDialog.DialogResult result = SafeModeDialog.Show();
+            NativeDialog.DialogResult result = NativeDialog.ShowYesNoCancel(
+                StringResourceProvider.Instance.AppDisplayName,
+                StringResourceProvider.Instance.SafeModeMessage);
             switch (result)
             {
-                case SafeModeDialog.DialogResult.Yes:
+                case NativeDialog.DialogResult.Yes:
                     SafeMode = true;
                     break;
-                case SafeModeDialog.DialogResult.No:
+                case NativeDialog.DialogResult.No:
                     SafeMode = false;
                     break;
-                case SafeModeDialog.DialogResult.Cancel:
+                case NativeDialog.DialogResult.Cancel:
                 default:
                     AppExitHandler();
                     System.Diagnostics.Process.GetCurrentProcess().Kill();

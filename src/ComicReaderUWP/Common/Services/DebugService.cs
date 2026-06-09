@@ -3,7 +3,7 @@
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Models;

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Core.Common.ServiceManagement;
+using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 
 namespace ComicReaderUWP.Core.Common.Storage;
 

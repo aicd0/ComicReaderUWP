@@ -1,22 +1,35 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.Common.Localization;
-
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-namespace ComicReaderUWP.Common.InitTask;
+namespace ComicReaderUWP.Common.Misc;
 
-internal static class SafeModeDialog
+internal static class NativeDialog
 {
-    public static DialogResult Show()
+    public static DialogResult ShowYesNo(string caption, string text)
     {
         MESSAGEBOX_RESULT result = PInvoke.MessageBox(
             HWND.Null,
-            StringResourceProvider.Instance.SafeModeMessage,
-            StringResourceProvider.Instance.AppDisplayName,
+            text,
+            caption,
+            MESSAGEBOX_STYLE.MB_YESNO | MESSAGEBOX_STYLE.MB_ICONINFORMATION);
+        return result switch
+        {
+            MESSAGEBOX_RESULT.IDYES => DialogResult.Yes,
+            MESSAGEBOX_RESULT.IDNO => DialogResult.No,
+            _ => DialogResult.Cancel,
+        };
+    }
+
+    public static DialogResult ShowYesNoCancel(string caption, string text)
+    {
+        MESSAGEBOX_RESULT result = PInvoke.MessageBox(
+            HWND.Null,
+            text,
+            caption,
             MESSAGEBOX_STYLE.MB_YESNOCANCEL | MESSAGEBOX_STYLE.MB_ICONINFORMATION);
         return result switch
         {
