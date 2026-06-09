@@ -953,8 +953,8 @@ Categoría 2: Etiqueta 4, Etiqueta 5</value>
     <value>Sin agrupación</value>
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
-    <value>La siguiente información ayudará a los desarrolladores a localizar la causa del error.
-====================================================
+    <value>Para que nuestros desarrolladores puedan investigar el problema, proporcione también la siguiente información:
+
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

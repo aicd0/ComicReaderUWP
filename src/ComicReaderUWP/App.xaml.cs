@@ -46,7 +46,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            DebugUtils.CaptureFatalError("Failed to initialize the application.", ex);
+            DebugUtils.CaptureFatalError("Failed to initialize the application.", ex, fastFail: true);
             throw;
         }
     }
@@ -83,14 +83,13 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            DebugUtils.CaptureFatalError("An unknown error occurred in App#OnLaunched.", ex);
+            DebugUtils.CaptureFatalError("An unknown error occurred in App#OnLaunched.", ex, fastFail: true);
             throw;
         }
     }
 
     private void OnLaunchedInternal(LaunchActivatedEventArgs e)
     {
-        LaunchPerformanceTracker.MarkAppLaunched();
         AppActivationArguments activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
 
         var mainInstance = AppInstance.FindOrRegisterForKey("main");

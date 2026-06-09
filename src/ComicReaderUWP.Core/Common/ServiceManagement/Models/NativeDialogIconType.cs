@@ -3,10 +3,9 @@
 
 namespace ComicReaderUWP.Core.Common.ServiceManagement.Models;
 
-public enum NativeDialogResult
+public enum NativeDialogIconType
 {
-    OK,
-    Yes,
-    No,
-    Cancel,
+    Info,
+    Warning,
+    Error,
 }

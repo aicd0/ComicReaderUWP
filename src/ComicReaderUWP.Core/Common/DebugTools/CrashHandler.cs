@@ -14,7 +14,7 @@ namespace ComicReaderUWP.Core.Common.DebugTools;
 
 internal static class CrashHandler
 {
-    public static void OnUnhandledException(Exception exception)
+    public static void OnCrash(Exception exception)
     {
         IApplicationService? appService = ServiceManager.GetServiceNullable<IApplicationService>();
 
@@ -56,15 +56,12 @@ internal static class CrashHandler
             Console(ex.ToString());
         }
 
-        if (DebugUtils.DeveloperMode && System.Diagnostics.Debugger.IsAttached)
+        if (System.Diagnostics.Debugger.IsAttached && DebugUtils.DeveloperMode)
         {
             System.Diagnostics.Debugger.Break();
         }
 
-        if (DebugUtils.DebugMode)
-        {
-            ServiceManager.GetService<IDebugService>().OnCrashReport(crashReport);
-        }
+        ServiceManager.GetService<IDebugService>().OnCrashReport(crashReport);
     }
 
     public static void ReportLastCrash()
@@ -87,6 +84,7 @@ internal static class CrashHandler
         {
             sb.Append(symbols[Random.Shared.Next(symbols.Length)]);
         }
+
         return sb.ToString();
     }
 

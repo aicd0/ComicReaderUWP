@@ -3,10 +3,9 @@
 
 namespace ComicReaderUWP.Core.Common.ServiceManagement.Models;
 
-public enum NativeDialogResult
+public enum NativeDialogButtonType
 {
     OK,
-    Yes,
-    No,
-    Cancel,
+    YesNo,
+    YesNoCancel,
 }

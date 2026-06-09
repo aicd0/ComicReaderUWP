@@ -18,7 +18,7 @@ public static class ServiceManager
         }
     }
 
-    internal static T GetService<T>() where T : IService
+    public static T GetService<T>() where T : IService
     {
         ArgumentNullException.ThrowIfNull(typeof(T), nameof(T));
         if (_services.TryGetValue(typeof(T), out IService? service))
@@ -28,7 +28,7 @@ public static class ServiceManager
         throw new KeyNotFoundException($"Service of type {typeof(T).FullName} not found.");
     }
 
-    internal static T? GetServiceNullable<T>() where T : IService
+    public static T? GetServiceNullable<T>() where T : IService
     {
         ArgumentNullException.ThrowIfNull(typeof(T), nameof(T));
         if (_services.TryGetValue(typeof(T), out IService? service))

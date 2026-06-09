@@ -7,5 +7,5 @@ namespace ComicReaderUWP.Core.Common.ServiceManagement.Services;
 
 public interface INativeService : IService
 {
-    NativeDialogResult ShowYesNoDialog(string caption, string text);
+    NativeDialogResult ShowDialog(NativeDialogButtonType buttonType, NativeDialogIconType iconType, string caption, string text);
 }

@@ -953,8 +953,8 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
     <value>グループ化なし</value>
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
-    <value>以下の情報は、開発者がエラーの原因を特定するのに役立ちます。
-====================================================
+    <value>開発者による問題調査のため、以下の情報もあわせてご提供ください。
+
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

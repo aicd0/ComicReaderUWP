@@ -953,8 +953,8 @@ Kategorie 2: Tag 4, Tag 5</value>
     <value>Keine Gruppierung</value>
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
-    <value>Die folgenden Informationen helfen Entwicklern, die Fehlerursache zu finden.
-====================================================
+    <value>Damit unsere Entwickler das Problem untersuchen können, stellen Sie bitte zusätzlich die folgenden Informationen bereit:
+
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

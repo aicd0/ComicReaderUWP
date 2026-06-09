@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
-using ComicReaderUWP.Common.InitTask;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Services;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -326,7 +325,6 @@ internal sealed partial class MainWindow : Window
         }
 
         DequeuePendingActions();
-        LaunchPerformanceTracker.MarkTabRestored();
 
         CoroutineUtils.Run(async () =>
         {

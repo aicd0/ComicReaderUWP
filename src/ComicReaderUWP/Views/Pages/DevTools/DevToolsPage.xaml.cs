@@ -9,6 +9,7 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.SDK.Models;
 
@@ -77,7 +78,15 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void CrashAppButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        throw new InvalidOperationException();
+        throw new InvalidOperationException("Test");
+    }
+
+    private void TriggerBackgroundTaskFailure_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        TaskDispatcher.DefaultThreadPool.Submit(() =>
+        {
+            throw new InvalidOperationException("Test");
+        });
     }
 
     private void TriggerAssertFailureButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
