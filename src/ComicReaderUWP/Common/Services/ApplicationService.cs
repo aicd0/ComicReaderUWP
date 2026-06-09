@@ -98,11 +98,18 @@ internal class ApplicationService : IApplicationService
 
     private static readonly object _configLock = new();
     private static ConfigJsonModel? _config;
-    private static bool _shuttingDown = false;
+    private static bool _launching = true;
+    private static bool _exiting = false;
 
-    public static void StartShuttingDown()
+    public static void StopLaunching()
     {
-        _shuttingDown = true;
+        _launching = false;
+    }
+
+    public static void StartExiting()
+    {
+        _launching = false;
+        _exiting = true;
         App.Instance.WindowManager.LockWindowStatus();
     }
 
@@ -163,7 +170,9 @@ internal class ApplicationService : IApplicationService
 
     public bool SafeMode => App.Instance.SafeMode;
 
-    public bool ShuttingDown => _shuttingDown;
+    public bool Launching => _launching;
+
+    public bool Exiting => _exiting;
 
     public string GetLocalFolderPath()
     {

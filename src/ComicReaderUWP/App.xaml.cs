@@ -33,13 +33,7 @@ public partial class App : Application
     private const string COMMAND_LINE_FILE_NAME = "CommandLine.txt";
 
     private static App? _instance;
-    public static App Instance => _instance!;
-
     private readonly InitTaskManager _initTaskManager;
-
-    internal bool SafeMode => _initTaskManager.SafeMode;
-    internal bool ExitedNormallyLastTime => _initTaskManager.ExitedNormallyLastTime;
-    internal WindowManager WindowManager { get; } = new();
 
     public App()
     {
@@ -58,8 +52,13 @@ public partial class App : Application
     }
 
     //
-    // Public Methods
+    // Public API
     //
+
+    public static App Instance => _instance!;
+    internal bool SafeMode => _initTaskManager.SafeMode;
+    internal bool ExitedNormallyLastTime => _initTaskManager.ExitedNormallyLastTime;
+    internal WindowManager WindowManager { get; } = new();
 
     internal async Task OnCommandLine(MainWindow window, string[] args)
     {

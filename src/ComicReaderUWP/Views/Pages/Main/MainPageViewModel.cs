@@ -343,7 +343,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             Text = StringResourceProvider.Instance.Exit,
             Click = () =>
             {
-                ApplicationService.StartShuttingDown();
+                ApplicationService.StartExiting();
                 Application.Current.Exit();
             },
         });

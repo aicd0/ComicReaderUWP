@@ -3183,17 +3183,6 @@ internal partial class ReaderView : UserControl
         ReaderEventReaderStateChanged?.Invoke(this, state, stateDescription);
     }
 
-    private double FrameParallelLength(int i)
-    {
-        FrameworkElement? container = _frameManager.GetContainer(i);
-        if (container is not null)
-        {
-            return IsVertical ? container.ActualHeight : container.ActualWidth;
-        }
-
-        return 0;
-    }
-
     private int ToDiscretePage(double pageContinuous)
     {
         return Math.Max(1, Math.Min(PageCount, (int)Math.Round(pageContinuous)));
