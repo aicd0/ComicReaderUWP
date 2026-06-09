@@ -10,8 +10,6 @@ using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.Misc;
 
-using Windows.ApplicationModel.DataTransfer;
-
 namespace ComicReaderUWP.Core.Common.DebugTools;
 
 public static class DebugUtils
@@ -122,7 +120,7 @@ public static class DebugUtils
         if (appService?.Launching != false && nativeService is not null)
         {
             StringBuilder sb = new();
-            sb.Append("A fatal error occurred during app launch. Click 'Yes' to copy this message to clipboard:\n");
+            sb.Append("A fatal error occurred during app launch. Press Ctrl+C to copy this message to clipboard:\n");
             sb.Append("Message:\n");
             sb.Append(message);
             sb.Append('\n');
@@ -132,27 +130,17 @@ public static class DebugUtils
             sb.Append("Caller stack trace:\n");
             sb.Append(new System.Diagnostics.StackTrace(true).ToString());
             string text = sb.ToString();
-            NativeDialogResult dialogResult = nativeService.ShowDialog(
-                NativeDialogButtonType.YesNo,
+            nativeService.ShowDialog(
+                NativeDialogButtonType.OK,
                 NativeDialogIconType.Error,
                 "Comic Reader UWP",
                 text);
-            if (dialogResult == NativeDialogResult.Yes)
-            {
-                CoroutineUtils.RunInMainThread(() =>
-                {
-                    var dataPackage = new DataPackage();
-                    dataPackage.SetText(text);
-                    Clipboard.SetContent(dataPackage);
-                    Clipboard.Flush();
-                });
-            }
         }
 
         Logger.E(TAG, message, ex);
         AppUnhandledException appException = new(message, ex);
         SentryManager.CaptureError(appException);
-        CrashHandler.OnUnhandledException(appException);
+        CrashHandler.OnCrash(appException);
 
         if (fastFail)
         {

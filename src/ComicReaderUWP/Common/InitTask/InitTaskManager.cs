@@ -52,8 +52,6 @@ internal class InitTaskManager(Application application)
         SynchronizationContext.SetSynchronizationContext(
             new AppSynchronizationContext(SynchronizationContext.Current!));
 
-        LaunchPerformanceTracker.MarkAppEntry();
-
         MainThreadUtils.Initialize(DispatcherQueue.GetForCurrentThread());
 
         IsFirstInstance = TryRegisterFirstInstance();

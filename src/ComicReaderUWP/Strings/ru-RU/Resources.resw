@@ -954,8 +954,8 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Нет группировки</value>
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
-    <value>Следующая информация поможет разработчикам определить причину ошибки.
-====================================================
+    <value>Чтобы помочь разработчикам разобраться в проблеме, пожалуйста, также предоставьте следующую информацию:
+
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

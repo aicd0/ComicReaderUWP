@@ -31,6 +31,7 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button Click="CrashAppButton_Click" Content="Crash the app" />
+                    <Button Click="TriggerBackgroundTaskFailure_Click" Content="Trigger background task failure" />
                     <Button Click="TriggerAssertFailureButton_Click" Content="Trigger assert failure" />
                 </StackPanel>
                 <Grid Height="8" />

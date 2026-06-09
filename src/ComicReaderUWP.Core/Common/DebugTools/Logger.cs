@@ -438,7 +438,7 @@ public static class Logger
 
         if (DebugUtils.DebugMode)
         {
-            CrashHandler.OnUnhandledException(exception);
+            CrashHandler.OnCrash(exception);
 
             if (!EnvironmentProvider.IsSafeMode())
             {

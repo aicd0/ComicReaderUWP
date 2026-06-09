@@ -954,8 +954,8 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
     <value>그룹화 없음</value>
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
-    <value>다음 정보는 개발자가 오류의 원인을 찾는 데 도움이 됩니다.
-====================================================
+    <value>개발자가 문제를 조사할 수 있도록 아래 정보도 함께 제공해 주세요.
+
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

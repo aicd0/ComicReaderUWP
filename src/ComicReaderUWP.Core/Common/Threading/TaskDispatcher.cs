@@ -76,7 +76,6 @@ public abstract class TaskDispatcher : ITaskDispatcher
             catch (Exception ex)
             {
                 DebugUtils.CaptureFatalError($"An unknown error occurred in the background task '{taskName}'.", ex);
-                throw;
             }
         });
     }

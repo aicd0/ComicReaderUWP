@@ -953,8 +953,8 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
     <value>無分組</value>
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
-    <value>以下資訊將有助於開發者定位錯誤原因。
-====================================================
+    <value>如需開發者協助排查問題，請同時提供以下資訊：
+
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

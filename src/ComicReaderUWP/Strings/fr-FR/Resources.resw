@@ -953,8 +953,8 @@ Catégorie 2 : Étiquette 4, Étiquette 5</value>
     <value>Pas de regroupement</value>
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
-    <value>Les informations suivantes aideront les développeurs à identifier la cause de l'erreur.
-====================================================
+    <value>Pour aider nos développeurs à analyser le problème, veuillez également fournir les informations suivantes :
+
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">

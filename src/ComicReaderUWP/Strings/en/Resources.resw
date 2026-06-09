@@ -955,8 +955,8 @@ Category2: Tag4, Tag5</value>
     <value>Ungrouped</value>
   </data>
   <data name="UnhandledExceptionContent" xml:space="preserve">
-    <value>The following information will help developers locate the cause of the error.
-====================================================
+    <value>To help our developers investigate the issue, please also provide the following information:
+
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">
