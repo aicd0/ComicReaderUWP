@@ -335,9 +335,9 @@ internal partial class ReaderImageCompositor : IDisposable
                     bitmap = CanvasBitmap.LoadAsync(_canvasDevice,
                         stream.AsRandomAccessStream()).AsTask().Result;
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.E(TAG, e);
+                    Logger.E(TAG, ex);
                     return;
                 }
 

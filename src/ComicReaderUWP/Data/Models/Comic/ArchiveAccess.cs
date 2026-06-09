@@ -68,14 +68,14 @@ public class ArchiveAccess
                 {
                     stream.CopyTo(memStream);
                 }
-                catch (SharpCompress.Compressors.Deflate.ZlibException e)
+                catch (SharpCompress.Compressors.Deflate.ZlibException ex)
                 {
-                    Logger.E(TAG, e);
+                    Logger.E(TAG, ex);
                     return;
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.F(TAG, e);
+                    Logger.F(TAG, ex);
                     return;
                 }
 
@@ -153,24 +153,24 @@ public class ArchiveAccess
         {
             return File.OpenRead(path);
         }
-        catch (FileNotFoundException e)
+        catch (FileNotFoundException ex)
         {
-            Logger.E(TAG, ErrorMessage(), e);
+            Logger.E(TAG, ErrorMessage(), ex);
             return null;
         }
-        catch (UnauthorizedAccessException e)
+        catch (UnauthorizedAccessException ex)
         {
-            Logger.E(TAG, ErrorMessage(), e);
+            Logger.E(TAG, ErrorMessage(), ex);
             return null;
         }
-        catch (IOException e)
+        catch (IOException ex)
         {
-            Logger.E(TAG, ErrorMessage(), e);
+            Logger.E(TAG, ErrorMessage(), ex);
             return null;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, ErrorMessage(), e);
+            Logger.F(TAG, ErrorMessage(), ex);
             return null;
         }
     }
@@ -221,9 +221,9 @@ public class ArchiveAccess
                         CustomDecoder = (data, x, y, type) => encoding.GetString(data)
                     };
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.F(TAG, "Failed to set up a decoder", e);
+                    Logger.F(TAG, "Failed to set up a decoder", ex);
                 }
             }
 
@@ -244,14 +244,14 @@ public class ArchiveAccess
                     {
                         archive = SharpCompress.Archives.SevenZip.SevenZipArchive.OpenArchive(stream, opts);
                     }
-                    catch (SharpCompress.Common.CryptographicException e)
+                    catch (SharpCompress.Common.CryptographicException ex)
                     {
-                        Logger.E(TAG, e);
+                        Logger.E(TAG, ex);
                         return;
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Logger.F(TAG, e);
+                        Logger.F(TAG, ex);
                         return;
                     }
 
@@ -268,14 +268,14 @@ public class ArchiveAccess
                                     break;
                                 }
                             }
-                            catch (SharpCompress.Common.CryptographicException e)
+                            catch (SharpCompress.Common.CryptographicException ex)
                             {
-                                Logger.E(TAG, e);
+                                Logger.E(TAG, ex);
                                 return;
                             }
-                            catch (Exception e)
+                            catch (Exception ex)
                             {
-                                Logger.F(TAG, e);
+                                Logger.F(TAG, ex);
                             }
 
                             SharpCompress.Archives.IArchiveEntry rawEntry = entryEnumerator.Current;
@@ -305,24 +305,24 @@ public class ArchiveAccess
                     {
                         reader = SharpCompress.Readers.ReaderFactory.OpenReader(stream, opts);
                     }
-                    catch (SharpCompress.Common.InvalidFormatException e)
+                    catch (SharpCompress.Common.InvalidFormatException ex)
                     {
-                        Logger.E(TAG, e);
+                        Logger.E(TAG, ex);
                         return;
                     }
-                    catch (EndOfStreamException e)
+                    catch (EndOfStreamException ex)
                     {
-                        Logger.E(TAG, e);
+                        Logger.E(TAG, ex);
                         return;
                     }
-                    catch (InvalidDataException e)
+                    catch (InvalidDataException ex)
                     {
-                        Logger.E(TAG, e);
+                        Logger.E(TAG, ex);
                         return;
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Logger.F(TAG, e);
+                        Logger.F(TAG, ex);
                         return;
                     }
 
@@ -335,39 +335,39 @@ public class ArchiveAccess
                             {
                                 hasNext = reader.MoveToNextEntry();
                             }
-                            catch (SharpCompress.Compressors.Deflate.ZlibException e)
+                            catch (SharpCompress.Compressors.Deflate.ZlibException ex)
                             {
-                                Logger.E(TAG, e);
+                                Logger.E(TAG, ex);
                                 break;
                             }
-                            catch (SharpCompress.Common.CryptographicException e)
+                            catch (SharpCompress.Common.CryptographicException ex)
                             {
-                                Logger.E(TAG, e);
+                                Logger.E(TAG, ex);
                                 break;
                             }
-                            catch (SharpCompress.Common.IncompleteArchiveException e)
+                            catch (SharpCompress.Common.IncompleteArchiveException ex)
                             {
-                                Logger.E(TAG, e);
+                                Logger.E(TAG, ex);
                                 break;
                             }
-                            catch (SharpCompress.Common.InvalidFormatException e)
+                            catch (SharpCompress.Common.InvalidFormatException ex)
                             {
-                                Logger.E(TAG, e);
+                                Logger.E(TAG, ex);
                                 break;
                             }
-                            catch (SharpCompress.Common.MultiVolumeExtractionException e)
+                            catch (SharpCompress.Common.MultiVolumeExtractionException ex)
                             {
-                                Logger.E(TAG, e);
+                                Logger.E(TAG, ex);
                                 break;
                             }
-                            catch (EndOfStreamException e)
+                            catch (EndOfStreamException ex)
                             {
-                                Logger.E(TAG, e);
+                                Logger.E(TAG, ex);
                                 break;
                             }
-                            catch (Exception e)
+                            catch (Exception ex)
                             {
-                                Logger.F(TAG, e);
+                                Logger.F(TAG, ex);
                                 break;
                             }
 
@@ -423,14 +423,14 @@ public class ArchiveAccess
             {
                 subStream = entry.Open();
             }
-            catch (SharpCompress.Common.CryptographicException e)
+            catch (SharpCompress.Common.CryptographicException ex)
             {
-                Logger.E(TAG, e);
+                Logger.E(TAG, ex);
                 return ICallbackResult.StopIteration;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.F(TAG, e);
+                Logger.F(TAG, ex);
                 return ICallbackResult.StopIteration;
             }
 
@@ -444,13 +444,13 @@ public class ArchiveAccess
                 {
                     subStream.Dispose();
                 }
-                catch (SharpCompress.Compressors.Deflate.ZlibException e)
+                catch (SharpCompress.Compressors.Deflate.ZlibException ex)
                 {
-                    Logger.E(TAG, e);
+                    Logger.E(TAG, ex);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.F(TAG, e);
+                    Logger.F(TAG, ex);
                 }
             }
 

@@ -730,9 +730,9 @@ internal static partial class ImageCacheManager
                 encoder.IsThumbnailGenerated = false;
                 encoder.FlushAsync().Wait();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.F(TAG, "TryCreateImageCache", e);
+                Logger.F(TAG, "TryCreateImageCache", ex);
                 return;
             }
 
@@ -909,9 +909,9 @@ internal static partial class ImageCacheManager
             {
                 Directory.CreateDirectory(folderPath);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.F(TAG, e);
+                Logger.F(TAG, ex);
                 return null;
             }
 
@@ -954,9 +954,9 @@ internal static partial class ImageCacheManager
         {
             return drive.AvailableFreeSpace;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, $"Failed to access drive info for: {root}", e);
+            Logger.F(TAG, $"Failed to access drive info for: {root}", ex);
             return 0;
         }
     }
@@ -973,9 +973,9 @@ internal static partial class ImageCacheManager
         {
             versionContent = File.ReadAllText(versionFilePath);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
             return -1;
         }
 
@@ -998,14 +998,14 @@ internal static partial class ImageCacheManager
         {
             Directory.Delete(path, true);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
             if (throwOnError)
             {
                 throw;
             }
 
-            Logger.E(TAG, $"Failed to delete directory: {path}", e);
+            Logger.E(TAG, $"Failed to delete directory: {path}", ex);
         }
     }
 
@@ -1056,9 +1056,9 @@ internal static partial class ImageCacheManager
             {
                 _sourceStream = _source.OpenImageStream();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E(TAG, e);
+                Logger.E(TAG, ex);
             }
 
             return _sourceStream;
@@ -1087,9 +1087,9 @@ internal static partial class ImageCacheManager
             {
                 _bitmapDecoder = BitmapDecoder.CreateAsync(stream.AsRandomAccessStream()).AsTask().Result;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E(TAG, e);
+                Logger.E(TAG, ex);
             }
 
             return _bitmapDecoder;

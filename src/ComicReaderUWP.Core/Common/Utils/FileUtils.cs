@@ -20,9 +20,9 @@ public static class FileUtils
         {
             files = directory.GetFiles();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, "GetApproximateDirectorySize", e);
+            Logger.E(TAG, "GetApproximateDirectorySize", ex);
             files = [];
         }
 
@@ -32,9 +32,9 @@ public static class FileUtils
             {
                 size += file.Length;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E(TAG, "GetApproximateDirectorySize", e);
+                Logger.E(TAG, "GetApproximateDirectorySize", ex);
             }
         }
 
@@ -43,9 +43,9 @@ public static class FileUtils
         {
             dirs = directory.GetDirectories();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, "GetDirectorySize", e);
+            Logger.E(TAG, "GetDirectorySize", ex);
             dirs = [];
         }
 
@@ -71,9 +71,9 @@ public static class FileUtils
         {
             return string.Empty;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, "GetFileHashCode", e);
+            Logger.F(TAG, "GetFileHashCode", ex);
             return string.Empty;
         }
 

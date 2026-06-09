@@ -80,13 +80,13 @@ public class LRUCache(string directoryPath)
                 File.Delete(path);
                 sizeToRemove -= fileSize;
             }
-            catch (IOException e)
+            catch (IOException ex)
             {
-                Logger.E(TAG, e);
+                Logger.E(TAG, ex);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.F(TAG, e);
+                Logger.F(TAG, ex);
             }
         }
 
@@ -255,9 +255,9 @@ public class LRUCache(string directoryPath)
             {
                 stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.F(TAG, nameof(StartWrite), e);
+                Logger.F(TAG, nameof(StartWrite), ex);
             }
 
             if (stream == null)
@@ -277,9 +277,9 @@ public class LRUCache(string directoryPath)
             {
                 File.Move(oldPath, newPath, overwrite: true);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.F(TAG, nameof(EndWrite), e);
+                Logger.F(TAG, nameof(EndWrite), ex);
                 SwitchToEmptyState();
                 return;
             }
@@ -315,9 +315,9 @@ public class LRUCache(string directoryPath)
                 catch (FileNotFoundException)
                 {
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.F(TAG, "StartRead", e);
+                    Logger.F(TAG, "StartRead", ex);
                 }
 
                 if (stream == null)

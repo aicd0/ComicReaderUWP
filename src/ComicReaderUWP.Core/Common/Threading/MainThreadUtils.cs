@@ -26,7 +26,7 @@ public static class MainThreadUtils
 
     public static DispatcherQueueTimer CreateTimer()
     {
-        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
+        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable.");
         return dispatcher.CreateTimer();
     }
 
@@ -58,7 +58,7 @@ public static class MainThreadUtils
             return;
         }
 
-        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
+        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable.");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
             action();
@@ -73,9 +73,9 @@ public static class MainThreadUtils
                 action();
                 taskCompletionSource.SetResult(true);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                taskCompletionSource.SetException(e);
+                taskCompletionSource.SetException(ex);
             }
         });
 
@@ -95,7 +95,7 @@ public static class MainThreadUtils
             return;
         }
 
-        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable");
+        DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable.");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
             await action();
@@ -110,9 +110,9 @@ public static class MainThreadUtils
                 await action();
                 taskCompletionSource.SetResult(true);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                taskCompletionSource.SetException(e);
+                taskCompletionSource.SetException(ex);
             }
         });
 

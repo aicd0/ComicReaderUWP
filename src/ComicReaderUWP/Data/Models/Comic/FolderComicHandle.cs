@@ -103,9 +103,9 @@ internal partial class FolderComicHandle : ComicHandle
                 {
                     Directory.CreateDirectory(targetParent);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Logger.E($"Unable to create target parent directory '{targetParent}'.", e);
+                    Logger.E($"Unable to create target parent directory '{targetParent}'", ex);
                     return false;
                 }
             }
@@ -114,9 +114,9 @@ internal partial class FolderComicHandle : ComicHandle
             {
                 Directory.Move(sourceDir, targetDir);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E($"Unable to move directory.", e);
+                Logger.E($"Unable to move directory", ex);
                 return false;
             }
 
@@ -164,9 +164,9 @@ internal partial class FolderComicHandle : ComicHandle
         {
             files = Directory.GetFiles(Location);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, $"Cannot access folder '{Location}'", e);
+            Logger.E(TAG, $"Cannot access folder '{Location}'", ex);
             return false;
         }
 
@@ -240,19 +240,24 @@ internal partial class FolderComicHandle : ComicHandle
             {
                 return new FileStream(imageFile, FileMode.Open, FileAccess.Read);
             }
-            catch (Exception e)
+            catch (FileNotFoundException ex)
             {
-                if (e is FileNotFoundException ||
-                    e is DirectoryNotFoundException ||
-                    e is IOException)
-                {
-                    Logger.E(TAG, $"Cannot open '{imageFile}'", e);
-                }
-                else
-                {
-                    Logger.F(TAG, $"Cannot open '{imageFile}'", e);
-                }
-
+                Logger.E(TAG, $"Cannot open '{imageFile}'", ex);
+                return null;
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                Logger.E(TAG, $"Cannot open '{imageFile}'", ex);
+                return null;
+            }
+            catch (IOException ex)
+            {
+                Logger.E(TAG, $"Cannot open '{imageFile}'", ex);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Logger.F(TAG, $"Cannot open '{imageFile}'", ex);
                 return null;
             }
         }

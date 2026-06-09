@@ -356,9 +356,9 @@ public static class Logger
             writer.Write(content);
             Console($"flushed {logs.Count} logs to {filePath}");
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            F(TAG, e.ToString());
+            F(TAG, ex);
         }
     }
 
@@ -414,9 +414,9 @@ public static class Logger
                 writer.Write(content);
                 Console($"flushed {pair.Value.Count} logs to {filePath}");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                F(TAG, e.ToString());
+                F(TAG, ex);
                 break;
             }
         }

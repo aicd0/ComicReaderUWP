@@ -106,25 +106,12 @@ public static class DebugUtils
         CrashHandler.ReportLastCrash();
     }
 
-    public static void TrackError(Action action, bool fastFail = false)
-    {
-        try
-        {
-            action();
-        }
-        catch (Exception e)
-        {
-            CaptureFatalErrorInternal(null, e, fastFail);
-            throw;
-        }
-    }
-
     public static void CaptureFatalError(string message, Exception e, bool fastFail = false)
     {
         CaptureFatalErrorInternal(message, e, fastFail);
     }
 
-    private static void CaptureFatalErrorInternal(string? message, Exception e, bool fastFail)
+    private static void CaptureFatalErrorInternal(string message, Exception e, bool fastFail)
     {
         Logger.E(TAG, message, e);
         AppUnhandledException appException = new(message, e);
@@ -137,5 +124,5 @@ public static class DebugUtils
         }
     }
 
-    private class AppUnhandledException(string? message, Exception innerException) : Exception(message, innerException) { }
+    private class AppUnhandledException(string message, Exception innerException) : Exception(message, innerException) { }
 }

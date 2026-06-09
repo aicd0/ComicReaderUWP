@@ -138,9 +138,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         {
             directory = new(directoryPath);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
             return size;
         }
 
@@ -149,9 +149,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         {
             files = directory.GetFiles();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, "GetCacheSize", e);
+            Logger.E(TAG, "GetCacheSize", ex);
             files = [];
         }
 
@@ -161,9 +161,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
             {
                 size += file.Length;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E(TAG, "GetCacheSize", e);
+                Logger.E(TAG, "GetCacheSize", ex);
             }
         }
 
@@ -172,9 +172,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         {
             dirs = directory.GetDirectories();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, "GetCacheSize", e);
+            Logger.E(TAG, "GetCacheSize", ex);
             dirs = [];
         }
 
@@ -198,9 +198,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         {
             directory = new(directoryPath);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
             return;
         }
 
@@ -209,9 +209,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         {
             files = directory.GetFiles();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, "ClearDirectory", e);
+            Logger.E(TAG, "ClearDirectory", ex);
             files = [];
         }
 
@@ -221,9 +221,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
             {
                 file.Delete();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E(TAG, "ClearDirectory", e);
+                Logger.E(TAG, "ClearDirectory", ex);
             }
         }
 
@@ -232,9 +232,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         {
             dirs = directory.GetDirectories();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, "ClearDirectory", e);
+            Logger.E(TAG, "ClearDirectory", ex);
             dirs = [];
         }
 
@@ -244,9 +244,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
             {
                 dir.Delete(true);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E(TAG, "ClearDirectory", e);
+                Logger.E(TAG, "ClearDirectory", ex);
             }
         }
     }

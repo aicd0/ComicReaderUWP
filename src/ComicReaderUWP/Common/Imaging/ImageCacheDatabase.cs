@@ -96,9 +96,9 @@ internal class ImageCacheDatabase(string databaseFilePath)
                     {
                         ext = new(JsonSerializer.Deserialize<Dictionary<string, string>>(extJson) ?? []);
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Logger.E(TAG, "CacheRecord", e);
+                        Logger.E(TAG, "CacheRecord", ex);
                         ext = [];
                     }
 

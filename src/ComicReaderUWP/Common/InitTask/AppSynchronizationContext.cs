@@ -14,46 +14,54 @@ internal class AppSynchronizationContext(SynchronizationContext inner) : Synchro
 
     public override void Send(SendOrPostCallback d, object? state)
     {
-        void wrapped(object? o)
+        void Wrapped(object? o)
         {
             try
             {
                 d(o);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                DebugUtils.CaptureFatalError(e.Message, e);
+                DebugUtils.CaptureFatalError("An unknown error occurred in AppSynchronizationContext#Send#Wrapped.", ex);
                 throw;
             }
         }
 
         try
         {
-            _inner.Send(wrapped, state);
+            _inner.Send(Wrapped, state);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            DebugUtils.CaptureFatalError(e.Message, e);
+            DebugUtils.CaptureFatalError("An unknown error occurred in AppSynchronizationContext#Send.", ex);
             throw;
         }
     }
 
     public override void Post(SendOrPostCallback d, object? state)
     {
-        void wrapped(object? o)
+        void Wrapped(object? o)
         {
             try
             {
                 d(o);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                DebugUtils.CaptureFatalError(e.Message, e);
+                DebugUtils.CaptureFatalError("An unknown error occurred in AppSynchronizationContext#Post#Wrapped.", ex);
                 throw;
             }
         }
 
-        _inner.Post(wrapped, state);
+        try
+        {
+            _inner.Post(Wrapped, state);
+        }
+        catch (Exception ex)
+        {
+            DebugUtils.CaptureFatalError("An unknown error occurred in AppSynchronizationContext#Post.", ex);
+            throw;
+        }
     }
 
     public override SynchronizationContext CreateCopy()

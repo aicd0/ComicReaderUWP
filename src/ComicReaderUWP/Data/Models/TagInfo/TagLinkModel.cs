@@ -28,9 +28,9 @@ internal class TagLinkModel
         {
             jsonModel = JsonSerializer.Deserialize<TagLinksJsonModel>(json);
         }
-        catch (JsonException e)
+        catch (JsonException ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
         }
 
         if (jsonModel is null)

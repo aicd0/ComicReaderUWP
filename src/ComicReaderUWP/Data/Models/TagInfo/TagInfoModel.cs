@@ -186,9 +186,9 @@ internal class TagInfoModel
             {
                 ext = JsonSerializer.Deserialize<Dictionary<string, string>>(extJson);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.F(TAG, e);
+                Logger.F(TAG, ex);
             }
 
             if (ext != null)

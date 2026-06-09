@@ -173,9 +173,9 @@ internal class DeviceInformationHelper
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
         }
 
         return null;
@@ -195,9 +195,9 @@ internal class DeviceInformationHelper
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
         }
 
         return null;
