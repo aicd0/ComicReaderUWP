@@ -33,7 +33,9 @@ internal class ApplicationService : IApplicationService
 
     public bool SafeMode => false;
 
-    public bool ShuttingDown => false;
+    public bool Launching => false;
+
+    public bool Exiting => false;
 
     public string GetLocalFolderPath()
     {

@@ -10,7 +10,8 @@ namespace ComicReaderUWP.Core.Common.DebugTools;
 public static class SentryManager
 {
     private const string TAG_USER_LEVEL = "c-user-level";
-    private const string TAG_SHUTTING_DOWN = "c-shutting-down";
+    private const string TAG_LAUNCHING = "c-launching";
+    private const string TAG_EXITING = "c-exiting";
     private const string LEVEL_INFO = "info";
     private const string LEVEL_WARNING = "warning";
     private const string LEVEL_ERROR = "error";
@@ -87,6 +88,7 @@ public static class SentryManager
 
     private static void PushRuntimeTags()
     {
-        SentrySdk.SetTag(TAG_SHUTTING_DOWN, ServiceManager.GetServiceNullable<IApplicationService>()?.ShuttingDown == true ? "true" : "false");
+        SentrySdk.SetTag(TAG_LAUNCHING, ServiceManager.GetServiceNullable<IApplicationService>()?.Launching != false ? "true" : "false");
+        SentrySdk.SetTag(TAG_EXITING, ServiceManager.GetServiceNullable<IApplicationService>()?.Exiting == true ? "true" : "false");
     }
 }

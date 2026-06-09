@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
@@ -223,7 +224,7 @@ internal sealed partial class MainWindow : Window
     {
         if (App.Instance.WindowManager.GetAllWindowInfo().Count == 1)
         {
-            ApplicationService.StartShuttingDown();
+            ApplicationService.StartExiting();
         }
 
         LifecycleState = WindowLifecycleState.Destroyed;
@@ -326,6 +327,12 @@ internal sealed partial class MainWindow : Window
 
         DequeuePendingActions();
         LaunchPerformanceTracker.MarkTabRestored();
+
+        CoroutineUtils.Run(async () =>
+        {
+            await Task.Delay(5000);
+            ApplicationService.StopLaunching();
+        });
     }
 
     private void OnPageFramePointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)

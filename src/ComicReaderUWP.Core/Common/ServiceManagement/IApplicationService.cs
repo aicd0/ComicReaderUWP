@@ -9,7 +9,9 @@ public interface IApplicationService : IService
 
     bool SafeMode { get; }
 
-    bool ShuttingDown { get; }
+    bool Launching { get; }
+
+    bool Exiting { get; }
 
     string GetLocalFolderPath();
 
