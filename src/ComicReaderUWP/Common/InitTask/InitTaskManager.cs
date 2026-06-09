@@ -36,20 +36,12 @@ internal class InitTaskManager(Application application)
 
     public void InitOnAppCreate()
     {
-        DebugUtils.TrackError(InitOnAppCreateInternal, fastFail: true);
-    }
+        LaunchPerformanceTracker.MarkAppEntry();
 
-    public void InitOnAppLaunch()
-    {
-        DebugUtils.TrackError(InitOnAppLaunchInternal, fastFail: true);
-    }
-
-    private void InitOnAppCreateInternal()
-    {
         // Register crash handler
         _application.UnhandledException += (_, e) =>
         {
-            DebugUtils.CaptureFatalError(e.Message, e.Exception);
+            DebugUtils.CaptureFatalError("An unknown error occurred in the application.", e.Exception);
         };
         SynchronizationContext.SetSynchronizationContext(
             new AppSynchronizationContext(SynchronizationContext.Current!));
@@ -95,7 +87,7 @@ internal class InitTaskManager(Application application)
         InitializeAppTheme();
     }
 
-    private void InitOnAppLaunchInternal()
+    public void InitOnAppLaunch()
     {
         DebugUtils.Initialize();
         ImageCacheManager.Initialize(Path.Combine(StorageLocation.LocalCacheFolderPath, "image_cache"), clear: false);

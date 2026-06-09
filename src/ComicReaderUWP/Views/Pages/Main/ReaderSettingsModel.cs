@@ -216,9 +216,9 @@ internal class ReaderSettingsModel
                 {
                     jsonModel = JsonSerializer.Deserialize<JsonModel>(customSettingsJson);
                 }
-                catch (JsonException e)
+                catch (JsonException ex)
                 {
-                    Logger.E(TAG, e);
+                    Logger.E(TAG, ex);
                 }
             }
 

@@ -229,9 +229,9 @@ internal partial class PluginManager
         {
             disabledPlugins = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<string>>(json);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
             return;
         }
 
@@ -303,9 +303,9 @@ internal partial class PluginManager
         {
             // Ignore
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, e);
+            Logger.F(TAG, ex);
             return null;
         }
 
@@ -314,9 +314,9 @@ internal partial class PluginManager
             Directory.CreateDirectory(extractDir);
             System.IO.Compression.ZipFile.ExtractToDirectory(pluginFile, extractDir);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, e);
+            Logger.F(TAG, ex);
             return null;
         }
 
@@ -367,9 +367,9 @@ internal partial class PluginManager
         {
             assembly = loadContext.LoadFromAssemblyPath(pluginFile);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
             return null;
         }
 
@@ -393,9 +393,9 @@ internal partial class PluginManager
                 .GetTypes()
                 .Where(t => typeof(T).IsAssignableFrom(t) && !t.IsAbstract);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
             return [];
         }
 
@@ -407,9 +407,9 @@ internal partial class PluginManager
             {
                 instance = (T)Activator.CreateInstance(type)!;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E(TAG, e);
+                Logger.E(TAG, ex);
                 continue;
             }
 

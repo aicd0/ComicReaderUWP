@@ -91,9 +91,9 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
             byte[] hash = SHA256.HashData(payloadBytes);
             return rsa.VerifyHash(hash, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, "Error verifying signature", e);
+            Logger.F(TAG, "Error verifying signature", ex);
             return false;
         }
     }

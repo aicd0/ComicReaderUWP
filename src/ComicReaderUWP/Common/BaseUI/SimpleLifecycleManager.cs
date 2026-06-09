@@ -83,7 +83,15 @@ internal class SimpleLifecycleManager
             LogLifecycleEvent("PreStart");
             if (_lifecycleHandler is not null)
             {
-                DebugUtils.TrackError(_lifecycleHandler.PreStart);
+                try
+                {
+                    _lifecycleHandler.PreStart();
+                }
+                catch (Exception ex)
+                {
+                    DebugUtils.CaptureFatalError("An unknown error occurred in Lifecycle#PreStart.", ex);
+                    throw;
+                }
             }
         }
         else
@@ -91,7 +99,15 @@ internal class SimpleLifecycleManager
             LogLifecycleEvent("PostStart");
             if (_lifecycleHandler is not null)
             {
-                DebugUtils.TrackError(_lifecycleHandler.PostStart);
+                try
+                {
+                    _lifecycleHandler.PostStart();
+                }
+                catch (Exception ex)
+                {
+                    DebugUtils.CaptureFatalError("An unknown error occurred in Lifecycle#PostStart.", ex);
+                    throw;
+                }
             }
         }
     }
@@ -103,7 +119,15 @@ internal class SimpleLifecycleManager
             LogLifecycleEvent("PreResume");
             if (_lifecycleHandler is not null)
             {
-                DebugUtils.TrackError(_lifecycleHandler.PreResume);
+                try
+                {
+                    _lifecycleHandler.PreResume();
+                }
+                catch (Exception ex)
+                {
+                    DebugUtils.CaptureFatalError("An unknown error occurred in Lifecycle#PreResume.", ex);
+                    throw;
+                }
             }
         }
         else
@@ -111,7 +135,15 @@ internal class SimpleLifecycleManager
             LogLifecycleEvent("PostResume");
             if (_lifecycleHandler is not null)
             {
-                DebugUtils.TrackError(_lifecycleHandler.PostResume);
+                try
+                {
+                    _lifecycleHandler.PostResume();
+                }
+                catch (Exception ex)
+                {
+                    DebugUtils.CaptureFatalError("An unknown error occurred in Lifecycle#PostResume.", ex);
+                    throw;
+                }
             }
         }
     }
@@ -123,7 +155,15 @@ internal class SimpleLifecycleManager
             LogLifecycleEvent("PrePause");
             if (_lifecycleHandler is not null)
             {
-                DebugUtils.TrackError(_lifecycleHandler.PrePause);
+                try
+                {
+                    _lifecycleHandler.PrePause();
+                }
+                catch (Exception ex)
+                {
+                    DebugUtils.CaptureFatalError("An unknown error occurred in Lifecycle#PrePause.", ex);
+                    throw;
+                }
             }
         }
         else
@@ -131,7 +171,15 @@ internal class SimpleLifecycleManager
             LogLifecycleEvent("PostPause");
             if (_lifecycleHandler is not null)
             {
-                DebugUtils.TrackError(_lifecycleHandler.PostPause);
+                try
+                {
+                    _lifecycleHandler.PostPause();
+                }
+                catch (Exception ex)
+                {
+                    DebugUtils.CaptureFatalError("An unknown error occurred in Lifecycle#PostPause.", ex);
+                    throw;
+                }
             }
         }
     }
@@ -143,7 +191,15 @@ internal class SimpleLifecycleManager
             LogLifecycleEvent("PreStop");
             if (_lifecycleHandler is not null)
             {
-                DebugUtils.TrackError(_lifecycleHandler.PreStop);
+                try
+                {
+                    _lifecycleHandler.PreStop();
+                }
+                catch (Exception ex)
+                {
+                    DebugUtils.CaptureFatalError("An unknown error occurred in Lifecycle#PreStop.", ex);
+                    throw;
+                }
             }
         }
         else
@@ -156,7 +212,15 @@ internal class SimpleLifecycleManager
             LogLifecycleEvent("PostStop");
             if (_lifecycleHandler is not null)
             {
-                DebugUtils.TrackError(_lifecycleHandler.PostStop);
+                try
+                {
+                    _lifecycleHandler.PostStop();
+                }
+                catch (Exception ex)
+                {
+                    DebugUtils.CaptureFatalError("An unknown error occurred in Lifecycle#PostStop.", ex);
+                    throw;
+                }
             }
         }
     }

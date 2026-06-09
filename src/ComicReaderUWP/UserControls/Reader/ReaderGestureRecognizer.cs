@@ -81,9 +81,9 @@ internal class ReaderGestureRecognizer
         {
             _gestureRecognizer.ProcessDownEvent(value);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, "ProcessDownEvent", e);
+            Logger.F(TAG, "ProcessDownEvent", ex);
         }
     }
 
@@ -93,13 +93,13 @@ internal class ReaderGestureRecognizer
         {
             _gestureRecognizer.ProcessMoveEvents(value);
         }
-        catch (ArgumentException e)
+        catch (ArgumentException ex)
         {
-            Logger.E(TAG, "ProcessMoveEvents", e);
+            Logger.E(TAG, "ProcessMoveEvents", ex);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, "ProcessMoveEvents", e);
+            Logger.F(TAG, "ProcessMoveEvents", ex);
         }
     }
 
@@ -109,9 +109,9 @@ internal class ReaderGestureRecognizer
         {
             _gestureRecognizer.ProcessUpEvent(value);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, "ProcessUpEvent", e);
+            Logger.F(TAG, "ProcessUpEvent", ex);
         }
     }
 
@@ -121,9 +121,9 @@ internal class ReaderGestureRecognizer
         {
             _gestureRecognizer.CompleteGesture();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, "CompleteGesture", e);
+            Logger.F(TAG, "CompleteGesture", ex);
         }
     }
 

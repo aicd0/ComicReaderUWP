@@ -14,10 +14,10 @@ public static class CoroutineUtils
     {
         task().ContinueWith(t =>
         {
-            AggregateException? exception = t.Exception;
-            if (exception is not null)
+            AggregateException? ex = t.Exception;
+            if (ex is not null)
             {
-                DebugUtils.CaptureFatalError(exception.Message, exception);
+                DebugUtils.CaptureFatalError("An unknown error occurred in CoroutineUtils#Run.", ex);
             }
         });
     }

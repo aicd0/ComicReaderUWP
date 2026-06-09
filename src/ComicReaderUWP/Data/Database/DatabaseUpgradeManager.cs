@@ -169,9 +169,9 @@ class DatabaseUpgradeManager
         {
             versionContent = File.ReadAllText(versionFile);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.E(TAG, e);
+            Logger.E(TAG, ex);
             return -1;
         }
 

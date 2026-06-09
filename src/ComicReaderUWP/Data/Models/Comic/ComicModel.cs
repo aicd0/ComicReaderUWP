@@ -522,9 +522,9 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
             {
                 filePaths = Directory.GetFiles(location);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.E(TAG, $"Failed to list files in directory: {location}.", e);
+                Logger.E(TAG, $"Failed to list files in directory: {location}", ex);
                 return null;
             }
 

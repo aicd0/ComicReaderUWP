@@ -193,9 +193,9 @@ public class EnvironmentProvider
             {
                 languageTag = ApplicationLanguages.PrimaryLanguageOverride;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.F(TAG, e);
+                Logger.F(TAG, ex);
             }
 
             if (!string.IsNullOrEmpty(languageTag))

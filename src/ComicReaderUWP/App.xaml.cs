@@ -21,7 +21,6 @@ using ComicReaderUWP.Views.AppWindows.Main;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 
-using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -44,11 +43,18 @@ public partial class App : Application
 
     public App()
     {
-        LaunchPerformanceTracker.MarkAppEntry();
-        _instance = this;
-        _initTaskManager = new(this);
-        _initTaskManager.InitOnAppCreate();
-        InitializeComponent();
+        try
+        {
+            _instance = this;
+            _initTaskManager = new(this);
+            _initTaskManager.InitOnAppCreate();
+            InitializeComponent();
+        }
+        catch (Exception ex)
+        {
+            DebugUtils.CaptureFatalError("Failed to initialize the application.", ex);
+            throw;
+        }
     }
 
     //
@@ -70,7 +76,20 @@ public partial class App : Application
     // Lifecycle
     //
 
-    protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs e)
+    protected override void OnLaunched(LaunchActivatedEventArgs e)
+    {
+        try
+        {
+            OnLaunchedInternal(e);
+        }
+        catch (Exception ex)
+        {
+            DebugUtils.CaptureFatalError("An unknown error occurred in App#OnLaunched.", ex);
+            throw;
+        }
+    }
+
+    private void OnLaunchedInternal(LaunchActivatedEventArgs e)
     {
         LaunchPerformanceTracker.MarkAppLaunched();
         AppActivationArguments activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
@@ -106,7 +125,15 @@ public partial class App : Application
 
         mainInstance.Activated += (sender, e) =>
         {
-            OnActivated(e, firstLaunch: false);
+            try
+            {
+                OnActivated(e, firstLaunch: false);
+            }
+            catch (Exception ex)
+            {
+                DebugUtils.CaptureFatalError("An unknown error occurred in App#Activated.", ex);
+                throw;
+            }
         };
 
         OnActivated(activatedEventArgs, firstLaunch: true);
@@ -147,7 +174,7 @@ public partial class App : Application
             {
                 case ExtendedActivationKind.File:
                     {
-                        var fileArgs = (FileActivatedEventArgs)e.Data;
+                        var fileArgs = (Windows.ApplicationModel.Activation.FileActivatedEventArgs)e.Data;
                         cmdArgs = [fileArgs.Files[0].Path];
                     }
                     break;
@@ -219,9 +246,9 @@ public partial class App : Application
         {
             content = File.ReadAllText(commandLineFile);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, nameof(TryReadCommandLine), e);
+            Logger.F(TAG, nameof(TryReadCommandLine), ex);
             return null;
         }
 
@@ -229,9 +256,9 @@ public partial class App : Application
         {
             File.Delete(commandLineFile);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.F(TAG, nameof(TryReadCommandLine), e);
+            Logger.F(TAG, nameof(TryReadCommandLine), ex);
         }
 
         return content;

@@ -73,9 +73,10 @@ public abstract class TaskDispatcher : ITaskDispatcher
                     Log(_endTag, $"task={taskName},since0={since0},since1={since1},running={runningCount},pending={pendingCount}");
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                DebugUtils.CaptureFatalError($"Unhandled exception in task '{taskName}'", e);
+                DebugUtils.CaptureFatalError($"An unknown error occurred in the background task '{taskName}'.", ex);
+                throw;
             }
         });
     }
