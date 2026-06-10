@@ -15,8 +15,8 @@ public static class Program
     {
         try
         {
-            InitTaskManager.Instance.InitOnMain();
             WinRT.ComWrappersSupport.InitializeComWrappers();
+            InitTaskManager.Instance.InitOnMain();
             Microsoft.UI.Xaml.Application.Start((p) =>
             {
                 try
