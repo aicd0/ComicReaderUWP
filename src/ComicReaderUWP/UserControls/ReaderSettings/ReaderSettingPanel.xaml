@@ -124,10 +124,10 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="32" />
-                    <RowDefinition Height="32" />
-                    <RowDefinition Height="32" />
-                    <RowDefinition Height="32" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"
@@ -262,8 +262,8 @@
                         MaxWidth="140" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="32" />
-                    <RowDefinition Height="32" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"
@@ -306,7 +306,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="32" />
+                    <RowDefinition Height="30" />
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"
@@ -337,9 +337,9 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40" />
-                    <RowDefinition Height="32" />
-                    <RowDefinition Height="32" />
-                    <RowDefinition Height="32" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="30" />
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"

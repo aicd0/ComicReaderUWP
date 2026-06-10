@@ -942,7 +942,7 @@ Category2: Tag4, Tag5</value>
   <data name="TotalComics" xml:space="preserve">
     <value>Total comics</value>
   </data>
-  <data name="TransitionAnimation.Text" xml:space="preserve">
+  <data name="TransitionAnimation" xml:space="preserve">
     <value>Transition animation</value>
   </data>
   <data name="TwoPageMode" xml:space="preserve">

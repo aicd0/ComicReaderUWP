@@ -22,6 +22,15 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         ViewModel.Initialize(shared);
     }
 
+    private void TransitionAnimationCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            ViewModel.SetTransitionAnimation(isChecked.Value);
+        }
+    }
+
     private void RestoreLastReadingPositionCheckBox_Click(object sender, RoutedEventArgs e)
     {
         bool? isChecked = ((CheckBox)sender).IsChecked;

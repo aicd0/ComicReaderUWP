@@ -940,7 +940,7 @@ Categoría 2: Etiqueta 4, Etiqueta 5</value>
   <data name="TotalComics" xml:space="preserve">
     <value>Total de cómics</value>
   </data>
-  <data name="TransitionAnimation.Text" xml:space="preserve">
+  <data name="TransitionAnimation" xml:space="preserve">
     <value>Animación de transición</value>
   </data>
   <data name="TwoPageMode" xml:space="preserve">

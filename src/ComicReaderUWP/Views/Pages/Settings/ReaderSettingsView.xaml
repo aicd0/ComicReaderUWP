@@ -24,10 +24,11 @@
     </base:BaseUserControl.Resources>
 
     <StackPanel Orientation="Vertical">
-        <TextBlock x:Uid="TransitionAnimation" TextWrapping="Wrap" />
-        <ToggleSwitch IsOn="{x:Bind ViewModel.TransitionAnimation, Mode=TwoWay}" />
         <CheckBox
-            Margin="0,16,0,0"
+            Click="TransitionAnimationCheckBox_Click"
+            Content="{x:Bind StringResource.TransitionAnimation}"
+            IsChecked="{x:Bind ViewModel.TransitionAnimation, Mode=OneWay}" />
+        <CheckBox
             Click="RestoreLastReadingPositionCheckBox_Click"
             Content="{x:Bind StringResource.RestoreLastReadingPosition}"
             IsChecked="{x:Bind ViewModel.RestoreLastReadingPosition, Mode=OneWay}" />

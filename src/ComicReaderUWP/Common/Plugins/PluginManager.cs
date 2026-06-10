@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.InitTask;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Storage;
@@ -81,7 +82,7 @@ internal partial class PluginManager
                 PluginContext pluginContext = new(plugin, pluginFile, loadContext);
                 _plugins.Add(name, pluginContext);
 
-                if (!App.Instance.SafeMode && !_disabledPlugins.ContainsKey(pluginContext.Name))
+                if (!InitTaskManager.Instance.SafeMode && !_disabledPlugins.ContainsKey(pluginContext.Name))
                 {
                     plugins.Add(pluginContext);
                 }

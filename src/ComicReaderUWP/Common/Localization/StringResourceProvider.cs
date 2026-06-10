@@ -212,6 +212,7 @@ public class StringResourceProvider
     public string Title2 => GetResourceString("Title2");
     public string ToggleAutoScroll => GetResourceString("ToggleAutoScroll");
     public string TotalComics => GetResourceString("TotalComics");
+    public string TransitionAnimation => GetResourceString("TransitionAnimation");
     public string TwoPageMode => GetResourceString("TwoPageMode");
     public string Unfavorite => GetResourceString("Unfavorite");
     public string Ungrouped => GetResourceString("Ungrouped");

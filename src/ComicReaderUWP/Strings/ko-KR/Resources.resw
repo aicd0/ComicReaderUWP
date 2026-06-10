@@ -941,7 +941,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="TotalComics" xml:space="preserve">
     <value>총 만화 수</value>
   </data>
-  <data name="TransitionAnimation.Text" xml:space="preserve">
+  <data name="TransitionAnimation" xml:space="preserve">
     <value>페이지 넘기기 애니메이션</value>
   </data>
   <data name="TwoPageMode" xml:space="preserve">

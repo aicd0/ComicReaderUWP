@@ -25,6 +25,7 @@ public static class ServiceManager
         {
             return (T)service;
         }
+
         throw new KeyNotFoundException($"Service of type {typeof(T).FullName} not found.");
     }
 
@@ -35,6 +36,7 @@ public static class ServiceManager
         {
             return (T)service;
         }
+
         return default;
     }
 }

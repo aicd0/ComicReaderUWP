@@ -35,8 +35,6 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         {
             _transitionAnimation = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TransitionAnimation)));
-
-            AppSettingsModel.Instance.TransitionAnimation = value;
         }
     }
 
@@ -110,6 +108,12 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
     {
         Shared = shared;
         Shared.UpdateStarted += Update;
+    }
+
+    public void SetTransitionAnimation(bool enabled)
+    {
+        TransitionAnimation = enabled;
+        AppSettingsModel.Instance.TransitionAnimation = enabled;
     }
 
     public void SetRestoreLastReadingPosition(bool restoreLastReadingPosition)
