@@ -28,12 +28,14 @@ public static class Program
                 catch (Exception ex)
                 {
                     DebugUtils.CaptureFatalError("An unknown error occurred in ApplicationInitializationCallback.", ex, fastFail: true);
+                    throw;
                 }
             });
         }
         catch (Exception ex)
         {
             DebugUtils.CaptureFatalError("An unknown error occurred in Program#Main.", ex, fastFail: true);
+            throw;
         }
     }
 }
