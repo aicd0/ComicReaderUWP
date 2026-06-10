@@ -941,7 +941,7 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="TotalComics" xml:space="preserve">
     <value>Всего комиксов</value>
   </data>
-  <data name="TransitionAnimation.Text" xml:space="preserve">
+  <data name="TransitionAnimation" xml:space="preserve">
     <value>Анимация перелистывания страниц</value>
   </data>
   <data name="TwoPageMode" xml:space="preserve">

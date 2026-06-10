@@ -940,7 +940,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="TotalComics" xml:space="preserve">
     <value>漫画総数</value>
   </data>
-  <data name="TransitionAnimation.Text" xml:space="preserve">
+  <data name="TransitionAnimation" xml:space="preserve">
     <value>ページめくりアニメーション</value>
   </data>
   <data name="TwoPageMode" xml:space="preserve">

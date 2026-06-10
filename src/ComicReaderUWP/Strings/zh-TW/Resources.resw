@@ -940,7 +940,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="TotalComics" xml:space="preserve">
     <value>漫畫總數</value>
   </data>
-  <data name="TransitionAnimation.Text" xml:space="preserve">
+  <data name="TransitionAnimation" xml:space="preserve">
     <value>翻頁動畫</value>
   </data>
   <data name="TwoPageMode" xml:space="preserve">

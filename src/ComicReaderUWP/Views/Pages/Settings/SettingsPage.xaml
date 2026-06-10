@@ -68,7 +68,7 @@
                             <StackPanel Orientation="Vertical">
                                 <Button x:Uid="ChooseLocationButton" Click="ChooseLocationsClick" />
                                 <CheckBox
-                                    Margin="0,12,0,0"
+                                    Margin="0,16,0,0"
                                     Click="ScanOnLaunchCheckBox_Click"
                                     Content="{x:Bind StringResource.ScanOnLaunch}"
                                     IsChecked="{x:Bind ViewModel.ScanOnLaunch, Mode=OneWay}" />
@@ -80,7 +80,7 @@
                                     Click="PromptBeforeRemovingComicsCheckBox_Click"
                                     Content="{x:Bind StringResource.PromptBeforeRemovingComics}"
                                     IsChecked="{x:Bind ViewModel.PromptBeforeRemovingComics, Mode=OneWay}" />
-                                <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                                <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
                                     <Button
                                         x:Uid="RescanFilesButton"
                                         Click="OnRescanFilesClicked"
@@ -94,13 +94,28 @@
                                     x:Uid="ShowHiddenComicButton"
                                     Margin="0,8,0,0"
                                     Click="ShowHiddenComicButton_Click" />
-                                <TextBlock x:Uid="ArchiveEncoding" Margin="0,12,0,0" />
-                                <ComboBox
-                                    MinWidth="200"
-                                    Margin="0,8,0,0"
-                                    DisplayMemberPath="Item1"
-                                    ItemsSource="{x:Bind ViewModel.Encodings, Mode=OneWay}"
-                                    SelectedIndex="{x:Bind ViewModel.DefaultArchiveCodePageIndex, Mode=TwoWay}" />
+                                <Grid Margin="0,16,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        x:Uid="ArchiveEncoding"
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        VerticalAlignment="Center" />
+                                    <ComboBox
+                                        Grid.Row="0"
+                                        Grid.Column="2"
+                                        MinWidth="200"
+                                        DisplayMemberPath="Item1"
+                                        ItemsSource="{x:Bind ViewModel.Encodings, Mode=OneWay}"
+                                        SelectedIndex="{x:Bind ViewModel.DefaultArchiveCodePageIndex, Mode=TwoWay}" />
+                                </Grid>
                             </StackPanel>
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>

@@ -940,7 +940,7 @@ Kategorie 2: Tag 4, Tag 5</value>
   <data name="TotalComics" xml:space="preserve">
     <value>Comics insgesamt</value>
   </data>
-  <data name="TransitionAnimation.Text" xml:space="preserve">
+  <data name="TransitionAnimation" xml:space="preserve">
     <value>Animation zum Umblättern</value>
   </data>
   <data name="TwoPageMode" xml:space="preserve">
