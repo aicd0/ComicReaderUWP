@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
@@ -26,18 +27,22 @@ using Microsoft.Windows.Globalization;
 
 namespace ComicReaderUWP.Common.InitTask;
 
-internal class InitTaskManager(Application application)
+internal class InitTaskManager
 {
     private const string TAG = nameof(InitTaskManager);
 
-    private readonly Application _application = application;
+    public static InitTaskManager Instance { get; } = new();
+
+    private Application? _application;
     private object? _appLock;
 
     public bool ExitedNormallyLastTime { get; private set; } = true;
     public bool IsFirstInstance { get; private set; } = true;
     public bool SafeMode { get; private set; } = false;
 
-    public void InitOnAppCreate()
+    private InitTaskManager() { }
+
+    public void InitOnMain()
     {
         // Register services
         ServiceManager.RegisterService<IApplicationService>(new ApplicationService());
@@ -45,24 +50,42 @@ internal class InitTaskManager(Application application)
         ServiceManager.RegisterService<INativeService>(new NativeService());
 
         // Register crash handler
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            DebugUtils.CaptureFatalError("An unknown error occurred in a managed thread.", (Exception)e.ExceptionObject);
+        };
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            DebugUtils.CaptureFatalError("An unknown error occurred in a background task.", e.Exception);
+        };
+
+        IsFirstInstance = TryRegisterFirstInstance();
+        RegisterExitHandler();
+
+        EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
+        SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
+        AppDB.Initialize();
+    }
+
+    public void InitOnAppCreate(Application application)
+    {
+        _application = application;
+
+        // Register crash handler
         _application.UnhandledException += (_, e) =>
         {
-            DebugUtils.CaptureFatalError("An unknown error occurred in the application.", e.Exception);
+            DebugUtils.CaptureFatalError("An unknown error occurred in the UI thread.", e.Exception);
         };
         SynchronizationContext.SetSynchronizationContext(
             new AppSynchronizationContext(SynchronizationContext.Current!));
 
         MainThreadUtils.Initialize(DispatcherQueue.GetForCurrentThread());
 
-        IsFirstInstance = TryRegisterFirstInstance();
         if (!IsFirstInstance)
         {
             return;
         }
 
-        EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
-        SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
-        AppDB.Initialize();
         InitializeAppLanguage();
 
         if (!ExitedNormallyLastTime)
@@ -89,7 +112,6 @@ internal class InitTaskManager(Application application)
         }
 
         Logger.I(TAG, $"App launched (SafeMode={SafeMode})");
-        RegisterExitHandler();
         InitializeAppTheme();
     }
 

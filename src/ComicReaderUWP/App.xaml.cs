@@ -32,16 +32,15 @@ public partial class App : Application
     private const string TAG = nameof(App);
     private const string COMMAND_LINE_FILE_NAME = "CommandLine.txt";
 
-    private static App? _instance;
-    private readonly InitTaskManager _initTaskManager;
+    private static App? sInstance;
+    public static App Instance => sInstance!;
 
     public App()
     {
         try
         {
-            _instance = this;
-            _initTaskManager = new(this);
-            _initTaskManager.InitOnAppCreate();
+            sInstance = this;
+            InitTaskManager.Instance.InitOnAppCreate(this);
             InitializeComponent();
         }
         catch (Exception ex)
@@ -55,9 +54,6 @@ public partial class App : Application
     // Public API
     //
 
-    public static App Instance => _instance!;
-    internal bool SafeMode => _initTaskManager.SafeMode;
-    internal bool ExitedNormallyLastTime => _initTaskManager.ExitedNormallyLastTime;
     internal WindowManager WindowManager { get; } = new();
 
     internal async Task OnCommandLine(MainWindow window, string[] args)
@@ -93,7 +89,7 @@ public partial class App : Application
         AppActivationArguments activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
 
         var mainInstance = AppInstance.FindOrRegisterForKey("main");
-        bool isFirstInstance = _initTaskManager.IsFirstInstance;
+        bool isFirstInstance = InitTaskManager.Instance.IsFirstInstance;
         bool isMainInstance = mainInstance.IsCurrent;
 
         if (isMainInstance != isFirstInstance)
@@ -119,7 +115,7 @@ public partial class App : Application
             return;
         }
 
-        _initTaskManager.InitOnAppLaunch();
+        InitTaskManager.Instance.InitOnAppLaunch();
 
         mainInstance.Activated += (sender, e) =>
         {
@@ -187,7 +183,7 @@ public partial class App : Application
 
         CoroutineUtils.RunInMainThreadAsync(async () =>
         {
-            if (firstLaunch && !SafeMode)
+            if (firstLaunch && !InitTaskManager.Instance.SafeMode)
             {
                 WindowManager.RestoreWindowStatus();
             }

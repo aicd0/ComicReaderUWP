@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using ComicReaderUWP.Common.InitTask;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.ServiceManagement.Services;
@@ -168,7 +169,7 @@ internal class ApplicationService : IApplicationService
 
     public bool PortableBuild => PORTABLE;
 
-    public bool SafeMode => App.Instance.SafeMode;
+    public bool SafeMode => InitTaskManager.Instance.SafeMode;
 
     public bool Launching => _launching;
 

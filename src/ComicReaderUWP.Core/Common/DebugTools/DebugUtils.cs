@@ -4,8 +4,8 @@
 using System.Text;
 
 using ComicReaderUWP.Core.Common.Constants;
+using ComicReaderUWP.Core.Common.Native;
 using ComicReaderUWP.Core.Common.ServiceManagement;
-using ComicReaderUWP.Core.Common.ServiceManagement.Models;
 using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.Misc;
@@ -114,10 +114,9 @@ public static class DebugUtils
     public static void CaptureFatalError(string message, Exception ex, bool fastFail = false)
     {
         IApplicationService? appService = ServiceManager.GetServiceNullable<IApplicationService>();
-        INativeService? nativeService = ServiceManager.GetServiceNullable<INativeService>();
 
         // Handle launch crash
-        if (appService?.Launching != false && nativeService is not null)
+        if (appService?.Launching != false)
         {
             StringBuilder sb = new();
             sb.Append("A fatal error occurred during app launch. Press Ctrl+C to copy this message to clipboard:\n");
@@ -130,11 +129,7 @@ public static class DebugUtils
             sb.Append("Caller stack trace:\n");
             sb.Append(new System.Diagnostics.StackTrace(true).ToString());
             string text = sb.ToString();
-            nativeService.ShowDialog(
-                NativeDialogButtonType.OK,
-                NativeDialogIconType.Error,
-                "Comic Reader UWP",
-                text);
+            NativeMethods.MessageBoxW(nint.Zero, text, "Comic Reader UWP", 0x00000010);
         }
 
         Logger.E(TAG, message, ex);

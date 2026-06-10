@@ -68,6 +68,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(IsPackaged)' == 'Release|false'">
     <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;PORTABLE;$(Platform)</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+  </PropertyGroup>
 
   <Target Name="CopyNativeMethods" BeforeTargets="BeforeBuild">
     <Copy SourceFiles="NativeMethods.$(Platform).txt" DestinationFiles="NativeMethods.txt" />
