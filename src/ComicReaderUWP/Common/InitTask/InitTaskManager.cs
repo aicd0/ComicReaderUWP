@@ -52,7 +52,8 @@ internal class InitTaskManager
         // Register crash handler
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
-            DebugUtils.CaptureFatalError("An unknown error occurred in a managed thread.", (Exception)e.ExceptionObject);
+            Exception ex = e.ExceptionObject is Exception exception ? exception : new Exception(e.ExceptionObject?.ToString());
+            DebugUtils.CaptureFatalError("An unknown error occurred in a managed thread.", ex);
         };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
