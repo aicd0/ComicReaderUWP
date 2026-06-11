@@ -5,14 +5,8 @@ namespace ComicReaderUWP.Core.Database.KV;
 
 public static class KVStore
 {
-    public static IKVDatabase CreateDatabase(string databasePath, string? legacyName = null)
+    public static IKVDatabase CreateDatabase(string databasePath, bool shared)
     {
-        IDatabaseLayer? fallbackLayer = null;
-        if (!string.IsNullOrEmpty(legacyName))
-        {
-            fallbackLayer = new OldLiteDBLayer(legacyName);
-        }
-
-        return new CacheLayer(new LiteDBLayer(databasePath, fallbackLayer: fallbackLayer));
+        return new CacheLayer(new LiteDBLayer(databasePath, shared));
     }
 }

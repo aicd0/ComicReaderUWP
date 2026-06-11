@@ -3,12 +3,9 @@
 
 using System.Text;
 
-using ComicReaderUWP.Core.Common.Constants;
 using ComicReaderUWP.Core.Common.ServiceManagement;
 using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Storage;
-using ComicReaderUWP.Core.Common.Utils;
-using ComicReaderUWP.Core.Database.Misc;
 
 namespace ComicReaderUWP.Core.Common.DebugTools;
 
@@ -42,19 +39,8 @@ internal static class CrashHandler
         }
 
         string crashReport = sb.ToString();
-        try
-        {
-            string fileName = $"crash_report_{DateTimeOffset.Now:yyyyMMddHHmmss}_{RandomString(4)}.txt";
-            string filePath = StorageLocation.LocalCacheFolderPath + "\\" + fileName;
-            using StreamWriter writer = new(filePath, true, Encoding.UTF8);
-            writer.Write(crashReport);
-            Logger.Flush();
-            SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT, crashReport);
-        }
-        catch (Exception ex)
-        {
-            Console(ex.ToString());
-        }
+        WriteCrashReport($"CrashReport_{DateTimeOffset.Now:yyyyMMddHHmmss}_{RandomString(4)}.txt", crashReport);
+        WriteCrashReport("CrashReport.txt", crashReport);
 
         if (System.Diagnostics.Debugger.IsAttached && DebugUtils.DeveloperMode)
         {
@@ -66,14 +52,61 @@ internal static class CrashHandler
 
     public static void ReportLastCrash()
     {
-        string? crashReport = SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT);
+        string? crashReport = ReadAndDeleteCrashReport("CrashReport.txt");
         if (string.IsNullOrEmpty(crashReport))
         {
             return;
         }
 
-        SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_CRASH_REPORT, string.Empty);
         ServiceManager.GetService<IDebugService>().OnCrashReport(crashReport);
+    }
+
+    private static void WriteCrashReport(string fileName, string content)
+    {
+        string filePath = Path.Combine(StorageLocation.LocalCacheFolderPath, fileName);
+        try
+        {
+            using StreamWriter writer = new(filePath, true, Encoding.UTF8);
+            writer.Write(content);
+            Logger.Flush();
+        }
+        catch (Exception ex)
+        {
+            Console(ex.ToString());
+        }
+    }
+
+    private static string? ReadAndDeleteCrashReport(string fileName)
+    {
+        string filePath = Path.Combine(StorageLocation.LocalCacheFolderPath, fileName);
+        string content;
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                return null;
+            }
+
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var sr = new StreamReader(fs);
+            content = sr.ReadToEnd();
+        }
+        catch (Exception ex)
+        {
+            Console(ex.ToString());
+            return null;
+        }
+
+        try
+        {
+            File.Delete(filePath);
+        }
+        catch (Exception ex)
+        {
+            Console(ex.ToString());
+        }
+
+        return content;
     }
 
     private static string RandomString(int length)

@@ -39,7 +39,7 @@ internal static class AppDB
     private static readonly Lazy<IKVDatabase> _appKvDatabase = new(() =>
     {
         string databasePath = Path.Combine(KvDirectory, $"app.db");
-        return KVStore.CreateDatabase(databasePath, "lib");
+        return KVStore.CreateDatabase(databasePath, shared: false);
     });
     public static IKVDatabase AppKV => _appKvDatabase.Value;
 
