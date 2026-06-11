@@ -475,11 +475,25 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 Click = () =>
                 {
                     var newSettings = ReaderSettingsModel.LoadFromPreset(presetKey);
-                    if (_comic is not null && newSettings is not null)
+                    if (newSettings is not null)
                     {
                         _presetSettings = newSettings;
                         _comicSettings = newSettings.Clone();
-                        newSettings.SaveToComic(_comic);
+                        SaveSettings();
+                        DispatchDataChangeEvent();
+                    }
+                    else if (presetKey == ReaderSettingsModel.PRESET_KEY_CUSTOM)
+                    {
+                        _presetSettings = null;
+                        _comicSettings.PresetKey = presetKey;
+                        SaveSettings();
+                    }
+                    else
+                    {
+                        newSettings = ReaderSettingsModel.FromDefault();
+                        _presetSettings = newSettings;
+                        _comicSettings = newSettings.Clone();
+                        SaveSettings();
                         DispatchDataChangeEvent();
                     }
 
