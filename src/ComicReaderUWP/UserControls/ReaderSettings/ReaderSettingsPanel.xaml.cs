@@ -236,10 +236,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             return;
         }
 
-        if (_comic is not null && !_comic.IsExternal)
-        {
-            _comicSettings.SaveToComic(_comic);
-        }
+        _comicSettings.SaveToComic(_comic);
     }
 
     private void UpdateUI()
