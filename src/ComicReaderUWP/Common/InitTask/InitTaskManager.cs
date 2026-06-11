@@ -33,7 +33,6 @@ internal class InitTaskManager
 
     public static InitTaskManager Instance { get; } = new();
 
-    private Application? _application;
     private object? _appLock;
 
     public bool ExitedNormallyLastTime { get; private set; } = true;
@@ -65,15 +64,12 @@ internal class InitTaskManager
 
         EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
         SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
-        AppDB.Initialize();
     }
 
     public void InitOnAppCreate(Application application)
     {
-        _application = application;
-
         // Register crash handler
-        _application.UnhandledException += (_, e) =>
+        application.UnhandledException += (_, e) =>
         {
             DebugUtils.CaptureFatalError("An unknown error occurred in the UI thread.", e.Exception);
         };
@@ -87,6 +83,7 @@ internal class InitTaskManager
             return;
         }
 
+        AppDB.Initialize();
         InitializeAppLanguage();
 
         if (!ExitedNormallyLastTime)
@@ -112,7 +109,6 @@ internal class InitTaskManager
             }
         }
 
-        Logger.I(TAG, $"App launched (SafeMode={SafeMode})");
         InitializeAppTheme();
     }
 
@@ -129,10 +125,7 @@ internal class InitTaskManager
         string lockFileDirPath = StorageLocation.TemporaryFolderPath;
         Directory.CreateDirectory(lockFileDirPath);
         string lockFilePath = Path.Combine(lockFileDirPath, "app.lock");
-        if (File.Exists(lockFilePath))
-        {
-            ExitedNormallyLastTime = false;
-        }
+        bool lockFileExists = File.Exists(lockFilePath);
 
         try
         {
@@ -143,12 +136,14 @@ internal class InitTaskManager
                 FileShare.None);
             fileStream.Lock(0, 0);
             _appLock = fileStream;
-            return true;
         }
         catch (IOException)
         {
             return false;
         }
+
+        ExitedNormallyLastTime = !lockFileExists;
+        return true;
     }
 
     private void RegisterExitHandler()

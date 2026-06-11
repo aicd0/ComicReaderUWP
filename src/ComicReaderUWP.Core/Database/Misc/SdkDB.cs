@@ -13,7 +13,7 @@ public static class SdkDB
     private static readonly Lazy<IKVDatabase> _sdkKvDatabase = new(() =>
     {
         string databasePath = Path.Combine(KvDirectory, $"sdk.db");
-        return KVStore.CreateDatabase(databasePath, "sdk");
+        return KVStore.CreateDatabase(databasePath, shared: true);
     });
     internal static IKVDatabase SdkKV => _sdkKvDatabase.Value;
 

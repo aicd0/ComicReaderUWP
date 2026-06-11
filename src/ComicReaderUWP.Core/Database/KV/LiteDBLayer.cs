@@ -3,12 +3,13 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 using LiteDB;
 
 namespace ComicReaderUWP.Core.Database.KV;
 
-internal partial class LiteDBLayer(string databasePath, IDatabaseLayer? fallbackLayer = null) : IDatabaseLayer
+internal partial class LiteDBLayer(string databasePath, bool shared, IDatabaseLayer? fallbackLayer = null) : IDatabaseLayer
 {
     private readonly Lazy<LiteDatabase> _db = new(() =>
     {
@@ -18,7 +19,14 @@ internal partial class LiteDBLayer(string databasePath, IDatabaseLayer? fallback
             Directory.CreateDirectory(databaseFolder);
         }
 
-        return new LiteDatabase($"Filename={databasePath}; Mode=Shared;");
+        StringBuilder connectionSb = new($"Filename={databasePath};");
+
+        if (shared)
+        {
+            connectionSb.Append("Connection=shared;");
+        }
+
+        return new LiteDatabase(connectionSb.ToString());
     });
 
     private readonly IDatabaseLayer? _fallbackLayer = fallbackLayer;
