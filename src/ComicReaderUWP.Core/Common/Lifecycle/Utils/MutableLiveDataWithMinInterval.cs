@@ -69,7 +69,7 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
                 try
                 {
                     await Task.Delay(timeRemaining);
-                    if (!liveData.HasObserver(observer))
+                    if (!liveData.HasObserver(this))
                     {
                         return;
                     }
