@@ -74,14 +74,25 @@ internal class ReaderSettingsModel
 
     public static ReaderSettingsModel LoadFromComic(ComicModel comic)
     {
-        string presetKey = comic.GetExt(ComicExt.READER_SETTING_PRESET_KEY) ?? AppSettingsModel.Instance.DefaultReaderSettingPresetKey;
+        string defaultPresetKey = AppSettingsModel.Instance.DefaultReaderSettingPresetKey;
+        if (string.IsNullOrEmpty(defaultPresetKey))
+        {
+            defaultPresetKey = PRESET_KEY_DEFAULT;
+        }
+
+        string? presetKey = comic.GetExt(ComicExt.READER_SETTING_PRESET_KEY);
+        if (string.IsNullOrEmpty(presetKey))
+        {
+            presetKey = defaultPresetKey;
+        }
+
         ReaderSettingsModel? presetModel = null;
         if (presetKey != PRESET_KEY_CUSTOM)
         {
             Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
             if (!presets.TryGetValue(presetKey, out presetModel))
             {
-                if (!presets.TryGetValue(AppSettingsModel.Instance.DefaultReaderSettingPresetKey, out presetModel))
+                if (!presets.TryGetValue(defaultPresetKey, out presetModel))
                 {
                     foreach (KeyValuePair<string, ReaderSettingsModel> kvp in presets)
                     {
@@ -90,6 +101,14 @@ internal class ReaderSettingsModel
                         break;
                     }
                 }
+            }
+
+            if (presetModel is null)
+            {
+                // Automatically import missing key, especially for default preset
+                presetModel = FromDefault();
+                presets[presetKey] = presetModel;
+                AppSettingsModel.Instance.ReaderSettingPresets = presets;
             }
         }
 

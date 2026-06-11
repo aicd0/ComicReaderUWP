@@ -62,8 +62,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         }
 
         _comic = comic;
-        _comicSettings = ReaderSettingsModel.LoadFromComic(comic);
-        _presetSettings = ReaderSettingsModel.LoadFromPreset(_comicSettings.PresetKey);
+        LoadSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -209,8 +208,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             ActionInProgress = false;
         }
 
-        _comicSettings = ReaderSettingsModel.LoadFromComic(_comic);
-        _presetSettings = ReaderSettingsModel.LoadFromPreset(_comicSettings.PresetKey);
+        LoadSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -222,6 +220,17 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         newSettings.PresetName = _comicSettings.PresetName;
         _comicSettings = newSettings;
         NotifySettingsChanged();
+    }
+
+    private void LoadSettings()
+    {
+        if (_comic is null)
+        {
+            return;
+        }
+
+        _comicSettings = ReaderSettingsModel.LoadFromComic(_comic);
+        _presetSettings = ReaderSettingsModel.LoadFromPreset(_comicSettings.PresetKey);
     }
 
     private void NotifySettingsChanged()
@@ -262,11 +271,6 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         string GetLabel(string name, bool modified)
         {
             return modified ? name + " *" : name;
-        }
-
-        string GetLabelCompat(string name, bool modified)
-        {
-            return modified ? name + "*" : name;
         }
 
         ReaderSettingsModel comicSettings = _comicSettings;
@@ -312,7 +316,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             {
                 bool modified = comicSettings.IsVertical != presetSettings.IsVertical;
                 tabModified = tabModified || modified;
-                AbbOrientation.Label = GetLabelCompat(
+                AbbOrientation.Label = GetLabel(
                     comicSettings.IsVertical ? StringResource.Vertical : StringResource.Horizontal,
                     modified);
                 AbbOrientation.Content = new FontIcon() { Glyph = comicSettings.IsVertical ? "\uE7C3" : "\uEF6B" };
@@ -321,7 +325,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             {
                 bool modified = comicSettings.IsLeftToRight != presetSettings.IsLeftToRight;
                 tabModified = tabModified || modified;
-                AbbFlowDirection.Label = GetLabelCompat(
+                AbbFlowDirection.Label = GetLabel(
                     comicSettings.IsLeftToRight ? StringResource.LeftToRight : StringResource.RightToLeft,
                     modified);
                 AbbFlowDirection.Content = new FontIcon() { Glyph = comicSettings.IsLeftToRight ? "\uEBE7" : "\uEC52" };
@@ -330,7 +334,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             {
                 bool modified = comicSettings.IsContinuous != presetSettings.IsContinuous;
                 tabModified = tabModified || modified;
-                AbbContinuous.Label = GetLabelCompat(
+                AbbContinuous.Label = GetLabel(
                     comicSettings.IsContinuous ? StringResource.Continuous : StringResource.Separate,
                     modified);
                 AbbContinuous.Content = new FontIcon() { Glyph = comicSettings.IsContinuous ? "\uE785" : "\uE72E" };
