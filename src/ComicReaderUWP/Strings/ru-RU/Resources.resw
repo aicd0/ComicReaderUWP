@@ -256,7 +256,7 @@ $comics</value>
   <data name="CompletionStatusUnread" xml:space="preserve">
     <value>Не прочитано</value>
   </data>
-  <data name="ContinuousButton.Label" xml:space="preserve">
+  <data name="Continuous" xml:space="preserve">
     <value>Непрерывный</value>
   </data>
   <data name="ContributionRunAfterLink" xml:space="preserve">
@@ -309,9 +309,6 @@ $comics</value>
   </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>Отказ от ответственности</value>
-  </data>
-  <data name="DiscreteButton.Label" xml:space="preserve">
-    <value>Раздельный</value>
   </data>
   <data name="DonationAlreadyPurchased" xml:space="preserve">
     <value>Уже купили?</value>
@@ -516,7 +513,7 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Дом</value>
   </data>
-  <data name="HorizontalButton.Label" xml:space="preserve">
+  <data name="Horizontal" xml:space="preserve">
     <value>Горизонтальный</value>
   </data>
   <data name="HotkeyFirstPage.Header" xml:space="preserve">
@@ -564,7 +561,7 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="LastReadTime" xml:space="preserve">
     <value>Время последнего чтения</value>
   </data>
-  <data name="LeftToRightButton.Label" xml:space="preserve">
+  <data name="LeftToRight" xml:space="preserve">
     <value>Слева направо</value>
   </data>
   <data name="LibraryEmptyPart1.Text" xml:space="preserve">
@@ -699,11 +696,11 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="PageCount" xml:space="preserve">
     <value>Страницы</value>
   </data>
-  <data name="PageGap" xml:space="preserve">
-    <value>интервал</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>Страница $page</value>
+  </data>
+  <data name="PageSpacing" xml:space="preserve">
+    <value>интервал</value>
   </data>
   <data name="Pause" xml:space="preserve">
     <value>Пауза</value>
@@ -806,7 +803,7 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Восстанавливать последнюю позицию чтения</value>
   </data>
-  <data name="RightToLeftButton.Label" xml:space="preserve">
+  <data name="RightToLeft" xml:space="preserve">
     <value>Справа налево</value>
   </data>
   <data name="Rotation" xml:space="preserve">
@@ -854,6 +851,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="SendToWindow" xml:space="preserve">
     <value>Отправить в окно</value>
+  </data>
+  <data name="Separate" xml:space="preserve">
+    <value>Раздельный</value>
   </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>Сделать по умолчанию</value>
@@ -973,7 +973,7 @@ $info</value>
   <data name="UseSystemLanguage" xml:space="preserve">
     <value>Использовать системный язык</value>
   </data>
-  <data name="VerticalButton.Label" xml:space="preserve">
+  <data name="Vertical" xml:space="preserve">
     <value>Вертикальный</value>
   </data>
   <data name="ViewType" xml:space="preserve">

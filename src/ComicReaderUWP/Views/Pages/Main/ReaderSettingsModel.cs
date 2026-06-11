@@ -20,6 +20,142 @@ internal class ReaderSettingsModel
     public const string PRESET_KEY_CUSTOM = "###custom###";
     private const string TAG = nameof(ReaderSettingsModel);
 
+    public static ReaderSettingsModel FromDefault()
+    {
+        return new()
+        {
+            PresetKey = PRESET_KEY_DEFAULT,
+            PresetName = StringResourceProvider.Instance.Default,
+        };
+    }
+
+    public static ReaderSettingsModel FromJsonModel(string key, JsonModel? model)
+    {
+        ReaderSettingsModel defaultModel = new()
+        {
+            PresetKey = key,
+        };
+
+        if (model is null)
+        {
+            return defaultModel;
+        }
+
+        return new()
+        {
+            PresetKey = key,
+            PresetName = model.PresetName ?? defaultModel.PresetName,
+            OriginalSize = model.OriginalSize ?? defaultModel.OriginalSize,
+            IsVertical = model.VerticalReading ?? defaultModel.IsVertical,
+            IsLeftToRight = model.LeftToRight ?? defaultModel.IsLeftToRight,
+            IsVerticalContinuous = model.VerticalContinuous ?? defaultModel.IsVerticalContinuous,
+            IsHorizontalContinuous = model.HorizontalContinuous ?? defaultModel.IsHorizontalContinuous,
+            VerticalPageLayout = model.VerticalPageLayout is null ?
+                ParseLegacyPageLayout(model.LegacyVerticalPageArrangement) :
+                PageLayoutSettings.FromJsonModel(model.VerticalPageLayout),
+            HorizontalPageLayout = model.HorizontalPageLayout is null ?
+                ParseLegacyPageLayout(model.LegacyHorizontalPageArrangement) :
+                PageLayoutSettings.FromJsonModel(model.HorizontalPageLayout),
+            PageSpacing = model.PageSpacing ?? defaultModel.PageSpacing,
+            AutoScrollSpeed = model.AutoScrollSpeed ?? defaultModel.AutoScrollSpeed,
+            ImageRotation = model.ImageRotation switch
+            {
+                "None" => ImageRotationEnum.None,
+                "Rotate90" => ImageRotationEnum.Rotate90,
+                "Rotate180" => ImageRotationEnum.Rotate180,
+                "Rotate270" => ImageRotationEnum.Rotate270,
+                _ => defaultModel.ImageRotation,
+            },
+            ImageFlip = model.ImageFlip ?? defaultModel.ImageFlip,
+            ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
+            AntiAliasingFilter = model.AntiAliasingFilter ?? defaultModel.AntiAliasingFilter,
+        };
+    }
+
+    public static ReaderSettingsModel LoadFromComic(ComicModel comic)
+    {
+        string presetKey = comic.GetExt(ComicExt.READER_SETTING_PRESET_KEY) ?? AppSettingsModel.Instance.DefaultReaderSettingPresetKey;
+        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+        if (!presets.TryGetValue(presetKey, out ReaderSettingsModel? presetModel))
+        {
+            if (!presets.TryGetValue(AppSettingsModel.Instance.DefaultReaderSettingPresetKey, out presetModel))
+            {
+                foreach (KeyValuePair<string, ReaderSettingsModel> kvp in presets)
+                {
+                    presetKey = kvp.Key;
+                    presetModel = kvp.Value;
+                    break;
+                }
+            }
+        }
+
+        JsonModel? jsonModel = null;
+        string? customSettingsJson = comic.GetExt(ComicExt.CUSTOM_READER_SETTINGS);
+        if (!string.IsNullOrEmpty(customSettingsJson))
+        {
+            try
+            {
+                jsonModel = JsonSerializer.Deserialize<JsonModel>(customSettingsJson);
+            }
+            catch (JsonException ex)
+            {
+                Logger.E(TAG, ex);
+            }
+        }
+
+        if (jsonModel is not null || presetKey == PRESET_KEY_CUSTOM)
+        {
+            ReaderSettingsModel model = FromJsonModel(presetKey, jsonModel);
+            if (presetModel is not null)
+            {
+                model.PresetName = presetModel.PresetName;
+            }
+
+            return model;
+        }
+
+        if (presetModel is not null)
+        {
+            return presetModel;
+        }
+
+        return FromDefault();
+    }
+
+    public static ReaderSettingsModel? LoadFromPreset(string presetKey)
+    {
+        if (presetKey == PRESET_KEY_CUSTOM)
+        {
+            return null;
+        }
+
+        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+        if (!presets.TryGetValue(presetKey, out ReaderSettingsModel? presetModel))
+        {
+            return null;
+        }
+
+        return presetModel;
+    }
+
+    private static PageLayoutSettings ParseLegacyPageLayout(int? value)
+    {
+        PageLayoutSettings defaultModel = new();
+
+        if (value is null)
+        {
+            return defaultModel;
+        }
+
+        return new()
+        {
+            TwoPageMode = value != 0,
+            EnableCover = value <= 2,
+            SwapLeftAndRightPages = value == 2 || value == 4,
+            SpreadDetection = defaultModel.SpreadDetection,
+        };
+    }
+
     public string PresetKey { get; set; } = string.Empty;
     public string PresetName { get; set; } = "?";
     public bool OriginalSize { get; set; } = false;
@@ -29,7 +165,7 @@ internal class ReaderSettingsModel
     public bool IsHorizontalContinuous { get; set; } = false;
     public PageLayoutSettings VerticalPageLayout { get; set; } = new();
     public PageLayoutSettings HorizontalPageLayout { get; set; } = new();
-    public int PageGap { get; set; } = 100;
+    public int PageSpacing { get; set; } = 100;
     public int AutoScrollSpeed { get; set; } = 0;
     public ImageRotationEnum ImageRotation { get; set; } = ImageRotationEnum.None;
     public bool ImageFlip { get; set; } = false;
@@ -63,6 +199,8 @@ internal class ReaderSettingsModel
         }
     }
 
+    private ReaderSettingsModel() { }
+
     public override bool Equals(object? obj)
     {
         if (ReferenceEquals(this, obj))
@@ -75,7 +213,8 @@ internal class ReaderSettingsModel
             return false;
         }
 
-        return PresetKey == other.PresetKey &&
+        return
+            PresetKey == other.PresetKey &&
             PresetName == other.PresetName &&
             OriginalSize == other.OriginalSize &&
             IsVertical == other.IsVertical &&
@@ -84,7 +223,7 @@ internal class ReaderSettingsModel
             IsHorizontalContinuous == other.IsHorizontalContinuous &&
             VerticalPageLayout == other.VerticalPageLayout &&
             HorizontalPageLayout == other.HorizontalPageLayout &&
-            PageGap == other.PageGap &&
+            PageSpacing == other.PageSpacing &&
             AutoScrollSpeed == other.AutoScrollSpeed &&
             ImageRotation == other.ImageRotation &&
             ImageFlip == other.ImageFlip &&
@@ -104,13 +243,21 @@ internal class ReaderSettingsModel
         hash.Add(IsHorizontalContinuous);
         hash.Add(VerticalPageLayout);
         hash.Add(HorizontalPageLayout);
-        hash.Add(PageGap);
+        hash.Add(PageSpacing);
         hash.Add(AutoScrollSpeed);
         hash.Add(ImageRotation);
         hash.Add(ImageFlip);
         hash.Add(ImageInvert);
         hash.Add(AntiAliasingFilter);
         return hash.ToHashCode();
+    }
+
+    public ReaderSettingsModel Clone()
+    {
+        var cloned = (ReaderSettingsModel)MemberwiseClone();
+        cloned.VerticalPageLayout = VerticalPageLayout.Clone();
+        cloned.HorizontalPageLayout = HorizontalPageLayout.Clone();
+        return cloned;
     }
 
     public static bool operator ==(ReaderSettingsModel? left, ReaderSettingsModel? right)
@@ -135,7 +282,7 @@ internal class ReaderSettingsModel
             HorizontalContinuous = IsHorizontalContinuous,
             VerticalPageLayout = VerticalPageLayout.ToJsonModel(),
             HorizontalPageLayout = HorizontalPageLayout.ToJsonModel(),
-            PageGap = PageGap,
+            PageSpacing = PageSpacing,
             AutoScrollSpeed = AutoScrollSpeed,
             ImageRotation = ImageRotation switch
             {
@@ -158,116 +305,6 @@ internal class ReaderSettingsModel
         comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, PresetKey);
         comic.SetExt(ComicExt.CUSTOM_READER_SETTINGS, customSettingsJson);
         CoroutineUtils.Run(comic.FlushExt);
-    }
-
-    public static ReaderSettingsModel FromJsonModel(string key, JsonModel? model)
-    {
-        ReaderSettingsModel defaultModel = new()
-        {
-            PresetKey = key,
-        };
-
-        if (model is null)
-        {
-            return defaultModel;
-        }
-
-        return new()
-        {
-            PresetKey = key,
-            PresetName = model.PresetName ?? defaultModel.PresetName,
-            OriginalSize = model.OriginalSize ?? defaultModel.OriginalSize,
-            IsVertical = model.VerticalReading ?? defaultModel.IsVertical,
-            IsLeftToRight = model.LeftToRight ?? defaultModel.IsLeftToRight,
-            IsVerticalContinuous = model.VerticalContinuous ?? defaultModel.IsVerticalContinuous,
-            IsHorizontalContinuous = model.HorizontalContinuous ?? defaultModel.IsHorizontalContinuous,
-            VerticalPageLayout = model.VerticalPageLayout is null ?
-                ParseLegacyPageLayout(model.LegacyVerticalPageArrangement) :
-                PageLayoutSettings.FromJsonModel(model.VerticalPageLayout),
-            HorizontalPageLayout = model.HorizontalPageLayout is null ?
-                ParseLegacyPageLayout(model.LegacyHorizontalPageArrangement) :
-                PageLayoutSettings.FromJsonModel(model.HorizontalPageLayout),
-            PageGap = model.PageGap ?? defaultModel.PageGap,
-            AutoScrollSpeed = model.AutoScrollSpeed ?? defaultModel.AutoScrollSpeed,
-            ImageRotation = model.ImageRotation switch
-            {
-                "None" => ImageRotationEnum.None,
-                "Rotate90" => ImageRotationEnum.Rotate90,
-                "Rotate180" => ImageRotationEnum.Rotate180,
-                "Rotate270" => ImageRotationEnum.Rotate270,
-                _ => defaultModel.ImageRotation,
-            },
-            ImageFlip = model.ImageFlip ?? defaultModel.ImageFlip,
-            ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
-            AntiAliasingFilter = model.AntiAliasingFilter ?? defaultModel.AntiAliasingFilter,
-        };
-    }
-
-    public static ReaderSettingsModel LoadFromComic(ComicModel comic)
-    {
-        string presetKey = comic.GetExt(ComicExt.READER_SETTING_PRESET_KEY) ?? AppSettingsModel.Instance.DefaultReaderSettingPresetKey;
-        if (presetKey == PRESET_KEY_CUSTOM)
-        {
-            JsonModel? jsonModel = null;
-            string? customSettingsJson = comic.GetExt(ComicExt.CUSTOM_READER_SETTINGS);
-            if (!string.IsNullOrEmpty(customSettingsJson))
-            {
-                try
-                {
-                    jsonModel = JsonSerializer.Deserialize<JsonModel>(customSettingsJson);
-                }
-                catch (JsonException ex)
-                {
-                    Logger.E(TAG, ex);
-                }
-            }
-
-            ReaderSettingsModel model = FromJsonModel(presetKey, jsonModel);
-            return model;
-        }
-
-        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
-        if (!presets.TryGetValue(presetKey, out ReaderSettingsModel? presetModel))
-        {
-            if (!presets.TryGetValue(AppSettingsModel.Instance.DefaultReaderSettingPresetKey, out presetModel))
-            {
-                foreach (KeyValuePair<string, ReaderSettingsModel> kvp in presets)
-                {
-                    presetKey = kvp.Key;
-                    presetModel = kvp.Value;
-                    break;
-                }
-            }
-        }
-
-        if (presetModel is null)
-        {
-            return new()
-            {
-                PresetKey = PRESET_KEY_DEFAULT,
-                PresetName = StringResourceProvider.Instance.Default,
-            };
-        }
-
-        return presetModel;
-    }
-
-    private static PageLayoutSettings ParseLegacyPageLayout(int? value)
-    {
-        PageLayoutSettings defaultModel = new();
-
-        if (value is null)
-        {
-            return defaultModel;
-        }
-
-        return new()
-        {
-            TwoPageMode = value != 0,
-            EnableCover = value <= 2,
-            SwapLeftAndRightPages = value == 2 || value == 4,
-            SpreadDetection = defaultModel.SpreadDetection,
-        };
     }
 
     public class JsonModel
@@ -297,7 +334,7 @@ internal class ReaderSettingsModel
         public PageLayoutSettings.JsonModel? HorizontalPageLayout { get; set; }
 
         [JsonPropertyName("PageGap")]
-        public int? PageGap { get; set; }
+        public int? PageSpacing { get; set; }
 
         [JsonPropertyName("AutoScrollSpeed")]
         public int? AutoScrollSpeed { get; set; }

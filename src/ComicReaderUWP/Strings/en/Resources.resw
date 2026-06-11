@@ -256,7 +256,7 @@ $comics</value>
   <data name="CompletionStatusUnread" xml:space="preserve">
     <value>Unread</value>
   </data>
-  <data name="ContinuousButton.Label" xml:space="preserve">
+  <data name="Continuous" xml:space="preserve">
     <value>Continuous</value>
   </data>
   <data name="ContributionRunAfterLink" xml:space="preserve">
@@ -309,9 +309,6 @@ $comics</value>
   </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>Disclaimer</value>
-  </data>
-  <data name="DiscreteButton.Label" xml:space="preserve">
-    <value>Separate</value>
   </data>
   <data name="DonationAlreadyPurchased" xml:space="preserve">
     <value>Already purchased?</value>
@@ -517,7 +514,7 @@ The evaluation will be performed in the following order:
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Home</value>
   </data>
-  <data name="HorizontalButton.Label" xml:space="preserve">
+  <data name="Horizontal" xml:space="preserve">
     <value>Horizontal</value>
   </data>
   <data name="HotkeyFirstPage.Header" xml:space="preserve">
@@ -565,7 +562,7 @@ The evaluation will be performed in the following order:
   <data name="LastReadTime" xml:space="preserve">
     <value>Last read time</value>
   </data>
-  <data name="LeftToRightButton.Label" xml:space="preserve">
+  <data name="LeftToRight" xml:space="preserve">
     <value>L to R</value>
   </data>
   <data name="LibraryEmptyPart1.Text" xml:space="preserve">
@@ -700,11 +697,11 @@ The evaluation will be performed in the following order:
   <data name="PageCount" xml:space="preserve">
     <value>Pages</value>
   </data>
-  <data name="PageGap" xml:space="preserve">
-    <value>Page spacing</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>Page $page</value>
+  </data>
+  <data name="PageSpacing" xml:space="preserve">
+    <value>Page spacing</value>
   </data>
   <data name="Pause" xml:space="preserve">
     <value>Pause</value>
@@ -807,7 +804,7 @@ The evaluation will be performed in the following order:
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Restore last reading position</value>
   </data>
-  <data name="RightToLeftButton.Label" xml:space="preserve">
+  <data name="RightToLeft" xml:space="preserve">
     <value>R to L</value>
   </data>
   <data name="Rotation" xml:space="preserve">
@@ -855,6 +852,9 @@ Start in Safe Mode?</value>
   </data>
   <data name="SendToWindow" xml:space="preserve">
     <value>Send to window</value>
+  </data>
+  <data name="Separate" xml:space="preserve">
+    <value>Separate</value>
   </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>Set as default</value>
@@ -974,7 +974,7 @@ $info</value>
   <data name="UseSystemLanguage" xml:space="preserve">
     <value>Use system language</value>
   </data>
-  <data name="VerticalButton.Label" xml:space="preserve">
+  <data name="Vertical" xml:space="preserve">
     <value>Vertical</value>
   </data>
   <data name="ViewType" xml:space="preserve">

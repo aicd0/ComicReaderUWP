@@ -482,7 +482,7 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetFlowDirection(readerSettingModel.IsLeftToRight);
         reader.SetUseOriginalSize(readerSettingModel.OriginalSize);
         reader.SetAutoScrollSpeed(readerSettingModel.AutoScrollSpeed);
-        reader.SetPageGap(readerSettingModel.PageGap);
+        reader.SetPageGap(readerSettingModel.PageSpacing);
         reader.SetImageRotation(readerSettingModel.ImageRotation);
         reader.SetImageFlip(readerSettingModel.ImageFlip);
         reader.SetImageInvert(readerSettingModel.ImageInvert);

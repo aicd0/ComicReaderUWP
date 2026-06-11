@@ -21,6 +21,11 @@ public class EmptyLiveData<T> : IMutableLiveData<T> where T : notnull
     {
     }
 
+    public bool HasObserver(IValueObserver<T> observer)
+    {
+        return false;
+    }
+
     public T? GetValue()
     {
         return default;

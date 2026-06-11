@@ -39,6 +39,11 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
         }
     }
 
+    public bool HasObserver(IValueObserver<T> observer)
+    {
+        return _observers.ContainsKey(observer);
+    }
+
     public T? GetValue()
     {
         return _value;

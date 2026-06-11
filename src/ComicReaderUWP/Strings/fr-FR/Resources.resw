@@ -256,7 +256,7 @@ $comics</value>
   <data name="CompletionStatusUnread" xml:space="preserve">
     <value>Pas lu</value>
   </data>
-  <data name="ContinuousButton.Label" xml:space="preserve">
+  <data name="Continuous" xml:space="preserve">
     <value>Continu</value>
   </data>
   <data name="ContributionRunAfterLink" xml:space="preserve">
@@ -309,9 +309,6 @@ $comics</value>
   </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>Clause de non-responsabilité</value>
-  </data>
-  <data name="DiscreteButton.Label" xml:space="preserve">
-    <value>Séparé</value>
   </data>
   <data name="DonationAlreadyPurchased" xml:space="preserve">
     <value>Déjà acheté ?</value>
@@ -515,7 +512,7 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Maison</value>
   </data>
-  <data name="HorizontalButton.Label" xml:space="preserve">
+  <data name="Horizontal" xml:space="preserve">
     <value>Horizontal</value>
   </data>
   <data name="HotkeyFirstPage.Header" xml:space="preserve">
@@ -563,7 +560,7 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="LastReadTime" xml:space="preserve">
     <value>Dernière heure de lecture</value>
   </data>
-  <data name="LeftToRightButton.Label" xml:space="preserve">
+  <data name="LeftToRight" xml:space="preserve">
     <value>De gauche à droite</value>
   </data>
   <data name="LibraryEmptyPart1.Text" xml:space="preserve">
@@ -698,11 +695,11 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="PageCount" xml:space="preserve">
     <value>Pages</value>
   </data>
-  <data name="PageGap" xml:space="preserve">
-    <value>Espacement</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>Page $page</value>
+  </data>
+  <data name="PageSpacing" xml:space="preserve">
+    <value>Espacement</value>
   </data>
   <data name="Pause" xml:space="preserve">
     <value>Pause</value>
@@ -805,7 +802,7 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Restaurer la dernière position de lecture</value>
   </data>
-  <data name="RightToLeftButton.Label" xml:space="preserve">
+  <data name="RightToLeft" xml:space="preserve">
     <value>De droite à gauche</value>
   </data>
   <data name="Rotation" xml:space="preserve">
@@ -853,6 +850,9 @@ Démarrer en mode sans échec ?</value>
   </data>
   <data name="SendToWindow" xml:space="preserve">
     <value>Envoyer vers la fenêtre</value>
+  </data>
+  <data name="Separate" xml:space="preserve">
+    <value>Séparé</value>
   </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>Définir par défaut</value>
@@ -972,7 +972,7 @@ $info</value>
   <data name="UseSystemLanguage" xml:space="preserve">
     <value>Utiliser la langue du système</value>
   </data>
-  <data name="VerticalButton.Label" xml:space="preserve">
+  <data name="Vertical" xml:space="preserve">
     <value>Verticale</value>
   </data>
   <data name="ViewType" xml:space="preserve">
