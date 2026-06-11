@@ -62,8 +62,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         }
 
         _comic = comic;
-        _comicSettings = ReaderSettingsModel.LoadFromComic(comic);
-        _presetSettings = ReaderSettingsModel.LoadFromPreset(_comicSettings.PresetKey);
+        LoadSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -209,8 +208,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             ActionInProgress = false;
         }
 
-        _comicSettings = ReaderSettingsModel.LoadFromComic(_comic);
-        _presetSettings = ReaderSettingsModel.LoadFromPreset(_comicSettings.PresetKey);
+        LoadSettings();
         UpdateUI();
         DispatchDataChangeEvent();
     }
@@ -222,6 +220,17 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         newSettings.PresetName = _comicSettings.PresetName;
         _comicSettings = newSettings;
         NotifySettingsChanged();
+    }
+
+    private void LoadSettings()
+    {
+        if (_comic is null)
+        {
+            return;
+        }
+
+        _comicSettings = ReaderSettingsModel.LoadFromComic(_comic);
+        _presetSettings = ReaderSettingsModel.LoadFromPreset(_comicSettings.PresetKey);
     }
 
     private void NotifySettingsChanged()
