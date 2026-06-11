@@ -50,6 +50,7 @@ public class StringResourceProvider
     public string CompletionStatusFinished => GetResourceString("CompletionStatusFinished");
     public string CompletionStatusReading => GetResourceString("CompletionStatusReading");
     public string CompletionStatusUnread => GetResourceString("CompletionStatusUnread");
+    public string Continuous => GetResourceString("Continuous");
     public string ContributionRunAfterLink => GetResourceString("ContributionRunAfterLink");
     public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
     public string Copy => GetResourceString("Copy");
@@ -112,10 +113,12 @@ public class StringResourceProvider
     public string Hide => GetResourceString("Hide");
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
+    public string Horizontal => GetResourceString("Horizontal");
     public string ImageProcessing => GetResourceString("ImageProcessing");
     public string InvertImage => GetResourceString("InvertImage");
     public string KeepScreenOn => GetResourceString("KeepScreenOn");
     public string LastReadTime => GetResourceString("LastReadTime");
+    public string LeftToRight => GetResourceString("LeftToRight");
     public string License => GetResourceString("License");
     public string LinkErrorContent => GetResourceString("LinkErrorContent");
     public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
@@ -149,8 +152,8 @@ public class StringResourceProvider
     public string OpenUserDataFolder => GetResourceString("OpenUserDataFolder");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");
     public string PageCount => GetResourceString("PageCount");
-    public string PageGap => GetResourceString("PageGap");
     public string PageN => GetResourceString("PageN");
+    public string PageSpacing => GetResourceString("PageSpacing");
     public string Pause => GetResourceString("Pause");
     public string Pin => GetResourceString("Pin");
     public string Play => GetResourceString("Play");
@@ -178,6 +181,7 @@ public class StringResourceProvider
     public string ResetAllSettings => GetResourceString("ResetAllSettings");
     public string ResetAllSettingsMessage => GetResourceString("ResetAllSettingsMessage");
     public string RestoreLastReadingPosition => GetResourceString("RestoreLastReadingPosition");
+    public string RightToLeft => GetResourceString("RightToLeft");
     public string Rotation => GetResourceString("Rotation");
     public string SafeModeMessage => GetResourceString("SafeModeMessage");
     public string Save => GetResourceString("Save");
@@ -190,6 +194,7 @@ public class StringResourceProvider
     public string SearchResultsOf => GetResourceString("SearchResultsOf");
     public string Select => GetResourceString("Select");
     public string SendToWindow => GetResourceString("SendToWindow");
+    public string Separate => GetResourceString("Separate");
     public string SetAsDefault => GetResourceString("SetAsDefault");
     public string SetCompletionState => GetResourceString("SetCompletionState");
     public string Settings => GetResourceString("Settings");
@@ -222,6 +227,7 @@ public class StringResourceProvider
     public string Unpin => GetResourceString("Unpin");
     public string Untitled => GetResourceString("Untitled");
     public string UseSystemLanguage => GetResourceString("UseSystemLanguage");
+    public string Vertical => GetResourceString("Vertical");
     public string ViewType => GetResourceString("ViewType");
     public string ViewTypeLarge => GetResourceString("ViewTypeLarge");
     public string ViewTypeMedium => GetResourceString("ViewTypeMedium");

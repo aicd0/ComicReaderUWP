@@ -256,7 +256,7 @@ $comics</value>
   <data name="CompletionStatusUnread" xml:space="preserve">
     <value>읽지 않음</value>
   </data>
-  <data name="ContinuousButton.Label" xml:space="preserve">
+  <data name="Continuous" xml:space="preserve">
     <value>마디 없는</value>
   </data>
   <data name="ContributionRunAfterLink" xml:space="preserve">
@@ -309,9 +309,6 @@ $comics</value>
   </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>부인 성명</value>
-  </data>
-  <data name="DiscreteButton.Label" xml:space="preserve">
-    <value>분리된</value>
   </data>
   <data name="DonationAlreadyPurchased" xml:space="preserve">
     <value>이미 구매하셨나요?</value>
@@ -516,7 +513,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>집</value>
   </data>
-  <data name="HorizontalButton.Label" xml:space="preserve">
+  <data name="Horizontal" xml:space="preserve">
     <value>수평의</value>
   </data>
   <data name="HotkeyFirstPage.Header" xml:space="preserve">
@@ -564,7 +561,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="LastReadTime" xml:space="preserve">
     <value>마지막 읽기 시간</value>
   </data>
-  <data name="LeftToRightButton.Label" xml:space="preserve">
+  <data name="LeftToRight" xml:space="preserve">
     <value>왼쪽에서 오른쪽으로</value>
   </data>
   <data name="LibraryEmptyPart1.Text" xml:space="preserve">
@@ -699,11 +696,11 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="PageCount" xml:space="preserve">
     <value>페이지 수</value>
   </data>
-  <data name="PageGap" xml:space="preserve">
-    <value>페이지 간격</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>$page페이지</value>
+  </data>
+  <data name="PageSpacing" xml:space="preserve">
+    <value>페이지 간격</value>
   </data>
   <data name="Pause" xml:space="preserve">
     <value>일시정지</value>
@@ -806,7 +803,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>마지막 읽은 위치 복원</value>
   </data>
-  <data name="RightToLeftButton.Label" xml:space="preserve">
+  <data name="RightToLeft" xml:space="preserve">
     <value>오른쪽에서 왼쪽으로</value>
   </data>
   <data name="Rotation" xml:space="preserve">
@@ -854,6 +851,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="SendToWindow" xml:space="preserve">
     <value>창으로 보내기</value>
+  </data>
+  <data name="Separate" xml:space="preserve">
+    <value>분리된</value>
   </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>기본값으로 설정</value>
@@ -973,7 +973,7 @@ $info</value>
   <data name="UseSystemLanguage" xml:space="preserve">
     <value>시스템 언어 사용</value>
   </data>
-  <data name="VerticalButton.Label" xml:space="preserve">
+  <data name="Vertical" xml:space="preserve">
     <value>수직의</value>
   </data>
   <data name="ViewType" xml:space="preserve">

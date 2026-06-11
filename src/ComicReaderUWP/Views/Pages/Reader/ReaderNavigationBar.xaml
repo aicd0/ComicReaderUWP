@@ -76,7 +76,7 @@
                             <Setter Property="MaxWidth" Value="1000" />
                         </Style>
                     </Flyout.FlyoutPresenterStyle>
-                    <readersettingscontrol:ReaderSettingPanel x:Name="MainReaderSettingPanel" DataChanged="MainReaderSettingPanel_DataChanged" />
+                    <readersettingscontrol:ReaderSettingsPanel x:Name="MainReaderSettingPanel" DataChanged="MainReaderSettingPanel_DataChanged" />
                 </Flyout>
             </AppBarButton.Flyout>
         </AppBarButton>

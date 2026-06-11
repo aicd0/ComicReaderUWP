@@ -83,7 +83,7 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
     }
 
     private ComicModel? _comic = null;
-    private ReaderSettingsModel _presetModel = new();
+    private ReaderSettingsModel _presetModel = ReaderSettingsModel.FromDefault();
 
     public void Initialize(ComicModel comic)
     {
@@ -106,6 +106,12 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
         presets.Remove(_presetModel.PresetKey);
         AppSettingsModel.Instance.ReaderSettingPresets = presets;
+
+        if (_comic is not null)
+        {
+            _comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, null);
+            _comic.SetExt(ComicExt.CUSTOM_READER_SETTINGS, null);
+        }
     }
 
     public void Save()
@@ -124,6 +130,11 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         if (_setAsDefault)
         {
             AppSettingsModel.Instance.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+        }
+
+        if (_comic is not null)
+        {
+            _presetModel.SaveToComic(_comic);
         }
     }
 
@@ -178,7 +189,7 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
             }
         }
 
-        SaveEnabled = (!isCustomPreset && isNameValid) || (isCustomPreset && string.IsNullOrEmpty(_name));
+        SaveEnabled = !isCustomPreset && isNameValid;
         SaveAsNewEnabled = isNameValid && !isNameExisting;
         DeleteEnabled = !isCustomPreset;
     }

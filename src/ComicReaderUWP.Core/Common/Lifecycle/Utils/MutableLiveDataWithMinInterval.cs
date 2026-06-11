@@ -26,7 +26,7 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
 
     public void Observe(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)
     {
-        _liveData.Observe(owner, new ObserverWrapper<T>(owner, observer, minInterval, delay), options);
+        _liveData.Observe(owner, new ObserverWrapper(this, observer, minInterval, delay), options);
     }
 
     public void RemoveObserver(IValueObserver<T> observer)
@@ -34,13 +34,18 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
         _liveData.RemoveObserver(observer);
     }
 
-    private class ObserverWrapper<U>(ILifecycleOwner owner, IValueObserver<U> observer, long minInterval, int delay) : IValueObserver<U>
+    public bool HasObserver(IValueObserver<T> observer)
+    {
+        return _liveData.HasObserver(observer);
+    }
+
+    private class ObserverWrapper(MutableLiveDataWithMinInterval<T> liveData, IValueObserver<T> observer, long minInterval, int delay) : IValueObserver<T>
     {
         private long _lastChangedTime = 0L;
-        private U? _lastValue = default;
+        private T? _lastValue = default;
         private bool _notifyScheduled = false;
 
-        public void OnChanged(U value)
+        public void OnChanged(T value)
         {
             _lastValue = value;
             if (_notifyScheduled)
@@ -64,7 +69,7 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
                 try
                 {
                     await Task.Delay(timeRemaining);
-                    if (owner is not null && owner.GetLifecycle().GetState() < ILifecycle.State.Started)
+                    if (!liveData.HasObserver(observer))
                     {
                         return;
                     }

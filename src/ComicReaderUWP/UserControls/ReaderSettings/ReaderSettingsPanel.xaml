@@ -1,5 +1,5 @@
 <base:BaseUserControl
-    x:Class="ComicReaderUWP.UserControls.ReaderSettings.ReaderSettingPanel"
+    x:Class="ComicReaderUWP.UserControls.ReaderSettings.ReaderSettingsPanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"
@@ -101,11 +101,11 @@
             <SelectorBarItem
                 x:Name="SelectorBarItem1"
                 Padding="12,0,12,4"
-                Text="{x:Bind StringResource.General}" />
+                Text="{x:Bind ViewModel.GeneralTabTitle, Mode=OneWay}" />
             <SelectorBarItem
                 x:Name="SelectorBarItem2"
                 Padding="12,0,12,4"
-                Text="{x:Bind StringResource.ImageProcessing}" />
+                Text="{x:Bind ViewModel.ImageProcessingTabTitle, Mode=OneWay}" />
         </SelectorBar>
 
         <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
@@ -134,7 +134,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.TwoPageMode}" />
+                    Text="{x:Bind ViewModel.TwoPageModeLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="TwoPageModeToggleSwitch"
                     Grid.Row="0"
@@ -146,7 +146,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.EnableCover}" />
+                    Text="{x:Bind ViewModel.EnableCoverLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="EnableCoverToggleSwitch"
                     Grid.Row="1"
@@ -158,7 +158,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.SwapLeftAndRightPages}" />
+                    Text="{x:Bind ViewModel.SwapLeftAndRightPagesLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="SwapLeftAndRightPagesToggleSwitch"
                     Grid.Row="2"
@@ -170,7 +170,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.SpreadDetection}" />
+                    Text="{x:Bind ViewModel.SpreadDetectionLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="SpreadDetectionToggleSwitch"
                     Grid.Row="3"
@@ -186,65 +186,20 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <!--  Vertical/Horizontal  -->
                     <AppBarButton
-                        x:Name="AbbVertical"
-                        x:Uid="VerticalButton"
-                        Click="AbbVertical_Click"
-                        Style="{StaticResource AppBarButtonCompactStyle}">
-                        <Grid>
-                            <FontIcon Glyph="&#xE7C3;" />
-                        </Grid>
-                    </AppBarButton>
+                        x:Name="AbbOrientation"
+                        Click="AbbOrientation_Click"
+                        Style="{StaticResource AppBarButtonCompactStyle}" />
                     <AppBarButton
-                        x:Name="AbbHorizontal"
-                        x:Uid="HorizontalButton"
-                        Click="AbbHorizontal_Click"
-                        Style="{StaticResource AppBarButtonCompactStyle}">
-                        <Grid>
-                            <FontIcon Glyph="&#xEF6B;" />
-                        </Grid>
-                    </AppBarButton>
-                    <!--  Flow Direction  -->
-                    <AppBarButton
-                        x:Name="AbbLeftToRight"
-                        x:Uid="LeftToRightButton"
-                        Click="AbbLeftToRight_Click"
-                        Style="{StaticResource AppBarButtonCompactStyle}">
-                        <Grid>
-                            <FontIcon Glyph="&#xEBE7;" />
-                        </Grid>
-                    </AppBarButton>
-                    <AppBarButton
-                        x:Name="AbbRightToLeft"
-                        x:Uid="RightToLeftButton"
-                        Click="AbbRightToLeft_Click"
-                        Style="{StaticResource AppBarButtonCompactStyle}">
-                        <Grid>
-                            <FontIcon Glyph="&#xEC52;" />
-                        </Grid>
-                    </AppBarButton>
+                        x:Name="AbbFlowDirection"
+                        Click="AbbFlowDirection_Click"
+                        Style="{StaticResource AppBarButtonCompactStyle}" />
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <!--  Continuous reading  -->
                     <AppBarButton
                         x:Name="AbbContinuous"
-                        x:Uid="ContinuousButton"
                         Click="AbbContinuous_Click"
-                        Style="{StaticResource AppBarButtonCompactStyle}">
-                        <Grid>
-                            <FontIcon Glyph="&#xE785;" />
-                        </Grid>
-                    </AppBarButton>
-                    <AppBarButton
-                        x:Name="AbbSeperate"
-                        x:Uid="DiscreteButton"
-                        Click="AbbSeperate_Click"
-                        Style="{StaticResource AppBarButtonCompactStyle}">
-                        <Grid>
-                            <FontIcon Glyph="&#xE72E;" />
-                        </Grid>
-                    </AppBarButton>
+                        Style="{StaticResource AppBarButtonCompactStyle}" />
                 </StackPanel>
             </Grid>
             <Rectangle
@@ -270,23 +225,23 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.PageGap}" />
+                    Text="{x:Bind ViewModel.PageSpacingLabel, Mode=OneWay}" />
                 <Slider
-                    x:Name="PageGapSlider"
+                    x:Name="PageSpacingSlider"
                     Grid.Row="0"
                     Grid.Column="3"
                     Margin="0,-2"
                     Maximum="200"
                     Minimum="0"
                     StepFrequency="1"
-                    ValueChanged="PageGapSlider_ValueChanged"
+                    ValueChanged="PageSpacingSlider_ValueChanged"
                     Value="1" />
                 <TextBlock
                     Grid.Row="1"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.AutoScrolling}" />
+                    Text="{x:Bind ViewModel.AutoScrollingLabel, Mode=OneWay}" />
                 <Slider
                     x:Name="AutoScrollingSlider"
                     Grid.Row="1"
@@ -313,7 +268,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.MaintainRelativeSize}" />
+                    Text="{x:Bind ViewModel.OriginalSizeLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="OriginalSizeToggleSwitch"
                     Grid.Row="0"
@@ -346,7 +301,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.Rotation}" />
+                    Text="{x:Bind ViewModel.RotationLabel, Mode=OneWay}" />
                 <DropDownButton
                     x:Name="RotationDropDownButton"
                     Grid.Row="0"
@@ -357,7 +312,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.FlipImage}" />
+                    Text="{x:Bind ViewModel.FlipImageLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="FlipImageToggleSwitch"
                     Grid.Row="1"
@@ -370,7 +325,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.InvertImage}" />
+                    Text="{x:Bind ViewModel.InvertImageLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="InvertImageToggleSwitch"
                     Grid.Row="2"
@@ -383,7 +338,7 @@
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind StringResource.AntiAliasingFilter}" />
+                    Text="{x:Bind ViewModel.AntiAliasingFilterLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="AntiAliasingFilterToggleSwitch"
                     Grid.Row="3"

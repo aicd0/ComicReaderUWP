@@ -256,7 +256,7 @@ $comics</value>
   <data name="CompletionStatusUnread" xml:space="preserve">
     <value>未閱讀</value>
   </data>
-  <data name="ContinuousButton.Label" xml:space="preserve">
+  <data name="Continuous" xml:space="preserve">
     <value>連續</value>
   </data>
   <data name="ContributionRunAfterLink" xml:space="preserve">
@@ -309,9 +309,6 @@ $comics</value>
   </data>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>免責聲明</value>
-  </data>
-  <data name="DiscreteButton.Label" xml:space="preserve">
-    <value>分割</value>
   </data>
   <data name="DonationAlreadyPurchased" xml:space="preserve">
     <value>已經購買了嗎？</value>
@@ -515,7 +512,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>主頁</value>
   </data>
-  <data name="HorizontalButton.Label" xml:space="preserve">
+  <data name="Horizontal" xml:space="preserve">
     <value>橫向</value>
   </data>
   <data name="HotkeyFirstPage.Header" xml:space="preserve">
@@ -563,7 +560,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="LastReadTime" xml:space="preserve">
     <value>上次閱讀時間</value>
   </data>
-  <data name="LeftToRightButton.Label" xml:space="preserve">
+  <data name="LeftToRight" xml:space="preserve">
     <value>自左向右</value>
   </data>
   <data name="LibraryEmptyPart1.Text" xml:space="preserve">
@@ -698,11 +695,11 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="PageCount" xml:space="preserve">
     <value>頁數</value>
   </data>
-  <data name="PageGap" xml:space="preserve">
-    <value>頁面間距</value>
-  </data>
   <data name="PageN" xml:space="preserve">
     <value>第$page頁</value>
+  </data>
+  <data name="PageSpacing" xml:space="preserve">
+    <value>頁面間距</value>
   </data>
   <data name="Pause" xml:space="preserve">
     <value>暫停</value>
@@ -805,7 +802,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>恢復上次閱讀位置</value>
   </data>
-  <data name="RightToLeftButton.Label" xml:space="preserve">
+  <data name="RightToLeft" xml:space="preserve">
     <value>自右向左</value>
   </data>
   <data name="Rotation" xml:space="preserve">
@@ -853,6 +850,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="SendToWindow" xml:space="preserve">
     <value>傳送到視窗</value>
+  </data>
+  <data name="Separate" xml:space="preserve">
+    <value>分割</value>
   </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>設為預設</value>
@@ -972,7 +972,7 @@ $info</value>
   <data name="UseSystemLanguage" xml:space="preserve">
     <value>使用系統語言</value>
   </data>
-  <data name="VerticalButton.Label" xml:space="preserve">
+  <data name="Vertical" xml:space="preserve">
     <value>縱向</value>
   </data>
   <data name="ViewType" xml:space="preserve">

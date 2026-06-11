@@ -26,7 +26,8 @@ internal class PageLayoutSettings
             return false;
         }
 
-        return TwoPageMode == other.TwoPageMode &&
+        return
+            TwoPageMode == other.TwoPageMode &&
             EnableCover == other.EnableCover &&
             SwapLeftAndRightPages == other.SwapLeftAndRightPages &&
             SpreadDetection == other.SpreadDetection;
@@ -40,6 +41,11 @@ internal class PageLayoutSettings
         hash.Add(SwapLeftAndRightPages);
         hash.Add(SpreadDetection);
         return hash.ToHashCode();
+    }
+
+    public PageLayoutSettings Clone()
+    {
+        return (PageLayoutSettings)MemberwiseClone();
     }
 
     public static bool operator ==(PageLayoutSettings? left, PageLayoutSettings? right)

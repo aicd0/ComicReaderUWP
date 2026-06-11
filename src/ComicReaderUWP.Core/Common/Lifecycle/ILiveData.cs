@@ -9,5 +9,7 @@ public interface ILiveData<T> : ILiveDataNoType where T : notnull
 
     public void RemoveObserver(IValueObserver<T> observer);
 
+    public bool HasObserver(IValueObserver<T> observer);
+
     public T? GetValue();
 }
