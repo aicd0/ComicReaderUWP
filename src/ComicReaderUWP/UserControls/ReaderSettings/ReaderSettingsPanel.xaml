@@ -234,8 +234,7 @@
                     Maximum="200"
                     Minimum="0"
                     StepFrequency="1"
-                    ValueChanged="PageSpacingSlider_ValueChanged"
-                    Value="1" />
+                    ValueChanged="PageSpacingSlider_ValueChanged" />
                 <TextBlock
                     Grid.Row="1"
                     Grid.Column="0"
@@ -250,8 +249,7 @@
                     Maximum="100"
                     Minimum="0"
                     StepFrequency="1"
-                    ValueChanged="AutoScrollingSlider_ValueChanged"
-                    Value="0" />
+                    ValueChanged="AutoScrollingSlider_ValueChanged" />
             </Grid>
             <Grid Margin="14,0,14,8">
                 <Grid.ColumnDefinitions>
@@ -283,7 +281,7 @@
             x:Name="ImageProcessingSettingsGrid"
             MinWidth="360"
             Orientation="Vertical">
-            <Grid Margin="14,8">
+            <Grid Margin="14,8,14,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
@@ -292,7 +290,6 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40" />
-                    <RowDefinition Height="30" />
                     <RowDefinition Height="30" />
                     <RowDefinition Height="30" />
                 </Grid.RowDefinitions>
@@ -333,19 +330,35 @@
                     HorizontalAlignment="Right"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="InvertImageToggleSwitch_Toggled" />
+            </Grid>
+            <Grid Margin="14,0,14,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition
+                        Width="10000*"
+                        MinWidth="120"
+                        MaxWidth="140" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                </Grid.RowDefinitions>
                 <TextBlock
-                    Grid.Row="3"
+                    Grid.Row="0"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.AntiAliasingFilterLabel, Mode=OneWay}" />
-                <ToggleSwitch
-                    x:Name="AntiAliasingFilterToggleSwitch"
-                    Grid.Row="3"
+                <Slider
+                    x:Name="AntiAliasingFilterSlider"
+                    Grid.Row="0"
                     Grid.Column="3"
-                    HorizontalAlignment="Right"
-                    Style="{StaticResource CompatToggleSwitchStyle}"
-                    Toggled="AntiAliasingFilterToggleSwitch_Toggled" />
+                    Margin="0,-2"
+                    Maximum="200"
+                    Minimum="0"
+                    StepFrequency="1"
+                    ValueChanged="AntiAliasingFilterSlider_ValueChanged" />
             </Grid>
         </StackPanel>
 

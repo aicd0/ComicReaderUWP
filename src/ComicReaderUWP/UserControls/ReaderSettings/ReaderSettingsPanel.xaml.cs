@@ -184,9 +184,9 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         NotifySettingsChanged();
     }
 
-    private void AntiAliasingFilterToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    private void AntiAliasingFilterSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
-        _comicSettings.AntiAliasingFilter = AntiAliasingFilterToggleSwitch.IsOn;
+        _comicSettings.AntiAliasingFilterPercentage = Math.Clamp((int)e.NewValue, 0, 200);
         NotifySettingsChanged();
     }
 
@@ -390,9 +390,9 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             }
 
             {
-                bool modified = comicSettings.AntiAliasingFilter != presetSettings.AntiAliasingFilter;
+                bool modified = comicSettings.AntiAliasingFilterPercentage != presetSettings.AntiAliasingFilterPercentage;
                 tabModified = tabModified || modified;
-                AntiAliasingFilterToggleSwitch.IsOn = comicSettings.AntiAliasingFilter;
+                AntiAliasingFilterSlider.Value = Math.Clamp(comicSettings.AntiAliasingFilterPercentage, 0, 200);
                 ViewModel.AntiAliasingFilterLabel = GetLabel(StringResource.AntiAliasingFilter, modified);
             }
 
