@@ -1,7 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.SDK.Plugins.Common;
+using ComicReaderUWP.SDK.Plugins.UI;
 using ComicReaderUWP.SDK.Plugins.UI.Menu;
 
 namespace ComicReaderUWP.SDK.Plugins.Comic;

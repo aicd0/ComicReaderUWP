@@ -3,8 +3,8 @@
 
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.SDK.Plugins.Comic;
-using ComicReaderUWP.SDK.Plugins.Common;
 using ComicReaderUWP.SDK.Plugins.Property;
+using ComicReaderUWP.SDK.Plugins.UI.Menu;
 
 using Microsoft.UI.Xaml.Controls;
 
