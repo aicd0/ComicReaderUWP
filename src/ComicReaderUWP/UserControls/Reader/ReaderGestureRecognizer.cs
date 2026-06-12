@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 
@@ -18,7 +16,7 @@ internal class ReaderGestureRecognizer
     private const string TAG = nameof(ReaderGestureRecognizer);
 
     private readonly GestureRecognizer _gestureRecognizer = new();
-    private WeakReference<IHandler> _handler;
+    private WeakReference<IHandler>? _handler;
 
     public ReaderGestureRecognizer()
     {
