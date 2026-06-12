@@ -10,33 +10,35 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.SDK.Plugins;
 
+public delegate void ComicEditedEventHandler(IComicModel comic);
+
 public interface IPluginContext
 {
+    event ComicEditedEventHandler? ComicEdited;
+
     string ResourceFolderPath { get; }
 
     ILogger Logger { get; }
 
     IRegistryDatabase RegistryDatabase { get; }
 
-    Task Busy(Func<Task> action);
+    IComicMenuItemCreator? ComicMenuItemCreator { get; set; }
 
-    Task<DialogResult> EnqueueDialogAsync(DialogOptions options);
+    ICommonMenuItemCreator? MainPageMoreMenuItemCreator { get; set; }
 
-    Task<DialogResult> EnqueueDialogAsync(int windowId, DialogOptions options);
+    Task WithBusyState(Func<Task> action);
 
-    Task<DialogResult> EnqueueDialogAsync(ContentDialog dialog);
+    Task<DialogResult> EnqueueDialog(DialogOptions options);
 
-    Task<DialogResult> EnqueueDialogAsync(int windowId, ContentDialog dialog);
+    Task<DialogResult> EnqueueDialog(int windowId, DialogOptions options);
+
+    Task<DialogResult> EnqueueDialog(ContentDialog dialog);
+
+    Task<DialogResult> EnqueueDialog(int windowId, ContentDialog dialog);
 
     Task<IComicModel?> GetComic(long id);
 
     Task<IEnumerable<long>> SearchComics(string filterExpression);
 
     void RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property);
-
-    void SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator);
-
-    void SetComicMenuItemCreator(IComicMenuItemCreator? creator);
-
-    void SetComicEditedHandler(IComicEditedHandler? handler);
 }

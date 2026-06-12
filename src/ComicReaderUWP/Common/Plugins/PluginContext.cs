@@ -57,13 +57,6 @@ internal partial class PluginContext : IPluginContext
         }
     }
 
-    private readonly Lazy<ILogger> _logger;
-    private readonly Lazy<IRegistryDatabase> _registryDatabase;
-    private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
-    private ICommonMenuItemCreator? _mainPageMoreMenuItemCreator = null;
-    private IComicMenuItemCreator? _comicMenuItemCreator = null;
-    private IComicEditedHandler? _comicEditedHandlers = null;
-
     public PluginContext(IPlugin plugin, string pluginFilePath, PluginFileLoadContext loadContext)
     {
         Plugin = plugin;
@@ -141,12 +134,26 @@ internal partial class PluginContext : IPluginContext
             return;
         }
 
-        SafeAction(() => _comicEditedHandlers?.ComicEdited(comic));
+        SafeAction(() => _comicEditedEventHandler?.Invoke(comic));
     }
 
     //
     // IPluginContext Implementation
     //
+
+    private event ComicEditedEventHandler? _comicEditedEventHandler;
+
+    private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
+    private readonly Lazy<ILogger> _logger;
+    private readonly Lazy<IRegistryDatabase> _registryDatabase;
+    private IComicMenuItemCreator? _comicMenuItemCreator = null;
+    private ICommonMenuItemCreator? _mainPageMoreMenuItemCreator = null;
+
+    event ComicEditedEventHandler? IPluginContext.ComicEdited
+    {
+        add => _comicEditedEventHandler += value;
+        remove => _comicEditedEventHandler -= value;
+    }
 
     string IPluginContext.ResourceFolderPath => LoadContext.ResourceFolderPath;
 
@@ -154,27 +161,39 @@ internal partial class PluginContext : IPluginContext
 
     IRegistryDatabase IPluginContext.RegistryDatabase => _registryDatabase.Value;
 
-    Task IPluginContext.Busy(Func<Task> action)
+    IComicMenuItemCreator? IPluginContext.ComicMenuItemCreator
+    {
+        get => _comicMenuItemCreator;
+        set => _comicMenuItemCreator = value;
+    }
+
+    ICommonMenuItemCreator? IPluginContext.MainPageMoreMenuItemCreator
+    {
+        get => _mainPageMoreMenuItemCreator;
+        set => _mainPageMoreMenuItemCreator = value;
+    }
+
+    Task IPluginContext.WithBusyState(Func<Task> action)
     {
         return BusyStateManager.WithBusyState(action);
     }
 
-    Task<DialogResult> IPluginContext.EnqueueDialogAsync(DialogOptions options)
+    Task<DialogResult> IPluginContext.EnqueueDialog(DialogOptions options)
     {
         return DialogUtils.EnqueueDialogAsync(options);
     }
 
-    Task<DialogResult> IPluginContext.EnqueueDialogAsync(int windowId, DialogOptions options)
+    Task<DialogResult> IPluginContext.EnqueueDialog(int windowId, DialogOptions options)
     {
         return DialogUtils.EnqueueDialogAsync(windowId, options);
     }
 
-    Task<DialogResult> IPluginContext.EnqueueDialogAsync(ContentDialog dialog)
+    Task<DialogResult> IPluginContext.EnqueueDialog(ContentDialog dialog)
     {
         return DialogUtils.EnqueueDialogAsync(dialog);
     }
 
-    Task<DialogResult> IPluginContext.EnqueueDialogAsync(int windowId, ContentDialog dialog)
+    Task<DialogResult> IPluginContext.EnqueueDialog(int windowId, ContentDialog dialog)
     {
         return DialogUtils.EnqueueDialogAsync(windowId, dialog);
     }
@@ -220,21 +239,6 @@ internal partial class PluginContext : IPluginContext
         {
             Logger.F(TAG, $"({Name}) RegisterComicVirtualProperty: Property '{name}' already registered");
         }
-    }
-
-    void IPluginContext.SetMainPageMoreMenuItemCreator(ICommonMenuItemCreator? creator)
-    {
-        _mainPageMoreMenuItemCreator = creator;
-    }
-
-    void IPluginContext.SetComicMenuItemCreator(IComicMenuItemCreator? creator)
-    {
-        _comicMenuItemCreator = creator;
-    }
-
-    void IPluginContext.SetComicEditedHandler(IComicEditedHandler? handler)
-    {
-        _comicEditedHandlers = handler;
     }
 
     //
