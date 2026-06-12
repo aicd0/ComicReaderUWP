@@ -45,7 +45,7 @@ internal partial class ReaderImageCompositor : IDisposable
                 return;
             }
 
-            float fixedValue = (float)(value * DisplayUtils.GetRawPixelPerPixel() * 1.2);
+            float fixedValue = (float)(value * DisplayUtils.GetRawPixelPerPixel());
             if (_scale == fixedValue)
             {
                 return;

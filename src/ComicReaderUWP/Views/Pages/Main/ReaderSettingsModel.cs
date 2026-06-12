@@ -50,12 +50,8 @@ internal class ReaderSettingsModel
             IsLeftToRight = model.LeftToRight ?? defaultModel.IsLeftToRight,
             IsVerticalContinuous = model.VerticalContinuous ?? defaultModel.IsVerticalContinuous,
             IsHorizontalContinuous = model.HorizontalContinuous ?? defaultModel.IsHorizontalContinuous,
-            VerticalPageLayout = model.VerticalPageLayout is null ?
-                ParseLegacyPageLayout(model.LegacyVerticalPageArrangement) :
-                PageLayoutSettings.FromJsonModel(model.VerticalPageLayout),
-            HorizontalPageLayout = model.HorizontalPageLayout is null ?
-                ParseLegacyPageLayout(model.LegacyHorizontalPageArrangement) :
-                PageLayoutSettings.FromJsonModel(model.HorizontalPageLayout),
+            VerticalPageLayout = PageLayoutSettings.FromJsonModel(model.VerticalPageLayout),
+            HorizontalPageLayout = PageLayoutSettings.FromJsonModel(model.HorizontalPageLayout),
             PageSpacing = model.PageSpacing ?? defaultModel.PageSpacing,
             AutoScrollSpeed = model.AutoScrollSpeed ?? defaultModel.AutoScrollSpeed,
             ImageRotation = model.ImageRotation switch
@@ -68,7 +64,7 @@ internal class ReaderSettingsModel
             },
             ImageFlip = model.ImageFlip ?? defaultModel.ImageFlip,
             ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
-            AntiAliasingFilter = model.AntiAliasingFilter ?? defaultModel.AntiAliasingFilter,
+            AntiAliasingFilterPercentage = model.AntiAliasingFilterPercentage ?? defaultModel.AntiAliasingFilterPercentage,
         };
     }
 
@@ -161,24 +157,6 @@ internal class ReaderSettingsModel
         return presetModel;
     }
 
-    private static PageLayoutSettings ParseLegacyPageLayout(int? value)
-    {
-        PageLayoutSettings defaultModel = new();
-
-        if (value is null)
-        {
-            return defaultModel;
-        }
-
-        return new()
-        {
-            TwoPageMode = value != 0,
-            EnableCover = value <= 2,
-            SwapLeftAndRightPages = value == 2 || value == 4,
-            SpreadDetection = defaultModel.SpreadDetection,
-        };
-    }
-
     public string PresetKey { get; set; } = string.Empty;
     public string PresetName { get; set; } = "?";
     public bool OriginalSize { get; set; } = false;
@@ -193,7 +171,7 @@ internal class ReaderSettingsModel
     public ImageRotationEnum ImageRotation { get; set; } = ImageRotationEnum.None;
     public bool ImageFlip { get; set; } = false;
     public bool ImageInvert { get; set; } = false;
-    public bool AntiAliasingFilter { get; set; } = false;
+    public int AntiAliasingFilterPercentage { get; set; } = 0;
 
     public bool IsContinuous
     {
@@ -251,7 +229,7 @@ internal class ReaderSettingsModel
             ImageRotation == other.ImageRotation &&
             ImageFlip == other.ImageFlip &&
             ImageInvert == other.ImageInvert &&
-            AntiAliasingFilter == other.AntiAliasingFilter;
+            AntiAliasingFilterPercentage == other.AntiAliasingFilterPercentage;
     }
 
     public override int GetHashCode()
@@ -271,7 +249,7 @@ internal class ReaderSettingsModel
         hash.Add(ImageRotation);
         hash.Add(ImageFlip);
         hash.Add(ImageInvert);
-        hash.Add(AntiAliasingFilter);
+        hash.Add(AntiAliasingFilterPercentage);
         return hash.ToHashCode();
     }
 
@@ -317,7 +295,7 @@ internal class ReaderSettingsModel
             },
             ImageFlip = ImageFlip,
             ImageInvert = ImageInvert,
-            AntiAliasingFilter = AntiAliasingFilter,
+            AntiAliasingFilterPercentage = AntiAliasingFilterPercentage,
         };
     }
 
@@ -371,17 +349,7 @@ internal class ReaderSettingsModel
         [JsonPropertyName("ImageInvert")]
         public bool? ImageInvert { get; set; }
 
-        [JsonPropertyName("AntiAliasingFilter")]
-        public bool? AntiAliasingFilter { get; set; }
-
-        //
-        // Legacy fields
-        //
-
-        [JsonPropertyName("VerticalPageArrangement")]
-        public int? LegacyVerticalPageArrangement { get; set; }
-
-        [JsonPropertyName("HorizontalPageArrangement")]
-        public int? LegacyHorizontalPageArrangement { get; set; }
+        [JsonPropertyName("AntiAliasingFilterPercentage")]
+        public int? AntiAliasingFilterPercentage { get; set; }
     }
 }

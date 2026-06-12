@@ -65,7 +65,7 @@ internal partial class ReaderView : UserControl
     private ImageRotationEnum _imageRotation = ImageRotationEnum.None;
     private bool _imageFlip = false;
     private bool _imageInvert = false;
-    private bool _antiAliasingFilter = false;
+    private double _antiAliasingFilterRatio = 0;
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
@@ -358,14 +358,15 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
-    public void SetAntiAliasingFilter(bool enabled)
+    public void SetAntiAliasingFilter(double ratio)
     {
-        if (enabled == _antiAliasingFilter)
+        ratio = Math.Abs(ratio);
+        if (ratio == _antiAliasingFilterRatio)
         {
             return;
         }
 
-        _antiAliasingFilter = enabled;
+        _antiAliasingFilterRatio = ratio;
         _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }
@@ -576,6 +577,7 @@ internal partial class ReaderView : UserControl
         int preloadWindowEnd = Math.Min(frame + PRELOAD_FRAMES_AFTER, FrameDataSource.Count - 1);
         Log("LoadImage", $"Reason={reason},P={CurrentPageDiscrete}");
 
+        double scale = SCZoomFactorFinal / _antiAliasingFilterRatio;
         for (int i = 0; i < FrameDataSource.Count; ++i)
         {
             ReaderFrameViewModel model = FrameDataSource[i];
@@ -586,7 +588,7 @@ internal partial class ReaderView : UserControl
             }
             else
             {
-                model.SetScale(_antiAliasingFilter ? SCZoomFactorFinal : double.PositiveInfinity);
+                model.SetScale(scale);
             }
         }
 
