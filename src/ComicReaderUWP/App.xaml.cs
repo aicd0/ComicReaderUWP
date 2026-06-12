@@ -121,7 +121,7 @@ public partial class App : Application
         {
             try
             {
-                OnActivated(e, firstLaunch: false);
+                OnActivated(e, fromLaunch: false);
             }
             catch (Exception ex)
             {
@@ -130,16 +130,16 @@ public partial class App : Application
             }
         };
 
-        OnActivated(activatedEventArgs, firstLaunch: true);
+        OnActivated(activatedEventArgs, fromLaunch: true);
     }
 
-    private void OnActivated(AppActivationArguments e, bool firstLaunch)
+    private void OnActivated(AppActivationArguments e, bool fromLaunch)
     {
         string[] cmdArgs;
         if (EnvironmentProvider.IsPortable())
         {
             string? commandLine;
-            if (firstLaunch)
+            if (fromLaunch)
             {
                 commandLine = Environment.CommandLine;
             }
@@ -179,11 +179,11 @@ public partial class App : Application
         }
 
         string cmd = string.Join(' ', cmdArgs);
-        Logger.I(TAG, $"OnActivated: firstLaunch={firstLaunch}, cmd={cmd}");
+        Logger.I(TAG, $"OnActivated: fromLaunch={fromLaunch}, cmd={cmd}");
 
         CoroutineUtils.RunInMainThreadAsync(async () =>
         {
-            if (firstLaunch && !InitTaskManager.Instance.SafeMode)
+            if (fromLaunch && !InitTaskManager.Instance.SafeMode)
             {
                 WindowManager.RestoreWindowStatus();
             }

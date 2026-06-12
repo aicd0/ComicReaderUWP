@@ -294,13 +294,14 @@ internal sealed partial class MainWindow : Window
         WindowStatusModel? windowStatus = Members._requestWindowStatus;
         if (windowStatus is not null && _requestRestorePlacement)
         {
+            if (windowStatus.WindowPlacement is not null)
+            {
+                Members._windowPlacementManager.RestoreWindowPlacement(windowStatus.WindowPlacement);
+            }
+
             if (windowStatus.Fullscreen)
             {
                 EnterOrExitFullscreen(true);
-            }
-            else if (windowStatus.WindowPlacement is not null)
-            {
-                Members._windowPlacementManager.RestoreWindowPlacement(windowStatus.WindowPlacement);
             }
         }
 
@@ -412,6 +413,15 @@ internal sealed partial class MainWindow : Window
         if (IsFullScreen() == isFullscreen)
         {
             return;
+        }
+
+        if (isFullscreen)
+        {
+            Members._windowPlacementManager.FreezeWindowPlacement();
+        }
+        else
+        {
+            Members._windowPlacementManager.UnfreezeWindowPlacement();
         }
 
         AppWindow.SetPresenter(isFullscreen ? AppWindowPresenterKind.FullScreen : AppWindowPresenterKind.Default);
