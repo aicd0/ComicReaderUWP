@@ -266,7 +266,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             });
         });
 
-        ComicHandle.IsScanningLibrary.ObserveSticky(owner, isScanning =>
+        ComicHandle.IsScanningLibraryLiveData.ObserveSticky(owner, isScanning =>
         {
             IsRescanning = isScanning;
         });

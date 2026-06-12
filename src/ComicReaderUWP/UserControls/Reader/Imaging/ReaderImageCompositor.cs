@@ -727,7 +727,15 @@ internal partial class ReaderImageCompositor : IDisposable
 
         public void DisposeCompositionComponents()
         {
-            _rootVisual.Children.RemoveAll();
+            try
+            {
+                _rootVisual.Children.RemoveAll();
+            }
+            catch (ObjectDisposedException)
+            {
+                // _rootVisual could be disposed externally
+            }
+
             _compositionSurfaceRef?.Unref();
             _compositionSurfaceRef = null;
             _compositionBrush?.Dispose();
