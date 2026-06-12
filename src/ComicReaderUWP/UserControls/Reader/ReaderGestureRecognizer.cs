@@ -32,22 +32,10 @@ internal class ReaderGestureRecognizer
 
         _gestureRecognizer.InertiaTranslationDeceleration = 0.002F;
 
-        _gestureRecognizer.Tapped += delegate (GestureRecognizer sender, TappedEventArgs e)
-        {
-            Handler.Tapped(sender, e);
-        };
-        _gestureRecognizer.ManipulationStarted += delegate (GestureRecognizer sender, ManipulationStartedEventArgs e)
-        {
-            Handler.ManipulationStarted(sender, e);
-        };
-        _gestureRecognizer.ManipulationUpdated += delegate (GestureRecognizer sender, ManipulationUpdatedEventArgs e)
-        {
-            Handler.ManipulationUpdated(sender, e);
-        };
-        _gestureRecognizer.ManipulationCompleted += delegate (GestureRecognizer sender, ManipulationCompletedEventArgs e)
-        {
-            Handler.ManipulationCompleted(sender, e);
-        };
+        _gestureRecognizer.Tapped += Handler.Tapped;
+        _gestureRecognizer.ManipulationStarted += Handler.ManipulationStarted;
+        _gestureRecognizer.ManipulationUpdated += Handler.ManipulationUpdated;
+        _gestureRecognizer.ManipulationCompleted += Handler.ManipulationCompleted;
     }
 
     public bool AutoProcessInertia
@@ -81,6 +69,10 @@ internal class ReaderGestureRecognizer
         {
             _gestureRecognizer.ProcessDownEvent(value);
         }
+        catch (ArgumentException ex)
+        {
+            Logger.E(TAG, "ProcessDownEvent", ex);
+        }
         catch (Exception ex)
         {
             Logger.F(TAG, "ProcessDownEvent", ex);
@@ -109,6 +101,10 @@ internal class ReaderGestureRecognizer
         {
             _gestureRecognizer.ProcessUpEvent(value);
         }
+        catch (ArgumentException ex)
+        {
+            Logger.E(TAG, "ProcessUpEvent", ex);
+        }
         catch (Exception ex)
         {
             Logger.F(TAG, "ProcessUpEvent", ex);
@@ -120,6 +116,10 @@ internal class ReaderGestureRecognizer
         try
         {
             _gestureRecognizer.CompleteGesture();
+        }
+        catch (ArgumentException ex)
+        {
+            Logger.E(TAG, "CompleteGesture", ex);
         }
         catch (Exception ex)
         {
