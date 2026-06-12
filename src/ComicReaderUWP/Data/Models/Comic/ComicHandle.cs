@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
@@ -41,10 +40,12 @@ internal abstract class ComicHandle
     // Static Variables
     //
 
-    private static readonly MutableLiveData<bool> _isScanningLibrary = new(false);
-    public static LiveData<bool> IsScanningLibrary => _isScanningLibrary;
+    private static readonly MutableLiveData<bool> _isScanningLibraryLiveData = new(false);
+    public static LiveData<bool> IsScanningLibraryLiveData => _isScanningLibraryLiveData;
 
-    private static int _pendingUpdateTaskCount = 0;
+    private static readonly object _scanLibraryLock = new();
+    private static bool _isScanningLibrary = false;
+    private static bool _libraryScanningInvalidated = false;
 
     //
     // Static Methods
@@ -812,25 +813,47 @@ internal abstract class ComicHandle
 
     public static void UpdateAllComics(string reason)
     {
-        int pendingCount = Interlocked.Increment(ref _pendingUpdateTaskCount);
         Logger.I(TAG, $"UpdateAllComics(reason={reason})");
         TaskDispatcher.LongRunningThreadPool.Submit("UpdateAllComics", delegate
         {
-            int pendingCount = Interlocked.Decrement(ref _pendingUpdateTaskCount);
-            if (pendingCount > 0)
+            lock (_scanLibraryLock)
             {
-                // Only keep the last request
-                return;
+                if (_isScanningLibrary)
+                {
+                    _libraryScanningInvalidated = true;
+                    return;
+                }
+
+                _isScanningLibraryLiveData.Emit(true);
+                _isScanningLibrary = true;
             }
 
-            _isScanningLibrary.Emit(true);
             try
             {
-                UpdateAllComicsInternal();
+
+                while (true)
+                {
+                    UpdateAllComicsInternal();
+
+                    lock (_scanLibraryLock)
+                    {
+                        if (!_libraryScanningInvalidated)
+                        {
+                            break;
+                        }
+
+                        _libraryScanningInvalidated = false;
+                    }
+                }
+
             }
             finally
             {
-                _isScanningLibrary.Emit(false);
+                lock (_scanLibraryLock)
+                {
+                    _isScanningLibrary = false;
+                    _isScanningLibraryLiveData.Emit(false);
+                }
             }
         });
     }
@@ -987,8 +1010,9 @@ internal abstract class ComicHandle
 
             foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(folderPath, ComicScanner.PathType.Folder))
             {
-                if (_pendingUpdateTaskCount > 0)
+                if (_libraryScanningInvalidated)
                 {
+                    // Fast exit
                     return;
                 }
 
