@@ -30,10 +30,22 @@ internal class ReaderGestureRecognizer
 
         _gestureRecognizer.InertiaTranslationDeceleration = 0.002F;
 
-        _gestureRecognizer.Tapped += Handler.Tapped;
-        _gestureRecognizer.ManipulationStarted += Handler.ManipulationStarted;
-        _gestureRecognizer.ManipulationUpdated += Handler.ManipulationUpdated;
-        _gestureRecognizer.ManipulationCompleted += Handler.ManipulationCompleted;
+        _gestureRecognizer.Tapped += (sender, e) =>
+        {
+            Handler.Tapped(sender, e);
+        };
+        _gestureRecognizer.ManipulationStarted += (sender, e) =>
+        {
+            Handler.ManipulationStarted(sender, e);
+        };
+        _gestureRecognizer.ManipulationUpdated += (sender, e) =>
+        {
+            Handler.ManipulationUpdated(sender, e);
+        };
+        _gestureRecognizer.ManipulationCompleted += (sender, e) =>
+        {
+            Handler.ManipulationCompleted(sender, e);
+        };
     }
 
     public bool AutoProcessInertia
