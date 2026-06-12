@@ -7,10 +7,14 @@ FindNextFile
 GetActiveWindow
 GetDeviceCaps
 GetDpiForMonitor
+GetMonitorInfo
 GetWindowPlacement
 GetWindowRect
 LocalFree
 MessageBox
+MonitorFromPoint
+MonitorFromRect
+MonitorFromWindow
 RegisterHotKey
 SetForegroundWindow
 SetWindowLongPtr
@@ -19,4 +23,5 @@ SetWindowPos
 ShowWindow
 UnregisterHotKey
 INVALID_HANDLE_VALUE
+MONITORINFOEXW
 WHEEL_DELTA
