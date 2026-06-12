@@ -13,7 +13,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.Playlist;
+namespace ComicReaderUWP.Views.Pages.Sidebar.Playlist;
 
 internal sealed partial class PlaylistPage : BasePage
 {

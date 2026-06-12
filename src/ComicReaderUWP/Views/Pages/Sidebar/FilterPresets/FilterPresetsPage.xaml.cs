@@ -15,7 +15,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.FilterPresets;
+namespace ComicReaderUWP.Views.Pages.Sidebar.FilterPresets;
 
 internal sealed partial class FilterPresetsPage : BasePage
 {

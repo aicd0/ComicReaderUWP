@@ -24,7 +24,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.Favorite;
+namespace ComicReaderUWP.Views.Pages.Sidebar.Favorite;
 
 internal sealed partial class FavoritePage : BasePage
 {

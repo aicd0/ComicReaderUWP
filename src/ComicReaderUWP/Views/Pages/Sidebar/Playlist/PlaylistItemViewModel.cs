@@ -12,7 +12,7 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.Playlist;
+namespace ComicReaderUWP.Views.Pages.Sidebar.Playlist;
 
 internal partial class PlaylistItemViewModel : INotifyPropertyChanged
 {

@@ -21,7 +21,7 @@ using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.ViewModels;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.Folders;
+namespace ComicReaderUWP.Views.Pages.Sidebar.Folders;
 
 internal partial class FoldersPageViewModel : INotifyPropertyChanged
 {

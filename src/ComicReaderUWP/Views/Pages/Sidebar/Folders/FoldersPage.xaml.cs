@@ -13,7 +13,7 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.Folders;
+namespace ComicReaderUWP.Views.Pages.Sidebar.Folders;
 
 internal sealed partial class FoldersPage : BasePage
 {

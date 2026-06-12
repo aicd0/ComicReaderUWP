@@ -21,7 +21,7 @@ using ComicReaderUWP.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.History;
+namespace ComicReaderUWP.Views.Pages.Sidebar.History;
 
 internal sealed partial class HistoryPage : BasePage
 {

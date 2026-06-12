@@ -23,7 +23,7 @@ using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.ViewModels;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.FilterPresets;
+namespace ComicReaderUWP.Views.Pages.Sidebar.FilterPresets;
 
 internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 {

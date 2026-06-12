@@ -26,7 +26,7 @@ using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.ViewModels;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
+namespace ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 
 internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
 {

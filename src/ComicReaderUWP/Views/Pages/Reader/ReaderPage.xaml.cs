@@ -22,7 +22,7 @@ using ComicReaderUWP.UserControls.Reader;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
 using ComicReaderUWP.ViewModels;
 using ComicReaderUWP.Views.Pages.Main;
-using ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
+using ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;

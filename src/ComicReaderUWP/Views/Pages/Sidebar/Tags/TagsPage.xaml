@@ -1,5 +1,5 @@
 <base:BasePage
-    x:Class="ComicReaderUWP.Views.Pages.SidePane.Tags.TagsPage"
+    x:Class="ComicReaderUWP.Views.Pages.Sidebar.Tags.TagsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
+namespace ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 
 internal class ComicChangedEventArgs
 {

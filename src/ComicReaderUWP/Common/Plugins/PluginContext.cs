@@ -88,14 +88,14 @@ internal partial class PluginContext : IPluginContext
         }
     }
 
-    public IEnumerable<IVirtualProperty<IComicModel>> GetAllComicVirtualProperties()
+    public void DispatchComicEditedEvent(IComicModel comic)
     {
         if (!IsActive)
         {
-            return [];
+            return;
         }
 
-        return _comicVirtualProperties.Values;
+        SafeAction(() => _comicEditedEventHandler?.Invoke(comic));
     }
 
     public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems(IUIContext uiContext)
@@ -130,14 +130,24 @@ internal partial class PluginContext : IPluginContext
         return [.. SafeAction(() => creator.CreateMenuItems(uiContext, primary, selection), []).Select(CreateHostMenuFlyoutItem)];
     }
 
-    public void DispatchComicEditedEvent(IComicModel comic)
+    public IEnumerable<IVirtualProperty<IComicModel>> GetAllComicVirtualProperties()
     {
         if (!IsActive)
         {
-            return;
+            return [];
         }
 
-        SafeAction(() => _comicEditedEventHandler?.Invoke(comic));
+        return [.. _comicVirtualProperties.Values];
+    }
+
+    public IReadOnlyList<ISidebarPageProvider> GetAllSidebarPageProviders()
+    {
+        if (!IsActive)
+        {
+            return [];
+        }
+
+        return [.. _sidebarPageProviders];
     }
 
     //
@@ -147,6 +157,7 @@ internal partial class PluginContext : IPluginContext
     private event ComicEditedEventHandler? _comicEditedEventHandler;
 
     private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
+    private readonly List<ISidebarPageProvider> _sidebarPageProviders = [];
     private readonly Lazy<ILogger> _logger;
     private readonly Lazy<IRegistryDatabase> _registryDatabase;
     private IComicMenuItemCreator? _comicMenuItemCreator = null;
@@ -244,6 +255,12 @@ internal partial class PluginContext : IPluginContext
         {
             Logger.F(TAG, $"({Name}) RegisterComicVirtualProperty: Property '{name}' already registered");
         }
+    }
+
+    void IPluginContext.RegisterSidebarPage(ISidebarPageProvider provider)
+    {
+        ArgumentNullException.ThrowIfNull(provider, nameof(provider));
+        _sidebarPageProviders.Add(provider);
     }
 
     //

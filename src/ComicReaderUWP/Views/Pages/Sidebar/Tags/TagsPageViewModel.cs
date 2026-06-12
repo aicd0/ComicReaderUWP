@@ -24,7 +24,7 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.ViewModels;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.Tags;
+namespace ComicReaderUWP.Views.Pages.Sidebar.Tags;
 
 internal partial class TagsPageViewModel : INotifyPropertyChanged
 {

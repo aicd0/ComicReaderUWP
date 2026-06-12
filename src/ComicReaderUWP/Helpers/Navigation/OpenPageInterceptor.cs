@@ -5,13 +5,13 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Views.Pages.DevTools;
 using ComicReaderUWP.Views.Pages.Main;
-using ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
-using ComicReaderUWP.Views.Pages.SidePane.Favorite;
-using ComicReaderUWP.Views.Pages.SidePane.FilterPresets;
-using ComicReaderUWP.Views.Pages.SidePane.Folders;
-using ComicReaderUWP.Views.Pages.SidePane.History;
-using ComicReaderUWP.Views.Pages.SidePane.Playlist;
-using ComicReaderUWP.Views.Pages.SidePane.Tags;
+using ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
+using ComicReaderUWP.Views.Pages.Sidebar.Favorite;
+using ComicReaderUWP.Views.Pages.Sidebar.FilterPresets;
+using ComicReaderUWP.Views.Pages.Sidebar.Folders;
+using ComicReaderUWP.Views.Pages.Sidebar.History;
+using ComicReaderUWP.Views.Pages.Sidebar.Playlist;
+using ComicReaderUWP.Views.Pages.Sidebar.Tags;
 
 namespace ComicReaderUWP.Helpers.Navigation;
 

@@ -15,7 +15,7 @@ using ComicReaderUWP.Views.Dialogs.EditTagCategory;
 
 using Microsoft.UI.Xaml.Controls;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.Tags;
+namespace ComicReaderUWP.Views.Pages.Sidebar.Tags;
 
 internal sealed partial class TagsPage : BasePage
 {

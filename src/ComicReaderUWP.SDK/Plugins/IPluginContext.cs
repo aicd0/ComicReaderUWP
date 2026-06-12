@@ -6,6 +6,7 @@ using System.Globalization;
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.SDK.Plugins.Comic;
 using ComicReaderUWP.SDK.Plugins.Property;
+using ComicReaderUWP.SDK.Plugins.UI;
 using ComicReaderUWP.SDK.Plugins.UI.Menu;
 
 using Microsoft.UI.Xaml.Controls;
@@ -45,4 +46,6 @@ public interface IPluginContext
     Task<IEnumerable<long>> SearchComics(string filterExpression);
 
     void RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property);
+
+    void RegisterSidebarPage(ISidebarPageProvider provider);
 }

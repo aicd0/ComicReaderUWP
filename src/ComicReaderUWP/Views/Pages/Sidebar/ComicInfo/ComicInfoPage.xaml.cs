@@ -23,7 +23,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
+namespace ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 
 internal sealed partial class ComicInfoPage : BasePage
 {

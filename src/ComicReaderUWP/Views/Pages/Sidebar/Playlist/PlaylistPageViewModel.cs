@@ -16,7 +16,7 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
-namespace ComicReaderUWP.Views.Pages.SidePane.Playlist;
+namespace ComicReaderUWP.Views.Pages.Sidebar.Playlist;
 
 internal partial class PlaylistPageViewModel : INotifyPropertyChanged
 {
