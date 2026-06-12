@@ -1,11 +1,12 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-namespace ComicReaderUWP.SDK.Plugins.Menu;
+namespace ComicReaderUWP.SDK.Plugins.UI.Menu;
 
-public class SubItemMenuItem : IMenuItem
+public class SimpleMenuItem : IMenuItem
 {
     public required string Text { get; set; }
     public string? Glyph { get; set; }
-    public List<IMenuItem> Items { get; set; } = [];
+    public bool IsEnabled { get; set; } = true;
+    public Action? Click { get; set; }
 }

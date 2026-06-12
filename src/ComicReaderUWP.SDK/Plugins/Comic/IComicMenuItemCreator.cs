@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.SDK.Plugins.Common;
-using ComicReaderUWP.SDK.Plugins.Menu;
+using ComicReaderUWP.SDK.Plugins.UI.Menu;
 
 namespace ComicReaderUWP.SDK.Plugins.Comic;
 
