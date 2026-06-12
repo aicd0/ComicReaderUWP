@@ -1,6 +1,8 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Globalization;
+
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.SDK.Plugins.Comic;
 using ComicReaderUWP.SDK.Plugins.Property;
@@ -15,6 +17,8 @@ public delegate void ComicEditedEventHandler(IComicModel comic);
 public interface IPluginContext
 {
     event ComicEditedEventHandler? ComicEdited;
+
+    CultureInfo CurrentCulture { get; }
 
     string ResourceFolderPath { get; }
 

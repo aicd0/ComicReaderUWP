@@ -345,6 +345,7 @@ internal class ComicPropertyModel
             {
                 return StringResourceProvider.Instance.Ungrouped;
             }
+
             return lastReadTime.ToString("D", EnvironmentProvider.Instance.GetCurrentAppLanguageInfo());
         }
 

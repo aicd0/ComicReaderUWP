@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Database;
@@ -155,6 +157,8 @@ internal partial class PluginContext : IPluginContext
         add => _comicEditedEventHandler += value;
         remove => _comicEditedEventHandler -= value;
     }
+
+    CultureInfo IPluginContext.CurrentCulture => EnvironmentProvider.Instance.GetCurrentAppLanguageInfo();
 
     string IPluginContext.ResourceFolderPath => LoadContext.ResourceFolderPath;
 
