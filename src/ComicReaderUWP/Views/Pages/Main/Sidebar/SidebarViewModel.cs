@@ -5,9 +5,9 @@ using System.ComponentModel;
 
 using ComicReaderUWP.Common.Localization;
 
-namespace ComicReaderUWP.Views.Pages.Main;
+namespace ComicReaderUWP.Views.Pages.Main.Sidebar;
 
-internal partial class SidePaneViewModel : INotifyPropertyChanged
+internal partial class SidebarViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -7,5 +7,9 @@ namespace ComicReaderUWP.SDK.Plugins.UI;
 
 public interface ISidebarPageProvider
 {
-    Page CreatePage();
+    string Name { get; }
+
+    string Host { get; }
+
+    IconElement Icon { get; }
 }

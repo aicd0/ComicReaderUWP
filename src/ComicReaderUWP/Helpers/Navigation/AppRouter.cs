@@ -1,17 +1,20 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 
 namespace ComicReaderUWP.Helpers.Navigation;
 
 internal static class AppRouter
 {
-    private static readonly List<IRouterInterceptor> sInterceptors = new()
-    {
+    private static readonly OpenPageInterceptor _openPageInterceptor = new();
+
+    private static readonly List<IRouterInterceptor> sInterceptors =
+    [
         new CheckRouteInterceptor(),
-        new OpenPageInterceptor(),
-    };
+        _openPageInterceptor,
+    ];
 
     public static NavigationBundle? Process(Route route)
     {
@@ -24,5 +27,10 @@ internal static class AppRouter
         }
 
         return null;
+    }
+
+    public static void RegisterPage(string host, Type pageType)
+    {
+        _openPageInterceptor.RegisterPage(host, new DefaultPageTrait(pageType));
     }
 }

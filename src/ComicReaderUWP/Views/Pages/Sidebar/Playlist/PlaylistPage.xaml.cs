@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Common.Utils;
@@ -91,14 +90,5 @@ internal sealed partial class PlaylistPage : BasePage
                 flyout.ShowAt(fe);
             }
         });
-    }
-
-    //
-    // Utilities
-    //
-
-    private IMainPageAbility GetMainPageAbility()
-    {
-        return GetAbility<IMainPageAbility>()!;
     }
 }

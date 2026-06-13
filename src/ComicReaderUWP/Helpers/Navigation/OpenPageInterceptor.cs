@@ -1,6 +1,10 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Views.Pages.DevTools;
@@ -17,29 +21,45 @@ namespace ComicReaderUWP.Helpers.Navigation;
 
 internal class OpenPageInterceptor : IRouterInterceptor
 {
+    private readonly Dictionary<string, IPageTrait> _internalHosts = new()
+    {
+        { RouterConstants.HOST_MAIN, new DefaultPageTrait(typeof(MainPage)) },
+        { RouterConstants.HOST_READER, ReaderPageTrait.Instance },
+        { RouterConstants.HOST_HOME, HomePageTrait.Instance },
+        { RouterConstants.HOST_SEARCH, SearchPageTrait.Instance },
+        { RouterConstants.HOST_SETTINGS, SettingsPageTrait.Instance },
+        { RouterConstants.HOST_SIDE_PANE_FAVORITE, new DefaultPageTrait(typeof(FavoritePage)) },
+        { RouterConstants.HOST_SIDE_PANE_HISTORY, new DefaultPageTrait(typeof(HistoryPage)) },
+        { RouterConstants.HOST_SIDE_PANE_TAGS, new DefaultPageTrait(typeof(TagsPage)) },
+        { RouterConstants.HOST_SIDE_PANE_FOLDERS, new DefaultPageTrait(typeof(FoldersPage)) },
+        { RouterConstants.HOST_SIDE_PANE_FILTER_PRESETS, new DefaultPageTrait(typeof(FilterPresetsPage)) },
+        { RouterConstants.HOST_SIDE_PANE_PLAYLIST, new DefaultPageTrait(typeof(PlaylistPage)) },
+        { RouterConstants.HOST_SIDE_PANE_COMIC_INFO, new DefaultPageTrait(typeof(ComicInfoPage)) },
+        { RouterConstants.HOST_DEV_TOOLS, new DefaultPageTrait(typeof(DevToolsPage)) },
+    };
+
+    private readonly ConcurrentDictionary<string, IPageTrait> _hosts = [];
+
+    public OpenPageInterceptor()
+    {
+        foreach (KeyValuePair<string, IPageTrait> item in _internalHosts)
+        {
+            _hosts[item.Key] = item.Value;
+        }
+    }
+
     public bool Intercept(Route route, out NavigationBundle? navigationBundle)
     {
-        IPageTrait? pageTrait = route.Host switch
+        string host = route.Host;
+        if (!_hosts.TryGetValue(host, out IPageTrait? pageTrait))
         {
-            RouterConstants.HOST_MAIN => new DefaultPageTrait(typeof(MainPage)),
-            RouterConstants.HOST_READER => ReaderPageTrait.Instance,
-            RouterConstants.HOST_HOME => HomePageTrait.Instance,
-            RouterConstants.HOST_SEARCH => SearchPageTrait.Instance,
-            RouterConstants.HOST_SETTINGS => SettingsPageTrait.Instance,
-            RouterConstants.HOST_SIDE_PANE_FAVORITE => new DefaultPageTrait(typeof(FavoritePage)),
-            RouterConstants.HOST_SIDE_PANE_HISTORY => new DefaultPageTrait(typeof(HistoryPage)),
-            RouterConstants.HOST_SIDE_PANE_TAGS => new DefaultPageTrait(typeof(TagsPage)),
-            RouterConstants.HOST_SIDE_PANE_FOLDERS => new DefaultPageTrait(typeof(FoldersPage)),
-            RouterConstants.HOST_SIDE_PANE_FILTER_PRESETS => new DefaultPageTrait(typeof(FilterPresetsPage)),
-            RouterConstants.HOST_SIDE_PANE_PLAYLIST => new DefaultPageTrait(typeof(PlaylistPage)),
-            RouterConstants.HOST_SIDE_PANE_COMIC_INFO => new DefaultPageTrait(typeof(ComicInfoPage)),
-            RouterConstants.HOST_DEV_TOOLS => DebugUtils.DeveloperMode ? new DefaultPageTrait(typeof(DevToolsPage)) : null,
-            _ => null,
-        };
+            Logger.F(nameof(OpenPageInterceptor), $"Unknown host: '{host}'");
+            navigationBundle = null;
+            return false;
+        }
 
-        if (pageTrait == null)
+        if (host == RouterConstants.HOST_DEV_TOOLS && !DebugUtils.DeveloperMode)
         {
-            Logger.F(nameof(OpenPageInterceptor), $"Unknown host: '{route.Host}'");
             navigationBundle = null;
             return false;
         }
@@ -49,5 +69,13 @@ internal class OpenPageInterceptor : IRouterInterceptor
             PageTrait = pageTrait,
         };
         return true;
+    }
+
+    public void RegisterPage(string host, IPageTrait pageTrait)
+    {
+        if (!_hosts.TryAdd(host, pageTrait))
+        {
+            throw new ArgumentException($"Host '{host}' is already presented.");
+        }
     }
 }

@@ -20,6 +20,7 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Views.AppWindows.Main;
+using ComicReaderUWP.Views.Pages.Main.Sidebar;
 
 using Microsoft.UI;
 using Microsoft.UI.Input;
@@ -862,7 +863,7 @@ internal sealed partial class MainPage : BasePage
         SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen);
     }
 
-    private void RightSidePane_PinStateChanged(SidePaneView sender, bool pinned)
+    private void RightSidePane_PinStateChanged(SidebarView sender, bool pinned)
     {
         _sidePanePinned = pinned;
         NavigationPageSidePane.DisplayMode = pinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
@@ -1160,14 +1161,14 @@ internal sealed partial class MainPage : BasePage
             parent.SetSidePaneOpenState(open, force: force);
         }
 
-        public void SetSidePanePage(SidePaneView.PageEnum page)
+        public void SetSidePanePage(string tag)
         {
             if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
 
-            parent.RightSidePane.SetPage(page);
+            parent.RightSidePane.SetPage(tag);
         }
 
         public LifecycleAwareAbility GetLifecycleAbility()
@@ -1421,7 +1422,7 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    private class SidePaneHandler(MainPage page) : SidePaneView.ISidePaneHandler
+    private class SidePaneHandler(MainPage page) : SidebarView.ISidePaneHandler
     {
         public int GetWindowId()
         {

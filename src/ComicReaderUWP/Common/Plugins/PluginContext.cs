@@ -18,6 +18,7 @@ using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
+using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.SDK.Plugins;
@@ -238,6 +239,11 @@ internal partial class PluginContext : IPluginContext
         });
 
         return ids;
+    }
+
+    void IPluginContext.RegisterPage(string host, Type pageType)
+    {
+        AppRouter.RegisterPage(host, pageType);
     }
 
     void IPluginContext.RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property)

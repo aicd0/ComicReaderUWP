@@ -45,6 +45,8 @@ public interface IPluginContext
 
     Task<IEnumerable<long>> SearchComics(string filterExpression);
 
+    void RegisterPage(string host, Type pageType);
+
     void RegisterComicVirtualProperty(IVirtualProperty<IComicModel> property);
 
     void RegisterSidebarPage(ISidebarPageProvider provider);

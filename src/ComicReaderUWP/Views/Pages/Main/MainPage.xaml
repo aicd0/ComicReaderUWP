@@ -11,6 +11,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:primitiveContract7Present="using:Microsoft.UI.Xaml.Controls.Primitives?IsApiContractPresent(Windows.Foundation.UniversalApiContract,7)"
+    xmlns:sidebar="using:ComicReaderUWP.Views.Pages.Main.Sidebar"
     xmlns:vm="using:ComicReaderUWP.ViewModels"
     KeyboardAcceleratorPlacementMode="Hidden"
     mc:Ignorable="d">
@@ -313,7 +314,7 @@
                 PanePlacement="Right">
                 <SplitView.Pane>
                     <Grid SizeChanged="NavigationPageSidePane_SizeChanged">
-                        <main:SidePaneView x:Name="RightSidePane" PinStateChanged="RightSidePane_PinStateChanged" />
+                        <sidebar:SidebarView x:Name="RightSidePane" PinStateChanged="RightSidePane_PinStateChanged" />
                         <Rectangle
                             Width="1"
                             HorizontalAlignment="Left"
