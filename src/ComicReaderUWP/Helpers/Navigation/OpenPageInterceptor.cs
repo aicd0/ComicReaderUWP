@@ -48,7 +48,7 @@ internal class OpenPageInterceptor : IRouterInterceptor
         }
     }
 
-    public bool Intercept(Route route, out NavigationBundle? navigationBundle)
+    public bool Intercept(Route route, out PageNavigationBundle? navigationBundle)
     {
         string host = route.Host;
         if (!_hosts.TryGetValue(host, out IPageTrait? pageTrait))
@@ -64,7 +64,7 @@ internal class OpenPageInterceptor : IRouterInterceptor
             return false;
         }
 
-        navigationBundle = new NavigationBundle(route)
+        navigationBundle = new PageNavigationBundle(route)
         {
             PageTrait = pageTrait,
         };

@@ -166,7 +166,7 @@ internal sealed partial class SidebarView : BaseUserControl
             return;
         }
 
-        NavigationBundle bundle = AppRouter.Process(item.PageRoute)!;
+        PageNavigationBundle bundle = AppRouter.Process(item.PageRoute)!;
         _handler.TransferAbility(bundle);
         ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
     }
@@ -263,7 +263,7 @@ internal sealed partial class SidebarView : BaseUserControl
     {
         int GetWindowId();
 
-        void TransferAbility(NavigationBundle bundle);
+        void TransferAbility(PageNavigationBundle bundle);
     }
 
     private class SidebarPageItem

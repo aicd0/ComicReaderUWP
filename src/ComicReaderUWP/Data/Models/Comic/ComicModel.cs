@@ -16,6 +16,7 @@ using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Database.SqlHelpers;
+using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Data.Tables;
 
 using Windows.Storage;
@@ -293,6 +294,28 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     IReadOnlyList<SDK.Plugins.Comic.IComicTagCategory> SDK.Plugins.Comic.IComicModel.Tags => Tags;
 
+    IReadOnlyDictionary<string, string> SDK.Plugins.Comic.IComicModel.Links
+    {
+        get
+        {
+            Dictionary<string, string> links = [];
+
+            string? linkJson = GetExt(ComicExt.LINKS);
+            var linkModel = TagLinkModel.Parse(linkJson);
+            if (linkModel is null)
+            {
+                return links;
+            }
+
+            foreach (TagLinkModel.LinkModel item in linkModel.Links)
+            {
+                links[item.Name] = item.Link;
+            }
+
+            return links;
+        }
+    }
+
     bool SDK.Plugins.Comic.IComicModel.IsHidden => Hidden;
 
     SDK.Plugins.Comic.CompletionStatusEnum SDK.Plugins.Comic.IComicModel.CompletionStatus
@@ -332,6 +355,27 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     Task SDK.Plugins.Comic.IComicModel.SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
     {
         return SetTags(tags);
+    }
+
+    Task SDK.Plugins.Comic.IComicModel.SetLinks(IReadOnlyDictionary<string, string> links)
+    {
+        List<TagLinkModel.LinkModel> linkModels = [];
+        foreach (KeyValuePair<string, string> item in links)
+        {
+            linkModels.Add(new()
+            {
+                Name = item.Key,
+                Link = item.Value,
+            });
+        }
+
+        TagLinkModel linkModel = new()
+        {
+            Links = linkModels,
+        };
+        string json = linkModel.Serialize();
+        SetExt(ComicExt.LINKS, json);
+        return FlushExt();
     }
 
     Task SDK.Plugins.Comic.IComicModel.SetHidden(bool isHidden)

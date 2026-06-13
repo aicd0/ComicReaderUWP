@@ -282,7 +282,7 @@ internal sealed partial class MainWindow : Window
     {
         // Load the main page
         var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN);
-        NavigationBundle bundle = AppRouter.Process(route)!;
+        PageNavigationBundle bundle = AppRouter.Process(route)!;
         bundle.Communicator.RegisterAbility<ILifecycleAwareAbility>(Members._mainWindowAbility);
         bundle.Communicator.RegisterAbility<IMainWindowAbility>(Members._mainWindowAbility);
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);

@@ -5,5 +5,5 @@ namespace ComicReaderUWP.Helpers.Navigation;
 
 internal interface IRouterInterceptor
 {
-    bool Intercept(Route route, out NavigationBundle? navigationBundle);
+    bool Intercept(Route route, out PageNavigationBundle? navigationBundle);
 }

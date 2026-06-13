@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.Common.BaseUI;
 
-internal interface INavigationBundle
+internal interface IPageNavigationBundle
 {
     public IPageTrait PageTrait { get; }
 

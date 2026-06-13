@@ -10,6 +10,7 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
@@ -1015,6 +1016,15 @@ internal sealed partial class ReaderPage : BasePage
             PageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount),
         };
         GetEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
+
+        if (comic is not null)
+        {
+            var uiContext = UIContext.Create(PageActionHandler);
+            foreach (PluginContext plugin in PluginManager.Instance.GetActivePlugins())
+            {
+                plugin.DispatchReadingComicChangedEvent(uiContext, comic);
+            }
+        }
     }
 
     private void AddToActiveTabs()

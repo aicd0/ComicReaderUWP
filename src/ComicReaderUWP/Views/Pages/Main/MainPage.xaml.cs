@@ -279,7 +279,7 @@ internal sealed partial class MainPage : BasePage
 
     private bool LoadTabNoLock(Route route, string targetTabId, bool selectTab = true, string initiateTabId = "", string newTabId = "")
     {
-        NavigationBundle? bundle = AppRouter.Process(route);
+        PageNavigationBundle? bundle = AppRouter.Process(route);
         if (bundle is null)
         {
             Logger.F(TAG, $"Failed to process route: {route.Url}");
@@ -331,7 +331,7 @@ internal sealed partial class MainPage : BasePage
         return true;
     }
 
-    private string AddTabNoLock(NavigationBundle bundle, string initiateTabId, string newTabId)
+    private string AddTabNoLock(PageNavigationBundle bundle, string initiateTabId, string newTabId)
     {
         int placementIndex = -1;
         if (!string.IsNullOrEmpty(initiateTabId))
@@ -378,7 +378,7 @@ internal sealed partial class MainPage : BasePage
         };
         tabInfo.NavigatedHandler = (sender, e) =>
         {
-            var newBundle = (NavigationBundle)e.Parameter;
+            var newBundle = (PageNavigationBundle)e.Parameter;
             tabInfo.NavigationBarAbility.ClearStates();
             tabInfo.CurrentBundle = newBundle;
             if (_currentTab is not null && tabInfo.Id == _currentTab.Id)
@@ -1429,7 +1429,7 @@ internal sealed partial class MainPage : BasePage
             return page.WindowId;
         }
 
-        public void TransferAbility(NavigationBundle bundle)
+        public void TransferAbility(PageNavigationBundle bundle)
         {
             page.TransferAbility(bundle.Communicator);
         }
@@ -1442,7 +1442,7 @@ internal sealed partial class MainPage : BasePage
         public required TabViewItem Item { init; get; }
         public required MainPageAbilityForTab Ability { init; get; }
         public required NavigationPageAbility NavigationBarAbility { init; get; }
-        public required NavigationBundle CurrentBundle { get; set; }
+        public required PageNavigationBundle CurrentBundle { get; set; }
         public NavigatedEventHandler? NavigatedHandler { get; set; }
 
         //

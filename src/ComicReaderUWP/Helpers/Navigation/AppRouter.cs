@@ -16,11 +16,11 @@ internal static class AppRouter
         _openPageInterceptor,
     ];
 
-    public static NavigationBundle? Process(Route route)
+    public static PageNavigationBundle? Process(Route route)
     {
         foreach (IRouterInterceptor interceptor in sInterceptors)
         {
-            if (interceptor.Intercept(route, out NavigationBundle? bundle))
+            if (interceptor.Intercept(route, out PageNavigationBundle? bundle))
             {
                 return bundle;
             }

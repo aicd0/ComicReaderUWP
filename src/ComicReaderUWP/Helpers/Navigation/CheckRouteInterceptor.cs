@@ -9,7 +9,7 @@ internal class CheckRouteInterceptor : IRouterInterceptor
 {
     private const string TAG = nameof(CheckRouteInterceptor);
 
-    public bool Intercept(Route route, out NavigationBundle? navigationBundle)
+    public bool Intercept(Route route, out PageNavigationBundle? navigationBundle)
     {
         navigationBundle = null;
 

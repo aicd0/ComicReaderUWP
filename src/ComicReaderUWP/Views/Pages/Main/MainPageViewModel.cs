@@ -270,16 +270,13 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
         {
             var uiContext = UIContext.Create(_actionHandler);
-            if (uiContext is not null)
+            var pluginItems = PluginManager.Instance.GetActivePlugins()
+                .SelectMany(ctx => ctx.GetMainPageMoreMenuItems(uiContext))
+                .ToImmutableList();
+            if (pluginItems.Count > 0)
             {
-                var pluginItems = PluginManager.Instance.GetActivePlugins()
-                    .SelectMany(ctx => ctx.GetMainPageMoreMenuItems(uiContext))
-                    .ToImmutableList();
-                if (pluginItems.Count > 0)
-                {
-                    items.Add(new SeparatorMenuFlyoutItemModel());
-                    items.AddRange(pluginItems);
-                }
+                items.Add(new SeparatorMenuFlyoutItemModel());
+                items.AddRange(pluginItems);
             }
         }
 

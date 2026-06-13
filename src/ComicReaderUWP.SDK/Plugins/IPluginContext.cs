@@ -15,9 +15,12 @@ namespace ComicReaderUWP.SDK.Plugins;
 
 public delegate void ComicEditedEventHandler(IComicModel comic);
 
+public delegate void ReadingComicChangedEventHandler(IUIContext uiContext, IComicModel comic);
+
 public interface IPluginContext
 {
     event ComicEditedEventHandler? ComicEdited;
+    event ReadingComicChangedEventHandler? ReadingComicChanged;
 
     CultureInfo CurrentCulture { get; }
 

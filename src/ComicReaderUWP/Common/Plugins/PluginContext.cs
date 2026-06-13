@@ -99,6 +99,16 @@ internal partial class PluginContext : IPluginContext
         SafeAction(() => _comicEditedEventHandler?.Invoke(comic));
     }
 
+    public void DispatchReadingComicChangedEvent(IUIContext uiContext, IComicModel comic)
+    {
+        if (!IsActive)
+        {
+            return;
+        }
+
+        SafeAction(() => _readingComicChangedEventHandler?.Invoke(uiContext, comic));
+    }
+
     public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems(IUIContext uiContext)
     {
         if (!IsActive)
@@ -156,6 +166,7 @@ internal partial class PluginContext : IPluginContext
     //
 
     private event ComicEditedEventHandler? _comicEditedEventHandler;
+    private event ReadingComicChangedEventHandler? _readingComicChangedEventHandler;
 
     private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
     private readonly List<ISidebarPageProvider> _sidebarPageProviders = [];
@@ -168,6 +179,12 @@ internal partial class PluginContext : IPluginContext
     {
         add => _comicEditedEventHandler += value;
         remove => _comicEditedEventHandler -= value;
+    }
+
+    event ReadingComicChangedEventHandler? IPluginContext.ReadingComicChanged
+    {
+        add => _readingComicChangedEventHandler += value;
+        remove => _readingComicChangedEventHandler -= value;
     }
 
     CultureInfo IPluginContext.CurrentCulture => EnvironmentProvider.Instance.GetCurrentAppLanguageInfo();
