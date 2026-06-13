@@ -5,5 +5,5 @@ namespace ComicReaderUWP.SDK.Plugins.UI.Menu;
 
 public interface ICommonMenuItemCreator
 {
-    IEnumerable<IMenuItem> CreateMenuItems(IUIContext uiContext);
+    IEnumerable<IMenuItem> CreateMenuItems(IWindowContext windowContext);
 }

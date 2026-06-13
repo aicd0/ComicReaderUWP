@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.Core.Common.Lifecycle;
 
-public interface ILiveDataNoType
+public interface ILiveDataValueAbility<T> where T : notnull
 {
-    void Clear();
+    public T? GetValue();
 }

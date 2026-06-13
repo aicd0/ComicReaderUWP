@@ -8,5 +8,5 @@ namespace ComicReaderUWP.SDK.Plugins.Comic;
 
 public interface IComicMenuItemCreator
 {
-    IEnumerable<IMenuItem> CreateMenuItems(IUIContext uiContext, IComicModel primary, IEnumerable<IComicModel> selection);
+    IEnumerable<IMenuItem> CreateMenuItems(IWindowContext windowContext, IComicModel primary, IEnumerable<IComicModel> selection);
 }

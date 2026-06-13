@@ -19,7 +19,7 @@ internal class PageNavigationBundle : IPageNavigationBundle, SDK.Plugins.UI.IPag
     {
         Bundle = new PageBundle(route.Queries);
         Url = route.Url;
-        _uiContext = new(() => UIContext.Create(Communicator));
+        _windowContext = new(() => PluginWindowContext.From(Communicator));
     }
 
     public void SetUrl(string url)
@@ -33,7 +33,7 @@ internal class PageNavigationBundle : IPageNavigationBundle, SDK.Plugins.UI.IPag
     // SDK.Plugins.UI.IPageNavigationBundle Implementation
     //
 
-    private readonly Lazy<SDK.Plugins.UI.IUIContext> _uiContext;
+    private readonly Lazy<SDK.Plugins.UI.IWindowContext> _windowContext;
 
-    SDK.Plugins.UI.IUIContext SDK.Plugins.UI.IPageNavigationBundle.UIContext => _uiContext.Value;
+    SDK.Plugins.UI.IWindowContext SDK.Plugins.UI.IPageNavigationBundle.WindowContext => _windowContext.Value;
 }

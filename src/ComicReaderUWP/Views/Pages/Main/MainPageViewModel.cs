@@ -269,9 +269,9 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
 
         {
-            var uiContext = UIContext.Create(_actionHandler);
+            var windowContext = PluginWindowContext.From(_actionHandler);
             var pluginItems = PluginManager.Instance.GetActivePlugins()
-                .SelectMany(ctx => ctx.GetMainPageMoreMenuItems(uiContext))
+                .SelectMany(ctx => ctx.GetMainPageMoreMenuItems(windowContext))
                 .ToImmutableList();
             if (pluginItems.Count > 0)
             {

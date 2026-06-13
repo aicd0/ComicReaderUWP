@@ -15,12 +15,9 @@ namespace ComicReaderUWP.SDK.Plugins;
 
 public delegate void ComicEditedEventHandler(IComicModel comic);
 
-public delegate void ReadingComicChangedEventHandler(IUIContext uiContext, IComicModel comic);
-
 public interface IPluginContext
 {
     event ComicEditedEventHandler? ComicEdited;
-    event ReadingComicChangedEventHandler? ReadingComicChanged;
 
     CultureInfo CurrentCulture { get; }
 
@@ -38,11 +35,7 @@ public interface IPluginContext
 
     Task<DialogResult> EnqueueDialog(DialogOptions options);
 
-    Task<DialogResult> EnqueueDialog(int windowId, DialogOptions options);
-
     Task<DialogResult> EnqueueDialog(ContentDialog dialog);
-
-    Task<DialogResult> EnqueueDialog(int windowId, ContentDialog dialog);
 
     Task<IComicModel?> GetComic(long id);
 

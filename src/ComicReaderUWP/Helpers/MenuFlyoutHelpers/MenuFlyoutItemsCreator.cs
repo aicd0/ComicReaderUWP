@@ -255,9 +255,9 @@ internal static class MenuFlyoutItemsCreator
         });
 
         {
-            var uiContext = UIContext.Create(actionHandler);
+            var windowContext = PluginWindowContext.From(actionHandler);
             var pluginItems = PluginManager.Instance.GetActivePlugins()
-                .SelectMany(ctx => ctx.GetComicMenuItems(uiContext, primaryComic, selectedComics))
+                .SelectMany(ctx => ctx.GetComicMenuItems(windowContext, primaryComic, selectedComics))
                 .ToImmutableList();
             if (pluginItems.Count > 0)
             {

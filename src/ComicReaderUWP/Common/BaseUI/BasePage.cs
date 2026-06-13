@@ -8,6 +8,7 @@ using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.Actions.Utils;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 
@@ -176,7 +177,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
             IMainWindowAbility? mainWindowAbility = page.GetAbility<IMainWindowAbility>() ?? throw new InvalidOperationException("IMainWindowAbility not found");
             int windowId = mainWindowAbility.WindowId;
             page.WindowId = windowId;
-            page.PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(windowId));
+            page.PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(windowId, mainWindowAbility.PluginWindowContext));
 
             // Retrieve tab ID (if has)
             IMainPageAbilityForTab? mainPageAbility = page.GetAbility<IMainPageAbilityForTab>();
@@ -224,9 +225,11 @@ internal abstract class BasePage : Page, ILifecycleOwner
         }
     }
 
-    private class MainWindowComponent(int windowId) : IMainWindowComponent
+    private class MainWindowComponent(int windowId, PluginWindowContext pluginWindowContext) : IMainWindowComponent
     {
         public int WindowId => windowId;
+
+        public PluginWindowContext PluginWindowContext => pluginWindowContext;
     }
 
     private class MainPageComponent(string tabId) : IMainPageComponent

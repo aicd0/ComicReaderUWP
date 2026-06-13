@@ -5,7 +5,7 @@ using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Core.Common.Lifecycle.Utils;
 
-public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveData, long minInterval, int delay = 0) : IMutableLiveData<T> where T : notnull
+public sealed class MutableLiveDataWithDelay<T>(IMutableLiveData<T> liveData, long minInterval, int delay = 0) : IMutableLiveData<T> where T : notnull
 {
     private readonly IMutableLiveData<T> _liveData = liveData;
 
@@ -39,7 +39,7 @@ public sealed class MutableLiveDataWithMinInterval<T>(IMutableLiveData<T> liveDa
         return _liveData.HasObserver(observer);
     }
 
-    private class ObserverWrapper(MutableLiveDataWithMinInterval<T> liveData, IValueObserver<T> observer, long minInterval, int delay) : IValueObserver<T>
+    private class ObserverWrapper(MutableLiveDataWithDelay<T> liveData, IValueObserver<T> observer, long minInterval, int delay) : IValueObserver<T>
     {
         private long _lastChangedTime = 0L;
         private T? _lastValue = default;

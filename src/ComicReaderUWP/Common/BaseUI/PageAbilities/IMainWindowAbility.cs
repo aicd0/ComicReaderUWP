@@ -1,6 +1,7 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.Lifecycle;
 
 namespace ComicReaderUWP.Common.BaseUI.PageAbilities;
@@ -18,6 +19,8 @@ internal interface IMainWindowAbility : IPageAbility
     bool IsMinimized { get; }
 
     bool IsFullscreen { get; }
+
+    PluginWindowContext PluginWindowContext { get; }
 
     bool PointerInWindow();
 

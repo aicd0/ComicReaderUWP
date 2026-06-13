@@ -1,12 +1,11 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Core.Common.Lifecycle;
 
-public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
+public class LiveData<T> : ILiveData<T> where T : notnull
 {
     private readonly Dictionary<IValueObserver<T>, ObserverWrapper> _observers = [];
     private T? _value;
@@ -73,22 +72,20 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
 
     private void ObserveInternal(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)
     {
+        ArgumentNullException.ThrowIfNull(owner, nameof(owner));
+        ArgumentNullException.ThrowIfNull(observer, nameof(observer));
+        ArgumentNullException.ThrowIfNull(options, nameof(options));
+
         if (_clearing)
         {
             return;
         }
 
-        if (owner == null || observer == null)
-        {
-            Logger.AssertNotReachHere("3CC47B4DD23EFA9E");
-            return;
-        }
-
         if (_observers.TryGetValue(observer, out ObserverWrapper? wrapper))
         {
-            if (wrapper.IsSameOwner(owner))
+            if (!wrapper.IsSameOwner(owner))
             {
-                Logger.AssertNotReachHere("4EC4F8B92CAAE0D0");
+                throw new InvalidOperationException("Same observer with different owner.");
             }
 
             return;
@@ -235,26 +232,6 @@ public class LiveData<T> : ILiveData<T>, ILiveDataNoType where T : notnull
             {
                 _liveData.DispatchValue(this);
             }
-        }
-    }
-
-    private class ForeverObserverWrapper(LiveData<T> liveData, IValueObserver<T> observer) : ObserverWrapper(observer)
-    {
-        private readonly LiveData<T> _liveData = liveData;
-
-        public override bool IsSameOwner(ILifecycleOwner owner)
-        {
-            return false;
-        }
-
-        public override bool IsActive()
-        {
-            return true;
-        }
-
-        public override void Remove()
-        {
-            _liveData._observers.Remove(Observer);
         }
     }
 }

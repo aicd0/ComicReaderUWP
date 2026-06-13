@@ -1019,10 +1019,9 @@ internal sealed partial class ReaderPage : BasePage
 
         if (comic is not null)
         {
-            var uiContext = UIContext.Create(PageActionHandler);
             foreach (PluginContext plugin in PluginManager.Instance.GetActivePlugins())
             {
-                plugin.DispatchReadingComicChangedEvent(uiContext, comic);
+                plugin.SetReadingComic(GetMainWindowAbility().PluginWindowContext, comic);
             }
         }
     }

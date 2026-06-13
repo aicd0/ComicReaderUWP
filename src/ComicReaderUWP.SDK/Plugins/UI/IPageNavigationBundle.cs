@@ -5,5 +5,5 @@ namespace ComicReaderUWP.SDK.Plugins.UI;
 
 public interface IPageNavigationBundle
 {
-    IUIContext UIContext { get; }
+    IWindowContext WindowContext { get; }
 }

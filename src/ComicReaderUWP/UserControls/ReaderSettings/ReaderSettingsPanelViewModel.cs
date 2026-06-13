@@ -13,7 +13,7 @@ internal partial class ReaderSettingsPanelViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly MutableLiveData<bool> _settingsChangedLiveData = new();
-    public readonly MutableLiveDataWithMinInterval<bool> SettingsChangedLiveData;
+    public readonly MutableLiveDataWithDelay<bool> SettingsChangedLiveData;
 
     private string _generalTabTitle = string.Empty;
     public string GeneralTabTitle

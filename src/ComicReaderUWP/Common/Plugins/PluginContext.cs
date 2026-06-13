@@ -99,17 +99,7 @@ internal partial class PluginContext : IPluginContext
         SafeAction(() => _comicEditedEventHandler?.Invoke(comic));
     }
 
-    public void DispatchReadingComicChangedEvent(IUIContext uiContext, IComicModel comic)
-    {
-        if (!IsActive)
-        {
-            return;
-        }
-
-        SafeAction(() => _readingComicChangedEventHandler?.Invoke(uiContext, comic));
-    }
-
-    public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems(IUIContext uiContext)
+    public IReadOnlyList<BaseMenuFlyoutItemModel> GetMainPageMoreMenuItems(IWindowContext windowContext)
     {
         if (!IsActive)
         {
@@ -122,10 +112,10 @@ internal partial class PluginContext : IPluginContext
             return [];
         }
 
-        return [.. SafeAction(() => creator.CreateMenuItems(uiContext), []).Select(CreateHostMenuFlyoutItem)];
+        return [.. SafeAction(() => creator.CreateMenuItems(windowContext), []).Select(CreateHostMenuFlyoutItem)];
     }
 
-    public IReadOnlyList<BaseMenuFlyoutItemModel> GetComicMenuItems(IUIContext uiContext, IComicModel primary, IEnumerable<IComicModel> selection)
+    public IReadOnlyList<BaseMenuFlyoutItemModel> GetComicMenuItems(IWindowContext windowContext, IComicModel primary, IEnumerable<IComicModel> selection)
     {
         if (!IsActive)
         {
@@ -138,7 +128,7 @@ internal partial class PluginContext : IPluginContext
             return [];
         }
 
-        return [.. SafeAction(() => creator.CreateMenuItems(uiContext, primary, selection), []).Select(CreateHostMenuFlyoutItem)];
+        return [.. SafeAction(() => creator.CreateMenuItems(windowContext, primary, selection), []).Select(CreateHostMenuFlyoutItem)];
     }
 
     public IEnumerable<IVirtualProperty<IComicModel>> GetAllComicVirtualProperties()
@@ -161,12 +151,21 @@ internal partial class PluginContext : IPluginContext
         return [.. _sidebarPageProviders];
     }
 
+    public void SetReadingComic(PluginWindowContext windowContext, IComicModel? comic)
+    {
+        if (!IsActive)
+        {
+            return;
+        }
+
+        windowContext.SetReadingComic(comic, SafeAction);
+    }
+
     //
     // IPluginContext Implementation
     //
 
     private event ComicEditedEventHandler? _comicEditedEventHandler;
-    private event ReadingComicChangedEventHandler? _readingComicChangedEventHandler;
 
     private readonly Dictionary<string, IVirtualProperty<IComicModel>> _comicVirtualProperties = [];
     private readonly List<ISidebarPageProvider> _sidebarPageProviders = [];
@@ -179,12 +178,6 @@ internal partial class PluginContext : IPluginContext
     {
         add => _comicEditedEventHandler += value;
         remove => _comicEditedEventHandler -= value;
-    }
-
-    event ReadingComicChangedEventHandler? IPluginContext.ReadingComicChanged
-    {
-        add => _readingComicChangedEventHandler += value;
-        remove => _readingComicChangedEventHandler -= value;
     }
 
     CultureInfo IPluginContext.CurrentCulture => EnvironmentProvider.Instance.GetCurrentAppLanguageInfo();
@@ -217,19 +210,9 @@ internal partial class PluginContext : IPluginContext
         return DialogUtils.EnqueueDialogAsync(options);
     }
 
-    Task<DialogResult> IPluginContext.EnqueueDialog(int windowId, DialogOptions options)
-    {
-        return DialogUtils.EnqueueDialogAsync(windowId, options);
-    }
-
     Task<DialogResult> IPluginContext.EnqueueDialog(ContentDialog dialog)
     {
         return DialogUtils.EnqueueDialogAsync(dialog);
-    }
-
-    Task<DialogResult> IPluginContext.EnqueueDialog(int windowId, ContentDialog dialog)
-    {
-        return DialogUtils.EnqueueDialogAsync(windowId, dialog);
     }
 
     async Task<IComicModel?> IPluginContext.GetComic(long id)
