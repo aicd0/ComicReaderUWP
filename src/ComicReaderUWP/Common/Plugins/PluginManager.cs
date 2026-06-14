@@ -264,29 +264,41 @@ internal partial class PluginManager
     {
         string pluginFileName = Path.GetFileNameWithoutExtension(pluginFile);
         string extractDir = Path.Combine(StorageLocation.TemporaryFolderPath, "plugins", pluginFileName);
-        try
+
+        string sourceSignature = FileUtils.GetFileSignature(pluginFile);
+        if (string.IsNullOrEmpty(sourceSignature))
         {
-            Directory.Delete(extractDir, true);
-        }
-        catch (DirectoryNotFoundException)
-        {
-            // Ignore
-        }
-        catch (Exception ex)
-        {
-            Logger.F(TAG, ex);
+            Logger.E(TAG, $"Failed to calculate signature for plugin '{pluginFile}'");
             return null;
         }
 
-        try
+        string signatureFile = Path.Combine(extractDir, "PluginSignature.txt");
+        if (!SignatureMatched(sourceSignature, signatureFile))
         {
-            Directory.CreateDirectory(extractDir);
-            System.IO.Compression.ZipFile.ExtractToDirectory(pluginFile, extractDir);
-        }
-        catch (Exception ex)
-        {
-            Logger.F(TAG, ex);
-            return null;
+            try
+            {
+                Directory.Delete(extractDir, true);
+            }
+            catch (DirectoryNotFoundException)
+            {
+            }
+            catch (Exception ex)
+            {
+                Logger.F(TAG, ex);
+                return null;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(extractDir);
+                System.IO.Compression.ZipFile.ExtractToDirectory(pluginFile, extractDir);
+                File.WriteAllText(signatureFile, sourceSignature);
+            }
+            catch (Exception ex)
+            {
+                Logger.F(TAG, ex);
+                return null;
+            }
         }
 
         string metaFile = Path.Combine(extractDir, "PluginMeta.json");
@@ -369,6 +381,35 @@ internal partial class PluginManager
             ResourceFolderPath = extractDir,
             Assemblies = assemblies,
         };
+    }
+
+    private static bool SignatureMatched(string sourceSignature, string signatureFile)
+    {
+        string cacheSignature;
+        try
+        {
+            cacheSignature = File.ReadAllText(signatureFile);
+        }
+        catch (FileNotFoundException)
+        {
+            return false;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, ex);
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(cacheSignature))
+        {
+            return false;
+        }
+
+        return cacheSignature == sourceSignature;
     }
 
     private static PluginMeta? LoadPluginMeta(string filePath)
