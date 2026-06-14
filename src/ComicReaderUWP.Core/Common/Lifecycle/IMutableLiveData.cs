@@ -3,7 +3,6 @@
 
 namespace ComicReaderUWP.Core.Common.Lifecycle;
 
-public interface IMutableLiveData<T> : ILiveData<T> where T : notnull
+public interface IMutableLiveData<T> : ILiveData<T>, ILiveDataEmitAbility<T> where T : notnull
 {
-    void Emit(T value);
 }

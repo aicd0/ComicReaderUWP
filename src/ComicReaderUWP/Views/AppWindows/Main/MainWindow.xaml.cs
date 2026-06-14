@@ -11,6 +11,7 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.InitTask;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Services;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
@@ -282,7 +283,7 @@ internal sealed partial class MainWindow : Window
     {
         // Load the main page
         var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN);
-        NavigationBundle bundle = AppRouter.Process(route)!;
+        PageNavigationBundle bundle = AppRouter.Process(route)!;
         bundle.Communicator.RegisterAbility<ILifecycleAwareAbility>(Members._mainWindowAbility);
         bundle.Communicator.RegisterAbility<IMainWindowAbility>(Members._mainWindowAbility);
         PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
@@ -496,19 +497,14 @@ internal sealed partial class MainWindow : Window
     // Page Ability
     //
 
-    private class MainWindowAbility : IMainWindowAbility, ILifecycleAwareAbility
+    private class MainWindowAbility(MainWindow window) : IMainWindowAbility, ILifecycleAwareAbility
     {
-        private readonly int _windowId;
-        private readonly WeakReference<MainWindow> _windowRef;
+        private readonly int _windowId = window.WindowId;
+        private readonly WeakReference<MainWindow> _windowRef = new(window);
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
+        private readonly PluginWindowContext _pluginWindowContext = new(window.WindowId);
         private readonly MutableLiveData<bool> _minimizeChangeLiveData = new(false);
         private readonly MutableLiveData<bool> _fullscreenChangeLiveData = new(false);
-
-        public MainWindowAbility(MainWindow window)
-        {
-            _windowId = window.WindowId;
-            _windowRef = new(window);
-        }
 
         public int WindowId => _windowId;
 
@@ -517,6 +513,8 @@ internal sealed partial class MainWindow : Window
         public bool IsMinimized => _minimizeChangeLiveData.GetValue();
 
         public bool IsFullscreen => _fullscreenChangeLiveData.GetValue();
+
+        public PluginWindowContext PluginWindowContext => _pluginWindowContext;
 
         public bool PointerInWindow()
         {

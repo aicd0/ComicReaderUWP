@@ -20,27 +20,32 @@ public static class Extensions
         Sticky = true,
     };
 
-    public static void Observe<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
+    public static void Observe<T>(this ILiveDataObserveAbility<T> liveData, ILifecycleOwner owner, T observer) where T : class
     {
-        var wrapper = new Observer<T>(observer);
-        liveData.Observe(owner, wrapper, sObserveOptionDefault);
+        liveData.Observe(owner, observer, sObserveOptionDefault);
     }
 
-    public static void ObserveSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, IValueObserver<T> observer) where T : notnull
+    public static void Observe<T>(this ILiveDataObserveAbility<IValueObserver<T>> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
+    {
+        var wrapper = new Observer<T>(observer);
+        liveData.Observe(owner, wrapper);
+    }
+
+    public static void Observe<T>(this ILiveDataObserveAbility<IValueObserver<T>> liveData, ILifecycleOwner owner, Action<T> observer, ObserveOptions options) where T : notnull
+    {
+        var wrapper = new Observer<T>(observer);
+        liveData.Observe(owner, wrapper, options);
+    }
+
+    public static void ObserveSticky<T>(this ILiveDataObserveAbility<T> liveData, ILifecycleOwner owner, T observer) where T : class
     {
         liveData.Observe(owner, observer, sObserveOptionSticky);
     }
 
-    public static void ObserveSticky<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
+    public static void ObserveSticky<T>(this ILiveDataObserveAbility<IValueObserver<T>> liveData, ILifecycleOwner owner, Action<T> observer) where T : notnull
     {
         var wrapper = new Observer<T>(observer);
-        liveData.Observe(owner, wrapper, sObserveOptionSticky);
-    }
-
-    public static void Observe<T>(this ILiveData<T> liveData, ILifecycleOwner owner, Action<T> observer, ObserveOptions options) where T : notnull
-    {
-        var wrapper = new Observer<T>(observer);
-        liveData.Observe(owner, wrapper, options);
+        liveData.ObserveSticky(owner, wrapper);
     }
 
     private class Observer<U>(Action<U> action) : Lifecycle.IValueObserver<U>

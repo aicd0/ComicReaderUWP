@@ -1,0 +1,67 @@
+<base:BasePage
+    x:Class="ComicReaderUWP.Views.Pages.Sidebar.Playlist.PlaylistPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:ComicReaderUWP.Common.BaseUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:playlist="using:ComicReaderUWP.Views.Pages.Sidebar.Playlist"
+    Background="Transparent"
+    mc:Ignorable="d">
+
+    <Grid>
+        <TextBlock
+            Margin="0,10"
+            HorizontalAlignment="Center"
+            FontWeight="SemiBold"
+            Text="{x:Bind StringResource.ReadingListEmpty}"
+            Visibility="{x:Bind ViewModel.NoComicsVisible, Mode=OneWay}" />
+        <ListView
+            x:Name="MainListView"
+            ContextRequested="ListView_ContextRequested"
+            ItemsSource="{x:Bind ViewModel.DataSource}"
+            SelectedIndex="{x:Bind ViewModel.SelectedIndex, Mode=OneWay}"
+            SelectionChanged="ListView_SelectionChanged"
+            SelectionMode="Single">
+            <ListView.ItemContainerStyle>
+                <Style BasedOn="{StaticResource DefaultListViewItemStyle}" TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Padding" Value="16,8" />
+                    <Setter Property="MinHeight" Value="0" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="playlist:PlaylistItemViewModel">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon
+                            Grid.Column="0"
+                            FontSize="18"
+                            Glyph="&#xE8B9;" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="8,0,0,2"
+                            VerticalAlignment="Center"
+                            FontSize="14"
+                            Text="{x:Bind Title, Mode=OneWay}"
+                            TextTrimming="CharacterEllipsis"
+                            ToolTipService.ToolTip="{x:Bind Title, Mode=OneWay}" />
+                        <TextBlock
+                            Grid.Column="2"
+                            Margin="3,0,0,1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            FontSize="13"
+                            Foreground="{ThemeResource ForegroundGrey2}"
+                            Text="{x:Bind Progress, Mode=OneWay}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+
+</base:BasePage>

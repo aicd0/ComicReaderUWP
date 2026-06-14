@@ -10,6 +10,7 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
@@ -22,7 +23,8 @@ using ComicReaderUWP.UserControls.Reader;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
 using ComicReaderUWP.ViewModels;
 using ComicReaderUWP.Views.Pages.Main;
-using ComicReaderUWP.Views.Pages.SidePane.ComicInfo;
+using ComicReaderUWP.Views.Pages.Main.Sidebar;
+using ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
@@ -303,7 +305,7 @@ internal sealed partial class ReaderPage : BasePage
 
         _readerNavigationBar.InfoPaneExpanded += delegate
         {
-            GetMainPageAbility().SetSidePanePage(SidePaneView.PageEnum.ComicInfo);
+            GetMainPageAbility().SetSidePanePage(SidebarView.ITEM_COMIC_INFO);
             GetMainPageAbility().SetSidePaneOpenState(true, force: true);
         };
 
@@ -696,7 +698,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void PlaybackPlaylistButton_Click(object sender, RoutedEventArgs e)
     {
-        GetMainPageAbility().SetSidePanePage(SidePaneView.PageEnum.Playlist);
+        GetMainPageAbility().SetSidePanePage(SidebarView.ITEM_PLAYLIST);
         GetMainPageAbility().SetSidePaneOpenState(true, force: true);
     }
 
@@ -1014,6 +1016,14 @@ internal sealed partial class ReaderPage : BasePage
             PageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount),
         };
         GetEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
+
+        if (comic is not null)
+        {
+            foreach (PluginContext plugin in PluginManager.Instance.GetActivePlugins())
+            {
+                plugin.SetReadingComic(GetMainWindowAbility().PluginWindowContext, comic);
+            }
+        }
     }
 
     private void AddToActiveTabs()

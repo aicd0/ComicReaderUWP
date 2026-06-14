@@ -8,6 +8,7 @@ using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.Actions.Utils;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 
@@ -26,7 +27,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
     private bool _hasNavigatedTo = false;
     private bool _hasNavigatedFrom = false;
     private bool _isLoaded = false;
-    private INavigationBundle? _navigationBundle;
+    private IPageNavigationBundle? _navigationBundle;
 
     protected int WindowId { get; private set; } = 0;
     public bool IsStarted => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Started;
@@ -69,7 +70,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
             case NavigationMode.New:
             case NavigationMode.Back:
             case NavigationMode.Forward:
-                _navigationBundle = (INavigationBundle)e.Parameter;
+                _navigationBundle = (IPageNavigationBundle)e.Parameter;
                 _hasNavigatedTo = true;
                 UpdateLifecycleState();
                 break;
@@ -170,13 +171,13 @@ internal abstract class BasePage : Page, ILifecycleOwner
     {
         public void PreStart()
         {
-            INavigationBundle bundle = page._navigationBundle!;
+            IPageNavigationBundle bundle = page._navigationBundle!;
 
             // Retrieve window ID
             IMainWindowAbility? mainWindowAbility = page.GetAbility<IMainWindowAbility>() ?? throw new InvalidOperationException("IMainWindowAbility not found");
             int windowId = mainWindowAbility.WindowId;
             page.WindowId = windowId;
-            page.PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(windowId));
+            page.PageActionHandler.RegisterComponent<IMainWindowComponent>(new MainWindowComponent(windowId, mainWindowAbility.PluginWindowContext));
 
             // Retrieve tab ID (if has)
             IMainPageAbilityForTab? mainPageAbility = page.GetAbility<IMainPageAbilityForTab>();
@@ -191,7 +192,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
 
         public void PostStart()
         {
-            INavigationBundle bundle = page._navigationBundle!;
+            IPageNavigationBundle bundle = page._navigationBundle!;
             page.OnStart(bundle.Bundle);
         }
 
@@ -224,9 +225,11 @@ internal abstract class BasePage : Page, ILifecycleOwner
         }
     }
 
-    private class MainWindowComponent(int windowId) : IMainWindowComponent
+    private class MainWindowComponent(int windowId, PluginWindowContext pluginWindowContext) : IMainWindowComponent
     {
         public int WindowId => windowId;
+
+        public PluginWindowContext PluginWindowContext => pluginWindowContext;
     }
 
     private class MainPageComponent(string tabId) : IMainPageComponent

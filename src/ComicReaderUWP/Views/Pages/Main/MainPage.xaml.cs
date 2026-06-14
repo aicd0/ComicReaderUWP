@@ -20,6 +20,7 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Views.AppWindows.Main;
+using ComicReaderUWP.Views.Pages.Main.Sidebar;
 
 using Microsoft.UI;
 using Microsoft.UI.Input;
@@ -278,7 +279,7 @@ internal sealed partial class MainPage : BasePage
 
     private bool LoadTabNoLock(Route route, string targetTabId, bool selectTab = true, string initiateTabId = "", string newTabId = "")
     {
-        NavigationBundle? bundle = AppRouter.Process(route);
+        PageNavigationBundle? bundle = AppRouter.Process(route);
         if (bundle is null)
         {
             Logger.F(TAG, $"Failed to process route: {route.Url}");
@@ -330,7 +331,7 @@ internal sealed partial class MainPage : BasePage
         return true;
     }
 
-    private string AddTabNoLock(NavigationBundle bundle, string initiateTabId, string newTabId)
+    private string AddTabNoLock(PageNavigationBundle bundle, string initiateTabId, string newTabId)
     {
         int placementIndex = -1;
         if (!string.IsNullOrEmpty(initiateTabId))
@@ -377,7 +378,7 @@ internal sealed partial class MainPage : BasePage
         };
         tabInfo.NavigatedHandler = (sender, e) =>
         {
-            var newBundle = (NavigationBundle)e.Parameter;
+            var newBundle = (PageNavigationBundle)e.Parameter;
             tabInfo.NavigationBarAbility.ClearStates();
             tabInfo.CurrentBundle = newBundle;
             if (_currentTab is not null && tabInfo.Id == _currentTab.Id)
@@ -862,7 +863,7 @@ internal sealed partial class MainPage : BasePage
         SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen);
     }
 
-    private void RightSidePane_PinStateChanged(SidePaneView sender, bool pinned)
+    private void RightSidePane_PinStateChanged(SidebarView sender, bool pinned)
     {
         _sidePanePinned = pinned;
         NavigationPageSidePane.DisplayMode = pinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
@@ -1160,14 +1161,14 @@ internal sealed partial class MainPage : BasePage
             parent.SetSidePaneOpenState(open, force: force);
         }
 
-        public void SetSidePanePage(SidePaneView.PageEnum page)
+        public void SetSidePanePage(string tag)
         {
             if (!_parent.TryGetTarget(out MainPage? parent))
             {
                 return;
             }
 
-            parent.RightSidePane.SetPage(page);
+            parent.RightSidePane.SetPage(tag);
         }
 
         public LifecycleAwareAbility GetLifecycleAbility()
@@ -1421,14 +1422,14 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    private class SidePaneHandler(MainPage page) : SidePaneView.ISidePaneHandler
+    private class SidePaneHandler(MainPage page) : SidebarView.ISidePaneHandler
     {
         public int GetWindowId()
         {
             return page.WindowId;
         }
 
-        public void TransferAbility(NavigationBundle bundle)
+        public void TransferAbility(PageNavigationBundle bundle)
         {
             page.TransferAbility(bundle.Communicator);
         }
@@ -1441,7 +1442,7 @@ internal sealed partial class MainPage : BasePage
         public required TabViewItem Item { init; get; }
         public required MainPageAbilityForTab Ability { init; get; }
         public required NavigationPageAbility NavigationBarAbility { init; get; }
-        public required NavigationBundle CurrentBundle { get; set; }
+        public required PageNavigationBundle CurrentBundle { get; set; }
         public NavigatedEventHandler? NavigatedHandler { get; set; }
 
         //

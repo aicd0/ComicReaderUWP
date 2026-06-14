@@ -3,7 +3,6 @@
 
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.Views.Pages.Main;
 
 namespace ComicReaderUWP.Common.BaseUI.PageAbilities;
 
@@ -24,5 +23,5 @@ internal interface IMainPageAbility : IPageAbility
 
     void SetSidePaneOpenState(bool open, bool force);
 
-    void SetSidePanePage(SidePaneView.PageEnum page);
+    void SetSidePanePage(string tag);
 }

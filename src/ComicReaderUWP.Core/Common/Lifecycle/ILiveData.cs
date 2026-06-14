@@ -3,13 +3,6 @@
 
 namespace ComicReaderUWP.Core.Common.Lifecycle;
 
-public interface ILiveData<T> : ILiveDataNoType where T : notnull
+public interface ILiveData<T> : ILiveDataObserveAbility<IValueObserver<T>>, ILiveDataValueAbility<T>, ILiveDataCommonAbility where T : notnull
 {
-    public void Observe(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options);
-
-    public void RemoveObserver(IValueObserver<T> observer);
-
-    public bool HasObserver(IValueObserver<T> observer);
-
-    public T? GetValue();
 }

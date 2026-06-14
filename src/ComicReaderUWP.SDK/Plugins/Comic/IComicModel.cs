@@ -21,6 +21,8 @@ public interface IComicModel
 
     IReadOnlyList<IComicTagCategory> Tags { get; }
 
+    IReadOnlyDictionary<string, string> Links { get; }
+
     bool IsHidden { get; }
 
     CompletionStatusEnum CompletionStatus { get; }
@@ -34,6 +36,8 @@ public interface IComicModel
     Task SetRating(int rating);
 
     Task SetTags(IReadOnlyDictionary<string, HashSet<string>> tags);
+
+    Task SetLinks(IReadOnlyDictionary<string, string> links);
 
     Task SetHidden(bool isHidden);
 

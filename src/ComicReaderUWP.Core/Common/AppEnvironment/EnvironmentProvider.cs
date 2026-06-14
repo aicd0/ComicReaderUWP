@@ -221,6 +221,7 @@ public class EnvironmentProvider
         {
             return CultureInfo.CurrentUICulture;
         }
+
         try
         {
             return new CultureInfo(languageTag);

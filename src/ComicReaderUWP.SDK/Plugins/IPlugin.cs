@@ -11,7 +11,5 @@ public interface IPlugin
 
     string Version { get; }
 
-    public IReadOnlyCollection<string> SharedAssemblies { get; }
-
     void Initialize(IPluginContext context);
 }
