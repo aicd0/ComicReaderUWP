@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -90,40 +92,7 @@ internal partial class PluginManager
 
             if (plugins.Count > 0)
             {
-                foreach (PluginContext plugin in plugins)
-                {
-                    foreach (string assembly in plugin.Plugin.SharedAssemblies)
-                    {
-                        loadContext.AssemblyLoader.AddSharedAssemblyName(assembly);
-                    }
-                }
-
-                List<IXamlMetadataProvider> xamlMetaProviders = [.. loadContext.XamlMetadataProviders];
-
-                foreach (string assemblyName in loadContext.AssemblyLoader.SharedAssemblies)
-                {
-                    if (!loadContext.Assemblies.TryGetValue(assemblyName, out string? assemblyPath))
-                    {
-                        Logger.E(TAG, $"Failed to find shared assembly '{assemblyName}' for plugin '{pluginFile}'");
-                        continue;
-                    }
-
-                    Assembly assembly;
-                    try
-                    {
-                        assembly = Assembly.LoadFrom(assemblyPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.E(TAG, $"Failed to load shared assembly '{assemblyName}' for plugin '{pluginFile}'", ex);
-                        continue;
-                    }
-
-                    xamlMetaProviders.AddRange(CreateInstancesFromAssembly<IXamlMetadataProvider>(assembly));
-                    Logger.I(TAG, $"Loaded shared assembly '{assemblyName}' for plugin '{pluginFile}'");
-                }
-
-                PluginXamlMetadataProvider.AddProviders(xamlMetaProviders);
+                PluginXamlMetadataProvider.AddProviders(loadContext.XamlMetadataProviders);
 
                 foreach (PluginContext plugin in plugins)
                 {
@@ -286,7 +255,6 @@ internal partial class PluginManager
         string extension = Path.GetExtension(pluginFile).ToLowerInvariant();
         return extension switch
         {
-            ".dll" => LoadDllPlugin(pluginFile),
             ".zip" => LoadZipPlugin(pluginFile),
             _ => null,
         };
@@ -321,6 +289,14 @@ internal partial class PluginManager
             return null;
         }
 
+        string metaFile = Path.Combine(extractDir, "PluginMeta.json");
+        PluginMeta? meta = LoadPluginMeta(metaFile);
+        if (meta is null)
+        {
+            Logger.E(TAG, $"Failed to load PluginMeta.json for plugin '{pluginFile}'");
+            return null;
+        }
+
         string[] depFiles = Directory.GetFiles(extractDir, "*.deps.json", SearchOption.TopDirectoryOnly);
         if (depFiles.Length != 1)
         {
@@ -343,30 +319,38 @@ internal partial class PluginManager
             return null;
         }
 
-        string mainAssemblyPath = assemblies[mainAssemblyName];
-        PluginFileLoadContext? loadDllResult = LoadDllPlugin(mainAssemblyPath);
-        if (loadDllResult is null)
+        // Load shared assemblies
+        List<IXamlMetadataProvider> xamlMetaProviders = [];
+        foreach (string assemblyName in meta.SharedAssemblies)
         {
-            return null;
+            string assemblyPath = Path.Combine(extractDir, assemblyName + ".dll");
+            Assembly assembly;
+            try
+            {
+                assembly = Assembly.LoadFrom(assemblyPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.E(TAG, $"Failed to load shared assembly '{assemblyName}' for plugin '{pluginFile}'", ex);
+                continue;
+            }
+
+            xamlMetaProviders.AddRange(CreateInstancesFromAssembly<IXamlMetadataProvider>(assembly));
+            Logger.I(TAG, $"Loaded shared assembly '{assemblyName}' for plugin '{pluginFile}'");
         }
 
-        return new()
+        // Load main assembly
+        string mainAssemblyPath = assemblies[mainAssemblyName];
+        PluginAssemblyLoader loadContext = new(mainAssemblyPath);
+        foreach (string assemblyName in meta.SharedAssemblies)
         {
-            AssemblyLoader = loadDllResult.AssemblyLoader,
-            Plugins = loadDllResult.Plugins,
-            XamlMetadataProviders = loadDllResult.XamlMetadataProviders,
-            ResourceFolderPath = extractDir,
-            Assemblies = assemblies,
-        };
-    }
+            loadContext.AddSharedAssemblyName(assemblyName);
+        }
 
-    private static PluginFileLoadContext? LoadDllPlugin(string pluginFile)
-    {
-        PluginAssemblyLoader loadContext = new(pluginFile);
-        Assembly assembly;
+        Assembly mainAssembly;
         try
         {
-            assembly = loadContext.LoadFromAssemblyPath(pluginFile);
+            mainAssembly = loadContext.LoadFromAssemblyPath(mainAssemblyPath);
         }
         catch (Exception ex)
         {
@@ -374,14 +358,41 @@ internal partial class PluginManager
             return null;
         }
 
-        List<IPlugin> plugins = CreateInstancesFromAssembly<IPlugin>(assembly);
-        List<IXamlMetadataProvider> xamlMetadataProviders = CreateInstancesFromAssembly<IXamlMetadataProvider>(assembly);
+        List<IPlugin> plugins = CreateInstancesFromAssembly<IPlugin>(mainAssembly);
+        xamlMetaProviders.AddRange(CreateInstancesFromAssembly<IXamlMetadataProvider>(mainAssembly));
+
         return new()
         {
             AssemblyLoader = loadContext,
             Plugins = plugins,
-            XamlMetadataProviders = xamlMetadataProviders,
-            Assemblies = new Dictionary<string, string> { { Path.GetFileNameWithoutExtension(pluginFile), pluginFile } },
+            XamlMetadataProviders = xamlMetaProviders,
+            ResourceFolderPath = extractDir,
+            Assemblies = assemblies,
+        };
+    }
+
+    private static PluginMeta? LoadPluginMeta(string filePath)
+    {
+        PluginMetaJsonModel? jsonModel;
+        try
+        {
+            string json = File.ReadAllText(filePath);
+            jsonModel = JsonSerializer.Deserialize<PluginMetaJsonModel>(json);
+        }
+        catch (Exception ex)
+        {
+            Logger.E(TAG, ex);
+            return null;
+        }
+
+        if (jsonModel is null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            SharedAssemblies = jsonModel.SharedAssemblies,
         };
     }
 
@@ -422,4 +433,15 @@ internal partial class PluginManager
 
     [GeneratedRegex(@"^[a-zA-Z0-9_]+$")]
     private static partial Regex PluginNameRegex();
+
+    private class PluginMeta
+    {
+        public List<string> SharedAssemblies { get; set; } = [];
+    }
+
+    private class PluginMetaJsonModel
+    {
+        [JsonPropertyName("SharedAssemblies")]
+        public List<string> SharedAssemblies { get; set; } = [];
+    }
 }
