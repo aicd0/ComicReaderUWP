@@ -387,7 +387,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private async Task<PlaylistModel> GetPlaylist(PageBundle bundle)
     {
-        string playlistsRegistry = $"{RegistryNames.TAB_RESOURCES}{GetMainPageAbility().TabId}/Playlists/";
+        string playlistsRegistry = $"{RegistryNames.TAB_RESOURCES}{GetMainPageAbility().TabId}/Playlists";
 
         PlaylistModel? playlist = null;
         string? playlistId = bundle.GetString(RouterConstants.ARG_PLAYLIST_ID);

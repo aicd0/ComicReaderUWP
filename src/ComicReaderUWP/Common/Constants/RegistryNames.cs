@@ -9,13 +9,13 @@ internal static class RegistryNames
     // Main Registry
     //
 
-    public const string GLOBAL = "/Global/";
-    public const string SEARCH_HISTORY = $"{GLOBAL}SearchHistory/";
-    public const string SETTINGS = $"{GLOBAL}Settings/";
-    public const string RESOURCES = "/Resources/";
-    public const string RUNTIME_RESOURCES = $"{RESOURCES}Runtime/";
-    public const string PLAYLISTS = $"{RUNTIME_RESOURCES}Playlists/";
-    public const string TAB_RESOURCES = $"{RESOURCES}Tabs/";
+    public const string GLOBAL = "/Global";
+    public const string SEARCH_HISTORY = $"{GLOBAL}/SearchHistory";
+    public const string SETTINGS = $"{GLOBAL}/Settings";
+    public const string RESOURCES = "/Resources";
+    public const string RUNTIME_RESOURCES = $"{RESOURCES}/Runtime";
+    public const string PLAYLISTS = $"{RUNTIME_RESOURCES}/Playlists";
+    public const string TAB_RESOURCES = $"{RESOURCES}/Tabs";
 
     public static class SettingsKey
     {
