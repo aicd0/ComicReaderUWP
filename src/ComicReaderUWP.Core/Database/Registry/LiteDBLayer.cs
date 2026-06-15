@@ -317,7 +317,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
             throw new ArgumentException($"Invalid path '{path}'");
         }
 
-        return path;
+        return path + "/";
     }
 
     private static string GetParentPath(string path)
@@ -346,7 +346,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
         return result.ToString();
     }
 
-    [GeneratedRegex(@"^/([A-Za-z0-9_\-]+/)+$")]
+    [GeneratedRegex(@"^(/[A-Za-z0-9_\-]+)+$")]
     private static partial Regex PathRegex();
 
     private class RegistryKey(LiteDBLayer layer, string name) : IRegistryKey

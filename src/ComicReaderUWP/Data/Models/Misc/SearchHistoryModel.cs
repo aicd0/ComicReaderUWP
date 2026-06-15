@@ -44,7 +44,7 @@ internal class SearchHistoryModel
     {
         _registryKey = new(() =>
         {
-            return AppDB.MainRegistry.CreateKey($"{RegistryNames.SEARCH_HISTORY}{key}/");
+            return AppDB.MainRegistry.CreateKey($"{RegistryNames.SEARCH_HISTORY}/{key}");
         });
     }
 
