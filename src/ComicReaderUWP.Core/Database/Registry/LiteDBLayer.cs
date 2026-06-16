@@ -17,7 +17,9 @@ namespace ComicReaderUWP.Core.Database.Registry;
 internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
 {
     private const string TAG = nameof(LiteDBLayer);
-    private const string KEY_PREFIX = "key_";
+    private const int VERSION = 2;
+    private const string KEY_COLLECTION_PREFIX = "key_";
+    private const string META_KEY_VERSION = "Version";
 
     private readonly object _initLock = new();
     private readonly string _databasePath = databasePath;
@@ -234,6 +236,11 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
 
     private void InitializeDatabase(LiteDatabase db)
     {
+        db.Mapper.EmptyStringToNull = false;
+        db.Mapper.TrimWhitespace = false;
+
+        UpgradeDatabase(db);
+
         ILiteCollection<RegistryKeyDocument> keysCollection = GetKeysCollection(db);
 
         HashSet<string> keys = [];
@@ -246,7 +253,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
             referencedCollections.Add(keyDocument.CollectionName);
         }
 
-        parentPaths.Remove("/");
+        parentPaths.Remove("");
         foreach (string parentPath in parentPaths)
         {
             if (!keys.Contains(parentPath))
@@ -259,12 +266,12 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
         List<string> unreferencedCollections = [];
         foreach (string name in db.GetCollectionNames())
         {
-            if (!name.StartsWith(KEY_PREFIX))
+            if (!name.StartsWith(KEY_COLLECTION_PREFIX))
             {
                 continue;
             }
 
-            string realName = name[KEY_PREFIX.Length..];
+            string realName = name[KEY_COLLECTION_PREFIX.Length..];
             if (!referencedCollections.Contains(realName))
             {
                 unreferencedCollections.Add(name);
@@ -280,6 +287,66 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
         _keysCollection = keysCollection;
     }
 
+    private static void UpgradeDatabase(LiteDatabase db)
+    {
+        bool isNewDatabase = !db.GetCollectionNames().Contains("keys");
+
+        ILiteCollection<MetaDocument> metaCollection = GetMetaCollection(db);
+        MetaDocument? versionDoc = metaCollection.FindById(META_KEY_VERSION);
+
+        int version;
+        if (versionDoc is null)
+        {
+            version = isNewDatabase ? VERSION : 1;
+        }
+        else
+        {
+            version = versionDoc.Value.AsInt32;
+        }
+
+        if (version > VERSION)
+        {
+            throw new InvalidOperationException($"The database version ({version}) is larger than the target version ({VERSION}).");
+        }
+
+        switch (version)
+        {
+            case 1:
+                {
+                    ILiteCollection<RegistryKeyDocument> keysCollection = GetKeysCollection(db);
+                    List<RegistryKeyDocument> allDocs = [.. keysCollection.FindAll()];
+                    foreach (RegistryKeyDocument doc in allDocs)
+                    {
+                        doc.Path = doc.Path.TrimEnd('/');
+                        doc.ParentPath = doc.ParentPath.TrimEnd('/');
+                        keysCollection.Upsert(doc);
+                    }
+                }
+
+                goto case VERSION;
+            case VERSION:
+                break;
+            default:
+                throw new InvalidOperationException($"Invalid database version ({version}).");
+        }
+
+        if (versionDoc is null || version != VERSION)
+        {
+            metaCollection.Upsert(new MetaDocument()
+            {
+                Key = META_KEY_VERSION,
+                Value = VERSION,
+            });
+        }
+    }
+
+    private static ILiteCollection<MetaDocument> GetMetaCollection(LiteDatabase db)
+    {
+        ILiteCollection<MetaDocument>? collection = db.GetCollection<MetaDocument>("meta");
+        collection.EnsureIndex(x => x.Key, unique: true);
+        return collection;
+    }
+
     private static ILiteCollection<RegistryKeyDocument> GetKeysCollection(LiteDatabase db)
     {
         ILiteCollection<RegistryKeyDocument>? collection = db.GetCollection<RegistryKeyDocument>("keys");
@@ -290,7 +357,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
 
     private static void EnsurePath(ILiteCollection<RegistryKeyDocument> keysCollection, string path)
     {
-        while (path != "/")
+        while (path != "")
         {
             RegistryKeyDocument? key = keysCollection.FindOne(x => x.Path == path);
             if (key is not null)
@@ -317,18 +384,18 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
             throw new ArgumentException($"Invalid path '{path}'");
         }
 
-        return path + "/";
+        return path;
     }
 
     private static string GetParentPath(string path)
     {
-        int index = path.LastIndexOf('/', path.Length - 2);
+        int index = path.LastIndexOf('/');
         if (index < 0)
         {
             throw new ArgumentException(null, nameof(path));
         }
 
-        return path[..(index + 1)];
+        return path[..index];
     }
 
     private static string GenerateCollectionName()
@@ -354,7 +421,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
         private readonly Lazy<ILiteCollection<RegistryEntryDocument>> _collection = new(() =>
         {
             LiteDatabase db = layer.GetDatabase();
-            return db.GetCollection<RegistryEntryDocument>($"{KEY_PREFIX}{name}");
+            return db.GetCollection<RegistryEntryDocument>($"{KEY_COLLECTION_PREFIX}{name}");
         });
 
         public int Count => _collection.Value.Count();
@@ -451,6 +518,14 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
             ILiteCollection<RegistryEntryDocument> collection = _collection.Value;
             return collection.Delete(key);
         }
+    }
+
+    private class MetaDocument
+    {
+        [BsonId]
+        public required string Key { get; set; }
+
+        public required BsonValue Value { get; set; }
     }
 
     private class RegistryKeyDocument

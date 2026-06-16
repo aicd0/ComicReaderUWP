@@ -26,7 +26,10 @@ internal partial class LiteDBLayer(string databasePath, bool shared, IDatabaseLa
             connectionSb.Append("Connection=shared;");
         }
 
-        return new LiteDatabase(connectionSb.ToString());
+        var db = new LiteDatabase(connectionSb.ToString());
+        db.Mapper.EmptyStringToNull = false;
+        db.Mapper.TrimWhitespace = false;
+        return db;
     });
 
     private readonly IDatabaseLayer? _fallbackLayer = fallbackLayer;
