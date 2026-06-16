@@ -99,25 +99,14 @@ public static partial class PdfManager
         _libraryInitialized = true;
     }
 
-    private static async Task Enqueue(Action action)
+    private static Task Enqueue(Action action)
     {
-        var taskResult = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pdfQueue.Value.Submit(() =>
-        {
-            action();
-            taskResult.SetResult(true);
-        });
-        await taskResult.Task;
+        return _pdfQueue.Value.Submit(action);
     }
 
-    private static async Task<T> Enqueue<T>(Func<T> action)
+    private static Task<T> Enqueue<T>(Func<T> action)
     {
-        var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pdfQueue.Value.Submit(() =>
-        {
-            taskResult.SetResult(action());
-        });
-        return await taskResult.Task;
+        return _pdfQueue.Value.Submit(action);
     }
 
     private static nint PdfiumLoadPage(nint documentPtr, int pageIndex)

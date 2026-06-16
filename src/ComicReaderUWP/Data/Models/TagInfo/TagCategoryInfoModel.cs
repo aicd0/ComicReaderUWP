@@ -72,7 +72,7 @@ internal class TagCategoryInfoModel
 
     public async Task FlushExt()
     {
-        await TagInfoDatabase.Enqueue("FlushExt", () =>
+        await TagInfoDatabase.Enqueue(() =>
         {
             SaveNoLock(this);
             return true;
@@ -101,7 +101,7 @@ internal class TagCategoryInfoModel
             return model;
         }
 
-        return await TagInfoDatabase.Enqueue("Get", () =>
+        return await TagInfoDatabase.Enqueue(() =>
         {
             if (_cache.TryGetValue(name, out TagCategoryInfoModel? model))
             {
@@ -126,7 +126,7 @@ internal class TagCategoryInfoModel
             return model;
         }
 
-        return await TagInfoDatabase.Enqueue("GetOrCreate", () =>
+        return await TagInfoDatabase.Enqueue(() =>
         {
             return GetOrCreateNoLock(name);
         });
@@ -231,7 +231,7 @@ internal class TagCategoryInfoModel
 
     public static async Task Rename(string oldName, string newName)
     {
-        await TagInfoDatabase.Enqueue("RenameTagCategory", () =>
+        await TagInfoDatabase.Enqueue(() =>
         {
             DeleteNoLock(newName);
 
@@ -252,7 +252,7 @@ internal class TagCategoryInfoModel
         });
 
         List<long> comicIds = [];
-        await ComicHandle.Enqueue("RenameTagCategory", () =>
+        await ComicHandle.Enqueue(() =>
         {
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnName, oldName);
@@ -268,7 +268,7 @@ internal class TagCategoryInfoModel
         });
 
         List<Task> tasks = [];
-        List<ComicModel> comics = await ComicModel.BatchFromId("RenameTagCategory", comicIds);
+        List<ComicModel> comics = await ComicModel.BatchFromId(comicIds);
         foreach (ComicModel comic in comics)
         {
             Dictionary<string, HashSet<string>> tags = comic.TagsCopy;
@@ -296,14 +296,14 @@ internal class TagCategoryInfoModel
 
     public static async Task Delete(string name)
     {
-        await TagInfoDatabase.Enqueue("DeleteTag", () =>
+        await TagInfoDatabase.Enqueue(() =>
         {
             DeleteNoLock(name);
             return true;
         });
 
         HashSet<long> comicIds = [];
-        await ComicHandle.Enqueue("DeleteTag", () =>
+        await ComicHandle.Enqueue(() =>
         {
             SelectCommand command = SelectCommand.Create(TagCategoryTable.Instance)
                 .AppendCondition(TagCategoryTable.ColumnName, name);
@@ -319,7 +319,7 @@ internal class TagCategoryInfoModel
         });
 
         List<Task> tasks = [];
-        List<ComicModel> comics = await ComicModel.BatchFromId("DeleteTag", comicIds);
+        List<ComicModel> comics = await ComicModel.BatchFromId(comicIds);
         foreach (ComicModel comic in comics)
         {
             Dictionary<string, HashSet<string>> comicTags = comic.TagsCopy;

@@ -28,15 +28,9 @@ internal static class TagInfoDatabase
     public static Action<string, string> TagInfoRenameTagCategoryCacheOnlyNoLock { get; set; } =
         (a, b) => throw new NullReferenceException("Method not injected.");
 
-    public static async Task<T> Enqueue<T>(string taskName, Func<T> op)
+    public static Task<T> Enqueue<T>(Func<T> op)
     {
-        var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        SqliteDB.TagInfoDatabaseDispatcher.Submit(taskName, delegate
-        {
-            taskResult.SetResult(op());
-        });
-
-        return await taskResult.Task;
+        return SqliteDB.TagInfoDatabaseDispatcher.Submit(op);
     }
 
     public static void DispatchTagInfoUpdateEvents()

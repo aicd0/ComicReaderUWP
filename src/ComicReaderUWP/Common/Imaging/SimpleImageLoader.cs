@@ -35,7 +35,7 @@ internal static class SimpleImageLoader
 
         protected override void CommitImpl()
         {
-            _dispatcher.Submit("SimpleImageLoader", delegate
+            _dispatcher.Submit(() =>
             {
                 foreach (Token token in _tokens)
                 {

@@ -325,7 +325,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
 
     private void OnSearchResult(IReadOnlyList<ComicModel> comics)
     {
-        _sharedDispatcher.Submit("OnSearchResult", () =>
+        _sharedDispatcher.Submit(() =>
         {
             IEnumerable<ComicModel> sortedComics = comics.OrderBy(x => x.Title);
             List<ComicItemViewModel> newItems = [];

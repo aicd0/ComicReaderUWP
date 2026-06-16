@@ -50,7 +50,7 @@ internal class EditComicProvider : IActionProvider
 
         CoroutineUtils.Run(async () =>
         {
-            List<ComicModel> comics = await ComicModel.BatchFromId("EditComicProvider", ids);
+            List<ComicModel> comics = await ComicModel.BatchFromId(ids);
             if (comics.Count > 0)
             {
                 var dialog = new EditComicInfoDialog(comics);

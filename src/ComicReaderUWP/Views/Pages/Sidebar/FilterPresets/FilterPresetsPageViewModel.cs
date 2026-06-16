@@ -150,7 +150,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        _sharedDispatcher.Submit("ScheduleUpdateComics", () =>
+        _sharedDispatcher.Submit(() =>
         {
             Interlocked.Exchange(ref _updateComicSubmitted, 0);
             UpdateComicsNoLock();
@@ -208,7 +208,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
     private void OnComicSearchResult(IReadOnlyList<ComicModel> items)
     {
-        _sharedDispatcher.Submit("OnComicSearchResult", () =>
+        _sharedDispatcher.Submit(() =>
         {
             ComicFilterModel.ExternalFilterModel filter = _selectedFilter
                 ?? ComicFilterModel.ExternalFilterModel.FromDefault();

@@ -57,7 +57,7 @@ internal class ComicSearchEngine
             return;
         }
 
-        _dispatcher.Submit("UpdateLibrary", delegate
+        _dispatcher.Submit(() =>
         {
             Interlocked.Exchange(ref _updateSubmitted, 0);
             UpdateNoLock().Wait();
@@ -73,7 +73,7 @@ internal class ComicSearchEngine
         ICondition? expressionCondition = ParseExpression(expression);
 
         List<long> ids = await SearchByKeywords(searchText, expressionCondition);
-        List<ComicModel> comicItems = await ComicModel.BatchFromId("HomeLoadComic", ids);
+        List<ComicModel> comicItems = await ComicModel.BatchFromId(ids);
 
         Dictionary<long, int> order = [];
         for (int i = 0; i < ids.Count; i++)
@@ -166,7 +166,7 @@ internal class ComicSearchEngine
         }
 
         var matches = new List<Match>();
-        await ComicHandle.Enqueue("SearchComics", delegate
+        await ComicHandle.Enqueue(() =>
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);

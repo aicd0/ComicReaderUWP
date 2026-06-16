@@ -68,7 +68,7 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
     public void ClearCache()
     {
         IsClearingCache = true;
-        TaskDispatcher.DefaultQueue.Submit("ClearCache", delegate
+        TaskDispatcher.DefaultQueue.Submit(() =>
         {
             ClearCacheInternal();
             string size = GetCacheSize();

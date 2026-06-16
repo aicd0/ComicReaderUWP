@@ -304,7 +304,7 @@ internal sealed partial class FavoritePage : BasePage
                 return;
             }
 
-            ComicModel? comic = await ComicModel.FromId(item.Id, "FavoriteLoadComic");
+            ComicModel? comic = await ComicModel.FromId(item.Id);
             if (comic is null)
             {
                 DeleteItem(item);
@@ -414,7 +414,7 @@ internal sealed partial class FavoritePage : BasePage
         CoroutineUtils.Run(async () =>
         {
             var item = (FavoriteItemViewModel)((MenuFlyoutItem)sender).DataContext;
-            ComicModel? comic = await ComicModel.FromId(item.Id, "FavoriteOpenInNewTabLoadComic");
+            ComicModel? comic = await ComicModel.FromId(item.Id);
             if (comic is null)
             {
                 DeleteItem(item);

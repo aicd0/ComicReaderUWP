@@ -146,7 +146,7 @@ internal partial class EditTagCateogoryDialogViewModel : INotifyPropertyChanged
 
     private async Task<bool> MayOverwriteExistingEntries(string tagCategory)
     {
-        return await TagInfoDatabase.Enqueue("MayOverwriteExistingEntries", () =>
+        return await TagInfoDatabase.Enqueue(() =>
         {
             SelectCommand command = SelectCommand.Create(TagInfoTable.Instance)
                 .AppendCondition(TagInfoTable.ColumnTagCategory, tagCategory);

@@ -4,103 +4,90 @@
 using System.Collections.Concurrent;
 
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Core.Common.Threading;
 
-public abstract class TaskDispatcher : ITaskDispatcher
+public abstract partial class TaskDispatcher(string name) : ITaskDispatcher
 {
-    private const string TAG = "TaskDispatcher";
-
     public static ITaskDispatcher DefaultQueue { get; } = Factory.NewQueue("DefaultQueue");
     public static ITaskDispatcher DefaultThreadPool { get; } = Factory.NewThreadPool("DefaultThreadPool");
     public static ITaskDispatcher LongRunningThreadPool { get; } = new ThreadPoolDispatcher("LongRunningThreadPool", TaskCreationOptions.LongRunning);
 
-    private readonly string _name;
-    private readonly LogTag _submitTag;
-    private readonly LogTag _startTag;
-    private readonly LogTag _endTag;
-    private int _pendingTaskCount = 0;
-    private int _runningTaskCount = 0;
+    private readonly string _name = name;
 
-    protected TaskDispatcher(string name)
+    public Task Submit(Action action)
     {
-        _name = name;
-        _submitTag = LogTag.N(TAG, "submit", _name);
-        _startTag = LogTag.N(TAG, "start", _name);
-        _endTag = LogTag.N(TAG, "end", _name);
-    }
-
-    public void Submit(Action action)
-    {
-        Submit("AnonymousTask", action);
-    }
-
-    public void Submit(string taskName, Action action)
-    {
-        ArgumentNullException.ThrowIfNull(taskName, nameof(taskName));
-        ArgumentNullException.ThrowIfNull(action, nameof(action));
-
-        long submitTime = GetCurrentMilliseconds();
+        return SubmitAsync(async () =>
         {
-            int pendingCount = Interlocked.Increment(ref _pendingTaskCount);
-            int runningCount = _runningTaskCount;
-            Log(_submitTag, $"task={taskName},running={runningCount},pending={pendingCount}");
-        }
-
-        SubmitInternal(() =>
-        {
-            try
-            {
-                long startTime = GetCurrentMilliseconds();
-                {
-                    long since0 = GetCurrentMilliseconds() - submitTime;
-                    int pendingCount = Interlocked.Decrement(ref _pendingTaskCount);
-                    int runningCount = Interlocked.Increment(ref _runningTaskCount);
-                    Log(_startTag, $"task={taskName},since0={since0},running={runningCount},pending={pendingCount}");
-                }
-
-                try
-                {
-                    action();
-                }
-                finally
-                {
-                    int pendingCount = _pendingTaskCount;
-                    int runningCount = Interlocked.Decrement(ref _runningTaskCount);
-                    long time = GetCurrentMilliseconds();
-                    long since0 = time - submitTime;
-                    long since1 = time - startTime;
-                    Log(_endTag, $"task={taskName},since0={since0},since1={since1},running={runningCount},pending={pendingCount}");
-                }
-            }
-            catch (Exception ex)
-            {
-                DebugUtils.CaptureFatalError($"An unknown error occurred in the background task '{taskName}'.", ex);
-            }
+            action();
         });
     }
 
-    protected abstract void SubmitInternal(Action action);
-
-    private static void Log(LogTag tag, string message)
+    public Task<R> Submit<R>(Func<R> func)
     {
-        // Do nothing for now
+        return SubmitAsync(async () =>
+        {
+            return func();
+        });
     }
 
-    private static long GetCurrentMilliseconds()
+    public Task SubmitAsync(Func<Task> func)
     {
-        return DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        SubmitInternal(async () =>
+        {
+            try
+            {
+                await func();
+            }
+            catch (Exception ex)
+            {
+                DebugUtils.CaptureFatalError($"An unknown error occurred in task dispatcher '{_name}'.", ex);
+                source.SetException(ex);
+                return;
+            }
+
+            source.SetResult();
+        });
+
+        return source.Task;
     }
+
+    public Task<R> SubmitAsync<R>(Func<Task<R>> func)
+    {
+        var source = new TaskCompletionSource<R>(TaskCreationOptions.RunContinuationsAsynchronously);
+        SubmitInternal(async () =>
+        {
+            R result;
+            try
+            {
+                result = await func();
+            }
+            catch (Exception ex)
+            {
+                DebugUtils.CaptureFatalError($"An unknown error occurred in task dispatcher '{_name}'.", ex);
+                source.SetException(ex);
+                return;
+            }
+
+            source.SetResult(result);
+        });
+
+        return source.Task;
+    }
+
+    protected abstract void SubmitInternal(Func<Task> func);
 
     private class QueueDispatcher(string name) : TaskDispatcher(name)
     {
-        private readonly ConcurrentQueue<Action> _queue = [];
+        private readonly ConcurrentQueue<Func<Task>> _queue = [];
         private readonly object _lock = new();
         private bool _postDequeueTask = false;
 
-        protected override void SubmitInternal(Action action)
+        protected override void SubmitInternal(Func<Task> func)
         {
-            _queue.Enqueue(action);
+            _queue.Enqueue(func);
             bool postDequeueTask;
             lock (_lock)
             {
@@ -114,13 +101,13 @@ public abstract class TaskDispatcher : ITaskDispatcher
             }
         }
 
-        private void Dequeue()
+        private async Task Dequeue()
         {
             while (true)
             {
-                while (_queue.TryDequeue(out Action? action))
+                while (_queue.TryDequeue(out Func<Task>? func))
                 {
-                    action();
+                    await func();
                 }
 
                 bool canExit;
@@ -138,24 +125,22 @@ public abstract class TaskDispatcher : ITaskDispatcher
         }
     }
 
-    private class ThreadPoolDispatcher : TaskDispatcher
+    private class ThreadPoolDispatcher(string name, TaskCreationOptions creationOptions) : TaskDispatcher(name)
     {
-        private readonly TaskCreationOptions _creationOptions;
+        private readonly TaskCreationOptions _creationOptions = creationOptions;
 
-        public ThreadPoolDispatcher(string name, TaskCreationOptions creationOptions) : base(name)
+        protected override void SubmitInternal(Func<Task> func)
         {
-            _creationOptions = creationOptions;
-        }
-
-        protected override void SubmitInternal(Action action)
-        {
-            Task.Factory.StartNew(action, default, _creationOptions, TaskScheduler.Default);
+            Task.Factory.StartNew(() =>
+            {
+                CoroutineUtils.Run(func);
+            }, default, _creationOptions, TaskScheduler.Default);
         }
     }
 
-    private class SingleThreadDispatcher : TaskDispatcher, IDisposableTaskDispatcher
+    private partial class SingleThreadDispatcher : TaskDispatcher, IDisposableTaskDispatcher
     {
-        private readonly BlockingCollection<Action> _queue = [];
+        private readonly BlockingCollection<Func<Task>> _queue = [];
         private readonly Thread _thread;
 
         public SingleThreadDispatcher(string name) : base(name)
@@ -168,17 +153,20 @@ public abstract class TaskDispatcher : ITaskDispatcher
             _thread.Start();
         }
 
-        protected override void SubmitInternal(Action action)
+        protected override void SubmitInternal(Func<Task> func)
         {
-            _queue.Add(action);
+            _queue.Add(func);
         }
 
         private void Run()
         {
-            foreach (Action action in _queue.GetConsumingEnumerable())
+            CoroutineUtils.Run(async () =>
             {
-                action();
-            }
+                foreach (Func<Task> action in _queue.GetConsumingEnumerable())
+                {
+                    await action();
+                }
+            });
         }
 
         public void Dispose()

@@ -728,7 +728,7 @@ internal partial class ReaderView : UserControl
             item.PageR = ReaderFrameViewModel.NO_PAGE;
         }
 
-        _loadInfoDispatcher.Submit("ReaderLoadImageInfo", delegate
+        _loadInfoDispatcher.Submit(() =>
         {
             void dispatchToMainThread(List<PengingImageItem> pendingList)
             {

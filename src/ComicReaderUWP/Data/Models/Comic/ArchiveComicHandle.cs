@@ -126,7 +126,7 @@ internal partial class ArchiveComicHandle : ComicHandle
         if (IsExternal)
         {
             string basePath = ArchiveAccess.GetBasePath(Location, false) + ArchiveAccess.FileSeperator;
-            await CoroutineUtils.Run(TaskDispatcher.DefaultThreadPool, () =>
+            await TaskDispatcher.DefaultThreadPool.Submit(() =>
             {
                 foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(Location, ComicScanner.PathType.Archive))
                 {
@@ -155,7 +155,7 @@ internal partial class ArchiveComicHandle : ComicHandle
             string subPath = ArchiveAccess.GetSubPath(Location, false);
             var subfiles = new List<string>();
 
-            await CoroutineUtils.Run(TaskDispatcher.DefaultThreadPool, () =>
+            await TaskDispatcher.DefaultThreadPool.Submit(() =>
             {
                 ArchiveAccess.TryGetSubFiles(archive.Path, subPath, subfiles);
             });

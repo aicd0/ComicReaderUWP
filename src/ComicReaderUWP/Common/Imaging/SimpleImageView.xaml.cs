@@ -73,7 +73,7 @@ internal partial class SimpleImageView : UserControl
         _currentImageHash = newHash;
         CancellationSession.IToken token = _cancellationSession.Token;
         IImageResultHandler handler = new WeakImageResultHandler(this);
-        viewModel.Dispatcher.Submit(viewModel.DebugDescription, delegate
+        viewModel.Dispatcher.Submit(() =>
         {
             LoadImage(token, viewModel, handler);
         });
