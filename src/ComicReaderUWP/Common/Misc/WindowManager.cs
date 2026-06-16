@@ -199,8 +199,8 @@ class WindowManager
         IEnumerable<string> unusedKeys = AppDB.MainRegistry.GetKeys(RegistryNames.TAB_RESOURCES, recursive: false)
             .Where(x =>
             {
-                int index = x.LastIndexOf('/', x.Length - 2);
-                string tabId = x[(index + 1)..^1];
+                int index = x.LastIndexOf('/');
+                string tabId = x[(index + 1)..];
                 return !aliveTabIds.Contains(tabId);
             });
         foreach (string key in unusedKeys)
