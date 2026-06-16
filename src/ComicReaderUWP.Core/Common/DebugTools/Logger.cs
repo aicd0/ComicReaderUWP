@@ -263,7 +263,7 @@ public static class Logger
             return;
         }
 
-        TaskDispatcher.DefaultQueue.Submit("Log", () =>
+        TaskDispatcher.DefaultQueue.Submit(() =>
         {
             Interlocked.Exchange(ref sPostDispatch, 0);
             List<LogItem> pendingLogs = [];

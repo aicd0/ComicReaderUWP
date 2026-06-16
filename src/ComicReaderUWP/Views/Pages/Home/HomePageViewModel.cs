@@ -293,9 +293,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task<ComicFilterModel.ExternalFilterModel> GetFilter()
+    public Task<ComicFilterModel.ExternalFilterModel> GetFilter()
     {
-        return await ThreadingUtils.Submit(_sharedDispatcher, "GetFilter", () =>
+        return _sharedDispatcher.Submit(() =>
         {
             return _filterModel?.Clone() ?? ComicFilterModel.ExternalFilterModel.FromDefault();
         });
@@ -442,7 +442,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     private void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
     {
-        _sharedDispatcher.Submit("SelectViewType", delegate
+        _sharedDispatcher.Submit(() =>
         {
             ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
             if (filter.ViewType != viewType)
@@ -458,7 +458,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     private void SelectSortOrGroup(Func<ComicFilterModel.ExternalFilterModel, bool> handler)
     {
-        _sharedDispatcher.Submit("SelectSortOrGroup", delegate
+        _sharedDispatcher.Submit(() =>
         {
             ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
             filter.Modified = handler(filter) && filter.SaveSortingAndGroupingSettings;
@@ -482,7 +482,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     private void SelectFilterPreset(string? name)
     {
         name ??= "";
-        _sharedDispatcher.Submit("SelectFilterPreset", delegate
+        _sharedDispatcher.Submit(() =>
         {
             ComicFilterModel.ExternalModel? filterSettings = _filterSettingsModel;
             if (filterSettings is null)
@@ -548,7 +548,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
 
         _filterInvalidated = false;
-        _sharedDispatcher.Submit("ScheduleUpdateFilters", delegate
+        _sharedDispatcher.Submit(() =>
         {
             Interlocked.Exchange(ref _updateFilterSubmitted, 0);
             UpdateFiltersNoLock(reloadFromDatabase).Wait();
@@ -586,7 +586,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             return;
         }
 
-        _sharedDispatcher.Submit("ScheduleDisplayComics", delegate
+        _sharedDispatcher.Submit(() =>
         {
             Interlocked.Exchange(ref _updateComicSubmitted, 0);
             DisplayComicsNoLock().Wait();

@@ -100,7 +100,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
     protected void Save()
     {
         string json = Read(model => JsonSerializer.Serialize(model, _serializerOptions));
-        _queue.Submit("Save", () =>
+        _queue.Submit(() =>
         {
             SimpleConfigDatabase.Instance.TryPutConfig(_fileName, json);
         });
@@ -143,7 +143,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
             if (needWrite)
             {
                 json = JsonSerializer.Serialize(jsonModel, _serializerOptions);
-                _queue.Submit("Save", () =>
+                _queue.Submit(() =>
                 {
                     SimpleConfigDatabase.Instance.TryPutConfig(_fileName, json);
                 });

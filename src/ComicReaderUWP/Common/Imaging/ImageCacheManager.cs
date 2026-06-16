@@ -919,7 +919,7 @@ internal static partial class ImageCacheManager
             sImageCache = cache;
         }
 
-        TaskDispatcher.LongRunningThreadPool.Submit("CleanupImageCache", delegate
+        TaskDispatcher.LongRunningThreadPool.Submit(() =>
         {
             long cacheSize = cache.GetApproximateSize();
             long freeSpace = GetFreeSpace(folderPath) + cacheSize;

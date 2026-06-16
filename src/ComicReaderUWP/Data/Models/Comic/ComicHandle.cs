@@ -51,36 +51,30 @@ internal abstract class ComicHandle
     // Static Methods
     //
 
-    public static async Task<T> Enqueue<T>(string taskName, Func<T> op)
+    public static Task<T> Enqueue<T>(Func<T> op)
     {
-        var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        SqliteDB.MainDatabaseDispatcher.Submit($"{TAG}#Enqueue#{taskName}", delegate
-        {
-            taskResult.SetResult(op());
-        });
-
-        return await taskResult.Task;
+        return SqliteDB.MainDatabaseDispatcher.Submit(op);
     }
 
-    public static async Task<ComicHandle?> FromId(long id, string taskName)
+    public static async Task<ComicHandle?> FromId(long id)
     {
-        return await Enqueue(taskName, delegate
+        return await Enqueue(() =>
         {
             return FromIdNoLock(id);
         });
     }
 
-    public static async Task<ComicHandle?> FromLocation(string location, string taskName)
+    public static async Task<ComicHandle?> FromLocation(string location)
     {
-        return await Enqueue(taskName, delegate
+        return await Enqueue(() =>
         {
             return FromLocationNoLock(location);
         });
     }
 
-    public static async Task<List<ComicHandle>> BatchFromId(IEnumerable<long> ids, string taskName)
+    public static async Task<List<ComicHandle>> BatchFromId(IEnumerable<long> ids)
     {
-        return await Enqueue(taskName, delegate
+        return await Enqueue(() =>
         {
             return BatchFromIdNoLock(ids);
         });
@@ -377,7 +371,7 @@ internal abstract class ComicHandle
 
     public async Task FlushExt()
     {
-        await Enqueue("FlushExt", () =>
+        await Enqueue(() =>
         {
             SaveNoLock(() =>
             {
@@ -393,7 +387,7 @@ internal abstract class ComicHandle
     public async Task SetTitle1(string title)
     {
         Title1 = title;
-        await Enqueue("SetTitle1", () =>
+        await Enqueue(() =>
         {
             SaveNoLock(() =>
             {
@@ -409,7 +403,7 @@ internal abstract class ComicHandle
     public async Task SetTitle2(string title)
     {
         Title2 = title;
-        await Enqueue("SetTitle2", () =>
+        await Enqueue(() =>
         {
             SaveNoLock(() =>
             {
@@ -425,7 +419,7 @@ internal abstract class ComicHandle
     public async Task SetDescription(string description)
     {
         Description = description;
-        await Enqueue("SetDescription", () =>
+        await Enqueue(() =>
         {
             SaveNoLock(() =>
             {
@@ -471,7 +465,7 @@ internal abstract class ComicHandle
         }
 
         Tags = newTags;
-        await Enqueue("SetTags", () =>
+        await Enqueue(() =>
         {
             SaveNoLock(() =>
             {
@@ -484,7 +478,7 @@ internal abstract class ComicHandle
     public async Task SetLocation(string location)
     {
         Location = location;
-        await Enqueue("SetLocation", () =>
+        await Enqueue(() =>
         {
             SaveNoLock(() =>
             {
@@ -501,9 +495,9 @@ internal abstract class ComicHandle
     {
         rating = Math.Clamp(rating, -1, 100);
         Rating = rating;
-        await Enqueue("SaveRating", delegate
+        await Enqueue(() =>
         {
-            SaveNoLock(delegate
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnRating, GetColumnValue(ComicTable.ColumnRating))
@@ -522,7 +516,7 @@ internal abstract class ComicHandle
         }
 
         PageCount = pageCount;
-        await Enqueue("SetPageCount", () =>
+        await Enqueue(() =>
         {
             SaveNoLock(() =>
             {
@@ -673,9 +667,9 @@ internal abstract class ComicHandle
     {
         Hidden = hidden;
 
-        await Enqueue("SaveHiddenAsync", delegate
+        await Enqueue(() =>
         {
-            SaveNoLock(delegate
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnHidden, GetColumnValue(ComicTable.ColumnHidden))
@@ -690,9 +684,9 @@ internal abstract class ComicHandle
     {
         CompletionState = completionState;
 
-        await Enqueue("SaveCompletionState", delegate
+        await Enqueue(() =>
         {
-            SaveNoLock(delegate
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnCompletionState, GetColumnValue(ComicTable.ColumnCompletionState))
@@ -708,9 +702,9 @@ internal abstract class ComicHandle
         Progress = Math.Clamp(progress, -1, 100);
         LastPosition = last_position;
 
-        await Enqueue("SaveProgress", delegate
+        await Enqueue(() =>
         {
-            SaveNoLock(delegate
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
@@ -727,9 +721,9 @@ internal abstract class ComicHandle
         LastVisit = DateTimeOffset.Now;
         Progress = Math.Max(Progress, 0);
 
-        CoroutineUtils.Run(() => Enqueue("SetAsRead", delegate
+        CoroutineUtils.Run(() => Enqueue(() =>
         {
-            SaveNoLock(delegate
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
@@ -745,9 +739,9 @@ internal abstract class ComicHandle
     {
         CoverCacheKey = key;
 
-        CoroutineUtils.Run(() => Enqueue("SetCoverCacheKey", delegate
+        CoroutineUtils.Run(() => Enqueue(() =>
         {
-            SaveNoLock(delegate
+            SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnCoverCacheKey, GetColumnValue(ComicTable.ColumnCoverCacheKey))
@@ -814,7 +808,7 @@ internal abstract class ComicHandle
     public static void UpdateAllComics(string reason)
     {
         Logger.I(TAG, $"UpdateAllComics(reason={reason})");
-        TaskDispatcher.LongRunningThreadPool.Submit("UpdateAllComics", delegate
+        TaskDispatcher.LongRunningThreadPool.Submit(() =>
         {
             lock (_scanLibraryLock)
             {
@@ -898,9 +892,9 @@ internal abstract class ComicHandle
         action();
     }
 
-    private static async Task TransactionBlock(Func<Task> op, string taskName)
+    private static async Task TransactionBlock(Func<Task> op)
     {
-        await Enqueue(taskName, delegate
+        await Enqueue(() =>
         {
             SqliteDB.MainDatabase.WithTransaction(() =>
             {
@@ -928,7 +922,7 @@ internal abstract class ComicHandle
 
         // Get all locations from database
         HashSet<string> oldLocations = [];
-        Enqueue("GetLocationsFromDatabase", delegate
+        Enqueue(() =>
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
@@ -970,7 +964,7 @@ internal abstract class ComicHandle
             if (updateQueue.Count > 0)
             {
                 comicUpdatedSinceLastBroadcast = true;
-                TransactionBlock(async delegate
+                TransactionBlock(async () =>
                 {
                     foreach (UpdateItemInfo info in updateQueue)
                     {
@@ -994,7 +988,7 @@ internal abstract class ComicHandle
                     }
 
                     await Task.CompletedTask;
-                }, "UpdateComic").Wait();
+                }).Wait();
             }
         }
 
@@ -1105,7 +1099,7 @@ internal abstract class ComicHandle
                 if (proceed)
                 {
                     comicUpdatedSinceLastBroadcast = true;
-                    TransactionBlock(delegate
+                    TransactionBlock(() =>
                     {
                         foreach (string location in locationRemoved)
                         {
@@ -1114,7 +1108,7 @@ internal abstract class ComicHandle
                         }
 
                         return Task.CompletedTask;
-                    }, "RemoveLocationsFromDatabase").Wait();
+                    }).Wait();
                 }
             }
         }

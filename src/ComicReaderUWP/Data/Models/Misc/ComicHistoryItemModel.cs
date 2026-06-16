@@ -35,7 +35,7 @@ internal class ComicHistoryItemModel
 
     public static async Task<List<ComicHistoryItemModel>> GetAllAsync()
     {
-        return await Enqueue("GetAllAsync", () =>
+        return await Enqueue(() =>
         {
             var command = SelectCommand.Create(ComicHistoryTable.Instance);
             IReaderToken<long> comicIdToken = command.PutQueryInt64(ComicHistoryTable.ColumnComicId);
@@ -58,7 +58,7 @@ internal class ComicHistoryItemModel
 
     public static async Task<bool> IsEmptyAsync()
     {
-        return await Enqueue("IsEmptyAsync", () =>
+        return await Enqueue(() =>
         {
             SelectCommand command = SelectCommand.Create(ComicHistoryTable.Instance)
                 .Limit(1);
@@ -74,7 +74,7 @@ internal class ComicHistoryItemModel
 
     public static async Task AddAsync(long id, string title, bool suppressEvent = false)
     {
-        await Enqueue("AddAsync", () =>
+        await Enqueue(() =>
         {
             DeleteCommand deleteCommand = DeleteCommand.Create(ComicHistoryTable.Instance)
                 .AppendCondition(ComicHistoryTable.ColumnComicId, id);
@@ -97,7 +97,7 @@ internal class ComicHistoryItemModel
 
     public static async Task RemoveAsync(long id, bool suppressEvent = false)
     {
-        bool changed = await Enqueue("RemoveAsync", () =>
+        bool changed = await Enqueue(() =>
         {
             DeleteCommand deleteCommand = DeleteCommand.Create(ComicHistoryTable.Instance)
                 .AppendCondition(ComicHistoryTable.ColumnComicId, id);
@@ -113,7 +113,7 @@ internal class ComicHistoryItemModel
 
     public static async Task ClearAsync(bool suppressEvent = false)
     {
-        await Enqueue("ClearAsync", () =>
+        await Enqueue(() =>
         {
             var deleteCommand = DeleteCommand.Create(ComicHistoryTable.Instance);
             deleteCommand.Execute();
@@ -131,14 +131,8 @@ internal class ComicHistoryItemModel
         GlobalEvent.Instance.HistoryUpdated.Emit(0);
     }
 
-    private static async Task<T> Enqueue<T>(string taskName, Func<T> op)
+    private static Task<T> Enqueue<T>(Func<T> op)
     {
-        var taskResult = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        SqliteDB.MiscDatabaseDispatcher.Submit(taskName, delegate
-        {
-            taskResult.SetResult(op());
-        });
-
-        return await taskResult.Task;
+        return SqliteDB.MiscDatabaseDispatcher.Submit(op);
     }
 }

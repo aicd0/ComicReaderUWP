@@ -331,7 +331,7 @@ public partial class App : Application
         {
             string parentPath = targetFile.Path;
             parentPath = StringUtils.ParentLocationFromLocation(parentPath);
-            comic = await ComicModel.FromLocation(parentPath, "GetFileActivatedComicRoute") ??
+            comic = await ComicModel.FromLocation(parentPath) ??
                 await ComicModel.FromExternalLocation(parentPath);
             if (comic is not null)
             {

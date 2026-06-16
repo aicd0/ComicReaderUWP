@@ -217,14 +217,14 @@ internal partial class PluginContext : IPluginContext
 
     async Task<IComicModel?> IPluginContext.GetComic(long id)
     {
-        return await ComicModel.FromId(id, "PluginGetComicById");
+        return await ComicModel.FromId(id);
     }
 
     async Task<IEnumerable<long>> IPluginContext.SearchComics(string filterExpression)
     {
         ICondition? filterCondition = ParseFilterExpression(filterExpression) ?? throw new InvalidExpressionException();
         List<long> ids = [];
-        await ComicHandle.Enqueue("SearchComics", delegate
+        await ComicHandle.Enqueue(() =>
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);

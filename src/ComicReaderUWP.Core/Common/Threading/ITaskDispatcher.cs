@@ -5,7 +5,11 @@ namespace ComicReaderUWP.Core.Common.Threading;
 
 public interface ITaskDispatcher
 {
-    void Submit(Action action);
+    Task Submit(Action action);
 
-    void Submit(string taskName, Action action);
+    Task<R> Submit<R>(Func<R> func);
+
+    Task SubmitAsync(Func<Task> func);
+
+    Task<R> SubmitAsync<R>(Func<Task<R>> func);
 }

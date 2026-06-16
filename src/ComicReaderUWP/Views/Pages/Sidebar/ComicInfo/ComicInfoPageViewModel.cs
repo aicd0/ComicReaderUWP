@@ -140,7 +140,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         _comic = comic;
         _pageIndices.Clear();
         LoadComicInfo();
-        CoroutineUtils.Run(UpdateImageDescription);
+        UpdateImageDescription();
     }
 
     public void SetPageIndices(ISet<int> pageIndices)
@@ -156,7 +156,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             _pageIndices.Add(i);
         }
 
-        CoroutineUtils.Run(UpdateImageDescription);
+        UpdateImageDescription();
     }
 
     public void SetPlaylist(PlaylistModel playlist)
@@ -405,7 +405,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         return items;
     }
 
-    private async Task UpdateImageDescription()
+    private void UpdateImageDescription()
     {
         void ClearDescription()
         {
@@ -420,7 +420,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        TaskDispatcher.DefaultQueue.Submit("LoadImageMeta", () =>
+        TaskDispatcher.DefaultQueue.Submit(() =>
         {
             using IComicConnection? comicConnection = comic.OpenComicAsync().Result;
             if (comicConnection is null)

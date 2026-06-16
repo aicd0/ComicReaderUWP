@@ -260,7 +260,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
     {
         GlobalEvent.Instance.ComicUpdated.Observe(owner, (_) =>
         {
-            _dispatcher.Submit($"{TAG}#UpdateStatistis", () =>
+            _dispatcher.Submit(() =>
             {
                 UpdateStatistis();
             });
@@ -359,7 +359,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void Update()
     {
-        _dispatcher.Submit($"{TAG}#Initialize", InitializeInternal);
+        _dispatcher.Submit(InitializeInternal);
     }
 
     private void InitializeInternal()
@@ -535,7 +535,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         long unreadComicCount = 0;
         long readingComicCount = 0;
         long finishedComicCount = 0;
-        ComicHandle.Enqueue("SettingPage#UpdateStatistis", () =>
+        ComicHandle.Enqueue(() =>
         {
             comicCount = QueryComicCount();
             unreadComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.NotStarted));

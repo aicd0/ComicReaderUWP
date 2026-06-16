@@ -64,7 +64,7 @@ internal class PlaylistModel
             }
         }
 
-        List<ComicModel> libraryComics = await ComicModel.BatchFromId(TAG, comicIds);
+        List<ComicModel> libraryComics = await ComicModel.BatchFromId(comicIds);
         var comicIdMap = new Dictionary<long, ComicModel>();
         foreach (ComicModel comic in libraryComics)
         {

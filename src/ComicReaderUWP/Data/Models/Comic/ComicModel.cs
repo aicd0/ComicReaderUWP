@@ -450,14 +450,14 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Creators
     //
 
-    public static async Task<ComicModel?> FromId(long id, string taskName)
+    public static async Task<ComicModel?> FromId(long id)
     {
         if (TryGetExisting(id, out ComicModel? model))
         {
             return model;
         }
 
-        ComicHandle? comicData = await ComicHandle.FromId(id, taskName);
+        ComicHandle? comicData = await ComicHandle.FromId(id);
         if (comicData == null)
         {
             return null;
@@ -466,14 +466,14 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return ReplaceWithExisting(comicData);
     }
 
-    public static async Task<ComicModel?> FromLocation(string location, string taskName)
+    public static async Task<ComicModel?> FromLocation(string location)
     {
         if (TryGetExisting(location, out ComicModel? model))
         {
             return model;
         }
 
-        ComicHandle? comicData = await ComicHandle.FromLocation(location, taskName);
+        ComicHandle? comicData = await ComicHandle.FromLocation(location);
         if (comicData == null)
         {
             return null;
@@ -487,7 +487,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         ComicHandle? comic = null;
         if (AppInfoProvider.IsSupportedDocumentExtension(file.FileType))
         {
-            comic = await ComicHandle.FromLocation(file.Path, "ComicModelFromFileDocument");
+            comic = await ComicHandle.FromLocation(file.Path);
             if (comic == null)
             {
                 switch (file.FileType.ToLower())
@@ -502,7 +502,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
         else if (AppInfoProvider.IsSupportedArchiveExtension(file.FileType))
         {
-            comic = await ComicHandle.FromLocation(file.Path, "ComicModelFromFileArchive");
+            comic = await ComicHandle.FromLocation(file.Path);
             comic ??= ArchiveComicHandle.FromExternal(file);
         }
 
@@ -555,7 +555,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
         if (Directory.Exists(location))
         {
-            ComicModel? comic = await FromLocation(location, "GetComicFromLocation");
+            ComicModel? comic = await FromLocation(location);
             if (comic is not null)
             {
                 return comic;
@@ -611,7 +611,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return null;
     }
 
-    public static async Task<List<ComicModel>> BatchFromId(string taskName, IEnumerable<long> ids)
+    public static async Task<List<ComicModel>> BatchFromId(IEnumerable<long> ids)
     {
         HashSet<long> idsUnique = [.. ids];
         List<ComicModel> results = [];
@@ -631,7 +631,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
         if (requestingIds.Count > 0)
         {
-            List<ComicHandle> requestResults = await ComicHandle.BatchFromId(requestingIds, taskName);
+            List<ComicHandle> requestResults = await ComicHandle.BatchFromId(requestingIds);
             foreach (ComicHandle result in requestResults)
             {
                 results.Add(ReplaceWithExisting(result));
@@ -652,7 +652,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     public static Task<List<string>> GetAllTagCategories()
     {
-        return ComicHandle.Enqueue<List<string>>("GetAllTagCategories", () =>
+        return ComicHandle.Enqueue<List<string>>(() =>
         {
             HashSet<string> tags = [];
             var command = SelectCommand.Create(TagCategoryTable.Instance);

@@ -50,7 +50,7 @@ public class EnvironmentProvider
     public void Initialize(string additionalDebugInformation)
     {
         _additionalDebugInformation = additionalDebugInformation;
-        TaskDispatcher.DefaultThreadPool.Submit("EnvironmentProviderInit", () =>
+        TaskDispatcher.DefaultThreadPool.Submit(() =>
         {
             string deviceId = RecalculateDeviceId();
             _actualDeviceId = deviceId;
