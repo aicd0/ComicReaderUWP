@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
@@ -132,7 +131,7 @@ internal class ImageCacheDatabase(string databaseFilePath)
 
         try
         {
-            _connection = CreateConnection(false).Result;
+            _connection = CreateConnection(false);
         }
         catch (Exception ex)
         {
@@ -143,7 +142,7 @@ internal class ImageCacheDatabase(string databaseFilePath)
         {
             try
             {
-                _connection = CreateConnection(true).Result;
+                _connection = CreateConnection(true);
             }
             catch (Exception ex)
             {
@@ -154,7 +153,7 @@ internal class ImageCacheDatabase(string databaseFilePath)
         return _connection;
     }
 
-    private async Task<SqliteConnection?> CreateConnection(bool clear)
+    private SqliteConnection? CreateConnection(bool clear)
     {
         string? databaseFolderPath = Path.GetDirectoryName(databaseFilePath);
         if (string.IsNullOrEmpty(databaseFolderPath))
@@ -196,7 +195,7 @@ internal class ImageCacheDatabase(string databaseFilePath)
             command.CommandText = "CREATE TABLE IF NOT EXISTS " + MAIN_TABLE + " (" +
                 MAIN_TABLE_FIELD_KEY + " TEXT PRIMARY KEY," +
                 MAIN_TABLE_FIELD_EXT + " TEXT)";
-            await command.ExecuteNonQueryAsync();
+            command.ExecuteNonQueryAsync().Wait();
         }
 
         return connection;

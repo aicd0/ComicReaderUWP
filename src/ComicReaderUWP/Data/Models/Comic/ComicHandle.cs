@@ -51,32 +51,45 @@ internal abstract class ComicHandle
     // Static Methods
     //
 
-    public static Task<T> Enqueue<T>(Func<T> op)
+    public static Task Enqueue(Action action)
     {
-        return SqliteDB.MainDatabaseDispatcher.Submit(op);
+        return SqliteDB.MainDatabaseDispatcher.Submit(action);
     }
 
-    public static async Task<ComicHandle?> FromId(long id)
+    public static Task<T> Enqueue<T>(Func<T> func)
     {
-        return await Enqueue(() =>
+        return SqliteDB.MainDatabaseDispatcher.Submit(func);
+    }
+
+    public static Task<ComicHandle?> FromId(long id)
+    {
+        return Enqueue(() =>
         {
             return FromIdNoLock(id);
         });
     }
 
-    public static async Task<ComicHandle?> FromLocation(string location)
+    public static Task<ComicHandle?> FromLocation(string location)
     {
-        return await Enqueue(() =>
+        return Enqueue(() =>
         {
             return FromLocationNoLock(location);
         });
     }
 
-    public static async Task<List<ComicHandle>> BatchFromId(IEnumerable<long> ids)
+    public static Task<List<ComicHandle>> BatchFromId(IEnumerable<long> ids)
     {
-        return await Enqueue(() =>
+        return Enqueue(() =>
         {
             return BatchFromIdNoLock(ids);
+        });
+    }
+
+    private static Task TransactionBlock(Action action)
+    {
+        return Enqueue(() =>
+        {
+            SqliteDB.MainDatabase.WithTransaction(action);
         });
     }
 
@@ -808,7 +821,7 @@ internal abstract class ComicHandle
     public static void UpdateAllComics(string reason)
     {
         Logger.I(TAG, $"UpdateAllComics(reason={reason})");
-        TaskDispatcher.LongRunningThreadPool.Submit(() =>
+        TaskDispatcher.LongRunningThreadPool.SubmitAsync(async () =>
         {
             lock (_scanLibraryLock)
             {
@@ -827,7 +840,7 @@ internal abstract class ComicHandle
 
                 while (true)
                 {
-                    UpdateAllComicsInternal();
+                    await UpdateAllComicsInternal();
 
                     lock (_scanLibraryLock)
                     {
@@ -892,18 +905,6 @@ internal abstract class ComicHandle
         action();
     }
 
-    private static async Task TransactionBlock(Func<Task> op)
-    {
-        await Enqueue(() =>
-        {
-            SqliteDB.MainDatabase.WithTransaction(() =>
-            {
-                op().Wait();
-            });
-            return true;
-        });
-    }
-
     private static void RemoveWithLocationNoLock(string location)
     {
         int count = DeleteCommand.Create(ComicTable.Instance)
@@ -915,14 +916,14 @@ internal abstract class ComicHandle
         }
     }
 
-    private static void UpdateAllComicsInternal()
+    private static async Task UpdateAllComicsInternal()
     {
         AppSettingsModel.ExternalModel appSettings = AppSettingsModel.Instance.GetModel();
         bool comicUpdatedSinceLastBroadcast = false;
 
         // Get all locations from database
         HashSet<string> oldLocations = [];
-        Enqueue(() =>
+        await Enqueue(() =>
         {
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
@@ -931,16 +932,14 @@ internal abstract class ComicHandle
             {
                 oldLocations.Add(locationToken.GetValue());
             }
-
-            return true;
-        }).Wait();
+        });
 
         // Scan comics
         Dictionary<string, ComicType> pendingLocations = [];
         HashSet<string> newLocations = [];
         HashSet<string> noAccessLocations = [];
 
-        void FlushPendingLocations()
+        async Task FlushPendingLocations()
         {
             List<UpdateItemInfo> updateQueue = [];
             foreach (KeyValuePair<string, ComicType> pair in pendingLocations)
@@ -964,7 +963,7 @@ internal abstract class ComicHandle
             if (updateQueue.Count > 0)
             {
                 comicUpdatedSinceLastBroadcast = true;
-                TransactionBlock(async () =>
+                await TransactionBlock(() =>
                 {
                     foreach (UpdateItemInfo info in updateQueue)
                     {
@@ -986,9 +985,7 @@ internal abstract class ComicHandle
                         comic.Id = command.Execute();
                         comic.InternalSaveTagsNoLock();
                     }
-
-                    await Task.CompletedTask;
-                }).Wait();
+                });
             }
         }
 
@@ -1046,7 +1043,7 @@ internal abstract class ComicHandle
 
                 if (watch.LapSpan().TotalSeconds > 2)
                 {
-                    FlushPendingLocations();
+                    await FlushPendingLocations();
 
                     if (comicUpdatedSinceLastBroadcast)
                     {
@@ -1059,7 +1056,7 @@ internal abstract class ComicHandle
             }
         }
 
-        FlushPendingLocations();
+        await FlushPendingLocations();
 
         // Remove unreachable comics
         if (appSettings.RemoveUnreachableComics)
@@ -1093,22 +1090,21 @@ internal abstract class ComicHandle
                         .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
                         .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
                         .Build();
-                    proceed = DialogUtils.EnqueueDialogAsync(options).Result.Result == ContentDialogResult.Primary;
+                    DialogResult result = await DialogUtils.EnqueueDialogAsync(options);
+                    proceed = result.Result == ContentDialogResult.Primary;
                 }
 
                 if (proceed)
                 {
                     comicUpdatedSinceLastBroadcast = true;
-                    TransactionBlock(() =>
+                    await TransactionBlock(() =>
                     {
                         foreach (string location in locationRemoved)
                         {
                             Logger.I(TAG, $"Removing: {location}");
                             RemoveWithLocationNoLock(location);
                         }
-
-                        return Task.CompletedTask;
-                    }).Wait();
+                    });
                 }
             }
         }

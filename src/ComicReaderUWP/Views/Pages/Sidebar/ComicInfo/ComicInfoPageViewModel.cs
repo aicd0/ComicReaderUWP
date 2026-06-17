@@ -420,9 +420,9 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        TaskDispatcher.DefaultQueue.Submit(() =>
+        TaskDispatcher.DefaultQueue.SubmitAsync(async () =>
         {
-            using IComicConnection? comicConnection = comic.OpenComicAsync().Result;
+            using IComicConnection? comicConnection = await comic.OpenComicAsync();
             if (comicConnection is null)
             {
                 ClearDescription();

@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
@@ -260,10 +261,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
     {
         GlobalEvent.Instance.ComicUpdated.Observe(owner, (_) =>
         {
-            _dispatcher.Submit(() =>
-            {
-                UpdateStatistis();
-            });
+            _dispatcher.SubmitAsync(UpdateStatistis);
         });
 
         ComicHandle.IsScanningLibraryLiveData.ObserveSticky(owner, isScanning =>
@@ -359,10 +357,10 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void Update()
     {
-        _dispatcher.Submit(InitializeInternal);
+        _dispatcher.SubmitAsync(InitializeInternal);
     }
 
-    private void InitializeInternal()
+    private async Task InitializeInternal()
     {
         _settingsModel = null;
         AppSettingsModel.ExternalModel model = GetSettingsModel();
@@ -371,7 +369,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         UpdateAppearance(model);
         UpdateBackground(model);
         UpdateLanguage();
-        UpdateStatistis();
+        await UpdateStatistis();
         UpdateSharedSettings();
 
         CoroutineUtils.RunInMainThread(() =>
@@ -515,7 +513,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private void UpdateStatistis()
+    private async Task UpdateStatistis()
     {
         long QueryComicCount(Action<SelectCommand>? condition = null)
         {
@@ -535,14 +533,13 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         long unreadComicCount = 0;
         long readingComicCount = 0;
         long finishedComicCount = 0;
-        ComicHandle.Enqueue(() =>
+        await ComicHandle.Enqueue(() =>
         {
             comicCount = QueryComicCount();
             unreadComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.NotStarted));
             readingComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.Started));
             finishedComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.Completed));
-            return true;
-        }).Wait();
+        });
 
         StringBuilder sb = new();
         sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.TotalComics))

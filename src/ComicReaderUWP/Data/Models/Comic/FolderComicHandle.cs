@@ -94,7 +94,7 @@ internal partial class FolderComicHandle : ComicHandle
                 return true;
             });
 
-            List<ComicModel> affectingComics = ComicModel.BatchFromId(affectingComicIds).Result;
+            List<ComicModel> affectingComics = await ComicModel.BatchFromId(affectingComicIds);
 
             string? targetParent = Path.GetDirectoryName(targetDir);
             if (!string.IsNullOrEmpty(targetParent) && !Directory.Exists(targetParent))
