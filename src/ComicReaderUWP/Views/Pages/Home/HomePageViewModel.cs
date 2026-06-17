@@ -548,10 +548,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
 
         _filterInvalidated = false;
-        _sharedDispatcher.Submit(() =>
+        _sharedDispatcher.SubmitAsync(async () =>
         {
             Interlocked.Exchange(ref _updateFilterSubmitted, 0);
-            UpdateFiltersNoLock(reloadFromDatabase).Wait();
+            await UpdateFiltersNoLock(reloadFromDatabase);
         });
     }
 
@@ -586,10 +586,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             return;
         }
 
-        _sharedDispatcher.Submit(() =>
+        _sharedDispatcher.SubmitAsync(async () =>
         {
             Interlocked.Exchange(ref _updateComicSubmitted, 0);
-            DisplayComicsNoLock().Wait();
+            await DisplayComicsNoLock();
         });
     }
 

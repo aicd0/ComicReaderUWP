@@ -57,10 +57,10 @@ internal class ComicSearchEngine
             return;
         }
 
-        _dispatcher.Submit(() =>
+        _dispatcher.SubmitAsync(async () =>
         {
             Interlocked.Exchange(ref _updateSubmitted, 0);
-            UpdateNoLock().Wait();
+            await UpdateNoLock();
         });
     }
 

@@ -114,7 +114,7 @@ internal class LRUCacheDatabase(string filePath)
 
         try
         {
-            _connection = CreateConnection(false).Result;
+            _connection = CreateConnection(false);
         }
         catch (Exception ex)
         {
@@ -125,7 +125,7 @@ internal class LRUCacheDatabase(string filePath)
         {
             try
             {
-                _connection = CreateConnection(true).Result;
+                _connection = CreateConnection(true);
             }
             catch (Exception ex)
             {
@@ -136,7 +136,7 @@ internal class LRUCacheDatabase(string filePath)
         return _connection;
     }
 
-    private async Task<SqliteConnection?> CreateConnection(bool clear)
+    private SqliteConnection? CreateConnection(bool clear)
     {
         if (clear || !File.Exists(_filePath))
         {
@@ -158,7 +158,7 @@ internal class LRUCacheDatabase(string filePath)
             command.CommandText = "CREATE TABLE IF NOT EXISTS " + CACHE_TABLE + " (" +
                 CACHE_TABLE_FIELD_KEY + " TEXT PRIMARY KEY," +
                 CACHE_TABLE_FIELD_LAST_USED + " INTEGER NOT NULL)";
-            await command.ExecuteNonQueryAsync();
+            command.ExecuteNonQueryAsync().Wait();
         }
 
         return connection;

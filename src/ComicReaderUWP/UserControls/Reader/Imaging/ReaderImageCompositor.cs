@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
@@ -226,7 +227,7 @@ internal partial class ReaderImageCompositor : IDisposable
             return;
         }
 
-        _decodeDispatcher.Submit(() =>
+        _decodeDispatcher.SubmitAsync(async () =>
         {
             Volatile.Write(ref item.InDecodeQueue, 0);
 
@@ -237,7 +238,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             try
             {
-                PerformDecode(item);
+                await PerformDecode(item);
             }
             finally
             {
@@ -246,7 +247,7 @@ internal partial class ReaderImageCompositor : IDisposable
         });
     }
 
-    private void PerformDecode(ImageItem item)
+    private async Task PerformDecode(ImageItem item)
     {
         Logger.I(TAG, $"Decode (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
         ReaderImageSource? source;
@@ -332,8 +333,7 @@ internal partial class ReaderImageCompositor : IDisposable
                 CanvasBitmap bitmap;
                 try
                 {
-                    bitmap = CanvasBitmap.LoadAsync(_canvasDevice,
-                        stream.AsRandomAccessStream()).AsTask().Result;
+                    bitmap = await CanvasBitmap.LoadAsync(_canvasDevice, stream.AsRandomAccessStream());
                 }
                 catch (Exception ex)
                 {
