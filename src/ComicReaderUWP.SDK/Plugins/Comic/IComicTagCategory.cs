@@ -5,7 +5,5 @@ namespace ComicReaderUWP.SDK.Plugins.Comic;
 
 public interface IComicTagCategory
 {
-    string Name { get; }
-
     IReadOnlySet<string> Tags { get; }
 }

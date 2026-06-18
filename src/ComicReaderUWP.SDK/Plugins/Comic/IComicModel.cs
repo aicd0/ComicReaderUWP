@@ -19,7 +19,7 @@ public interface IComicModel
 
     int Rating { get; }
 
-    IReadOnlyList<IComicTagCategory> Tags { get; }
+    IReadOnlyDictionary<string, IComicTagCategory> Tags { get; }
 
     IReadOnlyDictionary<string, string> Links { get; }
 
@@ -35,9 +35,9 @@ public interface IComicModel
 
     Task SetRating(int rating);
 
-    Task SetTags(IReadOnlyDictionary<string, HashSet<string>> tags);
+    Task SetTags<T>(IEnumerable<KeyValuePair<string, T>> tags) where T : IEnumerable<string>;
 
-    Task SetLinks(IReadOnlyDictionary<string, string> links);
+    Task SetLinks(IEnumerable<KeyValuePair<string, string>> links);
 
     Task SetHidden(bool isHidden);
 

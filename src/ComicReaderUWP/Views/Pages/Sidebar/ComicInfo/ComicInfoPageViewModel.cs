@@ -303,18 +303,17 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         }
 
         List<TagCollectionViewModel> newCollection = [];
-        for (int i = 0; i < comic.Tags.Count; ++i)
+        foreach (KeyValuePair<string, ComicTagCategory> tagItem in comic.Tags)
         {
-            ComicHandle.TagData tags = comic.Tags[i];
             List<TagViewModel> tagModels = [];
-            foreach (string tag in tags.Tags)
+            foreach (string tag in tagItem.Value.Tags)
             {
                 TagViewModel tagModel = new()
                 {
                     Tag = tag,
                     OnClicked = () =>
                     {
-                        string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(tags.Name)}\"=\"{ExpressionUtils.EscapeString(tag)}\"";
+                        string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(tagItem.Key)}\"=\"{ExpressionUtils.EscapeString(tag)}\"";
                         Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
                             .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
                         ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
@@ -325,7 +324,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
                     },
                     OnRequestContextFlyoutAsync = () =>
                     {
-                        return CreateTagContextMenuItems(tags.Name, tag);
+                        return CreateTagContextMenuItems(tagItem.Key, tag);
                     },
                 };
 
@@ -333,7 +332,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             }
 
             tagModels.Sort((a, b) => string.Compare(a.Tag, b.Tag, ignoreCase: true));
-            var tagCollectionModel = new TagCollectionViewModel(tags.Name);
+            var tagCollectionModel = new TagCollectionViewModel(tagItem.Key);
             foreach (TagViewModel tag in tagModels)
             {
                 tagCollectionModel.Tags.Add(tag);

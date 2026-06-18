@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -88,7 +89,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public int Progress => _internalModel.Progress;
     public DateTimeOffset LastVisit => _internalModel.LastVisit;
     public int Rating => _internalModel.Rating;
-    public IReadOnlyList<ComicHandle.TagData> Tags => _internalModel.Tags;
+    public IReadOnlyDictionary<string, ComicTagCategory> Tags => _internalModel.Tags;
     public string Title1 => _internalModel.Title1;
     public string Title2 => _internalModel.Title2;
     public ComicCompletionStatusEnum CompletionState => _internalModel.CompletionState;
@@ -121,28 +122,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
     }
 
-    public Dictionary<string, HashSet<string>> TagsCopy
-    {
-        get
-        {
-            Dictionary<string, HashSet<string>> tagsCopy = [];
-            foreach (ComicHandle.TagData tagData in _internalModel.Tags)
-            {
-                if (!tagsCopy.TryGetValue(tagData.Name, out HashSet<string>? tagSet))
-                {
-                    tagSet = [];
-                    tagsCopy[tagData.Name] = tagSet;
-                }
-
-                foreach (string tag in tagData.Tags)
-                {
-                    tagSet.Add(tag);
-                }
-            }
-
-            return tagsCopy;
-        }
-    }
+    public Dictionary<string, HashSet<string>> TagsCopy => _internalModel.Tags.ToDictionary(p => p.Key, p => p.Value.Tags.ToHashSet());
 
     public string? GetExt(string key)
     {
@@ -188,7 +168,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         DispatchUpdateEvent();
     }
 
-    public async Task SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
+    public async Task SetTags<T>(IEnumerable<KeyValuePair<string, T>> tags) where T : IEnumerable<string>
     {
         await _internalModel.SetTags(tags);
         DispatchUpdateEvent();
@@ -292,7 +272,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     int SDK.Plugins.Comic.IComicModel.Rating => Rating;
 
-    IReadOnlyList<SDK.Plugins.Comic.IComicTagCategory> SDK.Plugins.Comic.IComicModel.Tags => Tags;
+    IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory> SDK.Plugins.Comic.IComicModel.Tags => _internalModel.TagsForPlugin;
 
     IReadOnlyDictionary<string, string> SDK.Plugins.Comic.IComicModel.Links
     {
@@ -352,12 +332,12 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return SetRating(rating);
     }
 
-    Task SDK.Plugins.Comic.IComicModel.SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
+    Task SDK.Plugins.Comic.IComicModel.SetTags<T>(IEnumerable<KeyValuePair<string, T>> tags)
     {
         return SetTags(tags);
     }
 
-    Task SDK.Plugins.Comic.IComicModel.SetLinks(IReadOnlyDictionary<string, string> links)
+    Task SDK.Plugins.Comic.IComicModel.SetLinks(IEnumerable<KeyValuePair<string, string>> links)
     {
         List<TagLinkModel.LinkModel> linkModels = [];
         foreach (KeyValuePair<string, string> item in links)
