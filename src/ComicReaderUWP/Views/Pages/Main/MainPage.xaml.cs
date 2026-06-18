@@ -216,7 +216,7 @@ internal sealed partial class MainPage : BasePage
 
         ViewModel.UpdateMoreMenuItems();
         NavigationPageSidePane.OpenPaneLength = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<double>(KVNames.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
-        RightSidePane.RestoreLastStatus();
+        RightSidePane.RestoreStates();
 
         if (_sidePanePinned && AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_OPENED, false))
         {
@@ -860,7 +860,13 @@ internal sealed partial class MainPage : BasePage
 
     private void NavigationPageSidePane_PaneOpenedOrClosed(SplitView sender, object args)
     {
-        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen);
+        bool isOpen = NavigationPageSidePane.IsPaneOpen;
+        SyncSidebarOpenState(isOpen);
+
+        if (isOpen)
+        {
+            RightSidePane.EnsureInitialContent();
+        }
     }
 
     private void RightSidePane_PinStateChanged(SidebarView sender, bool pinned)
@@ -894,7 +900,7 @@ internal sealed partial class MainPage : BasePage
         {
             NavigationPageSidePane.IsPaneOpen = true;
         }
-        else if (force || !RightSidePane.Pinned)
+        else if (force || !RightSidePane.IsPinned)
         {
             NavigationPageSidePane.IsPaneOpen = false;
         }
