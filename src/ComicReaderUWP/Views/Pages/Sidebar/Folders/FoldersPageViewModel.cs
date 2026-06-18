@@ -168,7 +168,7 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
             };
         }
 
-        List<SimpleTreeViewNodeModel> createNodes(FolderNode folderNode)
+        List<SimpleTreeViewNodeModel> CreateNodes(FolderNode folderNode)
         {
             List<SimpleTreeViewNodeModel> nodes = [];
 
@@ -177,20 +177,22 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
             foreach (string folder in folderNames)
             {
                 FolderNode subFolderNode = folderNode.Folders[folder];
-                List<SimpleTreeViewNodeModel> subNodes = createNodes(subFolderNode);
+
                 SimpleTreeViewNodeModel item = new()
                 {
                     Glyph = "\uE8B7",
                     Title = subFolderNode.Name,
                     CanExpand = true,
-                    IsExpanded = false,
                     RequestContextMenuItemsAsync = CreateFolderMenuItems,
                 };
+
+                List<SimpleTreeViewNodeModel> subNodes = CreateNodes(subFolderNode);
                 foreach (SimpleTreeViewNodeModel node in subNodes)
                 {
                     item.Children.Add(node);
                 }
 
+                item.IsExpanded = item.Children.Count == 1;
                 nodes.Add(item);
             }
 
@@ -205,7 +207,7 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
             return nodes;
         }
 
-        return createNodes(rootNode);
+        return CreateNodes(rootNode);
     }
 
     private async Task<List<BaseMenuFlyoutItemModel>> CreateFolderMenuItems(SimpleTreeViewNodeModel primary, IEnumerable<SimpleTreeViewNodeModel> selection)

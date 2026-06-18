@@ -5,7 +5,6 @@ using System.Collections.Generic;
 
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
@@ -62,15 +61,6 @@ internal sealed partial class TagsPage : BasePage
             var dialog = new EditTagDialog(pair.Key, pair.Value);
             CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
         });
-    }
-
-    //
-    // Utilities
-    //
-
-    private IMainPageAbility GetMainPageAbility()
-    {
-        return GetAbility<IMainPageAbility>()!;
     }
 
     //

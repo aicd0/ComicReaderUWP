@@ -64,11 +64,22 @@ internal partial class SimpleTreeViewNodeModel : BaseViewModel, INotifyPropertyC
     }
 
     private bool _isExpanded = false;
+    private long _isExpandedLockDeadline = 0;
+    /// <summary>
+    /// Do not change this value after it was published. Use Expand() and Collapse() instead.
+    /// Workaround for https://github.com/microsoft/microsoft-ui-xaml/issues/10309
+    /// </summary>
     public bool IsExpanded
     {
         get => _isExpanded;
         set
         {
+            if (GetTick() <= _isExpandedLockDeadline)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsExpanded)));
+                return;
+            }
+
             _isExpanded = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsExpanded)));
         }
@@ -101,42 +112,54 @@ internal partial class SimpleTreeViewNodeModel : BaseViewModel, INotifyPropertyC
         return flyout;
     }
 
+    public void Expand()
+    {
+        IsExpanded = true;
+        LockIsExpandedValue();
+    }
+
+    public void Collapse()
+    {
+        IsExpanded = false;
+        LockIsExpandedValue();
+    }
+
     public void ExpandAll()
     {
-        void helper(SimpleTreeViewNodeModel node)
+        void Helper(SimpleTreeViewNodeModel node)
         {
             if (!node.CanExpand)
             {
                 return;
             }
 
-            node.IsExpanded = true;
+            node.Expand();
             foreach (SimpleTreeViewNodeModel child in node.Children)
             {
-                helper(child);
+                Helper(child);
             }
         }
 
-        helper(this);
+        Helper(this);
     }
 
     public void CollapseAll()
     {
-        void helper(SimpleTreeViewNodeModel node)
+        void Helper(SimpleTreeViewNodeModel node)
         {
             if (!node.CanExpand)
             {
                 return;
             }
 
-            node.IsExpanded = false;
+            node.Collapse();
             foreach (SimpleTreeViewNodeModel child in node.Children)
             {
-                helper(child);
+                Helper(child);
             }
         }
 
-        helper(this);
+        Helper(this);
     }
 
     public IEnumerable<T> CollectDataContext<T>()
@@ -160,5 +183,15 @@ internal partial class SimpleTreeViewNodeModel : BaseViewModel, INotifyPropertyC
         }
 
         return helper(this);
+    }
+
+    private void LockIsExpandedValue()
+    {
+        _isExpandedLockDeadline = GetTick() + 500;
+    }
+
+    private static long GetTick()
+    {
+        return Environment.TickCount64;
     }
 }

@@ -271,7 +271,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 Glyph = "\uE8EC",
                 Title = tagCategory,
                 CanExpand = true,
-                IsExpanded = true,
+                IsExpanded = false,
                 RequestContextMenuItemsAsync = CreateTagCategoryMenuItems,
             };
 
