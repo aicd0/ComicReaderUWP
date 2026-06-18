@@ -227,9 +227,9 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                 if (_tagsChanged)
                 {
                     Dictionary<string, HashSet<string>> comicTags = [];
-                    foreach (ComicHandle.TagData tagData in comic.Tags)
+                    foreach (KeyValuePair<string, ComicTagCategory> item in comic.Tags)
                     {
-                        comicTags[tagData.Name] = [.. tagData.Tags];
+                        comicTags[item.Key] = [.. item.Value.Tags];
                     }
 
                     tasks.Add(comic.SetTags(MergeTags(comicTags, _commonTags, newTags, _tagDiffMode, _tagIdMode)));
@@ -437,16 +437,19 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         for (int i = 0; i < _comics.Count; i++)
         {
             ComicModel comic = _comics[i];
+
             Dictionary<TagWithId, HashSet<TagWithId>> comicTags = [];
-            foreach (ComicHandle.TagData tagData in comic.Tags)
+            foreach (KeyValuePair<string, ComicTagCategory> item in comic.Tags)
             {
                 HashSet<TagWithId> tags = [];
-                foreach (string tag in tagData.Tags)
+                foreach (string tag in item.Value.Tags)
                 {
                     tags.Add(new(tag));
                 }
-                comicTags[new(tagData.Name)] = tags;
+
+                comicTags[new(item.Key)] = tags;
             }
+
             if (tagIdMode)
             {
                 foreach (KeyValuePair<TagWithId, HashSet<TagWithId>> pair in comicTags)

@@ -2,8 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -21,13 +23,12 @@ using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.SDK.Models;
-using ComicReaderUWP.SDK.Plugins.Comic;
 
 using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
-internal abstract class ComicHandle
+internal abstract partial class ComicHandle
 {
     //
     // Constants
@@ -176,7 +177,7 @@ internal abstract class ComicHandle
                 comic.LastPosition = lastPosition;
                 comic.CoverCacheKey = coverCacheKey;
                 comic.Description = description;
-                comic.Tags = [];
+                comic._tags = new([]);
                 comic.CompletionState = completionState;
                 comic.PageCount = pageCount;
 
@@ -253,25 +254,26 @@ internal abstract class ComicHandle
         }
 
         {
-            Dictionary<long, List<TagData>> comicTags = [];
+            Dictionary<long, Dictionary<string, ComicTagCategory>> comicTags = [];
             foreach (TagTempData tagCategory in tagCategories.Values)
             {
-                if (comics.TryGetValue(tagCategory.ComicId, out ComicHandle? comic))
+                if (comics.TryGetValue(tagCategory.ComicId, out _))
                 {
-                    TagData tagData = new(tagCategory.Name, tagCategory.Tags);
-                    if (!comicTags.TryGetValue(tagCategory.ComicId, out List<TagData>? tags))
+                    if (!comicTags.TryGetValue(tagCategory.ComicId, out Dictionary<string, ComicTagCategory>? tags))
                     {
                         tags = [];
                         comicTags[tagCategory.ComicId] = tags;
                     }
-                    tags.Add(tagData);
+
+                    tags[tagCategory.Name] = new(tagCategory.Tags);
                 }
             }
-            foreach (KeyValuePair<long, List<TagData>> pair in comicTags)
+
+            foreach (KeyValuePair<long, Dictionary<string, ComicTagCategory>> pair in comicTags)
             {
                 if (comics.TryGetValue(pair.Key, out ComicHandle? comic))
                 {
-                    comic.Tags = pair.Value;
+                    comic._tags = new(pair.Value);
                 }
             }
         }
@@ -326,6 +328,7 @@ internal abstract class ComicHandle
     // Member variables
     //
 
+    private ReadOnlyTags _tags = new([]);
     private readonly ConcurrentDictionary<string, string> _ext = [];
 
     //
@@ -344,7 +347,8 @@ internal abstract class ComicHandle
     public double LastPosition { get; protected set; } = 0.0;
     public string CoverCacheKey { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
-    public IReadOnlyList<TagData> Tags { get; private set; } = [];
+    public IReadOnlyDictionary<string, ComicTagCategory> Tags => _tags;
+    public IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory> TagsForPlugin => _tags;
     public int PageCount { get; private set; } = -1;
 
     public abstract bool IsEditable { get; }
@@ -393,7 +397,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -409,7 +412,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -425,7 +427,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -441,14 +442,13 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
-    public async Task SetTags(IReadOnlyDictionary<string, HashSet<string>> tags)
+    public async Task SetTags<T>(IEnumerable<KeyValuePair<string, T>> tags) where T : IEnumerable<string>
     {
-        List<TagData> newTags = [];
-        foreach (KeyValuePair<string, HashSet<string>> pair in tags)
+        Dictionary<string, HashSet<string>> newTags = [];
+        foreach (KeyValuePair<string, T> pair in tags)
         {
             string name = pair.Key.Trim();
             if (name.Length == 0)
@@ -456,7 +456,7 @@ internal abstract class ComicHandle
                 continue;
             }
 
-            HashSet<string> processedTags = [];
+            List<string> processedTags = [];
             foreach (string tag in pair.Value)
             {
                 string processedTag = tag.Trim();
@@ -473,18 +473,26 @@ internal abstract class ComicHandle
                 continue;
             }
 
-            TagData tagData = new(name, processedTags);
-            newTags.Add(tagData);
+            if (!newTags.TryGetValue(name, out HashSet<string>? existingTags))
+            {
+                existingTags = [];
+                newTags.Add(name, existingTags);
+            }
+
+            foreach (string tag in processedTags)
+            {
+                existingTags.Add(tag);
+            }
         }
 
-        Tags = newTags;
+        _tags = new(newTags.ToDictionary(p => p.Key, p => new ComicTagCategory(p.Value)));
+
         await Enqueue(() =>
         {
             SaveNoLock(() =>
             {
                 InternalSaveTagsNoLock();
             });
-            return true;
         });
     }
 
@@ -500,7 +508,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -517,7 +524,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -538,7 +544,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -689,7 +694,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -706,7 +710,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -725,7 +728,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         });
     }
 
@@ -744,7 +746,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         }));
     }
 
@@ -761,7 +762,6 @@ internal abstract class ComicHandle
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
-            return true;
         }));
     }
 
@@ -790,12 +790,14 @@ internal abstract class ComicHandle
 
         if (tags.Count >= 2)
         {
-            TagData defaultTag = new(StringResourceProvider.Instance.Default, tags[1..^1].ToHashSet());
-            Tags = [defaultTag];
+            _tags = new(new Dictionary<string, ComicTagCategory>
+            {
+                { StringResourceProvider.Instance.Default, new ComicTagCategory([.. tags[1..^1]]) }
+            });
         }
         else
         {
-            Tags = [];
+            _tags = new([]);
         }
     }
 
@@ -871,14 +873,14 @@ internal abstract class ComicHandle
             .AppendCondition(TagCategoryTable.ColumnComicId, Id)
             .Execute();
 
-        foreach (TagData category in Tags)
+        foreach (KeyValuePair<string, ComicTagCategory> item in Tags)
         {
             long tagCategoryId = InsertCommand.Create(TagCategoryTable.Instance)
-                .AppendColumn(TagCategoryTable.ColumnName, category.Name)
+                .AppendColumn(TagCategoryTable.ColumnName, item.Key)
                 .AppendColumn(TagCategoryTable.ColumnComicId, Id)
                 .Execute();
 
-            foreach (string tag in category.Tags)
+            foreach (string tag in item.Value.Tags)
             {
                 InsertCommand.Create(TagTable.Instance)
                     .AppendColumn(TagTable.ColumnContent, tag)
@@ -1128,24 +1130,71 @@ internal abstract class ComicHandle
     // Types
     //
 
+    private partial class ReadOnlyTags(Dictionary<string, ComicTagCategory> source) :
+        IReadOnlyDictionary<string, ComicTagCategory>,
+        IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory>
+    {
+        ComicTagCategory IReadOnlyDictionary<string, ComicTagCategory>.this[string key] => source[key];
+
+        SDK.Plugins.Comic.IComicTagCategory IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory>.this[string key] => source[key];
+
+        IEnumerable<string> IReadOnlyDictionary<string, ComicTagCategory>.Keys => source.Keys;
+
+        IEnumerable<string> IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory>.Keys => source.Keys;
+
+        IEnumerable<ComicTagCategory> IReadOnlyDictionary<string, ComicTagCategory>.Values => source.Values;
+
+        IEnumerable<SDK.Plugins.Comic.IComicTagCategory> IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory>.Values => source.Values;
+
+        int IReadOnlyCollection<KeyValuePair<string, ComicTagCategory>>.Count => source.Count;
+
+        int IReadOnlyCollection<KeyValuePair<string, SDK.Plugins.Comic.IComicTagCategory>>.Count => source.Count;
+
+        bool IReadOnlyDictionary<string, ComicTagCategory>.ContainsKey(string key)
+        {
+            return source.ContainsKey(key);
+        }
+
+        bool IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory>.ContainsKey(string key)
+        {
+            return source.ContainsKey(key);
+        }
+
+        IEnumerator<KeyValuePair<string, ComicTagCategory>> IEnumerable<KeyValuePair<string, ComicTagCategory>>.GetEnumerator()
+        {
+            return source.GetEnumerator();
+        }
+
+        IEnumerator<KeyValuePair<string, SDK.Plugins.Comic.IComicTagCategory>> IEnumerable<KeyValuePair<string, SDK.Plugins.Comic.IComicTagCategory>>.GetEnumerator()
+        {
+            foreach ((string? key, ComicTagCategory? value) in source)
+            {
+                yield return new(key, value);
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return source.GetEnumerator();
+        }
+
+        bool IReadOnlyDictionary<string, ComicTagCategory>.TryGetValue(string key, [MaybeNullWhen(false)] out ComicTagCategory value)
+        {
+            return source.TryGetValue(key, out value);
+        }
+
+        bool IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory>.TryGetValue(string key, [MaybeNullWhen(false)] out SDK.Plugins.Comic.IComicTagCategory value)
+        {
+            bool result = source.TryGetValue(key, out ComicTagCategory? tempValue);
+            value = tempValue;
+            return result;
+        }
+    }
+
     private struct UpdateItemInfo
     {
         public string Location;
         public ComicType ItemType;
-    };
-
-    internal class TagData(string name, IEnumerable<string> tags) : IComicTagCategory
-    {
-        public readonly string Name = name;
-        public readonly IReadOnlySet<string> Tags = (HashSet<string>)[.. tags];
-
-        //
-        // IComicTagCategory Implementation
-        //
-
-        string IComicTagCategory.Name => Name;
-
-        IReadOnlySet<string> IComicTagCategory.Tags => Tags;
     };
 
     private class TagTempData

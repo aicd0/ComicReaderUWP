@@ -170,12 +170,12 @@ internal class ComicPropertyModel
 
         string GetConcatenatedTag(ComicModel comic)
         {
-            ComicHandle.TagData? tagData = comic.Tags.FirstOrDefault(tag => tag.Name == Name);
-            if (tagData == null)
+            if (!comic.Tags.TryGetValue(Name, out ComicTagCategory? category))
             {
                 return string.Empty;
             }
-            List<string> tags = [.. tagData.Tags];
+
+            List<string> tags = [.. category.Tags];
             tags.Sort(StringComparer.OrdinalIgnoreCase);
             return string.Join(' ', tags);
         }
@@ -263,14 +263,13 @@ internal class ComicPropertyModel
 
         IEnumerable<string> GetTagGroupNames(ComicModel comic)
         {
-            ComicHandle.TagData? tagData = comic.Tags.FirstOrDefault(tag => tag.Name == Name);
-            if (tagData == null || tagData.Tags.Count == 0)
+            if (!comic.Tags.TryGetValue(Name, out ComicTagCategory? category))
             {
                 string name = StringResourceProvider.Instance.Ungrouped;
                 return [name];
             }
 
-            return [.. tagData.Tags];
+            return [.. category.Tags];
         }
 
         string GetRatingGroupName(ComicModel comic)

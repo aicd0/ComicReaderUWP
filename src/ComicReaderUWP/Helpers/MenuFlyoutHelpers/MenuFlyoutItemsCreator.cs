@@ -432,13 +432,13 @@ internal static class MenuFlyoutItemsCreator
     {
         Dictionary<string, TagLinkModel.LinkModel> linkMap = [];
 
-        foreach (ComicHandle.TagData tagData in comic.Tags)
+        foreach (KeyValuePair<string, ComicTagCategory> tagItem in comic.Tags)
         {
-            string tagCategory = tagData.Name;
+            string tagCategory = tagItem.Key;
             TagCategoryInfoModel? tagCategoryInfo = await TagCategoryInfoModel.Get(tagCategory);
             List<TagLinkModel.LinkModel> tagCategoryLinks = tagCategoryInfo is null ? [] :
                 TagLinkModel.Parse(tagCategoryInfo.GetExt(TagCategoryInfoExt.LINKS)).Links;
-            foreach (string tag in tagData.Tags)
+            foreach (string tag in tagItem.Value.Tags)
             {
                 foreach (TagLinkModel.LinkModel item in tagCategoryLinks)
                 {
@@ -519,7 +519,7 @@ internal static class MenuFlyoutItemsCreator
     {
         List<BaseMenuFlyoutItemModel> items = [];
         var tags = comic.Tags
-            .SelectMany(tagData => tagData.Tags.Select(tag => (Category: tagData.Name, Tag: tag)))
+            .SelectMany(item => item.Value.Tags.Select(tag => (Category: item.Key, Tag: tag)))
             .OrderBy(t => t.Category)
             .ThenBy(t => t.Tag)
             .ToList();
