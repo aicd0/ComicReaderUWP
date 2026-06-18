@@ -18,7 +18,7 @@
         IsSettingsVisible="False"
         Loaded="MainNavigationView_Loaded"
         PaneDisplayMode="LeftCompact"
-        SelectionChanged="OnNavPaneSelectionChanged">
+        SelectionChanged="MainNavigationView_SelectionChanged">
         <Frame x:Name="ContentFrame" Background="#01FFFFFF" />
         <muxc:NavigationView.PaneFooter>
             <StackPanel Orientation="Vertical">

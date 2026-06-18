@@ -30,18 +30,21 @@ internal sealed partial class SidebarView : BaseUserControl
 
     private readonly SidebarViewModel ViewModel = new();
 
-    private readonly List<SidebarPageItem> _internalItems;
-    private readonly Dictionary<string, SidebarPageItem> _items = [];
-    private ISidePaneHandler? _handler = null;
-    private readonly Dictionary<string, object> _pageCache = [];
-    private string _initialTag = string.Empty;
-    private string _currentTag = string.Empty;
+    private readonly List<SidebarPageItem> _builtinItems;
 
-    public bool Pinned { get; private set; } = false;
+    private ISidePaneHandler? _handler = null;
+    private bool _isContainerReady = false;
+    private string _initialPageTag = string.Empty;
+
+    private readonly Dictionary<string, SidebarPageItem> _items = [];
+    private readonly Dictionary<string, object> _pageCache = [];
+    private string _currentPageTag = string.Empty;
+
+    public bool IsPinned { get; private set; } = false;
 
     public SidebarView()
     {
-        _internalItems =
+        _builtinItems =
         [
             new()
             {
@@ -106,17 +109,23 @@ internal sealed partial class SidebarView : BaseUserControl
         _handler = handler;
     }
 
-    public void RestoreLastStatus()
+    public void EnsureInitialContent()
+    {
+        _isContainerReady = true;
+        UpdatePage();
+    }
+
+    public void RestoreStates()
     {
         bool pinned = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_PINNED, false);
         SetPinState(pinned);
     }
 
-    public void SetPage(string itemTag)
+    public void SetPage(string tag)
     {
-        if (!NavigateToItem(itemTag))
+        if (!SelectItem(tag))
         {
-            _initialTag = itemTag;
+            _initialPageTag = tag;
         }
     }
 
@@ -126,54 +135,17 @@ internal sealed partial class SidebarView : BaseUserControl
 
     private void MainNavigationView_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        LoadSidebarItems();
+        LoadItems();
     }
 
-    private void OnNavPaneSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    private void MainNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        if (args.SelectedItem is not NavigationViewItem viewItem || _handler is null)
-        {
-            return;
-        }
-
-        object? currentPage = ContentFrame.Content;
-        if (currentPage is not null)
-        {
-            _pageCache[_currentTag] = currentPage;
-        }
-
-        if (viewItem.Tag is not string tag)
-        {
-            return;
-        }
-
-        if (tag == _currentTag)
-        {
-            return;
-        }
-
-        ContentFrame.Content = null;
-        _currentTag = tag;
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, tag);
-        if (_pageCache.TryGetValue(tag, out object? pageCache))
-        {
-            ContentFrame.Content = pageCache;
-            return;
-        }
-
-        if (!_items.TryGetValue(tag, out SidebarPageItem? item))
-        {
-            return;
-        }
-
-        PageNavigationBundle bundle = AppRouter.Process(item.PageRoute)!;
-        _handler.TransferAbility(bundle);
-        ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+        UpdatePage();
     }
 
     private void PinButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        bool pinned = !Pinned;
+        bool pinned = !IsPinned;
         SetPinState(pinned);
         AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
     }
@@ -182,9 +154,9 @@ internal sealed partial class SidebarView : BaseUserControl
     // Helpers
     //
 
-    private void LoadSidebarItems()
+    private void LoadItems()
     {
-        List<SidebarPageItem> allPageItems = [.. _internalItems];
+        List<SidebarPageItem> allPageItems = [.. _builtinItems];
         foreach (PluginContext plugin in PluginManager.Instance.GetActivePlugins())
         {
             foreach (ISidebarPageProvider provider in plugin.GetAllSidebarPageProviders())
@@ -222,23 +194,66 @@ internal sealed partial class SidebarView : BaseUserControl
             MainNavigationView.MenuItems.Add(item);
         }
 
-        string initialTag = _initialTag;
+        string initialTag = _initialPageTag;
         if (string.IsNullOrEmpty(initialTag))
         {
             initialTag = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
         }
 
-        if (string.IsNullOrEmpty(initialTag) || !NavigateToItem(initialTag))
+        if (string.IsNullOrEmpty(initialTag) || !SelectItem(initialTag))
         {
-            NavigateToItem(_internalItems[0].Tag);
+            SelectItem(_builtinItems[0].Tag);
         }
     }
 
-    private bool NavigateToItem(string itemTag)
+    private void UpdatePage()
+    {
+        if (_handler is null || !_isContainerReady)
+        {
+            return;
+        }
+
+        if (MainNavigationView.SelectedItem is not NavigationViewItem viewItem || viewItem.Tag is not string selectedTag)
+        {
+            return;
+        }
+
+        object? currentPage = ContentFrame.Content;
+        if (currentPage is not null)
+        {
+            _pageCache[_currentPageTag] = currentPage;
+        }
+
+        if (selectedTag == _currentPageTag)
+        {
+            return;
+        }
+
+        ContentFrame.Content = null;
+        _currentPageTag = selectedTag;
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, selectedTag);
+
+        if (_pageCache.TryGetValue(selectedTag, out object? pageCache))
+        {
+            ContentFrame.Content = pageCache;
+            return;
+        }
+
+        if (!_items.TryGetValue(selectedTag, out SidebarPageItem? item))
+        {
+            return;
+        }
+
+        PageNavigationBundle bundle = AppRouter.Process(item.PageRoute)!;
+        _handler.TransferAbility(bundle);
+        ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+    }
+
+    private bool SelectItem(string tag)
     {
         foreach (object item in MainNavigationView.MenuItems)
         {
-            if (item is NavigationViewItem viewItem && viewItem.Tag is string tag && itemTag == tag)
+            if (item is NavigationViewItem viewItem && viewItem.Tag is string itemTag && itemTag == tag)
             {
                 MainNavigationView.SelectedItem = viewItem;
                 return true;
@@ -250,7 +265,7 @@ internal sealed partial class SidebarView : BaseUserControl
 
     private void SetPinState(bool pinned)
     {
-        Pinned = pinned;
+        IsPinned = pinned;
         ViewModel.UpdatePinButton(pinned);
         PinStateChanged?.Invoke(this, pinned);
     }
