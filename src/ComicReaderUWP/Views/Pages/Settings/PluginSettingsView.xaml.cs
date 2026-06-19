@@ -3,13 +3,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
+using ComicReaderUWP.SDK.Models;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -45,14 +51,16 @@ internal sealed partial class PluginSettingsView : BaseUserControl
 
     private void ObserveData()
     {
-        PluginManager.PluginsChanged.Observe(this, _ =>
-        {
-            ViewModel.UpdatePlugins();
-        }, new ObserveOptions()
+        ObserveOptions options = new()
         {
             Sticky = true,
             PublishBehavior = LiveDataPublishBehavior.ResumeOnly,
-        });
+        };
+
+        PluginManager.PluginsChanged.Observe(this, _ =>
+        {
+            ViewModel.UpdatePlugins();
+        }, options);
     }
 
     private void OpenPluginsFolderButton_Click(object sender, RoutedEventArgs e)
@@ -69,10 +77,60 @@ internal sealed partial class PluginSettingsView : BaseUserControl
             catch (Exception ex)
             {
                 er.SetError(ex);
+                er.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+            }
+        });
+    }
+
+    private void InstallPluginButton_Click(object sender, RoutedEventArgs e)
+    {
+        CoroutineUtils.Run(async () =>
+        {
+            Windows.Storage.StorageFile? file = await FilePickerUtils.PickFile(ViewModel.Shared.WindowId, [".zip"]);
+            if (file is null)
+            {
+                return;
             }
 
-            er.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+            if (AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).GetValueOrDefault(RegistryNames.SettingsKey.SHOW_INSTALL_PLUGIN_WARNING, true))
+            {
+                DialogOptions options = new DialogOptions.Builder()
+                    .SetTitle(StringResourceProvider.Instance.Warning)
+                    .SetContent(StringResourceProvider.Instance.InstallPluginWarning)
+                    .SetPrimaryButtonText(StringResourceProvider.Instance.Proceed)
+                    .SetSecondaryButtonText(StringResourceProvider.Instance.Cancel)
+                    .Build();
+                DialogResult result = await DialogUtils.EnqueueDialogAsync(ViewModel.Shared.WindowId, options);
+                if (result != DialogResult.Primary)
+                {
+                    return;
+                }
+
+                AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).Set(RegistryNames.SettingsKey.SHOW_INSTALL_PLUGIN_WARNING, false);
+            }
+
+            string pluginsFolderPath = PluginManager.PluginsFolderPath;
+            string dstFilePath = Path.Combine(pluginsFolderPath, file.Name);
+
+            var er = EventRecorder.Create("InstallPluginClick");
+            try
+            {
+                File.Copy(file.Path, dstFilePath, true);
+            }
+            catch (Exception ex)
+            {
+                er.SetError(ex);
+                er.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+                return;
+            }
+
+            ViewModel.ApplyOnNextLaunchVisible = true;
         });
+    }
+
+    private void DownloadPluginsFromGitHubButton_Click(object sender, RoutedEventArgs e)
+    {
+        CoroutineUtils.Run(async () => await Windows.System.Launcher.LaunchUriAsync(new Uri(StaticStringResources.GITHUB_PLUGINS_REPO_URL)));
     }
 
     private void PluginItemMoreButton_Click(object sender, RoutedEventArgs e)

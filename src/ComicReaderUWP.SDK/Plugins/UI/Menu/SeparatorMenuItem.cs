@@ -3,6 +3,6 @@
 
 namespace ComicReaderUWP.SDK.Plugins.UI.Menu;
 
-public class SeparatorMenuItem : IMenuItem
+public sealed class SeparatorMenuItem : IMenuItem
 {
 }

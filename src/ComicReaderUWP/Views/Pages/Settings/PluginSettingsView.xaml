@@ -29,7 +29,22 @@
             Text="{x:Bind StringResource.ApplyOnNextLaunch}"
             TextWrapping="Wrap"
             Visibility="{x:Bind ViewModel.ApplyOnNextLaunchVisible, Mode=OneWay}" />
-        <Button Click="OpenPluginsFolderButton_Click" Content="{x:Bind StringResource.OpenPluginsFolder}" />
+        <StackPanel Orientation="Horizontal">
+            <Button Click="OpenPluginsFolderButton_Click" Content="{x:Bind StringResource.OpenPluginsFolder}" />
+            <Button
+                Margin="6,0,0,0"
+                Click="InstallPluginButton_Click"
+                Content="{x:Bind StringResource.InstallPlugin}" />
+            <Button
+                Margin="6,0,0,0"
+                Click="DownloadPluginsFromGitHubButton_Click"
+                Content="{x:Bind StringResource.DownloadPluginsFromGitHub}" />
+        </StackPanel>
+        <TextBlock
+            Margin="0,12,0,0"
+            Text="{x:Bind StringResource.NoPluginsInstalled}"
+            TextWrapping="Wrap"
+            Visibility="{x:Bind ViewModel.NoPlugins, Mode=OneWay}" />
         <ListView
             Margin="0,12,0,0"
             Padding="2,3,0,5"
@@ -42,15 +57,21 @@
                 <DataTemplate x:DataType="settings:PluginItemViewModel">
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Orientation="Vertical">
-                            <StackPanel
-                                Grid.Column="0"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
+                        <Viewbox
+                            Grid.Column="0"
+                            Width="20"
+                            Height="20"
+                            Margin="0,0,12,0"
+                            VerticalAlignment="Center">
+                            <IconSourceElement IconSource="{x:Bind Icon, Mode=OneWay}" />
+                        </Viewbox>
+                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Bottom"
                                     FontSize="14"
@@ -65,7 +86,6 @@
                                     Margin="6,0,0,0"
                                     VerticalAlignment="Bottom"
                                     FontSize="12"
-                                    FontStyle="Italic"
                                     Text="{x:Bind Publisher, Mode=OneWay}" />
                             </StackPanel>
                             <TextBlock
@@ -73,16 +93,21 @@
                                 Opacity="0.6"
                                 Text="{x:Bind Location, Mode=OneWay}"
                                 TextWrapping="Wrap" />
+                            <TextBlock
+                                FontSize="12"
+                                Text="{x:Bind Description, Mode=OneWay}"
+                                TextWrapping="Wrap"
+                                Visibility="{x:Bind DescriptionVisible, Mode=OneWay}" />
                         </StackPanel>
                         <TextBlock
-                            Grid.Column="1"
+                            Grid.Column="2"
                             Margin="12,0,0,0"
                             VerticalAlignment="Center"
                             FontSize="14"
                             FontWeight="SemiBold"
                             Text="{x:Bind Status, Mode=OneWay}" />
                         <Button
-                            Grid.Column="2"
+                            Grid.Column="3"
                             Width="32"
                             Height="32"
                             Margin="12,0,0,0"

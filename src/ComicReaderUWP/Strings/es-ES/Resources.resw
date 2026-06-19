@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>Hecho</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>Descargar complementos desde GitHub</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>Durante el desplazamiento automático</value>
   </data>
@@ -539,6 +542,13 @@ La evaluación se realizará en el siguiente orden:
   <data name="ImageProcessing" xml:space="preserve">
     <value>Procesamiento de imágenes</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>Instalar complemento</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>Instalar un complemento de terceros no verificado puede poner en riesgo tu equipo. Continúa solo si confías plenamente en el proveedor.
+Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas continuar con la instalación. Este mensaje no volverá a mostrarse.</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>Invertir</value>
   </data>
@@ -637,6 +647,9 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>Tu historial de navegación aparece aquí</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>No hay complementos instalados</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>Sin calificación</value>
@@ -780,6 +793,10 @@ La evaluación se realizará en el siguiente orden:
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Eliminar esta carpeta de la lista</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>Se eliminarán los siguientes complementos:
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Eliminar automáticamente los cómics inaccesibles</value>

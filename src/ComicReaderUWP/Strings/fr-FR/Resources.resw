@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>Fait</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>Télécharger des extensions depuis GitHub</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>Pendant le défilement automatique</value>
   </data>
@@ -539,6 +542,13 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="ImageProcessing" xml:space="preserve">
     <value>Traitement d’images</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>Installer le module</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>L’installation d’un module complémentaire tiers non vérifié peut présenter un risque pour votre ordinateur. Continuez uniquement si vous faites entièrement confiance à l’éditeur.
+En cliquant sur « Continuer », vous confirmez que vous comprenez les risques et souhaitez poursuivre l’installation. Ce message ne s’affichera plus.</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>Inverser</value>
   </data>
@@ -637,6 +647,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>Votre historique de navigation sera affiché ici</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>Aucun plugin installé</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>Aucune note</value>
@@ -780,6 +793,10 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Supprimer ce dossier de la liste</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>Les extensions suivantes seront supprimées :
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Supprimer automatiquement les bandes dessinées inaccessibles</value>

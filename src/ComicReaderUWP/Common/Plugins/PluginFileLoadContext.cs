@@ -14,6 +14,6 @@ internal class PluginFileLoadContext
     public required PluginAssemblyLoader AssemblyLoader { get; init; }
     public IReadOnlyCollection<IPlugin> Plugins { get; init; } = [];
     public IReadOnlyCollection<IXamlMetadataProvider> XamlMetadataProviders { get; init; } = [];
-    public string ResourceFolderPath { get; init; } = string.Empty;
+    public string PluginRootDirectoryPath { get; init; } = string.Empty;
     public required IReadOnlyDictionary<string, string> Assemblies { get; init; }
 }

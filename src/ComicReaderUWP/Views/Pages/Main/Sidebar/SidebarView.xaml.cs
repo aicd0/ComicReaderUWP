@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Plugins;
+using ComicReaderUWP.Converters;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Helpers.Navigation;
@@ -51,49 +52,49 @@ internal sealed partial class SidebarView : BaseUserControl
                 Tag = ITEM_COMIC_INFO,
                 Name = StringResource.ComicInfo,
                 PageRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_COMIC_INFO),
-                Icon = new FontIcon() { Glyph = "\uE946" },
+                Icon = new FontIconSource() { Glyph = "\uE946" },
             },
             new()
             {
                 Tag = ITEM_PLAYLIST,
                 Name = StringResource.ReadingList,
                 PageRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_PLAYLIST),
-                Icon = new FontIcon() { Glyph = "\uE7BC" },
+                Icon = new FontIconSource() { Glyph = "\uE7BC" },
             },
             new()
             {
                 Tag = ITEM_TAGS,
                 Name = StringResource.Tags,
                 PageRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_TAGS),
-                Icon = new FontIcon() { Glyph = "\uE8EC" },
+                Icon = new FontIconSource() { Glyph = "\uE8EC" },
             },
             new()
             {
                 Tag = ITEM_FAVORITES,
                 Name = StringResource.Favorites,
                 PageRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FAVORITE),
-                Icon = new FontIcon() { Glyph = "\uE728" },
+                Icon = new FontIconSource() { Glyph = "\uE728" },
             },
             new()
             {
                 Tag = ITEM_FILTER_PRESETS,
                 Name = StringResource.FilterPresets,
                 PageRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FILTER_PRESETS),
-                Icon = new FontIcon() { Glyph = "\uE71C" },
+                Icon = new FontIconSource() { Glyph = "\uE71C" },
             },
             new()
             {
                 Tag = ITEM_FOLDERS,
                 Name = StringResource.Folders,
                 PageRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_FOLDERS),
-                Icon = new FontIcon() { Glyph = "\uE8B7" },
+                Icon = new FontIconSource() { Glyph = "\uE8B7" },
             },
             new()
             {
                 Tag = ITEM_HISTORY,
                 Name = StringResource.History,
                 PageRoute = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SIDE_PANE_HISTORY),
-                Icon = new FontIcon() { Glyph = "\uE81C" },
+                Icon = new FontIconSource() { Glyph = "\uE81C" },
             },
         ];
 
@@ -187,7 +188,7 @@ internal sealed partial class SidebarView : BaseUserControl
         {
             NavigationViewItem item = new()
             {
-                Icon = pageItem.Icon,
+                Icon = IconSourceToIconElementConverter.Convert(pageItem.Icon),
                 Tag = pageItem.Tag,
             };
             ToolTipService.SetToolTip(item, pageItem.Name);
@@ -286,6 +287,6 @@ internal sealed partial class SidebarView : BaseUserControl
         public required string Tag { get; init; }
         public required string Name { get; init; }
         public required Route PageRoute { get; init; }
-        public required IconElement Icon { get; init; }
+        public required IconSource Icon { get; init; }
     }
 }

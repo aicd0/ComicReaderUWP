@@ -8,6 +8,8 @@ using System.ComponentModel;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
+using Microsoft.UI.Xaml.Controls;
+
 namespace ComicReaderUWP.Views.Pages.Settings;
 
 internal partial class PluginItemViewModel : BaseViewModel, INotifyPropertyChanged
@@ -25,14 +27,39 @@ internal partial class PluginItemViewModel : BaseViewModel, INotifyPropertyChang
         }
     }
 
-    private string _location = string.Empty;
-    public string Location
+    private string _publisher = string.Empty;
+    public string Publisher
     {
-        get => _location;
+        get => _publisher;
         set
         {
-            _location = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Location)));
+            _publisher = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Publisher)));
+        }
+    }
+
+    public bool DescriptionVisible => !string.IsNullOrWhiteSpace(Description);
+
+    private string _description = string.Empty;
+    public string Description
+    {
+        get => _description;
+        set
+        {
+            _description = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Description)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DescriptionVisible)));
+        }
+    }
+
+    private IconSource? _icon;
+    public IconSource? Icon
+    {
+        get => _icon;
+        set
+        {
+            _icon = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Icon)));
         }
     }
 
@@ -47,14 +74,14 @@ internal partial class PluginItemViewModel : BaseViewModel, INotifyPropertyChang
         }
     }
 
-    private string _publisher = string.Empty;
-    public string Publisher
+    private string _location = string.Empty;
+    public string Location
     {
-        get => _publisher;
+        get => _location;
         set
         {
-            _publisher = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Publisher)));
+            _location = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Location)));
         }
     }
 

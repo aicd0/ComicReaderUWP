@@ -105,7 +105,7 @@ internal sealed partial class DevToolsPage : BasePage
                 .SetSecondaryButtonText("Secondary")
                 .Build();
             DialogResult result = await DialogUtils.EnqueueDialogAsync(options);
-            SetResult($"Show dialog result: {result.Result}");
+            SetResult($"Show dialog result: {result}");
         });
     }
 

@@ -21,7 +21,7 @@ public interface IPluginContext
 
     CultureInfo CurrentCulture { get; }
 
-    string ResourceFolderPath { get; }
+    string PluginRootDirectoryPath { get; }
 
     ILogger Logger { get; }
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Views.AppWindows.Main;
@@ -13,21 +14,36 @@ namespace ComicReaderUWP.Common.Utils;
 
 internal static class FilePickerUtils
 {
-    public static Task<StorageFolder?> PickFolder(int windowId)
+    public static async Task<StorageFolder?> PickFolder(int windowId)
     {
         MainWindow? window = App.Instance.WindowManager.GetWindow(windowId);
         if (window is null)
         {
-            return Task.FromResult<StorageFolder?>(null);
+            return null;
         }
-        FolderPicker picker = InitializeWithWindow(new FolderPicker(), window.WindowHandle);
+
+        FolderPicker picker = new();
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, window.WindowHandle);
         picker.FileTypeFilter.Add("*");
-        return picker.PickSingleFolderAsync().AsTask();
+        return await picker.PickSingleFolderAsync();
     }
 
-    private static FolderPicker InitializeWithWindow(FolderPicker obj, nint windowHandle)
+    public static async Task<StorageFile?> PickFile(int windowId, IList<string> typeFilter)
     {
-        WinRT.Interop.InitializeWithWindow.Initialize(obj, windowHandle);
-        return obj;
+        MainWindow? window = App.Instance.WindowManager.GetWindow(windowId);
+        if (window is null)
+        {
+            return null;
+        }
+
+        FileOpenPicker picker = new();
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, window.WindowHandle);
+
+        foreach (string type in typeFilter)
+        {
+            picker.FileTypeFilter.Add(type);
+        }
+
+        return await picker.PickSingleFileAsync();
     }
 }

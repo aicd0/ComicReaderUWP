@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>Erledigt</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>Plugins von GitHub herunterladen</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>Beim automatischen Scrollen</value>
   </data>
@@ -539,6 +542,13 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="ImageProcessing" xml:space="preserve">
     <value>Bildverarbeitung</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>Plugin installieren</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>Die Installation eines nicht verifizierten Plugins von Drittanbietern kann Ihren Computer gefährden. Fahren Sie nur fort, wenn Sie dem Herausgeber vollständig vertrauen.
+Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verstehen und die Installation fortsetzen möchten. Diese Meldung wird nicht erneut angezeigt.</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>Umkehren</value>
   </data>
@@ -637,6 +647,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>Ihr Browserverlauf wird hier angezeigt</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>Keine Plugins installiert</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>Keine Bewertung</value>
@@ -780,6 +793,10 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Entfernen Sie diesen Ordner aus der Liste</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>Die folgenden Plugins werden entfernt:
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Nicht erreichbare Comics automatisch entfernen</value>

@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>Сделанный</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>Скачать плагины с GitHub</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>Во время автопрокрутки</value>
   </data>
@@ -540,6 +543,13 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ImageProcessing" xml:space="preserve">
     <value>Обработка изображений</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>Установить плагин</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>Установка непроверенного стороннего плагина может подвергнуть ваш компьютер риску. Продолжайте только в том случае, если вы полностью доверяете издателю.
+Нажимая «Продолжить», вы подтверждаете, что понимаете возможные риски и хотите продолжить установку. Это сообщение больше не будет отображаться.</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>Инверсия</value>
   </data>
@@ -638,6 +648,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>Ваша история просмотров отображается здесь</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>Нет установленных плагинов</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>Нет рейтинга</value>
@@ -781,6 +794,10 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Удалить эту папку из списка</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>Следующие плагины будут удалены:
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Автоматически удалять недоступные комиксы</value>

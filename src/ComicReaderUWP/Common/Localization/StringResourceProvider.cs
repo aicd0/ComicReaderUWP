@@ -70,6 +70,7 @@ public class StringResourceProvider
     public string DonationDescription => GetResourceString("DonationDescription");
     public string DonationSuccess => GetResourceString("DonationSuccess");
     public string Done => GetResourceString("Done");
+    public string DownloadPluginsFromGitHub => GetResourceString("DownloadPluginsFromGitHub");
     public string DuringAutoScrolling => GetResourceString("DuringAutoScrolling");
     public string Edit => GetResourceString("Edit");
     public string EditPreset => GetResourceString("EditPreset");
@@ -115,6 +116,8 @@ public class StringResourceProvider
     public string History => GetResourceString("History");
     public string Horizontal => GetResourceString("Horizontal");
     public string ImageProcessing => GetResourceString("ImageProcessing");
+    public string InstallPlugin => GetResourceString("InstallPlugin");
+    public string InstallPluginWarning => GetResourceString("InstallPluginWarning");
     public string InvertImage => GetResourceString("InvertImage");
     public string KeepScreenOn => GetResourceString("KeepScreenOn");
     public string LastReadTime => GetResourceString("LastReadTime");
@@ -134,6 +137,7 @@ public class StringResourceProvider
     public string Next => GetResourceString("Next");
     public string NoComicsHint => GetResourceString("NoComicsHint");
     public string NoContent => GetResourceString("NoContent");
+    public string NoPluginsInstalled => GetResourceString("NoPluginsInstalled");
     public string NoRating => GetResourceString("NoRating");
     public string NoResults => GetResourceString("NoResults");
     public string NoTagsHint => GetResourceString("NoTagsHint");
@@ -176,6 +180,7 @@ public class StringResourceProvider
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
+    public string RemovePluginsConfirmation => GetResourceString("RemovePluginsConfirmation");
     public string Repeat => GetResourceString("Repeat");
     public string Reset => GetResourceString("Reset");
     public string ResetAllSettings => GetResourceString("ResetAllSettings");

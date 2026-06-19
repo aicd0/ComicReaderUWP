@@ -14,7 +14,6 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Models;
 
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 
@@ -51,7 +50,7 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
                     .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
                     .Build();
                 DialogResult result = await DialogUtils.EnqueueDialogAsync(ViewModel.Shared.WindowId, options);
-                if (result.Result != ContentDialogResult.Primary)
+                if (result != DialogResult.Primary)
                 {
                     ViewModel.Shared.DebugMode = false;
                     return;
@@ -101,7 +100,7 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
                 .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
                 .Build();
             DialogResult result = await DialogUtils.EnqueueDialogAsync(ViewModel.Shared.WindowId, options);
-            if (result.Result == ContentDialogResult.Primary)
+            if (result == DialogResult.Primary)
             {
                 AppSettingsModel.Instance.Reset();
                 ViewModel.Shared.Update();

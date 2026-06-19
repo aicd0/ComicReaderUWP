@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.SDK.Plugins.UI.Menu;
 
-public class ToggleMenuItem : IMenuItem
+public sealed class ToggleMenuItem : IMenuItem
 {
     public required string Text { get; set; }
     public bool IsChecked { get; set; } = false;

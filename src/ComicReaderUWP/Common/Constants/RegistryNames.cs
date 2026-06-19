@@ -20,5 +20,6 @@ internal static class RegistryNames
     public static class SettingsKey
     {
         public const string READER_OVERLAY_PINNED = "ReaderOverlayPinned";
+        public const string SHOW_INSTALL_PLUGIN_WARNING = "ShowInstallPluginWarning";
     }
 }

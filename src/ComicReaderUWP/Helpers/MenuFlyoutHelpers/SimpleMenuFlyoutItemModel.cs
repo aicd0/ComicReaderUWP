@@ -3,6 +3,8 @@
 
 using System;
 
+using ComicReaderUWP.Converters;
+
 using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Helpers.MenuFlyoutHelpers;
@@ -10,7 +12,7 @@ namespace ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 internal class SimpleMenuFlyoutItemModel : BaseMenuFlyoutItemModel
 {
     public required string Text { get; set; }
-    public string? Glyph { get; set; }
+    public IconSource? Icon { get; set; }
     public bool IsEnabled { get; set; } = true;
     public Action? Click { get; set; }
 
@@ -19,10 +21,7 @@ internal class SimpleMenuFlyoutItemModel : BaseMenuFlyoutItemModel
         var item = new MenuFlyoutItem
         {
             Text = Text,
-            Icon = string.IsNullOrEmpty(Glyph) ? null : new FontIcon
-            {
-                Glyph = Glyph,
-            },
+            Icon = IconSourceToIconElementConverter.Convert(Icon),
             IsEnabled = IsEnabled,
         };
 

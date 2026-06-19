@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>完成</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>從 GitHub 下載外掛</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>自動捲動時</value>
   </data>
@@ -539,6 +542,13 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="ImageProcessing" xml:space="preserve">
     <value>影像處理</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>安裝外掛程式</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>安裝未經驗證的第三方外掛程式可能會使您的電腦面臨安全風險。僅在您完全信任發佈者的情況下繼續安裝。
+按一下「繼續」即表示您已充分了解相關風險，並仍希望繼續安裝。此訊息將不再顯示。</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>反色</value>
   </data>
@@ -637,6 +647,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>您的瀏覽記錄會顯示在此處</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>未安裝外掛程式</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>無評分</value>
@@ -780,6 +793,10 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>從清單中移除目前資料夾</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>以下外掛程式將被移除：
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>自動移除不可存取的漫畫</value>

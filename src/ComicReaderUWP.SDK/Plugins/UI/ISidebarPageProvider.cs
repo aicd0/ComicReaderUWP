@@ -11,5 +11,5 @@ public interface ISidebarPageProvider
 
     string Host { get; }
 
-    IconElement Icon { get; }
+    IconSource Icon { get; }
 }

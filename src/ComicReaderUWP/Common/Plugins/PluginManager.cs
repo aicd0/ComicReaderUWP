@@ -265,15 +265,15 @@ internal partial class PluginManager
         string pluginFileName = Path.GetFileNameWithoutExtension(pluginFile);
         string extractDir = Path.Combine(StorageLocation.TemporaryFolderPath, "plugins", pluginFileName);
 
-        string sourceSignature = FileUtils.GetFileSignature(pluginFile);
-        if (string.IsNullOrEmpty(sourceSignature))
+        string sourceVersion = FileUtils.GetFileSignature(pluginFile);
+        if (string.IsNullOrEmpty(sourceVersion))
         {
             Logger.E(TAG, $"Failed to calculate signature for plugin '{pluginFile}'");
             return null;
         }
 
-        string signatureFile = Path.Combine(extractDir, "PluginSignature.txt");
-        if (!SignatureMatched(sourceSignature, signatureFile))
+        string cacheVersionFile = Path.Combine(extractDir, "CacheVersion.txt");
+        if (!VersionMatched(sourceVersion, cacheVersionFile))
         {
             try
             {
@@ -292,7 +292,7 @@ internal partial class PluginManager
             {
                 Directory.CreateDirectory(extractDir);
                 System.IO.Compression.ZipFile.ExtractToDirectory(pluginFile, extractDir);
-                File.WriteAllText(signatureFile, sourceSignature);
+                File.WriteAllText(cacheVersionFile, sourceVersion);
             }
             catch (Exception ex)
             {
@@ -378,17 +378,17 @@ internal partial class PluginManager
             AssemblyLoader = loadContext,
             Plugins = plugins,
             XamlMetadataProviders = xamlMetaProviders,
-            ResourceFolderPath = extractDir,
+            PluginRootDirectoryPath = extractDir,
             Assemblies = assemblies,
         };
     }
 
-    private static bool SignatureMatched(string sourceSignature, string signatureFile)
+    private static bool VersionMatched(string sourceVersion, string cacheVersionFile)
     {
-        string cacheSignature;
+        string cacheVersion;
         try
         {
-            cacheSignature = File.ReadAllText(signatureFile);
+            cacheVersion = File.ReadAllText(cacheVersionFile);
         }
         catch (FileNotFoundException)
         {
@@ -404,12 +404,12 @@ internal partial class PluginManager
             return false;
         }
 
-        if (string.IsNullOrEmpty(cacheSignature))
+        if (string.IsNullOrEmpty(cacheVersion))
         {
             return false;
         }
 
-        return cacheSignature == sourceSignature;
+        return cacheVersion == sourceVersion;
     }
 
     private static PluginMeta? LoadPluginMeta(string filePath)
