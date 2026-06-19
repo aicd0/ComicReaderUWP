@@ -276,6 +276,7 @@ public class ArchiveAccess
                             catch (Exception ex)
                             {
                                 Logger.F(TAG, ex);
+                                return;
                             }
 
                             SharpCompress.Archives.IArchiveEntry rawEntry = entryEnumerator.Current;
