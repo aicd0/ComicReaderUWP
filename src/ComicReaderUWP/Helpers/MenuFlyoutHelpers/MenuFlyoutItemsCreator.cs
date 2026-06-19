@@ -23,6 +23,8 @@ using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 
+using Microsoft.UI.Xaml.Controls;
+
 namespace ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
 internal static class MenuFlyoutItemsCreator
@@ -62,7 +64,7 @@ internal static class MenuFlyoutItemsCreator
             items.Add(new SimpleMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.Open,
-                Glyph = "\uE8B9",
+                Icon = new FontIconSource() { Glyph = "\uE8B9" },
                 Click = () =>
                 {
                     OpenComicHelper.OpenComic(actionHandler, primaryComicRoute);
@@ -73,7 +75,7 @@ internal static class MenuFlyoutItemsCreator
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.OpenInNewTab,
-            Glyph = "\uE8A5",
+            Icon = new FontIconSource() { Glyph = "\uE8A5" },
             Click = () =>
             {
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
@@ -87,7 +89,7 @@ internal static class MenuFlyoutItemsCreator
         items.Add(new SubItemMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.SendToWindow,
-            Glyph = "\uE78B",
+            Icon = new FontIconSource() { Glyph = "\uE78B" },
             Items = CreateSendToWindowMenuItems(primaryComicRoute.Url, actionHandler),
         });
 
@@ -96,14 +98,14 @@ internal static class MenuFlyoutItemsCreator
         items.Add(new SubItemMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Links,
-            Glyph = "\uE71B",
+            Icon = new FontIconSource() { Glyph = "\uE71B" },
             Items = await CreateComicLinkMenuItems(primaryComic, actionHandler),
         });
 
         items.Add(new SubItemMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Tags,
-            Glyph = "\uE8EC",
+            Icon = new FontIconSource() { Glyph = "\uE8EC" },
             Items = CreateComicTagMenuItems(primaryComic, actionHandler),
         });
 
@@ -117,7 +119,7 @@ internal static class MenuFlyoutItemsCreator
                 items.Add(new SimpleMenuFlyoutItemModel()
                 {
                     Text = StringResourceProvider.Instance.RemoveFromFavorites,
-                    Glyph = "\uE8D9",
+                    Icon = new FontIconSource() { Glyph = "\uE8D9" },
                     Click = () =>
                     {
                         List<ComicModel> items = [.. selectedComics];
@@ -130,7 +132,7 @@ internal static class MenuFlyoutItemsCreator
                 items.Add(new SimpleMenuFlyoutItemModel()
                 {
                     Text = StringResourceProvider.Instance.AddToFavorites,
-                    Glyph = "\uE734",
+                    Icon = new FontIconSource() { Glyph = "\uE734" },
                     Click = () =>
                     {
                         List<ComicModel> items = [.. selectedComics];
@@ -188,7 +190,7 @@ internal static class MenuFlyoutItemsCreator
                 items.Add(new SubItemMenuFlyoutItemModel()
                 {
                     Text = StringResourceProvider.Instance.SetCompletionState,
-                    Glyph = "\uE7C1",
+                    Icon = new FontIconSource() { Glyph = "\uE7C1" },
                     Items = groupItems,
                 });
             }
@@ -198,7 +200,7 @@ internal static class MenuFlyoutItemsCreator
                 items.Add(new SimpleMenuFlyoutItemModel()
                 {
                     Text = StringResourceProvider.Instance.Unhide,
-                    Glyph = "\uE7B3",
+                    Icon = new FontIconSource() { Glyph = "\uE7B3" },
                     Click = () =>
                     {
                         CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
@@ -213,7 +215,7 @@ internal static class MenuFlyoutItemsCreator
                 items.Add(new SimpleMenuFlyoutItemModel()
                 {
                     Text = StringResourceProvider.Instance.Hide,
-                    Glyph = "\uED1A",
+                    Icon = new FontIconSource() { Glyph = "\uED1A" },
                     Click = () =>
                     {
                         CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
@@ -227,7 +229,7 @@ internal static class MenuFlyoutItemsCreator
             items.Add(new SimpleMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.Edit,
-                Glyph = "\uE70F",
+                Icon = new FontIconSource() { Glyph = "\uE70F" },
                 Click = () =>
                 {
                     List<ComicModel> items = [.. selectedComics];
@@ -245,7 +247,7 @@ internal static class MenuFlyoutItemsCreator
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.OpenInFileExplorer,
-            Glyph = "\uE838",
+            Icon = new FontIconSource() { Glyph = "\uE838" },
             Click = () =>
             {
                 var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
@@ -311,7 +313,7 @@ internal static class MenuFlyoutItemsCreator
         return new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Select,
-            Glyph = "\uE762",
+            Icon = new FontIconSource() { Glyph = "\uE762" },
             Click = () =>
             {
                 ActionModel actionModel = ActionModel.Builder.Create(CustomActionProvider.NAME)
@@ -337,7 +339,7 @@ internal static class MenuFlyoutItemsCreator
             result.Add(new SubItemMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.RandomComic,
-                Glyph = "\uE8B1",
+                Icon = new FontIconSource() { Glyph = "\uE8B1" },
                 Items = await CreateComicMenuItems(
                     actionHandler, randomComic, playlist,
                     canOpenWithDefault: true),
@@ -347,14 +349,14 @@ internal static class MenuFlyoutItemsCreator
         result.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.ExpandAll,
-            Glyph = "\uECCD",
+            Icon = new FontIconSource() { Glyph = "\uECCD" },
             Click = expandAllHandler,
         });
 
         result.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.CollapseAll,
-            Glyph = "\uF165",
+            Icon = new FontIconSource() { Glyph = "\uF165" },
             Click = collapseAllHandler,
         });
 

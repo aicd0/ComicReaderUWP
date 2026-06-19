@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>完成</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>从 GitHub 下载插件</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>自动滚动时</value>
   </data>
@@ -539,6 +542,13 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="ImageProcessing" xml:space="preserve">
     <value>图像处理</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>安装插件</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>安装未经验证的第三方插件可能会使您的计算机面临安全风险。仅在您完全信任发布者的情况下继续安装。
+点击“继续”即表示您已充分了解相关风险，并仍希望继续安装。此提示将不再显示。</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>反色</value>
   </data>
@@ -637,6 +647,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>您的浏览记录会显示在此处</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>未安装插件</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>无评分</value>
@@ -780,6 +793,10 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>从列表中移除当前文件夹</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>以下插件将被移除：
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>自动移除不可访问的漫画</value>

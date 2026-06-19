@@ -31,7 +31,7 @@ internal class DialogUtils
             if (window is null)
             {
                 Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found");
-                resultSource.SetResult(DialogResult.FromFailure());
+                resultSource.SetResult(DialogResult.Failed);
                 return;
             }
 
@@ -63,7 +63,7 @@ internal class DialogUtils
             if (window is null)
             {
                 Logger.F(TAG, "ShowDialogAtActiveWindowAsync: Window not found");
-                resultSource.SetResult(DialogResult.FromFailure());
+                resultSource.SetResult(DialogResult.Failed);
                 return;
             }
 
@@ -91,7 +91,7 @@ internal class DialogUtils
             if (App.Instance.WindowManager.GetWindow(windowId) is null)
             {
                 Logger.F(TAG, "EnqueueDialogAsync: Window not found");
-                resultSource.SetResult(DialogResult.FromFailure());
+                resultSource.SetResult(DialogResult.Failed);
                 return;
             }
 
@@ -124,7 +124,7 @@ internal class DialogUtils
             _windowDialogQueue.Remove(windowId);
             foreach (PendingDialogItem item in queueCopy)
             {
-                item.ResultSource.SetResult(DialogResult.FromFailure());
+                item.ResultSource.SetResult(DialogResult.Failed);
             }
         }
 
@@ -144,18 +144,26 @@ internal class DialogUtils
                 return;
             }
 
-            ContentDialogResult result = ContentDialogResult.None;
+            DialogResult result;
             try
             {
                 item.Dialog.XamlRoot = xamlRoot;
-                result = await item.Dialog.ShowAsync();
+                ContentDialogResult rawResult = await item.Dialog.ShowAsync();
+                result = rawResult switch
+                {
+                    ContentDialogResult.None => DialogResult.None,
+                    ContentDialogResult.Primary => DialogResult.Primary,
+                    ContentDialogResult.Secondary => DialogResult.Secondary,
+                    _ => throw new Exception($"Unknown content dialog result '{rawResult}'.")
+                };
             }
             catch (Exception ex)
             {
                 Logger.F(TAG, ex);
+                result = DialogResult.Failed;
             }
 
-            item.ResultSource.SetResult(DialogResult.FromSuccess(result));
+            item.ResultSource.SetResult(result);
             queue.Dequeue();
         }
     }

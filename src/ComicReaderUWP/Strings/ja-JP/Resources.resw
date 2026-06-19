@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>確認する</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>GitHubからプラグインをダウンロード</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>自動スクロール中</value>
   </data>
@@ -539,6 +542,13 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="ImageProcessing" xml:space="preserve">
     <value>画像処理</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>プラグインをインストール</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>未検証のサードパーティ製プラグインをインストールすると、コンピューターが危険にさらされる可能性があります。発行元を完全に信頼できる場合のみ続行してください。
+「続行」をクリックすると、リスクを理解したうえでインストールを続行することに同意したものとみなされます。このメッセージは今後表示されません。</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>反転</value>
   </data>
@@ -637,6 +647,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>閲覧履歴はここに表示されます</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>プラグインがインストールされていません</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>評価なし</value>
@@ -780,6 +793,10 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>現在のフォルダをリストから削除する</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>以下のプラグインは削除されます：
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>アクセスできないコミックを自動的に削除</value>

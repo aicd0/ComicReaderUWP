@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>Done</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>Download plugins from GitHub</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>During auto scrolling</value>
   </data>
@@ -541,6 +544,13 @@ The evaluation will be performed in the following order:
   <data name="ImageProcessing" xml:space="preserve">
     <value>Image Processing</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>Install plugin</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>Installing an unverified third-party plugin may put your computer at risk. Only continue if you fully trust the publisher.
+By clicking "Proceed", you confirm that you understand the risks and want to continue the installation. This message will not be shown again.</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>Invert</value>
   </data>
@@ -639,6 +649,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>Your browsing history appears here</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>No plugins installed</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>No rating</value>
@@ -782,6 +795,10 @@ The evaluation will be performed in the following order:
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Remove this folder from the list</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>The following plugins will be removed:
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>Automatically remove unreachable comics</value>

@@ -24,8 +24,6 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.SDK.Models;
 
-using Microsoft.UI.Xaml.Controls;
-
 namespace ComicReaderUWP.Data.Models.Comic;
 
 internal abstract partial class ComicHandle
@@ -1093,7 +1091,7 @@ internal abstract partial class ComicHandle
                         .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
                         .Build();
                     DialogResult result = await DialogUtils.EnqueueDialogAsync(options);
-                    proceed = result.Result == ContentDialogResult.Primary;
+                    proceed = result == DialogResult.Primary;
                 }
 
                 if (proceed)

@@ -4,11 +4,18 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Plugins;
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Algorithm;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
+using ComicReaderUWP.SDK.Models;
+
+using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 
@@ -65,20 +72,24 @@ internal partial class PluginSettingsViewModel : INotifyPropertyChanged
             pluginItems.Add(new()
             {
                 Name = plugin.Name,
-                Version = plugin.Version,
                 Publisher = plugin.Publisher,
-                Status = PluginStatusToString(plugin.Status),
+                Description = plugin.Description,
+                Icon = plugin.Icon ?? new FontIconSource() { Glyph = "\uE74C", FontSize = 20 },
+                Version = plugin.Version,
                 Location = plugin.PluginFilePath,
+                Status = PluginStatusToString(plugin.Status),
                 RequestOperationMenuItems = CreatePluginOperationMenuItems,
             });
         }
 
         DiffUtils.UpdateCollection(Plugins, pluginItems, (a, b) => a.Name == b.Name, (a, b) =>
         {
-            a.Status = b.Status;
-            a.Location = b.Location;
             a.Publisher = b.Publisher;
+            a.Description = b.Description;
+            a.Icon = b.Icon;
             a.Version = b.Version;
+            a.Location = b.Location;
+            a.Status = b.Status;
             a.RequestOperationMenuItems = b.RequestOperationMenuItems;
         });
         NoPlugins = Plugins.Count == 0;
@@ -88,33 +99,74 @@ internal partial class PluginSettingsViewModel : INotifyPropertyChanged
     {
         string pluginName = pluginItem.Name;
         PluginContext? plugin = PluginManager.Instance.GetPlugin(pluginName);
+        if (plugin is null)
+        {
+            return [];
+        }
+
+        string pluginFilePath = plugin.PluginFilePath;
+        if (!File.Exists(pluginFilePath))
+        {
+            return [
+                new SimpleMenuFlyoutItemModel()
+                {
+                    Text = StringResourceProvider.Instance.None,
+                    IsEnabled = false,
+                }
+            ];
+        }
+
         List<BaseMenuFlyoutItemModel> items = [];
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Enable,
-            IsEnabled = plugin is not null && !PluginManager.Instance.IsPluginEnabled(pluginName),
+            IsEnabled = !PluginManager.Instance.IsPluginEnabled(pluginName),
             Click = () =>
             {
-                if (plugin is not null)
-                {
-                    PluginManager.Instance.SetPluginEnabled(pluginName, true);
-                    ApplyOnNextLaunchVisible = true;
-                }
+                PluginManager.Instance.SetPluginEnabled(pluginName, true);
+                ApplyOnNextLaunchVisible = true;
             },
         });
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Disable,
-            IsEnabled = plugin is not null && PluginManager.Instance.IsPluginEnabled(pluginName),
+            IsEnabled = PluginManager.Instance.IsPluginEnabled(pluginName),
             Click = () =>
             {
-                if (plugin is not null)
+                PluginManager.Instance.SetPluginEnabled(pluginName, false);
+                ApplyOnNextLaunchVisible = true;
+            },
+        });
+
+        items.Add(new SeparatorMenuFlyoutItemModel());
+
+        items.Add(new SimpleMenuFlyoutItemModel()
+        {
+            Text = StringResourceProvider.Instance.Remove,
+            Icon = new FontIconSource() { Glyph = "\uE74D" },
+            Click = () =>
+            {
+                CoroutineUtils.Run(async () =>
                 {
-                    PluginManager.Instance.SetPluginEnabled(pluginName, false);
-                    ApplyOnNextLaunchVisible = true;
-                }
+                    string pluginList = string.Join('\n',
+                        PluginManager.Instance.GetAllPlugins()
+                            .Where(p => p.PluginFilePath == pluginFilePath)
+                            .Select(p => p.Name));
+                    DialogOptions options = new DialogOptions.Builder()
+                        .SetTitle(StringResourceProvider.Instance.Warning)
+                        .SetContent(StringResourceProvider.Instance.RemovePluginsConfirmation.Replace("$plugins", pluginList))
+                        .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
+                        .SetSecondaryButtonText(StringResourceProvider.Instance.Cancel)
+                        .Build();
+                    DialogResult result = await DialogUtils.EnqueueDialogAsync(Shared.WindowId, options);
+                    if (result == DialogResult.Primary)
+                    {
+                        File.Delete(pluginFilePath);
+                        ApplyOnNextLaunchVisible = true;
+                    }
+                });
             },
         });
 

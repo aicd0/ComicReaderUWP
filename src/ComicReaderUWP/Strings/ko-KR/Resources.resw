@@ -325,6 +325,9 @@ $comics</value>
   <data name="Done" xml:space="preserve">
     <value>완료</value>
   </data>
+  <data name="DownloadPluginsFromGitHub" xml:space="preserve">
+    <value>GitHub에서 플러그인 다운로드</value>
+  </data>
   <data name="DuringAutoScrolling" xml:space="preserve">
     <value>자동 스크롤 중</value>
   </data>
@@ -540,6 +543,13 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="ImageProcessing" xml:space="preserve">
     <value>이미지 처리</value>
   </data>
+  <data name="InstallPlugin" xml:space="preserve">
+    <value>플러그인 설치</value>
+  </data>
+  <data name="InstallPluginWarning" xml:space="preserve">
+    <value>검증되지 않은 타사 플러그인을 설치하면 컴퓨터가 위험에 노출될 수 있습니다. 게시자를 전적으로 신뢰하는 경우에만 계속하세요.
+"계속"을 클릭하면 위험을 충분히 이해했으며 설치를 계속 진행하는 데 동의하는 것으로 간주됩니다. 이 메시지는 다시 표시되지 않습니다.</value>
+  </data>
   <data name="InvertImage" xml:space="preserve">
     <value>반전</value>
   </data>
@@ -638,6 +648,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
     <value>귀하의 검색 기록이 여기에 표시됩니다.</value>
+  </data>
+  <data name="NoPluginsInstalled" xml:space="preserve">
+    <value>설치된 플러그인이 없습니다</value>
   </data>
   <data name="NoRating" xml:space="preserve">
     <value>평가 없음</value>
@@ -781,6 +794,10 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>목록에서 이 폴더를 제거합니다</value>
+  </data>
+  <data name="RemovePluginsConfirmation" xml:space="preserve">
+    <value>다음 플러그인이 제거됩니다:
+$plugins</value>
   </data>
   <data name="RemoveUnreachableCheckBox.Content" xml:space="preserve">
     <value>접근할 수 없는 만화를 자동으로 제거합니다</value>

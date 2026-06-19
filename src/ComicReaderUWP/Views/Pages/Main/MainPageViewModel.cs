@@ -208,7 +208,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.NewTab,
-            Glyph = "\uE8A5",
+            Icon = new FontIconSource() { Glyph = "\uE8A5" },
             Click = () =>
             {
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
@@ -223,7 +223,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.NewWindow,
-            Glyph = "\uE78B",
+            Icon = new FontIconSource() { Glyph = "\uE78B" },
             Click = () =>
             {
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
@@ -242,7 +242,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             items.Add(new SimpleMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.ExitFullscreen,
-                Glyph = "\uE73F",
+                Icon = new FontIconSource() { Glyph = "\uE73F" },
                 Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
@@ -257,7 +257,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             items.Add(new SimpleMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.EnterFullscreen,
-                Glyph = "\uE740",
+                Icon = new FontIconSource() { Glyph = "\uE740" },
                 Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
@@ -285,7 +285,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Settings,
-            Glyph = "\uE713",
+            Icon = new FontIconSource() { Glyph = "\uE713" },
             Click = () =>
             {
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SETTINGS);
@@ -302,7 +302,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             items.Add(new SimpleMenuFlyoutItemModel()
             {
                 Text = "Dev tools",
-                Glyph = "\uEC7A",
+                Icon = new FontIconSource() { Glyph = "\uEC7A" },
                 Click = () =>
                 {
                     var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
@@ -318,7 +318,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.CheckForUpdates,
-            Glyph = "\uE895",
+            Icon = new FontIconSource() { Glyph = "\uE895" },
             Click = () =>
             {
                 CoroutineUtils.Run(async () =>

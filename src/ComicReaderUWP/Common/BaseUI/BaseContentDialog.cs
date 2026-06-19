@@ -37,10 +37,9 @@ public partial class BaseContentDialog : ContentDialog, ILifecycleOwner
         return _lifecycleManager.GetLifecycle();
     }
 
-    public async Task<ContentDialogResult> ShowAsync(int windowId)
+    public async Task<DialogResult> ShowAsync(int windowId)
     {
-        DialogResult result = await DialogUtils.EnqueueDialogAsync(windowId, this);
-        return result.Result;
+        return await DialogUtils.EnqueueDialogAsync(windowId, this);
     }
 
     protected virtual void OnStart()

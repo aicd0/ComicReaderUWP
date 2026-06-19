@@ -24,6 +24,8 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.ViewModels;
 
+using Microsoft.UI.Xaml.Controls;
+
 namespace ComicReaderUWP.Views.Pages.Sidebar.Tags;
 
 internal partial class TagsPageViewModel : INotifyPropertyChanged
@@ -343,7 +345,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Edit,
-            Glyph = "\uE70F",
+            Icon = new FontIconSource() { Glyph = "\uE70F" },
             Click = () =>
             {
                 EditTagCategoryLiveData.Emit(primaryCategory.Name);
@@ -353,7 +355,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Delete,
-            Glyph = "\uE74D",
+            Icon = new FontIconSource() { Glyph = "\uE74D" },
             Click = () =>
             {
                 CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
@@ -387,14 +389,14 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         items.Add(new SubItemMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Links,
-            Glyph = "\uE71B",
+            Icon = new FontIconSource() { Glyph = "\uE71B" },
             Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(primaryTag.CategoryName, primaryTag.Name, _actionHandler),
         });
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Edit,
-            Glyph = "\uE70F",
+            Icon = new FontIconSource() { Glyph = "\uE70F" },
             Click = () =>
             {
                 EditTagLiveData.Emit(new(primaryTag.CategoryName, primaryTag.Name));
@@ -404,7 +406,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Delete,
-            Glyph = "\uE74D",
+            Icon = new FontIconSource() { Glyph = "\uE74D" },
             Click = () =>
             {
                 CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>

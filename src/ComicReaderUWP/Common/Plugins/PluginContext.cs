@@ -36,15 +36,34 @@ internal partial class PluginContext : IPluginContext
 {
     private const string TAG = nameof(PluginContext);
 
+    private IPlugin _plugin { get; init; }
+
+    public PluginContext(IPlugin plugin, string pluginFilePath, PluginFileLoadContext loadContext)
+    {
+        Name = plugin.Name;
+        Publisher = plugin.Publisher;
+        Description = plugin.Description;
+        PluginFilePath = pluginFilePath;
+        LoadContext = loadContext;
+        _plugin = plugin;
+        _logger = new Lazy<ILogger>(() => new PluginLogger(Name));
+        _registryDatabase = new Lazy<IRegistryDatabase>(() => AppDB.PluginRegistry(Name));
+    }
+
+    //
+    // Public API
+    //
+
     public delegate void StatusChangedEventHandler(PluginStatusEnum newStatus);
     public event StatusChangedEventHandler? StatusChanged;
 
-    public IPlugin Plugin { get; init; }
     public string Name { get; init; }
+    public string Publisher { get; init; }
+    public string Description { get; init; }
+    public IconSource? Icon => _plugin.Icon;
+    public string Version => _plugin.Version;
     public string PluginFilePath { get; init; }
     public PluginFileLoadContext LoadContext { get; init; }
-    public string Publisher => Plugin.Publisher;
-    public string Version => Plugin.Version;
     public bool IsActive => Status == PluginStatusEnum.Initialized;
 
     private PluginStatusEnum _status = PluginStatusEnum.NotInitialized;
@@ -61,20 +80,6 @@ internal partial class PluginContext : IPluginContext
         }
     }
 
-    public PluginContext(IPlugin plugin, string pluginFilePath, PluginFileLoadContext loadContext)
-    {
-        Plugin = plugin;
-        PluginFilePath = pluginFilePath;
-        Name = plugin.Name;
-        LoadContext = loadContext;
-        _logger = new Lazy<ILogger>(() => new PluginLogger(Name));
-        _registryDatabase = new Lazy<IRegistryDatabase>(() => AppDB.PluginRegistry(Name));
-    }
-
-    //
-    // Internal API
-    //
-
     public void Initialize()
     {
         if (Status != PluginStatusEnum.NotInitialized)
@@ -83,7 +88,7 @@ internal partial class PluginContext : IPluginContext
             return;
         }
 
-        if (SafeAction(() => Plugin.Initialize(this)))
+        if (SafeAction(() => _plugin.Initialize(this)))
         {
             Status = PluginStatusEnum.Initialized;
         }
@@ -182,7 +187,7 @@ internal partial class PluginContext : IPluginContext
 
     CultureInfo IPluginContext.CurrentCulture => EnvironmentProvider.Instance.GetCurrentAppLanguageInfo();
 
-    string IPluginContext.ResourceFolderPath => LoadContext.ResourceFolderPath;
+    string IPluginContext.PluginRootDirectoryPath => LoadContext.PluginRootDirectoryPath;
 
     ILogger IPluginContext.Logger => _logger.Value;
 
@@ -319,7 +324,7 @@ internal partial class PluginContext : IPluginContext
             SimpleMenuItem simpleMenuItem => new SimpleMenuFlyoutItemModel()
             {
                 Text = simpleMenuItem.Text,
-                Glyph = simpleMenuItem.Glyph,
+                Icon = simpleMenuItem.Icon,
                 IsEnabled = simpleMenuItem.IsEnabled,
                 Click = () => SafeAction(simpleMenuItem.Click),
             },
@@ -333,7 +338,7 @@ internal partial class PluginContext : IPluginContext
             SubItemMenuItem subItemMenuItem => new SubItemMenuFlyoutItemModel()
             {
                 Text = subItemMenuItem.Text,
-                Glyph = subItemMenuItem.Glyph,
+                Icon = subItemMenuItem.Icon,
                 Items = [.. subItemMenuItem.Items.Select(CreateHostMenuFlyoutItem)],
             },
             _ => throw new NotSupportedException($"Unsupported menu item type: {item.GetType().FullName}"),

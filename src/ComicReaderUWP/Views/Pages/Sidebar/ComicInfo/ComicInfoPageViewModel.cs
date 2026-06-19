@@ -26,6 +26,8 @@ using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.ViewModels;
 
+using Microsoft.UI.Xaml.Controls;
+
 namespace ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 
 internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
@@ -361,14 +363,14 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         items.Add(new SubItemMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Links,
-            Glyph = "\uE71B",
+            Icon = new FontIconSource() { Glyph = "\uE71B" },
             Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(tagCategory, tag, _actionHandler),
         });
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Edit,
-            Glyph = "\uE70F",
+            Icon = new FontIconSource() { Glyph = "\uE70F" },
             Click = () =>
             {
                 EditTagLiveData.Emit(new(tagCategory, tag));
@@ -378,7 +380,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Delete,
-            Glyph = "\uE74D",
+            Icon = new FontIconSource() { Glyph = "\uE74D" },
             Click = () =>
             {
                 CoroutineUtils.Run(async () =>
