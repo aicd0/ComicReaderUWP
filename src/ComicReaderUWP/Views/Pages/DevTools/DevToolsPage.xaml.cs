@@ -53,7 +53,7 @@ internal sealed partial class DevToolsPage : BasePage
         string configs = CommonConfigsTextBlock.Text;
         try
         {
-            DebugSwitchModel.Instance.SaveConfigFromJson(configs);
+            DebugModel.SaveJsonConfig(configs);
         }
         catch (Exception ex)
         {
@@ -72,7 +72,7 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void ResetConfigsButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        DebugSwitchModel.Instance.SaveConfigFromJson("null");
+        DebugModel.SaveJsonConfig("null");
         RestoreConfig();
     }
 
@@ -156,7 +156,7 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void RestoreConfig()
     {
-        CommonConfigsTextBlock.Text = DebugSwitchModel.Instance.GetConfigAsJson();
+        CommonConfigsTextBlock.Text = DebugModel.LoadJsonConfig();
         DeveloperModeToggleSwitch.IsOn = DebugUtils.DeveloperMode;
         SentryToggleSwitch.IsOn = DebugUtils.SentryEnabled;
     }

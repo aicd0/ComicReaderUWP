@@ -429,7 +429,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
             if (item.Level <= 4)
             {
-                List<LogTag?> consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
+                List<LogTag?> consoleWhitelist = DebugModel.ConsoleWhitelist;
                 if (!consoleWhitelist.Any(t => t is null || t.ContainsAny(item.Tag)))
                 {
                     return;

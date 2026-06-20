@@ -64,6 +64,22 @@ internal class InitTaskManager
 
         EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
         SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
+
+        if (DebugModel.WaitForDebugger)
+        {
+            while (!System.Diagnostics.Debugger.IsAttached)
+            {
+                NativeDialogResult result = ServiceManager.GetService<INativeService>().ShowDialog(
+                    NativeDialogButtonType.OKCancel,
+                    NativeDialogIconType.Info,
+                    "Comic Reader UWP",
+                    "The app is launched in WaitForDebugger mode. Attach a debugger then click OK.");
+                if (result != NativeDialogResult.OK)
+                {
+                    break;
+                }
+            }
+        }
     }
 
     public void InitOnAppCreate(Application application)
@@ -114,7 +130,7 @@ internal class InitTaskManager
 
     public void InitOnAppLaunch()
     {
-        DebugUtils.Initialize();
+        Logger.Initialize();
         ImageCacheManager.Initialize(Path.Combine(StorageLocation.LocalCacheFolderPath, "image_cache"), clear: false);
         FocusTracker.Initialize();
         PluginManager.Instance.LoadPlugins();

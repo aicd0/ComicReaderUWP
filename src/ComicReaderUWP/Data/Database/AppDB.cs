@@ -93,7 +93,7 @@ internal static class AppDB
         }
 
         sPluginRegistryDatabases.Clear();
-        SdkDB.Dispose();
+        CoreDB.Dispose();
     }
 
     public static void Initialize()

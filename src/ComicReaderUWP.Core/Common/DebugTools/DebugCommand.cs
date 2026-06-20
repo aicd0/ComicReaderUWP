@@ -32,7 +32,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
         {
             if (!_unlockedDeveloperMode.HasValue)
             {
-                string? token = SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN);
+                string? token = CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN);
                 bool tokenValid = token != null && ParseCommand(token) != null;
                 _unlockedDeveloperMode = tokenValid;
             }
@@ -51,7 +51,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
 
         // Enable developer mode
         _unlockedDeveloperMode = true;
-        SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
+        CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
         DebugUtils.DeveloperMode = true;
 
         return ProcessCommand(parsedCommand);

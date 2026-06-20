@@ -54,7 +54,7 @@ public class EnvironmentProvider
         {
             string deviceId = RecalculateDeviceId();
             _actualDeviceId = deviceId;
-            SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID, deviceId);
+            CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID, deviceId);
         });
     }
 
@@ -140,7 +140,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        deviceId = SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID);
+        deviceId = CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID);
         if (!string.IsNullOrEmpty(deviceId))
         {
             _deviceId = deviceId;
@@ -156,7 +156,7 @@ public class EnvironmentProvider
             }
 
             _deviceId = deviceId;
-            SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID, deviceId);
+            CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID, deviceId);
         }
 
         return deviceId;
@@ -170,7 +170,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        deviceId = SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID);
+        deviceId = CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID);
         if (!string.IsNullOrEmpty(deviceId))
         {
             _actualDeviceId = deviceId;

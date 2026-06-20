@@ -27,7 +27,7 @@ internal static class PurchaseManager
     private const string KEY_DONOR_TOKEN = "DonorToken";
     private const string ITEM_NAME_DONOR = "Donor";
 
-    private static string DonorStoreId => DebugSwitchModel.Instance.DonorStoreId ?? SecretImpl.StoreIdDonor;
+    private static string DonorStoreId => DebugModel.DonorStoreId ?? SecretImpl.StoreIdDonor;
 
     private static bool? _isDonor;
     public static bool IsDonor
