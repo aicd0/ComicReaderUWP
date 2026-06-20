@@ -550,7 +550,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
 「続行」をクリックすると、リスクを理解したうえでインストールを続行することに同意したものとみなされます。このメッセージは今後表示されません。</value>
   </data>
   <data name="InvertImage" xml:space="preserve">
-    <value>反転</value>
+    <value>色反転</value>
   </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>画面をオンのままにする</value>

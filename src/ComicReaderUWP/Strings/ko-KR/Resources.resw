@@ -463,7 +463,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
     <value>$percentage% 완료됨</value>
   </data>
   <data name="FlipImage" xml:space="preserve">
-    <value>반전</value>
+    <value>뒤집기</value>
   </data>
   <data name="Folders" xml:space="preserve">
     <value>폴더</value>
