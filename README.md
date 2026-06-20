@@ -25,4 +25,4 @@ Comic Reader UWP can be extended with plugins (written in C#). See [Comic Reader
 If Comic Reader UWP is not working properly, you can [submit an issue on GitHub](https://github.com/aicd0/ComicReaderUWP/issues/new/choose). If you know how to fix an issue, it is also encouraged to create a [pull request](https://github.com/aicd0/ComicReaderUWP/pulls) for it.
 
 ## License
-Licensed under the [MIT License](./LICENSE).
+Licensed under the [MIT License](LICENSE.md).
