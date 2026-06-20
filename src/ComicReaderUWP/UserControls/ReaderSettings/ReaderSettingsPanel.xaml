@@ -142,7 +142,7 @@
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="TwoPageModeToggleSwitch_Toggled" />
             </Grid>
-            <Grid Style="{StaticResource CommonSettingRowStyle}">
+            <Grid x:Name="EnableCoverGrid" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
@@ -160,7 +160,7 @@
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="EnableCoverToggleSwitch_Toggled" />
             </Grid>
-            <Grid Style="{StaticResource CommonSettingRowStyle}">
+            <Grid x:Name="SwapLeftAndRightPagesGrid" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />

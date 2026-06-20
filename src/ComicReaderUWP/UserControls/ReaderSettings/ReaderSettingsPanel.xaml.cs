@@ -294,7 +294,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicLayoutSettings.EnableCover != presetLayoutSettings.EnableCover;
                 tabModified = tabModified || modified;
                 EnableCoverToggleSwitch.IsOn = comicLayoutSettings.EnableCover;
-                EnableCoverToggleSwitch.IsEnabled = comicLayoutSettings.TwoPageMode;
+                EnableCoverGrid.Visibility = comicLayoutSettings.TwoPageMode ? Visibility.Visible : Visibility.Collapsed;
                 ViewModel.EnableCoverLabel = GetLabel(StringResource.EnableCover, modified);
             }
 
@@ -302,7 +302,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicLayoutSettings.SwapLeftAndRightPages != presetLayoutSettings.SwapLeftAndRightPages;
                 tabModified = tabModified || modified;
                 SwapLeftAndRightPagesToggleSwitch.IsOn = comicLayoutSettings.SwapLeftAndRightPages;
-                SwapLeftAndRightPagesToggleSwitch.IsEnabled = comicLayoutSettings.TwoPageMode;
+                SwapLeftAndRightPagesGrid.Visibility = comicLayoutSettings.TwoPageMode ? Visibility.Visible : Visibility.Collapsed;
                 ViewModel.SwapLeftAndRightPagesLabel = GetLabel(StringResource.SwapLeftAndRightPages, modified);
             }
 
