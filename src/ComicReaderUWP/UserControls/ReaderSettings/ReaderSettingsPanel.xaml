@@ -142,23 +142,32 @@
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="TwoPageModeToggleSwitch_Toggled" />
             </Grid>
-            <Grid x:Name="EnableCoverGrid" Style="{StaticResource CommonSettingRowStyle}">
+            <Grid x:Name="CoverPageCountGrid" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition
+                        Width="10000*"
+                        MinWidth="120"
+                        MaxWidth="140" />
                 </Grid.ColumnDefinitions>
                 <TextBlock
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.EnableCoverLabel, Mode=OneWay}" />
-                <ToggleSwitch
-                    x:Name="EnableCoverToggleSwitch"
+                    Text="{x:Bind ViewModel.CoverPageCountLabel, Mode=OneWay}" />
+                <Slider
+                    x:Name="CoverPageCountSlider"
                     Grid.Column="3"
-                    Style="{StaticResource CompatToggleSwitchStyle}"
-                    Toggled="EnableCoverToggleSwitch_Toggled" />
+                    Margin="0,-2"
+                    Maximum="2"
+                    Minimum="0"
+                    SnapsTo="Ticks"
+                    StepFrequency="1"
+                    TickFrequency="1"
+                    TickPlacement="Outside"
+                    ValueChanged="CoverPageCountSlider_ValueChanged" />
             </Grid>
             <Grid x:Name="SwapLeftAndRightPagesGrid" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>

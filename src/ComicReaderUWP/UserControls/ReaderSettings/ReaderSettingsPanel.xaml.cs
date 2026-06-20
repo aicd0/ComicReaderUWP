@@ -115,10 +115,10 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         NotifySettingsChanged();
     }
 
-    private void EnableCoverToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    private void CoverPageCountSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         PageLayoutSettings pageLayoutSettings = _comicSettings.IsVertical ? _comicSettings.VerticalPageLayout : _comicSettings.HorizontalPageLayout;
-        pageLayoutSettings.EnableCover = ((ToggleSwitch)sender).IsOn;
+        pageLayoutSettings.CoverPageCount = Math.Clamp((int)e.NewValue, 0, 2);
         NotifySettingsChanged();
     }
 
@@ -291,11 +291,11 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             }
 
             {
-                bool modified = comicLayoutSettings.EnableCover != presetLayoutSettings.EnableCover;
+                bool modified = comicLayoutSettings.CoverPageCount != presetLayoutSettings.CoverPageCount;
                 tabModified = tabModified || modified;
-                EnableCoverToggleSwitch.IsOn = comicLayoutSettings.EnableCover;
-                EnableCoverGrid.Visibility = comicLayoutSettings.TwoPageMode ? Visibility.Visible : Visibility.Collapsed;
-                ViewModel.EnableCoverLabel = GetLabel(StringResource.EnableCover, modified);
+                CoverPageCountSlider.Value = Math.Clamp(comicLayoutSettings.CoverPageCount, 0, 2);
+                CoverPageCountGrid.Visibility = comicLayoutSettings.TwoPageMode ? Visibility.Visible : Visibility.Collapsed;
+                ViewModel.CoverPageCountLabel = GetLabel(StringResource.CoverPageCount, modified);
             }
 
             {

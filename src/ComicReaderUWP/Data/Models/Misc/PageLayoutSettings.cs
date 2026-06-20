@@ -10,7 +10,7 @@ namespace ComicReaderUWP.Data.Models.Misc;
 internal class PageLayoutSettings
 {
     public bool TwoPageMode { get; set; } = false;
-    public bool EnableCover { get; set; } = true;
+    public int CoverPageCount { get; set; } = 1;
     public bool SwapLeftAndRightPages { get; set; } = false;
     public bool SpreadDetection { get; set; } = false;
 
@@ -28,7 +28,7 @@ internal class PageLayoutSettings
 
         return
             TwoPageMode == other.TwoPageMode &&
-            EnableCover == other.EnableCover &&
+            CoverPageCount == other.CoverPageCount &&
             SwapLeftAndRightPages == other.SwapLeftAndRightPages &&
             SpreadDetection == other.SpreadDetection;
     }
@@ -37,7 +37,7 @@ internal class PageLayoutSettings
     {
         var hash = new HashCode();
         hash.Add(TwoPageMode);
-        hash.Add(EnableCover);
+        hash.Add(CoverPageCount);
         hash.Add(SwapLeftAndRightPages);
         hash.Add(SpreadDetection);
         return hash.ToHashCode();
@@ -63,7 +63,7 @@ internal class PageLayoutSettings
         return new()
         {
             TwoPageMode = TwoPageMode,
-            EnableCover = EnableCover,
+            CoverPageCount = CoverPageCount,
             SwapLeftAndRightPages = SwapLeftAndRightPages,
             SpreadDetection = SpreadDetection,
         };
@@ -78,10 +78,11 @@ internal class PageLayoutSettings
             return defaultModel;
         }
 
+        int? legacyCoverPageCount = jsonModel.EnableCover.HasValue ? (jsonModel.EnableCover.Value ? 1 : 0) : null;
         return new()
         {
             TwoPageMode = jsonModel.TwoPageMode ?? defaultModel.TwoPageMode,
-            EnableCover = jsonModel.EnableCover ?? defaultModel.EnableCover,
+            CoverPageCount = jsonModel.CoverPageCount ?? legacyCoverPageCount ?? defaultModel.CoverPageCount,
             SwapLeftAndRightPages = jsonModel.SwapLeftAndRightPages ?? defaultModel.SwapLeftAndRightPages,
             SpreadDetection = jsonModel.SpreadDetection ?? defaultModel.SpreadDetection,
         };
@@ -92,13 +93,17 @@ internal class PageLayoutSettings
         [JsonPropertyName("TwoPageMode")]
         public bool? TwoPageMode { get; set; }
 
-        [JsonPropertyName("EnableCover")]
-        public bool? EnableCover { get; set; }
+        [JsonPropertyName("CoverPageCount")]
+        public int? CoverPageCount { get; set; }
 
         [JsonPropertyName("SwapLeftAndRightPages")]
         public bool? SwapLeftAndRightPages { get; set; }
 
         [JsonPropertyName("SpreadDetection")]
         public bool? SpreadDetection { get; set; }
+
+        // Legacy
+        [JsonPropertyName("EnableCover")]
+        public bool? EnableCover { get; set; }
     }
 }

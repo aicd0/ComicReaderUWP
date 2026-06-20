@@ -12,13 +12,13 @@ namespace ComicReaderUWP.UserControls.Reader.PageLayout;
 internal class SimplePageLayoutManager : IPageLayoutManager
 {
     public bool TwoPageMode { get; init; } = false;
-    public bool EnableCover { get; init; } = true;
+    public int CoverPageCount { get; init; } = 1;
     public bool RightToLeft { get; init; } = false;
     public bool SpreadDetection { get; init; } = false;
 
     private PageInfo?[] _pages = [];
     private readonly SpreadDetectionHelper.PageSamples _samples = new();
-    private bool _coverCreated = false;
+    private int _readyCoverPageCount = 0;
 
     private int PageCount => _pages.Length;
     private int AddedPageCount { get; set; } = 0;
@@ -37,7 +37,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         }
 
         return TwoPageMode == obj.TwoPageMode
-            && EnableCover == obj.EnableCover
+            && CoverPageCount == obj.CoverPageCount
             && RightToLeft == obj.RightToLeft
             && SpreadDetection == obj.SpreadDetection;
     }
@@ -47,7 +47,7 @@ internal class SimplePageLayoutManager : IPageLayoutManager
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageCount, nameof(pageCount));
         _pages = new PageInfo?[pageCount];
         _samples.Clear();
-        _coverCreated = false;
+        _readyCoverPageCount = 0;
         AddedPageCount = 0;
         ReadyPageCount = 0;
     }
@@ -170,9 +170,9 @@ internal class SimplePageLayoutManager : IPageLayoutManager
             return true;
         }
 
-        if (EnableCover && !_coverCreated)
+        if (_readyCoverPageCount < CoverPageCount)
         {
-            _coverCreated = true;
+            _readyCoverPageCount++;
             layout = CreateLayout(page, frameIndex, PageLayoutType.Single, ReaderFrameViewModel.NO_PAGE);
             return true;
         }

@@ -493,7 +493,7 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetPageLayoutManager(new SimplePageLayoutManager()
         {
             TwoPageMode = readerSettingModel.PageLayout.TwoPageMode,
-            EnableCover = readerSettingModel.PageLayout.EnableCover,
+            CoverPageCount = readerSettingModel.PageLayout.CoverPageCount,
             RightToLeft = readerSettingModel.IsLeftToRight == readerSettingModel.PageLayout.SwapLeftAndRightPages,
             SpreadDetection = readerSettingModel.PageLayout.SpreadDetection,
         });

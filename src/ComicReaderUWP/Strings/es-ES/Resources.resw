@@ -268,6 +268,9 @@ $comics</value>
   <data name="Copy" xml:space="preserve">
     <value>Copiar</value>
   </data>
+  <data name="CoverPageCount" xml:space="preserve">
+    <value>Número de páginas de portada</value>
+  </data>
   <data name="Custom" xml:space="preserve">
     <value>Personalizado</value>
   </data>
@@ -339,9 +342,6 @@ $comics</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>Habilitar</value>
-  </data>
-  <data name="EnableCover" xml:space="preserve">
-    <value>Activar portada</value>
   </data>
   <data name="Enabled" xml:space="preserve">
     <value>Habilitado</value>
