@@ -15,6 +15,7 @@ namespace ComicReaderUWP.Core.Common.DebugTools;
 public static class DebugCommand
 {
     private const string TAG = nameof(DebugCommand);
+    private const string KEY_DEVELOPER_MODE_TOKEN = "DeveloperModeToken";
     private const int SIGNATURE_LENGTH = 256;
     private const string PUBLIC_KEY_PEM = @"-----BEGIN RSA PUBLIC KEY-----
 MIIBCgKCAQEAot89oOONQcVUgUft6YLU15yntMd+Ve1pM7kU5Lr61T8hFnfFxL7x
@@ -32,7 +33,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
         {
             if (!_unlockedDeveloperMode.HasValue)
             {
-                string? token = CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN);
+                string? token = CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValue<string>(KEY_DEVELOPER_MODE_TOKEN);
                 bool tokenValid = token != null && ParseCommand(token) != null;
                 _unlockedDeveloperMode = tokenValid;
             }
@@ -51,7 +52,7 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
 
         // Enable developer mode
         _unlockedDeveloperMode = true;
-        CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE_TOKEN, command);
+        CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).Set(KEY_DEVELOPER_MODE_TOKEN, command);
         DebugUtils.DeveloperMode = true;
 
         return ProcessCommand(parsedCommand);

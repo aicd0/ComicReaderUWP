@@ -10,6 +10,7 @@ internal static class RegistryNames
     //
 
     public const string GLOBAL = "/Global";
+    public const string ENVIRONMENT_INFO = $"{GLOBAL}/EnvironmentInfo";
     public const string SETTINGS = $"{GLOBAL}/Settings";
     public const string DEBUG_SETTINGS = $"{SETTINGS}/Debug";
 }

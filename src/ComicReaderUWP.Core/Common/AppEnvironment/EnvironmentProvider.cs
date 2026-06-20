@@ -26,6 +26,8 @@ namespace ComicReaderUWP.Core.Common.AppEnvironment;
 public class EnvironmentProvider
 {
     private const string TAG = nameof(EnvironmentProvider);
+    private const string KEY_ACTUAL_DEVICE_ID = "ActualDeviceId";
+    private const string KEY_DEVICE_ID = "DeviceId";
 
     public static EnvironmentProvider Instance { get; } = new();
 
@@ -54,7 +56,7 @@ public class EnvironmentProvider
         {
             string deviceId = RecalculateDeviceId();
             _actualDeviceId = deviceId;
-            CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID, deviceId);
+            CoreDB.CoreRegistry.CreateKey(RegistryNames.ENVIRONMENT_INFO).Set(KEY_ACTUAL_DEVICE_ID, deviceId);
         });
     }
 
@@ -140,7 +142,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        deviceId = CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID);
+        deviceId = CoreDB.CoreRegistry.CreateKey(RegistryNames.ENVIRONMENT_INFO).GetValue<string>(KEY_DEVICE_ID);
         if (!string.IsNullOrEmpty(deviceId))
         {
             _deviceId = deviceId;
@@ -156,7 +158,7 @@ public class EnvironmentProvider
             }
 
             _deviceId = deviceId;
-            CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVICE_ID, deviceId);
+            CoreDB.CoreRegistry.CreateKey(RegistryNames.ENVIRONMENT_INFO).Set(KEY_DEVICE_ID, deviceId);
         }
 
         return deviceId;
@@ -170,7 +172,7 @@ public class EnvironmentProvider
             return deviceId;
         }
 
-        deviceId = CoreDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValue<string>(DatabaseEntry.KV_KEY_MAIN_ACTUAL_DEVICE_ID);
+        deviceId = CoreDB.CoreRegistry.CreateKey(RegistryNames.ENVIRONMENT_INFO).GetValue<string>(KEY_ACTUAL_DEVICE_ID);
         if (!string.IsNullOrEmpty(deviceId))
         {
             _actualDeviceId = deviceId;

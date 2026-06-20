@@ -23,7 +23,6 @@ internal static class AppDB
     //
 
     private static string KvDirectory => Path.Combine(StorageLocation.LocalFolderPath, "kv");
-    private static string RegistryDirectory => Path.Combine(StorageLocation.LocalFolderPath, "reg");
 
     //
     // Host Databases
@@ -31,7 +30,7 @@ internal static class AppDB
 
     private static readonly Lazy<IRegistryDatabase> _mainRegistryDatabase = new(() =>
     {
-        string databasePath = Path.Combine(RegistryDirectory, "Main.db");
+        string databasePath = Path.Combine(StorageLocation.RegistryFolderPath, "Main.db");
         return RegistryStore.CreateDatabase(databasePath);
     });
     public static IRegistryDatabase MainRegistry => _mainRegistryDatabase.Value;
@@ -59,7 +58,7 @@ internal static class AppDB
         byte[] bytes = Encoding.UTF8.GetBytes(pluginName);
         byte[] hash = HashUtils.GetXxHash64(bytes);
         string hashString = Convert.ToHexString(hash)[..8].ToUpperInvariant();
-        string databasePath = Path.Combine(RegistryDirectory, $"PluginRegistry_{hashString}.db");
+        string databasePath = Path.Combine(StorageLocation.RegistryFolderPath, $"PluginRegistry_{hashString}.db");
         db = RegistryStore.CreateDatabase(databasePath);
         if (sPluginRegistryDatabases.TryAdd(pluginName, db))
         {
