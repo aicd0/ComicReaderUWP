@@ -327,6 +327,12 @@
 
                     <!--  About  -->
                     <TextBlock Style="{StaticResource SettingsPageSubTitleTextBlock}" Text="{x:Bind StringResource.About}" />
+                    <Image
+                        Width="32"
+                        Height="32"
+                        Margin="0,0,0,8"
+                        HorizontalAlignment="Left"
+                        Source="/Assets/Square44x44Logo.altform-unplated_targetsize-256.png" />
                     <TextBlock x:Name="AboutBuildVersionControl" TextWrapping="Wrap" />
                     <TextBlock x:Name="AboutCopyrightControl" TextWrapping="Wrap" />
                     <Grid Height="8" />
