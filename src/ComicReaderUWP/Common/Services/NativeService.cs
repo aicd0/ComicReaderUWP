@@ -17,6 +17,7 @@ internal class NativeService : INativeService
         MESSAGEBOX_STYLE buttonStyle = buttonType switch
         {
             NativeDialogButtonType.OK => MESSAGEBOX_STYLE.MB_OK,
+            NativeDialogButtonType.OKCancel => MESSAGEBOX_STYLE.MB_OKCANCEL,
             NativeDialogButtonType.YesNo => MESSAGEBOX_STYLE.MB_YESNO,
             NativeDialogButtonType.YesNoCancel => MESSAGEBOX_STYLE.MB_YESNOCANCEL,
             _ => MESSAGEBOX_STYLE.MB_OK,

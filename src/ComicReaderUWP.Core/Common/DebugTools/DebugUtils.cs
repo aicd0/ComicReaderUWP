@@ -15,6 +15,9 @@ namespace ComicReaderUWP.Core.Common.DebugTools;
 public static class DebugUtils
 {
     private const string TAG = nameof(DebugUtils);
+    private const string KEY_DEBUG_MODE = "DebugMode";
+    private const string KEY_DEVELOPER_MODE = "DeveloperMode";
+    private const string KEY_SENTRY_ENABLED = "SentryEnabled";
 
 #if DEBUG
     private const bool IS_DEBUG_BUILD = true;
@@ -31,7 +34,7 @@ public static class DebugUtils
         {
             if (!_debugMode.HasValue)
             {
-                _debugMode = SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValueOrDefault(DatabaseEntry.KV_KEY_MAIN_DEBUG_MODE, DebugBuild);
+                _debugMode = CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValueOrDefault(KEY_DEBUG_MODE, DebugBuild);
             }
 
             return _debugMode.Value;
@@ -44,7 +47,7 @@ public static class DebugUtils
             }
 
             _debugMode = value;
-            SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEBUG_MODE, value);
+            CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).Set(KEY_DEBUG_MODE, value);
         }
     }
 
@@ -59,7 +62,7 @@ public static class DebugUtils
         {
             if (!_developerMode.HasValue)
             {
-                _developerMode = UnlockedDeveloperMode && SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValueOrDefault(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE, true);
+                _developerMode = UnlockedDeveloperMode && CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValueOrDefault(KEY_DEVELOPER_MODE, true);
             }
 
             return _developerMode.Value;
@@ -72,7 +75,7 @@ public static class DebugUtils
             }
 
             _developerMode = value;
-            SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_DEVELOPER_MODE, value);
+            CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).Set(KEY_DEVELOPER_MODE, value);
         }
     }
 
@@ -83,7 +86,7 @@ public static class DebugUtils
         {
             if (!_sentryEnabled.HasValue)
             {
-                _sentryEnabled = !UnlockedDeveloperMode || SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).GetValueOrDefault(DatabaseEntry.KV_KEY_MAIN_SENTRY_ENABLED, true);
+                _sentryEnabled = !UnlockedDeveloperMode || CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValueOrDefault(KEY_SENTRY_ENABLED, true);
             }
 
             return _sentryEnabled.Value;
@@ -96,14 +99,8 @@ public static class DebugUtils
             }
 
             _sentryEnabled = value;
-            SdkDB.SdkKV.GetCollection(DatabaseEntry.KV_LIB_MAIN).Set(DatabaseEntry.KV_KEY_MAIN_SENTRY_ENABLED, value);
+            CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).Set(KEY_SENTRY_ENABLED, value);
         }
-    }
-
-    public static void Initialize()
-    {
-        DebugSwitchModel.Instance.Initialize();
-        Logger.Initialize();
     }
 
     public static void ReportLastCrash()

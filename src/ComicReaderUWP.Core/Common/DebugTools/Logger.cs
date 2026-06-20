@@ -330,7 +330,7 @@ public static class Logger
 
         FlushToLogFile(logs);
 
-        if (DebugSwitchModel.Instance.LogTreeEnabled)
+        if (DebugModel.LogTreeEnabled)
         {
             FlushToLogTree(logs);
         }
@@ -456,9 +456,9 @@ public static class Logger
     {
         public void OnLog(LogItem item)
         {
-            if (DebugSwitchModel.Instance.ConsoleEnabled)
+            if (DebugModel.ConsoleEnabled)
             {
-                List<LogTag?> consoleWhitelist = DebugSwitchModel.Instance.ConsoleWhitelist;
+                List<LogTag?> consoleWhitelist = DebugModel.ConsoleWhitelist;
                 if (consoleWhitelist.Any(t => t is null || t.ContainsAny(item.Tag)))
                 {
                     LogToConsole(item.DisplayMessage);

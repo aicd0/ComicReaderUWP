@@ -26,4 +26,5 @@ public static class StorageLocation
     public static string LocalFolderPath => _localFolderPath.Value;
     public static string LocalCacheFolderPath => _localCacheFolderPath.Value;
     public static string TemporaryFolderPath => _temporaryFolderPath.Value;
+    public static string RegistryFolderPath => Path.Combine(LocalFolderPath, "reg");
 }
