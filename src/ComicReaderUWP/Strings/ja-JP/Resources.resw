@@ -268,6 +268,9 @@ $comics</value>
   <data name="Copy" xml:space="preserve">
     <value>コピー</value>
   </data>
+  <data name="CoverPageCount" xml:space="preserve">
+    <value>表紙ページ数</value>
+  </data>
   <data name="Custom" xml:space="preserve">
     <value>カスタム</value>
   </data>
@@ -339,9 +342,6 @@ $comics</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>有効にする</value>
-  </data>
-  <data name="EnableCover" xml:space="preserve">
-    <value>表紙を有効にする</value>
   </data>
   <data name="Enabled" xml:space="preserve">
     <value>有効</value>
@@ -550,7 +550,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
 「続行」をクリックすると、リスクを理解したうえでインストールを続行することに同意したものとみなされます。このメッセージは今後表示されません。</value>
   </data>
   <data name="InvertImage" xml:space="preserve">
-    <value>反転</value>
+    <value>色反転</value>
   </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>画面をオンのままにする</value>

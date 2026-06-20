@@ -268,6 +268,9 @@ $comics</value>
   <data name="Copy" xml:space="preserve">
     <value>复制</value>
   </data>
+  <data name="CoverPageCount" xml:space="preserve">
+    <value>封面页数</value>
+  </data>
   <data name="Custom" xml:space="preserve">
     <value>自定义</value>
   </data>
@@ -339,9 +342,6 @@ $comics</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>启用</value>
-  </data>
-  <data name="EnableCover" xml:space="preserve">
-    <value>启用封面</value>
   </data>
   <data name="Enabled" xml:space="preserve">
     <value>已启用</value>

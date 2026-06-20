@@ -54,6 +54,7 @@ public class StringResourceProvider
     public string ContributionRunAfterLink => GetResourceString("ContributionRunAfterLink");
     public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
     public string Copy => GetResourceString("Copy");
+    public string CoverPageCount => GetResourceString("CoverPageCount");
     public string Custom => GetResourceString("Custom");
     public string DebugModeWarning => GetResourceString("DebugModeWarning");
     public string Default => GetResourceString("Default");
@@ -75,7 +76,6 @@ public class StringResourceProvider
     public string Edit => GetResourceString("Edit");
     public string EditPreset => GetResourceString("EditPreset");
     public string Enable => GetResourceString("Enable");
-    public string EnableCover => GetResourceString("EnableCover");
     public string Enabled => GetResourceString("Enabled");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
     public string EnterNewTags => GetResourceString("EnterNewTags");

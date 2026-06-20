@@ -85,6 +85,16 @@
                 </Setter>
             </Style>
 
+            <Style x:Key="CommonSettingRowStyle" TargetType="Grid">
+                <Setter Property="Height" Value="30" />
+                <Setter Property="Padding" Value="14,0" />
+            </Style>
+
+            <Style x:Key="TallSettingRowStyle" TargetType="Grid">
+                <Setter Property="Height" Value="40" />
+                <Setter Property="Padding" Value="14,0" />
+            </Style>
+
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
 
@@ -92,7 +102,6 @@
     </base:BaseUserControl.Resources>
 
     <StackPanel Orientation="Vertical">
-
         <SelectorBar
             x:Name="SettingsTabSelectorBar"
             Margin="14,0"
@@ -107,82 +116,104 @@
                 Padding="12,0,12,4"
                 Text="{x:Bind ViewModel.ImageProcessingTabTitle, Mode=OneWay}" />
         </SelectorBar>
-
         <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
 
-        <!--  General Settings  -->
+        <!--  General Settings Tab  -->
         <StackPanel
             x:Name="GeneralSettingsGrid"
             MinWidth="360"
             Orientation="Vertical">
-            <!--  Page layout  -->
-            <Grid Margin="14,8">
+            <!--  Page Layout Section  -->
+            <Grid Margin="0,8,0,0" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
-                </Grid.RowDefinitions>
                 <TextBlock
-                    Grid.Row="0"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.TwoPageModeLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="TwoPageModeToggleSwitch"
-                    Grid.Row="0"
                     Grid.Column="3"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="TwoPageModeToggleSwitch_Toggled" />
+            </Grid>
+            <Grid x:Name="CoverPageCountGrid" Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition
+                        Width="10000*"
+                        MinWidth="120"
+                        MaxWidth="140" />
+                </Grid.ColumnDefinitions>
                 <TextBlock
-                    Grid.Row="1"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.EnableCoverLabel, Mode=OneWay}" />
-                <ToggleSwitch
-                    x:Name="EnableCoverToggleSwitch"
-                    Grid.Row="1"
+                    Text="{x:Bind ViewModel.CoverPageCountLabel, Mode=OneWay}" />
+                <Slider
+                    x:Name="CoverPageCountSlider"
                     Grid.Column="3"
-                    Style="{StaticResource CompatToggleSwitchStyle}"
-                    Toggled="EnableCoverToggleSwitch_Toggled" />
+                    Margin="0,-2"
+                    Maximum="2"
+                    Minimum="0"
+                    SnapsTo="Ticks"
+                    StepFrequency="1"
+                    TickFrequency="1"
+                    TickPlacement="Outside"
+                    ValueChanged="CoverPageCountSlider_ValueChanged" />
+            </Grid>
+            <Grid x:Name="SwapLeftAndRightPagesGrid" Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <TextBlock
-                    Grid.Row="2"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.SwapLeftAndRightPagesLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="SwapLeftAndRightPagesToggleSwitch"
-                    Grid.Row="2"
                     Grid.Column="3"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="SwapLeftAndRightPagesToggleSwitch_Toggled" />
+            </Grid>
+            <Grid Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <TextBlock
-                    Grid.Row="3"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.SpreadDetectionLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="SpreadDetectionToggleSwitch"
-                    Grid.Row="3"
                     Grid.Column="3"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="SpreadDetectionToggleSwitch_Toggled" />
             </Grid>
-            <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+            <!--  Scrolling Behavior Section  -->
+            <Rectangle
+                Height="1"
+                Margin="0,8,0,0"
+                Fill="{ThemeResource ComicInfoSeparatorForeground}" />
             <Grid Margin="14,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
@@ -202,11 +233,9 @@
                         Style="{StaticResource AppBarButtonCompactStyle}" />
                 </StackPanel>
             </Grid>
-            <Rectangle
-                Height="1"
-                Margin="0,0,0,8"
-                Fill="{ThemeResource ComicInfoSeparatorForeground}" />
-            <Grid Margin="14,0">
+            <!--  Other Settings Section  -->
+            <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+            <Grid Margin="0,8,0,0" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
@@ -216,34 +245,37 @@
                         MinWidth="120"
                         MaxWidth="140" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
-                </Grid.RowDefinitions>
                 <TextBlock
-                    Grid.Row="0"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.PageSpacingLabel, Mode=OneWay}" />
                 <Slider
                     x:Name="PageSpacingSlider"
-                    Grid.Row="0"
                     Grid.Column="3"
                     Margin="0,-2"
                     Maximum="200"
                     Minimum="0"
                     StepFrequency="1"
                     ValueChanged="PageSpacingSlider_ValueChanged" />
+            </Grid>
+            <Grid Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition
+                        Width="10000*"
+                        MinWidth="120"
+                        MaxWidth="140" />
+                </Grid.ColumnDefinitions>
                 <TextBlock
-                    Grid.Row="1"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.AutoScrollingLabel, Mode=OneWay}" />
                 <Slider
                     x:Name="AutoScrollingSlider"
-                    Grid.Row="1"
                     Grid.Column="3"
                     Margin="0,-2"
                     Maximum="100"
@@ -251,87 +283,87 @@
                     StepFrequency="1"
                     ValueChanged="AutoScrollingSlider_ValueChanged" />
             </Grid>
-            <Grid Margin="14,0,14,8">
+            <Grid Margin="0,0,0,8" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
-                </Grid.RowDefinitions>
                 <TextBlock
-                    Grid.Row="0"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.OriginalSizeLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="OriginalSizeToggleSwitch"
-                    Grid.Row="0"
                     Grid.Column="3"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="OriginalSizeToggleSwitch_Toggled" />
             </Grid>
         </StackPanel>
 
-        <!--  Image Processing Settings  -->
+        <!--  Image Processing Settings Tab  -->
         <StackPanel
             x:Name="ImageProcessingSettingsGrid"
             MinWidth="360"
             Orientation="Vertical">
-            <Grid Margin="14,8,14,0">
+            <Grid Margin="0,8,0,0" Style="{StaticResource TallSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="40" />
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
-                </Grid.RowDefinitions>
                 <TextBlock
-                    Grid.Row="0"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.RotationLabel, Mode=OneWay}" />
                 <DropDownButton
                     x:Name="RotationDropDownButton"
-                    Grid.Row="0"
                     Grid.Column="3"
                     HorizontalAlignment="Right" />
+            </Grid>
+            <Grid Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <TextBlock
-                    Grid.Row="1"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.FlipImageLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="FlipImageToggleSwitch"
-                    Grid.Row="1"
                     Grid.Column="3"
                     HorizontalAlignment="Right"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="FlipImageToggleSwitch_Toggled" />
+            </Grid>
+            <Grid Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <TextBlock
-                    Grid.Row="2"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.InvertImageLabel, Mode=OneWay}" />
                 <ToggleSwitch
                     x:Name="InvertImageToggleSwitch"
-                    Grid.Row="2"
                     Grid.Column="3"
                     HorizontalAlignment="Right"
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="InvertImageToggleSwitch_Toggled" />
             </Grid>
-            <Grid Margin="14,0,14,8">
+            <Grid Margin="0,0,0,8" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
@@ -341,18 +373,13 @@
                         MinWidth="120"
                         MaxWidth="140" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
-                </Grid.RowDefinitions>
                 <TextBlock
-                    Grid.Row="0"
                     Grid.Column="0"
                     Margin="0,0,0,2"
                     VerticalAlignment="Center"
                     Text="{x:Bind ViewModel.AntiAliasingFilterLabel, Mode=OneWay}" />
                 <Slider
                     x:Name="AntiAliasingFilterSlider"
-                    Grid.Row="0"
                     Grid.Column="3"
                     Margin="0,-2"
                     Maximum="200"

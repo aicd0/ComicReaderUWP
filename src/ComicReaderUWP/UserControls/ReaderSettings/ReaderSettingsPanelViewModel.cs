@@ -48,14 +48,14 @@ internal partial class ReaderSettingsPanelViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _enableCoverLabel = string.Empty;
-    public string EnableCoverLabel
+    private string _coverPageCountLabel = string.Empty;
+    public string CoverPageCountLabel
     {
-        get => _enableCoverLabel;
+        get => _coverPageCountLabel;
         set
         {
-            _enableCoverLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EnableCoverLabel)));
+            _coverPageCountLabel = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CoverPageCountLabel)));
         }
     }
 
