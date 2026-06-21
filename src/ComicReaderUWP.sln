@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.Tests", "Tests\ComicReaderUWP.Tests\ComicReaderUWP.Tests.csproj", "{080FD1B1-888C-49CB-BF10-3863A9151583}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComicReaderUWP", "ComicReaderUWP\ComicReaderUWP.csproj", "{D5E797FD-AD3D-477F-8649-5EAE522BA061}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicReaderUWP.SDK", "ComicReaderUWP.SDK\ComicReaderUWP.SDK.csproj", "{3A555A1B-826E-41A4-8808-29C2E214F671}"
@@ -29,18 +27,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Debug|ARM64.ActiveCfg = Debug|ARM64
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Debug|ARM64.Build.0 = Debug|ARM64
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Debug|x64.ActiveCfg = Debug|x64
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Debug|x64.Build.0 = Debug|x64
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Debug|x86.ActiveCfg = Debug|x86
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Debug|x86.Build.0 = Debug|x86
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Release|ARM64.ActiveCfg = Release|ARM64
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Release|ARM64.Build.0 = Release|ARM64
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Release|x64.ActiveCfg = Release|x64
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Release|x64.Build.0 = Release|x64
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Release|x86.ActiveCfg = Release|x86
-		{080FD1B1-888C-49CB-BF10-3863A9151583}.Release|x86.Build.0 = Release|x86
 		{D5E797FD-AD3D-477F-8649-5EAE522BA061}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{D5E797FD-AD3D-477F-8649-5EAE522BA061}.Debug|ARM64.Build.0 = Debug|ARM64
 		{D5E797FD-AD3D-477F-8649-5EAE522BA061}.Debug|ARM64.Deploy.0 = Debug|ARM64
@@ -100,7 +86,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{080FD1B1-888C-49CB-BF10-3863A9151583} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{A57B0BCD-96D2-4E88-9E91-03CDE828B3C4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
