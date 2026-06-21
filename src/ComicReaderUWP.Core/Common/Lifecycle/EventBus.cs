@@ -35,13 +35,18 @@ public class EventBus : IEventBus
     public void Clear()
     {
         _clearing = true;
-
-        foreach (ILiveDataCommonAbility topic in _topics.Values)
+        try
         {
-            topic.Clear();
-        }
+            foreach (ILiveDataCommonAbility topic in _topics.Values)
+            {
+                topic.Clear();
+            }
 
-        _clearing = false;
-        _topics.Clear();
+            _topics.Clear();
+        }
+        finally
+        {
+            _clearing = false;
+        }
     }
 }

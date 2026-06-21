@@ -74,9 +74,7 @@ internal sealed partial class MainWindow : Window
     private WindowMembers Members => _members!;
 
     private readonly bool _requestRestorePlacement = false;
-    private bool _minimized = false;
-    private bool _fullscreen = false;
-    private bool _pointerInWindow = false;
+    private bool _isMinimized = false;
 
     //
     // Properties
@@ -103,16 +101,17 @@ internal sealed partial class MainWindow : Window
         Members._requestWindowStatus = windowStatus;
         _requestRestorePlacement = restorePlacement;
 
-        if (DebugUtils.DeveloperMode)
-        {
-            RegisterMessageLoop();
-        }
-
         Title = StringResourceProvider.Instance.AppDisplayName;
         ExtendsContentIntoTitleBar = true;
         TrySetAcrylicBackdrop();
         SetWindowIcon();
+
         SubscribeEvents();
+
+        if (DebugUtils.DeveloperMode)
+        {
+            RegisterMessageLoop();
+        }
     }
 
     //
@@ -190,7 +189,7 @@ internal sealed partial class MainWindow : Window
 
         return new()
         {
-            Fullscreen = _fullscreen,
+            Fullscreen = _isFullscreen,
             WindowPlacement = Members._windowPlacementManager.GetWindowPlacement(),
             TabStatus = tabStatus,
         };
@@ -205,23 +204,23 @@ internal sealed partial class MainWindow : Window
 
     private void SubscribeEvents()
     {
-        Closed += OnWindowClosed;
+        Closed += Window_Closed;
         AppWindow.Changed += AppWindow_Changed;
-        PageFrame.Loaded += OnPageFrameLoaded;
-        PageFrame.PointerEntered += OnPageFramePointerEntered;
-        PageFrame.PointerExited += OnPageFramePointerExited;
+        ContentFrame.Loaded += ContentFrame_Loaded;
+        Content.PointerEntered += Content_PointerEntered;
+        Content.PointerExited += Content_PointerExited;
     }
 
     private void UnsubscribeEvents()
     {
-        Closed -= OnWindowClosed;
+        Closed -= Window_Closed;
         AppWindow.Changed -= AppWindow_Changed;
-        PageFrame.Loaded -= OnPageFrameLoaded;
-        PageFrame.PointerEntered -= OnPageFramePointerEntered;
-        PageFrame.PointerExited -= OnPageFramePointerExited;
+        ContentFrame.Loaded -= ContentFrame_Loaded;
+        Content.PointerEntered -= Content_PointerEntered;
+        Content.PointerExited -= Content_PointerExited;
     }
 
-    private void OnWindowClosed(object sender, WindowEventArgs args)
+    private void Window_Closed(object sender, WindowEventArgs args)
     {
         if (App.Instance.WindowManager.GetAllWindowInfo().Count == 1)
         {
@@ -236,13 +235,14 @@ internal sealed partial class MainWindow : Window
 
         UnsubscribeEvents();
         UnregisterMessageLoop();
+
         App.Instance.WindowManager.UnregisterWindow(WindowId);
         App.Instance.WindowManager.ScheduleSaveWindowStatus();
 
         // Dereference members
         _members = null;
-        PageFrame.Content = null;
-        PageFrame = null;
+        ContentFrame.Content = null;
+        ContentFrame = null;
         WindowHandle = IntPtr.Zero;
     }
 
@@ -256,9 +256,9 @@ internal sealed partial class MainWindow : Window
         if (sender.Presenter is OverlappedPresenter presenter)
         {
             bool minimized = presenter.State == OverlappedPresenterState.Minimized;
-            if (minimized != _minimized)
+            if (minimized != _isMinimized)
             {
-                _minimized = minimized;
+                _isMinimized = minimized;
                 Members._mainWindowAbility.SendMinimizeChangedEvent(minimized);
             }
         }
@@ -279,15 +279,15 @@ internal sealed partial class MainWindow : Window
         }
     }
 
-    private void OnPageFrameLoaded(object sender, RoutedEventArgs e)
+    private void ContentFrame_Loaded(object sender, RoutedEventArgs e)
     {
         // Load the main page
         var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_MAIN);
         PageNavigationBundle bundle = AppRouter.Process(route)!;
         bundle.Communicator.RegisterAbility<ILifecycleAwareAbility>(Members._mainWindowAbility);
         bundle.Communicator.RegisterAbility<IMainWindowAbility>(Members._mainWindowAbility);
-        PageFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
-        Members._mainPage = (MainPage)PageFrame.Content;
+        ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+        Members._mainPage = (MainPage)ContentFrame.Content;
 
         LifecycleState = WindowLifecycleState.Loaded;
 
@@ -336,14 +336,14 @@ internal sealed partial class MainWindow : Window
         });
     }
 
-    private void OnPageFramePointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    private void Content_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        _pointerInWindow = true;
+        DispatchPointerOverWindowChangedEvent(true);
     }
 
-    private void OnPageFramePointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    private void Content_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        _pointerInWindow = false;
+        DispatchPointerOverWindowChangedEvent(false);
     }
 
     //
@@ -409,6 +409,8 @@ internal sealed partial class MainWindow : Window
     // Fullscreen
     //
 
+    private bool _isFullscreen = false;
+
     private void EnterOrExitFullscreen(bool isFullscreen)
     {
         if (IsFullScreen() == isFullscreen)
@@ -437,13 +439,30 @@ internal sealed partial class MainWindow : Window
 
     private void DispatchFullscreenChangeEvent(bool isFullscreen)
     {
-        if (_fullscreen == isFullscreen)
+        if (_isFullscreen == isFullscreen)
         {
             return;
         }
 
-        _fullscreen = isFullscreen;
+        _isFullscreen = isFullscreen;
         Members._mainWindowAbility.SendFullscreenChangedEvent(isFullscreen);
+    }
+
+    //
+    // Pointer Over Window
+    //
+
+    private bool _isPointerOverWindow = true;
+
+    private void DispatchPointerOverWindowChangedEvent(bool isOver)
+    {
+        if (isOver == _isPointerOverWindow)
+        {
+            return;
+        }
+
+        _isPointerOverWindow = isOver;
+        Members._mainWindowAbility.SendPointerOverWindowChangedEvent(isOver);
     }
 
     //
@@ -503,22 +522,67 @@ internal sealed partial class MainWindow : Window
         private readonly WeakReference<MainWindow> _windowRef = new(window);
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
         private readonly PluginWindowContext _pluginWindowContext = new(window.WindowId);
-        private readonly MutableLiveData<bool> _minimizeChangeLiveData = new(false);
-        private readonly MutableLiveData<bool> _fullscreenChangeLiveData = new(false);
+        private readonly MutableLiveData<bool> _minimizeLiveData = new(window._isMinimized);
+        private readonly MutableLiveData<bool> _fullscreenLiveData = new(window._isFullscreen);
+        private readonly MutableLiveData<bool> _pointerOverWindowLiveData = new(window._isPointerOverWindow);
 
         public int WindowId => _windowId;
 
         public bool IsActive => GetWindow()?.IsActive ?? false;
 
-        public bool IsMinimized => _minimizeChangeLiveData.GetValue();
+        public bool IsMinimized => _minimizeLiveData.GetValue();
 
-        public bool IsFullscreen => _fullscreenChangeLiveData.GetValue();
+        public bool IsFullscreen => _fullscreenLiveData.GetValue();
 
         public PluginWindowContext PluginWindowContext => _pluginWindowContext;
 
-        public bool PointerInWindow()
+        public void RegisterPageLifecycleHandler(PageLifecycleEventHandler handler)
         {
-            return GetWindow()?._pointerInWindow ?? false;
+            _lifecycleAbility.RegisterPageLifecycleHandler(handler);
+        }
+
+        public void UnregisterPageLifecycleHandler(PageLifecycleEventHandler handler)
+        {
+            _lifecycleAbility.UnregisterPageLifecycleHandler(handler);
+        }
+
+        public void RegisterMinimizeChangedHandler(ILifecycleOwner owner, IMainWindowAbility.MinimizeChangedEventHandler handler)
+        {
+            _minimizeLiveData.ObserveSticky(owner, isMinimized =>
+            {
+                handler(isMinimized);
+            });
+        }
+
+        public void SendMinimizeChangedEvent(bool isMinimized)
+        {
+            _minimizeLiveData.Emit(isMinimized);
+        }
+
+        public void RegisterFullscreenChangedHandler(ILifecycleOwner owner, IMainWindowAbility.FullscreenChangedEventHandler handler)
+        {
+            _fullscreenLiveData.ObserveSticky(owner, isFullscreen =>
+            {
+                handler(isFullscreen);
+            });
+        }
+
+        public void SendFullscreenChangedEvent(bool isFullscreen)
+        {
+            _fullscreenLiveData.Emit(isFullscreen);
+        }
+
+        public void RegisterPointerOverWindowChangedEventHandler(ILifecycleOwner owner, IMainWindowAbility.PointerOverWindowChangedEventHandler handler)
+        {
+            _pointerOverWindowLiveData.ObserveSticky(owner, isOver =>
+            {
+                handler(isOver);
+            });
+        }
+
+        public void SendPointerOverWindowChangedEvent(bool isOver)
+        {
+            _pointerOverWindowLiveData.Emit(isOver);
         }
 
         public void EnterFullscreen()
@@ -529,42 +593,6 @@ internal sealed partial class MainWindow : Window
         public void ExitFullscreen()
         {
             GetWindow()?.EnterOrExitFullscreen(false);
-        }
-
-        public void RegisterMinimizeChangedHandler(ILifecycleOwner owner, IMainWindowAbility.MinimizeChangedEventHandler handler)
-        {
-            _minimizeChangeLiveData.ObserveSticky(owner, isMinimized =>
-            {
-                handler(isMinimized);
-            });
-        }
-
-        public void SendMinimizeChangedEvent(bool isMinimized)
-        {
-            _minimizeChangeLiveData.Emit(isMinimized);
-        }
-
-        public void RegisterFullscreenChangedHandler(ILifecycleOwner owner, IMainWindowAbility.FullscreenChangedEventHandler handler)
-        {
-            _fullscreenChangeLiveData.ObserveSticky(owner, isFullscreen =>
-            {
-                handler(isFullscreen);
-            });
-        }
-
-        public void SendFullscreenChangedEvent(bool isFullscreen)
-        {
-            _fullscreenChangeLiveData.Emit(isFullscreen);
-        }
-
-        public void RegisterPageLifecycleHandler(PageLifecycleEventHandler handler)
-        {
-            _lifecycleAbility.RegisterPageLifecycleHandler(handler);
-        }
-
-        public void UnregisterPageLifecycleHandler(PageLifecycleEventHandler handler)
-        {
-            _lifecycleAbility.UnregisterPageLifecycleHandler(handler);
         }
 
         public LifecycleAwareAbility GetLifecycleAbility()
