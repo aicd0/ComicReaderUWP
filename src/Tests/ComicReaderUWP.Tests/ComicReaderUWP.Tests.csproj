@@ -1,16 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<EnableMsixTooling>false</EnableMsixTooling>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+		<ImplicitUsings>enable</ImplicitUsings>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
-		<EnableMsixTooling>false</EnableMsixTooling>
-		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+		<Nullable>enable</Nullable>
 		<Platforms>x64;x86;ARM64</Platforms>
+		<TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
