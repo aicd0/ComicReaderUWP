@@ -38,7 +38,7 @@ internal sealed partial class ReaderPage : BasePage
 {
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
-    // Must be accessed on UI thread
+    // Must only be accessed by UI thread
     public static IReadOnlyList<Tuple<int, string>> ActiveTabs { get; private set; } = [];
 
     //

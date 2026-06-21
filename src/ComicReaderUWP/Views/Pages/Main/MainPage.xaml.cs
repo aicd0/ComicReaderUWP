@@ -326,12 +326,14 @@ internal sealed partial class MainPage : BasePage
 
     private void TabContainerGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
+        Logger.I(TAG, "TabContainerGrid_PointerEntered");
         _isPointerOverTabContainerGrid = true;
         DispatchPointerOverOverlayChangedEvent();
     }
 
     private void TabContainerGrid_PointerExited(object sender, PointerRoutedEventArgs e)
     {
+        Logger.I(TAG, "TabContainerGrid_PointerExited");
         _isPointerOverTabContainerGrid = false;
         DispatchPointerOverOverlayChangedEvent();
     }
@@ -350,12 +352,14 @@ internal sealed partial class MainPage : BasePage
 
     private void TopTile_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
+        Logger.I(TAG, "TopTile_PointerEntered");
         _isPointerOverTopTile = true;
         DispatchPointerOverOverlayChangedEvent();
     }
 
     private void TopTile_PointerExited(object sender, PointerRoutedEventArgs e)
     {
+        Logger.I(TAG, "TopTile_PointerExited");
         _isPointerOverTopTile = false;
         DispatchPointerOverOverlayChangedEvent();
     }
