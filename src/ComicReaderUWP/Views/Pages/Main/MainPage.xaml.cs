@@ -45,16 +45,11 @@ internal sealed partial class MainPage : BasePage
     //
 
     private Grid? _tabContainerGrid;
-    private Storyboard? _titleBarAnimation;
     private long _tabContainerGridOpacityListenerToken = 0;
     private bool _contentPresenterLoaded = false;
     private bool _immersiveMode = false;
-    private bool _titleBarVisible = true;
     private double _rootTabHeight = 0;
     private double _navigationBarHeight = 0;
-    private double _sidePaneWidth = 0;
-    private bool _sidePaneOpened = false;
-    private bool _sidePanePinned = false;
 
     private readonly List<TabInfo> _tabs = [];
     private TabInfo? _currentTab;
@@ -79,7 +74,7 @@ internal sealed partial class MainPage : BasePage
         InitializeComponent();
 
         _abilityForSidebar = new(this);
-        RightSidePane.Initialize(new SidePaneHandler(this));
+        MainSidebarView.Initialize(new SidePaneHandler(this));
         ContentGrid.Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
@@ -207,7 +202,7 @@ internal sealed partial class MainPage : BasePage
 
         ViewModel.Initialize(PageActionHandler);
         ObserveData();
-        SyncSidebarOpenState(NavigationPageSidePane.IsPaneOpen, initialSync: true);
+        SyncSidebarOpenState(SidebarSplitView.IsPaneOpen, initialSync: true);
     }
 
     protected override void OnResume()
@@ -215,12 +210,12 @@ internal sealed partial class MainPage : BasePage
         base.OnResume();
 
         ViewModel.UpdateMoreMenuItems();
-        NavigationPageSidePane.OpenPaneLength = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<double>(KVNames.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
-        RightSidePane.RestoreStates();
+        SidebarSplitView.OpenPaneLength = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<double>(KVNames.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
+        MainSidebarView.RestoreStates();
 
-        if (_sidePanePinned && AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_OPENED, false))
+        if (_isSidebarPinned && AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_OPENED, false))
         {
-            SetSidePaneOpenState(true, force: true);
+            SetSidebarOpenState(true, force: true);
         }
     }
 
@@ -246,11 +241,11 @@ internal sealed partial class MainPage : BasePage
         GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
             TopTile.Opacity = opacity;
-            NavigationPageSidePane.Opacity = opacity;
-            if (_tabContainerGrid != null)
+            SidebarSplitView.Opacity = opacity;
+
+            if (_tabContainerGrid is not null)
             {
                 _tabContainerGrid.Opacity = opacity;
-                _tabContainerGrid.IsHitTestVisible = opacity > 0.5;
             }
         });
 
@@ -261,11 +256,212 @@ internal sealed partial class MainPage : BasePage
             ViewModel.IsFullscreen = isFullscreen;
         });
 
+        GetMainWindowAbility().RegisterPointerOverWindowChangedEventHandler(this, isOver =>
+        {
+            _isPointerOverWindow = isOver;
+            DispatchPointerOverOverlayChangedEvent();
+        });
+
         _abilityForSidebar.GetLifecycleAbility().Observe(this);
     }
 
     //
-    // Tab Management
+    // Common Input Events
+    //
+
+    private void GoBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        GoBack();
+    }
+
+    private void GoForwardButton_Click(object sender, RoutedEventArgs e)
+    {
+        GoForward();
+    }
+
+    private void HomeButton_Click(object sender, RoutedEventArgs e)
+    {
+        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
+        _abilityForSidebar.OpenInCurrentTab(route);
+    }
+
+    private void RefreshButton_Click(object sender, RoutedEventArgs e)
+    {
+        GetCurrentTabAbility()?.SendRefreshEvent();
+    }
+
+    private void OpenSidebarButton_Click(object sender, RoutedEventArgs e)
+    {
+        SetSidebarOpenState(!_isSidebarOpen, force: true);
+    }
+
+    //
+    // Pointer Events
+    //
+
+    private PointerPoint? _lastPointerPoint;
+
+    private void OnPagePointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        _lastPointerPoint = e.GetCurrentPoint(sender as UIElement);
+    }
+
+    private void OnPagePointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (_lastPointerPoint == null)
+        {
+            return;
+        }
+
+        if (_lastPointerPoint.Properties.IsXButton1Pressed)
+        {
+            GoBack();
+        }
+        else if (_lastPointerPoint.Properties.IsXButton2Pressed)
+        {
+            GoForward();
+        }
+
+        _lastPointerPoint = null;
+    }
+
+    private bool _isPointerOverOverlay = false;
+    private bool _isPointerOverWindow = true;
+    private bool _isPointerOverTabContainerGrid = false;
+    private bool _isPointerOverSidebar = false;
+    private bool _isPointerOverTopTile = false;
+
+    private void TabContainerGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerOverTabContainerGrid = true;
+        DispatchPointerOverOverlayChangedEvent();
+    }
+
+    private void TabContainerGrid_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerOverTabContainerGrid = false;
+        DispatchPointerOverOverlayChangedEvent();
+    }
+
+    private void SidebarGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerOverSidebar = true;
+        DispatchPointerOverOverlayChangedEvent();
+    }
+
+    private void SidebarGrid_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerOverSidebar = false;
+        DispatchPointerOverOverlayChangedEvent();
+    }
+
+    private void TopTile_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerOverTopTile = true;
+        DispatchPointerOverOverlayChangedEvent();
+    }
+
+    private void TopTile_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerOverTopTile = false;
+        DispatchPointerOverOverlayChangedEvent();
+    }
+
+    private void DispatchPointerOverOverlayChangedEvent()
+    {
+        bool isPointerOverOverlay =
+            _isPointerOverTabContainerGrid ||
+            _isPointerOverSidebar ||
+            _isPointerOverTopTile ||
+            (_isSidebarOpen && !_isSidebarPinned);
+        isPointerOverOverlay = _isPointerOverWindow && isPointerOverOverlay;
+        if (isPointerOverOverlay == _isPointerOverOverlay)
+        {
+            return;
+        }
+
+        _isPointerOverOverlay = isPointerOverOverlay;
+        DispatchToAllTabs(ability =>
+        {
+            ability.SendPointerOverOverlayChangedEvent(isPointerOverOverlay);
+        });
+    }
+
+    //
+    // Size Change Events
+    //
+
+    private void OnTabContainerGridSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_rootTabHeight == e.NewSize.Height)
+        {
+            return;
+        }
+
+        _rootTabHeight = e.NewSize.Height;
+        TopTile.Margin = new Thickness(0, _rootTabHeight, 0, 0);
+        DispatchTopOverlayHeightChangeEvent();
+    }
+
+    private void OnTopTileSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_navigationBarHeight == e.NewSize.Height)
+        {
+            return;
+        }
+
+        _navigationBarHeight = e.NewSize.Height;
+        DispatchTopOverlayHeightChangeEvent();
+    }
+
+    private void DispatchTopOverlayHeightChangeEvent()
+    {
+        GetEventBus().With<double>(EventId.TopOverlayHeight).Emit(_rootTabHeight + _navigationBarHeight);
+    }
+
+    private void DispatchRightOverlayWidthChangeEvent()
+    {
+        GetEventBus().With<double>(EventId.RightOverlayWidth).Emit(_isSidebarOpen && _isSidebarPinned ? _sidebarWidth : 0);
+    }
+
+    //
+    // Key Events
+    //
+
+    private void KeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        bool handled = false;
+        bool ctrlDown = args.KeyboardAccelerator.Modifiers.HasFlag(Windows.System.VirtualKeyModifiers.Control);
+        switch (args.KeyboardAccelerator.Key)
+        {
+            case Windows.System.VirtualKey.Escape:
+                handled = true;
+                GetMainWindowAbility().ExitFullscreen();
+                break;
+            case Windows.System.VirtualKey.F10:
+                if (ctrlDown)
+                {
+                    handled = true;
+                    ViewModel.StartOrStopLogger();
+                }
+                break;
+            case Windows.System.VirtualKey.F11:
+                if (ctrlDown)
+                {
+                    handled = true;
+                    ViewModel.ShowOrHideLogger();
+                }
+                break;
+        }
+
+        if (handled)
+        {
+            args.Handled = true;
+        }
+    }
+
+    //
+    // Tabs Management
     //
 
     private void EnsureInitialTabNoLock()
@@ -366,20 +562,18 @@ internal sealed partial class MainPage : BasePage
             Content = frame,
         };
         MainPageAbilityForTab ability = new(this, tabId);
-        NavigationPageAbility navigationBarAbility = new(this);
         TabInfo tabInfo = new()
         {
             Id = tabId,
             InitiateTabId = initiateTabId,
             Item = item,
             Ability = ability,
-            NavigationBarAbility = navigationBarAbility,
             CurrentBundle = bundle,
         };
         tabInfo.NavigatedHandler = (sender, e) =>
         {
             var newBundle = (PageNavigationBundle)e.Parameter;
-            tabInfo.NavigationBarAbility.ClearStates();
+            tabInfo.Ability.ClearStates();
             tabInfo.CurrentBundle = newBundle;
             if (_currentTab is not null && tabInfo.Id == _currentTab.Id)
             {
@@ -464,7 +658,7 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
-    // Tab View
+    // TabView
     //
 
     private void OnAddTabButtonClicked(TabView sender, object args)
@@ -673,10 +867,10 @@ internal sealed partial class MainPage : BasePage
 
         if (!immersiveMode)
         {
-            ShowOrHideTitleBar(true, transitionAnimation: false);
+            SetOverlayVisibility(true, transitionAnimation: false);
         }
 
-        tabInfo.NavigationBarAbility.RestoreStates();
+        tabInfo.Ability.RestoreStates();
     }
 
     private void OnTabContainerGridLoaded(object sender, RoutedEventArgs e)
@@ -716,29 +910,36 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
-    // Title Bar Animation
+    // Overlay
     //
 
-    private void ShowOrHideTitleBar(bool show, bool transitionAnimation)
+    private Storyboard? _overlayAnimation;
+    private bool _isOverlayVisible = true;
+    private bool _isHiddenOverlayHitTestVisible = true;
+
+    private void SetOverlayVisibility(bool isVisible, bool transitionAnimation)
     {
         UIElement? targetElement = _tabContainerGrid;
-        if (_currentTab == null || show == _titleBarVisible || targetElement == null)
+        if (_currentTab is null || isVisible == _isOverlayVisible || targetElement is null)
         {
             return;
         }
 
-        if (!show && !_currentTab.CurrentBundle.PageTrait.ImmersiveMode())
+        if (!isVisible && !_currentTab.CurrentBundle.PageTrait.ImmersiveMode())
         {
             // Only hide the title bar when the current page supports immersive mode.
             return;
         }
 
-        _titleBarVisible = show;
-        double targetOpacity = show ? 1.0 : 0.0;
+        _isOverlayVisible = isVisible;
 
-        _titleBarAnimation?.Stop();
-        _titleBarAnimation = null;
+        UpdateOverlayHitTestVisibility();
 
+        // Start opacity animation
+        _overlayAnimation?.Stop();
+        _overlayAnimation = null;
+
+        double targetOpacity = isVisible ? 1.0 : 0.0;
         if (transitionAnimation)
         {
             DoubleAnimation animation = new()
@@ -753,17 +954,35 @@ internal sealed partial class MainPage : BasePage
             Storyboard storyboard = new();
             storyboard.Children.Add(animation);
             storyboard.Begin();
-            _titleBarAnimation = storyboard;
+            _overlayAnimation = storyboard;
         }
         else
         {
             targetElement.Opacity = targetOpacity;
         }
 
-        DispatchToAllTabs(delegate (MainPageAbility ability)
+        DispatchToAllTabs(ability =>
         {
-            ability.SendTitleBarVisibilityChangedEvent(show);
+            ability.SendOverlayVisibilityChangedEvent(isVisible);
         });
+    }
+
+    private void SetHiddenOverlayHitTestVisibility(bool isVisible)
+    {
+        _isHiddenOverlayHitTestVisible = isVisible;
+        UpdateOverlayHitTestVisibility();
+    }
+
+    private void UpdateOverlayHitTestVisibility()
+    {
+        bool isVisible = _isOverlayVisible || _isHiddenOverlayHitTestVisible;
+        TopTile.IsHitTestVisible = isVisible;
+        SidebarSplitView.IsHitTestVisible = isVisible;
+
+        if (_tabContainerGrid is not null)
+        {
+            _tabContainerGrid.IsHitTestVisible = isVisible;
+        }
     }
 
     //
@@ -827,18 +1046,6 @@ internal sealed partial class MainPage : BasePage
         return (Frame)tabInfo.Item.Content;
     }
 
-    private NavigationPageAbility? GetCurrentNavigationBarAbility()
-    {
-        TabInfo? tabInfo = _currentTab;
-        if (tabInfo is null)
-        {
-            Logger.F(TAG, "GetCurrentNavigationBarAbility: Current tab not set");
-            return null;
-        }
-
-        return tabInfo.NavigationBarAbility;
-    }
-
     private void SetCustomNavigationBar(UIElement? element)
     {
         CustomNavigationBarGrid.Children.Clear();
@@ -853,209 +1060,87 @@ internal sealed partial class MainPage : BasePage
     // Sidebar
     //
 
-    private void OnOpenSidebarClick(object sender, RoutedEventArgs e)
-    {
-        SetSidePaneOpenState(!_sidePaneOpened, force: true);
-    }
+    private double _sidebarWidth = 0;
+    private bool _isSidebarOpen = false;
+    private bool _isSidebarPinned = false;
 
-    private void NavigationPageSidePane_PaneOpenedOrClosed(SplitView sender, object args)
+    private void SidebarSplitView_PaneOpenedOrClosed(SplitView sender, object args)
     {
-        bool isOpen = NavigationPageSidePane.IsPaneOpen;
+        bool isOpen = SidebarSplitView.IsPaneOpen;
         SyncSidebarOpenState(isOpen);
 
         if (isOpen)
         {
-            RightSidePane.EnsureInitialContent();
+            MainSidebarView.EnsureInitialContent();
         }
     }
 
-    private void RightSidePane_PinStateChanged(SidebarView sender, bool pinned)
+    private void MainSidebarView_PinStateChanged(SidebarView sender, bool isPinned)
     {
-        _sidePanePinned = pinned;
-        NavigationPageSidePane.DisplayMode = pinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
+        _isSidebarPinned = isPinned;
+
+        SidebarSplitView.DisplayMode = isPinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
+
         DispatchRightOverlayWidthChangeEvent();
+        DispatchPointerOverOverlayChangedEvent();
     }
 
-    private void NavigationPageSidePane_SizeChanged(object sender, SizeChangedEventArgs e)
+    private void SidebarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        double newWidth = NavigationPageSidePane.OpenPaneLength + NavigationPageSidePane.Margin.Right;
-        if (_sidePaneWidth == newWidth)
+        double newWidth = SidebarSplitView.OpenPaneLength + SidebarSplitView.Margin.Right;
+        if (_sidebarWidth == newWidth)
         {
             return;
         }
 
-        _sidePaneWidth = newWidth;
+        _sidebarWidth = newWidth;
         DispatchRightOverlayWidthChangeEvent();
         AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
     }
 
-    private void SetSidePaneOpenState(bool open, bool force)
+    private void SetSidebarOpenState(bool isOpen, bool force)
     {
-        if (open == _sidePaneOpened)
+        if (isOpen == _isSidebarOpen)
         {
             return;
         }
 
-        if (open)
+        if (isOpen)
         {
-            NavigationPageSidePane.IsPaneOpen = true;
+            SidebarSplitView.IsPaneOpen = true;
         }
-        else if (force || !RightSidePane.IsPinned)
+        else if (force || !MainSidebarView.IsPinned)
         {
-            NavigationPageSidePane.IsPaneOpen = false;
+            SidebarSplitView.IsPaneOpen = false;
         }
         else
         {
             return;
         }
 
-        SyncSidebarOpenState(open);
+        SyncSidebarOpenState(isOpen);
     }
 
-    private void SyncSidebarOpenState(bool opened, bool initialSync = false)
+    private void SyncSidebarOpenState(bool isOpen, bool initialSync = false)
     {
-        if (!initialSync && opened == _sidePaneOpened)
+        if (!initialSync && isOpen == _isSidebarOpen)
         {
             return;
         }
 
-        _sidePaneOpened = opened;
-        ViewModel.UpdateSidebarButton(opened);
-        _abilityForSidebar.GetLifecycleAbility().SetCustomState("Pane", opened ? ILifecycle.State.Resumed : ILifecycle.State.Started);
-        DispatchRightOverlayWidthChangeEvent();
+        _isSidebarOpen = isOpen;
+
+        ViewModel.UpdateSidebarButton(isOpen);
+
+        _abilityForSidebar.GetLifecycleAbility().SetCustomState("Pane", isOpen ? ILifecycle.State.Resumed : ILifecycle.State.Started);
 
         if (!initialSync)
         {
-            AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_OPENED, opened);
-        }
-    }
-
-    //
-    // Buttons
-    //
-
-    private void OnGoBackClick(object sender, RoutedEventArgs e)
-    {
-        GoBack();
-    }
-
-    private void OnGoForwardClick(object sender, RoutedEventArgs e)
-    {
-        GoForward();
-    }
-
-    private void OnHomeClick(object sender, RoutedEventArgs e)
-    {
-        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-        _abilityForSidebar.OpenInCurrentTab(route);
-    }
-
-    private void OnRefreshClick(object sender, RoutedEventArgs e)
-    {
-        GetCurrentNavigationBarAbility()?.SendRefreshEvent();
-    }
-
-    //
-    // Pointer events
-    //
-
-    private PointerPoint? _lastPointerPoint;
-
-    private void OnPagePointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        _lastPointerPoint = e.GetCurrentPoint(sender as UIElement);
-    }
-
-    private void OnPagePointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        if (_lastPointerPoint == null)
-        {
-            return;
+            AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_OPENED, isOpen);
         }
 
-        if (_lastPointerPoint.Properties.IsXButton1Pressed)
-        {
-            GoBack();
-        }
-        else if (_lastPointerPoint.Properties.IsXButton2Pressed)
-        {
-            GoForward();
-        }
-
-        _lastPointerPoint = null;
-    }
-
-    //
-    // Size Change Events
-    //
-
-    private void OnTabContainerGridSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        if (_rootTabHeight == e.NewSize.Height)
-        {
-            return;
-        }
-
-        _rootTabHeight = e.NewSize.Height;
-        TopTile.Margin = new Thickness(0, _rootTabHeight, 0, 0);
-        DispatchTopOverlayHeightChangeEvent();
-    }
-
-    private void OnTopTileSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        if (_navigationBarHeight == e.NewSize.Height)
-        {
-            return;
-        }
-
-        _navigationBarHeight = e.NewSize.Height;
-        DispatchTopOverlayHeightChangeEvent();
-    }
-
-    private void DispatchTopOverlayHeightChangeEvent()
-    {
-        GetEventBus().With<double>(EventId.TopOverlayHeight).Emit(_rootTabHeight + _navigationBarHeight);
-    }
-
-    private void DispatchRightOverlayWidthChangeEvent()
-    {
-        GetEventBus().With<double>(EventId.RightOverlayWidth).Emit(_sidePaneOpened && _sidePanePinned ? _sidePaneWidth : 0);
-    }
-
-    //
-    // Key Events
-    //
-
-    private void KeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
-    {
-        bool handled = false;
-        bool ctrlDown = args.KeyboardAccelerator.Modifiers.HasFlag(Windows.System.VirtualKeyModifiers.Control);
-        switch (args.KeyboardAccelerator.Key)
-        {
-            case Windows.System.VirtualKey.Escape:
-                handled = true;
-                GetMainWindowAbility().ExitFullscreen();
-                break;
-            case Windows.System.VirtualKey.F10:
-                if (ctrlDown)
-                {
-                    handled = true;
-                    ViewModel.StartOrStopLogger();
-                }
-                break;
-            case Windows.System.VirtualKey.F11:
-                if (ctrlDown)
-                {
-                    handled = true;
-                    ViewModel.ShowOrHideLogger();
-                }
-                break;
-        }
-
-        if (handled)
-        {
-            args.Handled = true;
-        }
+        DispatchRightOverlayWidthChangeEvent();
+        DispatchPointerOverOverlayChangedEvent();
     }
 
     //
@@ -1067,7 +1152,19 @@ internal sealed partial class MainPage : BasePage
         return GetAbility<IMainWindowAbility>()!;
     }
 
-    private void DispatchToAllTabs(Action<MainPageAbility> action)
+    private MainPageAbilityForTab? GetCurrentTabAbility()
+    {
+        TabInfo? tabInfo = _currentTab;
+        if (tabInfo is null)
+        {
+            Logger.F(TAG, "GetCurrentTabAbility: Current tab not set");
+            return null;
+        }
+
+        return tabInfo.Ability;
+    }
+
+    private void DispatchToAllTabs(Action<MainPageAbilityForTab> action)
     {
         CoroutineUtils.RunInMainThread(() =>
         {
@@ -1101,41 +1198,13 @@ internal sealed partial class MainPage : BasePage
         communicator.RegisterAbility(GetMainWindowAbility());
         communicator.RegisterAbility<IMainPageAbility>(tabInfo.Ability);
         communicator.RegisterAbility<IMainPageAbilityForTab>(tabInfo.Ability);
-        communicator.RegisterAbility<INavigationPageAbility>(tabInfo.NavigationBarAbility);
     }
 
     abstract class MainPageAbility(MainPage parent) : IMainPageAbility, ILifecycleAwareAbility
     {
         protected readonly WeakReference<MainPage> _parent = new(parent);
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
-        private readonly MutableLiveData<bool> _titleBarVisibilityChangeLiveData = new(parent._titleBarVisible);
-
-        public abstract void OpenInCurrentTab(Route route);
-
-        public abstract void OpenInNewTab(Route route);
-
-        public void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)
-        {
-            _titleBarVisibilityChangeLiveData.ObserveSticky(owner, delegate (bool visible)
-            {
-                handler(visible);
-            });
-        }
-
-        public void ShowOrHideTitleBar(bool show)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            parent.ShowOrHideTitleBar(show, transitionAnimation: true);
-        }
-
-        public void SendTitleBarVisibilityChangedEvent(bool visible)
-        {
-            _titleBarVisibilityChangeLiveData.Emit(visible);
-        }
+        private readonly MutableLiveData<bool> _overlayVisibilityChangeLiveData = new(parent._isOverlayVisible);
 
         public void RegisterPageLifecycleHandler(PageLifecycleEventHandler handler)
         {
@@ -1147,6 +1216,19 @@ internal sealed partial class MainPage : BasePage
             _lifecycleAbility.UnregisterPageLifecycleHandler(handler);
         }
 
+        public void RegisterOverlayVisibilityChangedHandler(ILifecycleOwner owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)
+        {
+            _overlayVisibilityChangeLiveData.ObserveSticky(owner, delegate (bool visible)
+            {
+                handler(visible);
+            });
+        }
+
+        public void SendOverlayVisibilityChangedEvent(bool visible)
+        {
+            _overlayVisibilityChangeLiveData.Emit(visible);
+        }
+
         public bool GetSidePaneOpenState()
         {
             if (!_parent.TryGetTarget(out MainPage? parent))
@@ -1154,7 +1236,17 @@ internal sealed partial class MainPage : BasePage
                 return false;
             }
 
-            return parent._sidePaneOpened;
+            return parent._isSidebarOpen;
+        }
+
+        public void SetOverlayVisibility(bool isVisible)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            parent.SetOverlayVisibility(isVisible, transitionAnimation: true);
         }
 
         public void SetSidePaneOpenState(bool open, bool force)
@@ -1164,7 +1256,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.SetSidePaneOpenState(open, force: force);
+            parent.SetSidebarOpenState(open, force: force);
         }
 
         public void SetSidePanePage(string tag)
@@ -1174,8 +1266,12 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.RightSidePane.SetPage(tag);
+            parent.MainSidebarView.SetPage(tag);
         }
+
+        public abstract void OpenInCurrentTab(Route route);
+
+        public abstract void OpenInNewTab(Route route);
 
         public LifecycleAwareAbility GetLifecycleAbility()
         {
@@ -1183,9 +1279,15 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    private class MainPageAbilityForTab(MainPage parent, string tabId) : MainPageAbility(parent), IMainPageAbilityForTab
+    private class MainPageAbilityForTab : MainPageAbility, IMainPageAbilityForTab
     {
-        private readonly string _tabId = tabId;
+        private const string EVENT_REFRESH = "Refresh";
+        private const string EVENT_POINTER_OVER_OVERLAY = "PointerOverOverlay";
+
+        private readonly string _tabId;
+        private readonly EventBus _eventBus = new();
+        private WeakReference<UIElement>? _customNavigationBar;
+        private bool _isHiddenOverlayHitTestVisible = true;
 
         public string TabId => _tabId;
 
@@ -1201,6 +1303,29 @@ internal sealed partial class MainPage : BasePage
 
                 return tab.CurrentBundle.Url;
             }
+        }
+
+        public MainPageAbilityForTab(MainPage parent, string tabId) : base(parent)
+        {
+            _tabId = tabId;
+            ClearStates();
+            _eventBus.With<bool>(EVENT_POINTER_OVER_OVERLAY).Emit(parent._isPointerOverOverlay);
+        }
+
+        public void ClearStates()
+        {
+            _eventBus.Clear();
+        }
+
+        public void RestoreStates()
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            SetCustomNavigationBarInternal(parent);
+            SetHiddenOverlayHitTestVisibilityInternal(parent);
         }
 
         public override void OpenInCurrentTab(Route route)
@@ -1221,6 +1346,32 @@ internal sealed partial class MainPage : BasePage
             }
 
             parent.LoadTabNoLock(route, string.Empty, initiateTabId: _tabId);
+        }
+
+        public void RegisterRefreshHandler(ILifecycleOwner owner, IMainPageAbilityForTab.CommonEventHandler handler)
+        {
+            _eventBus.With<bool>(EVENT_REFRESH).Observe(owner, _ =>
+            {
+                handler();
+            });
+        }
+
+        public void SendRefreshEvent()
+        {
+            _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
+        }
+
+        public void RegisterPointerOverOverlayChangedEventHandler(ILifecycleOwner owner, IMainPageAbilityForTab.PointerOverOverlayChangedEventHandler handler)
+        {
+            _eventBus.With<bool>(EVENT_POINTER_OVER_OVERLAY).ObserveSticky(owner, isOver =>
+            {
+                handler(isOver);
+            });
+        }
+
+        public void SendPointerOverOverlayChangedEvent(bool isOver)
+        {
+            _eventBus.With<bool>(EVENT_POINTER_OVER_OVERLAY).Emit(isOver);
         }
 
         public void SetTitle(string title)
@@ -1266,6 +1417,46 @@ internal sealed partial class MainPage : BasePage
 
             tab.CurrentBundle.SetUrl(url);
             App.Instance.WindowManager.ScheduleSaveWindowStatus();
+        }
+
+        public void SetCustomNavigationBar(UIElement? element)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            _customNavigationBar = element is null ? null : new WeakReference<UIElement>(element);
+            SetCustomNavigationBarInternal(parent);
+        }
+
+        private void SetCustomNavigationBarInternal(MainPage page)
+        {
+            if (_customNavigationBar is not null && _customNavigationBar.TryGetTarget(out UIElement? element))
+            {
+                page.SetCustomNavigationBar(element);
+            }
+            else
+            {
+                _customNavigationBar = null;
+                page.SetCustomNavigationBar(null);
+            }
+        }
+
+        public void SetHiddenOverlayHitTestVisibility(bool visible)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            _isHiddenOverlayHitTestVisible = visible;
+            SetHiddenOverlayHitTestVisibilityInternal(parent);
+        }
+
+        private void SetHiddenOverlayHitTestVisibilityInternal(MainPage page)
+        {
+            page.SetHiddenOverlayHitTestVisibility(_isHiddenOverlayHitTestVisible);
         }
 
         private TabInfo? GetTab()
@@ -1327,81 +1518,6 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    private class NavigationPageAbility : INavigationPageAbility
-    {
-        private const string EVENT_REFRESH = "Refresh";
-
-        private readonly WeakReference<MainPage> _parent;
-        private WeakReference<UIElement>? _customNavigationBar;
-        private readonly EventBus _eventBus = new();
-
-        public NavigationPageAbility(MainPage parent)
-        {
-            _parent = new(parent);
-            ClearStates();
-        }
-
-        public void ClearStates()
-        {
-            _eventBus.Clear();
-        }
-
-        public void RestoreStates()
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            SetCustomNavigationBarInternal(parent);
-        }
-
-        //
-        // Custom Navigation Bar
-        //
-
-        public void SetCustomNavigationBar(UIElement? element)
-        {
-            if (!_parent.TryGetTarget(out MainPage? parent))
-            {
-                return;
-            }
-
-            _customNavigationBar = element is null ? null : new WeakReference<UIElement>(element);
-            SetCustomNavigationBarInternal(parent);
-        }
-
-        private void SetCustomNavigationBarInternal(MainPage page)
-        {
-            if (_customNavigationBar is not null && _customNavigationBar.TryGetTarget(out UIElement? element))
-            {
-                page.SetCustomNavigationBar(element);
-            }
-            else
-            {
-                _customNavigationBar = null;
-                page.SetCustomNavigationBar(null);
-            }
-        }
-
-        //
-        // Refresh
-        //
-
-        public void RegisterRefreshHandler(ILifecycleOwner owner, INavigationPageAbility.CommonEventHandler handler)
-        {
-            _eventBus.With<bool>(EVENT_REFRESH).Observe(owner, delegate
-            {
-                handler();
-            });
-        }
-
-        public void SendRefreshEvent()
-        {
-            _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
-        }
-    }
-
     //
     // Types
     //
@@ -1447,7 +1563,6 @@ internal sealed partial class MainPage : BasePage
         public required string InitiateTabId { init; get; }
         public required TabViewItem Item { init; get; }
         public required MainPageAbilityForTab Ability { init; get; }
-        public required NavigationPageAbility NavigationBarAbility { init; get; }
         public required PageNavigationBundle CurrentBundle { get; set; }
         public NavigatedEventHandler? NavigatedHandler { get; set; }
 

@@ -65,7 +65,7 @@ internal sealed partial class HomePage : BasePage
 
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
-        GetNavigationPageAbility().SetCustomNavigationBar(_searchNavigationBar);
+        GetMainPageAbility().SetCustomNavigationBar(_searchNavigationBar);
 
         ViewModel.Initialize(PageActionHandler, bundle.GetString(RouterConstants.ARG_FILTER_JSON));
 
@@ -89,7 +89,7 @@ internal sealed partial class HomePage : BasePage
             ViewModel.Refresh(filters: true);
         });
 
-        GetNavigationPageAbility().RegisterRefreshHandler(this, () =>
+        GetMainPageAbility().RegisterRefreshHandler(this, () =>
         {
             ComicModel.UpdateAllComics("HomePage#RefreshPage");
         });
@@ -425,11 +425,6 @@ internal sealed partial class HomePage : BasePage
     private IMainPageAbilityForTab GetMainPageAbility()
     {
         return GetAbility<IMainPageAbilityForTab>()!;
-    }
-
-    private INavigationPageAbility GetNavigationPageAbility()
-    {
-        return GetAbility<INavigationPageAbility>()!;
     }
 
     //

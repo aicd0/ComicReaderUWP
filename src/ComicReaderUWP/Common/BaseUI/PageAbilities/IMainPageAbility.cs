@@ -11,17 +11,17 @@ internal interface IMainPageAbility : IPageAbility
     public delegate void TabUnselectedEventHandler();
     public delegate void TitleBarVisibilityChangedEventHandler(bool visible);
 
-    void OpenInCurrentTab(Route route);
-
-    void OpenInNewTab(Route route);
-
-    void RegisterTitleBarVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);
-
-    void ShowOrHideTitleBar(bool show);
+    void RegisterOverlayVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);
 
     bool GetSidePaneOpenState();
 
-    void SetSidePaneOpenState(bool open, bool force);
+    void SetOverlayVisibility(bool isVisible);
+
+    void SetSidePaneOpenState(bool isOpen, bool force);
 
     void SetSidePanePage(string tag);
+
+    void OpenInCurrentTab(Route route);
+
+    void OpenInNewTab(Route route);
 }

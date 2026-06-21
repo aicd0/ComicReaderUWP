@@ -1,40 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
-		<AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
-		<OutputType>WinExe</OutputType>
-		<DefaultLanguage>en</DefaultLanguage>
-		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-		<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
-		<AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
-		<AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
-		<GenerateTestArtifacts>True</GenerateTestArtifacts>
-		<AppxBundle>Always</AppxBundle>
-		<AppInstallerUri>D:\UWP_Installer\</AppInstallerUri>
-		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-		<GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
-		<UseWinUI>true</UseWinUI>
-		<Platforms>x86;x64;ARM64</Platforms>
-		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
-		<RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-		<EnableMsixTooling>true</EnableMsixTooling>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<PublishProfile>win10-$(Platform).pubxml</PublishProfile>
-		<CreateMSIXPackage>False</CreateMSIXPackage>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<PackageCertificateThumbprint>683F7C9550C08252A5CE282670340C3D302634CF</PackageCertificateThumbprint>
+		<AppInstallerUri>D:\UWP_Installer\</AppInstallerUri>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
+		<AppxBundle>Always</AppxBundle>
+		<AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
 		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
-		<PackageCertificateKeyFile>ComicReaderUWP_TemporaryKey.pfx</PackageCertificateKeyFile>
-		<Nullable>enable</Nullable>
-		<UseVSHostingProcess>false</UseVSHostingProcess>
-		<NoWarn>;2008</NoWarn>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-		<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
-		<RunCodeAnalysis>false</RunCodeAnalysis>
+		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+		<AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
+		<CreateMSIXPackage>False</CreateMSIXPackage>
+		<DefaultLanguage>en</DefaultLanguage>
+		<EnableMsixTooling>true</EnableMsixTooling>
+		<EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+		<GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
+		<GenerateTestArtifacts>True</GenerateTestArtifacts>
+		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
 		<IsPackaged>true</IsPackaged>
+		<NoWarn>;2008</NoWarn>
+		<Nullable>enable</Nullable>
+		<OutputType>WinExe</OutputType>
+		<PackageCertificateKeyFile>ComicReaderUWP_TemporaryKey.pfx</PackageCertificateKeyFile>
+		<PackageCertificateThumbprint>683F7C9550C08252A5CE282670340C3D302634CF</PackageCertificateThumbprint>
+		<Platforms>x86;x64;ARM64</Platforms>
+		<PublishProfile>win10-$(Platform).pubxml</PublishProfile>
+		<RunCodeAnalysis>false</RunCodeAnalysis>
+		<RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+		<TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<UseVSHostingProcess>false</UseVSHostingProcess>
+		<UseWinUI>true</UseWinUI>
+		<WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
+		<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
@@ -102,7 +103,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250909003" />
 		<PackageReference Include="SharpCompress" Version="0.48.1" />
 		<PackageReference Include="SkiaSharp" Version="3.119.4" />
 	</ItemGroup>
