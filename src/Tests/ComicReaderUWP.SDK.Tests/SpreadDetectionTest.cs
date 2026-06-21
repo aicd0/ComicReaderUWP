@@ -1,9 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.UserControls.Reader.PageLayout;
+using ComicReaderUWP.Core.Test;
 
-namespace ComicReaderUWP.Tests;
+namespace ComicReaderUWP.Core.Tests;
 
 public class SpreadDetectionTest
 {
