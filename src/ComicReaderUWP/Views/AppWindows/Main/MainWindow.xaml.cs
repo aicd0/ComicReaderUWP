@@ -207,8 +207,6 @@ internal sealed partial class MainWindow : Window
         Closed += Window_Closed;
         AppWindow.Changed += AppWindow_Changed;
         ContentFrame.Loaded += ContentFrame_Loaded;
-        Content.PointerEntered += Content_PointerEntered;
-        Content.PointerExited += Content_PointerExited;
     }
 
     private void UnsubscribeEvents()
@@ -216,8 +214,6 @@ internal sealed partial class MainWindow : Window
         Closed -= Window_Closed;
         AppWindow.Changed -= AppWindow_Changed;
         ContentFrame.Loaded -= ContentFrame_Loaded;
-        Content.PointerEntered -= Content_PointerEntered;
-        Content.PointerExited -= Content_PointerExited;
     }
 
     private void Window_Closed(object sender, WindowEventArgs args)
@@ -336,16 +332,6 @@ internal sealed partial class MainWindow : Window
         });
     }
 
-    private void Content_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        DispatchPointerOverWindowChangedEvent(true);
-    }
-
-    private void Content_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        DispatchPointerOverWindowChangedEvent(false);
-    }
-
     //
     // Win32 Message Loop
     //
@@ -449,23 +435,6 @@ internal sealed partial class MainWindow : Window
     }
 
     //
-    // Pointer Over Window
-    //
-
-    private bool _isPointerOverWindow = true;
-
-    private void DispatchPointerOverWindowChangedEvent(bool isOver)
-    {
-        if (isOver == _isPointerOverWindow)
-        {
-            return;
-        }
-
-        _isPointerOverWindow = isOver;
-        Members._mainWindowAbility.SendPointerOverWindowChangedEvent(isOver);
-    }
-
-    //
     // Helpers
     //
 
@@ -524,7 +493,6 @@ internal sealed partial class MainWindow : Window
         private readonly PluginWindowContext _pluginWindowContext = new(window.WindowId);
         private readonly MutableLiveData<bool> _minimizeLiveData = new(window._isMinimized);
         private readonly MutableLiveData<bool> _fullscreenLiveData = new(window._isFullscreen);
-        private readonly MutableLiveData<bool> _pointerOverWindowLiveData = new(window._isPointerOverWindow);
 
         public int WindowId => _windowId;
 
@@ -570,19 +538,6 @@ internal sealed partial class MainWindow : Window
         public void SendFullscreenChangedEvent(bool isFullscreen)
         {
             _fullscreenLiveData.Emit(isFullscreen);
-        }
-
-        public void RegisterPointerOverWindowChangedEventHandler(ILifecycleOwner owner, IMainWindowAbility.PointerOverWindowChangedEventHandler handler)
-        {
-            _pointerOverWindowLiveData.ObserveSticky(owner, isOver =>
-            {
-                handler(isOver);
-            });
-        }
-
-        public void SendPointerOverWindowChangedEvent(bool isOver)
-        {
-            _pointerOverWindowLiveData.Emit(isOver);
         }
 
         public void EnterFullscreen()

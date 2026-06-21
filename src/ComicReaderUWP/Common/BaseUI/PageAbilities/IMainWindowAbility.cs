@@ -12,8 +12,6 @@ internal interface IMainWindowAbility : IPageAbility
 
     public delegate void FullscreenChangedEventHandler(bool isFullscreen);
 
-    public delegate void PointerOverWindowChangedEventHandler(bool isOver);
-
     int WindowId { get; }
 
     bool IsActive { get; }
@@ -27,8 +25,6 @@ internal interface IMainWindowAbility : IPageAbility
     void RegisterMinimizeChangedHandler(ILifecycleOwner owner, MinimizeChangedEventHandler handler);
 
     void RegisterFullscreenChangedHandler(ILifecycleOwner owner, FullscreenChangedEventHandler handler);
-
-    void RegisterPointerOverWindowChangedEventHandler(ILifecycleOwner owner, PointerOverWindowChangedEventHandler handler);
 
     void EnterFullscreen();
 

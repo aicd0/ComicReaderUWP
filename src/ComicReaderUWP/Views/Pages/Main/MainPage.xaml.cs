@@ -256,12 +256,6 @@ internal sealed partial class MainPage : BasePage
             ViewModel.IsFullscreen = isFullscreen;
         });
 
-        GetMainWindowAbility().RegisterPointerOverWindowChangedEventHandler(this, isOver =>
-        {
-            _isPointerOverWindow = isOver;
-            DispatchPointerOverOverlayChangedEvent();
-        });
-
         _abilityForSidebar.GetLifecycleAbility().Observe(this);
     }
 
@@ -326,7 +320,6 @@ internal sealed partial class MainPage : BasePage
     }
 
     private bool _isPointerOverOverlay = false;
-    private bool _isPointerOverWindow = true;
     private bool _isPointerOverTabContainerGrid = false;
     private bool _isPointerOverSidebar = false;
     private bool _isPointerOverTopTile = false;
@@ -374,7 +367,6 @@ internal sealed partial class MainPage : BasePage
             _isPointerOverSidebar ||
             _isPointerOverTopTile ||
             (_isSidebarOpen && !_isSidebarPinned);
-        isPointerOverOverlay = _isPointerOverWindow && isPointerOverOverlay;
         if (isPointerOverOverlay == _isPointerOverOverlay)
         {
             return;
