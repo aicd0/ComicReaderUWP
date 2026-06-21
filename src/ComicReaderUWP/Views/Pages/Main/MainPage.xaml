@@ -113,6 +113,8 @@
                                     VerticalAlignment="Top"
                                     Background="{TemplateBinding Background}"
                                     Loaded="OnTabContainerGridLoaded"
+                                    PointerEntered="TabContainerGrid_PointerEntered"
+                                    PointerExited="TabContainerGrid_PointerExited"
                                     SizeChanged="OnTabContainerGridSizeChanged"
                                     Unloaded="OnTabContainerGridUnloaded"
                                     XYFocusKeyboardNavigation="Enabled">
@@ -211,6 +213,8 @@
                 Grid.Row="0"
                 VerticalAlignment="Top"
                 Background="{ThemeResource TabViewItemHeaderBackgroundSelected}"
+                PointerEntered="TopTile_PointerEntered"
+                PointerExited="TopTile_PointerExited"
                 SizeChanged="OnTopTileSizeChanged">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -231,26 +235,26 @@
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
                         <AppBarButton
-                            Click="OnGoBackClick"
+                            Click="GoBackButton_Click"
                             Icon="Back"
                             IsEnabled="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
                             Style="{StaticResource NavigationPageTopTileAppBarButton}"
                             ToolTipService.ToolTip="{x:Bind StringResource.GoBack}" />
                         <AppBarButton
-                            Click="OnGoForwardClick"
+                            Click="GoForwardButton_Click"
                             Icon="Forward"
                             IsEnabled="{x:Bind ViewModel.CanGoForward, Mode=OneWay}"
                             Style="{StaticResource NavigationPageTopTileAppBarButton}"
                             ToolTipService.ToolTip="{x:Bind StringResource.GoForward}" />
                         <AppBarButton
                             x:Uid="HomeButton"
-                            Click="OnHomeClick"
+                            Click="HomeButton_Click"
                             Icon="Home"
                             Style="{StaticResource NavigationPageTopTileAppBarButton}"
                             Visibility="{x:Bind ViewModel.IsHomePage, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
                         <Grid Visibility="{x:Bind ViewModel.IsHomePage, Mode=OneWay}">
                             <AppBarButton
-                                Click="OnRefreshClick"
+                                Click="RefreshButton_Click"
                                 Icon="Refresh"
                                 Style="{StaticResource NavigationPageTopTileAppBarButton}"
                                 ToolTipService.ToolTip="{x:Bind StringResource.Refresh}"
@@ -272,7 +276,7 @@
 
                         <!--  Open pane button  -->
                         <AppBarButton
-                            Click="OnOpenSidebarClick"
+                            Click="OpenSidebarButton_Click"
                             Style="{StaticResource NavigationPageTopTileAppBarButton}"
                             ToolTipService.ToolTip="{x:Bind ViewModel.SidebarButtonText, Mode=OneWay}">
                             <AppBarButton.Content>
@@ -303,25 +307,28 @@
             </Grid>
 
             <SplitView
-                x:Name="NavigationPageSidePane"
+                x:Name="SidebarSplitView"
                 Grid.Row="1"
                 Margin="0,0,-2,0"
                 DisplayMode="Overlay"
                 OpenPaneLength="380"
                 PaneBackground="{ThemeResource FlyoutPresenterBackground}"
-                PaneClosed="NavigationPageSidePane_PaneOpenedOrClosed"
-                PaneOpened="NavigationPageSidePane_PaneOpenedOrClosed"
+                PaneClosed="SidebarSplitView_PaneOpenedOrClosed"
+                PaneOpened="SidebarSplitView_PaneOpenedOrClosed"
                 PanePlacement="Right">
                 <SplitView.Pane>
-                    <Grid SizeChanged="NavigationPageSidePane_SizeChanged">
-                        <sidebar:SidebarView x:Name="RightSidePane" PinStateChanged="RightSidePane_PinStateChanged" />
+                    <Grid
+                        PointerEntered="SidebarGrid_PointerEntered"
+                        PointerExited="SidebarGrid_PointerExited"
+                        SizeChanged="SidebarGrid_SizeChanged">
+                        <sidebar:SidebarView x:Name="MainSidebarView" PinStateChanged="MainSidebarView_PinStateChanged" />
                         <Rectangle
                             Width="1"
                             HorizontalAlignment="Left"
                             Fill="{ThemeResource SidePaneBorderBrush}" />
                         <cwc:PropertySizer
                             HorizontalAlignment="Left"
-                            Binding="{x:Bind NavigationPageSidePane.OpenPaneLength, Mode=TwoWay}"
+                            Binding="{x:Bind SidebarSplitView.OpenPaneLength, Mode=TwoWay}"
                             IsDragInverted="True"
                             Minimum="360"
                             Opacity="0" />

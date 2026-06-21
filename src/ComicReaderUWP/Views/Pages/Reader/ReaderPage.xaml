@@ -51,10 +51,7 @@
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource ForegroundGrey2}" />
             <!--  Reader  -->
-            <Grid
-                ContextRequested="Reader_ContextRequested"
-                PointerEntered="OnReaderPointerEntered"
-                PointerExited="OnReaderPointerExited">
+            <Grid ContextRequested="Reader_ContextRequested">
                 <Grid x:Name="ManipulationReference" />
                 <readercontrol:ReaderView x:Name="MainReaderView" />
             </Grid>
@@ -62,8 +59,9 @@
             <StackPanel
                 x:Name="BottomGrid"
                 VerticalAlignment="Bottom"
-                Opacity="0"
                 Orientation="Vertical"
+                PointerEntered="BottomGrid_PointerEntered"
+                PointerExited="BottomGrid_PointerExited"
                 SizeChanged="BottomGrid_SizeChanged">
                 <Rectangle Height="1" Fill="{ThemeResource SidePaneBorderBrush}" />
                 <StackPanel
@@ -184,6 +182,8 @@
                         x:Name="PlaybackSlider"
                         Margin="4,2,4,-4"
                         Minimum="1"
+                        TickFrequency="1"
+                        TickPlacement="Outside"
                         ValueChanged="PlaybackSlider_ValueChanged" />
                 </StackPanel>
             </StackPanel>
@@ -196,7 +196,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Bottom"
                 Background="{ThemeResource TipBackground}"
-                CloseButtonClick="OnReaderTipCloseButtonClick"
+                CloseButtonClick="ReaderTipCloseButton_Click"
                 IsOpen="False"
                 Message="{x:Bind StringResource.ReaderTipContent}"
                 Severity="Informational" />

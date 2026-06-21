@@ -71,17 +71,9 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     private ReaderPageViewModel ViewModel { get; set; } = new();
-    private bool PointerOnOverlay => !_readerPointerEntered && GetMainWindowAbility().PointerInWindow();
 
     private readonly ReaderNavigationBar _readerNavigationBar;
-    private double _topOverlayHeight = 0.0;
-    private double _rightOverlayWidth = 0.0;
-    private double _bottomTileHeight = 0.0;
     private bool _displayActive = false;
-    private bool _readerPointerEntered = false;
-    private bool _bottomTileShowed = false;
-    private bool _bottomTileHold = false;
-    private long _bottomTileTargetHideTime = -1;
     private long _lastZoomingTicks = 0;
     private int _zoomingStep = 1;
 
@@ -106,7 +98,7 @@ internal sealed partial class ReaderPage : BasePage
         base.OnStart(bundle);
         AddToActiveTabs();
         GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
-        GetNavigationPageAbility().SetCustomNavigationBar(_readerNavigationBar);
+        GetMainPageAbility().SetCustomNavigationBar(_readerNavigationBar);
 
         // Initialize views
         MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
@@ -124,7 +116,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             bool pinned = AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).GetValueOrDefault(RegistryNames.SettingsKey.READER_OVERLAY_PINNED, false);
             ViewModel.SetPinned(pinned);
-            UpdatePinUI();
+            UpdatePinRelatedUI();
         }
 
         // Initialize view model
@@ -169,7 +161,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, _ =>
         {
             ViewModel.UpdateFavoriteStatus();
         });
@@ -194,7 +186,7 @@ internal sealed partial class ReaderPage : BasePage
 
             if (ViewModel.IsPinned)
             {
-                UpdatePinUI();
+                UpdatePinRelatedUI();
             }
         });
 
@@ -214,11 +206,11 @@ internal sealed partial class ReaderPage : BasePage
 
             if (ViewModel.IsPinned)
             {
-                UpdatePinUI();
+                UpdatePinRelatedUI();
             }
         });
 
-        GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
+        GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, opacity =>
         {
             BottomGrid.Opacity = opacity;
         });
@@ -228,19 +220,25 @@ internal sealed partial class ReaderPage : BasePage
             UpdateDisplayStatus();
         });
 
-        GetMainPageAbility().RegisterTitleBarVisibilityChangedHandler(this, delegate (bool visible)
+        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, ViewModel.SetFullscreen);
+
+        GetMainPageAbility().RegisterOverlayVisibilityChangedHandler(this, visible =>
         {
             if (visible)
             {
-                ShowBottomTile();
+                ShowOverlay();
             }
             else
             {
-                HideBottomTile();
+                HideOverlay();
             }
         });
 
-        GetMainWindowAbility().RegisterFullscreenChangedHandler(this, ViewModel.SetFullscreen);
+        GetMainPageAbility().RegisterPointerOverOverlayChangedEventHandler(this, isOver =>
+        {
+            _isPointerOverParentOverlay = isOver;
+            UpdatePointerOverOverlayState();
+        });
 
         ViewModel.TitleLiveData.Observe(this, title =>
         {
@@ -279,7 +277,7 @@ internal sealed partial class ReaderPage : BasePage
 
             if (info.Status == ReaderStatusEnum.Error)
             {
-                ShowBottomTile();
+                ShowOverlay();
             }
         });
 
@@ -318,7 +316,7 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventTapped += sender =>
         {
-            BottomTileSetHold(!_bottomTileShowed);
+            BottomTileSetHold(!_isOverlayVisible);
         };
 
         MainReaderView.ReaderEventPageChanged += (sender, isIntermediate) =>
@@ -424,6 +422,144 @@ internal sealed partial class ReaderPage : BasePage
         playlist ??= PlaylistModel.CreateEmpty();
         AppDB.MainRegistry.CreateKey(playlistsRegistry).Set(playlistId, playlist.ToSerializedString());
         return playlist;
+    }
+
+    //
+    // Common Input Events
+    //
+
+    private void Reader_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        ComicModel? comic = ViewModel.Comic;
+        if (comic is null)
+        {
+            return;
+        }
+
+        args.Handled = true;
+
+        CoroutineUtils.Run(async () =>
+        {
+            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(PageActionHandler, comic, ViewModel.Playlist.ToBuilder());
+
+            var flyout = new MenuFlyout();
+            foreach (BaseMenuFlyoutItemModel item in menuItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
+
+            if (flyout is null)
+            {
+                return;
+            }
+
+            if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
+            {
+                flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+            }
+            else
+            {
+                flyout.ShowAt(fe);
+            }
+        });
+    }
+
+    private void Zooming_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        PointerPoint pt = e.GetCurrentPoint(null);
+        int delta = pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
+        if (delta == 0)
+        {
+            return;
+        }
+
+        long tick = GetTick();
+        long interval = tick - _lastZoomingTicks;
+        _lastZoomingTicks = tick;
+
+        if (interval < 100)
+        {
+            _zoomingStep = Math.Min(_zoomingStep * 2, 25);
+        }
+        else if (interval > 300)
+        {
+            _zoomingStep = 1;
+        }
+
+        MainReaderView.Zooming += delta * _zoomingStep * 0.01F;
+    }
+
+    private void PageIndicator_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        PointerPoint pt = e.GetCurrentPoint(null);
+        int delta = -pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
+        MainReaderView.MoveFrame(delta);
+    }
+
+    private void PinButton_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SetPinned(!ViewModel.IsPinned);
+
+        UpdatePinRelatedUI();
+
+        AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).Set(RegistryNames.SettingsKey.READER_OVERLAY_PINNED, ViewModel.IsPinned);
+    }
+
+    private void FullscreenButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (GetMainWindowAbility().IsFullscreen)
+        {
+            GetMainWindowAbility().ExitFullscreen();
+        }
+        else
+        {
+            GetMainWindowAbility().EnterFullscreen();
+        }
+    }
+
+    private void ReaderTipCloseButton_Click(InfoBar sender, object args)
+    {
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).Set(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, true);
+    }
+
+    //
+    // BottomGrid
+    //
+
+    private double _bottomGridHeight = 0.0;
+
+    private void BottomGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_bottomGridHeight == e.NewSize.Height)
+        {
+            return;
+        }
+
+        _bottomGridHeight = e.NewSize.Height;
+
+        if (ViewModel.IsPinned)
+        {
+            UpdatePinRelatedUI();
+        }
+    }
+
+    private bool _isPointerOverBottomGrid = false;
+
+    private void BottomGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerOverBottomGrid = true;
+        UpdatePointerOverOverlayState();
+    }
+
+    private void BottomGrid_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerOverBottomGrid = false;
+        UpdatePointerOverOverlayState();
     }
 
     //
@@ -576,12 +712,41 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     //
-    // Bottom Tile
+    // Overlay
     //
 
-    private void HideBottomTileDelayed(int delayMilliseconds)
+    private bool _isPointerOverOverlay = false;
+    private bool _isPointerOverParentOverlay = false;
+
+    private void UpdatePointerOverOverlayState()
     {
-        if (!_bottomTileShowed)
+        bool isPointerOverOverlay = _isPointerOverParentOverlay || _isPointerOverBottomGrid;
+        if (isPointerOverOverlay == _isPointerOverOverlay)
+        {
+            return;
+        }
+
+        _isPointerOverOverlay = isPointerOverOverlay;
+
+        if (isPointerOverOverlay)
+        {
+            ShowOverlay();
+        }
+        else
+        {
+            TryHideOverlay(1000);
+        }
+    }
+
+    private double _topOverlayHeight = 0.0;
+    private double _rightOverlayWidth = 0.0;
+    private bool _isOverlayVisible = false;
+    private bool _isOverlayHold = false;
+    private long _hideOverlayDeadline = -1;
+
+    private void TryHideOverlay(int delayMilliseconds = 0)
+    {
+        if (!_isOverlayVisible)
         {
             return;
         }
@@ -594,73 +759,73 @@ internal sealed partial class ReaderPage : BasePage
                 {
                     await Task.Delay(delayMilliseconds + 1);
 
-                    if (_bottomTileTargetHideTime == -1)
+                    if (_hideOverlayDeadline == -1)
                     {
                         return;
                     }
 
                     long currentTick = GetTick();
-                    if (currentTick <= _bottomTileTargetHideTime)
+                    if (currentTick <= _hideOverlayDeadline)
                     {
-                        PostHideTask((int)(_bottomTileTargetHideTime - currentTick));
+                        PostHideTask((int)(_hideOverlayDeadline - currentTick));
                         return;
                     }
 
-                    HideBottomTileDelayed(0);
+                    TryHideOverlay();
                 });
             }
 
-            _bottomTileTargetHideTime = GetTick() + delayMilliseconds;
+            _hideOverlayDeadline = GetTick() + delayMilliseconds;
             PostHideTask(delayMilliseconds);
             return;
         }
 
-        if (ViewModel.IsPinned || _bottomTileHold || GridViewModeEnabled || PointerOnOverlay)
+        if (ViewModel.IsPinned || _isOverlayHold || GridViewModeEnabled)
         {
             return;
         }
 
-        HideBottomTile();
+        HideOverlay();
     }
 
-    private void ShowBottomTile()
+    private void ShowOverlay()
     {
-        _bottomTileTargetHideTime = -1;
+        _hideOverlayDeadline = -1;
 
-        if (_bottomTileShowed)
+        if (_isOverlayVisible)
         {
             return;
         }
 
-        _bottomTileShowed = true;
-        GetMainPageAbility().ShowOrHideTitleBar(true);
+        _isOverlayVisible = true;
+        GetMainPageAbility().SetOverlayVisibility(true);
     }
 
-    private void HideBottomTile()
+    private void HideOverlay()
     {
-        _bottomTileTargetHideTime = -1;
+        _hideOverlayDeadline = -1;
 
-        if (!_bottomTileShowed)
+        if (!_isOverlayVisible)
         {
             return;
         }
 
-        _bottomTileShowed = false;
-        _bottomTileHold = false;
-        GetMainPageAbility().ShowOrHideTitleBar(false);
+        _isOverlayVisible = false;
+        _isOverlayHold = false;
+        GetMainPageAbility().SetOverlayVisibility(false);
     }
 
     private void BottomTileSetHold(bool hold)
     {
-        _bottomTileHold = hold;
+        _isOverlayHold = hold;
 
         if (hold)
         {
-            ShowBottomTile();
+            ShowOverlay();
         }
         else
         {
-            HideBottomTileDelayed(0);
+            TryHideOverlay();
         }
     }
 
@@ -805,82 +970,19 @@ internal sealed partial class ReaderPage : BasePage
     }
 
     //
-    // Pin
+    // Other UI
     //
 
-    private void PinButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SetPinned(!ViewModel.IsPinned);
-        UpdatePinUI();
-        AppDB.MainRegistry.CreateKey(RegistryNames.SETTINGS).Set(RegistryNames.SettingsKey.READER_OVERLAY_PINNED, ViewModel.IsPinned);
-    }
-
-    private void UpdatePinUI()
+    private void UpdatePinRelatedUI()
     {
         if (ViewModel.IsPinned)
         {
-            MainReaderView.Margin = new Thickness(0, _topOverlayHeight, _rightOverlayWidth, _bottomTileHeight);
-            ShowBottomTile();
+            MainReaderView.Margin = new Thickness(0, _topOverlayHeight, _rightOverlayWidth, _bottomGridHeight);
+            ShowOverlay();
         }
         else
         {
             MainReaderView.Margin = new Thickness(0);
-        }
-    }
-
-    //
-    // Events
-    //
-
-    private void BottomGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        if (_bottomTileHeight == e.NewSize.Height)
-        {
-            return;
-        }
-
-        _bottomTileHeight = e.NewSize.Height;
-
-        if (ViewModel.IsPinned)
-        {
-            UpdatePinUI();
-        }
-    }
-
-    private void Zooming_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        PointerPoint pt = e.GetCurrentPoint(null);
-        int delta = pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
-        if (delta == 0)
-        {
-            return;
-        }
-
-        long tick = GetTick();
-        long interval = tick - _lastZoomingTicks;
-        _lastZoomingTicks = tick;
-
-        if (interval < 100)
-        {
-            _zoomingStep = Math.Min(_zoomingStep * 2, 25);
-        }
-        else if (interval > 300)
-        {
-            _zoomingStep = 1;
-        }
-
-        MainReaderView.Zooming += delta * _zoomingStep * 0.01F;
-    }
-
-    private void FullscreenButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (GetMainWindowAbility().IsFullscreen)
-        {
-            GetMainWindowAbility().ExitFullscreen();
-        }
-        else
-        {
-            GetMainWindowAbility().EnterFullscreen();
         }
     }
 
@@ -891,94 +993,11 @@ internal sealed partial class ReaderPage : BasePage
         MainReaderView.SetCurrentPage(ctx.Page);
     }
 
-    private void OnReaderPointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        if (!_readerPointerEntered)
-        {
-            return;
-        }
-
-        _readerPointerEntered = false;
-
-        // Post detection to allow routed event to be dispatched to root
-        CoroutineUtils.PostInMainThread(() =>
-        {
-            if (PointerOnOverlay)
-            {
-                ShowBottomTile();
-            }
-        });
-    }
-
-    private void OnReaderPointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        _readerPointerEntered = true;
-        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse || _bottomTileHold)
-        {
-            return;
-        }
-
-        HideBottomTileDelayed(1000);
-    }
-
-    private void OnReaderTipCloseButtonClick(InfoBar sender, object args)
-    {
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).Set(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, true);
-    }
-
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
     {
         var item = args.Item as ReaderImagePreviewViewModel;
         var viewHolder = args.ItemContainer.ContentTemplateRoot as ReaderPreviewImage;
         viewHolder?.SetModel(item, args.InRecycleQueue);
-    }
-
-    private void PageIndicator_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
-    {
-        PointerPoint pt = e.GetCurrentPoint(null);
-        int delta = -pt.Properties.MouseWheelDelta / (int)Windows.Win32.PInvoke.WHEEL_DELTA;
-        MainReaderView.MoveFrame(delta);
-    }
-
-    private void Reader_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
-    {
-        if (sender is not FrameworkElement fe)
-        {
-            return;
-        }
-
-        ComicModel? comic = ViewModel.Comic;
-        if (comic is null)
-        {
-            return;
-        }
-
-        args.Handled = true;
-
-        CoroutineUtils.Run(async () =>
-        {
-            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(PageActionHandler, comic, ViewModel.Playlist.ToBuilder());
-
-            var flyout = new MenuFlyout();
-            foreach (BaseMenuFlyoutItemModel item in menuItems)
-            {
-                flyout.Items.Add(item.CreateMenuFlyoutItem());
-            }
-
-            if (flyout is null)
-            {
-                return;
-            }
-
-            if (args.TryGetPosition(fe, out Windows.Foundation.Point point))
-            {
-                flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
-            }
-            else
-            {
-                flyout.ShowAt(fe);
-            }
-        });
     }
 
     //
@@ -993,11 +1012,6 @@ internal sealed partial class ReaderPage : BasePage
     private IMainPageAbilityForTab GetMainPageAbility()
     {
         return GetAbility<IMainPageAbilityForTab>()!;
-    }
-
-    private INavigationPageAbility GetNavigationPageAbility()
-    {
-        return GetAbility<INavigationPageAbility>()!;
     }
 
     private void SyncCurrentComic()

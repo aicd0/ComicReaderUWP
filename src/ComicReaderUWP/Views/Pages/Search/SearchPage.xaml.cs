@@ -66,7 +66,7 @@ internal sealed partial class SearchPage : BasePage
 
         GetMainPageAbility().SetTitle(tabTitle);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Find });
-        GetNavigationPageAbility().SetCustomNavigationBar(_searchNavigationBar);
+        GetMainPageAbility().SetCustomNavigationBar(_searchNavigationBar);
 
         ViewModel.Initialize(PageActionHandler, _keyword);
         ViewModel.Title = titleText;
@@ -203,11 +203,6 @@ internal sealed partial class SearchPage : BasePage
     private IMainPageAbilityForTab GetMainPageAbility()
     {
         return GetAbility<IMainPageAbilityForTab>()!;
-    }
-
-    private INavigationPageAbility GetNavigationPageAbility()
-    {
-        return GetAbility<INavigationPageAbility>()!;
     }
 
     //
