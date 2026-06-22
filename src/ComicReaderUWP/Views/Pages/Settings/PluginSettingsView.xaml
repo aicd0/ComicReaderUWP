@@ -29,17 +29,33 @@
             Text="{x:Bind StringResource.ApplyOnNextLaunch}"
             TextWrapping="Wrap"
             Visibility="{x:Bind ViewModel.ApplyOnNextLaunchVisible, Mode=OneWay}" />
-        <StackPanel Orientation="Horizontal">
-            <Button Click="OpenPluginsFolderButton_Click" Content="{x:Bind StringResource.OpenPluginsFolder}" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <Button
+                Grid.Column="0"
+                Click="OpenPluginsFolderButton_Click"
+                Content="{x:Bind StringResource.OpenPluginsFolder}" />
+            <Button
+                Grid.Column="1"
                 Margin="6,0,0,0"
                 Click="InstallPluginButton_Click"
                 Content="{x:Bind StringResource.InstallPlugin}" />
-            <Button
-                Margin="6,0,0,0"
-                Click="DownloadPluginsFromGitHubButton_Click"
-                Content="{x:Bind StringResource.DownloadPluginsFromGitHub}" />
-        </StackPanel>
+            <RichTextBlock
+                Grid.Column="3"
+                VerticalAlignment="Center"
+                IsTextSelectionEnabled="False">
+                <Paragraph>
+                    <Hyperlink Click="DownloadPluginsFromGitHubButton_Click">
+                        <Run Text="{x:Bind StringResource.DownloadPluginsFromGitHub}" />
+                    </Hyperlink>
+                </Paragraph>
+            </RichTextBlock>
+        </Grid>
         <TextBlock
             Margin="0,12,0,0"
             Text="{x:Bind StringResource.NoPluginsInstalled}"
