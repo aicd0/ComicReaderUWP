@@ -780,7 +780,10 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        if (ViewModel.IsPinned || _isOverlayHold || GridViewModeEnabled)
+        if (ViewModel.IsPinned ||
+            _isOverlayHold ||
+            _isPointerOverOverlay ||
+            GridViewModeEnabled)
         {
             return;
         }
