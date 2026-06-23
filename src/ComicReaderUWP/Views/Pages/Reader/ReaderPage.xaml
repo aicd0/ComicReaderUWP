@@ -181,9 +181,9 @@
                     <Slider
                         x:Name="PlaybackSlider"
                         Margin="4,2,4,-4"
-                        Minimum="1"
-                        TickFrequency="1"
-                        TickPlacement="Inline"
+                        IsThumbToolTipEnabled="False"
+                        Minimum="0.5"
+                        StepFrequency="0.01"
                         ValueChanged="PlaybackSlider_ValueChanged" />
                 </StackPanel>
             </StackPanel>
