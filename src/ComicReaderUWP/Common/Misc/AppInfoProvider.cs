@@ -15,8 +15,11 @@ public class AppInfoProvider
 
     public static readonly HashSet<string> SupportedImageExtensions =
     [
+        ".avif",
         ".bmp",
         ".gif",
+        ".heic",
+        ".heif",
         ".jpg",
         ".jpe",
         ".jpeg",

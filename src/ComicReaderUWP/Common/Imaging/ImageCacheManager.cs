@@ -355,6 +355,7 @@ internal static partial class ImageCacheManager
             "BMP Decoder" => "BMP",
             "GIF Decoder" => "GIF",
             "TIFF Decoder" => "TIFF",
+            "Microsoft HEIF Decoder" => "HEIF",
             "Microsoft Webp Decoder" => "WebP",
             _ => decoder.DecoderInformation.FriendlyName,
         };
