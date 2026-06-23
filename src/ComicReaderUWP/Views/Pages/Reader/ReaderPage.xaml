@@ -66,7 +66,7 @@
                 <Rectangle Height="1" Fill="{ThemeResource SidePaneBorderBrush}" />
                 <StackPanel
                     Padding="8,8"
-                    Background="{ThemeResource FlyoutPresenterBackground}"
+                    Background="{ThemeResource TitleBarBackground}"
                     Orientation="Vertical">
                     <Grid>
                         <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
