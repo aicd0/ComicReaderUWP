@@ -1,5 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
@@ -7,81 +6,85 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap mp">
 
-  <Identity
-    Name="49915aicd.ComicReaderUWP.Dev"
-    Publisher="CN=EDF29702-407F-438D-9326-040AAE6557ED"
-    Version="3.1.0.0" />
+	<Identity
+	  Name="49915aicd.ComicReaderUWP.Dev"
+	  Publisher="CN=EDF29702-407F-438D-9326-040AAE6557ED"
+	  Version="3.1.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="1e81f69a-4700-45d0-8a1b-04de29e5f072" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+	<mp:PhoneIdentity PhoneProductId="1e81f69a-4700-45d0-8a1b-04de29e5f072" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
-  <Properties>
-    <DisplayName>ms-resource:AppStoreName</DisplayName>
-    <PublisherDisplayName>aicd</PublisherDisplayName>
-    <Logo>Assets\StoreLogo.png</Logo>
-  </Properties>
+	<Properties>
+		<DisplayName>ms-resource:AppStoreName</DisplayName>
+		<PublisherDisplayName>aicd</PublisherDisplayName>
+		<Logo>Assets\StoreLogo.png</Logo>
+	</Properties>
 
-  <Dependencies>
-    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22631.3155" />
-  </Dependencies>
+	<Dependencies>
+		<TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22631.3155" />
+	</Dependencies>
 
-  <Resources>
-    <Resource Language="de-DE" />
-    <Resource Language="en" />
-    <Resource Language="es-ES" />
-    <Resource Language="fr-FR" />
-    <Resource Language="ja-JP" />
-    <Resource Language="ko-KR" />
-    <Resource Language="ru-RU" />
-    <Resource Language="zh-CN" />
-    <Resource Language="zh-TW" />
-  </Resources>
+	<Resources>
+		<Resource Language="de-DE" />
+		<Resource Language="en" />
+		<Resource Language="es-ES" />
+		<Resource Language="fr-FR" />
+		<Resource Language="ja-JP" />
+		<Resource Language="ko-KR" />
+		<Resource Language="ru-RU" />
+		<Resource Language="zh-CN" />
+		<Resource Language="zh-TW" />
+	</Resources>
 
-  <Applications>
-    <Application Id="App"
-      Executable="$targetnametoken$.exe"
-      EntryPoint="$targetentrypoint$">
-      <uap:VisualElements
-        DisplayName="ms-resource:DevAppDisplayName"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png"
-        BackgroundColor="transparent" Description="ms-resource:AppDescription">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
-      </uap:VisualElements>
-      <Extensions>
-        <uap:Extension Category="windows.fileTypeAssociation">
-          <uap:FileTypeAssociation Name="images">
-            <uap:SupportedFileTypes>
-              <uap:FileType>.7z</uap:FileType>
-              <uap:FileType>.bmp</uap:FileType>
-              <uap:FileType>.bz2</uap:FileType>
-              <uap:FileType>.cb7</uap:FileType>
-              <uap:FileType>.cbr</uap:FileType>
-              <uap:FileType>.cbt</uap:FileType>
-              <uap:FileType>.cbz</uap:FileType>
-              <uap:FileType>.gif</uap:FileType>
-              <uap:FileType>.gz</uap:FileType>
-              <uap:FileType>.jpe</uap:FileType>
-              <uap:FileType>.jpeg</uap:FileType>
-              <uap:FileType>.jpg</uap:FileType>
-              <uap:FileType>.pdf</uap:FileType>
-              <uap:FileType>.png</uap:FileType>
-              <uap:FileType>.rar</uap:FileType>
-              <uap:FileType>.tar</uap:FileType>
-              <uap:FileType>.tif</uap:FileType>
-              <uap:FileType>.tiff</uap:FileType>
-              <uap:FileType>.webp</uap:FileType>
-              <uap:FileType>.xz</uap:FileType>
-              <uap:FileType>.zip</uap:FileType>
-            </uap:SupportedFileTypes>
-            <uap:EditFlags OpenIsSafe="true"/>
-          </uap:FileTypeAssociation>
-        </uap:Extension>
-      </Extensions>
-    </Application>
-  </Applications>
+	<Applications>
+		<Application Id="App"
+		  Executable="$targetnametoken$.exe"
+		  EntryPoint="$targetentrypoint$">
+			<uap:VisualElements
+			  DisplayName="ms-resource:DevAppDisplayName"
+			  Square150x150Logo="Assets\Square150x150Logo.png"
+			  Square44x44Logo="Assets\Square44x44Logo.png"
+			  BackgroundColor="transparent" Description="ms-resource:AppDescription">
+				<uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
+				<uap:SplashScreen Image="Assets\SplashScreen.png" />
+			</uap:VisualElements>
+			<Extensions>
+				<uap:Extension Category="windows.fileTypeAssociation">
+					<uap:FileTypeAssociation Name="images">
+						<uap:SupportedFileTypes>
+							<uap:FileType>.7z</uap:FileType>
+							<uap:FileType>.avif</uap:FileType>
+							<uap:FileType>.bmp</uap:FileType>
+							<uap:FileType>.bz2</uap:FileType>
+							<uap:FileType>.cb7</uap:FileType>
+							<uap:FileType>.cbr</uap:FileType>
+							<uap:FileType>.cbt</uap:FileType>
+							<uap:FileType>.cbz</uap:FileType>
+							<uap:FileType>.gif</uap:FileType>
+							<uap:FileType>.gz</uap:FileType>
+							<uap:FileType>.heic</uap:FileType>
+							<uap:FileType>.heif</uap:FileType>
+							<uap:FileType>.jpe</uap:FileType>
+							<uap:FileType>.jpeg</uap:FileType>
+							<uap:FileType>.jpg</uap:FileType>
+							<uap:FileType>.pdf</uap:FileType>
+							<uap:FileType>.png</uap:FileType>
+							<uap:FileType>.rar</uap:FileType>
+							<uap:FileType>.tar</uap:FileType>
+							<uap:FileType>.tif</uap:FileType>
+							<uap:FileType>.tiff</uap:FileType>
+							<uap:FileType>.webp</uap:FileType>
+							<uap:FileType>.xz</uap:FileType>
+							<uap:FileType>.zip</uap:FileType>
+						</uap:SupportedFileTypes>
+						<uap:EditFlags OpenIsSafe="true"/>
+					</uap:FileTypeAssociation>
+				</uap:Extension>
+			</Extensions>
+		</Application>
+	</Applications>
 
-  <Capabilities>
-    <rescap:Capability Name="runFullTrust" />
-  </Capabilities>
+	<Capabilities>
+		<rescap:Capability Name="runFullTrust" />
+	</Capabilities>
+	
 </Package>
