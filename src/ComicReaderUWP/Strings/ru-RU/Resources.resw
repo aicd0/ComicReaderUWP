@@ -534,6 +534,12 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>Перейти на случайную страницу</value>
   </data>
+  <data name="ImageBrightness" xml:space="preserve">
+    <value>Яркость</value>
+  </data>
+  <data name="ImageContrast" xml:space="preserve">
+    <value>Контраст</value>
+  </data>
   <data name="ImageLocationExpander.Detail" xml:space="preserve">
     <value>Выберите, где мы ищем изображения</value>
   </data>

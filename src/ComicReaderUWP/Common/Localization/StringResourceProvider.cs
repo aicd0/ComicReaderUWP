@@ -115,6 +115,8 @@ public class StringResourceProvider
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
     public string Horizontal => GetResourceString("Horizontal");
+    public string ImageBrightness => GetResourceString("ImageBrightness");
+    public string ImageContrast => GetResourceString("ImageContrast");
     public string ImageProcessing => GetResourceString("ImageProcessing");
     public string InstallPlugin => GetResourceString("InstallPlugin");
     public string InstallPluginWarning => GetResourceString("InstallPluginWarning");

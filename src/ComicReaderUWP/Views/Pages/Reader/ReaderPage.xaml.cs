@@ -646,8 +646,10 @@ internal sealed partial class ReaderPage : BasePage
         reader.SetPageGap(readerSettingModel.PageSpacing);
         reader.SetImageRotation(readerSettingModel.ImageRotation);
         reader.SetImageFlip(readerSettingModel.ImageFlip);
+        reader.SetAntiAliasingFilter(readerSettingModel.AntiAliasingFilterPercentage * 0.01);
+        reader.SetImageBrightness((readerSettingModel.BrightnessPercentage - 50) * 0.02F);
+        reader.SetImageContrast((readerSettingModel.ContrastPercentage - 50) * 0.02F);
         reader.SetImageInvert(readerSettingModel.ImageInvert);
-        reader.SetAntiAliasingFilter(readerSettingModel.AntiAliasingFilterPercentage / 100.0);
 
         reader.SetPageLayoutManager(new SimplePageLayoutManager()
         {

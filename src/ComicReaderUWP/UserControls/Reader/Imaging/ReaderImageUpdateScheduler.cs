@@ -259,14 +259,47 @@ internal class ReaderImageUpdateScheduler
 
     private static ICanvasImage CreateCanvasImage(CanvasBitmap bitmap, ReaderImageSource source)
     {
-        if (source.Invert)
+        ICanvasImage result = bitmap;
+
+        float contrast = source.Contrast;
+        if (contrast != 0)
         {
-            return new InvertEffect()
+            result = new ContrastEffect()
             {
-                Source = bitmap,
+                Source = result,
+                Contrast = Math.Clamp(contrast, -1, 1),
             };
         }
 
-        return bitmap;
+        if (source.Invert)
+        {
+            result = new InvertEffect()
+            {
+                Source = result,
+            };
+        }
+
+        float brightness = source.Brightness;
+        if (brightness != 0)
+        {
+            if (float.IsPositive(brightness))
+            {
+                result = new BrightnessEffect()
+                {
+                    Source = result,
+                    BlackPoint = new Vector2(0, brightness),
+                };
+            }
+            else
+            {
+                result = new BrightnessEffect()
+                {
+                    Source = result,
+                    WhitePoint = new Vector2(1, brightness + 1F),
+                };
+            }
+        }
+
+        return result;
     }
 }

@@ -63,8 +63,10 @@ internal class ReaderSettingsModel
                 _ => defaultModel.ImageRotation,
             },
             ImageFlip = model.ImageFlip ?? defaultModel.ImageFlip,
-            ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
             AntiAliasingFilterPercentage = model.AntiAliasingFilterPercentage ?? defaultModel.AntiAliasingFilterPercentage,
+            BrightnessPercentage = model.BrightnessPercentage ?? defaultModel.BrightnessPercentage,
+            ContrastPercentage = model.ContrastPercentage ?? defaultModel.ContrastPercentage,
+            ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
         };
     }
 
@@ -173,8 +175,10 @@ internal class ReaderSettingsModel
     public int AutoScrollSpeed { get; set; } = 0;
     public ImageRotationEnum ImageRotation { get; set; } = ImageRotationEnum.None;
     public bool ImageFlip { get; set; } = false;
-    public bool ImageInvert { get; set; } = false;
     public int AntiAliasingFilterPercentage { get; set; } = 0;
+    public int BrightnessPercentage { get; set; } = 50;
+    public int ContrastPercentage { get; set; } = 50;
+    public bool ImageInvert { get; set; } = false;
 
     public bool IsContinuous
     {
@@ -231,8 +235,10 @@ internal class ReaderSettingsModel
             AutoScrollSpeed == other.AutoScrollSpeed &&
             ImageRotation == other.ImageRotation &&
             ImageFlip == other.ImageFlip &&
-            ImageInvert == other.ImageInvert &&
-            AntiAliasingFilterPercentage == other.AntiAliasingFilterPercentage;
+            AntiAliasingFilterPercentage == other.AntiAliasingFilterPercentage &&
+            BrightnessPercentage == other.BrightnessPercentage &&
+            ContrastPercentage == other.ContrastPercentage &&
+            ImageInvert == other.ImageInvert;
     }
 
     public override int GetHashCode()
@@ -251,8 +257,10 @@ internal class ReaderSettingsModel
         hash.Add(AutoScrollSpeed);
         hash.Add(ImageRotation);
         hash.Add(ImageFlip);
-        hash.Add(ImageInvert);
         hash.Add(AntiAliasingFilterPercentage);
+        hash.Add(BrightnessPercentage);
+        hash.Add(ContrastPercentage);
+        hash.Add(ImageInvert);
         return hash.ToHashCode();
     }
 
@@ -297,8 +305,10 @@ internal class ReaderSettingsModel
                 _ => "None",
             },
             ImageFlip = ImageFlip,
-            ImageInvert = ImageInvert,
             AntiAliasingFilterPercentage = AntiAliasingFilterPercentage,
+            BrightnessPercentage = BrightnessPercentage,
+            ContrastPercentage = ContrastPercentage,
+            ImageInvert = ImageInvert,
         };
     }
 
@@ -349,10 +359,16 @@ internal class ReaderSettingsModel
         [JsonPropertyName("ImageFlip")]
         public bool? ImageFlip { get; set; }
 
-        [JsonPropertyName("ImageInvert")]
-        public bool? ImageInvert { get; set; }
-
         [JsonPropertyName("AntiAliasingFilterPercentage")]
         public int? AntiAliasingFilterPercentage { get; set; }
+
+        [JsonPropertyName("BrightnessPercentage")]
+        public int? BrightnessPercentage { get; set; }
+
+        [JsonPropertyName("ContrastPercentage")]
+        public int? ContrastPercentage { get; set; }
+
+        [JsonPropertyName("ImageInvert")]
+        public bool? ImageInvert { get; set; }
     }
 }

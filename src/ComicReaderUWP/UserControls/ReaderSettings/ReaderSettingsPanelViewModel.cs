@@ -125,17 +125,6 @@ internal partial class ReaderSettingsPanelViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _invertImageLabel = string.Empty;
-    public string InvertImageLabel
-    {
-        get => _invertImageLabel;
-        set
-        {
-            _invertImageLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(InvertImageLabel)));
-        }
-    }
-
     private string _antiAliasingFilterLabel = string.Empty;
     public string AntiAliasingFilterLabel
     {
@@ -144,6 +133,39 @@ internal partial class ReaderSettingsPanelViewModel : INotifyPropertyChanged
         {
             _antiAliasingFilterLabel = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AntiAliasingFilterLabel)));
+        }
+    }
+
+    private string _brightnessLabel = string.Empty;
+    public string BrightnessLabel
+    {
+        get => _brightnessLabel;
+        set
+        {
+            _brightnessLabel = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BrightnessLabel)));
+        }
+    }
+
+    private string _contrastLabel = string.Empty;
+    public string ContrastLabel
+    {
+        get => _contrastLabel;
+        set
+        {
+            _contrastLabel = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ContrastLabel)));
+        }
+    }
+
+    private string _invertImageLabel = string.Empty;
+    public string InvertImageLabel
+    {
+        get => _invertImageLabel;
+        set
+        {
+            _invertImageLabel = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(InvertImageLabel)));
         }
     }
 
