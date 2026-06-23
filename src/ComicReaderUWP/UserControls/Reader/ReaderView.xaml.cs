@@ -99,7 +99,6 @@ internal partial class ReaderView : UserControl
     private double _maxZoomFactor = double.MinValue;
 
     private ObservableCollection<ReaderFrameViewModel> FrameDataSource { get; } = [];
-    private int CurrentFrameIndex { get; set; } = 0;
 
     #endregion
 
@@ -143,8 +142,9 @@ internal partial class ReaderView : UserControl
 
     public int PageCount { get; private set; } = 0;
     public double CurrentPage { get; private set; } = 0.0;
-    public int CurrentPageDiscrete => ToDiscretePage(CurrentPage);
-    public bool IsVertical => _isVertical;
+    public int FrameCount => FrameDataSource.Count;
+    public int CurrentFrameIndex { get; private set; } = 0;
+    public bool OverScrollEnabled { get; set; }
 
     private float _externalZooming = 1F;
     public float Zooming
@@ -160,25 +160,6 @@ internal partial class ReaderView : UserControl
                     zoom: fixedValue, disableAnimation: false);
                 ReaderEventZoomingChanged?.Invoke(this, fixedValue);
             }
-        }
-    }
-
-    public int CurrentPagePercentage
-    {
-        get
-        {
-            if (PageCount <= 0)
-            {
-                return 0;
-            }
-
-            if (CurrentFrameIndex >= FrameDataSource.Count - 1)
-            {
-                return 100;
-            }
-
-            int percentage = (int)Math.Round(100.0 * (CurrentPage - 0.5) / PageCount, MidpointRounding.AwayFromZero);
-            return Math.Clamp(percentage, 0, 100);
         }
     }
 
@@ -203,34 +184,33 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    public bool OverScrollEnabled
+    public int GetFrameIndexByPage(int page)
     {
-        get => _isOverScrollEnabled;
-        set => _isOverScrollEnabled = value;
-    }
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(page, 0);
 
-    public void Destory()
-    {
-        if (_isDestoryed)
+        int left = 0;
+        int right = FrameDataSource.Count - 1;
+
+        while (left <= right)
         {
-            return;
+            int mid = left + (right - left) / 2;
+            ReaderFrameViewModel frame = FrameDataSource[mid];
+
+            if (frame.PageL == page || frame.PageR == page)
+            {
+                return mid;
+            }
+            else if (frame.PageL < page)
+            {
+                left = mid + 1;
+            }
+            else
+            {
+                right = mid - 1;
+            }
         }
 
-        _isDestoryed = true;
-        UpdateLoadedState();
-        _reloadSession.Next();
-        FrameDataSource.Clear();
-    }
-
-    public void StartLoadingImages(IEnumerable<IImageSource> images)
-    {
-        _originalDataModel = [.. images];
-        Reload(_originalDataModel);
-    }
-
-    public void MoveFrame(int increment)
-    {
-        MoveFrameByUser("MoveFrameAPI", increment);
+        return -1;
     }
 
     public void SetIsVertical(bool isVertical)
@@ -376,13 +356,25 @@ internal partial class ReaderView : UserControl
         _initialPage = Math.Max(0.5, page);
     }
 
-    public void SetCurrentPage(double page)
+    public void SetPage(double page)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(page);
 
         if (ComicLoaded)
         {
-            SetScrollViewer2("SetCurrentPage", ScrollSource.User, page: page);
+            SetScrollViewer2("SetPage", ScrollSource.UserPrecise, page: page);
+        }
+    }
+
+    public void SetFrameIndex(int frameIndex)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(frameIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(frameIndex, FrameDataSource.Count);
+
+        if (ComicLoaded)
+        {
+            double page = FrameDataSource[frameIndex].Page;
+            SetScrollViewer2("SetFrameIndex", ScrollSource.UserPrecise, page: page);
         }
     }
 
@@ -394,6 +386,30 @@ internal partial class ReaderView : UserControl
     public void SetConfigurationDatabase(IConfigurationDatabase? configDatabase)
     {
         _internalDB = configDatabase is null ? null : new(configDatabase);
+    }
+
+    public void Destory()
+    {
+        if (_isDestoryed)
+        {
+            return;
+        }
+
+        _isDestoryed = true;
+        UpdateLoadedState();
+        _reloadSession.Next();
+        FrameDataSource.Clear();
+    }
+
+    public void StartLoadingImages(IEnumerable<IImageSource> images)
+    {
+        _originalDataModel = [.. images];
+        Reload(_originalDataModel);
+    }
+
+    public void MoveFrame(int increment)
+    {
+        MoveFrameByUser("MoveFrame", increment);
     }
 
     #endregion
@@ -575,7 +591,7 @@ internal partial class ReaderView : UserControl
         int frame = CurrentFrameIndex;
         int preloadWindowBegin = Math.Max(frame - PRELOAD_FRAMES_BEFORE, 0);
         int preloadWindowEnd = Math.Min(frame + PRELOAD_FRAMES_AFTER, FrameDataSource.Count - 1);
-        Log("LoadImage", $"Reason={reason},P={CurrentPageDiscrete}");
+        Log("LoadImage", $"Reason={reason},F={frame}");
 
         double scale = SCZoomFactorFinal / _antiAliasingFilterRatio;
         for (int i = 0; i < FrameDataSource.Count; ++i)
@@ -1274,7 +1290,7 @@ internal partial class ReaderView : UserControl
                         SetScrollViewer2("StickToVerticalCenter", ScrollSource.Programmatic,
                             page: page, applyParallelOffset: false, disableAnimation: false);
                     }
-                    else
+                    else if (!_isPreciseScrolling)
                     {
                         // Stick to the center of current frame.
                         SetScrollViewer2("StickToFrameCenter", ScrollSource.Programmatic,
@@ -1475,7 +1491,7 @@ internal partial class ReaderView : UserControl
 
         if (!_isContinuous && _zoom < FORCE_CONTINUOUS_ZOOM_THRESHOLD)
         {
-            double velocity = IsVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
+            double velocity = _isVertical ? e.Velocities.Linear.Y : e.Velocities.Linear.X;
 
             if (!_isVertical && !_isLeftToRight)
             {
@@ -1957,13 +1973,12 @@ internal partial class ReaderView : UserControl
 
     #region Over Scroll
 
-    private bool _isOverScrollEnabled = false;
     private bool _overScrollStarted = false;
     private double _overScrollAmount = 0.0;
 
     private void UpdateOverScrollAmount(double increment)
     {
-        if (!_isOverScrollEnabled)
+        if (!OverScrollEnabled)
         {
             if (_overScrollStarted)
             {
@@ -2027,7 +2042,7 @@ internal partial class ReaderView : UserControl
 
     private void DispatchOverScrollEvent(bool forward)
     {
-        if (!_isOverScrollEnabled)
+        if (!OverScrollEnabled)
         {
             return;
         }
@@ -2134,18 +2149,19 @@ internal partial class ReaderView : UserControl
     private bool _isCommitting = false;
     private float _zoom = 1F;
     private bool _finalValueSynced = false;
+    private bool _isPreciseScrolling = false;
 
     private ScrollViewer ThisScrollViewer => ContentScrollViewer;
     private ListView ThisListView => ContentListView;
     private float ZoomFactor => ThisScrollViewer.ZoomFactor;
     private double HorizontalOffset => ThisScrollViewer.HorizontalOffset;
     private double VerticalOffset => ThisScrollViewer.VerticalOffset;
-    private double ParallelOffset => IsVertical ? VerticalOffset : HorizontalOffset;
+    private double ParallelOffset => _isVertical ? VerticalOffset : HorizontalOffset;
     private double ViewportWidth => ThisScrollViewer.ViewportWidth;
     private double ViewportHeight => ThisScrollViewer.ViewportHeight;
-    private double ViewportParallelLength => IsVertical ? ViewportHeight : ViewportWidth;
-    private double ViewportPerpendicularLength => IsVertical ? ViewportWidth : ViewportHeight;
-    private double ContentPerpendicularLength => IsVertical ? ThisListView.ActualWidth : ThisListView.ActualHeight;
+    private double ViewportParallelLength => _isVertical ? ViewportHeight : ViewportWidth;
+    private double ViewportPerpendicularLength => _isVertical ? ViewportWidth : ViewportHeight;
+    private double ContentPerpendicularLength => _isVertical ? ThisListView.ActualWidth : ThisListView.ActualHeight;
 
     private int _SCCurrentFrameIndexFinal;
     private int SCCurrentFrameIndexFinal
@@ -2249,7 +2265,7 @@ internal partial class ReaderView : UserControl
 
         _finalValueSynced = true;
         _SCCurrentFrameIndexFinal = CurrentFrameIndex;
-        _SCCurrentPageFinal = CurrentPageDiscrete;
+        _SCCurrentPageFinal = ToDiscretePage(CurrentPage);
         _SCHorizontalOffsetFinal = HorizontalOffset;
         _SCVerticalOffsetFinal = VerticalOffset;
         _SCZoomFactorFinal = ZoomFactor;
@@ -2385,7 +2401,7 @@ internal partial class ReaderView : UserControl
                 Logger.F(TAG, "Scroll result not set");
                 break;
             case ScrollResult.Success:
-                if (request.Source == ScrollSource.User || request.Source == ScrollSource.AutoScroll)
+                if (request.Source != ScrollSource.Programmatic)
                 {
                     if (Math.Abs(context.ScrollAmount) > 1E-2 || _isInInertiaTranslation)
                     {
@@ -2429,8 +2445,10 @@ internal partial class ReaderView : UserControl
         Logger.Assert(double.IsFinite(request.HorizontalOffset ?? 0), "4FD89F79946B8D03");
         Logger.Assert(double.IsFinite(request.VerticalOffset ?? 0), "6678A0ED7D2FEB43");
 
-        if (request.Source == ScrollSource.User)
+        if (request.Source == ScrollSource.User || request.Source == ScrollSource.UserPrecise)
         {
+            _isPreciseScrolling = request.Source == ScrollSource.UserPrecise;
+
             // User interaction cancels auto scrolling
             StopAutoScrolling();
         }
@@ -2650,7 +2668,7 @@ internal partial class ReaderView : UserControl
             $"HO={context.HorizontalOffset}",
             $"VO={context.VerticalOffset}");
 
-        if (IsVertical)
+        if (_isVertical)
         {
             context.HorizontalOffset += halfViewportWidth - extraPaddingBefore;
             context.HorizontalOffset *= zoomChangeRatio;
@@ -3023,8 +3041,8 @@ internal partial class ReaderView : UserControl
         GeneralTransform frameTransform = container.TransformToVisual(ThisListView.ItemsPanelRoot);
         Windows.Foundation.Point framePosition = frameTransform.TransformPoint(new(0.0, 0.0));
 
-        double parallelOffset = IsVertical ? framePosition.Y : framePosition.X;
-        double perpendicularOffset = IsVertical ? framePosition.X : framePosition.Y;
+        double parallelOffset = _isVertical ? framePosition.Y : framePosition.X;
+        double perpendicularOffset = _isVertical ? framePosition.X : framePosition.Y;
         if (!_isVertical && !_isLeftToRight)
         {
             parallelOffset -= item.FrameMargin.Left + item.FrameWidth + item.FrameMargin.Right;
@@ -3331,6 +3349,7 @@ internal partial class ReaderView : UserControl
     private enum ScrollSource
     {
         User,
+        UserPrecise,
         Programmatic,
         AutoScroll,
     }

@@ -11,6 +11,7 @@ using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
@@ -36,6 +37,7 @@ namespace ComicReaderUWP.Views.Pages.Reader;
 
 internal sealed partial class ReaderPage : BasePage
 {
+    private const string TAG = nameof(ReaderPage);
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
     // Can only be accessed by UI thread
@@ -321,7 +323,8 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventPageChanged += (sender, isIntermediate) =>
         {
-            ViewModel.SetPageIndex(sender.CurrentPageDiscrete - 1);
+            int pageIndex = Math.Clamp((int)Math.Round(sender.CurrentPage), 1, sender.PageCount) - 1;
+            ViewModel.SetPageIndex(pageIndex);
             UpdatePage();
 
             if (!MainReaderView.IsAutoScrolling)
@@ -571,6 +574,25 @@ internal sealed partial class ReaderPage : BasePage
 
     public void SaveProgress()
     {
+        int CalculatePercentage(ReaderView reader)
+        {
+            int frameIndex = reader.CurrentFrameIndex;
+            if (frameIndex >= reader.FrameCount - 1)
+            {
+                return 100;
+            }
+
+            if (frameIndex <= 0)
+            {
+                return 0;
+            }
+
+            double minimumPage = 0.5;
+            double maximumPage = reader.PageCount;
+            double page = Math.Clamp(reader.CurrentPage, minimumPage, maximumPage);
+            return Math.Clamp((int)Math.Round(100.0 * (page - minimumPage) / (maximumPage - minimumPage)), 0, 100);
+        }
+
         if (_savingProgress)
         {
             _saveProgressInvalidated = true;
@@ -593,9 +615,10 @@ internal sealed partial class ReaderPage : BasePage
                     }
 
                     ReaderView reader = MainReaderView;
+                    int progress = CalculatePercentage(reader);
                     double page = Math.Max(0, reader.CurrentPage);
-                    int progress = reader.CurrentPagePercentage;
                     await comic.SetProgress(progress, page);
+
                     await Task.Delay(SAVE_PREOGRESS_INTERVAL);
                 }
                 while (_saveProgressInvalidated);
@@ -839,14 +862,15 @@ internal sealed partial class ReaderPage : BasePage
     private void PlaybackSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         ReaderView reader = MainReaderView;
-        double currentValue = reader.CurrentPageDiscrete;
+
+        double currentValue = reader.CurrentPage;
         double newValue = e.NewValue;
-        if (Math.Abs(currentValue - newValue) < 0.5)
+        if (Math.Abs(currentValue - newValue) < 0.01)
         {
             return;
         }
 
-        reader.SetCurrentPage(newValue);
+        reader.SetPage(newValue);
     }
 
     private void PlaybackPlayButton_Click(object sender, RoutedEventArgs e)
@@ -952,23 +976,35 @@ internal sealed partial class ReaderPage : BasePage
 
     private void UpdatePage()
     {
+        int CalculatePercentage(ReaderView reader)
+        {
+            double minimumPage = 0.5;
+            double maximumPage = reader.PageCount + 0.5;
+            double page = Math.Clamp(reader.CurrentPage, minimumPage, maximumPage);
+            return Math.Clamp((int)Math.Round(100.0 * (page - minimumPage) / (maximumPage - minimumPage)), 0, 100);
+        }
+
         ReaderView reader = MainReaderView;
+
         int totalPages = Math.Max(0, reader.PageCount);
-        int currentPage = reader.CurrentPageDiscrete;
-        int percentage = reader.CurrentPagePercentage;
-        ViewModel.PrimaryPageIndicatorText = $"{currentPage} / {totalPages}";
+        double currentPage = reader.CurrentPage;
+        int percentage = CalculatePercentage(reader);
+
+        ViewModel.PrimaryPageIndicatorText = $"{currentPage:0.#} / {totalPages}";
         ViewModel.SecondaryPageIndicatorText = $"{percentage}%";
 
         // Use different order to prevent unwanted change events
-        if (PlaybackSlider.Maximum > currentPage)
+        double sliderValue = Math.Round(currentPage, 2);
+        double sliderMaximum = totalPages + 0.5;
+        if (PlaybackSlider.Maximum > sliderValue)
         {
-            PlaybackSlider.Value = currentPage;
-            PlaybackSlider.Maximum = totalPages;
+            PlaybackSlider.Value = sliderValue;
+            PlaybackSlider.Maximum = sliderMaximum;
         }
         else
         {
-            PlaybackSlider.Maximum = totalPages;
-            PlaybackSlider.Value = currentPage;
+            PlaybackSlider.Maximum = sliderMaximum;
+            PlaybackSlider.Value = sliderValue;
         }
     }
 
@@ -993,7 +1029,17 @@ internal sealed partial class ReaderPage : BasePage
     {
         var ctx = (ReaderImagePreviewViewModel)e.ClickedItem;
         GridViewModeEnabled = false;
-        MainReaderView.SetCurrentPage(ctx.Page);
+
+        ReaderView reader = MainReaderView;
+        int frameIndex = reader.GetFrameIndexByPage(ctx.Page);
+        if (frameIndex >= 0)
+        {
+            MainReaderView.SetFrameIndex(frameIndex);
+        }
+        else
+        {
+            Logger.F(TAG, $"Failed to map page {ctx.Page} to frame index");
+        }
     }
 
     private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
