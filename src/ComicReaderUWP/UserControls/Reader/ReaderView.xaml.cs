@@ -62,10 +62,7 @@ internal partial class ReaderView : UserControl
     private bool _isLeftToRight = true;
     private bool _useOriginalSize = false;
     private int _pageGap = 100;
-    private ImageRotationEnum _imageRotation = ImageRotationEnum.None;
-    private bool _imageFlip = false;
-    private bool _imageInvert = false;
-    private double _antiAliasingFilterRatio = 0;
+    private readonly ImageSettings _imageSettings = new();
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
@@ -288,24 +285,24 @@ internal partial class ReaderView : UserControl
 
     public void SetImageRotation(ImageRotationEnum rotation)
     {
-        if (rotation == _imageRotation)
+        if (rotation == _imageSettings.Rotation)
         {
             return;
         }
 
-        _imageRotation = rotation;
+        _imageSettings.Rotation = rotation;
         _uiStateUpdatedNeedReload = true;
         UpdateUI();
     }
 
     public void SetImageFlip(bool flip)
     {
-        if (flip == _imageFlip)
+        if (flip == _imageSettings.Flip)
         {
             return;
         }
 
-        _imageFlip = flip;
+        _imageSettings.Flip = flip;
         foreach (PageModel? item in _pageModels)
         {
             if (item is not null)
@@ -318,14 +315,67 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
-    public void SetImageInvert(bool invert)
+    public void SetAntiAliasingFilter(double ratio)
     {
-        if (invert == _imageInvert)
+        ratio = Math.Abs(ratio);
+        if (ratio == _imageSettings.AntiAliasingFilterRatio)
         {
             return;
         }
 
-        _imageInvert = invert;
+        _imageSettings.AntiAliasingFilterRatio = ratio;
+        _uiStateUpdatedNeedReloadImages = true;
+        UpdateUI();
+    }
+
+    public void SetImageBrightness(float brightness)
+    {
+        if (brightness == _imageSettings.Brightness)
+        {
+            return;
+        }
+
+        _imageSettings.Brightness = brightness;
+        foreach (PageModel? item in _pageModels)
+        {
+            if (item is not null)
+            {
+                item.Image.Brightness = brightness;
+            }
+        }
+
+        _uiStateUpdatedNeedReloadImages = true;
+        UpdateUI();
+    }
+
+    public void SetImageContrast(float contrast)
+    {
+        if (contrast == _imageSettings.Contrast)
+        {
+            return;
+        }
+
+        _imageSettings.Contrast = contrast;
+        foreach (PageModel? item in _pageModels)
+        {
+            if (item is not null)
+            {
+                item.Image.Contrast = contrast;
+            }
+        }
+
+        _uiStateUpdatedNeedReloadImages = true;
+        UpdateUI();
+    }
+
+    public void SetImageInvert(bool invert)
+    {
+        if (invert == _imageSettings.Invert)
+        {
+            return;
+        }
+
+        _imageSettings.Invert = invert;
         foreach (PageModel? item in _pageModels)
         {
             if (item is not null)
@@ -334,19 +384,6 @@ internal partial class ReaderView : UserControl
             }
         }
 
-        _uiStateUpdatedNeedReloadImages = true;
-        UpdateUI();
-    }
-
-    public void SetAntiAliasingFilter(double ratio)
-    {
-        ratio = Math.Abs(ratio);
-        if (ratio == _antiAliasingFilterRatio)
-        {
-            return;
-        }
-
-        _antiAliasingFilterRatio = ratio;
         _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }
@@ -593,7 +630,7 @@ internal partial class ReaderView : UserControl
         int preloadWindowEnd = Math.Min(frame + PRELOAD_FRAMES_AFTER, FrameDataSource.Count - 1);
         Log("LoadImage", $"Reason={reason},F={frame}");
 
-        double scale = SCZoomFactorFinal / _antiAliasingFilterRatio;
+        double scale = SCZoomFactorFinal / _imageSettings.AntiAliasingFilterRatio;
         for (int i = 0; i < FrameDataSource.Count; ++i)
         {
             ReaderFrameViewModel model = FrameDataSource[i];
@@ -815,9 +852,11 @@ internal partial class ReaderView : UserControl
         ReaderImageSource imageSourceModel = new()
         {
             Source = source,
-            Rotation = _imageRotation,
-            Flip = _imageFlip,
-            Invert = _imageInvert,
+            Rotation = _imageSettings.Rotation,
+            Flip = _imageSettings.Flip,
+            Brightness = _imageSettings.Brightness,
+            Contrast = _imageSettings.Contrast,
+            Invert = _imageSettings.Invert,
         };
         int imageWidth = imageSourceModel.Rotation switch
         {
@@ -3297,6 +3336,16 @@ internal partial class ReaderView : UserControl
         string? ReadConfiguration(string key);
 
         void WriteConfiguration(string key, string value);
+    }
+
+    private class ImageSettings
+    {
+        public ImageRotationEnum Rotation = ImageRotationEnum.None;
+        public bool Flip = false;
+        public double AntiAliasingFilterRatio = 0;
+        public float Brightness = 0.5F;
+        public float Contrast = 0.5F;
+        public bool Invert = false;
     }
 
     private class PageModel

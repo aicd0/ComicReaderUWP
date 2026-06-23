@@ -178,15 +178,27 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         NotifySettingsChanged();
     }
 
-    private void InvertImageToggleSwitch_Toggled(object sender, RoutedEventArgs e)
-    {
-        _comicSettings.ImageInvert = InvertImageToggleSwitch.IsOn;
-        NotifySettingsChanged();
-    }
-
     private void AntiAliasingFilterSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         _comicSettings.AntiAliasingFilterPercentage = Math.Clamp((int)e.NewValue, 0, 200);
+        NotifySettingsChanged();
+    }
+
+    private void BrightnessSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        _comicSettings.BrightnessPercentage = Math.Clamp((int)e.NewValue, 0, 100);
+        NotifySettingsChanged();
+    }
+
+    private void ContrastSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        _comicSettings.ContrastPercentage = Math.Clamp((int)e.NewValue, 0, 100);
+        NotifySettingsChanged();
+    }
+
+    private void InvertImageToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        _comicSettings.ImageInvert = InvertImageToggleSwitch.IsOn;
         NotifySettingsChanged();
     }
 
@@ -383,17 +395,31 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             }
 
             {
-                bool modified = comicSettings.ImageInvert != presetSettings.ImageInvert;
-                tabModified = tabModified || modified;
-                InvertImageToggleSwitch.IsOn = comicSettings.ImageInvert;
-                ViewModel.InvertImageLabel = GetLabel(StringResource.InvertImage, modified);
-            }
-
-            {
                 bool modified = comicSettings.AntiAliasingFilterPercentage != presetSettings.AntiAliasingFilterPercentage;
                 tabModified = tabModified || modified;
                 AntiAliasingFilterSlider.Value = Math.Clamp(comicSettings.AntiAliasingFilterPercentage, 0, 200);
                 ViewModel.AntiAliasingFilterLabel = GetLabel(StringResource.AntiAliasingFilter, modified);
+            }
+
+            {
+                bool modified = comicSettings.BrightnessPercentage != presetSettings.BrightnessPercentage;
+                tabModified = tabModified || modified;
+                BrightnessSlider.Value = Math.Clamp(comicSettings.BrightnessPercentage, 0, 100);
+                ViewModel.BrightnessLabel = GetLabel(StringResource.ImageBrightness, modified);
+            }
+
+            {
+                bool modified = comicSettings.ContrastPercentage != presetSettings.ContrastPercentage;
+                tabModified = tabModified || modified;
+                ContrastSlider.Value = Math.Clamp(comicSettings.ContrastPercentage, 0, 100);
+                ViewModel.ContrastLabel = GetLabel(StringResource.ImageContrast, modified);
+            }
+
+            {
+                bool modified = comicSettings.ImageInvert != presetSettings.ImageInvert;
+                tabModified = tabModified || modified;
+                InvertImageToggleSwitch.IsOn = comicSettings.ImageInvert;
+                ViewModel.InvertImageLabel = GetLabel(StringResource.InvertImage, modified);
             }
 
             settingsModified = settingsModified || tabModified;

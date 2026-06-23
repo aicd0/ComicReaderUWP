@@ -308,6 +308,7 @@
             x:Name="ImageProcessingSettingsGrid"
             MinWidth="360"
             Orientation="Vertical">
+            <!--  Order-insensitive Ops Section  -->
             <Grid Margin="0,8,0,0" Style="{StaticResource TallSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -349,25 +350,6 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="0,0,0,2"
-                    VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.InvertImageLabel, Mode=OneWay}" />
-                <ToggleSwitch
-                    x:Name="InvertImageToggleSwitch"
-                    Grid.Column="3"
-                    HorizontalAlignment="Right"
-                    Style="{StaticResource CompatToggleSwitchStyle}"
-                    Toggled="InvertImageToggleSwitch_Toggled" />
-            </Grid>
-            <Grid Margin="0,0,0,8" Style="{StaticResource CommonSettingRowStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="*" />
                     <ColumnDefinition
                         Width="10000*"
                         MinWidth="120"
@@ -386,6 +368,78 @@
                     Minimum="0"
                     StepFrequency="1"
                     ValueChanged="AntiAliasingFilterSlider_ValueChanged" />
+            </Grid>
+            <!--  Order-sensitive Ops Section  -->
+            <Rectangle
+                Height="1"
+                Margin="0,8,0,0"
+                Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+            <Grid Margin="0,8,0,0" Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition
+                        Width="10000*"
+                        MinWidth="120"
+                        MaxWidth="140" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind ViewModel.BrightnessLabel, Mode=OneWay}" />
+                <Slider
+                    x:Name="BrightnessSlider"
+                    Grid.Column="3"
+                    Margin="0,-2"
+                    Maximum="100"
+                    Minimum="0"
+                    StepFrequency="1"
+                    ValueChanged="BrightnessSlider_ValueChanged" />
+            </Grid>
+            <Grid Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition
+                        Width="10000*"
+                        MinWidth="120"
+                        MaxWidth="140" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind ViewModel.ContrastLabel, Mode=OneWay}" />
+                <Slider
+                    x:Name="ContrastSlider"
+                    Grid.Column="3"
+                    Margin="0,-2"
+                    Maximum="100"
+                    Minimum="0"
+                    StepFrequency="1"
+                    ValueChanged="ContrastSlider_ValueChanged" />
+            </Grid>
+            <Grid Margin="0,0,0,8" Style="{StaticResource CommonSettingRowStyle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="0,0,0,2"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind ViewModel.InvertImageLabel, Mode=OneWay}" />
+                <ToggleSwitch
+                    x:Name="InvertImageToggleSwitch"
+                    Grid.Column="3"
+                    HorizontalAlignment="Right"
+                    Style="{StaticResource CompatToggleSwitchStyle}"
+                    Toggled="InvertImageToggleSwitch_Toggled" />
             </Grid>
         </StackPanel>
 

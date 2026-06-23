@@ -533,6 +533,12 @@ La evaluación se realizará en el siguiente orden:
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>Ir a una página aleatoria</value>
   </data>
+  <data name="ImageBrightness" xml:space="preserve">
+    <value>Brillo</value>
+  </data>
+  <data name="ImageContrast" xml:space="preserve">
+    <value>Contraste</value>
+  </data>
   <data name="ImageLocationExpander.Detail" xml:space="preserve">
     <value>Elige dónde buscamos imágenes</value>
   </data>

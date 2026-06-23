@@ -533,6 +533,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>ランダムなページにジャンプ</value>
   </data>
+  <data name="ImageBrightness" xml:space="preserve">
+    <value>明るさ</value>
+  </data>
+  <data name="ImageContrast" xml:space="preserve">
+    <value>コントラスト</value>
+  </data>
   <data name="ImageLocationExpander.Detail" xml:space="preserve">
     <value>画像の場所を追加または変更する</value>
   </data>
