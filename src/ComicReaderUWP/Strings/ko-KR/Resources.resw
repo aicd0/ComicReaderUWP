@@ -823,6 +823,9 @@ $plugins</value>
   <data name="ResetAllSettingsMessage" xml:space="preserve">
     <value>모든 설정이 기본 상태로 복원됩니다. 사용자 데이터는 유지됩니다.</value>
   </data>
+  <data name="Restore" xml:space="preserve">
+    <value>복원</value>
+  </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>마지막 읽은 위치 복원</value>
   </data>

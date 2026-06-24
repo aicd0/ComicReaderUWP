@@ -6,7 +6,7 @@
     xmlns:converters="using:ComicReaderUWP.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:readersettingscontrol="using:ComicReaderUWP.UserControls.ReaderSettings"
+    xmlns:readersettings="using:ComicReaderUWP.UserControls.ReaderSettings"
     d:DesignHeight="300"
     d:DesignWidth="400"
     mc:Ignorable="d">
@@ -142,33 +142,16 @@
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="TwoPageModeToggleSwitch_Toggled" />
             </Grid>
-            <Grid x:Name="CoverPageCountGrid" Style="{StaticResource CommonSettingRowStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition
-                        Width="10000*"
-                        MinWidth="120"
-                        MaxWidth="140" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="0,0,0,2"
-                    VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.CoverPageCountLabel, Mode=OneWay}" />
-                <Slider
-                    x:Name="CoverPageCountSlider"
-                    Grid.Column="3"
-                    Margin="0,-2"
-                    Maximum="2"
-                    Minimum="0"
-                    SnapsTo="Ticks"
-                    StepFrequency="1"
-                    TickFrequency="1"
-                    TickPlacement="Outside"
-                    ValueChanged="CoverPageCountSlider_ValueChanged" />
-            </Grid>
+            <readersettings:SliderSettingView
+                x:Name="CoverPageCountSlider"
+                Label="{x:Bind ViewModel.CoverPageCountLabel, Mode=OneWay}"
+                Maximum="2"
+                Minimum="0"
+                SnapsTo="Ticks"
+                StepFrequency="1"
+                TickFrequency="1"
+                TickPlacement="Outside"
+                ValueChanged="CoverPageCountSlider_ValueChanged" />
             <Grid x:Name="SwapLeftAndRightPagesGrid" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -235,54 +218,21 @@
             </Grid>
             <!--  Other Settings Section  -->
             <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
-            <Grid Margin="0,8,0,0" Style="{StaticResource CommonSettingRowStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition
-                        Width="10000*"
-                        MinWidth="120"
-                        MaxWidth="140" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="0,0,0,2"
-                    VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.PageSpacingLabel, Mode=OneWay}" />
-                <Slider
-                    x:Name="PageSpacingSlider"
-                    Grid.Column="3"
-                    Margin="0,-2"
-                    Maximum="200"
-                    Minimum="0"
-                    StepFrequency="1"
-                    ValueChanged="PageSpacingSlider_ValueChanged" />
-            </Grid>
-            <Grid Style="{StaticResource CommonSettingRowStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition
-                        Width="10000*"
-                        MinWidth="120"
-                        MaxWidth="140" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="0,0,0,2"
-                    VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.AutoScrollingLabel, Mode=OneWay}" />
-                <Slider
-                    x:Name="AutoScrollingSlider"
-                    Grid.Column="3"
-                    Margin="0,-2"
-                    Maximum="100"
-                    Minimum="0"
-                    StepFrequency="1"
-                    ValueChanged="AutoScrollingSlider_ValueChanged" />
-            </Grid>
+            <readersettings:SliderSettingView
+                x:Name="PageSpacingSlider"
+                Margin="0,8,0,0"
+                Label="{x:Bind ViewModel.PageSpacingLabel, Mode=OneWay}"
+                Maximum="200"
+                Minimum="0"
+                StepFrequency="1"
+                ValueChanged="PageSpacingSlider_ValueChanged" />
+            <readersettings:SliderSettingView
+                x:Name="AutoScrollingSlider"
+                Label="{x:Bind ViewModel.AutoScrollingLabel, Mode=OneWay}"
+                Maximum="100"
+                Minimum="0"
+                StepFrequency="1"
+                ValueChanged="AutoScrollingSlider_ValueChanged" />
             <Grid Margin="0,0,0,8" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -345,83 +295,33 @@
                     Style="{StaticResource CompatToggleSwitchStyle}"
                     Toggled="FlipImageToggleSwitch_Toggled" />
             </Grid>
-            <Grid Style="{StaticResource CommonSettingRowStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition
-                        Width="10000*"
-                        MinWidth="120"
-                        MaxWidth="140" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="0,0,0,2"
-                    VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.AntiAliasingFilterLabel, Mode=OneWay}" />
-                <Slider
-                    x:Name="AntiAliasingFilterSlider"
-                    Grid.Column="3"
-                    Margin="0,-2"
-                    Maximum="200"
-                    Minimum="0"
-                    StepFrequency="1"
-                    ValueChanged="AntiAliasingFilterSlider_ValueChanged" />
-            </Grid>
+            <readersettings:SliderSettingView
+                x:Name="AntiAliasingFilterSlider"
+                Label="{x:Bind ViewModel.AntiAliasingFilterLabel, Mode=OneWay}"
+                Maximum="200"
+                Minimum="0"
+                StepFrequency="1"
+                ValueChanged="AntiAliasingFilterSlider_ValueChanged" />
             <!--  Order-sensitive Ops Section  -->
             <Rectangle
                 Height="1"
                 Margin="0,8,0,0"
                 Fill="{ThemeResource ComicInfoSeparatorForeground}" />
-            <Grid Margin="0,8,0,0" Style="{StaticResource CommonSettingRowStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition
-                        Width="10000*"
-                        MinWidth="120"
-                        MaxWidth="140" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="0,0,0,2"
-                    VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.BrightnessLabel, Mode=OneWay}" />
-                <Slider
-                    x:Name="BrightnessSlider"
-                    Grid.Column="3"
-                    Margin="0,-2"
-                    Maximum="100"
-                    Minimum="0"
-                    StepFrequency="1"
-                    ValueChanged="BrightnessSlider_ValueChanged" />
-            </Grid>
-            <Grid Style="{StaticResource CommonSettingRowStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="12" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition
-                        Width="10000*"
-                        MinWidth="120"
-                        MaxWidth="140" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="0,0,0,2"
-                    VerticalAlignment="Center"
-                    Text="{x:Bind ViewModel.ContrastLabel, Mode=OneWay}" />
-                <Slider
-                    x:Name="ContrastSlider"
-                    Grid.Column="3"
-                    Margin="0,-2"
-                    Maximum="100"
-                    Minimum="0"
-                    StepFrequency="1"
-                    ValueChanged="ContrastSlider_ValueChanged" />
-            </Grid>
+            <readersettings:SliderSettingView
+                x:Name="BrightnessSlider"
+                Margin="0,8,0,0"
+                Label="{x:Bind ViewModel.BrightnessLabel, Mode=OneWay}"
+                Maximum="100"
+                Minimum="0"
+                StepFrequency="1"
+                ValueChanged="BrightnessSlider_ValueChanged" />
+            <readersettings:SliderSettingView
+                x:Name="ContrastSlider"
+                Label="{x:Bind ViewModel.ContrastLabel, Mode=OneWay}"
+                Maximum="100"
+                Minimum="0"
+                StepFrequency="1"
+                ValueChanged="ContrastSlider_ValueChanged" />
             <Grid Margin="0,0,0,8" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
