@@ -118,6 +118,7 @@ public class StringResourceProvider
     public string ImageBrightness => GetResourceString("ImageBrightness");
     public string ImageContrast => GetResourceString("ImageContrast");
     public string ImageProcessing => GetResourceString("ImageProcessing");
+    public string ImageSaturation => GetResourceString("ImageSaturation");
     public string InstallPlugin => GetResourceString("InstallPlugin");
     public string InstallPluginWarning => GetResourceString("InstallPluginWarning");
     public string InvertImage => GetResourceString("InvertImage");

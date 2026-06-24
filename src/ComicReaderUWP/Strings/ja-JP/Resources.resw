@@ -548,6 +548,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="ImageProcessing" xml:space="preserve">
     <value>画像処理</value>
   </data>
+  <data name="ImageSaturation" xml:space="preserve">
+    <value>彩度</value>
+  </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>プラグインをインストール</value>
   </data>

@@ -549,6 +549,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ImageProcessing" xml:space="preserve">
     <value>Обработка изображений</value>
   </data>
+  <data name="ImageSaturation" xml:space="preserve">
+    <value>Насыщенность</value>
+  </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>Установить плагин</value>
   </data>

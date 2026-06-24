@@ -322,6 +322,13 @@
                 Minimum="0"
                 StepFrequency="1"
                 ValueChanged="ContrastSlider_ValueChanged" />
+            <readersettings:SliderSettingView
+                x:Name="SaturationSlider"
+                Label="{x:Bind ViewModel.SaturationLabel, Mode=OneWay}"
+                Maximum="100"
+                Minimum="0"
+                StepFrequency="1"
+                ValueChanged="SaturationSlider_ValueChanged" />
             <Grid Margin="0,0,0,8" Style="{StaticResource CommonSettingRowStyle}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

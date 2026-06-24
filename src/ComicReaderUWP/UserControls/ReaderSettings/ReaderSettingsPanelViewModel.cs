@@ -158,6 +158,17 @@ internal partial class ReaderSettingsPanelViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _saturationLabel = string.Empty;
+    public string SaturationLabel
+    {
+        get => _saturationLabel;
+        set
+        {
+            _saturationLabel = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaturationLabel)));
+        }
+    }
+
     private string _invertImageLabel = string.Empty;
     public string InvertImageLabel
     {

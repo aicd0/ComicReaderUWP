@@ -548,6 +548,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="ImageProcessing" xml:space="preserve">
     <value>影像處理</value>
   </data>
+  <data name="ImageSaturation" xml:space="preserve">
+    <value>飽和度</value>
+  </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>安裝外掛程式</value>
   </data>

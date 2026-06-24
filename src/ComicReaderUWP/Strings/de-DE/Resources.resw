@@ -548,6 +548,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="ImageProcessing" xml:space="preserve">
     <value>Bildverarbeitung</value>
   </data>
+  <data name="ImageSaturation" xml:space="preserve">
+    <value>Sättigung</value>
+  </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>Plugin installieren</value>
   </data>

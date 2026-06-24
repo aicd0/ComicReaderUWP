@@ -261,6 +261,16 @@ internal class ReaderImageUpdateScheduler
     {
         ICanvasImage result = bitmap;
 
+        float saturation = source.Settings.Saturation;
+        if (saturation != 1F)
+        {
+            result = new SaturationEffect()
+            {
+                Source = result,
+                Saturation = Math.Clamp(saturation, 0, 1),
+            };
+        }
+
         float contrast = source.Settings.Contrast;
         if (contrast != 0)
         {
