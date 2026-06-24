@@ -2,16 +2,12 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.Imaging;
-using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.UserControls.Reader.Imaging;
 
 namespace ComicReaderUWP.UserControls.Reader;
 
 internal class ReaderImageSource
 {
     public required IImageSource Source { get; init; }
-    public required ImageRotationEnum Rotation { get; init; }
-    public required bool Flip { get; set; }
-    public required float Brightness { get; set; }
-    public required float Contrast { get; set; }
-    public required bool Invert { get; set; }
+    public required ReaderImageSettings Settings { get; init; }
 }

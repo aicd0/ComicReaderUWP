@@ -17,7 +17,7 @@ internal class CompositionItemModel
 
     public int Id { get; } = Interlocked.Increment(ref _idCounter);
     public required RefCounted<AnimatedBitmapModel> BitmapRef { get; init; }
-    public required ReaderImageSource ImageSource { get; init; }
+    public required ReaderImageSource Source { get; init; }
     public required RectangleF CanvasRect { get; init; }
 
     public Matrix3x2 GetTransformMatrix(RectangleF imageRect, out RectangleF destRect)
@@ -28,12 +28,12 @@ internal class CompositionItemModel
             imageRect.X + imageRect.Width / 2.0F,
             imageRect.Y + imageRect.Height / 2.0F);
 
-        if (ImageSource.Flip)
+        if (Source.Settings.Flip)
         {
             transform *= Matrix3x2.CreateScale(-1, 1, center);
         }
 
-        switch (ImageSource.Rotation)
+        switch (Source.Settings.Rotation)
         {
             case ImageRotationEnum.Rotate90:
                 transform *= Matrix3x2.CreateRotation(MathF.PI / 2, center);
@@ -48,7 +48,7 @@ internal class CompositionItemModel
                 break;
         }
 
-        switch (ImageSource.Rotation)
+        switch (Source.Settings.Rotation)
         {
             case ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270:
                 var originTransform = Matrix3x2.CreateRotation(-MathF.PI / 2, center);
