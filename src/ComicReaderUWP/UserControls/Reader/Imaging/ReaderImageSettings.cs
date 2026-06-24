@@ -10,7 +10,8 @@ internal class ReaderImageSettings
     public ImageRotationEnum Rotation { get; set; } = ImageRotationEnum.None;
     public bool Flip { get; set; } = false;
     public double AntiAliasingFilterRatio { get; set; } = 0;
-    public float Brightness { get; set; } = 0.5F;
-    public float Contrast { get; set; } = 0.5F;
+    public float Brightness { get; set; } = 0;
+    public float Contrast { get; set; } = 0;
+    public float Saturation { get; set; } = 1F;
     public bool Invert { get; set; } = false;
 }

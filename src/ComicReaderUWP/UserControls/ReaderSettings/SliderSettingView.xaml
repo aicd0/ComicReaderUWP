@@ -17,11 +17,7 @@
             <ColumnDefinition x:Name="Column0" Width="Auto" />
             <ColumnDefinition x:Name="Column1" Width="12" />
             <ColumnDefinition x:Name="Column2" Width="*" />
-            <ColumnDefinition
-                x:Name="Column3"
-                Width="10000*"
-                MinWidth="120"
-                MaxWidth="140" />
+            <ColumnDefinition x:Name="Column3" Width="140" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
@@ -81,8 +77,6 @@
                         <Setter Target="Column0.Width" Value="*" />
                         <Setter Target="Column1.Width" Value="0" />
                         <Setter Target="Column2.Width" Value="0" />
-                        <Setter Target="Column3.MinWidth" Value="0" />
-                        <Setter Target="Column3.MaxWidth" Value="Infinity" />
                         <Setter Target="Column3.Width" Value="Auto" />
                         <Setter Target="Row1.Height" Value="30" />
                         <Setter Target="ExpandIcon.Glyph" Value="&#xE70D;" />

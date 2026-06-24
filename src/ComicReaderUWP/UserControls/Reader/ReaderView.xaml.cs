@@ -344,6 +344,18 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
+    public void SetImageSaturation(float saturation)
+    {
+        if (saturation == _imageSettings.Saturation)
+        {
+            return;
+        }
+
+        _imageSettings.Saturation = saturation;
+        _uiStateUpdatedNeedReloadImages = true;
+        UpdateUI();
+    }
+
     public void SetImageInvert(bool invert)
     {
         if (invert == _imageSettings.Invert)

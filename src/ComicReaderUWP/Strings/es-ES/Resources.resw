@@ -548,6 +548,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="ImageProcessing" xml:space="preserve">
     <value>Procesamiento de imágenes</value>
   </data>
+  <data name="ImageSaturation" xml:space="preserve">
+    <value>Saturación</value>
+  </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>Instalar complemento</value>
   </data>

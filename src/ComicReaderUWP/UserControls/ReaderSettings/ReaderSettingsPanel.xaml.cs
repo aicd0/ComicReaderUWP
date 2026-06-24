@@ -196,6 +196,12 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         NotifySettingsChanged();
     }
 
+    private void SaturationSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        _comicSettings.SaturationPercentage = Math.Clamp((int)e.NewValue, 0, 100);
+        NotifySettingsChanged();
+    }
+
     private void InvertImageToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
         _comicSettings.ImageInvert = InvertImageToggleSwitch.IsOn;
@@ -419,6 +425,14 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 ContrastSlider.Value = Math.Clamp(comicSettings.ContrastPercentage, 0, 100);
                 ContrastSlider.DefaultValue = presetSettings.ContrastPercentage;
                 ViewModel.ContrastLabel = GetLabel(StringResource.ImageContrast, modified);
+            }
+
+            {
+                bool modified = comicSettings.SaturationPercentage != presetSettings.SaturationPercentage;
+                tabModified = tabModified || modified;
+                SaturationSlider.Value = Math.Clamp(comicSettings.SaturationPercentage, 0, 100);
+                SaturationSlider.DefaultValue = presetSettings.SaturationPercentage;
+                ViewModel.SaturationLabel = GetLabel(StringResource.ImageSaturation, modified);
             }
 
             {

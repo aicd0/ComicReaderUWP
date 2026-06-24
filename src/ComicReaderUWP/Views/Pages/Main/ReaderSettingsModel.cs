@@ -66,6 +66,7 @@ internal class ReaderSettingsModel
             AntiAliasingFilterPercentage = model.AntiAliasingFilterPercentage ?? defaultModel.AntiAliasingFilterPercentage,
             BrightnessPercentage = model.BrightnessPercentage ?? defaultModel.BrightnessPercentage,
             ContrastPercentage = model.ContrastPercentage ?? defaultModel.ContrastPercentage,
+            SaturationPercentage = model.SaturationPercentage ?? defaultModel.SaturationPercentage,
             ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
         };
     }
@@ -178,6 +179,7 @@ internal class ReaderSettingsModel
     public int AntiAliasingFilterPercentage { get; set; } = 0;
     public int BrightnessPercentage { get; set; } = 50;
     public int ContrastPercentage { get; set; } = 50;
+    public int SaturationPercentage { get; set; } = 100;
     public bool ImageInvert { get; set; } = false;
 
     public bool IsContinuous
@@ -238,6 +240,7 @@ internal class ReaderSettingsModel
             AntiAliasingFilterPercentage == other.AntiAliasingFilterPercentage &&
             BrightnessPercentage == other.BrightnessPercentage &&
             ContrastPercentage == other.ContrastPercentage &&
+            SaturationPercentage == other.SaturationPercentage &&
             ImageInvert == other.ImageInvert;
     }
 
@@ -260,6 +263,7 @@ internal class ReaderSettingsModel
         hash.Add(AntiAliasingFilterPercentage);
         hash.Add(BrightnessPercentage);
         hash.Add(ContrastPercentage);
+        hash.Add(SaturationPercentage);
         hash.Add(ImageInvert);
         return hash.ToHashCode();
     }
@@ -308,6 +312,7 @@ internal class ReaderSettingsModel
             AntiAliasingFilterPercentage = AntiAliasingFilterPercentage,
             BrightnessPercentage = BrightnessPercentage,
             ContrastPercentage = ContrastPercentage,
+            SaturationPercentage = SaturationPercentage,
             ImageInvert = ImageInvert,
         };
     }
@@ -367,6 +372,9 @@ internal class ReaderSettingsModel
 
         [JsonPropertyName("ContrastPercentage")]
         public int? ContrastPercentage { get; set; }
+
+        [JsonPropertyName("SaturationPercentage")]
+        public int? SaturationPercentage { get; set; }
 
         [JsonPropertyName("ImageInvert")]
         public bool? ImageInvert { get; set; }

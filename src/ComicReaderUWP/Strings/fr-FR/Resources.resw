@@ -548,6 +548,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="ImageProcessing" xml:space="preserve">
     <value>Traitement d’images</value>
   </data>
+  <data name="ImageSaturation" xml:space="preserve">
+    <value>Saturation</value>
+  </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>Installer le module</value>
   </data>

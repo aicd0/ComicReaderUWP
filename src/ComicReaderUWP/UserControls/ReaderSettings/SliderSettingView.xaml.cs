@@ -158,7 +158,7 @@ internal sealed partial class SliderSettingView : BaseUserControl
     private void LabelStackPanel_Tapped(object sender, TappedRoutedEventArgs e)
     {
         bool isOneRow = !_isOneRow;
-        if (VisualStateManager.GoToState(this, isOneRow ? "OneRow" : "TwoRows", true))
+        if (VisualStateManager.GoToState(this, isOneRow ? "OneRow" : "TwoRows", false))
         {
             _isOneRow = isOneRow;
             UpdateRestoreButtonVisibility();

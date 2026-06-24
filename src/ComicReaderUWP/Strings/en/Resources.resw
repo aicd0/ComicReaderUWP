@@ -550,6 +550,9 @@ The evaluation will be performed in the following order:
   <data name="ImageProcessing" xml:space="preserve">
     <value>Image Processing</value>
   </data>
+  <data name="ImageSaturation" xml:space="preserve">
+    <value>Saturation</value>
+  </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>Install plugin</value>
   </data>
