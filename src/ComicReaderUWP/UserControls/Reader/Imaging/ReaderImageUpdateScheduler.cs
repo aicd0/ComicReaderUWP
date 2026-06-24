@@ -234,7 +234,7 @@ internal class ReaderImageUpdateScheduler
 
                     CanvasBitmap frameBitmap = bitmapModel.GetFrameBitmap(frameIndex);
                     ds.DrawImage(
-                        CreateCanvasImage(frameBitmap, item.ImageSource),
+                        CreateCanvasImage(frameBitmap, item.Source),
                         new Windows.Foundation.Rect(destRect.X, destRect.Y, destRect.Width, destRect.Height),
                         new Windows.Foundation.Rect(0, 0, bitmapModel.SizeInPixels.Width, bitmapModel.SizeInPixels.Height),
                         1F,
@@ -261,7 +261,7 @@ internal class ReaderImageUpdateScheduler
     {
         ICanvasImage result = bitmap;
 
-        float contrast = source.Contrast;
+        float contrast = source.Settings.Contrast;
         if (contrast != 0)
         {
             result = new ContrastEffect()
@@ -271,7 +271,7 @@ internal class ReaderImageUpdateScheduler
             };
         }
 
-        if (source.Invert)
+        if (source.Settings.Invert)
         {
             result = new InvertEffect()
             {
@@ -279,7 +279,7 @@ internal class ReaderImageUpdateScheduler
             };
         }
 
-        float brightness = source.Brightness;
+        float brightness = source.Settings.Brightness;
         if (brightness != 0)
         {
             if (float.IsPositive(brightness))

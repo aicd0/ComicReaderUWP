@@ -62,7 +62,7 @@ internal partial class ReaderView : UserControl
     private bool _isLeftToRight = true;
     private bool _useOriginalSize = false;
     private int _pageGap = 100;
-    private readonly ImageSettings _imageSettings = new();
+    private readonly ReaderImageSettings _imageSettings = new();
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
     private bool _uiStateUpdatedFlowDirection = true;
@@ -303,14 +303,6 @@ internal partial class ReaderView : UserControl
         }
 
         _imageSettings.Flip = flip;
-        foreach (PageModel? item in _pageModels)
-        {
-            if (item is not null)
-            {
-                item.Image.Flip = flip;
-            }
-        }
-
         _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }
@@ -336,14 +328,6 @@ internal partial class ReaderView : UserControl
         }
 
         _imageSettings.Brightness = brightness;
-        foreach (PageModel? item in _pageModels)
-        {
-            if (item is not null)
-            {
-                item.Image.Brightness = brightness;
-            }
-        }
-
         _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }
@@ -356,14 +340,6 @@ internal partial class ReaderView : UserControl
         }
 
         _imageSettings.Contrast = contrast;
-        foreach (PageModel? item in _pageModels)
-        {
-            if (item is not null)
-            {
-                item.Image.Contrast = contrast;
-            }
-        }
-
         _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }
@@ -376,14 +352,6 @@ internal partial class ReaderView : UserControl
         }
 
         _imageSettings.Invert = invert;
-        foreach (PageModel? item in _pageModels)
-        {
-            if (item is not null)
-            {
-                item.Image.Invert = invert;
-            }
-        }
-
         _uiStateUpdatedNeedReloadImages = true;
         UpdateUI();
     }
@@ -852,18 +820,14 @@ internal partial class ReaderView : UserControl
         ReaderImageSource imageSourceModel = new()
         {
             Source = source,
-            Rotation = _imageSettings.Rotation,
-            Flip = _imageSettings.Flip,
-            Brightness = _imageSettings.Brightness,
-            Contrast = _imageSettings.Contrast,
-            Invert = _imageSettings.Invert,
+            Settings = _imageSettings,
         };
-        int imageWidth = imageSourceModel.Rotation switch
+        int imageWidth = imageSourceModel.Settings.Rotation switch
         {
             ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => originalHeight,
             _ => originalWidth,
         };
-        int imageHeight = imageSourceModel.Rotation switch
+        int imageHeight = imageSourceModel.Settings.Rotation switch
         {
             ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => originalWidth,
             _ => originalHeight,
@@ -3336,16 +3300,6 @@ internal partial class ReaderView : UserControl
         string? ReadConfiguration(string key);
 
         void WriteConfiguration(string key, string value);
-    }
-
-    private class ImageSettings
-    {
-        public ImageRotationEnum Rotation = ImageRotationEnum.None;
-        public bool Flip = false;
-        public double AntiAliasingFilterRatio = 0;
-        public float Brightness = 0.5F;
-        public float Contrast = 0.5F;
-        public bool Invert = false;
     }
 
     private class PageModel

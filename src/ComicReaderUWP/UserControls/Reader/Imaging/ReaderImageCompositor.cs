@@ -645,7 +645,7 @@ internal partial class ReaderImageCompositor : IDisposable
             compositionItems.Add(new()
             {
                 BitmapRef = item.BitmapRef,
-                ImageSource = item.Source,
+                Source = item.Source,
                 CanvasRect = item.CanvasRect,
             });
         }
@@ -688,13 +688,13 @@ internal partial class ReaderImageCompositor : IDisposable
         public required Size ImageSize { get; init; }
         public RectangleF CanvasRect { get; set; }
 
-        public int ImageWidth => Source.Rotation switch
+        public int ImageWidth => Source.Settings.Rotation switch
         {
             ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => ImageSize.Height,
             _ => ImageSize.Width,
         };
 
-        public int ImageHeight => Source.Rotation switch
+        public int ImageHeight => Source.Settings.Rotation switch
         {
             ImageRotationEnum.Rotate90 or ImageRotationEnum.Rotate270 => ImageSize.Width,
             _ => ImageSize.Height,
