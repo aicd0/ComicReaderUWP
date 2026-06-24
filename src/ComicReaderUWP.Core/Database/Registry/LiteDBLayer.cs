@@ -50,8 +50,8 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
             yield break;
         }
 
-        HashSet<string> parentPaths = [path];
-        HashSet<string> nextParentPaths = [];
+        List<string> parentPaths = [path];
+        List<string> nextParentPaths = [];
         while (parentPaths.Count > 0)
         {
             foreach (string parentPath in parentPaths)
@@ -81,28 +81,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
         ILiteCollection<RegistryKeyDocument> keysCollection = GetKeysCollection();
         lock (_keyCache)
         {
-            if (_keyCache.TryGetValue(path, out key) && key is not null)
-            {
-                return key;
-            }
-
-            RegistryKeyDocument? keyDocument = keysCollection.FindOne(x => x.Path == path);
-            if (keyDocument is null)
-            {
-                string parentPath = GetParentPath(path);
-                EnsurePath(keysCollection, parentPath);
-                keyDocument = new()
-                {
-                    Path = path,
-                    ParentPath = parentPath,
-                    CollectionName = GenerateCollectionName(),
-                };
-                keysCollection.Insert(keyDocument);
-            }
-
-            key = new(this, keyDocument.CollectionName);
-            _keyCache[path] = key;
-            return key;
+            return CreateKeyNoLock(keysCollection, path);
         }
     }
 
@@ -120,24 +99,9 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
         ILiteCollection<RegistryKeyDocument> keysCollection = GetKeysCollection();
         lock (_keyCache)
         {
-            if (_keyCache.TryGetValue(path, out cachedKey))
-            {
-                key = cachedKey;
-                return key is not null;
-            }
-
-            RegistryKeyDocument? keyDocument = keysCollection.FindOne(x => x.Path == path);
-            if (keyDocument is null)
-            {
-                _keyCache[path] = null;
-                key = null;
-                return false;
-            }
-
-            cachedKey = new(this, keyDocument.CollectionName);
-            _keyCache[path] = cachedKey;
-            key = cachedKey;
-            return true;
+            bool result = TryGetKeyNoLock(keysCollection, path, out RegistryKey? internalKey);
+            key = internalKey;
+            return result;
         }
     }
 
@@ -161,8 +125,8 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
                 return false;
             }
 
-            HashSet<RegistryKeyDocument> parentDocs = [keyDocument];
-            HashSet<RegistryKeyDocument> nextParentDocs = [];
+            List<RegistryKeyDocument> parentDocs = [keyDocument];
+            List<RegistryKeyDocument> nextParentDocs = [];
             while (parentDocs.Count > 0)
             {
                 foreach (RegistryKeyDocument parentDoc in parentDocs)
@@ -181,6 +145,110 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
 
             return true;
         }
+    }
+
+    public void CopyTree(string srcPath, string dstPath)
+    {
+        ArgumentNullException.ThrowIfNull(srcPath, nameof(srcPath));
+        srcPath = NormalizePath(srcPath);
+        ArgumentNullException.ThrowIfNull(dstPath, nameof(dstPath));
+        dstPath = NormalizePath(dstPath);
+
+        ILiteCollection<RegistryKeyDocument> keysCollection = GetKeysCollection();
+
+        lock (_keyCache)
+        {
+            RegistryKeyDocument? srcDoc = keysCollection.FindOne(x => x.Path == srcPath) ??
+                throw new InvalidOperationException($"Registry key '{srcPath}' not found.");
+
+            RegistryKeyDocument? existingDst = keysCollection.FindOne(x => x.Path == dstPath);
+            if (existingDst is not null)
+            {
+                throw new InvalidOperationException($"Registry key '{dstPath}' already exists.");
+            }
+
+            List<RegistryKeyDocument> toCopy = [];
+
+            List<RegistryKeyDocument> parentDocs = [srcDoc];
+            List<RegistryKeyDocument> nextParentDocs = [];
+            while (parentDocs.Count > 0)
+            {
+                foreach (RegistryKeyDocument parentDoc in parentDocs)
+                {
+                    toCopy.Add(parentDoc);
+                    foreach (RegistryKeyDocument child in keysCollection.Find(x => x.ParentPath == parentDoc.Path))
+                    {
+                        nextParentDocs.Add(child);
+                    }
+                }
+
+                (parentDocs, nextParentDocs) = (nextParentDocs, parentDocs);
+                nextParentDocs.Clear();
+            }
+
+            foreach (RegistryKeyDocument doc in toCopy)
+            {
+                if (!TryGetKeyNoLock(keysCollection, doc.Path, out RegistryKey? srcKey))
+                {
+                    throw new InvalidOperationException($"Registry key '{doc.Path}' not found.");
+                }
+
+                string newPath = dstPath + doc.Path[srcPath.Length..];
+                RegistryKey dstKey = CreateKeyNoLock(keysCollection, newPath);
+
+                srcKey.CopyTo(dstKey);
+            }
+        }
+    }
+
+    private bool TryGetKeyNoLock(ILiteCollection<RegistryKeyDocument> keysCollection, string path, [NotNullWhen(true)] out RegistryKey? key)
+    {
+        if (_keyCache.TryGetValue(path, out RegistryKey? cachedKey))
+        {
+            key = cachedKey;
+            return key is not null;
+        }
+
+        RegistryKeyDocument? keyDocument = keysCollection.FindOne(x => x.Path == path);
+        if (keyDocument is null)
+        {
+            _keyCache[path] = null;
+            key = null;
+            return false;
+        }
+
+        cachedKey = new(this, keyDocument.CollectionName);
+        _keyCache[path] = cachedKey;
+        key = cachedKey;
+        return true;
+    }
+
+    private RegistryKey CreateKeyNoLock(ILiteCollection<RegistryKeyDocument> keysCollection, string path)
+    {
+        if (_keyCache.TryGetValue(path, out RegistryKey? key) && key is not null)
+        {
+            return key;
+        }
+
+        RegistryKeyDocument? keyDocument = keysCollection.FindOne(x => x.Path == path);
+        if (keyDocument is null)
+        {
+            string parentPath = GetParentPath(path);
+
+            EnsurePath(keysCollection, parentPath);
+
+            keyDocument = new()
+            {
+                Path = path,
+                ParentPath = parentPath,
+                CollectionName = GenerateCollectionName(),
+            };
+            keysCollection.Insert(keyDocument);
+        }
+
+        key = new(this, keyDocument.CollectionName);
+        _keyCache[path] = key;
+        return key;
     }
 
     private ILiteCollection<RegistryKeyDocument> GetKeysCollection()
@@ -253,7 +321,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
             referencedCollections.Add(keyDocument.CollectionName);
         }
 
-        parentPaths.Remove("");
+        parentPaths.Remove(string.Empty);
         foreach (string parentPath in parentPaths)
         {
             if (!keys.Contains(parentPath))
@@ -357,7 +425,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
 
     private static void EnsurePath(ILiteCollection<RegistryKeyDocument> keysCollection, string path)
     {
-        while (path != "")
+        while (path != string.Empty)
         {
             RegistryKeyDocument? key = keysCollection.FindOne(x => x.Path == path);
             if (key is not null)
@@ -381,7 +449,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
     {
         if (!PathRegex().IsMatch(path))
         {
-            throw new ArgumentException($"Invalid path '{path}'");
+            throw new ArgumentException($"Invalid path '{path}'.");
         }
 
         return path;
@@ -517,6 +585,17 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
 
             ILiteCollection<RegistryEntryDocument> collection = _collection.Value;
             return collection.Delete(key);
+        }
+
+        public void CopyTo(RegistryKey dstKey)
+        {
+            ILiteCollection<RegistryEntryDocument> srcCollection = _collection.Value;
+            ILiteCollection<RegistryEntryDocument> dstCollection = dstKey._collection.Value;
+
+            foreach (RegistryEntryDocument doc in srcCollection.FindAll())
+            {
+                dstCollection.Upsert(doc);
+            }
         }
     }
 

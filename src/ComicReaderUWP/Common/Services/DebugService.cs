@@ -33,7 +33,7 @@ internal class DebugService : IDebugService
     {
         if (command == "dev_tools")
         {
-            MainWindow.Open(url: RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
+            MainWindow.Open(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
             return true;
         }
 
