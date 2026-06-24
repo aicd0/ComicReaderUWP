@@ -822,6 +822,9 @@ $plugins</value>
   <data name="ResetAllSettingsMessage" xml:space="preserve">
     <value>Tous les réglages seront restaurés à leur état par défaut. Vos données utilisateur seront conservées.</value>
   </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Restaurer</value>
+  </data>
   <data name="RestoreLastReadingPosition" xml:space="preserve">
     <value>Restaurer la dernière position de lecture</value>
   </data>

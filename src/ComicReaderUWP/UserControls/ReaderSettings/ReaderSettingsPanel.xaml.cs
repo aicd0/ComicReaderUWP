@@ -306,7 +306,8 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicLayoutSettings.CoverPageCount != presetLayoutSettings.CoverPageCount;
                 tabModified = tabModified || modified;
                 CoverPageCountSlider.Value = Math.Clamp(comicLayoutSettings.CoverPageCount, 0, 2);
-                CoverPageCountGrid.Visibility = comicLayoutSettings.TwoPageMode ? Visibility.Visible : Visibility.Collapsed;
+                CoverPageCountSlider.DefaultValue = presetLayoutSettings.CoverPageCount;
+                CoverPageCountSlider.Visibility = comicLayoutSettings.TwoPageMode ? Visibility.Visible : Visibility.Collapsed;
                 ViewModel.CoverPageCountLabel = GetLabel(StringResource.CoverPageCount, modified);
             }
 
@@ -356,6 +357,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicSettings.PageSpacing != presetSettings.PageSpacing;
                 tabModified = tabModified || modified;
                 PageSpacingSlider.Value = Math.Clamp(comicSettings.PageSpacing, 0, 200);
+                PageSpacingSlider.DefaultValue = presetSettings.PageSpacing;
                 ViewModel.PageSpacingLabel = GetLabel(StringResource.PageSpacing, modified);
             }
 
@@ -363,6 +365,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicSettings.AutoScrollSpeed != presetSettings.AutoScrollSpeed;
                 tabModified = tabModified || modified;
                 AutoScrollingSlider.Value = Math.Clamp(comicSettings.AutoScrollSpeed, 0, 100);
+                AutoScrollingSlider.DefaultValue = presetSettings.AutoScrollSpeed;
                 ViewModel.AutoScrollingLabel = GetLabel(StringResource.AutoScrolling, modified);
             }
 
@@ -398,6 +401,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicSettings.AntiAliasingFilterPercentage != presetSettings.AntiAliasingFilterPercentage;
                 tabModified = tabModified || modified;
                 AntiAliasingFilterSlider.Value = Math.Clamp(comicSettings.AntiAliasingFilterPercentage, 0, 200);
+                AntiAliasingFilterSlider.DefaultValue = presetSettings.AntiAliasingFilterPercentage;
                 ViewModel.AntiAliasingFilterLabel = GetLabel(StringResource.AntiAliasingFilter, modified);
             }
 
@@ -405,6 +409,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicSettings.BrightnessPercentage != presetSettings.BrightnessPercentage;
                 tabModified = tabModified || modified;
                 BrightnessSlider.Value = Math.Clamp(comicSettings.BrightnessPercentage, 0, 100);
+                BrightnessSlider.DefaultValue = presetSettings.BrightnessPercentage;
                 ViewModel.BrightnessLabel = GetLabel(StringResource.ImageBrightness, modified);
             }
 
@@ -412,6 +417,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicSettings.ContrastPercentage != presetSettings.ContrastPercentage;
                 tabModified = tabModified || modified;
                 ContrastSlider.Value = Math.Clamp(comicSettings.ContrastPercentage, 0, 100);
+                ContrastSlider.DefaultValue = presetSettings.ContrastPercentage;
                 ViewModel.ContrastLabel = GetLabel(StringResource.ImageContrast, modified);
             }
 
