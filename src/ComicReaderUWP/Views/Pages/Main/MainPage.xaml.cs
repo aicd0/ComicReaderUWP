@@ -19,6 +19,7 @@ using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
+using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.Views.AppWindows.Main;
 using ComicReaderUWP.Views.Pages.Main.Sidebar;
 
@@ -85,7 +86,7 @@ internal sealed partial class MainPage : BasePage
     public void Open(Route route, string targetTabId, string initiateTabId)
     {
         MainThreadUtils.AssertOnMainThread();
-        LoadTabNoLock(route, targetTabId, initiateTabId: initiateTabId);
+        LoadTabNoLock(route, targetTabId: targetTabId, initiateTabId: initiateTabId);
     }
 
     public void CloseAllTabs()
@@ -129,49 +130,26 @@ internal sealed partial class MainPage : BasePage
     {
         MainThreadUtils.AssertOnMainThread();
 
-        TabStatusModel? model = null;
         if (jsonModel is not null)
         {
-            model = new();
             if (jsonModel.Tabs is not null)
             {
-                foreach (TabJsonModel? tab in jsonModel.Tabs)
+                for (int i = 0; i < jsonModel.Tabs.Count; i++)
                 {
+                    TabJsonModel? tab = jsonModel.Tabs[i];
                     if (tab is null || string.IsNullOrEmpty(tab.Id) || string.IsNullOrEmpty(tab.Url))
                     {
                         continue;
                     }
 
-                    model.Tabs.Add(new TabModel
-                    {
-                        Id = tab.Id,
-                        Url = tab.Url,
-                    });
+                    var route = Route.Create(tab.Url);
+                    LoadTabNoLock(
+                        route,
+                        targetTabId: string.Empty,
+                        selectTab: i == jsonModel.SelectedIndex,
+                        newTabId: tab.Id,
+                        oldTabId: tab.OldTabId ?? string.Empty);
                 }
-            }
-
-            if (model.Tabs.Count == 0)
-            {
-                model = null;
-            }
-            else
-            {
-                model.SelectedIndex = Math.Clamp(jsonModel.SelectedIndex, 0, model.Tabs.Count - 1);
-            }
-        }
-
-        if (model is not null)
-        {
-            for (int i = 0; i < model.Tabs.Count; ++i)
-            {
-                TabModel tab = model.Tabs[i];
-                if (string.IsNullOrEmpty(tab.Url))
-                {
-                    continue;
-                }
-
-                var route = Route.Create(tab.Url);
-                LoadTabNoLock(route, string.Empty, selectTab: i == model.SelectedIndex, newTabId: tab.Id);
             }
         }
 
@@ -461,11 +439,17 @@ internal sealed partial class MainPage : BasePage
         if (_tabs.Count == 0)
         {
             var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-            LoadTabNoLock(route, string.Empty);
+            LoadTabNoLock(route);
         }
     }
 
-    private bool LoadTabNoLock(Route route, string targetTabId, bool selectTab = true, string initiateTabId = "", string newTabId = "")
+    private bool LoadTabNoLock(
+        Route route,
+        string targetTabId = "",
+        string initiateTabId = "",
+        string newTabId = "",
+        string oldTabId = "",
+        bool selectTab = true)
     {
         PageNavigationBundle? bundle = AppRouter.Process(route);
         if (bundle is null)
@@ -501,6 +485,16 @@ internal sealed partial class MainPage : BasePage
         {
             Logger.F(TAG, $"Failed to find tab info for ID {targetTabId}");
             return false;
+        }
+
+        if (newTab && !string.IsNullOrEmpty(oldTabId))
+        {
+            string oldTabRegistry = $"{RegistryNames.TAB_RESOURCES}/{oldTabId}";
+            string newTabRegistry = $"{RegistryNames.TAB_RESOURCES}/{tabInfo.Id}";
+            if (AppDB.MainRegistry.TryGetKey(oldTabRegistry, out IRegistryKey? _))
+            {
+                AppDB.MainRegistry.CopyTree(oldTabRegistry, newTabRegistry);
+            }
         }
 
         if (selectTab)
@@ -656,7 +650,7 @@ internal sealed partial class MainPage : BasePage
     private void OnAddTabButtonClicked(TabView sender, object args)
     {
         var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-        LoadTabNoLock(route, string.Empty);
+        LoadTabNoLock(route);
     }
 
     private void OnTabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
@@ -681,7 +675,7 @@ internal sealed partial class MainPage : BasePage
                 case AppSettingsModel.CloseLastTabBehaviorEnum.OpenHomePage:
                     {
                         var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-                        LoadTabNoLock(route, string.Empty);
+                        LoadTabNoLock(route);
                     }
                     break;
                 default:
@@ -763,7 +757,7 @@ internal sealed partial class MainPage : BasePage
             if (sourceWindowId != WindowId)
             {
                 App.Instance.WindowManager.GetEventBus(sourceWindowId).With<string>(EventId.CloseTab).Emit(sourceTabId);
-                LoadTabNoLock(Route.Create(url), string.Empty);
+                LoadTabNoLock(Route.Create(url), oldTabId: sourceTabId);
                 EnsureInitialTabNoLock();
             }
 
@@ -811,7 +805,7 @@ internal sealed partial class MainPage : BasePage
             }
         }
 
-        if (removingTab == null)
+        if (removingTab is null)
         {
             Logger.AssertNotReachHere("F40D97E40039ADF7");
             return;
@@ -824,7 +818,7 @@ internal sealed partial class MainPage : BasePage
 
         _tabs.Remove(removingTab);
         RootTabView.TabItems.Remove(removingTab.Item);
-        MainWindow.Open(url: removingTab.CurrentBundle.Url);
+        MainWindow.Open(removingTab.CurrentBundle.Url, oldTabId: removingTab.Id);
     }
 
     private void OnPageChanged()
@@ -1327,7 +1321,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTabNoLock(route, _tabId, initiateTabId: _tabId);
+            parent.LoadTabNoLock(route, targetTabId: _tabId, initiateTabId: _tabId);
         }
 
         public override void OpenInNewTab(Route route)
@@ -1337,7 +1331,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTabNoLock(route, string.Empty, initiateTabId: _tabId);
+            parent.LoadTabNoLock(route, initiateTabId: _tabId);
         }
 
         public void RegisterRefreshHandler(ILifecycleOwner owner, IMainPageAbilityForTab.CommonEventHandler handler)
@@ -1495,7 +1489,7 @@ internal sealed partial class MainPage : BasePage
             }
 
             string currentTabId = parent._currentTab?.Id ?? string.Empty;
-            parent.LoadTabNoLock(route, tabInfo.Id, initiateTabId: currentTabId);
+            parent.LoadTabNoLock(route, targetTabId: tabInfo.Id, initiateTabId: currentTabId);
         }
 
         public override void OpenInNewTab(Route route)
@@ -1506,7 +1500,7 @@ internal sealed partial class MainPage : BasePage
             }
 
             string currentTabId = parent._currentTab?.Id ?? string.Empty;
-            parent.LoadTabNoLock(route, string.Empty, initiateTabId: currentTabId);
+            parent.LoadTabNoLock(route, initiateTabId: currentTabId);
         }
     }
 
@@ -1574,22 +1568,6 @@ internal sealed partial class MainPage : BasePage
 
         [JsonPropertyName("Tabs")]
         public List<TabJsonModel?>? Tabs { get; set; }
-
-        public static LastTabStatusJsonModel FromUrl(string url)
-        {
-            return new LastTabStatusJsonModel
-            {
-                SelectedIndex = 0,
-                Tabs =
-                [
-                    new()
-                    {
-                        Id = CreateNewTabId(),
-                        Url = url,
-                    }
-                ]
-            };
-        }
     }
 
     public class TabJsonModel
@@ -1599,18 +1577,17 @@ internal sealed partial class MainPage : BasePage
 
         [JsonPropertyName("Url")]
         public string? Url { get; set; }
-    }
 
-    private class TabStatusModel
-    {
-        public int SelectedIndex { get; set; } = -1;
-        public List<TabModel> Tabs { get; set; } = [];
-    }
+        [JsonPropertyName("OldTabId")]
+        public string? OldTabId { get; set; }
 
-    private class TabModel
-    {
-        public required string Id { get; init; }
-        public required string Url { get; set; }
+        public static TabJsonModel Create()
+        {
+            return new()
+            {
+                Id = CreateNewTabId(),
+            };
+        }
     }
 
     public interface ITabInfo

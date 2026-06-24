@@ -14,4 +14,6 @@ public interface IRegistryDatabase : IDisposable
     bool TryGetKey(string path, [NotNullWhen(true)] out IRegistryKey? key);
 
     bool RemoveKey(string path);
+
+    void CopyTree(string srcPath, string dstPath);
 }

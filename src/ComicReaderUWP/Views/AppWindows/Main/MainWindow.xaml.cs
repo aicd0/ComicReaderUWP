@@ -50,9 +50,22 @@ internal sealed partial class MainWindow : Window
         window.Activate();
     }
 
-    public static void Open(string url, bool restorePlacement = false)
+    public static void Open(string url, string oldTabId = "", bool restorePlacement = false)
     {
-        MainWindow window = new(WindowStatusModel.FromUrl(url), restorePlacement);
+        var tab = MainPage.TabJsonModel.Create();
+        tab.Url = url;
+        tab.OldTabId = oldTabId;
+        WindowStatusModel windowStatus = new()
+        {
+            Fullscreen = false,
+            WindowPlacement = null,
+            TabStatus = new()
+            {
+                SelectedIndex = 0,
+                Tabs = [tab],
+            },
+        };
+        MainWindow window = new(windowStatus, restorePlacement);
         window.Activate();
     }
 
@@ -591,15 +604,5 @@ internal sealed partial class MainWindow : Window
 
         [JsonPropertyName("TabStatus")]
         public MainPage.LastTabStatusJsonModel? TabStatus { get; init; }
-
-        public static WindowStatusModel FromUrl(string url)
-        {
-            return new WindowStatusModel
-            {
-                Fullscreen = false,
-                WindowPlacement = null,
-                TabStatus = MainPage.LastTabStatusJsonModel.FromUrl(url)
-            };
-        }
     }
 }
