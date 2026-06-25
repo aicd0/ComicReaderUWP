@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace ComicReaderUWP.Data.Models.Misc;
@@ -14,48 +12,9 @@ internal class PageLayoutSettings
     public bool SwapLeftAndRightPages { get; set; } = false;
     public bool SpreadDetection { get; set; } = false;
 
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        if (obj is not PageLayoutSettings other)
-        {
-            return false;
-        }
-
-        return
-            TwoPageMode == other.TwoPageMode &&
-            CoverPageCount == other.CoverPageCount &&
-            SwapLeftAndRightPages == other.SwapLeftAndRightPages &&
-            SpreadDetection == other.SpreadDetection;
-    }
-
-    public override int GetHashCode()
-    {
-        var hash = new HashCode();
-        hash.Add(TwoPageMode);
-        hash.Add(CoverPageCount);
-        hash.Add(SwapLeftAndRightPages);
-        hash.Add(SpreadDetection);
-        return hash.ToHashCode();
-    }
-
     public PageLayoutSettings Clone()
     {
         return (PageLayoutSettings)MemberwiseClone();
-    }
-
-    public static bool operator ==(PageLayoutSettings? left, PageLayoutSettings? right)
-    {
-        return EqualityComparer<PageLayoutSettings>.Default.Equals(left, right);
-    }
-
-    public static bool operator !=(PageLayoutSettings? left, PageLayoutSettings? right)
-    {
-        return !(left == right);
     }
 
     public JsonModel ToJsonModel()
@@ -69,22 +28,22 @@ internal class PageLayoutSettings
         };
     }
 
-    public static PageLayoutSettings FromJsonModel(JsonModel? jsonModel)
+    public static PageLayoutSettings FromJsonModel(JsonModel? model, PageLayoutSettings? fallbackModel = null)
     {
-        var defaultModel = new PageLayoutSettings();
+        fallbackModel ??= new PageLayoutSettings();
 
-        if (jsonModel is null)
+        if (model is null)
         {
-            return defaultModel;
+            return fallbackModel;
         }
 
-        int? legacyCoverPageCount = jsonModel.EnableCover.HasValue ? (jsonModel.EnableCover.Value ? 1 : 0) : null;
+        int? legacyCoverPageCount = model.EnableCover.HasValue ? (model.EnableCover.Value ? 1 : 0) : null;
         return new()
         {
-            TwoPageMode = jsonModel.TwoPageMode ?? defaultModel.TwoPageMode,
-            CoverPageCount = jsonModel.CoverPageCount ?? legacyCoverPageCount ?? defaultModel.CoverPageCount,
-            SwapLeftAndRightPages = jsonModel.SwapLeftAndRightPages ?? defaultModel.SwapLeftAndRightPages,
-            SpreadDetection = jsonModel.SpreadDetection ?? defaultModel.SpreadDetection,
+            TwoPageMode = model.TwoPageMode ?? fallbackModel.TwoPageMode,
+            CoverPageCount = model.CoverPageCount ?? legacyCoverPageCount ?? fallbackModel.CoverPageCount,
+            SwapLeftAndRightPages = model.SwapLeftAndRightPages ?? fallbackModel.SwapLeftAndRightPages,
+            SpreadDetection = model.SpreadDetection ?? fallbackModel.SpreadDetection,
         };
     }
 

@@ -1,9 +1,10 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Localization;
@@ -28,45 +29,43 @@ internal class ReaderSettingsModel
         };
     }
 
-    public static ReaderSettingsModel FromJsonModel(string key, JsonModel? model)
+    public static ReaderSettingsModel FromJsonModel(string key, JsonModel? model, ReaderSettingsModel? fallbackModel = null)
     {
-        ReaderSettingsModel defaultModel = new()
-        {
-            PresetKey = key,
-        };
+        fallbackModel ??= new();
+        fallbackModel.PresetKey = key;
 
         if (model is null)
         {
-            return defaultModel;
+            return fallbackModel;
         }
 
         return new()
         {
             PresetKey = key,
-            PresetName = model.PresetName ?? defaultModel.PresetName,
-            OriginalSize = model.OriginalSize ?? defaultModel.OriginalSize,
-            IsVertical = model.VerticalReading ?? defaultModel.IsVertical,
-            IsLeftToRight = model.LeftToRight ?? defaultModel.IsLeftToRight,
-            IsVerticalContinuous = model.VerticalContinuous ?? defaultModel.IsVerticalContinuous,
-            IsHorizontalContinuous = model.HorizontalContinuous ?? defaultModel.IsHorizontalContinuous,
-            VerticalPageLayout = PageLayoutSettings.FromJsonModel(model.VerticalPageLayout),
-            HorizontalPageLayout = PageLayoutSettings.FromJsonModel(model.HorizontalPageLayout),
-            PageSpacing = model.PageSpacing ?? defaultModel.PageSpacing,
-            AutoScrollSpeed = model.AutoScrollSpeed ?? defaultModel.AutoScrollSpeed,
+            PresetName = model.PresetName ?? fallbackModel.PresetName,
+            OriginalSize = model.OriginalSize ?? fallbackModel.OriginalSize,
+            IsVertical = model.VerticalReading ?? fallbackModel.IsVertical,
+            IsLeftToRight = model.LeftToRight ?? fallbackModel.IsLeftToRight,
+            IsVerticalContinuous = model.VerticalContinuous ?? fallbackModel.IsVerticalContinuous,
+            IsHorizontalContinuous = model.HorizontalContinuous ?? fallbackModel.IsHorizontalContinuous,
+            VerticalPageLayout = PageLayoutSettings.FromJsonModel(model.VerticalPageLayout, fallbackModel.VerticalPageLayout),
+            HorizontalPageLayout = PageLayoutSettings.FromJsonModel(model.HorizontalPageLayout, fallbackModel.HorizontalPageLayout),
+            PageSpacing = model.PageSpacing ?? fallbackModel.PageSpacing,
+            AutoScrollSpeed = model.AutoScrollSpeed ?? fallbackModel.AutoScrollSpeed,
             ImageRotation = model.ImageRotation switch
             {
                 "None" => ImageRotationEnum.None,
                 "Rotate90" => ImageRotationEnum.Rotate90,
                 "Rotate180" => ImageRotationEnum.Rotate180,
                 "Rotate270" => ImageRotationEnum.Rotate270,
-                _ => defaultModel.ImageRotation,
+                _ => fallbackModel.ImageRotation,
             },
-            ImageFlip = model.ImageFlip ?? defaultModel.ImageFlip,
-            AntiAliasingFilterPercentage = model.AntiAliasingFilterPercentage ?? defaultModel.AntiAliasingFilterPercentage,
-            BrightnessPercentage = model.BrightnessPercentage ?? defaultModel.BrightnessPercentage,
-            ContrastPercentage = model.ContrastPercentage ?? defaultModel.ContrastPercentage,
-            SaturationPercentage = model.SaturationPercentage ?? defaultModel.SaturationPercentage,
-            ImageInvert = model.ImageInvert ?? defaultModel.ImageInvert,
+            ImageFlip = model.ImageFlip ?? fallbackModel.ImageFlip,
+            AntiAliasingFilterPercentage = model.AntiAliasingFilterPercentage ?? fallbackModel.AntiAliasingFilterPercentage,
+            BrightnessPercentage = model.BrightnessPercentage ?? fallbackModel.BrightnessPercentage,
+            ContrastPercentage = model.ContrastPercentage ?? fallbackModel.ContrastPercentage,
+            SaturationPercentage = model.SaturationPercentage ?? fallbackModel.SaturationPercentage,
+            ImageInvert = model.ImageInvert ?? fallbackModel.ImageInvert,
         };
     }
 
@@ -129,7 +128,7 @@ internal class ReaderSettingsModel
 
         if (jsonModel is not null)
         {
-            ReaderSettingsModel model = FromJsonModel(presetKey, jsonModel);
+            ReaderSettingsModel model = FromJsonModel(presetKey, jsonModel, presetModel);
             if (presetModel is not null)
             {
                 model.PresetName = presetModel.PresetName;
@@ -210,79 +209,12 @@ internal class ReaderSettingsModel
 
     private ReaderSettingsModel() { }
 
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        if (obj is not ReaderSettingsModel other)
-        {
-            return false;
-        }
-
-        return
-            PresetKey == other.PresetKey &&
-            PresetName == other.PresetName &&
-            OriginalSize == other.OriginalSize &&
-            IsVertical == other.IsVertical &&
-            IsLeftToRight == other.IsLeftToRight &&
-            IsVerticalContinuous == other.IsVerticalContinuous &&
-            IsHorizontalContinuous == other.IsHorizontalContinuous &&
-            VerticalPageLayout == other.VerticalPageLayout &&
-            HorizontalPageLayout == other.HorizontalPageLayout &&
-            PageSpacing == other.PageSpacing &&
-            AutoScrollSpeed == other.AutoScrollSpeed &&
-            ImageRotation == other.ImageRotation &&
-            ImageFlip == other.ImageFlip &&
-            AntiAliasingFilterPercentage == other.AntiAliasingFilterPercentage &&
-            BrightnessPercentage == other.BrightnessPercentage &&
-            ContrastPercentage == other.ContrastPercentage &&
-            SaturationPercentage == other.SaturationPercentage &&
-            ImageInvert == other.ImageInvert;
-    }
-
-    public override int GetHashCode()
-    {
-        var hash = new HashCode();
-        hash.Add(PresetKey);
-        hash.Add(PresetName);
-        hash.Add(OriginalSize);
-        hash.Add(IsVertical);
-        hash.Add(IsLeftToRight);
-        hash.Add(IsVerticalContinuous);
-        hash.Add(IsHorizontalContinuous);
-        hash.Add(VerticalPageLayout);
-        hash.Add(HorizontalPageLayout);
-        hash.Add(PageSpacing);
-        hash.Add(AutoScrollSpeed);
-        hash.Add(ImageRotation);
-        hash.Add(ImageFlip);
-        hash.Add(AntiAliasingFilterPercentage);
-        hash.Add(BrightnessPercentage);
-        hash.Add(ContrastPercentage);
-        hash.Add(SaturationPercentage);
-        hash.Add(ImageInvert);
-        return hash.ToHashCode();
-    }
-
     public ReaderSettingsModel Clone()
     {
         var cloned = (ReaderSettingsModel)MemberwiseClone();
         cloned.VerticalPageLayout = VerticalPageLayout.Clone();
         cloned.HorizontalPageLayout = HorizontalPageLayout.Clone();
         return cloned;
-    }
-
-    public static bool operator ==(ReaderSettingsModel? left, ReaderSettingsModel? right)
-    {
-        return EqualityComparer<ReaderSettingsModel>.Default.Equals(left, right);
-    }
-
-    public static bool operator !=(ReaderSettingsModel? left, ReaderSettingsModel? right)
-    {
-        return !(left == right);
     }
 
     public JsonModel ToJsonModel()
@@ -318,11 +250,101 @@ internal class ReaderSettingsModel
 
     public void SaveToComic(ComicModel comic)
     {
-        JsonModel jsonModel = ToJsonModel();
+        JsonModel? jsonModel = ToJsonModel();
+
+        ReaderSettingsModel? diffModel = LoadFromPreset(PresetKey);
+        if (diffModel is not null)
+        {
+            var diffJsonModel = diffModel.ToJsonModel();
+            jsonModel = NullOutMatchingFields(jsonModel, diffJsonModel);
+        }
+
         string customSettingsJson = JsonSerializer.Serialize(jsonModel);
         comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, PresetKey);
         comic.SetExt(ComicExt.CUSTOM_READER_SETTINGS, customSettingsJson);
         CoroutineUtils.Run(comic.FlushExt);
+    }
+
+    public static T? NullOutMatchingFields<T>(T? first, T? second) where T : class
+    {
+        bool Diff(JsonNode? first, JsonNode? second)
+        {
+            if (first is null || second is null)
+            {
+                return first == second;
+            }
+
+            if (first is JsonValue && second is JsonValue)
+            {
+                return JsonNode.DeepEquals(first, second);
+            }
+
+            if (first is JsonObject firstObj && second is JsonObject secondObj)
+            {
+                bool allEqual = true;
+
+                foreach (KeyValuePair<string, JsonNode?> kvp in firstObj.ToList())
+                {
+                    if (!secondObj.TryGetPropertyValue(kvp.Key, out JsonNode? secondValue))
+                    {
+                        allEqual = false;
+                        continue;
+                    }
+
+                    JsonNode? firstValue = kvp.Value;
+
+                    bool equal = Diff(firstValue, secondValue);
+
+                    if (equal)
+                    {
+                        firstObj[kvp.Key] = null;
+                    }
+                    else
+                    {
+                        allEqual = false;
+                    }
+                }
+
+                return allEqual;
+            }
+
+            if (first is JsonArray firstArr && second is JsonArray secondArr)
+            {
+                if (firstArr.Count != secondArr.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < firstArr.Count; i++)
+                {
+                    bool equal = Diff(firstArr[i], secondArr[i]);
+
+                    if (!equal)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        if (first is null || second is null)
+        {
+            return first;
+        }
+
+        JsonNode firstNode = JsonSerializer.SerializeToNode(first)!;
+        JsonNode secondNode = JsonSerializer.SerializeToNode(second)!;
+
+        if (Diff(firstNode, secondNode))
+        {
+            return null;
+        }
+
+        return firstNode.Deserialize<T>()!;
     }
 
     public class JsonModel
