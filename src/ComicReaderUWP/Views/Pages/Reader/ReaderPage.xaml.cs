@@ -23,7 +23,6 @@ using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.UserControls.Reader;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
 using ComicReaderUWP.ViewModels;
-using ComicReaderUWP.Views.Pages.Main;
 using ComicReaderUWP.Views.Pages.Main.Sidebar;
 using ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 

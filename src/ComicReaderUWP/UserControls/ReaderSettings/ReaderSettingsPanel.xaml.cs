@@ -13,7 +13,6 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Views.Dialogs.EditReaderSettingPreset;
-using ComicReaderUWP.Views.Pages.Main;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

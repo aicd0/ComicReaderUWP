@@ -8,7 +8,6 @@ using System.ComponentModel;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.Views.Pages.Main;
 
 namespace ComicReaderUWP.Views.Dialogs.EditReaderSettingPreset;
 

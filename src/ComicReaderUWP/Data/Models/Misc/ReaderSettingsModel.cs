@@ -10,9 +10,8 @@ using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
-using ComicReaderUWP.Data.Models.Misc;
 
-namespace ComicReaderUWP.Views.Pages.Main;
+namespace ComicReaderUWP.Data.Models.Misc;
 
 internal class ReaderSettingsModel
 {

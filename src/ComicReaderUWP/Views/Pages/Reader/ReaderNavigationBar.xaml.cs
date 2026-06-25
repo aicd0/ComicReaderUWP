@@ -4,7 +4,7 @@
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Data.Models.Comic;
-using ComicReaderUWP.Views.Pages.Main;
+using ComicReaderUWP.Data.Models.Misc;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
