@@ -13,7 +13,6 @@ using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.Misc;
 using ComicReaderUWP.Data.Database;
-using ComicReaderUWP.Views.Pages.Main;
 
 using Windows.Globalization;
 
