@@ -659,7 +659,7 @@ internal sealed partial class ReaderPage : BasePage
             SpreadDetection = readerSettingModel.PageLayout.SpreadDetection,
         });
 
-        PlaybackSlider.FlowDirection = readerSettingModel.IsLeftToRight || readerSettingModel.IsVertical ?
+        PlaybackSlider.FlowDirection = readerSettingModel.IsLeftToRight ?
             FlowDirection.LeftToRight : FlowDirection.RightToLeft;
         ViewModel.IsAutoPlayEnabled = readerSettingModel.AutoScrollSpeed > 0;
     }
