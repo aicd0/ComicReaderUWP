@@ -8,7 +8,6 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.Utils;
@@ -16,7 +15,6 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
-using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.Views.Dialogs.ChooseLocation;
 
 using Microsoft.UI.Xaml;
@@ -67,7 +65,6 @@ internal sealed partial class SettingsPage : BasePage
             UpdateFeedback();
             UpdateAbout();
             UpdateDebugInformation();
-            ViewModel.IsDonor = PurchaseManager.IsDonor;
         });
     }
 
@@ -151,51 +148,6 @@ internal sealed partial class SettingsPage : BasePage
     private void OnRescanFilesClicked(object sender, RoutedEventArgs e)
     {
         ComicModel.UpdateAllComics("OnRescanFilesClicked");
-    }
-
-    private void DonationButton_Click(object sender, RoutedEventArgs e)
-    {
-        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-        {
-            PurchaseManager.OperationResult result = await PurchaseManager.PurchaseDonor(WindowId);
-            if (!result.Successful)
-            {
-                await DialogUtils.EnqueueDialogAsync(WindowId, new DialogOptions.Builder()
-                    .SetTitle(StringResourceProvider.Instance.Error)
-                    .SetContent(result.ErrorMessage)
-                    .Build());
-                return;
-            }
-
-            ViewModel.IsDonor = PurchaseManager.IsDonor;
-        }));
-    }
-
-    private void DonationAlreadyPurchasedHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
-    {
-        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-        {
-            PurchaseManager.OperationResult result = await PurchaseManager.UpdatePurchaseStatus(WindowId);
-            if (!result.Successful)
-            {
-                await DialogUtils.EnqueueDialogAsync(WindowId, new DialogOptions.Builder()
-                    .SetTitle(StringResourceProvider.Instance.Error)
-                    .SetContent(result.ErrorMessage)
-                    .Build());
-                return;
-            }
-
-            if (!PurchaseManager.IsDonor)
-            {
-                await DialogUtils.EnqueueDialogAsync(WindowId, new DialogOptions.Builder()
-                    .SetTitle(StringResourceProvider.Instance.Error)
-                    .SetContent(StringResourceProvider.Instance.PurchaseFailureMessage)
-                    .Build());
-                return;
-            }
-
-            ViewModel.IsDonor = PurchaseManager.IsDonor;
-        }));
     }
 
     private void LicenseHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)

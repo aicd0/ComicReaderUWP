@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
-using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
@@ -112,16 +111,6 @@ internal sealed partial class DevToolsPage : BasePage
     private void PrintMemoryLeakReportButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         SetResult(MemoryLeakTracker.GenerateReport());
-    }
-
-    private void ResetPurchaseStatusButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        PurchaseManager.MockDonorStatus(false);
-    }
-
-    private void BecomeADonorButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        PurchaseManager.MockDonorStatus(true);
     }
 
     private void DeveloperModeToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

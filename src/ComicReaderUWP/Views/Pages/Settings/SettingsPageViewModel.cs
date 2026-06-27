@@ -242,17 +242,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _isDonor = false;
-    public bool IsDonor
-    {
-        get => _isDonor;
-        set
-        {
-            _isDonor = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDonor)));
-        }
-    }
-
     private readonly ReaderWriterLock _lock = new();
     private readonly ITaskDispatcher _dispatcher = TaskDispatcher.DefaultQueue;
     private AppSettingsModel.ExternalModel? _settingsModel;

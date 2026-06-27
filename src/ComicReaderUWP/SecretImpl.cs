@@ -5,8 +5,6 @@ namespace ComicReaderUWP;
 
 internal static class SecretImpl
 {
-    public static string Salt1 => "";
     public static string AdditionalDebugInformation => "";
     public static string SentryDsn => "";
-    public static string StoreIdDonor => "";
 }
