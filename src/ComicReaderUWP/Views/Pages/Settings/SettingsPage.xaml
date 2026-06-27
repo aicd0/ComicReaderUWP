@@ -281,49 +281,6 @@
                             <Run x:Name="ContributionRunAfterLink" />
                         </Paragraph>
                     </RichTextBlock>
-                    <StackPanel Orientation="Vertical" Visibility="Collapsed">
-                        <RichTextBlock Margin="0,8,0,0" IsTextSelectionEnabled="False">
-                            <Paragraph>
-                                <Run Text="{x:Bind StringResource.DonationDescription}" />
-                                <Hyperlink Click="DonationAlreadyPurchasedHyperlink_Click">
-                                    <Run Text="{x:Bind StringResource.DonationAlreadyPurchased}" />
-                                </Hyperlink>
-                            </Paragraph>
-                        </RichTextBlock>
-                        <Button
-                            Margin="0,10,0,0"
-                            Click="DonationButton_Click"
-                            Content="{x:Bind StringResource.DonationBuyMeACoffee}" />
-                    </StackPanel>
-                    <RichTextBlock
-                        Margin="0,8,0,0"
-                        IsTextSelectionEnabled="False"
-                        Visibility="Collapsed">
-                        <Paragraph>
-                            <Run FontWeight="Bold" Text="{x:Bind StringResource.DonationSuccess}" />
-                            <InlineUIContainer>
-                                <FontIcon
-                                    Margin="0,0,0,-3"
-                                    FontSize="13"
-                                    Foreground="Red"
-                                    Glyph="&#xEB52;" />
-                            </InlineUIContainer>
-                            <InlineUIContainer>
-                                <FontIcon
-                                    Margin="0,0,0,-3"
-                                    FontSize="13"
-                                    Foreground="Red"
-                                    Glyph="&#xEB52;" />
-                            </InlineUIContainer>
-                            <InlineUIContainer>
-                                <FontIcon
-                                    Margin="0,0,0,-3"
-                                    FontSize="13"
-                                    Foreground="Red"
-                                    Glyph="&#xEB52;" />
-                            </InlineUIContainer>
-                        </Paragraph>
-                    </RichTextBlock>
 
                     <!--  About  -->
                     <TextBlock Style="{StaticResource SettingsPageSubTitleTextBlock}" Text="{x:Bind StringResource.About}" />

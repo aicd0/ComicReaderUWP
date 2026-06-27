@@ -18,7 +18,6 @@ public static class DebugModel
     private const string KEY_CONSOLE_ENABLED = "ConsoleEnabled";
     private const string KEY_LOG_TREE_ENABLED = "LogTreeEnabled";
     private const string KEY_CONSOLE_WHITELIST = "ConsoleWhitelist";
-    private const string KEY_DONOR_STORE_ID = "DonorStoreId";
 
     private static readonly object _lock = new();
     private static JsonModel? _jsonModel;
@@ -48,7 +47,6 @@ public static class DebugModel
             registryKey.Set(KEY_CONSOLE_ENABLED, jsonModel.ConsoleEnabled);
             registryKey.Set(KEY_CONSOLE_WHITELIST, consoleWhitelistJson);
             registryKey.Set(KEY_LOG_TREE_ENABLED, jsonModel.LogTreeEnabled);
-            registryKey.Set(KEY_DONOR_STORE_ID, jsonModel.DonorStoreId);
         }
     }
 
@@ -89,25 +87,6 @@ public static class DebugModel
         }
     }
 
-    public static string? DonorStoreId
-    {
-        get
-        {
-            if (DebugUtils.DeveloperMode)
-            {
-                return null;
-            }
-
-            string id = GetJsonModel().DonorStoreId;
-            if (string.IsNullOrEmpty(id))
-            {
-                return null;
-            }
-
-            return id;
-        }
-    }
-
     private static JsonModel GetJsonModel()
     {
         if (_jsonModel is not null)
@@ -144,7 +123,6 @@ public static class DebugModel
                 ConsoleEnabled = registryKey.GetValueOrDefault(KEY_CONSOLE_ENABLED, false),
                 ConsoleWhitelist = consoleWhitelist,
                 LogTreeEnabled = registryKey.GetValueOrDefault(KEY_LOG_TREE_ENABLED, false),
-                DonorStoreId = registryKey.GetValueOrDefault(KEY_DONOR_STORE_ID, string.Empty),
             };
 
             return _jsonModel;
@@ -169,8 +147,5 @@ public static class DebugModel
 
         [JsonPropertyName("LogTreeEnabled")]
         public bool LogTreeEnabled { get; set; }
-
-        [JsonPropertyName("DonorStoreId")]
-        public string DonorStoreId { get; set; } = string.Empty;
     }
 }

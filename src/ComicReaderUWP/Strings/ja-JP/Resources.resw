@@ -313,18 +313,6 @@ $comics</value>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>免責事項</value>
   </data>
-  <data name="DonationAlreadyPurchased" xml:space="preserve">
-    <value>すでに購入済みですか？</value>
-  </data>
-  <data name="DonationBuyMeACoffee" xml:space="preserve">
-    <value>コーヒーをおごってください</value>
-  </data>
-  <data name="DonationDescription" xml:space="preserve">
-    <value>このプロジェクトを気に入っていただけたら、下のボタンから開発者を支援することをご検討ください。機能が追加されることはありませんが、プロジェクトの継続的なメンテナンスに大きく役立ちます。</value>
-  </data>
-  <data name="DonationSuccess" xml:space="preserve">
-    <value>スポンサーになりました。ご支援ありがとうございます！</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>確認する</value>
   </data>
@@ -752,9 +740,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>マンガを削除する前に確認</value>
-  </data>
-  <data name="PurchaseFailureMessage" xml:space="preserve">
-    <value>購入履歴が見つかりませんでした。</value>
   </data>
   <data name="RandomComic" xml:space="preserve">
     <value>ランダムコミック</value>

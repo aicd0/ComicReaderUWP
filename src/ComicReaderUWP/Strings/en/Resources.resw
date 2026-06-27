@@ -313,18 +313,6 @@ $comics</value>
   <data name="Disclaimer.Text" xml:space="preserve">
     <value>Disclaimer</value>
   </data>
-  <data name="DonationAlreadyPurchased" xml:space="preserve">
-    <value>Already purchased?</value>
-  </data>
-  <data name="DonationBuyMeACoffee" xml:space="preserve">
-    <value>Buy me a coffee</value>
-  </data>
-  <data name="DonationDescription" xml:space="preserve">
-    <value>If you enjoy this project, please consider supporting the developer using the button below. This won’t unlock any additional features, but it greatly helps with the ongoing maintenance of the project.</value>
-  </data>
-  <data name="DonationSuccess" xml:space="preserve">
-    <value>You’re now a sponsor. Thank you for your support!</value>
-  </data>
   <data name="Done" xml:space="preserve">
     <value>Done</value>
   </data>
@@ -754,9 +742,6 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   </data>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Prompt before removing comics</value>
-  </data>
-  <data name="PurchaseFailureMessage" xml:space="preserve">
-    <value>No purchase records were found.</value>
   </data>
   <data name="RandomComic" xml:space="preserve">
     <value>Random comic</value>
