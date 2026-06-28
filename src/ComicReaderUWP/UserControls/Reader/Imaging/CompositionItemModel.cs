@@ -16,7 +16,7 @@ internal class CompositionItemModel
     private static int _idCounter = 0;
 
     public int Id { get; } = Interlocked.Increment(ref _idCounter);
-    public required RefCounted<AnimatedBitmapModel> BitmapRef { get; init; }
+    public required RefCounted<IReaderBitmapModelForGPU> BitmapRef { get; init; }
     public required ReaderImageSource Source { get; init; }
     public required RectangleF CanvasRect { get; init; }
 

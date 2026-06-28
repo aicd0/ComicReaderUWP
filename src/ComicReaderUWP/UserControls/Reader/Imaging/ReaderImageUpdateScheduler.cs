@@ -101,7 +101,7 @@ internal class ReaderImageUpdateScheduler
         {
             foreach (CompositionItemModel item in g.Items)
             {
-                if (item.BitmapRef.TryRef(out AnimatedBitmapModel? bm))
+                if (item.BitmapRef.TryRef(out IReaderBitmapModelForGPU? bm))
                 {
                     try
                     {
@@ -139,7 +139,7 @@ internal class ReaderImageUpdateScheduler
 
             foreach (CompositionItemModel item in group.Items)
             {
-                if (!item.BitmapRef.TryRef(out AnimatedBitmapModel? bm))
+                if (!item.BitmapRef.TryRef(out IReaderBitmapModelForGPU? bm))
                 {
                     continue;
                 }
@@ -218,7 +218,7 @@ internal class ReaderImageUpdateScheduler
 
             foreach (CompositionItemModel item in group.Items)
             {
-                if (!item.BitmapRef.TryRef(out AnimatedBitmapModel? bitmapModel))
+                if (!item.BitmapRef.TryRef(out IReaderBitmapModelForGPU? bitmapModel))
                 {
                     continue;
                 }

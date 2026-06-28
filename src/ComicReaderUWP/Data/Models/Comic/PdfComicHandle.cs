@@ -187,9 +187,10 @@ internal partial class PdfComicHandle : ComicHandle
         public ImageBuffer? CreateImageBuffer(int width, int height)
         {
             int bytesPerPixel = 4;
-            int rowBytes = width * bytesPerPixel;
+            int rowBytes = checked(width * bytesPerPixel);
+            int byteCount = checked(height * rowBytes);
 
-            ImageBuffer bitmapBuffer = new(width, height, bytesPerPixel);
+            ImageBuffer bitmapBuffer = new(byteCount, width, height, Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
             try
             {
                 bool successful = connection.Render(index, width, height, (buffer, stride) =>

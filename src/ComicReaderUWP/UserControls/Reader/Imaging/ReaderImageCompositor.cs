@@ -282,77 +282,81 @@ internal partial class ReaderImageCompositor : IDisposable
             return;
         }
 
-        AnimatedBitmapModel? newBitmap = null;
-
-        using IVectorImageService? vectorService = source.Source.OpenVectorService();
-        if (vectorService is not null)
+        IReaderBitmapModelForCPU? cpuBitmap = null;
+        IReaderBitmapModelForGPU newBitmap;
+        try
         {
-            double width = frameSize.Width * _scale;
-            double height = frameSize.Height * _scale;
-            double resolution = width * height;
-
-            if (resolution < 1E-2)
+            using IVectorImageService? vectorService = source.Source.OpenVectorService();
+            if (vectorService is not null)
             {
-                Logger.W(TAG, $"Decode failed (Invalid resolution) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
-                return;
-            }
+                double width = frameSize.Width * _scale;
+                double height = frameSize.Height * _scale;
+                double resolution = width * height;
 
-            const double maxResolution = MAX_BITMAP_SIZE;
-            if (resolution > maxResolution)
-            {
-                double ratio = Math.Sqrt(maxResolution / (frameSize.Width * frameSize.Height));
-                width = frameSize.Width * ratio;
-                height = frameSize.Height * ratio;
-            }
-
-            CanvasBitmap? bitmap = vectorService.CreateImageCanvasBitmap(_canvasDevice,
-                (int)Math.Round(width), (int)Math.Round(height));
-            if (bitmap is not null)
-            {
-                newBitmap = AnimatedBitmapModel.FromCanvasBitmap(bitmap);
-            }
-        }
-
-        if (newBitmap is null)
-        {
-            using Stream? stream = source.Source.OpenImageStream();
-            if (stream is null)
-            {
-                Logger.W(TAG, $"Decode failed (Cannot open stream) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
-                return;
-            }
-
-            ImageCacheManager.ImageMeta? meta = ImageCacheManager.GetImageMeta(source.Source);
-            if (meta is not null && meta.FrameCount > 1)
-            {
-                newBitmap = AnimatedBitmapModel.FromStream(_canvasDevice, stream);
-            }
-
-            if (newBitmap is null)
-            {
-                CanvasBitmap bitmap;
-                try
+                if (resolution < 1E-2)
                 {
-                    bitmap = await CanvasBitmap.LoadAsync(_canvasDevice, stream.AsRandomAccessStream());
-                }
-                catch (Exception ex)
-                {
-                    Logger.E(TAG, ex);
+                    Logger.W(TAG, $"Decoding failed (Invalid resolution) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
                     return;
                 }
 
-                newBitmap = AnimatedBitmapModel.FromCanvasBitmap(bitmap);
+                const double maxResolution = MAX_BITMAP_SIZE;
+                if (resolution > maxResolution)
+                {
+                    double ratio = Math.Sqrt(maxResolution / (frameSize.Width * frameSize.Height));
+                    width = frameSize.Width * ratio;
+                    height = frameSize.Height * ratio;
+                }
+
+                ImageBuffer? buffer = vectorService.CreateImageBuffer((int)Math.Round(width), (int)Math.Round(height));
+                if (buffer is not null)
+                {
+                    cpuBitmap = ReaderBitmapModel.FromImageBuffer(buffer);
+                }
             }
-        }
 
-        if (newBitmap is null)
+            if (cpuBitmap is null)
+            {
+                using Stream? stream = source.Source.OpenImageStream();
+                if (stream is null)
+                {
+                    Logger.W(TAG, $"Decoding failed (Failed to open image stream) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
+                    return;
+                }
+
+                ImageCacheManager.ImageMeta? meta = ImageCacheManager.GetImageMeta(source.Source);
+                if (meta is not null && meta.FrameCount > 1)
+                {
+                    cpuBitmap = ReaderBitmapModel.FromStreamUsingSkiaDecoder(stream);
+                }
+
+                cpuBitmap ??= await ReaderBitmapModel.FromStreamUsingNativeDecoder(stream);
+            }
+
+            if (cpuBitmap is null)
+            {
+                Logger.W(TAG, $"Decoding failed (No suitable decoders) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
+                return;
+            }
+
+            try
+            {
+                newBitmap = cpuBitmap.UploadToGPU(_canvasDevice);
+            }
+            catch (Exception ex)
+            {
+                Logger.F(TAG, ex);
+                return;
+            }
+
+            cpuBitmap = null;
+        }
+        finally
         {
-            Logger.W(TAG, $"Decode failed (Unknown format) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
-            return;
+            cpuBitmap?.Dispose();
         }
 
-        RefCounted<AnimatedBitmapModel>? newBitmapRef = new(newBitmap);
-        RefCounted<AnimatedBitmapModel>? oldBitmapRef;
+        RefCounted<IReaderBitmapModelForGPU>? newBitmapRef = new(newBitmap);
+        RefCounted<IReaderBitmapModelForGPU>? oldBitmapRef;
         lock (item.Lock)
         {
             oldBitmapRef = item.BitmapRef;
@@ -670,7 +674,7 @@ internal partial class ReaderImageCompositor : IDisposable
         public bool SupportVector { get; set; } = false;
         public bool ClearPrevious { get; set; } = false;
 
-        public RefCounted<AnimatedBitmapModel>? BitmapRef { get; set; }
+        public RefCounted<IReaderBitmapModelForGPU>? BitmapRef { get; set; }
 
         public void Dispose()
         {
@@ -684,7 +688,7 @@ internal partial class ReaderImageCompositor : IDisposable
     {
         public required ImageItem OriginalItem { get; init; }
         public required ReaderImageSource Source { get; init; }
-        public required RefCounted<AnimatedBitmapModel> BitmapRef { get; init; }
+        public required RefCounted<IReaderBitmapModelForGPU> BitmapRef { get; init; }
         public required Size ImageSize { get; init; }
         public RectangleF CanvasRect { get; set; }
 
