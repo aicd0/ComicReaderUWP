@@ -2,12 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
@@ -186,60 +184,20 @@ internal partial class PdfComicHandle : ComicHandle
             connection.Dispose();
         }
 
-        public Windows.Graphics.Imaging.SoftwareBitmap? CreateSoftwareBitmap(int width, int height)
-        {
-            return Render(index, width, height, buffer =>
-            {
-                try
-                {
-                    return Windows.Graphics.Imaging.SoftwareBitmap.CreateCopyFromBuffer(
-                        buffer.AsBuffer(),
-                        Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8,
-                        width, height);
-                }
-                catch (Exception ex)
-                {
-                    Logger.E(TAG, ex);
-                    return null;
-                }
-            });
-        }
-
-        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int width, int height)
-        {
-            return Render(index, width, height, buffer =>
-            {
-                try
-                {
-                    return CanvasBitmap.CreateFromBytes(
-                        creator,
-                        buffer,
-                        width,
-                        height,
-                        Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
-                }
-                catch (Exception ex)
-                {
-                    Logger.E(TAG, ex);
-                    return null;
-                }
-            });
-        }
-
-        private T? Render<T>(int index, int width, int height, Func<byte[], T?> func)
+        public ImageBuffer? CreateImageBuffer(int width, int height)
         {
             int bytesPerPixel = 4;
             int rowBytes = width * bytesPerPixel;
-            int totalBytes = rowBytes * height;
-            byte[] packed = ArrayPool<byte>.Shared.Rent(totalBytes);
+
+            ImageBuffer bitmapBuffer = new(width, height, bytesPerPixel);
             try
             {
-                bool success = connection.Render(index, width, height, (buffer, stride) =>
+                bool successful = connection.Render(index, width, height, (buffer, stride) =>
                 {
                     unsafe
                     {
                         byte* src = (byte*)buffer;
-                        fixed (byte* dstBase = packed)
+                        fixed (byte* dstBase = bitmapBuffer.Span)
                         {
                             byte* dst = dstBase;
                             for (int y = 0; y < height; y++)
@@ -256,16 +214,64 @@ internal partial class PdfComicHandle : ComicHandle
                     return true;
                 });
 
-                if (!success)
+                if (!successful)
                 {
-                    return default;
+                    bitmapBuffer.Dispose();
+                    return null;
                 }
-
-                return func(packed);
             }
-            finally
+            catch (Exception)
             {
-                ArrayPool<byte>.Shared.Return(packed);
+                bitmapBuffer.Dispose();
+                throw;
+            }
+
+            return bitmapBuffer;
+        }
+
+        public Windows.Graphics.Imaging.SoftwareBitmap? CreateSoftwareBitmap(int width, int height)
+        {
+            using ImageBuffer? buffer = CreateImageBuffer(width, height);
+            if (buffer is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return Windows.Graphics.Imaging.SoftwareBitmap.CreateCopyFromBuffer(
+                    buffer.Buffer,
+                    Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8,
+                    width, height);
+            }
+            catch (Exception ex)
+            {
+                Logger.E(TAG, ex);
+                return null;
+            }
+        }
+
+        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int width, int height)
+        {
+            using ImageBuffer? buffer = CreateImageBuffer(width, height);
+            if (buffer is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return CanvasBitmap.CreateFromBytes(
+                    creator,
+                    buffer.Buffer,
+                    width,
+                    height,
+                    Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
+            }
+            catch (Exception ex)
+            {
+                Logger.E(TAG, ex);
+                return null;
             }
         }
     }

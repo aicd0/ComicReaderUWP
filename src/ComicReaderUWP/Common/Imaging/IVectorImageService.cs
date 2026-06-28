@@ -14,6 +14,8 @@ internal interface IVectorImageService : IDisposable
 {
     SizeF Size { get; }
 
+    ImageBuffer? CreateImageBuffer(int width, int height);
+
     SoftwareBitmap? CreateSoftwareBitmap(int width, int height);
 
     CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int width, int height);
