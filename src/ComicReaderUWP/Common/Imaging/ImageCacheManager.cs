@@ -764,7 +764,7 @@ internal static partial class ImageCacheManager
                 BitmapAlphaMode.Premultiplied,
                 transform,
                 ExifOrientationMode.RespectExifOrientation,
-                ColorManagementMode.DoNotColorManage).AsTask().Result;
+                ColorManagementMode.ColorManageToSRgb).AsTask().Result;
         }
         catch (Exception ex)
         {
