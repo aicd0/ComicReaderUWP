@@ -12,7 +12,7 @@ public static class CoreDB
     private static readonly Lazy<IRegistryDatabase> _coreRegistryDatabase = new(() =>
     {
         string databasePath = Path.Combine(StorageLocation.RegistryFolderPath, "Core.db");
-        return RegistryStore.CreateDatabase(databasePath);
+        return RegistryStore.CreateDatabase(databasePath, shared: true);
     });
     public static IRegistryDatabase CoreRegistry => _coreRegistryDatabase.Value;
 
