@@ -31,7 +31,7 @@ internal static class AppDB
     private static readonly Lazy<IRegistryDatabase> _mainRegistryDatabase = new(() =>
     {
         string databasePath = Path.Combine(StorageLocation.RegistryFolderPath, "Main.db");
-        return RegistryStore.CreateDatabase(databasePath);
+        return RegistryStore.CreateDatabase(databasePath, shared: false);
     });
     public static IRegistryDatabase MainRegistry => _mainRegistryDatabase.Value;
 
@@ -59,7 +59,7 @@ internal static class AppDB
         byte[] hash = HashUtils.GetXxHash64(bytes);
         string hashString = Convert.ToHexString(hash)[..8].ToUpperInvariant();
         string databasePath = Path.Combine(StorageLocation.RegistryFolderPath, $"PluginRegistry_{hashString}.db");
-        db = RegistryStore.CreateDatabase(databasePath);
+        db = RegistryStore.CreateDatabase(databasePath, shared: false);
         if (sPluginRegistryDatabases.TryAdd(pluginName, db))
         {
             return db;

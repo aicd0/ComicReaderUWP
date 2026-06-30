@@ -7,9 +7,9 @@ namespace ComicReaderUWP.Core.Database.Registry;
 
 public static class RegistryStore
 {
-    public static IRegistryDatabase CreateDatabase(string databasePath)
+    public static IRegistryDatabase CreateDatabase(string databasePath, bool shared)
     {
         databasePath = Path.GetFullPath(databasePath);
-        return new LiteDBLayer(databasePath);
+        return new LiteDBLayer(databasePath, shared);
     }
 }

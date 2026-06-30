@@ -14,7 +14,7 @@ using LiteDB;
 
 namespace ComicReaderUWP.Core.Database.Registry;
 
-internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
+internal partial class LiteDBLayer(string databasePath, bool shared) : IRegistryDatabase
 {
     private const string TAG = nameof(LiteDBLayer);
     private const int VERSION = 2;
@@ -23,6 +23,7 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
 
     private readonly object _initLock = new();
     private readonly string _databasePath = databasePath;
+    private readonly bool _shared = shared;
     private readonly ConcurrentDictionary<string, RegistryKey?> _keyCache = [];
     private LiteDatabase? _db;
     private ILiteCollection<RegistryKeyDocument>? _keysCollection;
@@ -295,7 +296,14 @@ internal partial class LiteDBLayer(string databasePath) : IRegistryDatabase
                 Directory.CreateDirectory(databaseFolder);
             }
 
-            db = new LiteDatabase($"Filename={_databasePath}; Mode=Shared;");
+            StringBuilder connectionSb = new($"Filename={_databasePath};");
+
+            if (_shared)
+            {
+                connectionSb.Append("Connection=shared;");
+            }
+
+            db = new LiteDatabase(connectionSb.ToString());
             InitializeDatabase(db);
             _db = db;
             return db;
