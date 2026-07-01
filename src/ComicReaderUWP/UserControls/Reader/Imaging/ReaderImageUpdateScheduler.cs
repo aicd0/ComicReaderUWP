@@ -12,7 +12,6 @@ using ComicReaderUWP.Core.Common.DebugTools;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI.Composition;
-using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
 
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
@@ -206,54 +205,68 @@ internal class ReaderImageUpdateScheduler
 
     private void DrawGroup(CompositionGroupModel group)
     {
-        if (!group.SurfaceRef.TryRef(out CompositionDrawingSurface? surface))
+        if (group.Items.Count == 0)
+        {
+            return;
+        }
+
+        if (!group.ResourceRef.TryRef(out CompositionGroupRenderResource? resources))
         {
             return;
         }
 
         try
         {
-            using CanvasDrawingSession ds = CanvasComposition.CreateDrawingSession(surface);
-            ds.Clear(Microsoft.UI.Colors.Transparent);
-
-            foreach (CompositionItemModel item in group.Items)
+            using (CanvasDrawingSession ds = resources.OffscreenCanvas.CreateDrawingSession())
             {
-                if (!item.BitmapRef.TryRef(out AnimatedBitmapModel? bitmapModel))
+                ds.Clear(Microsoft.UI.Colors.Transparent);
+
+                foreach (CompositionItemModel item in group.Items)
                 {
-                    continue;
+                    if (!item.BitmapRef.TryRef(out AnimatedBitmapModel? bitmapModel))
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        // Choose the correct frame based on elapsed time (stopwatch may be running)
+                        long elapsedMs = _stopwatch.IsRunning ? _stopwatch.ElapsedMilliseconds : 0;
+                        int frameIndex = bitmapModel.GetFrameIndexAtTime(elapsedMs);
+
+                        Matrix3x2 oldTransform = ds.Transform;
+                        ds.Transform = item.GetTransformMatrix(item.CanvasRect, out RectangleF destRect);
+
+                        CanvasBitmap frameBitmap = bitmapModel.GetFrameBitmap(frameIndex);
+                        ds.DrawImage(
+                            frameBitmap,
+                            new Windows.Foundation.Rect(destRect.X, destRect.Y, destRect.Width, destRect.Height),
+                            new Windows.Foundation.Rect(0, 0, bitmapModel.SizeInPixels.Width, bitmapModel.SizeInPixels.Height),
+                            1F,
+                            CanvasImageInterpolation.HighQualityCubic);
+
+                        ds.Transform = oldTransform;
+
+                        // Cache last drawn frame for scheduling purposes
+                        _lastFrameIndices[item.Id] = frameIndex;
+                    }
+                    finally
+                    {
+                        item.BitmapRef.Unref();
+                    }
                 }
+            }
 
-                try
-                {
-                    // Choose the correct frame based on elapsed time (stopwatch may be running)
-                    long elapsedMs = _stopwatch.IsRunning ? _stopwatch.ElapsedMilliseconds : 0;
-                    int frameIndex = bitmapModel.GetFrameIndexAtTime(elapsedMs);
-
-                    Matrix3x2 oldTransform = ds.Transform;
-                    ds.Transform = item.GetTransformMatrix(item.CanvasRect, out RectangleF destRect);
-
-                    CanvasBitmap frameBitmap = bitmapModel.GetFrameBitmap(frameIndex);
-                    ds.DrawImage(
-                        CreateCanvasImage(frameBitmap, item.Source),
-                        new Windows.Foundation.Rect(destRect.X, destRect.Y, destRect.Width, destRect.Height),
-                        new Windows.Foundation.Rect(0, 0, bitmapModel.SizeInPixels.Width, bitmapModel.SizeInPixels.Height),
-                        1F,
-                        CanvasImageInterpolation.HighQualityCubic);
-
-                    ds.Transform = oldTransform;
-
-                    // Cache last drawn frame for scheduling purposes
-                    _lastFrameIndices[item.Id] = frameIndex;
-                }
-                finally
-                {
-                    item.BitmapRef.Unref();
-                }
+            using (CanvasDrawingSession ds = CanvasComposition.CreateDrawingSession(resources.Surface))
+            {
+                ds.Clear(Microsoft.UI.Colors.Transparent);
+                ICanvasImage canvasImage = CreateCanvasImage(resources.OffscreenCanvas, group.Items[0].Source);
+                ds.DrawImage(canvasImage);
             }
         }
         finally
         {
-            group.SurfaceRef.Unref();
+            group.ResourceRef.Unref();
         }
     }
 

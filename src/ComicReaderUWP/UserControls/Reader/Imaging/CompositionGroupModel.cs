@@ -6,8 +6,6 @@ using System.Threading;
 
 using ComicReaderUWP.Common.Utils;
 
-using Microsoft.UI.Composition;
-
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
 internal class CompositionGroupModel
@@ -15,6 +13,6 @@ internal class CompositionGroupModel
     private static int _idCounter = 0;
 
     public int Id { get; } = Interlocked.Increment(ref _idCounter);
-    public required RefCounted<CompositionDrawingSurface> SurfaceRef { get; init; }
+    public required RefCounted<CompositionGroupRenderResource> ResourceRef { get; init; }
     public required IReadOnlyList<CompositionItemModel> Items { get; init; }
 }
