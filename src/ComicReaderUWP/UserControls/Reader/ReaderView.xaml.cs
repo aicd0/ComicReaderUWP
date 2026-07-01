@@ -523,7 +523,7 @@ internal partial class ReaderView : UserControl
         }
         else if (needReloadImages)
         {
-            UpdateImages("UIStateUpdatedNeedReloadImages", clear: true);
+            UpdateImages("UIStateUpdatedNeedReloadImages", redraw: true);
         }
     }
 
@@ -598,7 +598,7 @@ internal partial class ReaderView : UserControl
         return true;
     }
 
-    private void UpdateImages(string reason, bool clear = false)
+    private void UpdateImages(string reason, bool redraw = false)
     {
         if (!ComicLoaded)
         {
@@ -634,14 +634,13 @@ internal partial class ReaderView : UserControl
 
             ReaderFrameViewModel model = FrameDataSource[i];
 
-            if (clear)
-            {
-                model.SetLeftImageVisibility(false);
-                model.SetRightImageVisibility(false);
-            }
-
             model.SetLeftImageVisibility(true);
             model.SetRightImageVisibility(true);
+
+            if (redraw)
+            {
+                model.RedrawImage();
+            }
         }
 
         int spread = Math.Max(preloadWindowEnd - frame, frame - preloadWindowBegin);

@@ -94,7 +94,7 @@ internal partial class ReaderImageCompositor : IDisposable
     private int _layoutVersion = 0;
 
     private readonly CanvasDevice _canvasDevice;
-    public readonly Compositor _compositor;
+    private readonly Compositor _compositor;
     private readonly RefCounted<InstanceResourceModel> _resourceRef;
     private CompositionGroupModel? _compositionGroup;
 
