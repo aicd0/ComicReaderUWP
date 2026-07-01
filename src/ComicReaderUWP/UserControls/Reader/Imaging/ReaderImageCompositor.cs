@@ -596,34 +596,43 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PerformComposition(InstanceResourceModel res, DrawingItem?[] items, SizeF frameSize, SizeF canvasSize)
     {
-        Windows.Foundation.Size surfaceSize = new((int)Math.Ceiling(canvasSize.Width), (int)Math.Ceiling(canvasSize.Height));
-        if (res._compositionSurfaceRef is not null && res._compositionSurfaceRef.Value.Size != surfaceSize)
+        if (res._compositionVisual is null)
         {
-            res._compositionBrush?.Dispose();
-            res._compositionBrush = null;
-            res._compositionSurfaceRef.Unref();
-            res._compositionSurfaceRef = null;
+            SpriteVisual visual = _compositor.CreateSpriteVisual();
+            res._compositionVisual = visual;
+            res._rootVisual.Children.InsertAtTop(visual);
         }
 
-        if (res._compositionSurfaceRef is null)
+        Windows.Foundation.Size surfaceSize = new((int)Math.Ceiling(canvasSize.Width), (int)Math.Ceiling(canvasSize.Height));
+        if (res._groupRenderResource is not null && res._groupRenderResource.Value.Surface.Size != surfaceSize)
+        {
+            res._groupRenderResource?.Unref();
+            res._groupRenderResource = null;
+        }
+
+        if (res._groupRenderResource is null)
         {
             CompositionDrawingSurface surface = res._graphicsDevice.CreateDrawingSurface(
                 surfaceSize,
                 Microsoft.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized,
                 Microsoft.Graphics.DirectX.DirectXAlphaMode.Premultiplied);
-            res._compositionSurfaceRef = new(surface);
-            res._compositionBrush?.Dispose();
-            res._compositionBrush = _compositor.CreateSurfaceBrush(surface);
+            CompositionBrush brush = _compositor.CreateSurfaceBrush(surface);
+            var offscreenCanvas = new CanvasRenderTarget(
+                _canvasDevice,
+                (float)surfaceSize.Width,
+                (float)surfaceSize.Height,
+                96);
 
-            if (res._compositionVisual is null)
+            CompositionGroupRenderResource groupRenderResource = new()
             {
-                SpriteVisual visual = _compositor.CreateSpriteVisual();
-                res._compositionVisual = visual;
-                res._rootVisual.Children.InsertAtTop(visual);
-            }
+                Brush = brush,
+                Surface = surface,
+                OffscreenCanvas = offscreenCanvas,
+            };
 
+            res._groupRenderResource = new(groupRenderResource);
             res._compositionVisual.Size = new Vector2(frameSize.Width, frameSize.Height);
-            res._compositionVisual.Brush = res._compositionBrush;
+            res._compositionVisual.Brush = brush;
         }
 
         if (_compositionGroup is not null)
@@ -652,7 +661,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         _compositionGroup = new()
         {
-            SurfaceRef = res._compositionSurfaceRef,
+            ResourceRef = res._groupRenderResource,
             Items = compositionItems
         };
         Logger.I(TAG, $"Composite add group (i={Name},gi={_compositionGroup.Id})");
@@ -706,8 +715,8 @@ internal partial class ReaderImageCompositor : IDisposable
         public readonly CompositionGraphicsDevice _graphicsDevice = graphicsDevice;
         public readonly ContainerVisual _rootVisual = rootVisual;
         public readonly List<ImageItem> _images = [];
-        public RefCounted<CompositionDrawingSurface>? _compositionSurfaceRef;
-        public CompositionSurfaceBrush? _compositionBrush;
+
+        public RefCounted<CompositionGroupRenderResource>? _groupRenderResource;
         public SpriteVisual? _compositionVisual;
 
         public void Dispose()
@@ -736,10 +745,8 @@ internal partial class ReaderImageCompositor : IDisposable
                 // _rootVisual could be disposed externally
             }
 
-            _compositionSurfaceRef?.Unref();
-            _compositionSurfaceRef = null;
-            _compositionBrush?.Dispose();
-            _compositionBrush = null;
+            _groupRenderResource?.Unref();
+            _groupRenderResource = null;
             _compositionVisual?.Dispose();
             _compositionVisual = null;
         }
