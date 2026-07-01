@@ -23,6 +23,7 @@ internal sealed partial class ReaderFrame : BaseUserControl
     private ReaderImageCompositor? _imageCompositor;
 
     private readonly IValueObserver<bool> _rebindObserver;
+    private readonly IValueObserver<bool> _redrawImageObserver;
     private readonly IValueObserver<bool> _leftImageVisibleObserver;
     private readonly IValueObserver<bool> _rightImageVisibleObserver;
     private readonly IValueObserver<double> _scaleObserver;
@@ -34,6 +35,18 @@ internal sealed partial class ReaderFrame : BaseUserControl
         _rebindObserver = ObserverUtils.Create<bool>(_ =>
         {
             UpdateBindings("RebindByUpdate");
+        });
+
+        _redrawImageObserver = ObserverUtils.Create<bool>(_ =>
+        {
+            ReaderFrameViewModel? vm = ViewModel;
+            ReaderImageCompositor? compositor = _imageCompositor;
+            if (vm is null || compositor is null)
+            {
+                return;
+            }
+
+            compositor.Invalidate();
         });
 
         _leftImageVisibleObserver = ObserverUtils.Create<bool>(visible =>
@@ -129,6 +142,7 @@ internal sealed partial class ReaderFrame : BaseUserControl
         }
 
         vm.RebindLiveData.ObserveSticky(this, _rebindObserver);
+        vm.RedrawImageLiveDate.Observe(this, _redrawImageObserver);
         vm.LeftImageVisibleLiveData.ObserveSticky(this, _leftImageVisibleObserver);
         vm.RightImageVisibleLiveData.ObserveSticky(this, _rightImageVisibleObserver);
         vm.ScaleLiveData.ObserveSticky(this, _scaleObserver);
@@ -143,6 +157,7 @@ internal sealed partial class ReaderFrame : BaseUserControl
         }
 
         vm.RebindLiveData.RemoveObserver(_rebindObserver);
+        vm.RedrawImageLiveDate.RemoveObserver(_redrawImageObserver);
         vm.LeftImageVisibleLiveData.RemoveObserver(_leftImageVisibleObserver);
         vm.RightImageVisibleLiveData.RemoveObserver(_rightImageVisibleObserver);
         vm.ScaleLiveData.RemoveObserver(_scaleObserver);

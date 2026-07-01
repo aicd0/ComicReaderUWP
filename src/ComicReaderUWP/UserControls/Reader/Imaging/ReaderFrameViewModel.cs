@@ -14,6 +14,7 @@ internal class ReaderFrameViewModel
     public const int NO_PAGE = -1;
 
     public readonly MutableLiveData<bool> RebindLiveData = new();
+    public readonly MutableLiveData<bool> RedrawImageLiveDate = new();
     public readonly MutableLiveData<bool> LeftImageVisibleLiveData = new(false);
     public readonly MutableLiveData<bool> RightImageVisibleLiveData = new(false);
     public readonly MutableLiveData<double> ScaleLiveData = new(1.0);
@@ -39,6 +40,11 @@ internal class ReaderFrameViewModel
     public void RebindEntireViewModel()
     {
         RebindLiveData.Emit(true);
+    }
+
+    public void RedrawImage()
+    {
+        RedrawImageLiveDate.Emit(true);
     }
 
     public void SetLeftImageVisibility(bool visible)
