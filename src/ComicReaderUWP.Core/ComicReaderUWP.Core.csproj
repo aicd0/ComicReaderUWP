@@ -11,13 +11,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250909003" />
-		<PackageReference Include="Sentry" Version="6.0.0" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+		<PackageReference Include="Sentry" Version="6.6.0" />
 		<PackageReference Include="LiteDB" Version="5.0.21" />
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.1" />
-		<PackageReference Include="System.Drawing.Common" Version="10.0.1" />
-		<PackageReference Include="System.IO.Hashing" Version="10.0.1" />
-		<PackageReference Include="System.Management" Version="10.0.1" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+		<PackageReference Include="System.Drawing.Common" Version="10.0.9" />
+		<PackageReference Include="System.IO.Hashing" Version="10.0.9" />
+		<PackageReference Include="System.Management" Version="10.0.9" />
 	</ItemGroup>
 
 	<ItemGroup>

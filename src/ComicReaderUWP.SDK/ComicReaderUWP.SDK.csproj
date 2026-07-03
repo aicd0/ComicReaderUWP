@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250909003" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
 	</ItemGroup>
 
 </Project>
