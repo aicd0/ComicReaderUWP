@@ -312,8 +312,9 @@ internal sealed partial class FavoritePage : BasePage
             }
 
             IEnumerable<long> playlistComicIds = item.Parent?.Children.Where(x => x.Type == FavoriteNodeType.Item).Select(x => x.Id) ?? [];
-            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComicIds(playlistComicIds);
-            OpenComicHelper.OpenComic(PageActionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
+            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComicIds(playlistComicIds);
+            Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
+            OpenComicHelper.OpenComic(PageActionHandler, route);
             GetMainPageAbility().SetSidePaneOpenState(false, force: false);
         });
     }
@@ -422,8 +423,8 @@ internal sealed partial class FavoritePage : BasePage
             }
 
             IEnumerable<long> playlistComicIds = item.Parent?.Children.Where(x => x.Type == FavoriteNodeType.Item).Select(x => x.Id) ?? [];
-            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComicIds(playlistComicIds);
-            Route route = OpenComicHelper.GetComicRoute(comic, playlist);
+            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComicIds(playlistComicIds);
+            Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
             GetMainPageAbility().OpenInNewTab(route);
         });
     }

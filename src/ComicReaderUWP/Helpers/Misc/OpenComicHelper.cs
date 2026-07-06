@@ -20,13 +20,20 @@ internal static class OpenComicHelper
 {
     private const string TAG = nameof(OpenComicHelper);
 
-    public static Route GetComicRoute(ComicModel comic, PlaylistModel.Builder? playlist)
+    public static Route GetComicRoute(
+        ComicModel comic,
+        PlaylistModel.Builder? playlist = null,
+        PlaybackModel.Builder? playback = null)
     {
-        playlist ??= PlaylistModel.Builder.Create();
-        var playback = PlaybackModel.Builder.Create();
-        playback.SetCurrentId(playlist.EnsureComic(comic));
+        playlist ??= new PlaylistModel.Builder();
+        string itemId = playlist.EnsureComic(comic);
+
+        playback ??= new PlaybackModel.Builder();
+        playback.CurrentId = itemId;
+
         string playlistId = Guid.NewGuid().ToString();
         AppDB.MainRegistry.CreateKey(RegistryNames.PLAYLISTS).Set(playlistId, playlist.ToSerializedString());
+
         return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
             .WithParam(RouterConstants.ARG_PLAYLIST_ID, playlistId)
             .WithParam(RouterConstants.ARG_PLAYBACK, playback.ToSerializedString());

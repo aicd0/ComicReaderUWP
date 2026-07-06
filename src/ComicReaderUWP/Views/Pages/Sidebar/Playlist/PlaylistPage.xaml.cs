@@ -45,7 +45,7 @@ internal sealed partial class PlaylistPage : BasePage
             ViewModel.UpdateComics();
         });
 
-        GetEventBus().With<PlaybackModel>(EventId.PlaybackChanged).ObserveSticky(this, ViewModel.SetPlayback);
+        GetWindowEventBus().With<PlaybackModel>(EventId.PlaybackChanged).ObserveSticky(this, ViewModel.SetPlayback);
 
         ViewModel.ScrollToItemLiveData.ObserveSticky(this, MainListView.ScrollIntoView);
     }

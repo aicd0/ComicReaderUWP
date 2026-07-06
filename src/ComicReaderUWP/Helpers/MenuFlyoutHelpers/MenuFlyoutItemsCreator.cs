@@ -34,9 +34,13 @@ internal static class MenuFlyoutItemsCreator
 
     public static async Task<List<BaseMenuFlyoutItemModel>> CreateComicMenuItems(
         ActionHandler actionHandler,
-        ComicModel primaryComic, PlaylistModel.Builder? playlist,
+        ComicModel primaryComic,
+        PlaylistModel.Builder? playlist = null,
+        PlaybackModel.Builder? playback = null,
         IEnumerable<ComicModel>? selectedComics = null,
-        bool canOpenWithDefault = false, bool canEdit = true, bool canSelect = false)
+        bool canOpenWithDefault = false,
+        bool canEdit = true,
+        bool canSelect = false)
     {
         if (selectedComics is null)
         {
@@ -46,7 +50,7 @@ internal static class MenuFlyoutItemsCreator
         {
             if (selectedComics.Any(i => i.Id == primaryComic.Id))
             {
-                playlist = PlaylistModel.Builder.Create().AddComics(selectedComics);
+                playlist = new PlaylistModel.Builder().AddComics(selectedComics);
                 canOpenWithDefault = true;
             }
             else
@@ -55,7 +59,10 @@ internal static class MenuFlyoutItemsCreator
             }
         }
 
-        Route primaryComicRoute = OpenComicHelper.GetComicRoute(primaryComic, playlist);
+        Route primaryComicRoute = OpenComicHelper.GetComicRoute(
+            primaryComic,
+            playlist: playlist,
+            playback: playback);
 
         List<BaseMenuFlyoutItemModel> items = [];
 
@@ -326,8 +333,10 @@ internal static class MenuFlyoutItemsCreator
     }
 
     public static async Task<List<BaseMenuFlyoutItemModel>> CreateComicGroupMenuItems(
-        ActionHandler actionHandler, IReadOnlyList<ComicModel> comics,
-        Action expandAllHandler, Action collapseAllHandler,
+        ActionHandler actionHandler,
+        IReadOnlyList<ComicModel> comics,
+        Action expandAllHandler,
+        Action collapseAllHandler,
         IList<BaseMenuFlyoutItemModel>? customItems = null)
     {
         List<BaseMenuFlyoutItemModel> result = [];
@@ -335,13 +344,15 @@ internal static class MenuFlyoutItemsCreator
         ComicModel? randomComic = comics.Count > 0 ? comics[Random.Shared.Next(comics.Count)] : null;
         if (randomComic is not null)
         {
-            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(comics);
+            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(comics);
             result.Add(new SubItemMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.RandomComic,
                 Icon = new FontIconSource() { Glyph = "\uE8B1" },
                 Items = await CreateComicMenuItems(
-                    actionHandler, randomComic, playlist,
+                    actionHandler,
+                    randomComic,
+                    playlist: playlist,
                     canOpenWithDefault: true),
             });
         }

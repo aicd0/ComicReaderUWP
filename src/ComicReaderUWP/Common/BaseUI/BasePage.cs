@@ -117,7 +117,7 @@ internal abstract class BasePage : Page, ILifecycleOwner
         return _navigationBundle!.Communicator.GetAbility<T>();
     }
 
-    protected IEventBus GetEventBus()
+    protected IEventBus GetWindowEventBus()
     {
         return App.Instance.WindowManager.GetEventBus(WindowId);
     }

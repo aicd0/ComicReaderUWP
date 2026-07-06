@@ -100,6 +100,18 @@ internal class PlaybackModel
         }
     }
 
+    public Builder ToBuilder()
+    {
+        return new Builder()
+        {
+            CurrentId = CurrentItem?.Id,
+            FirstId = _firstId,
+            IsRepeat = _isRepeat,
+            IsShuffle = _isShuffle,
+            RandomSeed = _randomSeed,
+        };
+    }
+
     public void LoadState(PlaylistModel playlist, string? serializedPlayback)
     {
         _playlist = playlist;
@@ -294,24 +306,23 @@ internal class PlaybackModel
 
     public class Builder
     {
-        public static Builder Create()
-        {
-            return new();
-        }
-
-        private readonly PlaybackJsonModel _model = new();
-
-        private Builder() { }
-
-        public Builder SetCurrentId(string currentId)
-        {
-            _model.CurrentId = currentId;
-            return this;
-        }
+        public string? CurrentId { get; set; }
+        public string? FirstId { get; set; }
+        public bool? IsRepeat { get; set; }
+        public bool? IsShuffle { get; set; }
+        public int? RandomSeed { get; set; }
 
         public string ToSerializedString()
         {
-            return JsonSerializer.Serialize(_model);
+            PlaybackJsonModel model = new()
+            {
+                CurrentId = CurrentId,
+                IsRepeat = IsRepeat,
+                IsShuffle = IsShuffle,
+                RandomSeed = RandomSeed,
+                FirstId = FirstId,
+            };
+            return JsonSerializer.Serialize(model);
         }
     }
 }

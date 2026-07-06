@@ -862,14 +862,18 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                         return;
                     }
 
-                    OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
+                    Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
+                    OpenComicHelper.OpenComic(_actionHandler, route);
                 },
                 OnRequestContextFlyoutAsync = model =>
                 {
                     List<ComicModel>? selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : null;
                     return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                        _actionHandler, comic, playlist,
-                        selectedComics: selectedComics, canSelect: true);
+                        _actionHandler,
+                        comic,
+                        playlist: playlist,
+                        selectedComics: selectedComics,
+                        canSelect: true);
                 },
             };
             item.UpdateProgress(true);
@@ -895,7 +899,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 List<ComicPropertyModel.GroupItem<ComicModel>> groups = groupBy.GroupComics(comics, x => x,
                     filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty);
-                var playlist = PlaylistModel.Builder.Create();
+                var playlist = new PlaylistModel.Builder();
                 comicsGrouped = [];
                 foreach (ComicPropertyModel.GroupItem<ComicModel> group in groups)
                 {
@@ -912,7 +916,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             else
             {
                 List<ComicModel> sortedComics = SortComicsByProerty(comics, sortBy, filter.ComicOrderMethod);
-                PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sortedComics);
+                PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(sortedComics);
                 comicsUngrouped = [.. sortedComics.Select(x => ComicToViewModel(x, playlist))];
             }
         }

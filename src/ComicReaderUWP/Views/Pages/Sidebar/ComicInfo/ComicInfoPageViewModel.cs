@@ -113,7 +113,8 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
     }
 
     public ComicModel? Comic => _comic;
-    public PlaylistModel Playlist { get; private set; } = PlaylistModel.CreateEmpty();
+    public PlaylistModel Playlist { get; set; } = PlaylistModel.CreateEmpty();
+    public PlaybackModel? Playback { get; set; }
     public bool IsComicTitle2Visible => ComicTitle2.Length > 0;
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
     public ObservableCollection<string> ImageDescriptions { get; } = [];
@@ -159,11 +160,6 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         }
 
         UpdateImageDescription();
-    }
-
-    public void SetPlaylist(PlaylistModel playlist)
-    {
-        Playlist = playlist;
     }
 
     public void SetCompletionState(ComicCompletionStatusEnum completionState)
