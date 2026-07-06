@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Localization;
@@ -106,7 +105,7 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
     private void UpdatePlaylist()
     {
         List<PlaylistItemViewModel> newPlaylist = [];
-        PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(_playback.Items.Select(x => x.Comic));
+        PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddItems(_playback.Items);
         foreach (PlaylistModel.PlaylistItem playlistItem in _playback.Items)
         {
             newPlaylist.Add(new()
@@ -117,7 +116,10 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
                 RequestContextMenuItemsAsync = item =>
                 {
                     return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                        _actionHandler, playlistItem.Comic, playlist);
+                        _actionHandler,
+                        playlistItem.Comic,
+                        playlist: playlist,
+                        playback: _playback.ToBuilder());
                 },
             });
         }

@@ -22,6 +22,7 @@ using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Data.Tables;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
+using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml.Controls;
@@ -243,7 +244,8 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                 CanExpand = false,
                 Clicked = item =>
                 {
-                    OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
+                    Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
+                    OpenComicHelper.OpenComic(_actionHandler, route);
                 },
                 RequestContextMenuItemsAsync = (primary, selection) =>
                 {
@@ -251,8 +253,11 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                         .Where(x => x.DataContext is ComicModel)
                         .Select(x => (ComicModel)x.DataContext!);
                     return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                        _actionHandler, comic, playlist,
-                        selectedComics: selectedComics, canSelect: !SelectionMode);
+                        _actionHandler,
+                        comic,
+                        playlist: playlist,
+                        selectedComics: selectedComics,
+                        canSelect: !SelectionMode);
                 },
             };
         }
@@ -298,7 +303,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
                     .Select(x => comicMap[x])
                     .Where(x => tagMatched || MatchSearchText(x.Title))
                     .OrderBy(x => StringUtils.SmartFileNameKeySelector(x.Title), StringUtils.SmartFileNameComparer);
-                PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sortedComics);
+                PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(sortedComics);
                 IEnumerable<SimpleTreeViewNodeModel> tagChildren = sortedComics
                     .Select(x => ComicToNode(x, playlist));
 

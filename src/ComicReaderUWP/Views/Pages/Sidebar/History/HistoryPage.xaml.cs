@@ -105,15 +105,16 @@ internal sealed partial class HistoryPage : BasePage
         }
 
         IEnumerable<long> playlistComicIds = DataSource.SelectMany(x => x).Select(x => x.Id);
-        PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComicIds(playlistComicIds);
+        PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComicIds(playlistComicIds);
         if (newTab)
         {
-            Route route = OpenComicHelper.GetComicRoute(comic, playlist);
+            Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
             GetMainPageAbility().OpenInNewTab(route);
         }
         else
         {
-            OpenComicHelper.OpenComic(PageActionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
+            Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
+            OpenComicHelper.OpenComic(PageActionHandler, route);
         }
 
         GetMainPageAbility().SetSidePaneOpenState(false, force: false);

@@ -74,7 +74,7 @@ internal class PlaylistModel
         List<PlaylistItem> items = [];
         foreach (PlaylistItemJsonModel jsonItem in builder)
         {
-            if (!jsonItem.IsExternal.HasValue || string.IsNullOrEmpty(jsonItem.Id))
+            if (!jsonItem.IsExternal.HasValue)
             {
                 continue;
             }
@@ -91,10 +91,11 @@ internal class PlaylistModel
 
             if (comic is not null)
             {
+                string id = string.IsNullOrEmpty(jsonItem.Id) ? Guid.NewGuid().ToString() : jsonItem.Id;
                 items.Add(new()
                 {
                     Comic = comic,
-                    Id = jsonItem.Id,
+                    Id = id,
                 });
             }
         }
@@ -113,7 +114,7 @@ internal class PlaylistModel
 
     public Builder ToBuilder()
     {
-        return Builder.Create().AddComics(_items.Select(x => x.Comic));
+        return new Builder().AddItems(_items);
     }
 
     public string ToSerializedString()
@@ -138,7 +139,7 @@ internal class PlaylistModel
     private class PlaylistItemJsonModel
     {
         [JsonPropertyName("Id")]
-        public string? Id { get; set; } = Guid.NewGuid().ToString();
+        public string? Id { get; set; }
 
         [JsonPropertyName("IsExternal")]
         public bool? IsExternal { get; set; }
@@ -152,14 +153,23 @@ internal class PlaylistModel
 
     public class Builder
     {
-        public static Builder Create()
-        {
-            return new();
-        }
-
         private readonly List<PlaylistItemJsonModel> _comics = [];
 
-        private Builder() { }
+        public Builder AddItems(IEnumerable<PlaylistItem> items)
+        {
+            foreach (PlaylistItem item in items)
+            {
+                _comics.Add(new PlaylistItemJsonModel()
+                {
+                    Id = item.Id,
+                    IsExternal = item.Comic.IsExternal,
+                    Location = item.Comic.Location,
+                    ComicId = item.Comic.Id
+                });
+            }
+
+            return this;
+        }
 
         public Builder AddComics(IEnumerable<ComicModel> comics)
         {
@@ -182,7 +192,7 @@ internal class PlaylistModel
                     Location = comic.Location,
                     ComicId = comic.Id
                 };
-                itemId = item.Id!;
+                itemId = EnsureId(item);
                 _comics.Insert(0, item);
             }
 
@@ -254,7 +264,7 @@ internal class PlaylistModel
                     }
                 }
 
-                return item.Id;
+                return EnsureId(item);
             }
 
             return null;
@@ -263,6 +273,16 @@ internal class PlaylistModel
         public string ToSerializedString()
         {
             return JsonSerializer.Serialize(_comics);
+        }
+
+        private static string EnsureId(PlaylistItemJsonModel item)
+        {
+            if (string.IsNullOrEmpty(item.Id))
+            {
+                item.Id = Guid.NewGuid().ToString();
+            }
+
+            return item.Id;
         }
     }
 }

@@ -65,11 +65,16 @@ internal sealed partial class ComicInfoPage : BasePage
             ViewModel.Reload();
         });
 
-        GetEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).ObserveSticky(this, args =>
+        GetWindowEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).ObserveSticky(this, args =>
         {
             ViewModel.SetComic(args.Comic);
             ViewModel.SetPageIndices(args.PageIndices);
-            ViewModel.SetPlaylist(args.Playlist);
+            ViewModel.Playlist = args.Playlist;
+        });
+
+        GetWindowEventBus().With<PlaybackModel>(EventId.PlaybackChanged).ObserveSticky(this, playback =>
+        {
+            ViewModel.Playback = playback;
         });
 
         ViewModel.EditTagLiveData.Observe(this, pair =>
@@ -154,7 +159,10 @@ internal sealed partial class ComicInfoPage : BasePage
         }
 
         List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(
-            PageActionHandler, comic, ViewModel.Playlist.ToBuilder());
+            PageActionHandler,
+            comic,
+            playlist: ViewModel.Playlist.ToBuilder(),
+            playback: ViewModel.Playback?.ToBuilder());
         if (menuItems.Count == 0)
         {
             return;

@@ -18,6 +18,7 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
+using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.ViewModels;
 
@@ -154,7 +155,8 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
                 CanExpand = false,
                 Clicked = item =>
                 {
-                    OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
+                    Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
+                    OpenComicHelper.OpenComic(_actionHandler, route);
                 },
                 RequestContextMenuItemsAsync = (primary, selection) =>
                 {
@@ -162,8 +164,11 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
                         .Where(x => x.DataContext is ComicModel)
                         .Select(x => (ComicModel)x.DataContext!);
                     return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                        _actionHandler, comic, playlist,
-                        selectedComics: selectedComics, canSelect: !SelectionMode);
+                        _actionHandler,
+                        comic,
+                        playlist: playlist,
+                        selectedComics: selectedComics,
+                        canSelect: !SelectionMode);
                 },
             };
         }
@@ -198,7 +203,7 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
 
             IEnumerable<ComicModel> sortedComics = folderNode.Comics
                 .OrderBy(x => StringUtils.SmartFileNameKeySelector(x.Title), StringUtils.SmartFileNameComparer);
-            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sortedComics);
+            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(sortedComics);
             foreach (ComicModel comic in sortedComics)
             {
                 nodes.Add(ComicToNode(comic, playlist));

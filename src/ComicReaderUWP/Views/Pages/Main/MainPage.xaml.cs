@@ -216,7 +216,7 @@ internal sealed partial class MainPage : BasePage
             ViewModel.Refreshing = scanning;
         });
 
-        GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
+        GetWindowEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
         {
             TopTile.Opacity = opacity;
             SidebarSplitView.Opacity = opacity;
@@ -227,7 +227,7 @@ internal sealed partial class MainPage : BasePage
             }
         });
 
-        GetEventBus().With<string>(EventId.CloseTab).Observe(this, CloseTabNoLock);
+        GetWindowEventBus().With<string>(EventId.CloseTab).Observe(this, CloseTabNoLock);
 
         GetMainWindowAbility().RegisterFullscreenChangedHandler(this, isFullscreen =>
         {
@@ -386,12 +386,12 @@ internal sealed partial class MainPage : BasePage
 
     private void DispatchTopOverlayHeightChangeEvent()
     {
-        GetEventBus().With<double>(EventId.TopOverlayHeight).Emit(_rootTabHeight + _navigationBarHeight);
+        GetWindowEventBus().With<double>(EventId.TopOverlayHeight).Emit(_rootTabHeight + _navigationBarHeight);
     }
 
     private void DispatchRightOverlayWidthChangeEvent()
     {
-        GetEventBus().With<double>(EventId.RightOverlayWidth).Emit(_isSidebarOpen && _isSidebarPinned ? _sidebarWidth : 0);
+        GetWindowEventBus().With<double>(EventId.RightOverlayWidth).Emit(_isSidebarOpen && _isSidebarPinned ? _sidebarWidth : 0);
     }
 
     //
@@ -863,7 +863,7 @@ internal sealed partial class MainPage : BasePage
     {
         _tabContainerGrid = (Grid)sender;
 
-        GetEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
+        GetWindowEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
         _tabContainerGridOpacityListenerToken = _tabContainerGrid.RegisterPropertyChangedCallback(OpacityProperty, (sender, dp) =>
         {
             if (!IsStarted)
@@ -871,7 +871,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            GetEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
+            GetWindowEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
         });
     }
 

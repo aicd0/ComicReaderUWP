@@ -324,7 +324,7 @@ public partial class App : Application
         ComicModel? comic = await ComicModel.FromFile(targetFile);
         if (comic is not null)
         {
-            return OpenComicHelper.GetComicRoute(comic, null);
+            return OpenComicHelper.GetComicRoute(comic);
         }
 
         if (AppInfoProvider.IsSupportedImageExtension(targetFile.FileType))
@@ -335,7 +335,7 @@ public partial class App : Application
                 await ComicModel.FromExternalLocation(parentPath);
             if (comic is not null)
             {
-                return OpenComicHelper.GetComicRoute(comic, null);
+                return OpenComicHelper.GetComicRoute(comic);
             }
         }
 

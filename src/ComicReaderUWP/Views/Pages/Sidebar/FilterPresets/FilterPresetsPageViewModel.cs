@@ -20,6 +20,7 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
+using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.ViewModels;
 
@@ -226,7 +227,8 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                     CanExpand = false,
                     Clicked = item =>
                     {
-                        OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
+                        Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
+                        OpenComicHelper.OpenComic(_actionHandler, route);
                     },
                     RequestContextMenuItemsAsync = (primary, selection) =>
                     {
@@ -234,8 +236,11 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                             .Where(x => x.DataContext is ComicModel)
                             .Select(x => (ComicModel)x.DataContext!);
                         return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                            _actionHandler, comic, playlist,
-                            selectedComics: selectedComics, canSelect: !SelectionMode);
+                            _actionHandler,
+                            comic,
+                            playlist: playlist,
+                            selectedComics: selectedComics,
+                            canSelect: !SelectionMode);
                     },
                 };
             }
@@ -260,7 +265,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
                     List<SimpleTreeViewNodeModel> nodeChildren = [];
                     List<ComicModel> sorted = sortBy.SortComics(item.Items, x => x, filter.ComicOrderMethod);
-                    PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sorted);
+                    PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(sorted);
                     foreach (ComicModel comic in sorted)
                     {
                         groupNode.Children.Add(ComicToNode(comic, playlist));
@@ -272,7 +277,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             else
             {
                 List<ComicModel> sorted = sortBy.SortComics(items, x => x, filter.ComicOrderMethod);
-                PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sorted);
+                PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(sorted);
                 foreach (ComicModel comic in sorted)
                 {
                     dataSource.Add(ComicToNode(comic, playlist));

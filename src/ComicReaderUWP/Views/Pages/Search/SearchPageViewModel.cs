@@ -15,6 +15,7 @@ using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
+using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.UserControls.ComicItemView;
 using ComicReaderUWP.ViewModels;
@@ -329,7 +330,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         {
             IEnumerable<ComicModel> sortedComics = comics.OrderBy(x => x.Title);
             List<ComicItemViewModel> newItems = [];
-            PlaylistModel.Builder playlist = PlaylistModel.Builder.Create().AddComics(sortedComics);
+            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(sortedComics);
             foreach (ComicModel comic in sortedComics)
             {
                 ComicItemViewModel item = new(comic)
@@ -341,14 +342,18 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                             return;
                         }
 
-                        OpenComicHelper.OpenComic(_actionHandler, OpenComicHelper.GetComicRoute(comic, playlist));
+                        Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
+                        OpenComicHelper.OpenComic(_actionHandler, route);
                     },
                     OnRequestContextFlyoutAsync = model =>
                     {
                         IEnumerable<ComicModel>? selection = _isSelectMode ? _selectedItems.Select(x => x.Comic) : null;
                         return MenuFlyoutItemsCreator.CreateComicMenuItems(
-                            _actionHandler, comic, playlist,
-                            selectedComics: selection, canSelect: true);
+                            _actionHandler,
+                            comic,
+                            playlist: playlist,
+                            selectedComics: selection,
+                            canSelect: true);
                     },
                 };
                 item.UpdateProgress(false);

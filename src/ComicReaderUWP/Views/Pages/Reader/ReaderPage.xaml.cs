@@ -139,7 +139,7 @@ internal sealed partial class ReaderPage : BasePage
         UpdateDisplayStatus();
         AddToActiveTabs();
         SyncCurrentComic();
-        GetEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
+        GetWindowEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
         UpdateReaderUI();
         FocusReader();
     }
@@ -172,7 +172,7 @@ internal sealed partial class ReaderPage : BasePage
             UpdateDisplayStatus();
         });
 
-        GetEventBus().With<double>(EventId.TopOverlayHeight).ObserveSticky(this, h =>
+        GetWindowEventBus().With<double>(EventId.TopOverlayHeight).ObserveSticky(this, h =>
         {
             if (_topOverlayHeight == h)
             {
@@ -191,7 +191,7 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        GetEventBus().With<double>(EventId.RightOverlayWidth).ObserveSticky(this, w =>
+        GetWindowEventBus().With<double>(EventId.RightOverlayWidth).ObserveSticky(this, w =>
         {
             if (_rightOverlayWidth == w)
             {
@@ -211,7 +211,7 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        GetEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, opacity =>
+        GetWindowEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, opacity =>
         {
             BottomGrid.Opacity = opacity;
         });
@@ -447,7 +447,11 @@ internal sealed partial class ReaderPage : BasePage
 
         CoroutineUtils.Run(async () =>
         {
-            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(PageActionHandler, comic, ViewModel.Playlist.ToBuilder());
+            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(
+                PageActionHandler,
+                comic,
+                playlist: ViewModel.Playlist.ToBuilder(),
+                playback: ViewModel.Playback.ToBuilder());
 
             var flyout = new MenuFlyout();
             foreach (BaseMenuFlyoutItemModel item in menuItems)
@@ -1080,7 +1084,7 @@ internal sealed partial class ReaderPage : BasePage
             Playlist = ViewModel.Playlist,
             PageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount),
         };
-        GetEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
+        GetWindowEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
 
         if (comic is not null)
         {
