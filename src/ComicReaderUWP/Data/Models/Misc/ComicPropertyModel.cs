@@ -744,19 +744,21 @@ internal class ComicPropertyModel
 
         public List<T> Sort<T>(IEnumerable<T> items, Func<T, A> selector, Action<T, string> keyBinder)
         {
-            B GroupKeySelector(T item)
+            IEnumerable<Tuple<B, T>> pairs = items.Select(item =>
             {
                 B key = KeySelector(selector(item));
                 keyBinder(item, KeyInfoConverter(key));
-                return key;
-            }
+                return new Tuple<B, T>(key, item);
+            });
 
-            return orderMethod switch
+            pairs = orderMethod switch
             {
-                ComicFilterModel.OrderMethodEnum.Ascending => [.. items.OrderBy(GroupKeySelector, KeyComparer)],
-                ComicFilterModel.OrderMethodEnum.Descending => [.. items.OrderByDescending(GroupKeySelector, KeyComparer)],
+                ComicFilterModel.OrderMethodEnum.Ascending => pairs.OrderBy(p => p.Item1, KeyComparer),
+                ComicFilterModel.OrderMethodEnum.Descending => pairs.OrderByDescending(p => p.Item1, KeyComparer),
                 _ => throw new Exception("Invalid order method for BasicGroupSorter"),
             };
+
+            return [.. pairs.Select(p => p.Item2)];
         }
     }
 
