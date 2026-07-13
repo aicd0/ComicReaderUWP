@@ -194,6 +194,17 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _aboutText = string.Empty;
+    public string AboutText
+    {
+        get => _aboutText;
+        set
+        {
+            _aboutText = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AboutText)));
+        }
+    }
+
     private bool _languageChanged;
     public bool LanguageChanged
     {
