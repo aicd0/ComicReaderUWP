@@ -180,13 +180,21 @@ internal sealed partial class SettingsPage : BasePage
 
     private void UpdateAbout()
     {
-        string appName = StringResourceProvider.Instance.AppDisplayName;
-        AboutBuildVersionControl.Text = appName + " " + EnvironmentProvider.Instance.GetHostVersion();
-
         string author = "aicd0";
         string aboutCopyright = StringResourceProvider.Instance.AboutCopyright;
         aboutCopyright = aboutCopyright.Replace("$author", author);
-        AboutCopyrightControl.Text = aboutCopyright;
+
+        StringBuilder aboutTextBuilder = new();
+        aboutTextBuilder
+            .Append(StringResourceProvider.Instance.AppDisplayName)
+            .Append(' ')
+            .Append(EnvironmentProvider.Instance.GetHostVersion())
+            .AppendLine()
+            .Append("SDK ")
+            .Append(EnvironmentProvider.Instance.GetSDKVersion())
+            .AppendLine()
+            .Append(aboutCopyright);
+        ViewModel.AboutText = aboutTextBuilder.ToString();
     }
 
     private void UpdateDebugInformation()
