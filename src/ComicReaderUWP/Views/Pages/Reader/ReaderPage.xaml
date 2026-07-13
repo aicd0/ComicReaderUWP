@@ -181,6 +181,7 @@
                     <Slider
                         x:Name="PlaybackSlider"
                         Margin="4,2,4,-4"
+                        FlowDirection="{x:Bind ViewModel.PreferredFlowDirection, Mode=OneWay}"
                         IsThumbToolTipEnabled="False"
                         Minimum="0.5"
                         StepFrequency="0.01"
@@ -208,6 +209,7 @@
             Padding="10"
             VerticalAlignment="Center"
             ContainerContentChanging="OnGridViewContainerContentChanging"
+            FlowDirection="{x:Bind ViewModel.PreferredFlowDirection, Mode=OneWay}"
             IsItemClickEnabled="True"
             ItemClick="OnGridViewItemClicked"
             ItemsSource="{x:Bind ViewModel.PreviewDataSource}"

@@ -44,6 +44,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public readonly MutableLiveData<bool> IsFavoriteLiveData = new();
     public readonly MutableLiveData<ReaderLoadingInfo> ReaderLoadingInfoLiveData = new();
 
+    private FlowDirection _preferredFlowDirection = FlowDirection.LeftToRight;
+    public FlowDirection PreferredFlowDirection
+    {
+        get => _preferredFlowDirection;
+        set
+        {
+            _preferredFlowDirection = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PreferredFlowDirection)));
+        }
+    }
+
     private bool _isFullscreen = false;
     public bool IsFullscreen
     {
