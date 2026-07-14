@@ -1100,10 +1100,23 @@ internal partial class ReaderView : UserControl
             _isInitialFrameActionPerformed = true;
 
             LoadZoomingConfig(out float zoom, out ZoomType zoomType);
-            ScrollResult scrollResult = SetScrollViewer2("JumpToInitialPage", ScrollSource.Programmatic,
-                zoom: zoom, zoomType: zoomType, page: InitialPage);
+
+            ScrollResult scrollResult = SetScrollViewer2(
+                "JumpToInitialPage",
+                ScrollSource.Programmatic,
+                zoom: zoom,
+                zoomType: zoomType,
+                page: InitialPage);
             Log("Load", $"InitialFrameScroll (result={scrollResult})");
-            EnsureInitialPageJumped();
+
+            if (scrollResult == ScrollResult.Unchanged)
+            {
+                OnViewChanged(false);
+            }
+            else
+            {
+                EnsureInitialPageJumped();
+            }
 
             UpdateImages("InitialFrameLoaded");
 
@@ -1118,7 +1131,7 @@ internal partial class ReaderView : UserControl
 
     private void EnsureInitialPageJumped()
     {
-        // In some strange cases, ChangeView method completes successfully,
+        // In some weird cases, ChangeView method completes successfully,
         // but neither the actual offset has changed or ViewChange callback
         // is being triggered.
         // Possible reproducing path: Switch from vertical view to horizontal view.
@@ -1142,8 +1155,16 @@ internal partial class ReaderView : UserControl
                     break;
                 }
 
-                ScrollResult scrollResult = SetScrollViewer3($"JumpToInitialPageRetry{i}", ScrollSource.Programmatic);
+                ScrollResult scrollResult = SetScrollViewer3(
+                    $"JumpToInitialPageRetry{i}",
+                    ScrollSource.Programmatic);
                 Log("Load", $"InitialFrameScrollRetry{i} (result={scrollResult})");
+
+                if (scrollResult == ScrollResult.Unchanged)
+                {
+                    OnViewChanged(false);
+                    break;
+                }
             }
         });
     }
@@ -1222,13 +1243,18 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
     {
+        OnViewChanged(e.IsIntermediate);
+    }
+
+    private void OnViewChanged(bool isIntermediate)
+    {
         if (_isCommitting)
         {
             Log("ViewChanged", "IgnoreCommitting");
             return;
         }
 
-        bool final = !e.IsIntermediate;
+        bool final = !isIntermediate;
         if (_isAutoScrolling && _isContinuous && GetTicks() - _lastFinalViewChangeTicks < 500)
         {
             final = false;
@@ -1269,7 +1295,7 @@ internal partial class ReaderView : UserControl
         _isViewChanging = true;
         try
         {
-            OnViewChanged(final);
+            OnViewChangedInternal(final);
         }
         finally
         {
@@ -1277,7 +1303,7 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    private void OnViewChanged(bool final)
+    private void OnViewChangedInternal(bool final)
     {
         if (!UpdatePage())
         {
@@ -2323,8 +2349,13 @@ internal partial class ReaderView : UserControl
         SetScrollViewer2(reason, source, zoom: zoom, page: page, disableAnimation: !AppSettingsModel.Instance.TransitionAnimation);
     }
 
-    private ScrollResult SetScrollViewer1(string reason, ScrollSource source, float? zoom = null,
-        double? parallelOffset = null, double? perpendicularOffset = null, bool disableAnimation = true)
+    private ScrollResult SetScrollViewer1(
+        string reason,
+        ScrollSource source,
+        float? zoom = null,
+        double? parallelOffset = null,
+        double? perpendicularOffset = null,
+        bool disableAnimation = true)
     {
         double? horizontalOffset = _isVertical ? perpendicularOffset : parallelOffset;
         double? verticalOffset = _isVertical ? parallelOffset : perpendicularOffset;
@@ -2339,9 +2370,14 @@ internal partial class ReaderView : UserControl
         }, reason);
     }
 
-    private ScrollResult SetScrollViewer2(string reason, ScrollSource source,
-        float? zoom = null, ZoomType zoomType = ZoomType.CenterInside, double? page = null,
-        bool applyParallelOffset = true, bool disableAnimation = true)
+    private ScrollResult SetScrollViewer2(
+        string reason,
+        ScrollSource source,
+        float? zoom = null,
+        ZoomType zoomType = ZoomType.CenterInside,
+        double? page = null,
+        bool applyParallelOffset = true,
+        bool disableAnimation = true)
     {
         double? horizontalOffset = null;
         double? verticalOffset = null;
@@ -2372,9 +2408,13 @@ internal partial class ReaderView : UserControl
         }, reason);
     }
 
-    private ScrollResult SetScrollViewer3(string reason, ScrollSource source,
-        float? zoom = null, ZoomType zoomType = ZoomType.CenterInside,
-        double? horizontalOffset = null, double? verticalOffset = null,
+    private ScrollResult SetScrollViewer3(
+        string reason,
+        ScrollSource source,
+        float? zoom = null,
+        ZoomType zoomType = ZoomType.CenterInside,
+        double? horizontalOffset = null,
+        double? verticalOffset = null,
         bool disableAnimation = true)
     {
         return SetScrollViewerInternal(new ScrollRequest(source)
@@ -2552,8 +2592,7 @@ internal partial class ReaderView : UserControl
             }
         }
 
-        ChangeView(context);
-        context.Result = ScrollResult.Success;
+        context.Result = ChangeView(request, context);
     }
 
     private void SetScrollViewerZoom(ScrollRequest request, ScrollContext context)
@@ -2705,7 +2744,7 @@ internal partial class ReaderView : UserControl
         context.VerticalOffset = Math.Max(0.0, context.VerticalOffset.Value);
     }
 
-    private bool ChangeView(ScrollContext context)
+    private ScrollResult ChangeView(ScrollRequest request, ScrollContext context)
     {
         if (_isVertical)
         {
@@ -2747,11 +2786,19 @@ internal partial class ReaderView : UserControl
         float commitZoomFactor = SCZoomFactorFinal;
         bool commitDisableAnimation = SCDisableAnimationFinal;
 
-        bool successful;
+        float oldZoomFactor = ZoomFactor;
+        double oldHorizontalOffset = HorizontalOffset;
+        double oldVerticalOffset = VerticalOffset;
+
+        bool changed;
         _isCommitting = true;
         try
         {
-            successful = ThisScrollViewer.ChangeView(commitHorizontalOffset, commitVerticalOffset, commitZoomFactor, commitDisableAnimation);
+            changed = ThisScrollViewer.ChangeView(
+                commitHorizontalOffset,
+                commitVerticalOffset,
+                commitZoomFactor,
+                commitDisableAnimation);
         }
         finally
         {
@@ -2759,13 +2806,25 @@ internal partial class ReaderView : UserControl
         }
 
         Log("Jump", "Commit:"
-        + " Success=" + successful.ToString()
-        + ",Z=" + commitZoomFactor.ToString()
-        + ",H=" + commitHorizontalOffset.ToString()
-        + ",V=" + commitVerticalOffset.ToString()
-        + ",D=" + commitDisableAnimation.ToString());
+        + $" Changed={changed}"
+        + $",Z={commitZoomFactor}"
+        + $",H={commitHorizontalOffset}"
+        + $",V={commitVerticalOffset}"
+        + $",D={commitDisableAnimation}");
 
-        return successful;
+        if (!changed)
+        {
+            if (oldZoomFactor == commitZoomFactor &&
+                oldHorizontalOffset == commitHorizontalOffset &&
+                oldVerticalOffset == commitVerticalOffset)
+            {
+                return ScrollResult.Unchanged;
+            }
+
+            return ScrollResult.UnknownFailure;
+        }
+
+        return ScrollResult.Success;
     }
 
     private void AdjustParallelOffset(ScrollContext context)
@@ -3374,6 +3433,7 @@ internal partial class ReaderView : UserControl
         Success,
         UnknownFailure,
         TooClose,
+        Unchanged,
     }
 
     private enum ZoomType
