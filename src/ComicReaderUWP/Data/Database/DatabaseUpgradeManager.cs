@@ -6,60 +6,91 @@ using System.Collections.Generic;
 using System.IO;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Data.Models.Misc;
 
 namespace ComicReaderUWP.Data.Database;
 
-class DatabaseUpgradeManager
+internal static class DatabaseUpgradeManager
 {
     private const string TAG = nameof(DatabaseUpgradeManager);
-    private const int VERSION = 2;
-
-    public static DatabaseUpgradeManager Instance = new();
+    private const int VERSION = 3;
 
     private static string VersionFilePath => Path.Combine(StorageLocation.LocalFolderPath, "version.txt");
 
-    private DatabaseUpgradeManager() { }
-
-    public void UpgradeDatabaseBeforeInitialization()
+    public static void UpgradeDatabaseBeforeInitialization()
     {
-        int version = ReadVersion();
-
-        if (version < 0)
+        string versionFile = VersionFilePath;
+        FileStream stream;
+        try
         {
-            // New app
-            File.WriteAllText(VersionFilePath, VERSION.ToString());
-            version = VERSION;
+            stream = new FileStream(versionFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        }
+        catch (Exception ex)
+        {
+            throw new IOException($"Failed to open or create version file exclusively: {versionFile}", ex);
         }
 
-        if (version == VERSION)
+        using (stream)
         {
-            return;
-        }
+            int version = -1;
+            try
+            {
+                if (stream.Length > 0)
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    using var sr = new StreamReader(stream, leaveOpen: true);
+                    string content = sr.ReadToEnd();
+                    if (!int.TryParse(content, out version))
+                    {
+                        version = -1;
+                    }
+                }
+                else
+                {
+                    version = -1;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.E(TAG, ex);
+                version = -1;
+            }
 
-        switch (version)
-        {
-            case 0:
-                MoveFile(Path.Combine(StorageLocation.LocalFolderPath, "database.db"), Path.Combine(StorageLocation.LocalFolderPath, "database_sql", "main.db"));
-                goto case 1;
-            case 1: // 2.8.1
-                MergeToDirectory(
-                    Path.Combine(StorageLocation.LocalFolderPath, "database_sql"),
-                    Path.Combine(StorageLocation.LocalFolderPath, "sqlite"));
-                MergeToDirectory(
-                    Path.Combine(StorageLocation.LocalFolderPath, "database_common"),
-                    Path.Combine(StorageLocation.LocalFolderPath, "configs"));
-                break;
-            default:
-                break;
-        }
+            if (version < 0)
+            {
+                // New app
+                stream.SetLength(0);
+                stream.Seek(0, SeekOrigin.Begin);
+                using (var sw = new StreamWriter(stream, leaveOpen: true))
+                {
+                    sw.Write(VERSION.ToString());
+                    sw.Flush();
+                }
 
-        File.WriteAllText(VersionFilePath, VERSION.ToString());
+                version = VERSION;
+            }
+
+            if (version == VERSION)
+            {
+                return;
+            }
+
+            UpgradeDatabaseBeforeInitializationInternal(version);
+
+            stream.SetLength(0);
+            stream.Seek(0, SeekOrigin.Begin);
+            using (var sw = new StreamWriter(stream, leaveOpen: true))
+            {
+                sw.Write(VERSION.ToString());
+                sw.Flush();
+            }
+        }
     }
 
-    public void UpgradeDatabaseAfterInitialization()
+    public static void UpgradeDatabaseAfterInitialization()
     {
         DatabaseVersionModel.ExternalModel databaseVersions = DatabaseVersionModel.Instance.GetModel();
         List<Func<DatabaseVersionModel.ExternalModel, bool>> tasks = [
@@ -80,7 +111,37 @@ class DatabaseUpgradeManager
         }
     }
 
-    private bool UpgradeVersionModel(DatabaseVersionModel.ExternalModel versions)
+    private static void UpgradeDatabaseBeforeInitializationInternal(int version)
+    {
+        switch (version)
+        {
+            case 0:
+                MoveFile(Path.Combine(StorageLocation.LocalFolderPath, "database.db"), Path.Combine(StorageLocation.LocalFolderPath, "database_sql", "main.db"));
+                goto case 1;
+            case 1: // 2.8.1
+                MergeToDirectory(
+                    Path.Combine(StorageLocation.LocalFolderPath, "database_sql"),
+                    Path.Combine(StorageLocation.LocalFolderPath, "sqlite"));
+                MergeToDirectory(
+                    Path.Combine(StorageLocation.LocalFolderPath, "database_common"),
+                    Path.Combine(StorageLocation.LocalFolderPath, "configs"));
+                goto case 2;
+            case 2: // 3.1.0
+                if (EnvironmentProvider.IsPortable())
+                {
+                    string userFolder = Directory.GetParent(StorageLocation.LocalFolderPath)!.FullName;
+                    MergeToDirectory(
+                        Path.Combine(userFolder, "local_cache"),
+                        StorageLocation.LocalCacheFolderPath);
+                }
+
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static bool UpgradeVersionModel(DatabaseVersionModel.ExternalModel versions)
     {
         if (versions.Version >= DatabaseVersionModel.VERSION)
         {
@@ -91,7 +152,7 @@ class DatabaseUpgradeManager
         return true;
     }
 
-    private bool UpgradeKVStore(DatabaseVersionModel.ExternalModel versions)
+    private static bool UpgradeKVStore(DatabaseVersionModel.ExternalModel versions)
     {
         if (versions.KVStoreVersion >= DatabaseVersionModel.KV_STORE_VERSION)
         {
@@ -111,7 +172,7 @@ class DatabaseUpgradeManager
         return true;
     }
 
-    private bool UpgradeSqliteDatabase(DatabaseVersionModel.ExternalModel versions)
+    private static bool UpgradeSqliteDatabase(DatabaseVersionModel.ExternalModel versions)
     {
         if (versions.SqliteDatabaseVersion >= DatabaseVersionModel.SQLITE_DATABASE_VERSION)
         {
@@ -123,7 +184,7 @@ class DatabaseUpgradeManager
         return true;
     }
 
-    private bool UpgradeFavorites(DatabaseVersionModel.ExternalModel versions)
+    private static bool UpgradeFavorites(DatabaseVersionModel.ExternalModel versions)
     {
         if (versions.FavoritesVersion >= DatabaseVersionModel.FAVORITES_VERSION)
         {
@@ -134,7 +195,7 @@ class DatabaseUpgradeManager
         return true;
     }
 
-    private bool UpgradeHistory(DatabaseVersionModel.ExternalModel versions)
+    private static bool UpgradeHistory(DatabaseVersionModel.ExternalModel versions)
     {
         if (versions.HistoryVersion >= DatabaseVersionModel.HISTORY_VERSION)
         {
@@ -145,7 +206,7 @@ class DatabaseUpgradeManager
         return true;
     }
 
-    private bool UpgradeAppSettings(DatabaseVersionModel.ExternalModel versions)
+    private static bool UpgradeAppSettings(DatabaseVersionModel.ExternalModel versions)
     {
         if (versions.AppSettingsVersion >= DatabaseVersionModel.APP_SETTING_VERSION)
         {
@@ -154,33 +215,6 @@ class DatabaseUpgradeManager
 
         versions.AppSettingsVersion = DatabaseVersionModel.APP_SETTING_VERSION;
         return true;
-    }
-
-    private static int ReadVersion()
-    {
-        string versionFile = VersionFilePath;
-        if (!File.Exists(versionFile))
-        {
-            return -1;
-        }
-
-        string versionContent;
-        try
-        {
-            versionContent = File.ReadAllText(versionFile);
-        }
-        catch (Exception ex)
-        {
-            Logger.E(TAG, ex);
-            return -1;
-        }
-
-        if (!int.TryParse(versionContent, out int version))
-        {
-            return -1;
-        }
-
-        return version;
     }
 
     private static void MergeToDirectory(string sourceDir, string destinationDir)

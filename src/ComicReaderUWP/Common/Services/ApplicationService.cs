@@ -52,7 +52,7 @@ internal class ApplicationService : IApplicationService
 
         if (PORTABLE)
         {
-            return Path.Combine(GetDeploymentPath(), DIR_USER, "local");
+            return Path.Combine(GetDeploymentPath(), DIR_USER, "Local");
         }
         else
         {
@@ -70,7 +70,7 @@ internal class ApplicationService : IApplicationService
 
         if (PORTABLE)
         {
-            return Path.Combine(GetDeploymentPath(), DIR_USER, "local_cache");
+            return Path.Combine(GetDeploymentPath(), DIR_USER, "LocalCache");
         }
         else
         {
@@ -88,7 +88,7 @@ internal class ApplicationService : IApplicationService
 
         if (PORTABLE)
         {
-            return Path.Combine(GetDeploymentPath(), DIR_USER, "temporary");
+            return Path.Combine(GetDeploymentPath(), DIR_USER, "Temporary");
         }
         else
         {
