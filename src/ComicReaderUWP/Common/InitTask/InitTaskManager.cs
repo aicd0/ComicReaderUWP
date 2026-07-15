@@ -59,6 +59,8 @@ internal class InitTaskManager
             DebugUtils.CaptureFatalError("An unknown error occurred in a background task.", e.Exception);
         };
 
+        DatabaseUpgradeManager.UpgradeDatabaseBeforeInitialization();
+
         IsFirstInstance = TryRegisterFirstInstance();
         RegisterExitHandler();
 
@@ -100,6 +102,8 @@ internal class InitTaskManager
         }
 
         AppDB.Initialize();
+        DatabaseUpgradeManager.UpgradeDatabaseAfterInitialization();
+
         InitializeAppLanguage();
 
         if (!ExitedNormallyLastTime)

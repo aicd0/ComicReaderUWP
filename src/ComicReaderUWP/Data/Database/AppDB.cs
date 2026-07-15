@@ -98,9 +98,6 @@ internal static class AppDB
     public static void Initialize()
     {
         MainRegistry.RemoveKey(RegistryNames.RUNTIME_RESOURCES);
-
-        DatabaseUpgradeManager.Instance.UpgradeDatabaseBeforeInitialization();
         SqliteDB.Initialize();
-        DatabaseUpgradeManager.Instance.UpgradeDatabaseAfterInitialization();
     }
 }
