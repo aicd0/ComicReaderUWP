@@ -15,7 +15,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
     private readonly string _fileName = fileName;
     private readonly ReaderWriterLock _lock = new();
     private T? _jsonModel;
-    private readonly ITaskDispatcher _queue = TaskDispatcher.Factory.NewQueue($"{nameof(JsonDatabase<T>)}#{fileName}");
+    private readonly ITaskDispatcher _queue = TaskDispatcher.Factory.NewQueue($"{nameof(JsonDatabase<>)}#{fileName}");
 
     private readonly JsonSerializerOptions _serializerOptions = new()
     {

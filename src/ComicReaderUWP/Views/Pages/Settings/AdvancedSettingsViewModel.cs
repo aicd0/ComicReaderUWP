@@ -54,6 +54,17 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _sendUsageData;
+    public bool SendUsageData
+    {
+        get => _sendUsageData;
+        set
+        {
+            _sendUsageData = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SendUsageData)));
+        }
+    }
+
     public string ClearCacheText
     {
         get => $"{StringResourceProvider.Instance.ClearCache} ({_cacheSize})";
@@ -89,7 +100,16 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
 
     private void Update()
     {
+        UpdateBasicSettings();
         UpdateCacheSize();
+    }
+
+    private void UpdateBasicSettings()
+    {
+        CoroutineUtils.RunInMainThread(() =>
+        {
+            SendUsageData = AppSettingsModel.Instance.SendUsageData;
+        });
     }
 
     private void UpdateCacheSize()

@@ -867,6 +867,9 @@ Start in Safe Mode?</value>
   <data name="SendToWindow" xml:space="preserve">
     <value>Send to window</value>
   </data>
+  <data name="SendUsageData" xml:space="preserve">
+    <value>Send usage data</value>
+  </data>
   <data name="Separate" xml:space="preserve">
     <value>Separate</value>
   </data>

@@ -865,6 +865,9 @@ Im abgesicherten Modus starten?</value>
   <data name="SendToWindow" xml:space="preserve">
     <value>An Fenster senden</value>
   </data>
+  <data name="SendUsageData" xml:space="preserve">
+    <value>Nutzungsdaten senden</value>
+  </data>
   <data name="Separate" xml:space="preserve">
     <value>Getrennt</value>
   </data>

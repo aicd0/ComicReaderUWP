@@ -7,6 +7,8 @@ namespace ComicReaderUWP.Core.Tests.Common;
 
 internal class DebugService : IDebugService
 {
+    public bool SentryEnabled => false;
+
     public void OnCrashReport(string info)
     {
         Assert.Fail(info);

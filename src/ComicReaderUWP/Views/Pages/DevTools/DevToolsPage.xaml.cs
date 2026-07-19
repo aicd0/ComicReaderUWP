@@ -118,11 +118,6 @@ internal sealed partial class DevToolsPage : BasePage
         DebugUtils.DeveloperMode = DeveloperModeToggleSwitch.IsOn;
     }
 
-    private void SentryToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        DebugUtils.SentryEnabled = SentryToggleSwitch.IsOn;
-    }
-
     //
     // Utilities
     //
@@ -147,6 +142,5 @@ internal sealed partial class DevToolsPage : BasePage
     {
         CommonConfigsTextBlock.Text = DebugModel.LoadJsonConfig();
         DeveloperModeToggleSwitch.IsOn = DebugUtils.DeveloperMode;
-        SentryToggleSwitch.IsOn = DebugUtils.SentryEnabled;
     }
 }

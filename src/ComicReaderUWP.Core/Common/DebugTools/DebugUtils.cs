@@ -17,7 +17,6 @@ public static class DebugUtils
     private const string TAG = nameof(DebugUtils);
     private const string KEY_DEBUG_MODE = "DebugMode";
     private const string KEY_DEVELOPER_MODE = "DeveloperMode";
-    private const string KEY_SENTRY_ENABLED = "SentryEnabled";
 
 #if DEBUG
     private const bool IS_DEBUG_BUILD = true;
@@ -76,30 +75,6 @@ public static class DebugUtils
 
             _developerMode = value;
             CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).Set(KEY_DEVELOPER_MODE, value);
-        }
-    }
-
-    private static bool? _sentryEnabled = null;
-    public static bool SentryEnabled
-    {
-        get
-        {
-            if (!_sentryEnabled.HasValue)
-            {
-                _sentryEnabled = !UnlockedDeveloperMode || CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValueOrDefault(KEY_SENTRY_ENABLED, true);
-            }
-
-            return _sentryEnabled.Value;
-        }
-        set
-        {
-            if (value == _sentryEnabled)
-            {
-                return;
-            }
-
-            _sentryEnabled = value;
-            CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).Set(KEY_SENTRY_ENABLED, value);
         }
     }
 
