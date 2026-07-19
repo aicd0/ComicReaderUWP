@@ -866,6 +866,9 @@ $plugins</value>
   <data name="SendToWindow" xml:space="preserve">
     <value>Отправить в окно</value>
   </data>
+  <data name="SendUsageData" xml:space="preserve">
+    <value>Отправить данные об использовании</value>
+  </data>
   <data name="Separate" xml:space="preserve">
     <value>Раздельный</value>
   </data>

@@ -19,9 +19,11 @@ public static class SentryManager
 
     private static volatile bool _initialized = false;
 
+    private static bool Active => _initialized && ServiceManager.GetServiceNullable<IDebugService>()?.SentryEnabled != false;
+
     public static void Initialize(string dsn, IReadOnlyDictionary<string, string> tags)
     {
-        if (!DebugUtils.SentryEnabled || _initialized)
+        if (_initialized)
         {
             return;
         }
@@ -50,7 +52,7 @@ public static class SentryManager
 
     internal static void CaptureInfo(string message)
     {
-        if (!_initialized)
+        if (!Active)
         {
             return;
         }
@@ -63,7 +65,7 @@ public static class SentryManager
 
     internal static void CaptureWarning(Exception exception)
     {
-        if (!_initialized)
+        if (!Active)
         {
             return;
         }
@@ -76,7 +78,7 @@ public static class SentryManager
 
     internal static void CaptureError(Exception exception)
     {
-        if (!_initialized)
+        if (!Active)
         {
             return;
         }

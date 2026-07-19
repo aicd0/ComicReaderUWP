@@ -14,6 +14,7 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Models;
 
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 
@@ -31,9 +32,9 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
         ViewModel.Initialize(shared);
     }
 
-    private void OnDebugModeToggled(object sender, RoutedEventArgs e)
+    private void DebugModeToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
-        bool debugMode = TsDebugMode.IsOn;
+        bool debugMode = ((ToggleSwitch)sender).IsOn;
         if (ViewModel.Shared.DebugMode == debugMode)
         {
             return;
@@ -60,6 +61,12 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
             ViewModel.Shared.DebugMode = debugMode;
             DebugUtils.DebugMode = debugMode;
         });
+    }
+
+    private void SendUsageDataToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        bool sendUsageData = ((ToggleSwitch)sender).IsOn;
+        AppSettingsModel.Instance.SendUsageData = sendUsageData;
     }
 
     private void OnClearCacheClick(object sender, RoutedEventArgs e)

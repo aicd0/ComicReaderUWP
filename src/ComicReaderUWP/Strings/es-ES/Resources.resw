@@ -865,6 +865,9 @@ $plugins</value>
   <data name="SendToWindow" xml:space="preserve">
     <value>Enviar a ventana</value>
   </data>
+  <data name="SendUsageData" xml:space="preserve">
+    <value>Enviar datos de uso</value>
+  </data>
   <data name="Separate" xml:space="preserve">
     <value>Separado</value>
   </data>

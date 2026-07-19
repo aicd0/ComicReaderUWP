@@ -198,6 +198,7 @@ public class StringResourceProvider
     public string SearchResultsOf => GetResourceString("SearchResultsOf");
     public string Select => GetResourceString("Select");
     public string SendToWindow => GetResourceString("SendToWindow");
+    public string SendUsageData => GetResourceString("SendUsageData");
     public string Separate => GetResourceString("Separate");
     public string SetAsDefault => GetResourceString("SetAsDefault");
     public string SetCompletionState => GetResourceString("SetCompletionState");

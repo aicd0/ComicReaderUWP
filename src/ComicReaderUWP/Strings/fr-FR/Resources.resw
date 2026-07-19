@@ -865,6 +865,9 @@ Démarrer en mode sans échec ?</value>
   <data name="SendToWindow" xml:space="preserve">
     <value>Envoyer vers la fenêtre</value>
   </data>
+  <data name="SendUsageData" xml:space="preserve">
+    <value>Envoyer les données d’utilisation</value>
+  </data>
   <data name="Separate" xml:space="preserve">
     <value>Séparé</value>
   </data>

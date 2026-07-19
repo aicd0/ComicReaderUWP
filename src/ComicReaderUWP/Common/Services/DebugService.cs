@@ -5,6 +5,7 @@ using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.Views.AppWindows.Main;
@@ -13,6 +14,8 @@ namespace ComicReaderUWP.Common.Services;
 
 internal class DebugService : IDebugService
 {
+    public bool SentryEnabled => AppSettingsModel.Instance.SendUsageData;
+
     public void OnCrashReport(string info)
     {
         DialogOptions options = new DialogOptions.Builder()

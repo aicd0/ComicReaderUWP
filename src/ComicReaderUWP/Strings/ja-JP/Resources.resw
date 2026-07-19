@@ -865,6 +865,9 @@ $plugins</value>
   <data name="SendToWindow" xml:space="preserve">
     <value>ウィンドウへ送る</value>
   </data>
+  <data name="SendUsageData" xml:space="preserve">
+    <value>利用データを送信</value>
+  </data>
   <data name="Separate" xml:space="preserve">
     <value>スプリット</value>
   </data>

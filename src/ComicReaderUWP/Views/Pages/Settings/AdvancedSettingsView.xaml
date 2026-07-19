@@ -47,10 +47,12 @@
             x:Uid="DebugMode"
             Margin="0,16,0,0"
             TextWrapping="Wrap" />
-        <ToggleSwitch
-            x:Name="TsDebugMode"
-            IsOn="{x:Bind ViewModel.Shared.DebugMode, Mode=OneWay}"
-            Toggled="OnDebugModeToggled" />
+        <ToggleSwitch IsOn="{x:Bind ViewModel.Shared.DebugMode, Mode=OneWay}" Toggled="DebugModeToggleSwitch_Toggled" />
+        <TextBlock
+            Margin="0,8,0,0"
+            Text="{x:Bind StringResource.SendUsageData}"
+            TextWrapping="Wrap" />
+        <ToggleSwitch IsOn="{x:Bind ViewModel.SendUsageData, Mode=TwoWay}" Toggled="SendUsageDataToggleSwitch_Toggled" />
         <Button
             Margin="0,16,0,0"
             Click="ResetAllSettingsButton_Click"

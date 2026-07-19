@@ -865,6 +865,9 @@ $plugins</value>
   <data name="SendToWindow" xml:space="preserve">
     <value>发送到窗口</value>
   </data>
+  <data name="SendUsageData" xml:space="preserve">
+    <value>发送使用数据</value>
+  </data>
   <data name="Separate" xml:space="preserve">
     <value>拆分</value>
   </data>

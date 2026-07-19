@@ -866,6 +866,9 @@ $plugins</value>
   <data name="SendToWindow" xml:space="preserve">
     <value>창으로 보내기</value>
   </data>
+  <data name="SendUsageData" xml:space="preserve">
+    <value>사용 데이터 보내기</value>
+  </data>
   <data name="Separate" xml:space="preserve">
     <value>분리된</value>
   </data>

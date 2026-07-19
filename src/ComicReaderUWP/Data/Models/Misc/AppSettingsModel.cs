@@ -206,6 +206,19 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
+    public bool SendUsageData
+    {
+        get
+        {
+            return Read(model => model.SendUsageData ?? true);
+        }
+        set
+        {
+            Write(model => model.SendUsageData = value);
+            Save();
+        }
+    }
+
     public bool UseScrollingAreaAsStartEnd
     {
         get
@@ -628,6 +641,9 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("RestoreLastReadingPositionOnlyAppliesToReadingComics")]
         public bool? RestoreLastReadingPositionOnlyAppliesToReadingComics { get; set; }
+
+        [JsonPropertyName("SendUsageData")]
+        public bool? SendUsageData { get; set; }
 
         [JsonPropertyName("UseScrollingAreaAsStartEnd")]
         public bool? UseScrollingAreaAsStartEnd { get; set; }

@@ -47,8 +47,6 @@
 
                 <TextBlock Text="Developer mode" />
                 <ToggleSwitch x:Name="DeveloperModeToggleSwitch" Toggled="DeveloperModeToggleSwitch_Toggled" />
-                <TextBlock Text="Sentry" />
-                <ToggleSwitch x:Name="SentryToggleSwitch" Toggled="SentryToggleSwitch_Toggled" />
 
             </StackPanel>
         </ScrollViewer>
