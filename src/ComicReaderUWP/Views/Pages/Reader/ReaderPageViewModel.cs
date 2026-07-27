@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.Lifecycle;
@@ -25,8 +24,9 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
+    private double _previewImageHeight;
+    private double _previewImageWidth;
 
     // Comic Status
     private ComicModel? _comic;
@@ -219,9 +219,10 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     public ReaderPageViewModel() { }
 
-    public void Initialize(ActionHandler actionHandler)
+    public void Initialize(double previewImageWidth, double previewImageHeight)
     {
-        _actionHandler = actionHandler;
+        _previewImageWidth = previewImageWidth;
+        _previewImageHeight = previewImageHeight;
         Playback.PlaybackStatusChanged += Playback_PlaybackStatusChanged;
     }
 
@@ -482,8 +483,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         ReaderLoadingInfoLiveData.Emit(new(images, initialPage));
 
         // Load preview images
-        double previewWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"];
-        double previewHeight = (double)Application.Current.Resources["ReaderPreviewImageHeight"];
         for (int i = 0; i < connection.GetImageCount(); ++i)
         {
             PreviewDataSource.Add(new ReaderImagePreviewViewModel
@@ -491,8 +490,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 Image = new SimpleImageView.Model
                 {
                     Source = new ComicImageSource(connection, i),
-                    Width = previewWidth,
-                    Height = previewHeight,
+                    Width = _previewImageWidth,
+                    Height = _previewImageHeight,
                     Dispatcher = _loadPreviewDispatcher,
                     DebugDescription = i.ToString()
                 },

@@ -24,15 +24,18 @@ internal interface IMainWindowAbility : IPageAbility
 
     PluginWindowContext PluginWindowContext { get; }
 
-    bool GetPointerInsideWindowState();
-
-    void RegisterMinimizeChangedHandler(ILifecycleOwner owner, MinimizeChangedEventHandler handler);
-
-    void RegisterFullscreenChangedHandler(ILifecycleOwner owner, FullscreenChangedEventHandler handler);
-
-    void RegisterPointerInsideRootElementChangedHandler(ILifecycleOwner owner, PointerInsideChangedEventHandler handler);
-
     void EnterFullscreen();
 
     void ExitFullscreen();
+
+    bool GetPointerInsideWindowState();
+
+    double GetRasterizationScale();
+
+    void RegisterFullscreenChangedHandler(ILifecycleOwner owner, FullscreenChangedEventHandler handler);
+
+    void RegisterMinimizeChangedHandler(ILifecycleOwner owner, MinimizeChangedEventHandler handler);
+
+    void RegisterPointerInsideRootElementChangedHandler(ILifecycleOwner owner, PointerInsideChangedEventHandler handler);
+
 }

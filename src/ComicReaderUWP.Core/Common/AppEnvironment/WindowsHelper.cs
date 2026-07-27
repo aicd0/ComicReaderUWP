@@ -82,14 +82,6 @@ internal static class WindowsHelper
         return false;
     }
 
-    public static void GetScreenSize(out int width, out int height)
-    {
-        using var graphics = Graphics.FromHwnd(nint.Zero);
-        nint hdc = graphics.GetHdc();
-        width = NativeMethods.GetDeviceCaps(hdc, 118);
-        height = NativeMethods.GetDeviceCaps(hdc, 117);
-    }
-
     static WindowsHelper()
     {
         _hooks = new Dictionary<NativeModels.WinEventDelegate, nint>();

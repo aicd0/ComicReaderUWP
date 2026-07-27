@@ -121,7 +121,10 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         // Initialize view model
-        ViewModel.Initialize(PageActionHandler);
+        double scale = GetMainWindowAbility().GetRasterizationScale();
+        double previewImageWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"] * scale;
+        double previewImageHeight = (double)Application.Current.Resources["ReaderPreviewImageHeight"] * scale;
+        ViewModel.Initialize(previewImageWidth, previewImageHeight);
         CoroutineUtils.Run(async () =>
         {
             PlaylistModel playlist = await GetPlaylist(bundle);

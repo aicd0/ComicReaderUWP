@@ -153,12 +153,6 @@ internal class DeviceInformationHelper
         return string.Empty;
     }
 
-    public string GetScreenSize()
-    {
-        WindowsHelper.GetScreenSize(out int width, out int height);
-        return $"{width}x{height}";
-    }
-
     public string? GetCpuId()
     {
         try
