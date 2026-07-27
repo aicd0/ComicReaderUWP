@@ -113,8 +113,6 @@
                                     VerticalAlignment="Top"
                                     Background="{TemplateBinding Background}"
                                     Loaded="OnTabContainerGridLoaded"
-                                    PointerEntered="TabContainerGrid_PointerEntered"
-                                    PointerExited="TabContainerGrid_PointerExited"
                                     SizeChanged="OnTabContainerGridSizeChanged"
                                     Unloaded="OnTabContainerGridUnloaded"
                                     XYFocusKeyboardNavigation="Enabled">
@@ -213,8 +211,6 @@
                 Grid.Row="0"
                 VerticalAlignment="Top"
                 Background="{ThemeResource TabViewItemHeaderBackgroundSelected}"
-                PointerEntered="TopTile_PointerEntered"
-                PointerExited="TopTile_PointerExited"
                 SizeChanged="OnTopTileSizeChanged">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -317,10 +313,7 @@
                 PaneOpened="SidebarSplitView_PaneOpenedOrClosed"
                 PanePlacement="Right">
                 <SplitView.Pane>
-                    <Grid
-                        PointerEntered="SidebarGrid_PointerEntered"
-                        PointerExited="SidebarGrid_PointerExited"
-                        SizeChanged="SidebarGrid_SizeChanged">
+                    <Grid SizeChanged="SidebarGrid_SizeChanged">
                         <sidebar:SidebarView x:Name="MainSidebarView" PinStateChanged="MainSidebarView_PinStateChanged" />
                         <Rectangle
                             Width="1"

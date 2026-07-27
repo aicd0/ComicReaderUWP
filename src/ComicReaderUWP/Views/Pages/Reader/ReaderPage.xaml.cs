@@ -235,10 +235,10 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        GetMainPageAbility().RegisterPointerOverOverlayChangedEventHandler(this, isOver =>
+        GetMainWindowAbility().RegisterPointerInsideRootElementChangedHandler(this, isInside =>
         {
-            _isPointerOverParentOverlay = isOver;
-            UpdatePointerOverOverlayState();
+            _isPointerInsideRootElement = isInside;
+            UpdateOverlayState();
         });
 
         ViewModel.TitleLiveData.Observe(this, title =>
@@ -430,6 +430,18 @@ internal sealed partial class ReaderPage : BasePage
     // Common Input Events
     //
 
+    private void ReaderGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerInsideReader = true;
+        UpdateOverlayState();
+    }
+
+    private void ReaderGrid_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        _isPointerInsideReader = false;
+        UpdateOverlayState();
+    }
+
     private void Reader_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
         if (sender is not FrameworkElement fe)
@@ -552,20 +564,6 @@ internal sealed partial class ReaderPage : BasePage
         {
             UpdatePinRelatedUI();
         }
-    }
-
-    private bool _isPointerOverBottomGrid = false;
-
-    private void BottomGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        _isPointerOverBottomGrid = true;
-        UpdatePointerOverOverlayState();
-    }
-
-    private void BottomGrid_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        _isPointerOverBottomGrid = false;
-        UpdatePointerOverOverlayState();
     }
 
     //
@@ -744,20 +742,28 @@ internal sealed partial class ReaderPage : BasePage
     // Overlay
     //
 
-    private bool _isPointerOverOverlay = false;
-    private bool _isPointerOverParentOverlay = false;
+    private bool _shouldOverlayVisible = false;
+    private bool _isPointerInsideRootElement = true;
+    private bool _isPointerInsideReader = false;
 
-    private void UpdatePointerOverOverlayState()
+    private double _topOverlayHeight = 0.0;
+    private double _rightOverlayWidth = 0.0;
+    private bool _isOverlayVisible = false;
+    private bool _isOverlayHold = false;
+    private long _hideOverlayDeadline = -1;
+
+    private void UpdateOverlayState()
     {
-        bool isPointerOverOverlay = _isPointerOverParentOverlay || _isPointerOverBottomGrid;
-        if (isPointerOverOverlay == _isPointerOverOverlay)
+        bool isPointerInsideWindow = GetMainWindowAbility().GetPointerInsideWindowState();
+        bool shouldOverlayVisible = (isPointerInsideWindow || _isPointerInsideRootElement) && !_isPointerInsideReader;
+        if (shouldOverlayVisible == _shouldOverlayVisible)
         {
             return;
         }
 
-        _isPointerOverOverlay = isPointerOverOverlay;
+        _shouldOverlayVisible = shouldOverlayVisible;
 
-        if (isPointerOverOverlay)
+        if (shouldOverlayVisible)
         {
             ShowOverlay();
         }
@@ -766,12 +772,6 @@ internal sealed partial class ReaderPage : BasePage
             TryHideOverlay(1000);
         }
     }
-
-    private double _topOverlayHeight = 0.0;
-    private double _rightOverlayWidth = 0.0;
-    private bool _isOverlayVisible = false;
-    private bool _isOverlayHold = false;
-    private long _hideOverlayDeadline = -1;
 
     private void TryHideOverlay(int delayMilliseconds = 0)
     {
@@ -811,7 +811,7 @@ internal sealed partial class ReaderPage : BasePage
 
         if (ViewModel.IsPinned ||
             _isOverlayHold ||
-            _isPointerOverOverlay ||
+            _shouldOverlayVisible ||
             GridViewModeEnabled)
         {
             return;

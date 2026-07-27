@@ -5,8 +5,10 @@ FindClose
 FindFirstFileExFromApp
 FindNextFile
 GetActiveWindow
+GetCursorPos
 GetDeviceCaps
 GetDpiForMonitor
+GetDpiForWindow
 GetMonitorInfo
 GetWindowPlacement
 GetWindowRect
@@ -16,6 +18,7 @@ MonitorFromPoint
 MonitorFromRect
 MonitorFromWindow
 RegisterHotKey
+ScreenToClient
 SetForegroundWindow
 SetWindowLongPtr
 SetWindowPlacement
