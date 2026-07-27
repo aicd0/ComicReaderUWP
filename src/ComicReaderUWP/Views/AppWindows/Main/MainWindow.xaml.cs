@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -529,26 +528,6 @@ internal sealed partial class MainWindow : Window
         appWindow.SetIcon(@"Assets\AppIcon.ico");
     }
 
-    private bool GetPointerInsideWindowState()
-    {
-        HWND hWnd = new(WindowHandle);
-
-        PInvoke.GetCursorPos(out Point screenPoint);
-        Point clientPoint = screenPoint;
-        PInvoke.ScreenToClient(hWnd, ref clientPoint);
-
-        Frame rootElement = ContentFrame;
-        double scale = GetRasterizationScale();
-        double x = clientPoint.X / scale;
-        double y = clientPoint.Y / scale;
-        Vector2 size = rootElement.ActualSize;
-
-        return x >= 0 &&
-               y >= 0 &&
-               x < size.X &&
-               y < size.Y;
-    }
-
     //
     // Page Ability
     //
@@ -563,24 +542,52 @@ internal sealed partial class MainWindow : Window
         private readonly MutableLiveData<bool> _fullscreenLiveData = new(window._isFullscreen);
         private readonly MutableLiveData<bool> _pointerInsideLiveData = new(true);
 
-        public int WindowId => _windowId;
-
         public bool IsActive => GetWindow()?.IsActive ?? false;
-
-        public bool IsMinimized => _minimizeLiveData.GetValue();
 
         public bool IsFullscreen => _fullscreenLiveData.GetValue();
 
+        public bool IsMinimized => _minimizeLiveData.GetValue();
+
         public PluginWindowContext PluginWindowContext => _pluginWindowContext;
+
+        public int WindowId => _windowId;
+
+        public SizeF WindowSize
+        {
+            get
+            {
+                Frame? root = GetWindow()?.ContentFrame;
+                if (root is null)
+                {
+                    return SizeF.Empty;
+                }
+
+                return new SizeF((float)root.ActualWidth, (float)root.ActualHeight);
+            }
+        }
+
+        public PointF GetPointerPosition()
+        {
+            MainWindow? window = GetWindow();
+            if (window is null)
+            {
+                return PointF.Empty;
+            }
+
+            HWND hWnd = new(window.WindowHandle);
+
+            PInvoke.GetCursorPos(out Point screenPoint);
+            Point clientPoint = screenPoint;
+            PInvoke.ScreenToClient(hWnd, ref clientPoint);
+            double scale = window.GetRasterizationScale();
+            double x = clientPoint.X / scale;
+            double y = clientPoint.Y / scale;
+            return new((float)x, (float)y);
+        }
 
         public double GetRasterizationScale()
         {
             return GetWindow()?.GetRasterizationScale() ?? 1.0;
-        }
-
-        public bool GetPointerInsideWindowState()
-        {
-            return GetWindow()?.GetPointerInsideWindowState() ?? false;
         }
 
         public void RegisterPageLifecycleHandler(PageLifecycleEventHandler handler)

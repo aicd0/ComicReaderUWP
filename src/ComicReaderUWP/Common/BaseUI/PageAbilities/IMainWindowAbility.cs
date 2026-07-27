@@ -1,6 +1,8 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Drawing;
+
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.Lifecycle;
 
@@ -14,21 +16,23 @@ internal interface IMainWindowAbility : IPageAbility
 
     public delegate void PointerInsideChangedEventHandler(bool isPointerInside);
 
-    int WindowId { get; }
-
     bool IsActive { get; }
-
-    bool IsMinimized { get; }
 
     bool IsFullscreen { get; }
 
+    bool IsMinimized { get; }
+
     PluginWindowContext PluginWindowContext { get; }
+
+    int WindowId { get; }
+
+    SizeF WindowSize { get; }
 
     void EnterFullscreen();
 
     void ExitFullscreen();
 
-    bool GetPointerInsideWindowState();
+    PointF GetPointerPosition();
 
     double GetRasterizationScale();
 
