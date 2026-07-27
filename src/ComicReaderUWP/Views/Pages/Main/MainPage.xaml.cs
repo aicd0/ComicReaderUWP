@@ -297,66 +297,6 @@ internal sealed partial class MainPage : BasePage
         _lastPointerPoint = null;
     }
 
-    private bool _isPointerOverOverlay = false;
-    private bool _isPointerOverTabContainerGrid = false;
-    private bool _isPointerOverSidebar = false;
-    private bool _isPointerOverTopTile = false;
-
-    private void TabContainerGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        _isPointerOverTabContainerGrid = true;
-        DispatchPointerOverOverlayChangedEvent();
-    }
-
-    private void TabContainerGrid_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        _isPointerOverTabContainerGrid = false;
-        DispatchPointerOverOverlayChangedEvent();
-    }
-
-    private void SidebarGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        _isPointerOverSidebar = true;
-        DispatchPointerOverOverlayChangedEvent();
-    }
-
-    private void SidebarGrid_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        _isPointerOverSidebar = false;
-        DispatchPointerOverOverlayChangedEvent();
-    }
-
-    private void TopTile_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        _isPointerOverTopTile = true;
-        DispatchPointerOverOverlayChangedEvent();
-    }
-
-    private void TopTile_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        _isPointerOverTopTile = false;
-        DispatchPointerOverOverlayChangedEvent();
-    }
-
-    private void DispatchPointerOverOverlayChangedEvent()
-    {
-        bool isPointerOverOverlay =
-            _isPointerOverTabContainerGrid ||
-            _isPointerOverSidebar ||
-            _isPointerOverTopTile ||
-            (_isSidebarOpen && !_isSidebarPinned);
-        if (isPointerOverOverlay == _isPointerOverOverlay)
-        {
-            return;
-        }
-
-        _isPointerOverOverlay = isPointerOverOverlay;
-        DispatchToAllTabs(ability =>
-        {
-            ability.SendPointerOverOverlayChangedEvent(isPointerOverOverlay);
-        });
-    }
-
     //
     // Size Change Events
     //
@@ -1068,7 +1008,6 @@ internal sealed partial class MainPage : BasePage
         SidebarSplitView.DisplayMode = isPinned ? SplitViewDisplayMode.Inline : SplitViewDisplayMode.Overlay;
 
         DispatchRightOverlayWidthChangeEvent();
-        DispatchPointerOverOverlayChangedEvent();
     }
 
     private void SidebarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1126,7 +1065,6 @@ internal sealed partial class MainPage : BasePage
         }
 
         DispatchRightOverlayWidthChangeEvent();
-        DispatchPointerOverOverlayChangedEvent();
     }
 
     //
@@ -1268,7 +1206,6 @@ internal sealed partial class MainPage : BasePage
     private class MainPageAbilityForTab : MainPageAbility, IMainPageAbilityForTab
     {
         private const string EVENT_REFRESH = "Refresh";
-        private const string EVENT_POINTER_OVER_OVERLAY = "PointerOverOverlay";
 
         private readonly string _tabId;
         private readonly EventBus _eventBus = new();
@@ -1295,7 +1232,6 @@ internal sealed partial class MainPage : BasePage
         {
             _tabId = tabId;
             ClearStates();
-            _eventBus.With<bool>(EVENT_POINTER_OVER_OVERLAY).Emit(parent._isPointerOverOverlay);
         }
 
         public void ClearStates()
@@ -1345,19 +1281,6 @@ internal sealed partial class MainPage : BasePage
         public void SendRefreshEvent()
         {
             _eventBus.With<bool>(EVENT_REFRESH).Emit(true);
-        }
-
-        public void RegisterPointerOverOverlayChangedEventHandler(ILifecycleOwner owner, IMainPageAbilityForTab.PointerOverOverlayChangedEventHandler handler)
-        {
-            _eventBus.With<bool>(EVENT_POINTER_OVER_OVERLAY).ObserveSticky(owner, isOver =>
-            {
-                handler(isOver);
-            });
-        }
-
-        public void SendPointerOverOverlayChangedEvent(bool isOver)
-        {
-            _eventBus.With<bool>(EVENT_POINTER_OVER_OVERLAY).Emit(isOver);
         }
 
         public void SetTitle(string title)

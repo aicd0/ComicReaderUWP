@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -26,9 +28,12 @@ using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 
 using Windows.Win32;
+using Windows.Win32.Foundation;
 
 using WinRT.Interop;
 
@@ -96,7 +101,7 @@ internal sealed partial class MainWindow : Window
     public int WindowId { get; }
     public IntPtr WindowHandle { get; private set; }
     public WindowLifecycleState LifecycleState { get; private set; } = WindowLifecycleState.Initialized;
-    public bool IsActive => PInvoke.GetActiveWindow() == new Windows.Win32.Foundation.HWND(WindowHandle);
+    public bool IsActive => PInvoke.GetActiveWindow() == new HWND(WindowHandle);
     public MainPage.ITabInfo? CurrentTab => Members._mainPage?.CurrentTab;
 
     //
@@ -220,6 +225,8 @@ internal sealed partial class MainWindow : Window
         Closed += Window_Closed;
         AppWindow.Changed += AppWindow_Changed;
         ContentFrame.Loaded += ContentFrame_Loaded;
+        ContentFrame.PointerEntered += ContentFrame_PointerEntered;
+        ContentFrame.PointerExited += ContentFrame_PointerExited;
     }
 
     private void UnsubscribeEvents()
@@ -227,6 +234,8 @@ internal sealed partial class MainWindow : Window
         Closed -= Window_Closed;
         AppWindow.Changed -= AppWindow_Changed;
         ContentFrame.Loaded -= ContentFrame_Loaded;
+        ContentFrame.PointerEntered -= ContentFrame_PointerEntered;
+        ContentFrame.PointerExited -= ContentFrame_PointerExited;
     }
 
     private void Window_Closed(object sender, WindowEventArgs args)
@@ -343,6 +352,16 @@ internal sealed partial class MainWindow : Window
             await Task.Delay(5000);
             ApplicationService.StopLaunching();
         });
+    }
+
+    private void ContentFrame_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        Members._mainWindowAbility.SendPointerInsideRootElementChangedEvent(true);
+    }
+
+    private void ContentFrame_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        Members._mainWindowAbility.SendPointerInsideRootElementChangedEvent(false);
     }
 
     //
@@ -494,6 +513,28 @@ internal sealed partial class MainWindow : Window
         appWindow.SetIcon(@"Assets\AppIcon.ico");
     }
 
+    bool GetPointerInsideWindowState()
+    {
+        HWND hWnd = new(WindowHandle);
+
+        uint dpi = PInvoke.GetDpiForWindow(hWnd);
+        double scale = dpi / 96.0;
+
+        PInvoke.GetCursorPos(out Point screenPoint);
+        Point clientPoint = screenPoint;
+        PInvoke.ScreenToClient(hWnd, ref clientPoint);
+
+        Frame rootElement = ContentFrame;
+        double x = clientPoint.X / scale;
+        double y = clientPoint.Y / scale;
+        Vector2 size = rootElement.ActualSize;
+
+        return x >= 0 &&
+               y >= 0 &&
+               x < size.X &&
+               y < size.Y;
+    }
+
     //
     // Page Ability
     //
@@ -506,6 +547,7 @@ internal sealed partial class MainWindow : Window
         private readonly PluginWindowContext _pluginWindowContext = new(window.WindowId);
         private readonly MutableLiveData<bool> _minimizeLiveData = new(window._isMinimized);
         private readonly MutableLiveData<bool> _fullscreenLiveData = new(window._isFullscreen);
+        private readonly MutableLiveData<bool> _pointerInsideLiveData = new(true);
 
         public int WindowId => _windowId;
 
@@ -516,6 +558,11 @@ internal sealed partial class MainWindow : Window
         public bool IsFullscreen => _fullscreenLiveData.GetValue();
 
         public PluginWindowContext PluginWindowContext => _pluginWindowContext;
+
+        public bool GetPointerInsideWindowState()
+        {
+            return GetWindow()?.GetPointerInsideWindowState() ?? false;
+        }
 
         public void RegisterPageLifecycleHandler(PageLifecycleEventHandler handler)
         {
@@ -551,6 +598,19 @@ internal sealed partial class MainWindow : Window
         public void SendFullscreenChangedEvent(bool isFullscreen)
         {
             _fullscreenLiveData.Emit(isFullscreen);
+        }
+
+        public void RegisterPointerInsideRootElementChangedHandler(ILifecycleOwner owner, IMainWindowAbility.PointerInsideChangedEventHandler handler)
+        {
+            _pointerInsideLiveData.ObserveSticky(owner, isPointerInside =>
+            {
+                handler(isPointerInside);
+            });
+        }
+
+        public void SendPointerInsideRootElementChangedEvent(bool isPointerInside)
+        {
+            _pointerInsideLiveData.Emit(isPointerInside);
         }
 
         public void EnterFullscreen()

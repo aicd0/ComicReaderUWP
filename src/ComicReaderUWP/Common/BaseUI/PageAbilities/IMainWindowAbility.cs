@@ -12,6 +12,8 @@ internal interface IMainWindowAbility : IPageAbility
 
     public delegate void FullscreenChangedEventHandler(bool isFullscreen);
 
+    public delegate void PointerInsideChangedEventHandler(bool isPointerInside);
+
     int WindowId { get; }
 
     bool IsActive { get; }
@@ -22,9 +24,13 @@ internal interface IMainWindowAbility : IPageAbility
 
     PluginWindowContext PluginWindowContext { get; }
 
+    bool GetPointerInsideWindowState();
+
     void RegisterMinimizeChangedHandler(ILifecycleOwner owner, MinimizeChangedEventHandler handler);
 
     void RegisterFullscreenChangedHandler(ILifecycleOwner owner, FullscreenChangedEventHandler handler);
+
+    void RegisterPointerInsideRootElementChangedHandler(ILifecycleOwner owner, PointerInsideChangedEventHandler handler);
 
     void EnterFullscreen();
 

@@ -51,7 +51,10 @@
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource ForegroundGrey2}" />
             <!--  Reader  -->
-            <Grid ContextRequested="Reader_ContextRequested">
+            <Grid
+                ContextRequested="Reader_ContextRequested"
+                PointerEntered="ReaderGrid_PointerEntered"
+                PointerExited="ReaderGrid_PointerExited">
                 <Grid x:Name="ManipulationReference" />
                 <readercontrol:ReaderView x:Name="MainReaderView" />
             </Grid>
@@ -60,8 +63,6 @@
                 x:Name="BottomGrid"
                 VerticalAlignment="Bottom"
                 Orientation="Vertical"
-                PointerEntered="BottomGrid_PointerEntered"
-                PointerExited="BottomGrid_PointerExited"
                 SizeChanged="BottomGrid_SizeChanged">
                 <Rectangle Height="1" Fill="{ThemeResource SidePaneBorderBrush}" />
                 <StackPanel
