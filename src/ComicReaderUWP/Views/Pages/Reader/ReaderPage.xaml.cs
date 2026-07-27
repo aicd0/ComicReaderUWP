@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.BaseUI;
@@ -757,7 +758,19 @@ internal sealed partial class ReaderPage : BasePage
 
     private void UpdateOverlayState()
     {
-        bool isPointerInsideWindow = GetMainWindowAbility().GetPointerInsideWindowState();
+        bool GetPointerInsideWindowState()
+        {
+            SizeF windowSize = GetMainWindowAbility().WindowSize;
+            PointF pointerPos = GetMainWindowAbility().GetPointerPosition();
+            const float padding = 10.0F;
+            return
+                pointerPos.X >= padding &&
+                pointerPos.X <= windowSize.Width - padding &&
+                pointerPos.Y >= padding &&
+                pointerPos.Y <= windowSize.Height - padding;
+        }
+
+        bool isPointerInsideWindow = GetPointerInsideWindowState();
         bool shouldOverlayVisible = (isPointerInsideWindow || _isPointerInsideRootElement) && !_isPointerInsideReader;
         if (shouldOverlayVisible == _shouldOverlayVisible)
         {
