@@ -98,11 +98,11 @@ internal sealed partial class MainWindow : Window
     // Properties
     //
 
-    public int WindowId { get; }
-    public IntPtr WindowHandle { get; private set; }
-    public WindowLifecycleState LifecycleState { get; private set; } = WindowLifecycleState.Initialized;
-    public bool IsActive => PInvoke.GetActiveWindow() == new HWND(WindowHandle);
     public MainPage.ITabInfo? CurrentTab => Members._mainPage?.CurrentTab;
+    public bool IsActive => PInvoke.GetActiveWindow() == new HWND(WindowHandle);
+    public WindowLifecycleState LifecycleState { get; private set; } = WindowLifecycleState.Initialized;
+    public IntPtr WindowHandle { get; private set; }
+    public int WindowId { get; }
 
     //
     // Constructors
@@ -133,7 +133,46 @@ internal sealed partial class MainWindow : Window
     }
 
     //
-    // Public Methods
+    // Queries
+    //
+
+    public double GetRasterizationScale(double fallbackValue = 1.0)
+    {
+        HWND hWnd = new(WindowHandle);
+        uint dpi = PInvoke.GetDpiForWindow(hWnd);
+        if (dpi <= 0)
+        {
+            return fallbackValue;
+        }
+
+        return dpi / 96.0;
+    }
+
+    public WindowStatusModel? GetWindowStatus()
+    {
+        MainThreadUtils.AssertOnMainThread();
+
+        if (LifecycleState != WindowLifecycleState.Loaded || Members._mainPage is null)
+        {
+            return null;
+        }
+
+        MainPage.LastTabStatusJsonModel? tabStatus = Members._mainPage.GetTabStatus();
+        if (tabStatus is null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            Fullscreen = _isFullscreen,
+            WindowPlacement = Members._windowPlacementManager.GetWindowPlacement(),
+            TabStatus = tabStatus,
+        };
+    }
+
+    //
+    // Misc
     //
 
     public void OpenTab(string url, string targetTabId, string initiateTabId)
@@ -188,29 +227,6 @@ internal sealed partial class MainWindow : Window
     {
         MainThreadUtils.AssertOnMainThread();
         EnterOrExitFullscreen(false);
-    }
-
-    public WindowStatusModel? GetWindowStatus()
-    {
-        MainThreadUtils.AssertOnMainThread();
-
-        if (LifecycleState != WindowLifecycleState.Loaded || Members._mainPage is null)
-        {
-            return null;
-        }
-
-        MainPage.LastTabStatusJsonModel? tabStatus = Members._mainPage.GetTabStatus();
-        if (tabStatus is null)
-        {
-            return null;
-        }
-
-        return new()
-        {
-            Fullscreen = _isFullscreen,
-            WindowPlacement = Members._windowPlacementManager.GetWindowPlacement(),
-            TabStatus = tabStatus,
-        };
     }
 
     //
@@ -513,18 +529,16 @@ internal sealed partial class MainWindow : Window
         appWindow.SetIcon(@"Assets\AppIcon.ico");
     }
 
-    bool GetPointerInsideWindowState()
+    private bool GetPointerInsideWindowState()
     {
         HWND hWnd = new(WindowHandle);
-
-        uint dpi = PInvoke.GetDpiForWindow(hWnd);
-        double scale = dpi / 96.0;
 
         PInvoke.GetCursorPos(out Point screenPoint);
         Point clientPoint = screenPoint;
         PInvoke.ScreenToClient(hWnd, ref clientPoint);
 
         Frame rootElement = ContentFrame;
+        double scale = GetRasterizationScale();
         double x = clientPoint.X / scale;
         double y = clientPoint.Y / scale;
         Vector2 size = rootElement.ActualSize;
@@ -558,6 +572,11 @@ internal sealed partial class MainWindow : Window
         public bool IsFullscreen => _fullscreenLiveData.GetValue();
 
         public PluginWindowContext PluginWindowContext => _pluginWindowContext;
+
+        public double GetRasterizationScale()
+        {
+            return GetWindow()?.GetRasterizationScale() ?? 1.0;
+        }
 
         public bool GetPointerInsideWindowState()
         {

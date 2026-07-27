@@ -18,6 +18,8 @@ using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Views.AppWindows.Main;
 using ComicReaderUWP.Views.Pages.Main;
 
+using Microsoft.UI.Xaml;
+
 namespace ComicReaderUWP.Common.Misc;
 
 class WindowManager
@@ -72,6 +74,24 @@ class WindowManager
         if (_windows.TryGetValue(windowId, out WindowWrapper? wrapper))
         {
             return wrapper.Window;
+        }
+
+        return null;
+    }
+
+    public MainWindow? GetWindowByXamlRoot(XamlRoot? root)
+    {
+        if (root is null)
+        {
+            return null;
+        }
+
+        foreach (WindowWrapper wrapper in _windows.Values)
+        {
+            if (wrapper.Window.Content.XamlRoot == root)
+            {
+                return wrapper.Window;
+            }
         }
 
         return null;

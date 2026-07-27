@@ -610,7 +610,8 @@ internal partial class ReaderView : UserControl
         int preloadWindowEnd = Math.Min(frame + PRELOAD_FRAMES_AFTER, FrameDataSource.Count - 1);
         Log("LoadImage", $"Reason={reason},F={frame}");
 
-        double scale = SCZoomFactorFinal / _imageSettings.AntiAliasingFilterRatio;
+        double rasterizationScale = DisplayUtils.GetRasterizationScale(this);
+        double imageScale = SCZoomFactorFinal / _imageSettings.AntiAliasingFilterRatio * rasterizationScale;
         for (int i = 0; i < FrameDataSource.Count; ++i)
         {
             ReaderFrameViewModel model = FrameDataSource[i];
@@ -621,7 +622,7 @@ internal partial class ReaderView : UserControl
             }
             else
             {
-                model.SetScale(scale);
+                model.SetScale(imageScale);
             }
         }
 

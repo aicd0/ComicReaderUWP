@@ -142,8 +142,9 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
             return;
         }
 
-        double imageWidth = (double)Application.Current.Resources["ComicItemHorizontalImageWidth"];
-        double imageHeight = (double)Application.Current.Resources["ComicItemHorizontalImageHeight"];
+        double scale = DisplayUtils.GetRasterizationScale(this);
+        double imageWidth = (double)Application.Current.Resources["ComicItemHorizontalImageWidth"] * scale;
+        double imageHeight = (double)Application.Current.Resources["ComicItemHorizontalImageHeight"] * scale;
         var tokens = new List<SimpleImageLoader.Token>
         {
             new(new ComicCoverImageSource(item.Comic), new LoadImageCallback(this, item)) {

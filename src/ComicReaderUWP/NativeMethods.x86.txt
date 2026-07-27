@@ -6,8 +6,6 @@ FindFirstFileExFromApp
 FindNextFile
 GetActiveWindow
 GetCursorPos
-GetDeviceCaps
-GetDpiForMonitor
 GetDpiForWindow
 GetMonitorInfo
 GetWindowPlacement

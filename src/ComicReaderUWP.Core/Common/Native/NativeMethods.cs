@@ -15,7 +15,4 @@ internal partial class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern bool UnhookWinEvent(nint hWinEventHook);
-
-    [DllImport("gdi32.dll")]
-    public static extern int GetDeviceCaps(nint hdc, int nIndex);
 }

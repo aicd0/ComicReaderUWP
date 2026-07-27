@@ -122,8 +122,8 @@ internal static partial class ImageCacheManager
         }
 
         options = options.Clone();
-        options.FrameWidth *= DisplayUtils.GetRawPixelPerPixel() * 1.2;
-        options.FrameHeight *= DisplayUtils.GetRawPixelPerPixel() * 1.2;
+        options.FrameWidth *= 1.2;
+        options.FrameHeight *= 1.2;
 
         using CacheRequestContext context = new(source);
         if (!LoadImage(context, options))
@@ -612,39 +612,34 @@ internal static partial class ImageCacheManager
         desiredSize = new(desiredWidth, desiredHeight);
     }
 
-    private static void CalculateDefaultSizeForVector(float originWidth, float originHeight, out int width, out int height)
+    private static void CalculateDefaultSizeForVector(float originalWidth, float originalHeight, out int width, out int height)
     {
         int defaultWidth = 764;
         int defaultHeight = 1080;
 
-        if (!(float.IsFinite(originWidth) && float.IsFinite(originHeight) && originWidth > 0 && originHeight > 0))
+        if (!(float.IsFinite(originalWidth) && float.IsFinite(originalHeight) && originalWidth > 0 && originalHeight > 0))
         {
             width = defaultWidth;
             height = defaultHeight;
             return;
         }
 
-        DisplayUtils.GetScreenSize(out int screenWidth, out int screenHeight);
-        if (screenWidth <= 0 || screenHeight <= 0)
-        {
-            width = (int)originWidth;
-            height = (int)originHeight;
-            return;
-        }
+        int screenWidth = 1920;
+        int screenHeight = 1080;
 
-        float pageAspectRatio = originWidth / originHeight;
+        float pageAspectRatio = originalWidth / originalHeight;
         float screenAspectRatio = (float)screenWidth / screenHeight;
 
         float targetWidth, targetHeight;
         if (pageAspectRatio > screenAspectRatio)
         {
             targetHeight = screenHeight;
-            targetWidth = screenHeight / originHeight * originWidth;
+            targetWidth = screenHeight / originalHeight * originalWidth;
         }
         else
         {
             targetWidth = screenWidth;
-            targetHeight = screenWidth / originWidth * originHeight;
+            targetHeight = screenWidth / originalWidth * originalHeight;
         }
 
         float maxResolution = 10000000;
