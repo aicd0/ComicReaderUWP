@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
-using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
@@ -212,33 +211,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         set
         {
             _languageChanged = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LanguageDescription)));
-        }
-    }
-
-    private string _languageDescription = string.Empty;
-    public string LanguageDescription
-    {
-        get
-        {
-            List<string> lines = [];
-
-            if (_languageChanged)
-            {
-                lines.Add(StringResourceProvider.Instance.ApplyOnNextLaunch);
-            }
-
-            if (!string.IsNullOrEmpty(_languageDescription))
-            {
-                lines.Add(_languageDescription);
-            }
-
-            return string.Join('\n', lines);
-        }
-        set
-        {
-            _languageDescription = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LanguageDescription)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LanguageChanged)));
         }
     }
 
@@ -326,7 +299,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         LanguageEntry selectedLanguage = _languages[index];
         _languageIndex = index;
         LanguageChanged = true;
-        LanguageDescription = selectedLanguage.Description;
         AppSettingsModel.Instance.Language = selectedLanguage.Identifier;
     }
 
@@ -453,29 +425,28 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void UpdateLanguage()
     {
-        string currentLanguage = AppSettingsModel.Instance.Language;
         List<LanguageEntry> languages = [
-            new("Deutsch", "de-DE", "Einige Texte sind maschinell übersetzt"),
-            new("Español", "es-ES", "Algunos textos están traducidos automáticamente"),
-            new("Français", "fr-FR", "Certains textes sont traduits automatiquement"),
-            new("English", "en", ""),
-            new("日本語", "ja-JP", "一部のテキストは機械翻訳されています"),
-            new("한국어", "ko-KR", "일부 텍스트는 기계로 번역되었습니다"),
-            new("Русский", "ru-RU", "Некоторые тексты переведены машинным способом"),
-            new("简体中文", "zh-CN", ""),
-            new("繁體中文", "zh-TW", "部分文字使用了機器翻譯"),
+            new("Deutsch", "de-DE"),
+            new("Español", "es-ES"),
+            new("Français", "fr-FR"),
+            new("English", "en"),
+            new("日本語", "ja-JP"),
+            new("한국어", "ko-KR"),
+            new("Русский", "ru-RU"),
+            new("简体中文", "zh-CN"),
+            new("繁體中文", "zh-TW"),
         ];
         languages.Sort((x, y) => x.Identifier.CompareTo(y.Identifier));
-        LanguageEntry useSystemLanguage = new(StringResourceProvider.Instance.UseSystemLanguage, "", GetLanguageDescriptionOfSystemLanguage(languages));
+        LanguageEntry useSystemLanguage = new(StringResourceProvider.Instance.UseSystemLanguage, string.Empty);
         languages.Insert(0, useSystemLanguage);
+
+        string currentLanguage = AppSettingsModel.Instance.Language;
         int selectedIndex = -1;
-        string languageDescription = "";
         for (int i = 0; i < languages.Count; i++)
         {
             if (currentLanguage == languages[i].Identifier)
             {
                 selectedIndex = i;
-                languageDescription = languages[i].Description;
                 break;
             }
         }
@@ -489,7 +460,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         {
             Languages = languages;
             LanguageIndex = selectedIndex;
-            LanguageDescription = languageDescription;
         });
     }
 
@@ -614,32 +584,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
     }
 
     //
-    // Language
-    //
-
-    private static string GetLanguageDescriptionOfSystemLanguage(List<LanguageEntry> entries)
-    {
-        string systemLanguage = EnvironmentProvider.GetCurrentSystemLanguage();
-        foreach (LanguageEntry entry in entries)
-        {
-            if (entry.Identifier == systemLanguage)
-            {
-                return entry.Description;
-            }
-        }
-        systemLanguage = systemLanguage.Split('-')[0];
-        foreach (LanguageEntry entry in entries)
-        {
-            string neutralTag = entry.Identifier.Split('-')[0];
-            if (neutralTag == systemLanguage)
-            {
-                return entry.Description;
-            }
-        }
-        return "";
-    }
-
-    //
     // Types
     //
 
@@ -649,10 +593,9 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         public AppSettingsModel.AppBackgroundEnum Value { get; set; } = value;
     }
 
-    public class LanguageEntry(string name, string identifier, string description)
+    public class LanguageEntry(string name, string identifier)
     {
         public string Name { get; set; } = name;
         public string Identifier { get; set; } = identifier;
-        public string Description { get; set; } = description;
     }
 }
