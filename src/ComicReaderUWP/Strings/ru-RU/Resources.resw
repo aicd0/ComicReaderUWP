@@ -727,6 +727,12 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Plugins" xml:space="preserve">
     <value>Плагины</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>Предзагрузка страниц (после текущей страницы)</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>Предзагрузка страниц (до текущей страницы)</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>Предыдущий</value>
   </data>

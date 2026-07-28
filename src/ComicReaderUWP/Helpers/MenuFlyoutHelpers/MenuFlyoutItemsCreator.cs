@@ -263,12 +263,6 @@ internal static class MenuFlyoutItemsCreator
             },
         });
 
-        if (canSelect)
-        {
-            items.Add(new SeparatorMenuFlyoutItemModel());
-            items.Add(CreateSelectMenuItem(actionHandler));
-        }
-
         {
             var windowContext = PluginWindowContext.From(actionHandler);
             var pluginItems = PluginManager.Instance.GetActivePlugins()
@@ -279,6 +273,12 @@ internal static class MenuFlyoutItemsCreator
                 items.Add(new SeparatorMenuFlyoutItemModel());
                 items.AddRange(pluginItems);
             }
+        }
+
+        if (canSelect)
+        {
+            items.Add(new SeparatorMenuFlyoutItemModel());
+            items.Add(CreateSelectMenuItem(actionHandler));
         }
 
         return items;

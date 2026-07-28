@@ -1,6 +1,7 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Core.Common.Lifecycle;
@@ -13,6 +14,14 @@ public class LiveData<T> : ILiveData<T> where T : notnull
     private bool _dispatchingValue = false;
     private bool _dispatchInvalidated = false;
     private bool _clearing = false;
+
+    private readonly Lock _emitLock = new();
+    private bool _emittingValue = false;
+    private T? _valueEmitted;
+
+    public bool HasValue => _version > 0;
+
+    public T Value => _value is not null ? _value : throw new NullReferenceException("No value present.");
 
     protected LiveData()
     {
@@ -43,11 +52,6 @@ public class LiveData<T> : ILiveData<T> where T : notnull
         return _observers.ContainsKey(observer);
     }
 
-    public T? GetValue()
-    {
-        return _value;
-    }
-
     public void Clear()
     {
         var snapshot = new List<ObserverWrapper>(_observers.Values);
@@ -60,14 +64,44 @@ public class LiveData<T> : ILiveData<T> where T : notnull
         _clearing = false;
     }
 
-    protected void EmitInternal(T value)
+    protected void EmitProtected(T value)
     {
-        CoroutineUtils.RunInMainThread(delegate
+        if (MainThreadUtils.IsMainThread())
         {
-            _value = value;
-            _version++;
-            DispatchValue(null);
+            EmitInternal(value);
+            return;
+        }
+
+        lock (_emitLock)
+        {
+            _valueEmitted = value;
+
+            if (_emittingValue)
+            {
+                return;
+            }
+
+            _emittingValue = true;
+        }
+
+        CoroutineUtils.PostInMainThread(() =>
+        {
+            lock (_emitLock)
+            {
+                _emittingValue = false;
+                value = _valueEmitted;
+                _valueEmitted = default;
+            }
+
+            EmitInternal(value);
         });
+    }
+
+    private void EmitInternal(T value)
+    {
+        _value = value;
+        _version++;
+        DispatchValue(null);
     }
 
     private void ObserveInternal(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)

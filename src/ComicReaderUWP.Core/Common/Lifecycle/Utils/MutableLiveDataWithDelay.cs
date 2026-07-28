@@ -9,6 +9,10 @@ public sealed class MutableLiveDataWithDelay<T>(IMutableLiveData<T> liveData, lo
 {
     private readonly IMutableLiveData<T> _liveData = liveData;
 
+    public bool HasValue => _liveData.HasValue;
+
+    public T? Value => _liveData.Value;
+
     public void Clear()
     {
         _liveData.Clear();
@@ -17,11 +21,6 @@ public sealed class MutableLiveDataWithDelay<T>(IMutableLiveData<T> liveData, lo
     public void Emit(T value)
     {
         _liveData.Emit(value);
-    }
-
-    public T? GetValue()
-    {
-        return _liveData.GetValue();
     }
 
     public void Observe(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)

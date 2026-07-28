@@ -726,6 +726,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Plugins" xml:space="preserve">
     <value>プラグイン</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>ページを先読み（現在のページより後）</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>ページを先読み（現在のページより前）</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>前へ</value>
   </data>

@@ -15,9 +15,9 @@ internal class ReaderFrameViewModel
 
     public readonly MutableLiveData<bool> RebindLiveData = new();
     public readonly MutableLiveData<bool> RedrawImageLiveDate = new();
-    public readonly MutableLiveData<bool> LeftImageVisibleLiveData = new(false);
-    public readonly MutableLiveData<bool> RightImageVisibleLiveData = new(false);
-    public readonly MutableLiveData<double> ScaleLiveData = new(1.0);
+    public readonly MutableLiveData<bool> LeftImageVisibleLiveData = new();
+    public readonly MutableLiveData<bool> RightImageVisibleLiveData = new();
+    public readonly MutableLiveData<double> ScaleLiveData = new();
 
     public Thickness FrameMargin { get; set; } = new(0.0, 0.0, 0.0, 0.0);
     public ReaderImageSource? LeftImageSource { get; set; }
@@ -36,6 +36,7 @@ internal class ReaderFrameViewModel
     public bool IsEmpty => PageL == NO_PAGE && PageR == NO_PAGE;
     public int MaxPage => Math.Max(PageL, PageR);
     public int MinPage => PageL == NO_PAGE ? PageR : (PageR == NO_PAGE ? PageL : Math.Min(PageL, PageR));
+    public int PageCount => (PageL != NO_PAGE ? 1 : 0) + (PageR != NO_PAGE ? 1 : 0);
 
     public void RebindEntireViewModel()
     {
@@ -49,16 +50,31 @@ internal class ReaderFrameViewModel
 
     public void SetLeftImageVisibility(bool visible)
     {
+        if (LeftImageVisibleLiveData.HasValue && LeftImageVisibleLiveData.Value == visible)
+        {
+            return;
+        }
+
         LeftImageVisibleLiveData.Emit(visible);
     }
 
     public void SetRightImageVisibility(bool visible)
     {
+        if (RightImageVisibleLiveData.HasValue && RightImageVisibleLiveData.Value == visible)
+        {
+            return;
+        }
+
         RightImageVisibleLiveData.Emit(visible);
     }
 
     public void SetScale(double scale)
     {
+        if (ScaleLiveData.HasValue && ScaleLiveData.Value == scale)
+        {
+            return;
+        }
+
         ScaleLiveData.Emit(scale);
     }
 };

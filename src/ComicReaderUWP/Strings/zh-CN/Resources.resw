@@ -726,6 +726,12 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Plugins" xml:space="preserve">
     <value>插件</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>预加载页数（当前页之后）</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>预加载页数（当前页之前）</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>上一个</value>
   </data>

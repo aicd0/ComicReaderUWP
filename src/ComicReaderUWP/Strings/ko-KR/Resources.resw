@@ -727,6 +727,12 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Plugins" xml:space="preserve">
     <value>플러그인</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>페이지 미리 로드 (현재 페이지 이후)</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>페이지 미리 로드 (현재 페이지 이전)</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>이전</value>
   </data>

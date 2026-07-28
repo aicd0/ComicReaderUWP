@@ -718,7 +718,12 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     private void UpdateCollapseExpandGroupButtonStates()
     {
-        bool groupingEnabled = GroupingEnabledLiveData.GetValue();
+        if (!GroupingEnabledLiveData.HasValue)
+        {
+            return;
+        }
+
+        bool groupingEnabled = GroupingEnabledLiveData.Value;
         IsCollapseAllEnabled = groupingEnabled && GroupedComicItems.Count > 0 && GroupedComicItems.Any(x => !x.Collapsed);
         IsExpandAllEnabled = groupingEnabled && GroupedComicItems.Count > 0 && GroupedComicItems.Any(x => x.Collapsed);
     }

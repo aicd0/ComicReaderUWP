@@ -726,6 +726,12 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   <data name="Plugins" xml:space="preserve">
     <value>Complementos</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>Precargar páginas (después de la página actual)</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>Precargar páginas (antes de la página actual)</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>Anterior</value>
   </data>

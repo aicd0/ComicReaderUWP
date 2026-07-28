@@ -728,6 +728,12 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="Plugins" xml:space="preserve">
     <value>Plugins</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>Preload pages (after current page)</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>Preload pages (before current page)</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>Previous</value>
   </data>

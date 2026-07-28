@@ -27,25 +27,41 @@
         <CheckBox
             Click="TransitionAnimationCheckBox_Click"
             Content="{x:Bind StringResource.TransitionAnimation}"
-            IsChecked="{x:Bind ViewModel.TransitionAnimation, Mode=OneWay}" />
+            IsChecked="{x:Bind ViewModel.TransitionAnimation, Mode=TwoWay}" />
         <CheckBox
             Click="RestoreLastReadingPositionCheckBox_Click"
             Content="{x:Bind StringResource.RestoreLastReadingPosition}"
-            IsChecked="{x:Bind ViewModel.RestoreLastReadingPosition, Mode=OneWay}" />
+            IsChecked="{x:Bind ViewModel.RestoreLastReadingPosition, Mode=TwoWay}" />
         <CheckBox
             Margin="16,0,0,0"
             Click="RestoreLastReadingPositionOnlyAppliesToReadingComicsCheckBox_Click"
             Content="{x:Bind StringResource.OnlyAppliesToReadingComics}"
-            IsChecked="{x:Bind ViewModel.RestoreLastReadingPositionOnlyAppliesToReadingComics, Mode=OneWay}"
+            IsChecked="{x:Bind ViewModel.RestoreLastReadingPositionOnlyAppliesToReadingComics, Mode=TwoWay}"
             IsEnabled="{x:Bind ViewModel.RestoreLastReadingPosition, Mode=OneWay}" />
         <CheckBox
             Click="UseScrollingAreaAsStartEndCheckBox_Click"
             Content="{x:Bind StringResource.StartEndFromScrollingArea}"
-            IsChecked="{x:Bind ViewModel.UseScrollingAreaAsStartEnd, Mode=OneWay}" />
+            IsChecked="{x:Bind ViewModel.UseScrollingAreaAsStartEnd, Mode=TwoWay}" />
         <CheckBox
             Click="HideCursorAutomaticallyCheckBox_Click"
             Content="{x:Bind StringResource.HideCursorAutomatically}"
-            IsChecked="{x:Bind ViewModel.AutomaticallyHideCursor, Mode=OneWay}" />
+            IsChecked="{x:Bind ViewModel.AutomaticallyHideCursor, Mode=TwoWay}" />
+        <TextBlock Margin="0,16,0,0" Text="{x:Bind StringResource.PreloadPagesAfter}" />
+        <Slider
+            Width="300"
+            HorizontalAlignment="Left"
+            Maximum="10"
+            Minimum="0"
+            ValueChanged="PreloadPagesAfterSlider_ValueChanged"
+            Value="{x:Bind ViewModel.PreloadPagesAfter, Mode=OneWay}" />
+        <TextBlock Margin="0,8,0,0" Text="{x:Bind StringResource.PreloadPagesBefore}" />
+        <Slider
+            Width="300"
+            HorizontalAlignment="Left"
+            Maximum="10"
+            Minimum="0"
+            ValueChanged="PreloadPagesBeforeSlider_ValueChanged"
+            Value="{x:Bind ViewModel.PreloadPagesBefore, Mode=OneWay}" />
         <Grid Margin="0,16,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />

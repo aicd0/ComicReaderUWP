@@ -1,10 +1,14 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Data.Models.Misc;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 
@@ -27,7 +31,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            ViewModel.SetTransitionAnimation(isChecked.Value);
+            AppSettingsModel.Instance.TransitionAnimation = isChecked.Value;
         }
     }
 
@@ -36,7 +40,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            ViewModel.SetRestoreLastReadingPosition(isChecked.Value);
+            AppSettingsModel.Instance.RestoreLastReadingPosition = isChecked.Value;
         }
     }
 
@@ -45,7 +49,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            ViewModel.SetRestoreLastReadingPositionOnlyAppliesToReadingComics(isChecked.Value);
+            AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics = isChecked.Value;
         }
     }
 
@@ -54,7 +58,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            ViewModel.SetUseScrollingAreaAsStartEnd(isChecked.Value);
+            AppSettingsModel.Instance.UseScrollingAreaAsStartEnd = isChecked.Value;
         }
     }
 
@@ -63,8 +67,20 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            ViewModel.SetHideCursorAutomatically(isChecked.Value);
+            AppSettingsModel.Instance.AutomaticallyHideCursor = isChecked.Value;
         }
+    }
+
+    private void PreloadPagesAfterSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        int value = Math.Clamp((int)e.NewValue, 0, 10);
+        ViewModel.SetPreloadPagesAfter(value);
+    }
+
+    private void PreloadPagesBeforeSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        int value = Math.Clamp((int)e.NewValue, 0, 10);
+        ViewModel.SetPreloadPagesBefore(value);
     }
 
     private void KeepScreenOnBehaviorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

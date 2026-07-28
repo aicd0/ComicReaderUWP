@@ -5,5 +5,7 @@ namespace ComicReaderUWP.Core.Common.Lifecycle;
 
 public interface ILiveDataValueAbility<T> where T : notnull
 {
-    public T? GetValue();
+    public bool HasValue { get; }
+
+    public T? Value { get; }
 }

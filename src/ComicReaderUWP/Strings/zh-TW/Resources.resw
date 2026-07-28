@@ -726,6 +726,12 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Plugins" xml:space="preserve">
     <value>外掛程式</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>預載入頁數（目前頁之後）</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>預載入頁數（目前頁之前）</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>上一個</value>
   </data>
