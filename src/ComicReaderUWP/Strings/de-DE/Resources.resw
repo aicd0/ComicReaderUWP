@@ -726,6 +726,12 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   <data name="Plugins" xml:space="preserve">
     <value>Plugins</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>Seiten vorladen (nach der aktuellen Seite)</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>Seiten vorladen (vor der aktuellen Seite)</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>Zurück</value>
   </data>

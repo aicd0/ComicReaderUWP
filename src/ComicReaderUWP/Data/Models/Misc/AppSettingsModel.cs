@@ -167,6 +167,32 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
+    public int PreloadPagesAfter
+    {
+        get
+        {
+            return Read(model => model.PreloadPagesAfter ?? 5);
+        }
+        set
+        {
+            Write(model => model.PreloadPagesAfter = value);
+            Save();
+        }
+    }
+
+    public int PreloadPagesBefore
+    {
+        get
+        {
+            return Read(model => model.PreloadPagesBefore ?? 5);
+        }
+        set
+        {
+            Write(model => model.PreloadPagesBefore = value);
+            Save();
+        }
+    }
+
     public bool RatingPercentageEnabled
     {
         get
@@ -623,6 +649,12 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("PlaybackDefaultShuffle")]
         public bool? PlaybackDefaultShuffle { get; set; }
+
+        [JsonPropertyName("PreloadPagesAfter")]
+        public int? PreloadPagesAfter { get; set; }
+
+        [JsonPropertyName("PreloadPagesBefore")]
+        public int? PreloadPagesBefore { get; set; }
 
         [JsonPropertyName("PromptBeforeRemovingComics")]
         public bool? PromptBeforeRemovingComics { get; set; }

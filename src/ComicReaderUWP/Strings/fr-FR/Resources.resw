@@ -726,6 +726,12 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   <data name="Plugins" xml:space="preserve">
     <value>Extensions</value>
   </data>
+  <data name="PreloadPagesAfter" xml:space="preserve">
+    <value>Précharger les pages (après la page actuelle)</value>
+  </data>
+  <data name="PreloadPagesBefore" xml:space="preserve">
+    <value>Précharger les pages (avant la page actuelle)</value>
+  </data>
   <data name="Previous" xml:space="preserve">
     <value>Précédent</value>
   </data>

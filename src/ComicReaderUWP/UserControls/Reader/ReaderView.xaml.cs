@@ -40,8 +40,6 @@ internal partial class ReaderView : UserControl
     private const double DEFAULT_HORIZONTAL_PAGE_SPACING = 100.0;
     private const double DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER = 2.0;
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 1.05F;
-    private const int PRELOAD_FRAMES_BEFORE = 5;
-    private const int PRELOAD_FRAMES_AFTER = 5;
     private const double AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_CONTINUOUS = 0.001;
     private const double AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_SEPERATE = 0.0005;
     private const int AUTO_SCROLL_COMMON_SPEED = 20;
@@ -606,35 +604,17 @@ internal partial class ReaderView : UserControl
         }
 
         int frame = CurrentFrameIndex;
-        int preloadWindowBegin = Math.Max(frame - PRELOAD_FRAMES_BEFORE, 0);
-        int preloadWindowEnd = Math.Min(frame + PRELOAD_FRAMES_AFTER, FrameDataSource.Count - 1);
-        Log("LoadImage", $"Reason={reason},F={frame}");
+        if (frame < 0 || frame >= FrameDataSource.Count)
+        {
+            return;
+        }
 
         double rasterizationScale = DisplayUtils.GetRasterizationScale(this);
         double imageScale = SCZoomFactorFinal / _imageSettings.AntiAliasingFilterRatio * rasterizationScale;
-        for (int i = 0; i < FrameDataSource.Count; ++i)
+
+        void AddToLoaderQueue(ReaderFrameViewModel model)
         {
-            ReaderFrameViewModel model = FrameDataSource[i];
-            if (i < preloadWindowBegin || i > preloadWindowEnd)
-            {
-                model.SetLeftImageVisibility(false);
-                model.SetRightImageVisibility(false);
-            }
-            else
-            {
-                model.SetScale(imageScale);
-            }
-        }
-
-        void addToLoaderQueue(int i)
-        {
-            if (i < 0 || i >= FrameDataSource.Count)
-            {
-                return;
-            }
-
-            ReaderFrameViewModel model = FrameDataSource[i];
-
+            model.SetScale(imageScale);
             model.SetLeftImageVisibility(true);
             model.SetRightImageVisibility(true);
 
@@ -644,18 +624,54 @@ internal partial class ReaderView : UserControl
             }
         }
 
-        int spread = Math.Max(preloadWindowEnd - frame, frame - preloadWindowBegin);
-        addToLoaderQueue(frame);
-        for (int i = 1; i <= spread; ++i)
+        void ClearImage(ReaderFrameViewModel model)
         {
-            if (frame + i <= preloadWindowEnd)
+            model.SetLeftImageVisibility(false);
+            model.SetRightImageVisibility(false);
+        }
+
+        Log("LoadImage", $"Reason={reason},F={frame}");
+        int maxPreloadPagesAfter = AppSettingsModel.Instance.PreloadPagesAfter;
+        int maxPreloadPagesBefore = AppSettingsModel.Instance.PreloadPagesBefore;
+        int preloadedPagesAfter = 0;
+        int preloadedPagesBefore = 0;
+
+        for (int i = 0; i < FrameDataSource.Count; i++)
+        {
+            if (i == 0)
             {
-                addToLoaderQueue(frame + i);
+                AddToLoaderQueue(FrameDataSource[frame]);
+                continue;
             }
 
-            if (frame - i >= preloadWindowBegin)
+            int frameAfter = frame + i;
+            if (frameAfter >= 0 && frameAfter < FrameDataSource.Count)
             {
-                addToLoaderQueue(frame - i);
+                ReaderFrameViewModel model = FrameDataSource[frameAfter];
+                if (preloadedPagesAfter < maxPreloadPagesAfter)
+                {
+                    AddToLoaderQueue(model);
+                    preloadedPagesAfter += model.PageCount;
+                }
+                else
+                {
+                    ClearImage(model);
+                }
+            }
+
+            int frameBefore = frame - i;
+            if (frameBefore >= 0 && frameBefore < FrameDataSource.Count)
+            {
+                ReaderFrameViewModel model = FrameDataSource[frameBefore];
+                if (preloadedPagesBefore < maxPreloadPagesBefore)
+                {
+                    AddToLoaderQueue(model);
+                    preloadedPagesBefore += model.PageCount;
+                }
+                else
+                {
+                    ClearImage(model);
+                }
             }
         }
     }

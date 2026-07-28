@@ -544,9 +544,9 @@ internal sealed partial class MainWindow : Window
 
         public bool IsActive => GetWindow()?.IsActive ?? false;
 
-        public bool IsFullscreen => _fullscreenLiveData.GetValue();
+        public bool IsFullscreen => _fullscreenLiveData.Value;
 
-        public bool IsMinimized => _minimizeLiveData.GetValue();
+        public bool IsMinimized => _minimizeLiveData.Value;
 
         public PluginWindowContext PluginWindowContext => _pluginWindowContext;
 

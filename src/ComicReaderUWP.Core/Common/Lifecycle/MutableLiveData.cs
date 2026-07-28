@@ -11,6 +11,6 @@ public class MutableLiveData<T> : LiveData<T>, IMutableLiveData<T> where T : not
 
     public void Emit(T value)
     {
-        EmitInternal(value);
+        EmitProtected(value);
     }
 }

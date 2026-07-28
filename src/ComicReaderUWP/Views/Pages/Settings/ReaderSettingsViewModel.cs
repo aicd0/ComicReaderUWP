@@ -82,6 +82,28 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    private int _preloadPagesAfter = 0;
+    public int PreloadPagesAfter
+    {
+        get => _preloadPagesAfter;
+        set
+        {
+            _preloadPagesAfter = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PreloadPagesAfter)));
+        }
+    }
+
+    private int _preloadPagesBefore = 0;
+    public int PreloadPagesBefore
+    {
+        get => _preloadPagesBefore;
+        set
+        {
+            _preloadPagesBefore = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PreloadPagesBefore)));
+        }
+    }
+
     private List<KeepScreenOnBehaviorEntry> _keepScreenOnBehaviors = [];
     public List<KeepScreenOnBehaviorEntry> KeepScreenOnBehaviors
     {
@@ -110,34 +132,26 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         Shared.UpdateStarted += Update;
     }
 
-    public void SetTransitionAnimation(bool enabled)
+    public void SetPreloadPagesAfter(int value)
     {
-        TransitionAnimation = enabled;
-        AppSettingsModel.Instance.TransitionAnimation = enabled;
+        if (value == _preloadPagesAfter)
+        {
+            return;
+        }
+
+        _preloadPagesAfter = value;
+        AppSettingsModel.Instance.PreloadPagesAfter = value;
     }
 
-    public void SetRestoreLastReadingPosition(bool restoreLastReadingPosition)
+    public void SetPreloadPagesBefore(int value)
     {
-        RestoreLastReadingPosition = restoreLastReadingPosition;
-        AppSettingsModel.Instance.RestoreLastReadingPosition = restoreLastReadingPosition;
-    }
+        if (value == _preloadPagesBefore)
+        {
+            return;
+        }
 
-    public void SetRestoreLastReadingPositionOnlyAppliesToReadingComics(bool enabled)
-    {
-        RestoreLastReadingPositionOnlyAppliesToReadingComics = enabled;
-        AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics = enabled;
-    }
-
-    public void SetUseScrollingAreaAsStartEnd(bool useScrollingAreaAsStartEnd)
-    {
-        UseScrollingAreaAsStartEnd = useScrollingAreaAsStartEnd;
-        AppSettingsModel.Instance.UseScrollingAreaAsStartEnd = useScrollingAreaAsStartEnd;
-    }
-
-    public void SetHideCursorAutomatically(bool hideCursorAutomatically)
-    {
-        AutomaticallyHideCursor = hideCursorAutomatically;
-        AppSettingsModel.Instance.AutomaticallyHideCursor = hideCursorAutomatically;
+        _preloadPagesBefore = value;
+        AppSettingsModel.Instance.PreloadPagesBefore = value;
     }
 
     public void SetKeepScreenOnBehavior(int index)
@@ -166,6 +180,8 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
             RestoreLastReadingPositionOnlyAppliesToReadingComics = AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics;
             UseScrollingAreaAsStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
             AutomaticallyHideCursor = AppSettingsModel.Instance.AutomaticallyHideCursor;
+            PreloadPagesAfter = AppSettingsModel.Instance.PreloadPagesAfter;
+            PreloadPagesBefore = AppSettingsModel.Instance.PreloadPagesBefore;
         });
     }
 

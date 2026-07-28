@@ -5,6 +5,10 @@ namespace ComicReaderUWP.Core.Common.Lifecycle;
 
 public class EmptyLiveData<T> : IMutableLiveData<T> where T : notnull
 {
+    public bool HasValue => false;
+
+    public T? Value => default;
+
     public void Clear()
     {
     }
@@ -24,10 +28,5 @@ public class EmptyLiveData<T> : IMutableLiveData<T> where T : notnull
     public bool HasObserver(IValueObserver<T> observer)
     {
         return false;
-    }
-
-    public T? GetValue()
-    {
-        return default;
     }
 }

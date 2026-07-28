@@ -212,7 +212,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     public PlaylistModel Playlist { get; private set; } = PlaylistModel.CreateEmpty();
     public PlaybackModel Playback { get; } = new();
-    public ReaderPage.ReaderStatusEnum ReaderStatus => ReaderStatusLiveData.GetValue()?.Status ?? ReaderPage.ReaderStatusEnum.Loading;
+    public ReaderPage.ReaderStatusEnum ReaderStatus => ReaderStatusLiveData.Value.Status;
     public ComicModel? Comic => _comic;
     public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];
     public ReaderImagePreviewViewModel? SelectedPreview => (_pageIndex >= 0 && _pageIndex < PreviewDataSource.Count) ? PreviewDataSource[_pageIndex] : null;
