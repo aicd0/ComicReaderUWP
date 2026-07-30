@@ -244,14 +244,23 @@
     <value>以下の $count 件のコミックがライブラリから完全に削除されます：
 $comics</value>
   </data>
-  <data name="CompletionState" xml:space="preserve">
+  <data name="CompletionStatus" xml:space="preserve">
     <value>完了ステータス</value>
   </data>
-  <data name="CompletionStatusFinished" xml:space="preserve">
+  <data name="CompletionStatusAbandoned" xml:space="preserve">
+    <value>打ち切り</value>
+  </data>
+  <data name="CompletionStatusCompleted" xml:space="preserve">
     <value>完了</value>
   </data>
+  <data name="CompletionStatusOnHold" xml:space="preserve">
+    <value>保留中</value>
+  </data>
+  <data name="CompletionStatusPlanToRead" xml:space="preserve">
+    <value>読む予定</value>
+  </data>
   <data name="CompletionStatusReading" xml:space="preserve">
-    <value>読む</value>
+    <value>読書中</value>
   </data>
   <data name="CompletionStatusUnread" xml:space="preserve">
     <value>未読</value>

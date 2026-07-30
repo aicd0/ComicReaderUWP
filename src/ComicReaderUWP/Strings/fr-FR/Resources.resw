@@ -244,17 +244,26 @@
     <value>Les $count bandes dessinées suivantes seront définitivement supprimées de votre bibliothèque :
 $comics</value>
   </data>
-  <data name="CompletionState" xml:space="preserve">
+  <data name="CompletionStatus" xml:space="preserve">
     <value>État d'achèvement</value>
   </data>
-  <data name="CompletionStatusFinished" xml:space="preserve">
-    <value>Fini</value>
+  <data name="CompletionStatusAbandoned" xml:space="preserve">
+    <value>Abandonné</value>
+  </data>
+  <data name="CompletionStatusCompleted" xml:space="preserve">
+    <value>Terminé</value>
+  </data>
+  <data name="CompletionStatusOnHold" xml:space="preserve">
+    <value>En pause</value>
+  </data>
+  <data name="CompletionStatusPlanToRead" xml:space="preserve">
+    <value>À lire</value>
   </data>
   <data name="CompletionStatusReading" xml:space="preserve">
-    <value>En lisant</value>
+    <value>En cours de lecture</value>
   </data>
   <data name="CompletionStatusUnread" xml:space="preserve">
-    <value>Pas lu</value>
+    <value>Non lu</value>
   </data>
   <data name="Continuous" xml:space="preserve">
     <value>Continu</value>

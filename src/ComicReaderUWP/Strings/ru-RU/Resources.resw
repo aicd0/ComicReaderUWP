@@ -244,14 +244,23 @@
     <value>Следующие $count комиксов будут безвозвратно удалены из вашей библиотеки:
 $comics</value>
   </data>
-  <data name="CompletionState" xml:space="preserve">
+  <data name="CompletionStatus" xml:space="preserve">
     <value>Состояние завершения</value>
   </data>
-  <data name="CompletionStatusFinished" xml:space="preserve">
-    <value>Законченный</value>
+  <data name="CompletionStatusAbandoned" xml:space="preserve">
+    <value>Брошено</value>
+  </data>
+  <data name="CompletionStatusCompleted" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="CompletionStatusOnHold" xml:space="preserve">
+    <value>Отложено</value>
+  </data>
+  <data name="CompletionStatusPlanToRead" xml:space="preserve">
+    <value>Запланировано к чтению</value>
   </data>
   <data name="CompletionStatusReading" xml:space="preserve">
-    <value>Чтение</value>
+    <value>Читаю</value>
   </data>
   <data name="CompletionStatusUnread" xml:space="preserve">
     <value>Не прочитано</value>

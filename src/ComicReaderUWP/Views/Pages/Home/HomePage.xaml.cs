@@ -323,6 +323,25 @@ internal sealed partial class HomePage : BasePage
         ViewModel.ApplyOperationToSelection(ComicOperationType.Unfavorite);
     }
 
+    private void CommandBarCompletionStatusClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        List<BaseMenuFlyoutItemModel> menuItems = MenuFlyoutItemsCreator.CreateCompletionStatusMenuItems(comics);
+
+        var flyout = new MenuFlyout();
+        foreach (BaseMenuFlyoutItemModel item in menuItems)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.Top });
+    }
+
     private void CommandBarHideClicked(object sender, RoutedEventArgs e)
     {
         ViewModel.ApplyOperationToSelection(ComicOperationType.Hide);
@@ -331,21 +350,6 @@ internal sealed partial class HomePage : BasePage
     private void CommandBarUnhideClicked(object sender, RoutedEventArgs e)
     {
         ViewModel.ApplyOperationToSelection(ComicOperationType.Unhide);
-    }
-
-    private void CommandBarMarkAsReadClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ApplyOperationToSelection(ComicOperationType.MarkAsRead);
-    }
-
-    private void CommandBarMarkAsReadingClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ApplyOperationToSelection(ComicOperationType.MarkAsReading);
-    }
-
-    private void CommandBarMarkAsUnreadClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ApplyOperationToSelection(ComicOperationType.MarkAsUnread);
     }
 
     //
@@ -482,7 +486,7 @@ internal sealed partial class HomePage : BasePage
                 return;
             }
 
-            IReadOnlyList<ComicModel> snapshot = ViewModel.GetComicSnapshot();
+            IReadOnlyList<ComicModel> snapshot = ViewModel.GetComics();
             List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicGroupMenuItems(
                 PageActionHandler, snapshot, ViewModel.ExpandAllGroups, ViewModel.CollapseAllGroups);
             if (menuItems.Count == 0)

@@ -92,7 +92,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public IReadOnlyDictionary<string, ComicTagCategory> Tags => _internalModel.Tags;
     public string Title1 => _internalModel.Title1;
     public string Title2 => _internalModel.Title2;
-    public ComicCompletionStatusEnum CompletionState => _internalModel.CompletionState;
+    public ComicCompletionStatusEnum CompletionStatus => _internalModel.CompletionStatus;
     public int PageCount => _internalModel.PageCount;
     public IReadOnlyList<string> FolderViewPath => _internalModel.GetFolderViewPath();
 
@@ -174,34 +174,33 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         DispatchUpdateEvent();
     }
 
-    public async Task SetCompletionStateToNotStarted()
+    public async Task SetCompletionStatus(ComicCompletionStatusEnum status)
     {
-        await SetProgress(-1, 0);
-        await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.NotStarted);
-        DispatchUpdateEvent();
-    }
-
-    public async Task SetCompletionStateToStarted()
-    {
-        _internalModel.SetAsStarted();
-        await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Started);
-        DispatchUpdateEvent();
-    }
-
-    public async Task SetCompletionStateToAtLeastStarted()
-    {
-        _internalModel.SetAsStarted();
-        if (CompletionState == ComicCompletionStatusEnum.NotStarted)
+        switch (status)
         {
-            await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Started);
+            case ComicCompletionStatusEnum.Unread:
+                await SetProgress(-1, 0);
+                break;
+            case ComicCompletionStatusEnum.Reading:
+                _internalModel.SetAsVisited();
+                break;
+            default:
+                break;
+        }
+
+        await _internalModel.SaveCompletionState(status);
+        DispatchUpdateEvent();
+    }
+
+    public async Task SetAsVisited()
+    {
+        _internalModel.SetAsVisited();
+
+        if (ComicCompletionStatusService.CanTransitToReadingAutomatically(CompletionStatus))
+        {
+            await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Reading);
             DispatchUpdateEvent();
         }
-    }
-
-    public async Task SetCompletionStateToCompleted()
-    {
-        await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Completed);
-        DispatchUpdateEvent();
     }
 
     public async Task SetProgress(int progress, double lastPosition)
@@ -298,19 +297,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     bool SDK.Plugins.Comic.IComicModel.IsHidden => Hidden;
 
-    SDK.Plugins.Comic.CompletionStatusEnum SDK.Plugins.Comic.IComicModel.CompletionStatus
-    {
-        get
-        {
-            return CompletionState switch
-            {
-                ComicCompletionStatusEnum.NotStarted => SDK.Plugins.Comic.CompletionStatusEnum.NotStarted,
-                ComicCompletionStatusEnum.Started => SDK.Plugins.Comic.CompletionStatusEnum.Started,
-                ComicCompletionStatusEnum.Completed => SDK.Plugins.Comic.CompletionStatusEnum.Completed,
-                _ => throw new ArgumentOutOfRangeException(nameof(CompletionState), "Invalid ComicCompletionStatusEnum value."),
-            };
-        }
-    }
+    SDK.Plugins.Comic.CompletionStatusEnum SDK.Plugins.Comic.IComicModel.CompletionStatus => ComicCompletionStatusService.HostEnumToSDKEnum(CompletionStatus);
 
     Task SDK.Plugins.Comic.IComicModel.SetTitle1(string title)
     {
@@ -365,13 +352,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     async Task SDK.Plugins.Comic.IComicModel.SetCompletionStatus(SDK.Plugins.Comic.CompletionStatusEnum status)
     {
-        ComicCompletionStatusEnum convertedStatus = status switch
-        {
-            SDK.Plugins.Comic.CompletionStatusEnum.NotStarted => ComicCompletionStatusEnum.NotStarted,
-            SDK.Plugins.Comic.CompletionStatusEnum.Started => ComicCompletionStatusEnum.Started,
-            SDK.Plugins.Comic.CompletionStatusEnum.Completed => ComicCompletionStatusEnum.Completed,
-            _ => throw new ArgumentOutOfRangeException(nameof(status), "Invalid CompletionStatusEnum value."),
-        };
+        ComicCompletionStatusEnum convertedStatus = ComicCompletionStatusService.SDKEnumToHostEnum(status);
         await _internalModel.SaveCompletionState(convertedStatus);
         DispatchUpdateEvent();
     }

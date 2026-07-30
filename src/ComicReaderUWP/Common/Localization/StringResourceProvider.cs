@@ -46,8 +46,11 @@ public class StringResourceProvider
     public string CollapseAll => GetResourceString("CollapseAll");
     public string ComicInfo => GetResourceString("ComicInfo");
     public string ComicRemovalPromptContent => GetResourceString("ComicRemovalPromptContent");
-    public string CompletionState => GetResourceString("CompletionState");
-    public string CompletionStatusFinished => GetResourceString("CompletionStatusFinished");
+    public string CompletionStatus => GetResourceString("CompletionStatus");
+    public string CompletionStatusAbandoned => GetResourceString("CompletionStatusAbandoned");
+    public string CompletionStatusCompleted => GetResourceString("CompletionStatusCompleted");
+    public string CompletionStatusOnHold => GetResourceString("CompletionStatusOnHold");
+    public string CompletionStatusPlanToRead => GetResourceString("CompletionStatusPlanToRead");
     public string CompletionStatusReading => GetResourceString("CompletionStatusReading");
     public string CompletionStatusUnread => GetResourceString("CompletionStatusUnread");
     public string Continuous => GetResourceString("Continuous");

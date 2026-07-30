@@ -111,6 +111,17 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isCommandBarCompletionStatusEnabled = false;
+    public bool IsCommandBarCompletionStatusEnabled
+    {
+        get => _isCommandBarCompletionStatusEnabled;
+        set
+        {
+            _isCommandBarCompletionStatusEnabled = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarCompletionStatusEnabled)));
+        }
+    }
+
     private bool _isCommandBarHideEnabled = false;
     public bool IsCommandBarHideEnabled
     {
@@ -130,39 +141,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             _isCommandBarUnHideEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnHideEnabled)));
-        }
-    }
-
-    private bool _isCommandBarMarkAsReadEnabled = false;
-    public bool IsCommandBarMarkAsReadEnabled
-    {
-        get => _isCommandBarMarkAsReadEnabled;
-        set
-        {
-            _isCommandBarMarkAsReadEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarMarkAsReadEnabled)));
-        }
-    }
-
-    private bool _isCommandBarMarkAsReadingEnabled = false;
-    public bool IsCommandBarMarkAsReadingEnabled
-    {
-        get => _isCommandBarMarkAsReadingEnabled;
-        set
-        {
-            _isCommandBarMarkAsReadingEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarMarkAsReadingEnabled)));
-        }
-    }
-
-    private bool _isCommandBarMarkAsUnreadEnabled = false;
-    public bool IsCommandBarMarkAsUnreadEnabled
-    {
-        get => _isCommandBarMarkAsUnreadEnabled;
-        set
-        {
-            _isCommandBarMarkAsUnreadEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarMarkAsUnreadEnabled)));
         }
     }
 
@@ -324,38 +302,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         UpdateCommandBarButtonStates();
     }
 
-    public List<ComicItemViewModel> GetSelection(ComicItemViewModel triggerItem)
-    {
-        List<ComicItemViewModel> selection = [];
-        if (_isSelectMode)
-        {
-            bool contained = false;
-            foreach (ComicItemViewModel item in _selectedComicItems)
-            {
-                if (triggerItem.Comic == item.Comic)
-                {
-                    contained = true;
-                    break;
-                }
-            }
-
-            if (contained)
-            {
-                selection.AddRange(_selectedComicItems);
-            }
-            else
-            {
-                selection.Add(triggerItem);
-            }
-        }
-        else
-        {
-            selection.Add(triggerItem);
-        }
-
-        return selection;
-    }
-
     public void ApplyOperationToSelection(ComicOperationType operationType)
     {
         List<ComicItemViewModel> selectedItems = [.. _selectedComicItems];
@@ -365,9 +311,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }));
     }
 
-    public IReadOnlyList<ComicModel> GetComicSnapshot()
+    public IReadOnlyList<ComicModel> GetComics()
     {
         return _comics;
+    }
+
+    public IReadOnlyList<ComicModel> GetSelectedComics()
+    {
+        return [.. _selectedComicItems.Select(x => x.Comic)];
     }
 
     public void CollapseOrExpandGroup(ComicGroupViewModel groupModel)
@@ -635,24 +586,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                     await Task.WhenAll(items.Select(x => x.Comic.SetHidden(false)));
                 }
                 break;
-            case ComicOperationType.MarkAsRead:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => !x.IsRead);
-                    await Task.WhenAll(items.Select(x => x.Comic.SetCompletionStateToCompleted()));
-                }
-                break;
-            case ComicOperationType.MarkAsReading:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => !x.IsReading);
-                    await Task.WhenAll(items.Select(x => x.Comic.SetCompletionStateToStarted()));
-                }
-                break;
-            case ComicOperationType.MarkAsUnread:
-                {
-                    List<ComicItemViewModel> items = models.FindAll(x => !x.IsUnread);
-                    await Task.WhenAll(items.Select(x => x.Comic.SetCompletionStateToNotStarted()));
-                }
-                break;
             default:
                 break;
         }
@@ -664,11 +597,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         bool allSelected = selectedComicItems.Count() == _comics.Count;
         bool favoriteEnabled = false;
         bool unfavoriteEnabled = false;
+        bool completionStatusEnabled = false;
         bool hideEnabled = false;
         bool unhideEnabled = false;
-        bool markAsReadEnabled = false;
-        bool markAsReadingEnabled = false;
-        bool markAsUnreadEnabled = false;
 
         foreach (ComicItemViewModel item in selectedComicItems)
         {
@@ -681,6 +612,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 favoriteEnabled = true;
             }
 
+            completionStatusEnabled = true;
+
             if (item.IsHide)
             {
                 unhideEnabled = true;
@@ -689,31 +622,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 hideEnabled = true;
             }
-
-            if (!item.IsRead)
-            {
-                markAsReadEnabled = true;
-            }
-
-            if (!item.IsReading)
-            {
-                markAsReadingEnabled = true;
-            }
-
-            if (!item.IsUnread)
-            {
-                markAsUnreadEnabled = true;
-            }
         }
 
         IsCommandBarSelectAllToggled = allSelected;
         IsCommandBarFavoriteEnabled = favoriteEnabled;
         IsCommandBarUnFavoriteEnabled = unfavoriteEnabled;
+        IsCommandBarCompletionStatusEnabled = completionStatusEnabled;
         IsCommandBarHideEnabled = hideEnabled;
         IsCommandBarUnHideEnabled = unhideEnabled;
-        IsCommandBarMarkAsReadEnabled = markAsReadEnabled;
-        IsCommandBarMarkAsReadingEnabled = markAsReadingEnabled;
-        IsCommandBarMarkAsUnreadEnabled = markAsUnreadEnabled;
     }
 
     private void UpdateCollapseExpandGroupButtonStates()

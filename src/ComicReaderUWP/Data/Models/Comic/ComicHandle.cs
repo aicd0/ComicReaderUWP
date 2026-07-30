@@ -176,7 +176,7 @@ internal abstract partial class ComicHandle
                 comic.CoverCacheKey = coverCacheKey;
                 comic.Description = description;
                 comic._tags = new([]);
-                comic.CompletionState = completionState;
+                comic.CompletionStatus = completionState;
                 comic.PageCount = pageCount;
 
                 if (!string.IsNullOrEmpty(extJson))
@@ -319,7 +319,7 @@ internal abstract partial class ComicHandle
             return (ComicCompletionStatusEnum)value;
         }
 
-        return ComicCompletionStatusEnum.NotStarted;
+        return ComicCompletionStatusEnum.Unread;
     }
 
     //
@@ -334,7 +334,7 @@ internal abstract partial class ComicHandle
     //
 
     public long Id { get; private set; } = -1;
-    public ComicCompletionStatusEnum CompletionState { get; private set; }
+    public ComicCompletionStatusEnum CompletionStatus { get; private set; }
     public string Location { get; protected set; } = string.Empty;
     public string Title1 { get; protected set; } = string.Empty;
     public string Title2 { get; protected set; } = string.Empty;
@@ -663,7 +663,7 @@ internal abstract partial class ComicHandle
         evaluators[ComicTable.ColumnLastPosition.Name] = i => TypeAssert.AssertDouble(i.LastPosition);
         evaluators[ComicTable.ColumnCoverCacheKey.Name] = i => TypeAssert.AssertString(i.CoverCacheKey);
         evaluators[ComicTable.ColumnDescription.Name] = i => TypeAssert.AssertString(i.Description);
-        evaluators[ComicTable.ColumnCompletionState.Name] = i => TypeAssert.AssertInt((int)i.CompletionState);
+        evaluators[ComicTable.ColumnCompletionState.Name] = i => TypeAssert.AssertInt((int)i.CompletionStatus);
         evaluators[ComicTable.ColumnExt.Name] = i => TypeAssert.AssertString(JsonSerializer.Serialize(i._ext));
         evaluators[ComicTable.ColumnPageCount.Name] = i => TypeAssert.AssertInt(i.PageCount);
         return evaluators;
@@ -697,7 +697,7 @@ internal abstract partial class ComicHandle
 
     public async Task SaveCompletionState(ComicCompletionStatusEnum completionState)
     {
-        CompletionState = completionState;
+        CompletionStatus = completionState;
 
         await Enqueue(() =>
         {
@@ -729,7 +729,7 @@ internal abstract partial class ComicHandle
         });
     }
 
-    public void SetAsStarted()
+    public void SetAsVisited()
     {
         LastVisit = DateTimeOffset.Now;
         Progress = Math.Max(Progress, 0);

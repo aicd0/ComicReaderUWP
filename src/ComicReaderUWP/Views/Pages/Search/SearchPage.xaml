@@ -125,29 +125,10 @@
                     IsEnabled="{x:Bind ViewModel.IsCommandBarUnFavoriteEnabled, Mode=OneWay}"
                     Label="{x:Bind StringResource.Unfavorite}" />
                 <AppBarButton
-                    Click="CommandBarMarkAsUnreadClicked"
-                    IsEnabled="{x:Bind ViewModel.IsCommandBarMarkAsUnreadEnabled, Mode=OneWay}"
-                    Label="{x:Bind StringResource.CompletionStatusUnread}">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xEA3A;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-                <AppBarButton
-                    Click="CommandBarMarkAsReadingClicked"
-                    IsEnabled="{x:Bind ViewModel.IsCommandBarMarkAsReadingEnabled, Mode=OneWay}"
-                    Label="{x:Bind StringResource.CompletionStatusReading}">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xED5A;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-                <AppBarButton
-                    Click="CommandBarMarkAsReadClicked"
-                    IsEnabled="{x:Bind ViewModel.IsCommandBarMarkAsReadEnabled, Mode=OneWay}"
-                    Label="{x:Bind StringResource.CompletionStatusFinished}">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE8FB;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
+                    Click="CommandBarCompletionStatusClicked"
+                    Icon="Flag"
+                    IsEnabled="{x:Bind ViewModel.IsCommandBarCompletionStatusEnabled, Mode=OneWay}"
+                    Label="{x:Bind StringResource.CompletionStatus}" />
                 <AppBarButton
                     Click="CommandBarHideClicked"
                     IsEnabled="{x:Bind ViewModel.IsCommandBarHideEnabled, Mode=OneWay}"

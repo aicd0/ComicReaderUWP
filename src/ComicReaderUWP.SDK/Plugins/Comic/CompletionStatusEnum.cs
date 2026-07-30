@@ -5,7 +5,10 @@ namespace ComicReaderUWP.SDK.Plugins.Comic;
 
 public enum CompletionStatusEnum
 {
-    NotStarted = 0,
-    Started = 1,
+    Unread = 0,
+    Reading = 1,
     Completed = 2,
+    Abandoned = 3,
+    PlanToRead = 4,
+    OnHold = 5,
 }

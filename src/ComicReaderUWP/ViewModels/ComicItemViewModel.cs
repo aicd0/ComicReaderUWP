@@ -135,9 +135,6 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     }
 
     public bool IsRatingVisible => !string.IsNullOrEmpty(Rating);
-    public bool IsRead => Comic.CompletionState == ComicCompletionStatusEnum.Completed;
-    public bool IsReading => Comic.CompletionState == ComicCompletionStatusEnum.Started;
-    public bool IsUnread => Comic.CompletionState == ComicCompletionStatusEnum.NotStarted;
 
     public Action<ComicItemViewModel>? OnClick { get; set; }
     public Func<ComicItemViewModel, Task<List<BaseMenuFlyoutItemModel>>>? OnRequestContextFlyoutAsync { get; set; }
@@ -186,25 +183,23 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
 
     public void UpdateProgress(bool compat)
     {
-        if (Comic.CompletionState == ComicCompletionStatusEnum.NotStarted)
+        switch (Comic.CompletionStatus)
         {
-            Progress = StringResourceProvider.Instance.CompletionStatusUnread;
-        }
-        else if (Comic.CompletionState == ComicCompletionStatusEnum.Completed)
-        {
-            Progress = StringResourceProvider.Instance.CompletionStatusFinished;
-        }
-        else
-        {
-            if (compat)
-            {
-                Progress = Math.Clamp(Comic.Progress, 0, 100).ToString() + "%";
-            }
-            else
-            {
-                Progress = StringResourceProvider.Instance.FinishPercentage
-                    .Replace("$percentage", Comic.Progress.ToString());
-            }
+            case ComicCompletionStatusEnum.Reading:
+                if (compat)
+                {
+                    Progress = Math.Clamp(Comic.Progress, 0, 100).ToString() + "%";
+                }
+                else
+                {
+                    Progress = StringResourceProvider.Instance.FinishPercentage
+                        .Replace("$percentage", Comic.Progress.ToString());
+                }
+
+                break;
+            default:
+                Progress = ComicCompletionStatusService.EnumToString(Comic.CompletionStatus);
+                break;
         }
     }
 

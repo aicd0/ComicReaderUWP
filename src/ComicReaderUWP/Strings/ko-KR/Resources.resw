@@ -244,14 +244,23 @@
     <value>다음 $count개의 만화가 라이브러리에서 영구적으로 삭제됩니다:
 $comics</value>
   </data>
-  <data name="CompletionState" xml:space="preserve">
+  <data name="CompletionStatus" xml:space="preserve">
     <value>완료 상태</value>
   </data>
-  <data name="CompletionStatusFinished" xml:space="preserve">
-    <value>완성된</value>
+  <data name="CompletionStatusAbandoned" xml:space="preserve">
+    <value>중단됨</value>
+  </data>
+  <data name="CompletionStatusCompleted" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="CompletionStatusOnHold" xml:space="preserve">
+    <value>보류 중</value>
+  </data>
+  <data name="CompletionStatusPlanToRead" xml:space="preserve">
+    <value>읽을 예정</value>
   </data>
   <data name="CompletionStatusReading" xml:space="preserve">
-    <value>독서</value>
+    <value>읽는 중</value>
   </data>
   <data name="CompletionStatusUnread" xml:space="preserve">
     <value>읽지 않음</value>
