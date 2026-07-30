@@ -7,7 +7,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.Actions;
-using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.Algorithm;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
@@ -151,17 +150,17 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
 
     private static string GetProgressText(ComicModel comic)
     {
-        if (comic.CompletionState == ComicCompletionStatusEnum.NotStarted)
+        ComicCompletionStatusEnum status = comic.CompletionStatus;
+
+        if (ComicCompletionStatusService.CanTransitToReadingAutomatically(status))
         {
             return string.Empty;
         }
-        else if (comic.CompletionState == ComicCompletionStatusEnum.Completed)
+
+        return status switch
         {
-            return StringResourceProvider.Instance.CompletionStatusFinished;
-        }
-        else
-        {
-            return Math.Clamp(comic.Progress, 0, 100).ToString() + "%";
-        }
+            ComicCompletionStatusEnum.Reading => Math.Clamp(comic.Progress, 0, 100).ToString() + "%",
+            _ => ComicCompletionStatusService.EnumToString(status),
+        };
     }
 }

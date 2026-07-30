@@ -85,36 +85,7 @@ internal sealed partial class ComicInfoPage : BasePage
 
         ViewModel.CompletionStateLiveData.ObserveSticky(this, completionStatus =>
         {
-            switch (completionStatus)
-            {
-                case ComicCompletionStatusEnum.NotStarted:
-                    SetCompletionStateButton.Icon = new FontIcon
-                    {
-                        Glyph = "\uEA3A"
-                    };
-                    SetCompletionStateButton.Label = StringResource.CompletionStatusUnread;
-                    break;
-                case ComicCompletionStatusEnum.Started:
-                    SetCompletionStateButton.Icon = new FontIcon
-                    {
-                        Glyph = "\uED5A"
-                    };
-                    SetCompletionStateButton.Label = StringResource.CompletionStatusReading;
-                    break;
-                case ComicCompletionStatusEnum.Completed:
-                    SetCompletionStateButton.Icon = new FontIcon
-                    {
-                        Glyph = "\uE8FB"
-                    };
-                    SetCompletionStateButton.Label = StringResource.CompletionStatusFinished;
-                    break;
-                default:
-                    break;
-            }
-
-            MarkAsUnreadButton.IsChecked = completionStatus == ComicCompletionStatusEnum.NotStarted;
-            MarkAsReadingButton.IsChecked = completionStatus == ComicCompletionStatusEnum.Started;
-            MarkAsFinishedButton.IsChecked = completionStatus == ComicCompletionStatusEnum.Completed;
+            SetCompletionStateButton.Label = ComicCompletionStatusService.EnumToString(completionStatus);
         });
 
         ViewModel.IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
@@ -130,22 +101,7 @@ internal sealed partial class ComicInfoPage : BasePage
         });
     }
 
-    private void MarkAsUnreadButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.NotStarted);
-    }
-
-    private void MarkAsReadingButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.Started);
-    }
-
-    private void MarkAsFinishedButton_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.SetCompletionState(ComicCompletionStatusEnum.Completed);
-    }
-
-    private async void MoreAppBarButton_Click(object sender, RoutedEventArgs e)
+    private void SetCompletionStateButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement fe)
         {
@@ -158,15 +114,7 @@ internal sealed partial class ComicInfoPage : BasePage
             return;
         }
 
-        List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(
-            PageActionHandler,
-            comic,
-            playlist: ViewModel.Playlist.ToBuilder(),
-            playback: ViewModel.Playback?.ToBuilder());
-        if (menuItems.Count == 0)
-        {
-            return;
-        }
+        List<BaseMenuFlyoutItemModel> menuItems = MenuFlyoutItemsCreator.CreateCompletionStatusMenuItems([comic]);
 
         var flyout = new MenuFlyout();
         foreach (BaseMenuFlyoutItemModel item in menuItems)
@@ -174,7 +122,42 @@ internal sealed partial class ComicInfoPage : BasePage
             flyout.Items.Add(item.CreateMenuFlyoutItem());
         }
 
-        flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
+        flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.Top });
+    }
+
+    private void MoreAppBarButton_Click(object sender, RoutedEventArgs e)
+    {
+        CoroutineUtils.Run(async () =>
+        {
+            if (sender is not FrameworkElement fe)
+            {
+                return;
+            }
+
+            ComicModel? comic = ViewModel.Comic;
+            if (comic is null)
+            {
+                return;
+            }
+
+            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(
+                PageActionHandler,
+                comic,
+                playlist: ViewModel.Playlist.ToBuilder(),
+                playback: ViewModel.Playback?.ToBuilder());
+            if (menuItems.Count == 0)
+            {
+                return;
+            }
+
+            var flyout = new MenuFlyout();
+            foreach (BaseMenuFlyoutItemModel item in menuItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
+
+            flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
+        });
     }
 
     private void OnRatingControlValueChanged(RatingControl sender, object args)

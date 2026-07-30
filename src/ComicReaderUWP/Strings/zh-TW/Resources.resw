@@ -244,17 +244,26 @@
     <value>以下 $count 本漫畫將永久從你的庫中移除：
 $comics</value>
   </data>
-  <data name="CompletionState" xml:space="preserve">
+  <data name="CompletionStatus" xml:space="preserve">
     <value>完成狀態</value>
   </data>
-  <data name="CompletionStatusFinished" xml:space="preserve">
+  <data name="CompletionStatusAbandoned" xml:space="preserve">
+    <value>棄讀</value>
+  </data>
+  <data name="CompletionStatusCompleted" xml:space="preserve">
     <value>已完成</value>
+  </data>
+  <data name="CompletionStatusOnHold" xml:space="preserve">
+    <value>擱置</value>
+  </data>
+  <data name="CompletionStatusPlanToRead" xml:space="preserve">
+    <value>計畫閱讀</value>
   </data>
   <data name="CompletionStatusReading" xml:space="preserve">
     <value>閱讀中</value>
   </data>
   <data name="CompletionStatusUnread" xml:space="preserve">
-    <value>未閱讀</value>
+    <value>未讀</value>
   </data>
   <data name="Continuous" xml:space="preserve">
     <value>連續</value>

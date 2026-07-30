@@ -244,17 +244,26 @@
     <value>Los siguientes $count cómics se eliminarán permanentemente de tu biblioteca:
 $comics</value>
   </data>
-  <data name="CompletionState" xml:space="preserve">
+  <data name="CompletionStatus" xml:space="preserve">
     <value>Estado de finalización</value>
   </data>
-  <data name="CompletionStatusFinished" xml:space="preserve">
-    <value>Finalizado</value>
+  <data name="CompletionStatusAbandoned" xml:space="preserve">
+    <value>Abandonado</value>
+  </data>
+  <data name="CompletionStatusCompleted" xml:space="preserve">
+    <value>Completado</value>
+  </data>
+  <data name="CompletionStatusOnHold" xml:space="preserve">
+    <value>En pausa</value>
+  </data>
+  <data name="CompletionStatusPlanToRead" xml:space="preserve">
+    <value>Por leer</value>
   </data>
   <data name="CompletionStatusReading" xml:space="preserve">
-    <value>Lectura</value>
+    <value>Leyendo</value>
   </data>
   <data name="CompletionStatusUnread" xml:space="preserve">
-    <value>No leído</value>
+    <value>Sin leer</value>
   </data>
   <data name="Continuous" xml:space="preserve">
     <value>Continuo</value>

@@ -162,38 +162,6 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         UpdateImageDescription();
     }
 
-    public void SetCompletionState(ComicCompletionStatusEnum completionState)
-    {
-        ComicModel? comic = _comic;
-        if (comic is null)
-        {
-            return;
-        }
-
-        if (comic.CompletionState != completionState && !comic.IsExternal)
-        {
-            CoroutineUtils.Run(async () =>
-            {
-                switch (completionState)
-                {
-                    case ComicCompletionStatusEnum.NotStarted:
-                        await comic.SetCompletionStateToNotStarted();
-                        break;
-                    case ComicCompletionStatusEnum.Started:
-                        await comic.SetCompletionStateToStarted();
-                        break;
-                    case ComicCompletionStatusEnum.Completed:
-                        await comic.SetCompletionStateToCompleted();
-                        break;
-                    default:
-                        break;
-                }
-            });
-        }
-
-        CompletionStateLiveData.Emit(comic.CompletionState);
-    }
-
     public bool AddNewTags(string command)
     {
         ComicModel? comic = _comic;
@@ -283,7 +251,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         IsEditable = comic.IsEditable;
 
         LoadComicTag();
-        SetCompletionState(comic.CompletionState);
+        CompletionStateLiveData.Emit(comic.CompletionStatus);
 
         if (!comic.IsExternal)
         {

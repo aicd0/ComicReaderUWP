@@ -28,7 +28,7 @@ internal class ComicPropertyModel
     private const string PROP_TYPE_PROGRESS = "Progress";
     private const string PROP_TYPE_TAG = "Tag";
     private const string PROP_TYPE_RATING = "Rating";
-    private const string PROP_TYPE_COMPLETION_STATE = "CompletionState";
+    private const string PROP_TYPE_COMPLETION_STATUS = "CompletionState";
     private const string PROP_TYPE_LAST_READ_TIME = "LastReadTime";
     private const string PROP_TYPE_PAGES = "Pages";
     private const string PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY = "PluginVirtualProperty";
@@ -37,7 +37,7 @@ internal class ComicPropertyModel
         PropertyTypeEnum.Title,
         PropertyTypeEnum.Progress,
         PropertyTypeEnum.Rating,
-        PropertyTypeEnum.CompletionState,
+        PropertyTypeEnum.CompletionStatus,
         PropertyTypeEnum.LastReadTime,
         PropertyTypeEnum.Pages,
     ];
@@ -67,7 +67,7 @@ internal class ComicPropertyModel
                 PropertyTypeEnum.Progress => StringResourceProvider.Instance.Progress,
                 PropertyTypeEnum.Tag => Name,
                 PropertyTypeEnum.Rating => StringResourceProvider.Instance.Rating,
-                PropertyTypeEnum.CompletionState => StringResourceProvider.Instance.CompletionState,
+                PropertyTypeEnum.CompletionStatus => StringResourceProvider.Instance.CompletionStatus,
                 PropertyTypeEnum.LastReadTime => StringResourceProvider.Instance.LastReadTime,
                 PropertyTypeEnum.Pages => StringResourceProvider.Instance.PageCount,
                 _ => string.Empty,
@@ -180,15 +180,9 @@ internal class ComicPropertyModel
             return string.Join(' ', tags);
         }
 
-        int CompletionStateToComparable(ComicCompletionStatusEnum state)
+        int CompletionStateToComparable(ComicCompletionStatusEnum status)
         {
-            return state switch
-            {
-                ComicCompletionStatusEnum.Completed => 100,
-                ComicCompletionStatusEnum.Started => 50,
-                ComicCompletionStatusEnum.NotStarted => 0,
-                _ => -1,
-            };
+            return ComicCompletionStatusService.EnumToComparable(status);
         }
 
         IItemSorter<ComicModel> CreateSorter<T>(Func<ComicModel, T> keySelector, IComparer<T>? keyComparer = null)
@@ -218,7 +212,7 @@ internal class ComicPropertyModel
             PropertyTypeEnum.Progress => CreateSorter(x => x.Progress),
             PropertyTypeEnum.Tag => CreateSorter(x => StringUtils.SmartFileNameKeySelector(GetConcatenatedTag(x)), keyComparer: StringUtils.SmartFileNameComparer),
             PropertyTypeEnum.Rating => CreateSorter(x => x.Rating),
-            PropertyTypeEnum.CompletionState => CreateSorter(x => CompletionStateToComparable(x.CompletionState)),
+            PropertyTypeEnum.CompletionStatus => CreateSorter(x => CompletionStateToComparable(x.CompletionStatus)),
             PropertyTypeEnum.LastReadTime => CreateSorter(x => x.LastVisit.Ticks),
             PropertyTypeEnum.Pages => CreateSorter(x => x.PageCount),
             PropertyTypeEnum.PluginVirtualProperty => CreatePluginPropertySorter(),
@@ -317,24 +311,12 @@ internal class ComicPropertyModel
 
         string GetCompletionStatusGroupName(ComicModel comic)
         {
-            return comic.CompletionState switch
-            {
-                ComicCompletionStatusEnum.Completed => StringResourceProvider.Instance.CompletionStatusFinished,
-                ComicCompletionStatusEnum.Started => StringResourceProvider.Instance.CompletionStatusReading,
-                ComicCompletionStatusEnum.NotStarted => StringResourceProvider.Instance.CompletionStatusUnread,
-                _ => StringResourceProvider.Instance.Ungrouped,
-            };
+            return ComicCompletionStatusService.EnumToString(comic.CompletionStatus, fallback: StringResourceProvider.Instance.Ungrouped);
         }
 
         int GetCompletionStatusGroupSortingKey(ComicModel comic)
         {
-            return comic.CompletionState switch
-            {
-                ComicCompletionStatusEnum.Completed => 3,
-                ComicCompletionStatusEnum.Started => 2,
-                ComicCompletionStatusEnum.NotStarted => 1,
-                _ => 0,
-            };
+            return ComicCompletionStatusService.EnumToComparable(comic.CompletionStatus);
         }
 
         string GetLastReadTimeGroupName(ComicModel comic)
@@ -387,7 +369,7 @@ internal class ComicPropertyModel
                 PropertyTypeEnum.Progress => CreateSorter(x => x.Items[0].Progress),
                 PropertyTypeEnum.Tag => CreateSorter(x => StringUtils.SmartFileNameKeySelector(x.GroupName), keyComparer: StringUtils.SmartFileNameComparer),
                 PropertyTypeEnum.Rating => CreateSorter(x => x.Items[0].Rating),
-                PropertyTypeEnum.CompletionState => CreateSorter(x => GetCompletionStatusGroupSortingKey(x.Items[0])),
+                PropertyTypeEnum.CompletionStatus => CreateSorter(x => GetCompletionStatusGroupSortingKey(x.Items[0])),
                 PropertyTypeEnum.LastReadTime => CreateSorter(x => x.Items[0].LastVisit.Ticks),
                 PropertyTypeEnum.Pages => CreateSorter(x => x.Items[0].PageCount),
                 PropertyTypeEnum.PluginVirtualProperty => CreatePluginPropertySorter(),
@@ -425,7 +407,7 @@ internal class ComicPropertyModel
             PropertyTypeEnum.Progress => CreateGrouper(x => [GetProgressGroupName(x)]),
             PropertyTypeEnum.Tag => CreateGrouper(GetTagGroupNames),
             PropertyTypeEnum.Rating => CreateGrouper(x => [GetRatingGroupName(x)]),
-            PropertyTypeEnum.CompletionState => CreateGrouper(x => [GetCompletionStatusGroupName(x)]),
+            PropertyTypeEnum.CompletionStatus => CreateGrouper(x => [GetCompletionStatusGroupName(x)]),
             PropertyTypeEnum.LastReadTime => CreateGrouper(x => [GetLastReadTimeGroupName(x)]),
             PropertyTypeEnum.Pages => CreateGrouper(x => [GetPagesGroupName(x)]),
             PropertyTypeEnum.PluginVirtualProperty => CreatePluginPropertyGrouper(),
@@ -455,7 +437,7 @@ internal class ComicPropertyModel
                 PropertyTypeEnum.Tag => sortingProperty.Name.Length,
                 PropertyTypeEnum.Progress => Math.Max(comic.Progress, 0),
                 PropertyTypeEnum.Rating => comic.Rating >= 0 ? comic.Rating * 0.05 : null,
-                PropertyTypeEnum.CompletionState => (int)comic.CompletionState,
+                PropertyTypeEnum.CompletionStatus => (int)comic.CompletionStatus,
                 PropertyTypeEnum.LastReadTime => comic.LastVisit != DateTimeOffset.MinValue ? comic.LastVisit.ToUnixTimeMilliseconds() : null,
                 PropertyTypeEnum.Pages => comic.PageCount > 0 ? comic.PageCount : null,
                 PropertyTypeEnum.PluginVirtualProperty => sortingPropertyPluginSorter?.AsNumber(comic),
@@ -563,7 +545,7 @@ internal class ComicPropertyModel
             PropertyTypeEnum.Progress => PROP_TYPE_PROGRESS,
             PropertyTypeEnum.Tag => PROP_TYPE_TAG,
             PropertyTypeEnum.Rating => PROP_TYPE_RATING,
-            PropertyTypeEnum.CompletionState => PROP_TYPE_COMPLETION_STATE,
+            PropertyTypeEnum.CompletionStatus => PROP_TYPE_COMPLETION_STATUS,
             PropertyTypeEnum.LastReadTime => PROP_TYPE_LAST_READ_TIME,
             PropertyTypeEnum.Pages => PROP_TYPE_PAGES,
             PropertyTypeEnum.PluginVirtualProperty => PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY,
@@ -584,7 +566,7 @@ internal class ComicPropertyModel
             PROP_TYPE_PROGRESS => PropertyTypeEnum.Progress,
             PROP_TYPE_TAG => PropertyTypeEnum.Tag,
             PROP_TYPE_RATING => PropertyTypeEnum.Rating,
-            PROP_TYPE_COMPLETION_STATE => PropertyTypeEnum.CompletionState,
+            PROP_TYPE_COMPLETION_STATUS => PropertyTypeEnum.CompletionStatus,
             PROP_TYPE_LAST_READ_TIME => PropertyTypeEnum.LastReadTime,
             PROP_TYPE_PAGES => PropertyTypeEnum.Pages,
             PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY => PropertyTypeEnum.PluginVirtualProperty,
@@ -601,7 +583,7 @@ internal class ComicPropertyModel
 
     private enum PropertyTypeEnum
     {
-        CompletionState,
+        CompletionStatus,
         Progress,
         Rating,
         Tag,

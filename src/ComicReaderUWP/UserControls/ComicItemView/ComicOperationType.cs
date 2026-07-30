@@ -9,7 +9,4 @@ internal enum ComicOperationType
     Unfavorite,
     Hide,
     Unhide,
-    MarkAsRead,
-    MarkAsUnread,
-    MarkAsReading,
 }

@@ -271,9 +271,16 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             buttons.Add(new() { Tag = StringResourceProvider.Instance.ExpressionIn, OnClicked = () => OnClickButton("in ()", -2) });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TITLE}") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Rating, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_RATING}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusUnread, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.NotStarted}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusReading, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.Started}") });
-            buttons.Add(new() { Tag = StringResourceProvider.Instance.CompletionStatusFinished, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATE} = {(int)ComicCompletionStatusEnum.Completed}") });
+
+            foreach (ComicCompletionStatusEnum status in ComicCompletionStatusService.AllStatus)
+            {
+                buttons.Add(new()
+                {
+                    Tag = ComicCompletionStatusService.EnumToString(status),
+                    OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATE} = {(int)status}")
+                });
+            }
+
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Progress, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_PROGRESS}") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Title1, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TITLE1}") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TITLE2}") });

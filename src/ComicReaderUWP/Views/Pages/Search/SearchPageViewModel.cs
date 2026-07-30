@@ -150,6 +150,17 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isCommandBarCompletionStatusEnabled = false;
+    public bool IsCommandBarCompletionStatusEnabled
+    {
+        get => _isCommandBarCompletionStatusEnabled;
+        set
+        {
+            _isCommandBarCompletionStatusEnabled = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarCompletionStatusEnabled)));
+        }
+    }
+
     private bool _isCommandBarHideEnabled = false;
     public bool IsCommandBarHideEnabled
     {
@@ -169,39 +180,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         {
             _isCommandBarUnHideEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnHideEnabled)));
-        }
-    }
-
-    private bool _isCommandBarMarkAsReadEnabled = false;
-    public bool IsCommandBarMarkAsReadEnabled
-    {
-        get => _isCommandBarMarkAsReadEnabled;
-        set
-        {
-            _isCommandBarMarkAsReadEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarMarkAsReadEnabled)));
-        }
-    }
-
-    private bool _isCommandBarMarkAsReadingEnabled = false;
-    public bool IsCommandBarMarkAsReadingEnabled
-    {
-        get => _isCommandBarMarkAsReadingEnabled;
-        set
-        {
-            _isCommandBarMarkAsReadingEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarMarkAsReadingEnabled)));
-        }
-    }
-
-    private bool _isCommandBarMarkAsUnreadEnabled = false;
-    public bool IsCommandBarMarkAsUnreadEnabled
-    {
-        get => _isCommandBarMarkAsUnreadEnabled;
-        set
-        {
-            _isCommandBarMarkAsUnreadEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarMarkAsUnreadEnabled)));
         }
     }
 
@@ -267,16 +245,19 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }));
     }
 
+    public IReadOnlyList<ComicModel> GetSelectedComics()
+    {
+        return [.. _selectedItems.Select(x => x.Comic)];
+    }
+
     private void UpdateCommandBarButtonStates()
     {
         bool allSelected = _selectedItems.Count == SearchResults.Count;
         bool favoriteEnabled = false;
         bool unfavoriteEnabled = false;
+        bool completionStatusEnabled = false;
         bool hideEnabled = false;
         bool unhideEnabled = false;
-        bool markAsReadEnabled = false;
-        bool markAsReadingEnabled = false;
-        bool markAsUnreadEnabled = false;
 
         foreach (ComicItemViewModel item in _selectedItems)
         {
@@ -289,6 +270,8 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 favoriteEnabled = true;
             }
 
+            completionStatusEnabled = true;
+
             if (item.IsHide)
             {
                 unhideEnabled = true;
@@ -297,31 +280,14 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
             {
                 hideEnabled = true;
             }
-
-            if (!item.IsRead)
-            {
-                markAsReadEnabled = true;
-            }
-
-            if (!item.IsReading)
-            {
-                markAsReadingEnabled = true;
-            }
-
-            if (!item.IsUnread)
-            {
-                markAsUnreadEnabled = true;
-            }
         }
 
         IsCommandBarSelectAllToggled = allSelected;
         IsCommandBarFavoriteEnabled = favoriteEnabled;
         IsCommandBarUnFavoriteEnabled = unfavoriteEnabled;
+        IsCommandBarCompletionStatusEnabled = completionStatusEnabled;
         IsCommandBarHideEnabled = hideEnabled;
         IsCommandBarUnHideEnabled = unhideEnabled;
-        IsCommandBarMarkAsReadEnabled = markAsReadEnabled;
-        IsCommandBarMarkAsReadingEnabled = markAsReadingEnabled;
-        IsCommandBarMarkAsUnreadEnabled = markAsUnreadEnabled;
     }
 
     private void OnSearchResult(IReadOnlyList<ComicModel> comics)

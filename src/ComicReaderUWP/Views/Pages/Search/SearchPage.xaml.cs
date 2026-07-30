@@ -10,6 +10,7 @@ using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.UserControls.ComicItemView;
@@ -18,6 +19,7 @@ using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 
@@ -171,6 +173,25 @@ internal sealed partial class SearchPage : BasePage
         ViewModel.ApplyOperationToComicSelection(ComicOperationType.Unfavorite);
     }
 
+    private void CommandBarCompletionStatusClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        List<BaseMenuFlyoutItemModel> menuItems = MenuFlyoutItemsCreator.CreateCompletionStatusMenuItems(comics);
+
+        var flyout = new MenuFlyout();
+        foreach (BaseMenuFlyoutItemModel item in menuItems)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.Top });
+    }
+
     private void CommandBarHideClicked(object sender, RoutedEventArgs e)
     {
         ViewModel.ApplyOperationToComicSelection(ComicOperationType.Hide);
@@ -179,21 +200,6 @@ internal sealed partial class SearchPage : BasePage
     private void CommandBarUnhideClicked(object sender, RoutedEventArgs e)
     {
         ViewModel.ApplyOperationToComicSelection(ComicOperationType.Unhide);
-    }
-
-    private void CommandBarMarkAsReadClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ApplyOperationToComicSelection(ComicOperationType.MarkAsRead);
-    }
-
-    private void CommandBarMarkAsReadingClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ApplyOperationToComicSelection(ComicOperationType.MarkAsReading);
-    }
-
-    private void CommandBarMarkAsUnreadClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ApplyOperationToComicSelection(ComicOperationType.MarkAsUnread);
     }
 
     //

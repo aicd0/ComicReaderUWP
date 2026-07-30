@@ -416,7 +416,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         // Save history
         if (!comic.IsExternal)
         {
-            await comic.SetCompletionStateToAtLeastStarted();
+            await comic.SetAsVisited();
             if (AppSettingsModel.Instance.SaveBrowsingHistory)
             {
                 await ComicHistoryItemModel.AddAsync(comic.Id, comic.Title1);
@@ -449,7 +449,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        ComicCompletionStatusEnum oldCompletionStatus = comic.CompletionState;
+        ComicCompletionStatusEnum oldCompletionStatus = comic.CompletionStatus;
         bool useScrollingAreaStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
         double startPage = useScrollingAreaStartEnd ? 0.5 : 1.0;
         double endPage = useScrollingAreaStartEnd ? comic.PageCount + 0.5 : images.Count;
@@ -466,7 +466,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             default:
                 {
                     bool restorePosition = !comic.IsExternal && AppSettingsModel.Instance.RestoreLastReadingPosition &&
-                        !(AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics && oldCompletionStatus != ComicCompletionStatusEnum.Started);
+                        !(AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics && oldCompletionStatus != ComicCompletionStatusEnum.Reading);
                     if (restorePosition)
                     {
                         double lastPosition = comic.LastPosition;

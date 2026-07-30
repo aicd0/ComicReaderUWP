@@ -244,11 +244,20 @@
     <value>The following $count comics will be permanently removed from your library:
 $comics</value>
   </data>
-  <data name="CompletionState" xml:space="preserve">
+  <data name="CompletionStatus" xml:space="preserve">
     <value>Completion status</value>
   </data>
-  <data name="CompletionStatusFinished" xml:space="preserve">
-    <value>Finished</value>
+  <data name="CompletionStatusAbandoned" xml:space="preserve">
+    <value>Abandoned</value>
+  </data>
+  <data name="CompletionStatusCompleted" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="CompletionStatusOnHold" xml:space="preserve">
+    <value>On hold</value>
+  </data>
+  <data name="CompletionStatusPlanToRead" xml:space="preserve">
+    <value>Plan to read</value>
   </data>
   <data name="CompletionStatusReading" xml:space="preserve">
     <value>Reading</value>

@@ -496,43 +496,35 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             {
                 result = comicCountToken.GetValue();
             }
+
             return result;
         }
 
         long comicCount = 0;
-        long unreadComicCount = 0;
-        long readingComicCount = 0;
-        long finishedComicCount = 0;
+        List<Tuple<ComicCompletionStatusEnum, long>> statusCount = [];
         await ComicHandle.Enqueue(() =>
         {
             comicCount = QueryComicCount();
-            unreadComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.NotStarted));
-            readingComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.Started));
-            finishedComicCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)ComicCompletionStatusEnum.Completed));
+            foreach (ComicCompletionStatusEnum status in ComicCompletionStatusService.AllStatus)
+            {
+                long count = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionState, (int)status));
+                statusCount.Add(new(status, count));
+            }
         });
 
         StringBuilder sb = new();
         sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.TotalComics))
             .Append(comicCount.ToString("#,#0", CultureInfo.InvariantCulture));
 
+        foreach (Tuple<ComicCompletionStatusEnum, long> pair in statusCount)
         {
-            int unreadPercentage = (int)Math.Round(100.0 * unreadComicCount / Math.Max(1, comicCount));
+            ComicCompletionStatusEnum status = pair.Item1;
+            long count = pair.Item2;
+            int percentage = (int)Math.Round(100.0 * count / Math.Max(1, comicCount));
             sb.Append('\n')
-                .Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusUnread))
-                .Append(unreadComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
-                .Append(" (").Append(unreadPercentage).Append("%)");
-
-            int readingPercentage = (int)Math.Round(100.0 * readingComicCount / Math.Max(1, comicCount));
-            sb.Append('\n')
-                .Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusReading))
-                .Append(readingComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
-                .Append(" (").Append(readingPercentage).Append("%)");
-
-            int finishedPercentage = (int)Math.Round(100.0 * finishedComicCount / Math.Max(1, comicCount));
-            sb.Append('\n')
-                .Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.CompletionStatusFinished))
-                .Append(finishedComicCount.ToString("#,#0", CultureInfo.InvariantCulture))
-                .Append(" (").Append(finishedPercentage).Append("%)");
+                .Append(StringResourceProvider.Instance.WithColon(ComicCompletionStatusService.EnumToString(status)))
+                .Append(count.ToString("#,#0", CultureInfo.InvariantCulture))
+                .Append(" (").Append(percentage).Append("%)");
         }
 
         string statisticText = sb.ToString();

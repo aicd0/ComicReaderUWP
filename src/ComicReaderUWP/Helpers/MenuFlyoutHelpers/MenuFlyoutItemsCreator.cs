@@ -152,55 +152,12 @@ internal static class MenuFlyoutItemsCreator
                 });
             }
 
+            items.Add(new SubItemMenuFlyoutItemModel()
             {
-                List<BaseMenuFlyoutItemModel> groupItems = [];
-
-                groupItems.Add(new ToggleMenuFlyoutItemModel()
-                {
-                    Text = StringResourceProvider.Instance.CompletionStatusUnread,
-                    IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.NotStarted,
-                    Click = () =>
-                    {
-                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-                        {
-                            await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToNotStarted()));
-                        }));
-                    },
-                });
-
-                groupItems.Add(new ToggleMenuFlyoutItemModel()
-                {
-                    Text = StringResourceProvider.Instance.CompletionStatusReading,
-                    IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Started,
-                    Click = () =>
-                    {
-                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-                        {
-                            await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToStarted()));
-                        }));
-                    },
-                });
-
-                groupItems.Add(new ToggleMenuFlyoutItemModel()
-                {
-                    Text = StringResourceProvider.Instance.CompletionStatusFinished,
-                    IsChecked = primaryComic.CompletionState == ComicCompletionStatusEnum.Completed,
-                    Click = () =>
-                    {
-                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-                        {
-                            await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStateToCompleted()));
-                        }));
-                    },
-                });
-
-                items.Add(new SubItemMenuFlyoutItemModel()
-                {
-                    Text = StringResourceProvider.Instance.SetCompletionState,
-                    Icon = new FontIconSource() { Glyph = "\uE7C1" },
-                    Items = groupItems,
-                });
-            }
+                Text = StringResourceProvider.Instance.SetCompletionState,
+                Icon = new FontIconSource() { Glyph = "\uE7C1" },
+                Items = CreateCompletionStatusMenuItems(selectedComics),
+            });
 
             if (primaryComic.Hidden)
             {
@@ -383,6 +340,48 @@ internal static class MenuFlyoutItemsCreator
         result.Add(new SeparatorMenuFlyoutItemModel());
         result.Add(CreateSelectMenuItem(actionHandler));
         return result;
+    }
+
+    public static List<BaseMenuFlyoutItemModel> CreateCompletionStatusMenuItems(IEnumerable<ComicModel> selectedComics)
+    {
+        List<ComicModel> comics = [.. selectedComics];
+
+        ComicCompletionStatusEnum? oldStatus = null;
+        foreach (ComicModel comic in comics)
+        {
+            if (!oldStatus.HasValue)
+            {
+                oldStatus = comic.CompletionStatus;
+                continue;
+            }
+
+            if (oldStatus.Value != comic.CompletionStatus)
+            {
+                oldStatus = null;
+                break;
+            }
+        }
+
+        List<BaseMenuFlyoutItemModel> items = [];
+
+        foreach (ComicCompletionStatusEnum status in ComicCompletionStatusService.AllStatus)
+        {
+            bool same = oldStatus == status;
+            items.Add(new ToggleMenuFlyoutItemModel()
+            {
+                Text = ComicCompletionStatusService.EnumToString(status),
+                IsChecked = same,
+                Click = same ? null : () =>
+                {
+                    CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
+                    {
+                        await Task.WhenAll(selectedComics.Select(x => x.SetCompletionStatus(status)));
+                    }));
+                },
+            });
+        }
+
+        return items;
     }
 
     private static List<BaseMenuFlyoutItemModel> CreateSendToWindowMenuItems(string url, ActionHandler actionHandler)
