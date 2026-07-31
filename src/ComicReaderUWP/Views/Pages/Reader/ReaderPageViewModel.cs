@@ -449,7 +449,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        ComicCompletionStatusEnum oldCompletionStatus = comic.CompletionStatus;
+        CompletionStatusEnum oldCompletionStatus = comic.CompletionStatus;
         bool useScrollingAreaStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
         double startPage = useScrollingAreaStartEnd ? 0.5 : 1.0;
         double endPage = useScrollingAreaStartEnd ? comic.PageCount + 0.5 : images.Count;
@@ -466,7 +466,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             default:
                 {
                     bool restorePosition = !comic.IsExternal && AppSettingsModel.Instance.RestoreLastReadingPosition &&
-                        !(AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics && oldCompletionStatus != ComicCompletionStatusEnum.Reading);
+                        !(AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics && oldCompletionStatus != CompletionStatusEnum.Reading);
                     if (restorePosition)
                     {
                         double lastPosition = comic.LastPosition;

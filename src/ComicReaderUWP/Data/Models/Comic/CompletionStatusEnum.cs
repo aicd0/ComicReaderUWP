@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
-public enum ComicCompletionStatusEnum
+public enum CompletionStatusEnum
 {
     Unread = 0,
     Reading = 1,

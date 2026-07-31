@@ -190,7 +190,7 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
                 conditionCreator(ComicTable.ColumnTitle2),
             ]),
             ComicSQLProviderUtils.VAR_RATING => conditionCreator(ComicTable.ColumnRating),
-            ComicSQLProviderUtils.VAR_COMPLETION_STATE => conditionCreator(ComicTable.ColumnCompletionState),
+            ComicSQLProviderUtils.VAR_COMPLETION_STATUS => conditionCreator(ComicTable.ColumnCompletionStatus),
             ComicSQLProviderUtils.VAR_TITLE1 => conditionCreator(ComicTable.ColumnTitle1),
             ComicSQLProviderUtils.VAR_TITLE2 => conditionCreator(ComicTable.ColumnTitle2),
             ComicSQLProviderUtils.VAR_PROGRESS => conditionCreator(ComicTable.ColumnProgress),

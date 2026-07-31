@@ -180,9 +180,9 @@ internal class ComicPropertyModel
             return string.Join(' ', tags);
         }
 
-        int CompletionStateToComparable(ComicCompletionStatusEnum status)
+        int CompletionStateToComparable(Comic.CompletionStatusEnum status)
         {
-            return ComicCompletionStatusService.EnumToComparable(status);
+            return CompletionStatusService.EnumToComparable(status);
         }
 
         IItemSorter<ComicModel> CreateSorter<T>(Func<ComicModel, T> keySelector, IComparer<T>? keyComparer = null)
@@ -311,12 +311,12 @@ internal class ComicPropertyModel
 
         string GetCompletionStatusGroupName(ComicModel comic)
         {
-            return ComicCompletionStatusService.EnumToString(comic.CompletionStatus, fallback: StringResourceProvider.Instance.Ungrouped);
+            return CompletionStatusService.EnumToString(comic.CompletionStatus, fallback: StringResourceProvider.Instance.Ungrouped);
         }
 
         int GetCompletionStatusGroupSortingKey(ComicModel comic)
         {
-            return ComicCompletionStatusService.EnumToComparable(comic.CompletionStatus);
+            return CompletionStatusService.EnumToComparable(comic.CompletionStatus);
         }
 
         string GetLastReadTimeGroupName(ComicModel comic)

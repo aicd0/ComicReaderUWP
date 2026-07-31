@@ -121,7 +121,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
 
     public readonly MutableLiveData<string> ComicDescriptionLiveData = new();
     public readonly MutableLiveData<bool> IsExternalComicLiveData = new(true);
-    public readonly MutableLiveData<ComicCompletionStatusEnum> CompletionStateLiveData = new();
+    public readonly MutableLiveData<CompletionStatusEnum> CompletionStatusLiveData = new();
     public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
@@ -251,7 +251,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         IsEditable = comic.IsEditable;
 
         LoadComicTag();
-        CompletionStateLiveData.Emit(comic.CompletionStatus);
+        CompletionStatusLiveData.Emit(comic.CompletionStatus);
 
         if (!comic.IsExternal)
         {

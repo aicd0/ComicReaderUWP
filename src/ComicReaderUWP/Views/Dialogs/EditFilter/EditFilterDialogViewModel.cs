@@ -272,12 +272,12 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Title, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TITLE}") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Rating, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_RATING}") });
 
-            foreach (ComicCompletionStatusEnum status in ComicCompletionStatusService.AllStatus)
+            foreach (CompletionStatusEnum status in CompletionStatusService.AllStatus)
             {
                 buttons.Add(new()
                 {
-                    Tag = ComicCompletionStatusService.EnumToString(status),
-                    OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATE} = {(int)status}")
+                    Tag = CompletionStatusService.EnumToString(status),
+                    OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_COMPLETION_STATUS} = {(int)status}")
                 });
             }
 

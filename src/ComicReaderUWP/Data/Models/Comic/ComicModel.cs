@@ -92,7 +92,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public IReadOnlyDictionary<string, ComicTagCategory> Tags => _internalModel.Tags;
     public string Title1 => _internalModel.Title1;
     public string Title2 => _internalModel.Title2;
-    public ComicCompletionStatusEnum CompletionStatus => _internalModel.CompletionStatus;
+    public CompletionStatusEnum CompletionStatus => _internalModel.CompletionStatus;
     public int PageCount => _internalModel.PageCount;
     public IReadOnlyList<string> FolderViewPath => _internalModel.GetFolderViewPath();
 
@@ -174,21 +174,21 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         DispatchUpdateEvent();
     }
 
-    public async Task SetCompletionStatus(ComicCompletionStatusEnum status)
+    public async Task SetCompletionStatus(CompletionStatusEnum status)
     {
         switch (status)
         {
-            case ComicCompletionStatusEnum.Unread:
+            case CompletionStatusEnum.Unread:
                 await SetProgress(-1, 0);
                 break;
-            case ComicCompletionStatusEnum.Reading:
+            case CompletionStatusEnum.Reading:
                 _internalModel.SetAsVisited();
                 break;
             default:
                 break;
         }
 
-        await _internalModel.SaveCompletionState(status);
+        await _internalModel.SaveCompletionStatus(status);
         DispatchUpdateEvent();
     }
 
@@ -196,9 +196,9 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     {
         _internalModel.SetAsVisited();
 
-        if (ComicCompletionStatusService.CanTransitToReadingAutomatically(CompletionStatus))
+        if (CompletionStatusService.CanTransitToReadingAutomatically(CompletionStatus))
         {
-            await _internalModel.SaveCompletionState(ComicCompletionStatusEnum.Reading);
+            await _internalModel.SaveCompletionStatus(CompletionStatusEnum.Reading);
             DispatchUpdateEvent();
         }
     }
@@ -297,7 +297,8 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     bool SDK.Plugins.Comic.IComicModel.IsHidden => Hidden;
 
-    SDK.Plugins.Comic.CompletionStatusEnum SDK.Plugins.Comic.IComicModel.CompletionStatus => ComicCompletionStatusService.HostEnumToSDKEnum(CompletionStatus);
+    SDK.Plugins.Comic.CompletionStatusEnum SDK.Plugins.Comic.IComicModel.CompletionStatus =>
+        CompletionStatusService.HostEnumToSDKEnum(CompletionStatus);
 
     Task SDK.Plugins.Comic.IComicModel.SetTitle1(string title)
     {
@@ -352,8 +353,8 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     async Task SDK.Plugins.Comic.IComicModel.SetCompletionStatus(SDK.Plugins.Comic.CompletionStatusEnum status)
     {
-        ComicCompletionStatusEnum convertedStatus = ComicCompletionStatusService.SDKEnumToHostEnum(status);
-        await _internalModel.SaveCompletionState(convertedStatus);
+        CompletionStatusEnum convertedStatus = CompletionStatusService.SDKEnumToHostEnum(status);
+        await _internalModel.SaveCompletionStatus(convertedStatus);
         DispatchUpdateEvent();
     }
 
