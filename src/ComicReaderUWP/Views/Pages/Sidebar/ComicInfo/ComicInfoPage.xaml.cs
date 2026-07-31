@@ -83,9 +83,9 @@ internal sealed partial class ComicInfoPage : BasePage
             CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
         });
 
-        ViewModel.CompletionStateLiveData.ObserveSticky(this, completionStatus =>
+        ViewModel.CompletionStatusLiveData.ObserveSticky(this, completionStatus =>
         {
-            SetCompletionStateButton.Label = ComicCompletionStatusService.EnumToString(completionStatus);
+            SetCompletionStateButton.Label = CompletionStatusService.EnumToString(completionStatus);
         });
 
         ViewModel.IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)

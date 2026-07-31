@@ -101,7 +101,7 @@ public static class SqliteDB
                 ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnDescription.Name} TEXT DEFAULT ''");
                 goto case 3;
             case 3:
-                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCompletionState.Name} INTEGER NOT NULL DEFAULT 0");
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCompletionStatus.Name} INTEGER NOT NULL DEFAULT 0");
                 goto case 4;
             case 4:
                 ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnExt.Name} TEXT DEFAULT ''");
@@ -142,7 +142,7 @@ public static class SqliteDB
             "," + ComicTable.ColumnLastPosition.Name + " REAL NOT NULL" +
             "," + ComicTable.ColumnCoverCacheKey.Name + " TEXT" +
             "," + ComicTable.ColumnDescription.Name + " TEXT" +
-            "," + ComicTable.ColumnCompletionState.Name + " INTEGER NOT NULL" +
+            "," + ComicTable.ColumnCompletionStatus.Name + " INTEGER NOT NULL" +
             "," + ComicTable.ColumnPageCount.Name + " INTEGER NOT NULL" +
             "," + ComicTable.ColumnExt.Name + " TEXT" +
             ")");

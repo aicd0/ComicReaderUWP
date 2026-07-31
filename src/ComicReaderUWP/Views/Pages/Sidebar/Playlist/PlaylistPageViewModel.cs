@@ -150,17 +150,17 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
 
     private static string GetProgressText(ComicModel comic)
     {
-        ComicCompletionStatusEnum status = comic.CompletionStatus;
+        CompletionStatusEnum status = comic.CompletionStatus;
 
-        if (ComicCompletionStatusService.CanTransitToReadingAutomatically(status))
+        if (CompletionStatusService.CanTransitToReadingAutomatically(status))
         {
             return string.Empty;
         }
 
         return status switch
         {
-            ComicCompletionStatusEnum.Reading => Math.Clamp(comic.Progress, 0, 100).ToString() + "%",
-            _ => ComicCompletionStatusService.EnumToString(status),
+            CompletionStatusEnum.Reading => Math.Clamp(comic.Progress, 0, 100).ToString() + "%",
+            _ => CompletionStatusService.EnumToString(status),
         };
     }
 }

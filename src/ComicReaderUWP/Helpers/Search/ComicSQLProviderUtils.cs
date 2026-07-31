@@ -12,7 +12,7 @@ internal class ComicSQLProviderUtils
     public const string VAR_TAG = "tag";
     public const string VAR_TITLE = "title";
     public const string VAR_RATING = "rating";
-    public const string VAR_COMPLETION_STATE = "completion_state";
+    public const string VAR_COMPLETION_STATUS = "completion_state";
     public const string VAR_TITLE1 = "title1";
     public const string VAR_TITLE2 = "title2";
     public const string VAR_PROGRESS = "progress";

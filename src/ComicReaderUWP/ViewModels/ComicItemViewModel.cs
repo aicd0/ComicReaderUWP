@@ -185,7 +185,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     {
         switch (Comic.CompletionStatus)
         {
-            case ComicCompletionStatusEnum.Reading:
+            case CompletionStatusEnum.Reading:
                 if (compat)
                 {
                     Progress = Math.Clamp(Comic.Progress, 0, 100).ToString() + "%";
@@ -198,7 +198,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
 
                 break;
             default:
-                Progress = ComicCompletionStatusService.EnumToString(Comic.CompletionStatus);
+                Progress = CompletionStatusService.EnumToString(Comic.CompletionStatus);
                 break;
         }
     }

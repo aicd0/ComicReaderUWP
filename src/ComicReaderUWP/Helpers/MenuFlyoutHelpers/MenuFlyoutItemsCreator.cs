@@ -346,7 +346,7 @@ internal static class MenuFlyoutItemsCreator
     {
         List<ComicModel> comics = [.. selectedComics];
 
-        ComicCompletionStatusEnum? oldStatus = null;
+        CompletionStatusEnum? oldStatus = null;
         foreach (ComicModel comic in comics)
         {
             if (!oldStatus.HasValue)
@@ -364,12 +364,12 @@ internal static class MenuFlyoutItemsCreator
 
         List<BaseMenuFlyoutItemModel> items = [];
 
-        foreach (ComicCompletionStatusEnum status in ComicCompletionStatusService.AllStatus)
+        foreach (CompletionStatusEnum status in CompletionStatusService.AllStatus)
         {
             bool same = oldStatus == status;
             items.Add(new ToggleMenuFlyoutItemModel()
             {
-                Text = ComicCompletionStatusService.EnumToString(status),
+                Text = CompletionStatusService.EnumToString(status),
                 IsChecked = same,
                 Click = same ? null : () =>
                 {

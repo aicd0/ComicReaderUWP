@@ -135,7 +135,7 @@ internal abstract partial class ComicHandle
             IReaderToken<double> lastPositionToken = command.PutQueryDouble(ComicTable.ColumnLastPosition);
             IReaderToken<string> coverCacheKeyToken = command.PutQueryString(ComicTable.ColumnCoverCacheKey);
             IReaderToken<string> descriptionToken = command.PutQueryString(ComicTable.ColumnDescription);
-            IReaderToken<int> completionStateToken = command.PutQueryInt32(ComicTable.ColumnCompletionState);
+            IReaderToken<int> completionStatusToken = command.PutQueryInt32(ComicTable.ColumnCompletionStatus);
             IReaderToken<int> pageCountToken = command.PutQueryInt32(ComicTable.ColumnPageCount);
             IReaderToken<string> extToken = command.PutQueryString(ComicTable.ColumnExt);
             using SelectCommand.IReader reader = command.Execute();
@@ -154,7 +154,7 @@ internal abstract partial class ComicHandle
                 double lastPosition = lastPositionToken.GetValue();
                 string coverCacheKey = coverCacheKeyToken.GetValue();
                 string description = descriptionToken.GetValue();
-                ComicCompletionStatusEnum completionState = ParseCompletionState(completionStateToken.GetValue());
+                CompletionStatusEnum completionStatus = ParseCompletionStatus(completionStatusToken.GetValue());
                 int pageCount = pageCountToken.GetValue();
                 string extJson = extToken.GetValue();
 
@@ -176,7 +176,7 @@ internal abstract partial class ComicHandle
                 comic.CoverCacheKey = coverCacheKey;
                 comic.Description = description;
                 comic._tags = new([]);
-                comic.CompletionStatus = completionState;
+                comic.CompletionStatus = completionStatus;
                 comic.PageCount = pageCount;
 
                 if (!string.IsNullOrEmpty(extJson))
@@ -312,14 +312,14 @@ internal abstract partial class ComicHandle
         }
     }
 
-    private static ComicCompletionStatusEnum ParseCompletionState(int value)
+    private static CompletionStatusEnum ParseCompletionStatus(int value)
     {
-        if (Enum.IsDefined(typeof(ComicCompletionStatusEnum), value))
+        if (Enum.IsDefined(typeof(CompletionStatusEnum), value))
         {
-            return (ComicCompletionStatusEnum)value;
+            return (CompletionStatusEnum)value;
         }
 
-        return ComicCompletionStatusEnum.Unread;
+        return CompletionStatusEnum.Unread;
     }
 
     //
@@ -334,7 +334,7 @@ internal abstract partial class ComicHandle
     //
 
     public long Id { get; private set; } = -1;
-    public ComicCompletionStatusEnum CompletionStatus { get; private set; }
+    public CompletionStatusEnum CompletionStatus { get; private set; }
     public string Location { get; protected set; } = string.Empty;
     public string Title1 { get; protected set; } = string.Empty;
     public string Title2 { get; protected set; } = string.Empty;
@@ -642,7 +642,7 @@ internal abstract partial class ComicHandle
             ComicTable.ColumnLastPosition,
             ComicTable.ColumnCoverCacheKey,
             ComicTable.ColumnDescription,
-            ComicTable.ColumnCompletionState,
+            ComicTable.ColumnCompletionStatus,
             ComicTable.ColumnExt,
             ComicTable.ColumnPageCount,
         ];
@@ -663,7 +663,7 @@ internal abstract partial class ComicHandle
         evaluators[ComicTable.ColumnLastPosition.Name] = i => TypeAssert.AssertDouble(i.LastPosition);
         evaluators[ComicTable.ColumnCoverCacheKey.Name] = i => TypeAssert.AssertString(i.CoverCacheKey);
         evaluators[ComicTable.ColumnDescription.Name] = i => TypeAssert.AssertString(i.Description);
-        evaluators[ComicTable.ColumnCompletionState.Name] = i => TypeAssert.AssertInt((int)i.CompletionStatus);
+        evaluators[ComicTable.ColumnCompletionStatus.Name] = i => TypeAssert.AssertInt((int)i.CompletionStatus);
         evaluators[ComicTable.ColumnExt.Name] = i => TypeAssert.AssertString(JsonSerializer.Serialize(i._ext));
         evaluators[ComicTable.ColumnPageCount.Name] = i => TypeAssert.AssertInt(i.PageCount);
         return evaluators;
@@ -695,7 +695,7 @@ internal abstract partial class ComicHandle
         });
     }
 
-    public async Task SaveCompletionState(ComicCompletionStatusEnum completionState)
+    public async Task SaveCompletionStatus(CompletionStatusEnum completionState)
     {
         CompletionStatus = completionState;
 
@@ -704,7 +704,7 @@ internal abstract partial class ComicHandle
             SaveNoLock(() =>
             {
                 UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnCompletionState, GetColumnValue(ComicTable.ColumnCompletionState))
+                    .AppendColumn(ComicTable.ColumnCompletionStatus, GetColumnValue(ComicTable.ColumnCompletionStatus))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
