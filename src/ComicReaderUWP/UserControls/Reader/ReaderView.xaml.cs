@@ -14,11 +14,11 @@ using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.UserControls.Reader.FrameLayout;
 using ComicReaderUWP.UserControls.Reader.Imaging;
 using ComicReaderUWP.UserControls.Reader.Models;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
 
-using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
@@ -463,8 +463,7 @@ internal partial class ReaderView : UserControl
             ContentGrid.HorizontalAlignment = isVertical ? HorizontalAlignment.Center : HorizontalAlignment.Center;
             ContentListView.VerticalAlignment = isVertical ? VerticalAlignment.Top : VerticalAlignment.Center;
             ContentListView.HorizontalAlignment = isVertical ? HorizontalAlignment.Center : HorizontalAlignment.Center;
-            ContentListView.ItemContainerStyle = (Style)Resources[isVertical ? "VerticalReaderListViewItemStyle" : "HorizontalReaderListViewItemStyle"];
-            ContentListView.ItemsPanel = (ItemsPanelTemplate)Resources[isVertical ? "VerticalReaderListViewItemPanelTemplate" : "HorizontalReaderListViewItemPanelTemplate"];
+            ContentListView.Orientation = isVertical ? Orientation.Vertical : Orientation.Horizontal;
 
             for (int i = 0; i < FrameDataSource.Count; ++i)
             {
@@ -1792,20 +1791,11 @@ internal partial class ReaderView : UserControl
 
     #region Content Change Event Handlers
 
-    private void OnReaderContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+    private void OnReaderContainerContentChanging(object? sender, CustomContainerContentChangingEventArgs args)
     {
         var item = args.Item as ReaderFrameViewModel;
 
-        if (args.ItemContainer is not ListViewItem container)
-        {
-            return;
-        }
-
-        // Remove focus visuals
-        container.FocusVisualPrimaryBrush = new SolidColorBrush(Colors.Transparent);
-        container.FocusVisualSecondaryBrush = new SolidColorBrush(Colors.Transparent);
-
-        if (container.ContentTemplateRoot is not ReaderFrame viewHolder)
+        if (args.ItemContainer is not ReaderFrame viewHolder)
         {
             return;
         }
@@ -2210,7 +2200,7 @@ internal partial class ReaderView : UserControl
     private bool _isPreciseScrolling = false;
 
     private ScrollViewer ThisScrollViewer => ContentScrollViewer;
-    private ListView ThisListView => ContentListView;
+    private ReaderListView ThisListView => ContentListView;
     private float ZoomFactor => ThisScrollViewer.ZoomFactor;
     private double HorizontalOffset => ThisScrollViewer.HorizontalOffset;
     private double VerticalOffset => ThisScrollViewer.VerticalOffset;

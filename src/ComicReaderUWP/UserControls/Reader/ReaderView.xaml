@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:framelayout="using:ComicReaderUWP.UserControls.Reader.FrameLayout"
     xmlns:imaging="using:ComicReaderUWP.UserControls.Reader.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:ComicReaderUWP.ViewModels"
@@ -297,27 +298,22 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 IsHitTestVisible="False">
-                <ListView
+                <framelayout:ReaderListView
                     x:Name="ContentListView"
                     VerticalAlignment="Top"
                     ContainerContentChanging="OnReaderContainerContentChanging"
-                    FocusVisualPrimaryBrush="Transparent"
-                    FocusVisualSecondaryBrush="Transparent"
                     IsTabStop="True"
                     ItemsSource="{x:Bind FrameDataSource, Mode=OneWay}"
                     Loaded="OnReaderListViewLoadedOrUnloaded"
                     PreviewKeyDown="OnReaderKeyDown"
-                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                    SelectionMode="None"
                     TabFocusNavigation="Local"
                     Unloaded="OnReaderListViewLoadedOrUnloaded">
-                    <ListView.ItemTemplate>
+                    <framelayout:ReaderListView.ItemTemplate>
                         <DataTemplate x:DataType="imaging:ReaderFrameViewModel">
                             <imaging:ReaderFrame FlowDirection="LeftToRight" />
                         </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    </framelayout:ReaderListView.ItemTemplate>
+                </framelayout:ReaderListView>
             </Grid>
         </ScrollViewer>
         <StackPanel
