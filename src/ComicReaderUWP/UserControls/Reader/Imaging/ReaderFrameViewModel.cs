@@ -4,12 +4,13 @@
 using System;
 
 using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.UserControls.Reader.FrameLayout;
 
 using Microsoft.UI.Xaml;
 
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
-internal class ReaderFrameViewModel
+internal class ReaderFrameViewModel : IReaderListViewItemViewModel
 {
     public const int NO_PAGE = -1;
 
@@ -37,6 +38,10 @@ internal class ReaderFrameViewModel
     public int MaxPage => Math.Max(PageL, PageR);
     public int MinPage => PageL == NO_PAGE ? PageR : (PageR == NO_PAGE ? PageL : Math.Min(PageL, PageR));
     public int PageCount => (PageL != NO_PAGE ? 1 : 0) + (PageR != NO_PAGE ? 1 : 0);
+
+    double IReaderListViewItemViewModel.Width => FrameWidth + FrameMargin.Left + FrameMargin.Right;
+
+    double IReaderListViewItemViewModel.Height => FrameHeight + FrameMargin.Top + FrameMargin.Bottom;
 
     public void RebindEntireViewModel()
     {

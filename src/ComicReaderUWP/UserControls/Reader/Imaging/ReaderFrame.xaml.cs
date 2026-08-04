@@ -1,8 +1,6 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Lifecycle.Utils;
@@ -14,12 +12,8 @@ namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
 internal sealed partial class ReaderFrame : BaseUserControl
 {
-    public delegate void ReadyStateChangeListener(ReaderFrame container, bool isReady, string reason);
-    private event ReadyStateChangeListener? ReadyStateChanged;
-
     private ReaderFrameViewModel? ViewModel { get; set; }
 
-    private bool? _isReady = null;
     private ReaderImageCompositor? _imageCompositor;
 
     private readonly IValueObserver<bool> _rebindObserver;
@@ -34,7 +28,7 @@ internal sealed partial class ReaderFrame : BaseUserControl
 
         _rebindObserver = ObserverUtils.Create<bool>(_ =>
         {
-            UpdateBindings("RebindByUpdate");
+            Bindings.Update();
         });
 
         _redrawImageObserver = ObserverUtils.Create<bool>(_ =>
@@ -91,23 +85,6 @@ internal sealed partial class ReaderFrame : BaseUserControl
         });
     }
 
-    public void SetReadyStateChangeHandler(ReadyStateChangeListener? handler)
-    {
-        ReadyStateChanged = handler;
-    }
-
-    public void SetViewModel(ReaderFrameViewModel? model)
-    {
-        DisconnectViewModel();
-        ViewModel = model;
-        if (IsResumed)
-        {
-            ConnectViewModel();
-        }
-
-        UpdateBindings("RebindByContainer");
-    }
-
     protected override void OnResume()
     {
         base.OnResume();
@@ -123,14 +100,19 @@ internal sealed partial class ReaderFrame : BaseUserControl
         _imageCompositor = null;
     }
 
-    private void Boundary_Loaded(object sender, RoutedEventArgs e)
+    private void ReaderFrame_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
-        DispatchReadyStateChangeEvent("FrameLoaded");
-    }
+        DisconnectViewModel();
+        ViewModel = null;
 
-    private void Boundary_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        DispatchReadyStateChangeEvent($"SizeChanged (W={e.NewSize.Width},H={e.NewSize.Height})");
+        if (args.NewValue is ReaderFrameViewModel model)
+        {
+            ViewModel = model;
+            if (IsResumed)
+            {
+                ConnectViewModel();
+            }
+        }
     }
 
     private void ConnectViewModel()
@@ -161,46 +143,5 @@ internal sealed partial class ReaderFrame : BaseUserControl
         vm.LeftImageVisibleLiveData.RemoveObserver(_leftImageVisibleObserver);
         vm.RightImageVisibleLiveData.RemoveObserver(_rightImageVisibleObserver);
         vm.ScaleLiveData.RemoveObserver(_scaleObserver);
-    }
-
-    private void UpdateBindings(string reason)
-    {
-        Bindings.Update();
-        _isReady = null;
-        DispatchReadyStateChangeEvent(reason);
-    }
-
-    private void DispatchReadyStateChangeEvent(string reason)
-    {
-        bool isReady = IsReady();
-        if (isReady != _isReady)
-        {
-            _isReady = isReady;
-            ReadyStateChanged?.Invoke(this, isReady, reason);
-        }
-    }
-
-    private bool IsReady()
-    {
-        ReaderFrameViewModel? model = ViewModel;
-        if (model is null)
-        {
-            return false;
-        }
-
-        double desiredWidth = model.FrameWidth + model.FrameMargin.Left + model.FrameMargin.Right;
-        double desiredHeight = model.FrameHeight + model.FrameMargin.Top + model.FrameMargin.Bottom;
-
-        if (Math.Abs(ActualWidth - desiredWidth) > 5.0)
-        {
-            return false;
-        }
-
-        if (Math.Abs(ActualHeight - desiredHeight) > 5.0)
-        {
-            return false;
-        }
-
-        return true;
     }
 }
