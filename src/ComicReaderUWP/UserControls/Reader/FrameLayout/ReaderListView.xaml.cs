@@ -9,19 +9,21 @@ using System.Collections.Specialized;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
+using Windows.Foundation;
+
 namespace ComicReaderUWP.UserControls.Reader.FrameLayout;
 
 public sealed partial class ReaderListView : UserControl
 {
     private INotifyCollectionChanged? _collectionChangedSource;
-    private readonly Queue<UIElement> _recycledContainers = new();
-    private readonly Dictionary<int, UIElement> _realizedContainers = new();
+    private readonly Queue<UIElement> _recycledContainers = [];
+    private readonly List<UIElement?> _realizedContainers = [];
 
     public static readonly DependencyProperty ItemTemplateProperty = DependencyProperty.Register(
         nameof(ItemTemplate), typeof(DataTemplate), typeof(ReaderListView), new PropertyMetadata(null, OnItemTemplateChanged));
 
     public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register(
-        nameof(ItemsSource), typeof(IEnumerable), typeof(ReaderListView), new PropertyMetadata(null, OnItemsSourceChanged));
+        nameof(ItemsSource), typeof(IList), typeof(ReaderListView), new PropertyMetadata(null, OnItemsSourceChanged));
 
     public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register(
         nameof(Orientation), typeof(Orientation), typeof(ReaderListView), new PropertyMetadata(Orientation.Vertical, OnOrientationChanged));
@@ -32,9 +34,9 @@ public sealed partial class ReaderListView : UserControl
         set => SetValue(ItemTemplateProperty, value);
     }
 
-    public IEnumerable? ItemsSource
+    public IList? ItemsSource
     {
-        get => (IEnumerable?)GetValue(ItemsSourceProperty);
+        get => (IList?)GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
 
@@ -44,13 +46,12 @@ public sealed partial class ReaderListView : UserControl
         set => SetValue(OrientationProperty, value);
     }
 
-    public event EventHandler<CustomContainerContentChangingEventArgs>? ContainerContentChanging;
-
     public UIElement ItemsPanelRoot => ContentPanel;
 
     public ReaderListView()
     {
         InitializeComponent();
+
         SetBinding(OrientationProperty, new Microsoft.UI.Xaml.Data.Binding
         {
             Source = ContentPanel,
@@ -59,40 +60,55 @@ public sealed partial class ReaderListView : UserControl
         });
     }
 
+    public Rect GetItemRect(int index)
+    {
+        return ContentPanel.GetItemRect(index);
+    }
+
     private static void OnItemTemplateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is ReaderListView listView)
+        if (d is not ReaderListView listView)
         {
-            listView.RefreshAllItems();
+            return;
         }
+
+        listView.RefreshAllItems();
     }
 
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is ReaderListView listView)
+        if (d is not ReaderListView listView)
         {
-            if (listView._collectionChangedSource != null)
-            {
-                listView._collectionChangedSource.CollectionChanged -= listView.OnItemsCollectionChanged;
-                listView._collectionChangedSource = null;
-            }
-
-            if (e.NewValue is INotifyCollectionChanged notifyCollection)
-            {
-                listView._collectionChangedSource = notifyCollection;
-                listView._collectionChangedSource.CollectionChanged += listView.OnItemsCollectionChanged;
-            }
-
-            listView.RefreshAllItems();
+            return;
         }
+
+        if (e.NewValue is not IReadOnlyList<IReaderListViewItemViewModel> list)
+        {
+            throw new InvalidOperationException("ItemSource has to be convertable to IReadOnlyList<IReaderListViewItemViewModel>.");
+        }
+
+        listView.ContentPanel.Items = list;
+
+        listView._collectionChangedSource?.CollectionChanged -= listView.OnItemsCollectionChanged;
+        listView._collectionChangedSource = null;
+
+        if (e.NewValue is INotifyCollectionChanged notifyCollection)
+        {
+            listView._collectionChangedSource = notifyCollection;
+            listView._collectionChangedSource.CollectionChanged += listView.OnItemsCollectionChanged;
+        }
+
+        listView.RefreshAllItems();
     }
 
     private static void OnOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is ReaderListView listView)
+        if (d is not ReaderListView listView)
         {
-            listView.RefreshAllItems();
+            return;
         }
+
+        listView.RefreshAllItems();
     }
 
     private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
@@ -100,21 +116,17 @@ public sealed partial class ReaderListView : UserControl
         switch (args.Action)
         {
             case NotifyCollectionChangedAction.Add:
-                HandleItemsAdded(args.NewStartingIndex, args.NewItems);
+                HandleItemsAdded(args.NewStartingIndex, args.NewItems?.Count ?? 0);
                 break;
-
             case NotifyCollectionChangedAction.Remove:
-                HandleItemsRemoved(args.OldStartingIndex, args.OldItems);
+                HandleItemsRemoved(args.OldStartingIndex, args.OldItems?.Count ?? 0);
                 break;
-
             case NotifyCollectionChangedAction.Replace:
-                HandleItemsReplaced(args.NewStartingIndex, args.OldItems, args.NewItems);
+                HandleItemsReplaced(args.NewStartingIndex, args.OldItems?.Count ?? 0, args.NewItems?.Count ?? 0);
                 break;
-
             case NotifyCollectionChangedAction.Move:
-                HandleItemsMoved(args.OldStartingIndex, args.NewStartingIndex, args.NewItems);
+                HandleItemsMoved(args.OldStartingIndex, args.NewStartingIndex, args.NewItems?.Count ?? 0);
                 break;
-
             case NotifyCollectionChangedAction.Reset:
                 RefreshAllItems();
                 break;
@@ -123,225 +135,237 @@ public sealed partial class ReaderListView : UserControl
 
     private void RefreshAllItems()
     {
-        if (ContentPanel == null)
+        if (ContentPanel is null)
         {
             return;
         }
 
-        ContentPanel.Children.Clear();
+        ContentPanel.InvalidateCache();
+
+        for (int i = 0; i < _realizedContainers.Count; i++)
+        {
+            UIElement container = ClearRealizedContainer(i);
+            RecycleContainer(container);
+        }
+
         _realizedContainers.Clear();
-        ContentPanel.Orientation = Orientation;
+        ContentPanel.Children.Clear();
 
         DataTemplate? template = ItemTemplate;
-        IEnumerable itemsSource = ItemsSource ?? Array.Empty<object>();
+        IList itemsSource = ItemsSource ?? Array.Empty<object>();
 
-        int itemIndex = 0;
-        foreach (object? item in itemsSource)
+        for (int i = 0; i < itemsSource.Count; i++)
         {
-            UIElement? containerElement = GetOrCreateContainer(itemIndex, item, template, inRecycleQueue: false);
-            if (containerElement != null)
-            {
-                ContentPanel.Children.Add(containerElement);
-                _realizedContainers[itemIndex] = containerElement;
-            }
-
-            itemIndex++;
+            object? item = itemsSource[i];
+            UIElement container = GetOrCreateContainer(item, template);
+            _realizedContainers.Add(container);
+            ContentPanel.Children.Add(container);
         }
     }
 
-    private void HandleItemsAdded(int baseIndex, IList? items)
+    private void HandleItemsAdded(int baseIndex, int itemCount)
     {
-        if (ContentPanel == null || items == null || items.Count == 0)
+        if (ContentPanel is null)
         {
             return;
         }
+
+        ContentPanel.InvalidateCache(baseIndex);
 
         DataTemplate? template = ItemTemplate;
+        IList itemsSource = ItemsSource ?? Array.Empty<object>();
 
-        for (int i = 0; i < items.Count; i++)
+        while (_realizedContainers.Count < itemsSource.Count)
         {
-            int itemIndex = baseIndex + i;
-            object? item = items[i];
-
-            ShiftRealizedContainersAfter(itemIndex - 1);
-
-            UIElement? containerElement = GetOrCreateContainer(itemIndex, item, template, inRecycleQueue: false);
-            if (containerElement != null)
-            {
-                ContentPanel.Children.Insert(itemIndex, containerElement);
-                _realizedContainers[itemIndex] = containerElement;
-            }
-        }
-    }
-
-    private void HandleItemsRemoved(int baseIndex, IList? items)
-    {
-        if (ContentPanel == null || items == null || items.Count == 0)
-        {
-            return;
+            _realizedContainers.Add(null);
         }
 
-        for (int i = items.Count - 1; i >= 0; i--)
+        for (int i = itemsSource.Count - itemCount - 1; i >= baseIndex; i--)
         {
-            int itemIndex = baseIndex + i;
-
-            if (_realizedContainers.TryGetValue(itemIndex, out UIElement? container))
-            {
-                ContentPanel.Children.RemoveAt(itemIndex);
-                _realizedContainers.Remove(itemIndex);
-                RecycleContainer(itemIndex, container);
-            }
-        }
-
-        ShiftRealizedContainersAfter(baseIndex - 1);
-    }
-
-    private void HandleItemsReplaced(int baseIndex, IList? oldItems, IList? newItems)
-    {
-        if (ContentPanel == null || newItems == null || newItems.Count == 0)
-        {
-            return;
-        }
-
-        DataTemplate? template = ItemTemplate;
-
-        for (int i = 0; i < newItems.Count; i++)
-        {
-            int itemIndex = baseIndex + i;
-            object? newItem = newItems[i];
-
-            if (_realizedContainers.TryGetValue(itemIndex, out UIElement? oldContainer))
-            {
-                RecycleContainer(itemIndex, oldContainer);
-                _realizedContainers.Remove(itemIndex);
-            }
-
-            UIElement? newContainerElement = GetOrCreateContainer(itemIndex, newItem, template, inRecycleQueue: false);
-            if (newContainerElement != null)
-            {
-                ContentPanel.Children[itemIndex] = newContainerElement;
-                _realizedContainers[itemIndex] = newContainerElement;
-            }
-        }
-    }
-
-    private void HandleItemsMoved(int oldIndex, int newIndex, IList? items)
-    {
-        if (ContentPanel == null || items == null || items.Count == 0)
-        {
-            return;
-        }
-
-        if (_realizedContainers.TryGetValue(oldIndex, out UIElement? container))
-        {
-            ContentPanel.Children.RemoveAt(oldIndex);
-            ContentPanel.Children.Insert(newIndex, container);
-
-            _realizedContainers.Remove(oldIndex);
+            int oldIndex = i;
+            int newIndex = i + itemCount;
+            UIElement container = ClearRealizedContainer(oldIndex);
             _realizedContainers[newIndex] = container;
+        }
 
-            ShiftRealizedContainers(Math.Min(oldIndex, newIndex), Math.Max(oldIndex, newIndex));
+        for (int i = 0; i < itemCount; i++)
+        {
+            int itemIndex = baseIndex + i;
+            object? item = itemsSource[itemIndex];
+            UIElement container = GetOrCreateContainer(item, template);
+            _realizedContainers[itemIndex] = container;
+            ContentPanel.Children.Insert(itemIndex, container);
         }
     }
 
-    private UIElement? GetOrCreateContainer(int itemIndex, object? item, DataTemplate? template, bool inRecycleQueue)
+    private void HandleItemsRemoved(int baseIndex, int itemCount)
     {
-        UIElement? containerElement = null;
+        if (ContentPanel is null)
+        {
+            return;
+        }
+
+        ContentPanel.InvalidateCache(baseIndex);
+
+        for (int i = itemCount - 1; i >= 0; i--)
+        {
+            int removeIndex = baseIndex + i;
+            UIElement container = ClearRealizedContainer(removeIndex);
+            _realizedContainers.RemoveAt(removeIndex);
+            RecycleContainer(container);
+            ContentPanel.Children.RemoveAt(removeIndex);
+        }
+    }
+
+    private void HandleItemsReplaced(int baseIndex, int oldCount, int newCount)
+    {
+        if (ContentPanel is null)
+        {
+            return;
+        }
+
+        ContentPanel.InvalidateCache(baseIndex);
+
+        DataTemplate? template = ItemTemplate;
+        IList itemsSource = ItemsSource ?? Array.Empty<object>();
+
+        int count = Math.Min(oldCount, newCount);
+        for (int i = 0; i < count; i++)
+        {
+            int index = baseIndex + i;
+            UIElement container = ClearRealizedContainer(index);
+            RecycleContainer(container);
+            object? item = itemsSource[index];
+            UIElement newContainer = GetOrCreateContainer(item, template);
+            _realizedContainers[index] = newContainer;
+            ContentPanel.Children[index] = newContainer;
+        }
+
+        if (oldCount > newCount)
+        {
+            for (int i = oldCount - 1; i >= count; i--)
+            {
+                int removeIndex = baseIndex + i;
+                UIElement container = ClearRealizedContainer(removeIndex);
+                _realizedContainers.RemoveAt(removeIndex);
+                RecycleContainer(container);
+                ContentPanel.Children.RemoveAt(removeIndex);
+            }
+        }
+        else
+        {
+            for (int i = count; i < newCount; i++)
+            {
+                int itemIndex = baseIndex + i;
+                object? item = itemsSource[itemIndex];
+                UIElement container = GetOrCreateContainer(item, template);
+                _realizedContainers.Insert(itemIndex, container);
+                ContentPanel.Children.Insert(itemIndex, container);
+            }
+        }
+    }
+
+    private void HandleItemsMoved(int oldIndex, int newIndex, int itemCount)
+    {
+        if (ContentPanel is null)
+        {
+            return;
+        }
+
+        ContentPanel.InvalidateCache(Math.Min(oldIndex, newIndex));
+
+        int indexDiff = Math.Abs(oldIndex - newIndex);
+        if (indexDiff < itemCount)
+        {
+            (oldIndex, newIndex) = (newIndex, oldIndex);
+            (indexDiff, itemCount) = (itemCount, indexDiff);
+        }
+
+        if (newIndex > oldIndex)
+        {
+            int targetIndex = newIndex + indexDiff - 1;
+            for (int i = itemCount - 1; i >= 0; i--)
+            {
+                int sourceIndex = oldIndex + i;
+                UIElement container = ClearRealizedContainer(sourceIndex);
+                _realizedContainers.RemoveAt(sourceIndex);
+                ContentPanel.Children.RemoveAt(sourceIndex);
+                _realizedContainers.Insert(targetIndex, container);
+                ContentPanel.Children.Insert(targetIndex, container);
+            }
+        }
+        else
+        {
+            for (int i = itemCount - 1; i >= 0; i--)
+            {
+                int sourceIndex = oldIndex + i;
+                int targetIndex = newIndex + i;
+                UIElement container = ClearRealizedContainer(sourceIndex);
+                _realizedContainers.RemoveAt(sourceIndex);
+                ContentPanel.Children.RemoveAt(sourceIndex);
+                _realizedContainers.Insert(targetIndex, container);
+                ContentPanel.Children.Insert(targetIndex, container);
+            }
+        }
+    }
+
+    private UIElement GetOrCreateContainer(object? item, DataTemplate? template)
+    {
+        UIElement container;
 
         if (_recycledContainers.Count > 0)
         {
-            containerElement = _recycledContainers.Dequeue();
-            if (containerElement is FrameworkElement frameworkElement)
+            container = _recycledContainers.Dequeue();
+            if (container is FrameworkElement frameworkElement)
             {
                 frameworkElement.DataContext = item;
             }
         }
-        else if (template != null)
+        else if (template is not null)
         {
-            try
+            object? content = template.LoadContent();
+            if (content is FrameworkElement frameworkElement)
             {
-                object? content = template.LoadContent();
-                if (content is FrameworkElement frameworkElement)
-                {
-                    frameworkElement.DataContext = item;
-                    containerElement = frameworkElement;
-                }
-                else if (content is UIElement uiElement)
-                {
-                    containerElement = uiElement;
-                }
+                frameworkElement.DataContext = item;
+                container = frameworkElement;
             }
-            catch
+            else if (content is UIElement uiElement)
             {
-                containerElement = null;
+                container = uiElement;
+            }
+            else
+            {
+                throw new InvalidOperationException("The DataTemplate must produce a FrameworkElement or UIElement.");
             }
         }
-
-        if (containerElement == null && template == null)
+        else
         {
             var textBlock = new TextBlock { Text = item?.ToString() ?? string.Empty };
-            containerElement = textBlock;
+            container = textBlock;
         }
 
-        if (containerElement != null)
-        {
-            RaiseContainerContentChanging(itemIndex, item, containerElement, inRecycleQueue);
-        }
-
-        return containerElement;
+        return container;
     }
 
-    private void RecycleContainer(int itemIndex, UIElement container)
+    private void RecycleContainer(UIElement container)
     {
+        if (container is FrameworkElement frameworkElement)
+        {
+            frameworkElement.DataContext = null;
+        }
+
         _recycledContainers.Enqueue(container);
-        RaiseContainerContentChanging(itemIndex, null, container, inRecycleQueue: true);
     }
 
-    private void ShiftRealizedContainers(int startIndex, int endIndex)
+    private UIElement ClearRealizedContainer(int index)
     {
-        var keysToUpdate = new List<int>();
-        foreach (int key in _realizedContainers.Keys)
-        {
-            if (key >= startIndex && key <= endIndex)
-            {
-                keysToUpdate.Add(key);
-            }
-        }
-
-        foreach (int key in keysToUpdate)
-        {
-            if (_realizedContainers.TryGetValue(key, out UIElement? container))
-            {
-                _realizedContainers.Remove(key);
-                int newKey = key + (key < startIndex ? -1 : 1);
-                _realizedContainers[newKey] = container;
-            }
-        }
+        UIElement container = GetRealizedContainer(index);
+        _realizedContainers[index] = null;
+        return container;
     }
 
-    private void ShiftRealizedContainersAfter(int index)
+    private UIElement GetRealizedContainer(int index)
     {
-        var keysToUpdate = new List<int>();
-        foreach (int key in _realizedContainers.Keys)
-        {
-            if (key > index)
-            {
-                keysToUpdate.Add(key);
-            }
-        }
-
-        foreach (int key in keysToUpdate)
-        {
-            if (_realizedContainers.TryGetValue(key, out UIElement? container))
-            {
-                _realizedContainers.Remove(key);
-                _realizedContainers[key + 1] = container;
-            }
-        }
-    }
-
-    private void RaiseContainerContentChanging(int itemIndex, object? item, UIElement itemContainer, bool inRecycleQueue)
-    {
-        ContainerContentChanging?.Invoke(this, new CustomContainerContentChangingEventArgs(itemIndex, item, itemContainer, inRecycleQueue));
+        return _realizedContainers[index] ?? throw new InvalidOperationException($"No realized container found for index {index}.");
     }
 }

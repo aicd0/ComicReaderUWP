@@ -301,7 +301,6 @@
                 <framelayout:ReaderListView
                     x:Name="ContentListView"
                     VerticalAlignment="Top"
-                    ContainerContentChanging="OnReaderContainerContentChanging"
                     IsTabStop="True"
                     ItemsSource="{x:Bind FrameDataSource, Mode=OneWay}"
                     Loaded="OnReaderListViewLoadedOrUnloaded"
