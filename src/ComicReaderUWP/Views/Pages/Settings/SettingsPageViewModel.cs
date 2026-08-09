@@ -3,18 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Common.DebugTools;
-using ComicReaderUWP.Core.Common.Lifecycle;
-using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Models.Comic;
@@ -30,67 +25,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public SettingsSharedViewModel Shared { get; } = new();
-
-    private List<Tuple<string, int>> _encodings = [];
-    public List<Tuple<string, int>> Encodings
-    {
-        get => _encodings;
-        set
-        {
-            _encodings = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Encodings)));
-        }
-    }
-
-    private bool _scanOnLaunch = true;
-    public bool ScanOnLaunch
-    {
-        get => _scanOnLaunch;
-        set
-        {
-            _scanOnLaunch = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ScanOnLaunch)));
-        }
-    }
-
-    private bool _removeUnreachableComics = true;
-    public bool RemoveUnreachableComics
-    {
-        get => _removeUnreachableComics;
-        set
-        {
-            _removeUnreachableComics = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RemoveUnreachableComics)));
-        }
-    }
-
-    private bool _promptBeforeRemovingComics = true;
-    public bool PromptBeforeRemovingComics
-    {
-        get => _promptBeforeRemovingComics;
-        set
-        {
-            _promptBeforeRemovingComics = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PromptBeforeRemovingComics)));
-        }
-    }
-
-    private int _defaultArchiveCodePageIndex = 0;
-    public int DefaultArchiveCodePageIndex
-    {
-        get => _defaultArchiveCodePageIndex;
-        set
-        {
-            _defaultArchiveCodePageIndex = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DefaultArchiveCodePageIndex)));
-
-            int selectedIndex = value;
-            if (selectedIndex >= 0 && selectedIndex < Encodings.Count)
-            {
-                AppSettingsModel.Instance.DefaultArchiveCodePage = Encodings[selectedIndex].Item2;
-            }
-        }
-    }
 
     private List<BackgroundEntry> _backgrounds = [];
     public List<BackgroundEntry> Backgrounds
@@ -215,58 +149,9 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _isRescanning = true;
-    public bool IsRescanning
+    public void Initialize()
     {
-        get => _isRescanning;
-        set
-        {
-            _isRescanning = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRescanning)));
-        }
-    }
-
-    private readonly ReaderWriterLock _lock = new();
-    private readonly ITaskDispatcher _dispatcher = TaskDispatcher.DefaultQueue;
-    private AppSettingsModel.ExternalModel? _settingsModel;
-
-    public void Initialize(ILifecycleOwner owner)
-    {
-        GlobalEvent.Instance.ComicUpdated.Observe(owner, (_) =>
-        {
-            _dispatcher.SubmitAsync(UpdateStatistis);
-        });
-
-        ComicHandle.IsScanningLibraryLiveData.ObserveSticky(owner, isScanning =>
-        {
-            IsRescanning = isScanning;
-        });
-
         Shared.UpdateStarted += Update;
-    }
-
-    public void SetScanOnLaunch(bool scanOnLaunch)
-    {
-        _scanOnLaunch = scanOnLaunch;
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
-        model.ScanOnLaunch = scanOnLaunch;
-        AppSettingsModel.Instance.UpdateModel(model);
-    }
-
-    public void SetRemoveUnreachableComics(bool removeUnreachableComics)
-    {
-        _removeUnreachableComics = removeUnreachableComics;
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
-        model.RemoveUnreachableComics = removeUnreachableComics;
-        AppSettingsModel.Instance.UpdateModel(model);
-    }
-
-    public void SetPromptBeforeRemovingComics(bool promptBeforeRemovingComics)
-    {
-        _promptBeforeRemovingComics = promptBeforeRemovingComics;
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
-        model.PromptBeforeRemovingComics = promptBeforeRemovingComics;
-        AppSettingsModel.Instance.UpdateModel(model);
     }
 
     public void SetBackground(int index)
@@ -284,7 +169,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         AppearanceChanged = true;
         BackgroundEntry selectedBackground = _backgrounds[index];
         _backgroundIndex = index;
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
         model.Background = selectedBackground.Value;
         AppSettingsModel.Instance.UpdateModel(model);
     }
@@ -318,9 +203,14 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             _ => AppSettingsModel.AppearanceSetting.UseSystemSetting,
         };
         AppearanceChanged = true;
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
         model.Theme = appearance;
         AppSettingsModel.Instance.UpdateModel(model);
+    }
+
+    public void UpdateStatistics()
+    {
+        CoroutineUtils.Run(UpdateStatisticsInternal);
     }
 
     //
@@ -329,82 +219,34 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void Update()
     {
-        _dispatcher.SubmitAsync(InitializeInternal);
-    }
-
-    private async Task InitializeInternal()
-    {
-        _settingsModel = null;
-        AppSettingsModel.ExternalModel model = GetSettingsModel();
-        UpdateEncodings();
-        UpdateHistory(model);
-        UpdateAppearance(model);
-        UpdateBackground(model);
-        UpdateLanguage();
-        await UpdateStatistis();
-        UpdateSharedSettings();
-
-        CoroutineUtils.RunInMainThread(() =>
+        CoroutineUtils.Run(async () =>
         {
+            await UpdateHistory();
+            UpdateAppearance();
+            UpdateBackground();
+            UpdateLanguage();
+            await UpdateStatisticsInternal();
+            UpdateSharedSettings();
+
             AppearanceChanged = false;
             LanguageChanged = false;
         });
     }
 
-    private void UpdateEncodings()
+    private async Task UpdateHistory()
     {
-        ReadOnlyDictionary<int, Encoding> supportedEncodings = AppInfoProvider.GetSupportedEncodings();
-        var encodings = new List<Tuple<string, int>>
-        {
-            new(StringResourceProvider.Instance.Default, -1)
-        };
-        int defaultCodePage = AppSettingsModel.Instance.DefaultArchiveCodePage;
-        int selectedIndex = 0;
-        foreach (Encoding info in supportedEncodings.Values)
-        {
-            string title = info.EncodingName + " [" + info.CodePage.ToString() + "]";
-            encodings.Add(new Tuple<string, int>(title, info.CodePage));
-            if (defaultCodePage == info.CodePage)
-            {
-                selectedIndex = encodings.Count - 1;
-            }
-        }
-        if (!supportedEncodings.ContainsKey(defaultCodePage))
-        {
-            AppSettingsModel.Instance.DefaultArchiveCodePage = -1;
-            selectedIndex = 0;
-        }
+        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        bool hasHistory = !await ComicHistoryItemModel.IsEmptyAsync();
+        bool saveBrowsingHistory = AppSettingsModel.Instance.SaveBrowsingHistory;
 
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            Encodings = encodings;
-            DefaultArchiveCodePageIndex = selectedIndex;
-        });
+        IsClearHistoryEnabled = hasHistory;
+        HistorySaveBrowsingHistory = saveBrowsingHistory;
     }
 
-    private void UpdateHistory(AppSettingsModel.ExternalModel model)
+    private void UpdateBackground()
     {
-        CoroutineUtils.Run(async () =>
-        {
-            bool hasHistory = !await ComicHistoryItemModel.IsEmptyAsync();
-            bool scanOnLaunch = model.ScanOnLaunch;
-            bool removeUnreachableComics = model.RemoveUnreachableComics;
-            bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
-            bool saveBrowsingHistory = AppSettingsModel.Instance.SaveBrowsingHistory;
+        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
 
-            await MainThreadUtils.RunInMainThread(() =>
-            {
-                IsClearHistoryEnabled = hasHistory;
-                ScanOnLaunch = scanOnLaunch;
-                RemoveUnreachableComics = removeUnreachableComics;
-                PromptBeforeRemovingComics = promptBeforeRemovingComics;
-                HistorySaveBrowsingHistory = saveBrowsingHistory;
-            });
-        });
-    }
-
-    private void UpdateBackground(AppSettingsModel.ExternalModel model)
-    {
         AppSettingsModel.AppBackgroundEnum background = model.Background;
         List<BackgroundEntry> backgrounds = [
             new(StringResourceProvider.Instance.None, AppSettingsModel.AppBackgroundEnum.None),
@@ -416,11 +258,8 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             backgroundIndex = 0;
         }
 
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            Backgrounds = backgrounds;
-            BackgroundIndex = backgroundIndex;
-        });
+        Backgrounds = backgrounds;
+        BackgroundIndex = backgroundIndex;
     }
 
     private void UpdateLanguage()
@@ -456,34 +295,30 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             selectedIndex = 0;
         }
 
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            Languages = languages;
-            LanguageIndex = selectedIndex;
-        });
+        Languages = languages;
+        LanguageIndex = selectedIndex;
     }
 
-    private void UpdateAppearance(AppSettingsModel.ExternalModel model)
+    private void UpdateAppearance()
     {
+        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+
         AppSettingsModel.AppearanceSetting appearance = model.Theme;
         if (!Enum.IsDefined(appearance))
         {
             appearance = AppSettingsModel.AppearanceSetting.UseSystemSetting;
         }
 
-        CoroutineUtils.RunInMainThread(() =>
+        AppearanceIndex = appearance switch
         {
-            AppearanceIndex = appearance switch
-            {
-                AppSettingsModel.AppearanceSetting.Light => 0,
-                AppSettingsModel.AppearanceSetting.Dark => 1,
-                AppSettingsModel.AppearanceSetting.UseSystemSetting => 2,
-                _ => 2,
-            };
-        });
+            AppSettingsModel.AppearanceSetting.Light => 0,
+            AppSettingsModel.AppearanceSetting.Dark => 1,
+            AppSettingsModel.AppearanceSetting.UseSystemSetting => 2,
+            _ => 2,
+        };
     }
 
-    private async Task UpdateStatistis()
+    private async Task UpdateStatisticsInternal()
     {
         long QueryComicCount(Action<SelectCommand>? condition = null)
         {
@@ -528,51 +363,12 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         }
 
         string statisticText = sb.ToString();
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            StatisticText = statisticText;
-        });
+        StatisticText = statisticText;
     }
 
     private void UpdateSharedSettings()
     {
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            Shared.DebugMode = DebugUtils.DebugMode;
-        });
-    }
-
-    //
-    // Data persistence
-    //
-
-    private AppSettingsModel.ExternalModel GetSettingsModel()
-    {
-        _lock.AcquireReaderLock(Timeout.Infinite);
-        try
-        {
-            AppSettingsModel.ExternalModel? model = _settingsModel;
-            if (model is not null)
-            {
-                return model;
-            }
-
-            LockCookie cookie = _lock.UpgradeToWriterLock(Timeout.Infinite);
-            try
-            {
-                model = AppSettingsModel.Instance.GetModel();
-                _settingsModel = model;
-                return model;
-            }
-            finally
-            {
-                _lock.DowngradeFromWriterLock(ref cookie);
-            }
-        }
-        finally
-        {
-            _lock.ReleaseReaderLock();
-        }
+        Shared.DebugMode = DebugUtils.DebugMode;
     }
 
     //

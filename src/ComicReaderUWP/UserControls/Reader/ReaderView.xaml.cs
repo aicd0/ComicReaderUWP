@@ -777,7 +777,7 @@ internal partial class ReaderView : UserControl
             item.PageR = ReaderFrameViewModel.NO_PAGE;
         }
 
-        _loadInfoDispatcher.Submit(() =>
+        _loadInfoDispatcher.SubmitAsync(async () =>
         {
             void dispatchToMainThread(List<PengingImageItem> pendingList)
             {
@@ -815,10 +815,11 @@ internal partial class ReaderView : UserControl
                 IImageSource image = images[i];
                 int width = 0;
                 int height = 0;
-                if (ImageCacheManager.TryGetOriginalDimension(image, out SizeF size))
+                SizeF? size = await ImageCacheManager.TryGetOriginalDimension(image);
+                if (size.HasValue)
                 {
-                    width = (int)Math.Round(size.Width);
-                    height = (int)Math.Round(size.Height);
+                    width = (int)Math.Round(size.Value.Width);
+                    height = (int)Math.Round(size.Value.Height);
                 }
 
                 pendingList.Add(new()

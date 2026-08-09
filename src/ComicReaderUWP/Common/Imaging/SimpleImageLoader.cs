@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Common.Imaging;
 
@@ -37,18 +38,21 @@ internal static class SimpleImageLoader
         {
             _dispatcher.Submit(() =>
             {
-                foreach (Token token in _tokens)
+                CoroutineUtils.Run(async () =>
                 {
-                    LoadImageOptions options = new()
+                    foreach (Token token in _tokens)
                     {
-                        Token = _sessionToken,
-                        FrameWidth = token.Width,
-                        FrameHeight = token.Height,
-                        StretchMode = token.StretchMode,
-                        Handler = token.ImageResultHandler,
-                    };
-                    ImageCacheManager.LoadImage(token.Source, options);
-                }
+                        LoadImageOptions options = new()
+                        {
+                            Token = _sessionToken,
+                            FrameWidth = token.Width,
+                            FrameHeight = token.Height,
+                            StretchMode = token.StretchMode,
+                            Handler = token.ImageResultHandler,
+                        };
+                        await ImageCacheManager.LoadImage(token.Source, options);
+                    }
+                });
             });
         }
     }

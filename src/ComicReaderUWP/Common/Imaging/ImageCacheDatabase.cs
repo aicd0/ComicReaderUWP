@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
@@ -243,12 +244,37 @@ internal class ImageCacheDatabase(string databaseFilePath)
         private readonly Dictionary<string, string> _cacheEntries = [];
         private readonly Dictionary<string, string> _ext = [];
 
-        public ReaderWriterLock Lock { get; } = new();
+        private readonly Lock _queueLock = new();
+        private Task _queueTail = Task.CompletedTask;
 
         private CacheRecord(ImageCacheDatabase db, string key)
         {
             _database = db;
             _key = key;
+        }
+
+        public Task<T> Enqueue<T>(Func<Task<T>> func)
+        {
+            async Task RunAsync(Task previous, TaskCompletionSource<T> tcs)
+            {
+                try
+                {
+                    await previous;
+                    T? result = await func();
+                    tcs.SetResult(result);
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            }
+
+            lock (_queueLock)
+            {
+                TaskCompletionSource<T> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                _queueTail = RunAsync(_queueTail, tcs);
+                return tcs.Task;
+            }
         }
 
         public void Save()
