@@ -5,6 +5,7 @@ using System;
 
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -73,9 +74,21 @@ internal partial class SimpleImageView : UserControl
         _currentImageHash = newHash;
         CancellationSession.IToken token = _cancellationSession.Token;
         IImageResultHandler handler = new WeakImageResultHandler(this);
+
         viewModel.Dispatcher.Submit(() =>
         {
-            LoadImage(token, viewModel, handler);
+            CoroutineUtils.Run(async () =>
+            {
+                LoadImageOptions options = new()
+                {
+                    Token = token,
+                    FrameWidth = viewModel.Width,
+                    FrameHeight = viewModel.Height,
+                    StretchMode = viewModel.StretchMode,
+                    Handler = handler,
+                };
+                await ImageCacheManager.LoadImage(viewModel.Source, options);
+            });
         });
     }
 
@@ -84,19 +97,6 @@ internal partial class SimpleImageView : UserControl
         _currentImageHash = 0;
         _cancellationSession.Next();
         ImageHolder.Source = null;
-    }
-
-    private static void LoadImage(CancellationSession.IToken token, Model model, IImageResultHandler handler)
-    {
-        LoadImageOptions options = new()
-        {
-            Token = token,
-            FrameWidth = model.Width,
-            FrameHeight = model.Height,
-            StretchMode = model.StretchMode,
-            Handler = handler,
-        };
-        ImageCacheManager.LoadImage(model.Source, options);
     }
 
     private class WeakImageResultHandler(SimpleImageView view) : IImageResultHandler

@@ -1098,13 +1098,16 @@ internal sealed partial class ReaderPage : BasePage
         HashSet<int> pageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount);
         TaskDispatcher.DefaultThreadPool.Submit(() =>
         {
-            ComicChangedEventArgs args = new()
+            CoroutineUtils.Run(async () =>
             {
-                Comic = comic,
-                Playlist = ViewModel.Playlist,
-                ImageDescriptions = ViewModel.GetImageDescriptions(pageIndices),
-            };
-            GetWindowEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
+                ComicChangedEventArgs args = new()
+                {
+                    Comic = comic,
+                    Playlist = ViewModel.Playlist,
+                    ImageDescriptions = await ViewModel.GetImageDescriptions(pageIndices),
+                };
+                GetWindowEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
+            });
         });
 
         if (comic is not null)
