@@ -18,7 +18,7 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
 
     public string CalculateFingerprint()
     {
-        using IComicConnection? connection = _comic.OpenComicAsync().Result;
+        using ComicConnection? connection = _comic.OpenComic().Result;
         if (connection is null)
         {
             return string.Empty;
@@ -29,7 +29,7 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
 
     public Stream? OpenImageStream()
     {
-        using IComicConnection? connection = _comic.OpenComicAsync().Result;
+        using ComicConnection? connection = _comic.OpenComic().Result;
         if (connection is null)
         {
             return null;
@@ -40,7 +40,7 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
 
     public IVectorImageService? OpenVectorService()
     {
-        using IComicConnection? connection = _comic.OpenComicAsync().Result;
+        using ComicConnection? connection = _comic.OpenComic().Result;
         if (connection is null)
         {
             return null;

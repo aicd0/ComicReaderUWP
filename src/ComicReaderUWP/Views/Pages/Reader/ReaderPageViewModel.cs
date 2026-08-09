@@ -34,7 +34,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     private ComicModel? _comic;
     private LoadingComicInfo? _pendingComic;
     private bool _isLoading = false;
-    private IComicConnection? _comicConnection;
+    private ComicConnection? _comicConnection;
     private int _pageIndex = -1;
     private bool? _isFavorite = null;
 
@@ -242,7 +242,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     public IReadOnlyList<string> GetImageDescriptions(IEnumerable<int> pageIndices)
     {
-        IComicConnection? comicConnection = _comicConnection;
+        ComicConnection? comicConnection = _comicConnection;
         List<int> pageIndicesList = [.. pageIndices];
         if (comicConnection is null)
         {
@@ -487,7 +487,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         UpdateFavoriteStatusInternal(comic);
 
         // Load reader images
-        IComicConnection? connection = await comic.OpenComicAsync();
+        ComicConnection? connection = await comic.OpenComic();
         if (connection is null)
         {
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));

@@ -225,9 +225,9 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Utilities
     //
 
-    public Task<IComicConnection?> OpenComicAsync()
+    public Task<ComicConnection?> OpenComic()
     {
-        return _internalModel.OpenComicAsync();
+        return _internalModel.OpenComic();
     }
 
     public void ShowInFileExplorer(EventRecorder er)
@@ -360,7 +360,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     async Task<SDK.Plugins.Comic.IComicConnection?> SDK.Plugins.Comic.IComicModel.Open()
     {
-        IComicConnection? connection = await OpenComicAsync();
+        ComicConnection? connection = await OpenComic();
         if (connection is null)
         {
             return null;
