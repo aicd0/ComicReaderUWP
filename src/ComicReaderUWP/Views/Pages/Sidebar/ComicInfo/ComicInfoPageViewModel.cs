@@ -6,21 +6,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.Expression;
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.Algorithm;
 using ComicReaderUWP.Core.Common.Lifecycle;
-using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.Helpers.Imaging;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
@@ -126,7 +122,6 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private ComicModel? _comic;
-    private readonly HashSet<int> _pageIndices = [];
 
     public void Initialize(ActionHandler actionHandler)
     {
@@ -141,25 +136,17 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         }
 
         _comic = comic;
-        _pageIndices.Clear();
+        ImageDescriptions.Clear();
         LoadComicInfo();
-        UpdateImageDescription();
     }
 
-    public void SetPageIndices(ISet<int> pageIndices)
+    public void SetImageDescriptions(IReadOnlyList<string> imageDescriptions)
     {
-        if (_pageIndices.SetEquals(pageIndices))
+        ImageDescriptions.Clear();
+        foreach (string imageDescription in imageDescriptions)
         {
-            return;
+            ImageDescriptions.Add(imageDescription);
         }
-
-        _pageIndices.Clear();
-        foreach (int i in pageIndices)
-        {
-            _pageIndices.Add(i);
-        }
-
-        UpdateImageDescription();
     }
 
     public bool AddNewTags(string command)
@@ -368,113 +355,5 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         });
 
         return items;
-    }
-
-    private void UpdateImageDescription()
-    {
-        void ClearDescription()
-        {
-            CoroutineUtils.RunInMainThread(ImageDescriptions.Clear);
-        }
-
-        ComicModel? comic = _comic;
-        List<int> pageIndices = [.. _pageIndices];
-        if (comic is null || pageIndices.Count == 0)
-        {
-            ClearDescription();
-            return;
-        }
-
-        TaskDispatcher.DefaultQueue.SubmitAsync(async () =>
-        {
-            using IComicConnection? comicConnection = await comic.OpenComicAsync();
-            if (comicConnection is null)
-            {
-                ClearDescription();
-                return;
-            }
-
-            int imageCount = comicConnection.GetImageCount();
-            pageIndices.RemoveAll(i => i < 0 || i >= imageCount);
-            if (pageIndices.Count == 0)
-            {
-                ClearDescription();
-                return;
-            }
-
-            pageIndices.Sort();
-
-            List<string> imageDescriptions = [];
-            foreach (int pageIndex in pageIndices)
-            {
-                string imageName = comicConnection.GetImageName(pageIndex);
-                var imageSource = new ComicImageSource(comicConnection, pageIndex);
-                ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(imageSource);
-
-                if (imageMeta is null)
-                {
-                    continue;
-                }
-
-                StringBuilder imageDescriptionSb = new();
-                if (string.IsNullOrEmpty(imageName))
-                {
-                    imageName = StringResourceProvider.Instance.PageN.Replace("$page", (pageIndex + 1).ToString());
-                }
-
-                imageDescriptionSb.Append(imageName).Append('\n');
-                imageDescriptionSb.Append(imageMeta.Format);
-                imageDescriptionSb.Append(' ').Append(imageMeta.Width).Append(" x ").Append(imageMeta.Height);
-                imageDescriptionSb.Append(' ').Append(FormatBytes(imageMeta.Size));
-
-                if (imageMeta.DpiX > 0 && imageMeta.DpiY > 0)
-                {
-                    imageDescriptionSb.Append(' ').Append(FormatDpi(imageMeta.DpiX, imageMeta.DpiY));
-                }
-
-                imageDescriptionSb.Append(' ').Append(imageMeta.BitsPerPixel).Append(" bits");
-                imageDescriptions.Add(imageDescriptionSb.ToString());
-            }
-
-            if (imageDescriptions.Count == 0)
-            {
-                ClearDescription();
-                return;
-            }
-
-            CoroutineUtils.RunInMainThread(() =>
-            {
-                ImageDescriptions.Clear();
-                foreach (string imageDescription in imageDescriptions)
-                {
-                    ImageDescriptions.Add(imageDescription);
-                }
-            });
-        });
-    }
-
-    private static string FormatDpi(double dpiX, double dpiY)
-    {
-        if (dpiX == dpiY)
-        {
-            return $"{dpiX:0.##} dpi";
-        }
-        else
-        {
-            return $"{dpiX:0.##} x {dpiY:0.##} dpi";
-        }
-    }
-
-    private static string FormatBytes(long byteCount)
-    {
-        string[] units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"];
-        if (byteCount < 1024)
-        {
-            return $"{byteCount} B";
-        }
-
-        int unitIndex = (int)Math.Floor(Math.Log(byteCount, 1024));
-        double adjustedSize = byteCount / Math.Pow(1024, unitIndex);
-        return $"{adjustedSize:0.#} {units[unitIndex]}";
     }
 }

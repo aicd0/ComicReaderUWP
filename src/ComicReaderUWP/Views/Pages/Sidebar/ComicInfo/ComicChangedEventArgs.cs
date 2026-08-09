@@ -12,5 +12,5 @@ internal class ComicChangedEventArgs
 {
     public required ComicModel? Comic;
     public required PlaylistModel Playlist;
-    public required ISet<int> PageIndices;
+    public required IReadOnlyList<string> ImageDescriptions;
 }

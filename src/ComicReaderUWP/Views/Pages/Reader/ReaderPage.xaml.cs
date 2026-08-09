@@ -14,6 +14,7 @@ using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
@@ -1094,13 +1095,17 @@ internal sealed partial class ReaderPage : BasePage
             _readerNavigationBar.SetReaderSettings(comic);
         }
 
-        ComicChangedEventArgs args = new()
+        HashSet<int> pageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount);
+        TaskDispatcher.DefaultThreadPool.Submit(() =>
         {
-            Comic = comic,
-            Playlist = ViewModel.Playlist,
-            PageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount),
-        };
-        GetWindowEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
+            ComicChangedEventArgs args = new()
+            {
+                Comic = comic,
+                Playlist = ViewModel.Playlist,
+                ImageDescriptions = ViewModel.GetImageDescriptions(pageIndices),
+            };
+            GetWindowEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
+        });
 
         if (comic is not null)
         {

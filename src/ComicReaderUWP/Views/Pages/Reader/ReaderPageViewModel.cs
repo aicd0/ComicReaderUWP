@@ -1,9 +1,11 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
@@ -236,6 +238,64 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     {
         Playlist = playlist;
         Playback.LoadState(playlist, serializedPlayback);
+    }
+
+    public IReadOnlyList<string> GetImageDescriptions(IEnumerable<int> pageIndices)
+    {
+        IComicConnection? comicConnection = _comicConnection;
+        List<int> pageIndicesList = [.. pageIndices];
+        if (comicConnection is null)
+        {
+            return [];
+        }
+
+        int imageCount = comicConnection.GetImageCount();
+        pageIndicesList.RemoveAll(i => i < 0 || i >= imageCount);
+        if (pageIndicesList.Count == 0)
+        {
+            return [];
+        }
+
+        pageIndicesList.Sort();
+
+        List<string> imageDescriptions = [];
+        foreach (int pageIndex in pageIndicesList)
+        {
+            string imageName = comicConnection.GetImageName(pageIndex);
+            var imageSource = new ComicImageSource(comicConnection, pageIndex);
+            ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(imageSource);
+
+            if (imageMeta is null)
+            {
+                continue;
+            }
+
+            StringBuilder imageDescriptionSb = new();
+            if (string.IsNullOrEmpty(imageName))
+            {
+                imageName = StringResourceProvider.Instance.PageN.Replace("$page", (pageIndex + 1).ToString());
+            }
+
+            imageDescriptionSb.Append(imageName).Append('\n');
+            imageDescriptionSb.Append(imageMeta.Format);
+            imageDescriptionSb.Append(' ').Append(imageMeta.Width).Append(" x ").Append(imageMeta.Height);
+            imageDescriptionSb.Append(' ').Append(FormatBytes(imageMeta.Size));
+
+            if (imageMeta.DpiX > 0 && imageMeta.DpiY > 0)
+            {
+                imageDescriptionSb.Append(' ').Append(FormatDpi(imageMeta.DpiX, imageMeta.DpiY));
+            }
+
+            imageDescriptionSb.Append(' ').Append(imageMeta.BitsPerPixel).Append(" bits");
+            imageDescriptions.Add(imageDescriptionSb.ToString());
+        }
+
+        if (imageDescriptions.Count == 0)
+        {
+            return [];
+        }
+
+        return imageDescriptions;
     }
 
     public void SetIsFavorite(bool isFavorite, bool writeDatabase)
@@ -504,6 +564,31 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     {
         bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
         SetIsFavorite(isFavorite, false);
+    }
+
+    private static string FormatDpi(double dpiX, double dpiY)
+    {
+        if (dpiX == dpiY)
+        {
+            return $"{dpiX:0.##} dpi";
+        }
+        else
+        {
+            return $"{dpiX:0.##} x {dpiY:0.##} dpi";
+        }
+    }
+
+    private static string FormatBytes(long byteCount)
+    {
+        string[] units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"];
+        if (byteCount < 1024)
+        {
+            return $"{byteCount} B";
+        }
+
+        int unitIndex = (int)Math.Floor(Math.Log(byteCount, 1024));
+        double adjustedSize = byteCount / Math.Pow(1024, unitIndex);
+        return $"{adjustedSize:0.#} {units[unitIndex]}";
     }
 
     //
