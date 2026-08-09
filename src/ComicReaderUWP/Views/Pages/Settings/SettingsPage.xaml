@@ -65,58 +65,7 @@
                         Glyph="&#xEB9F;"
                         IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
-                            <StackPanel Orientation="Vertical">
-                                <Button x:Uid="ChooseLocationButton" Click="ChooseLocationsClick" />
-                                <CheckBox
-                                    Margin="0,16,0,0"
-                                    Click="ScanOnLaunchCheckBox_Click"
-                                    Content="{x:Bind StringResource.ScanOnLaunch}"
-                                    IsChecked="{x:Bind ViewModel.ScanOnLaunch, Mode=OneWay}" />
-                                <CheckBox
-                                    x:Uid="RemoveUnreachableCheckBox"
-                                    Click="RemoveUnreachableCheckBox_Click"
-                                    IsChecked="{x:Bind ViewModel.RemoveUnreachableComics, Mode=OneWay}" />
-                                <CheckBox
-                                    Click="PromptBeforeRemovingComicsCheckBox_Click"
-                                    Content="{x:Bind StringResource.PromptBeforeRemovingComics}"
-                                    IsChecked="{x:Bind ViewModel.PromptBeforeRemovingComics, Mode=OneWay}" />
-                                <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
-                                    <Button
-                                        x:Uid="RescanFilesButton"
-                                        Click="OnRescanFilesClicked"
-                                        IsEnabled="{x:Bind ViewModel.IsRescanning, Converter={StaticResource BooleanNegationConverter}, Mode=OneWay}" />
-                                    <ProgressRing
-                                        Margin="20,0,0,0"
-                                        VerticalAlignment="Center"
-                                        IsActive="{x:Bind ViewModel.IsRescanning, Mode=OneWay}" />
-                                </StackPanel>
-                                <Button
-                                    x:Uid="ShowHiddenComicButton"
-                                    Margin="0,8,0,0"
-                                    Click="ShowHiddenComicButton_Click" />
-                                <Grid Margin="0,16,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="12" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        x:Uid="ArchiveEncoding"
-                                        Grid.Row="0"
-                                        Grid.Column="0"
-                                        VerticalAlignment="Center" />
-                                    <ComboBox
-                                        Grid.Row="0"
-                                        Grid.Column="2"
-                                        MinWidth="200"
-                                        DisplayMemberPath="Item1"
-                                        ItemsSource="{x:Bind ViewModel.Encodings, Mode=OneWay}"
-                                        SelectedIndex="{x:Bind ViewModel.DefaultArchiveCodePageIndex, Mode=TwoWay}" />
-                                </Grid>
-                            </StackPanel>
+                            <settings:ImageSourceSettingsView x:Name="ImageSourceSettingsSection" />
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>
 

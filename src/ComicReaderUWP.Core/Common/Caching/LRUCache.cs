@@ -8,7 +8,7 @@ using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Core.Common.Caching;
 
-public class LRUCache(string directoryPath)
+public partial class LRUCache(string directoryPath)
 {
     private const string TAG = nameof(LRUCache);
     private const string DATABASE_FILE_NAME = "info.db";
@@ -18,9 +18,9 @@ public class LRUCache(string directoryPath)
     private readonly ConcurrentDictionary<string, CacheEntry> _entries = [];
 
     private readonly LRUCacheDatabase _database = new(Path.Combine(directoryPath, DATABASE_FILE_NAME));
-    private readonly ReaderWriterLock _flushLock = new();
-    private volatile ConcurrentDictionary<string, long> _pendingFlushKeys = [];
-    private int _postFlushTask = 0;
+    private readonly Lock _flushLock = new();
+    private Dictionary<string, long> _pendingFlushKeys = [];
+    private bool _postFlushTask = false;
 
     public LRUCacheStream? Get(string key)
     {
@@ -182,59 +182,43 @@ public class LRUCache(string directoryPath)
 
     private void AddPendingFlushKey(string key)
     {
-        _flushLock.AcquireReaderLock(-1);
-        try
+        lock (_flushLock)
         {
             _pendingFlushKeys[key] = DateTimeOffset.Now.ToUnixTimeSeconds();
-            if (Interlocked.CompareExchange(ref _postFlushTask, 1, 0) == 1)
+            if (_postFlushTask)
             {
                 return;
             }
-        }
-        finally
-        {
-            _flushLock.ReleaseReaderLock();
+
+            _postFlushTask = true;
         }
 
         CoroutineUtils.Run(async () =>
         {
             await Task.Delay(1000);
             IDictionary<string, long> pendingFlushKeys;
-            _flushLock.AcquireWriterLock(-1);
-            try
+            lock (_flushLock)
             {
                 pendingFlushKeys = _pendingFlushKeys;
-                _pendingFlushKeys = new();
-                Interlocked.Exchange(ref _postFlushTask, 0);
-            }
-            finally
-            {
-                _flushLock.ReleaseWriterLock();
+                _pendingFlushKeys = [];
+                _postFlushTask = false;
             }
 
             _database.BatchUpdate(pendingFlushKeys);
         });
     }
 
-    private class CacheEntry
+    private class CacheEntry(LRUCache cache, string key)
     {
-        private readonly ReaderWriterLock _lock = new();
-        private readonly LRUCache _cache;
-        private readonly string _key;
-        private Status _status;
+        private readonly Lock _lock = new();
+        private readonly LRUCache _cache = cache;
+        private readonly string _key = key;
+        private Status _status = Status.Empty;
         private int _readerCount = 0;
-
-        public CacheEntry(LRUCache cache, string key)
-        {
-            _cache = cache;
-            _key = key;
-            _status = Status.Empty;
-        }
 
         public LRUInputStream? StartWrite()
         {
-            _lock.AcquireWriterLock(-1);
-            try
+            lock (_lock)
             {
                 if (_status == Status.Dirty || _readerCount > 0)
                 {
@@ -243,10 +227,6 @@ public class LRUCache(string directoryPath)
                 }
 
                 _status = Status.Dirty;
-            }
-            finally
-            {
-                _lock.ReleaseWriterLock();
             }
 
             string filePath = Path.Combine(_cache._directoryPath, GetDirtyFileName(_key));
@@ -284,22 +264,16 @@ public class LRUCache(string directoryPath)
                 return;
             }
 
-            _lock.AcquireWriterLock(-1);
-            try
+            lock (_lock)
             {
                 Logger.Assert(_status == Status.Dirty, "77504AC355E8488C");
                 _status = Status.Clean;
-            }
-            finally
-            {
-                _lock.ReleaseWriterLock();
             }
         }
 
         public LRUOutputStream? StartRead()
         {
-            _lock.AcquireWriterLock(-1);
-            try
+            lock (_lock)
             {
                 if (_status == Status.Dirty)
                 {
@@ -329,16 +303,11 @@ public class LRUCache(string directoryPath)
                 _readerCount++;
                 return new LRUOutputStream(this, stream);
             }
-            finally
-            {
-                _lock.ReleaseWriterLock();
-            }
         }
 
         public void EndRead()
         {
-            _lock.AcquireWriterLock(-1);
-            try
+            lock (_lock)
             {
                 Logger.Assert(_status == Status.Clean, "302BF5B1FB061FC9");
                 Logger.Assert(_readerCount > 0, "40B639B2784A378E");
@@ -350,22 +319,13 @@ public class LRUCache(string directoryPath)
 
                 _readerCount--;
             }
-            finally
-            {
-                _lock.ReleaseWriterLock();
-            }
         }
 
         private void SwitchToEmptyState()
         {
-            _lock.AcquireWriterLock(-1);
-            try
+            lock (_lock)
             {
                 _status = Status.Empty;
-            }
-            finally
-            {
-                _lock.ReleaseWriterLock();
             }
         }
 
@@ -377,7 +337,7 @@ public class LRUCache(string directoryPath)
         }
     }
 
-    private class LRUInputStream(CacheEntry entry, Stream stream) : LRUCacheStream(stream)
+    private partial class LRUInputStream(CacheEntry entry, Stream stream) : LRUCacheStream(stream)
     {
         private bool _disposed;
 

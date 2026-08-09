@@ -321,7 +321,7 @@ internal partial class ReaderImageCompositor : IDisposable
                 return;
             }
 
-            ImageCacheManager.ImageMeta? meta = ImageCacheManager.GetImageMeta(source.Source);
+            ImageMeta? meta = await ImageCacheManager.GetImageMeta(source.Source);
             if (meta is not null && meta.FrameCount > 1)
             {
                 newBitmap = AnimatedBitmapModel.FromStream(_canvasDevice, stream);

@@ -8,14 +8,11 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.Utils;
-using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.Helpers.Search;
-using ComicReaderUWP.Views.Dialogs.ChooseLocation;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -43,11 +40,19 @@ internal sealed partial class SettingsPage : BasePage
 
         ViewModel.Shared.WindowId = WindowId;
         ViewModel.Shared.ActionHandler = PageActionHandler;
-        ViewModel.Initialize(this);
+        ViewModel.Initialize();
+
+        GlobalEvent.Instance.ComicUpdated.Observe(this, _ =>
+        {
+            ViewModel.UpdateStatistics();
+        });
+
         GeneralSettingsSection.Initialize(ViewModel.Shared);
+        ImageSourceSettingsSection.Initialize(this, ViewModel.Shared);
         ReaderSettingsSection.Initialize(ViewModel.Shared);
         PluginSettingsSection.Initialize(ViewModel.Shared);
         AdvancedSettingsSection.Initialize(ViewModel.Shared);
+
         ViewModel.Shared.UpdateStarted += Update;
         ViewModel.Shared.Update();
     }
@@ -71,15 +76,6 @@ internal sealed partial class SettingsPage : BasePage
     //
     // Events
     //
-
-    private void ChooseLocationsClick(object sender, RoutedEventArgs e)
-    {
-        CoroutineUtils.Run(async () =>
-        {
-            var dialog = new ChooseLocationsDialog(WindowId);
-            await dialog.ShowAsync(WindowId);
-        });
-    }
 
     private void OnHistoryClearAllClicked(object sender, RoutedEventArgs e)
     {
@@ -109,45 +105,6 @@ internal sealed partial class SettingsPage : BasePage
     private void AppearanceRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         ViewModel.SetAppearance(((RadioButtons)sender).SelectedIndex);
-    }
-
-    private void ShowHiddenComicButton_Click(object sender, RoutedEventArgs e)
-    {
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
-            .WithParam(RouterConstants.ARG_KEYWORD, $"{ComicSQLProviderUtils.VAR_HIDDEN}:1");
-        GetMainPageAbility().OpenInNewTab(route);
-    }
-
-    private void ScanOnLaunchCheckBox_Click(object sender, RoutedEventArgs e)
-    {
-        bool? isChecked = ((CheckBox)sender).IsChecked;
-        if (isChecked.HasValue)
-        {
-            ViewModel.SetScanOnLaunch(isChecked.Value);
-        }
-    }
-
-    private void RemoveUnreachableCheckBox_Click(object sender, RoutedEventArgs e)
-    {
-        bool? isChecked = ((CheckBox)sender).IsChecked;
-        if (isChecked.HasValue)
-        {
-            ViewModel.SetRemoveUnreachableComics(isChecked.Value);
-        }
-    }
-
-    private void PromptBeforeRemovingComicsCheckBox_Click(object sender, RoutedEventArgs e)
-    {
-        bool? isChecked = ((CheckBox)sender).IsChecked;
-        if (isChecked.HasValue)
-        {
-            ViewModel.SetPromptBeforeRemovingComics(isChecked.Value);
-        }
-    }
-
-    private void OnRescanFilesClicked(object sender, RoutedEventArgs e)
-    {
-        ComicModel.UpdateAllComics("OnRescanFilesClicked");
     }
 
     private void LicenseHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)

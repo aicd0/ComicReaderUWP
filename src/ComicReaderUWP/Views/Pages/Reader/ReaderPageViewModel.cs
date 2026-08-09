@@ -240,7 +240,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         Playback.LoadState(playlist, serializedPlayback);
     }
 
-    public IReadOnlyList<string> GetImageDescriptions(IEnumerable<int> pageIndices)
+    public async Task<IReadOnlyList<string>> GetImageDescriptions(IEnumerable<int> pageIndices)
     {
         ComicConnection? comicConnection = _comicConnection;
         List<int> pageIndicesList = [.. pageIndices];
@@ -263,7 +263,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             string imageName = comicConnection.GetImageName(pageIndex);
             var imageSource = new ComicImageSource(comicConnection, pageIndex);
-            ImageCacheManager.ImageMeta? imageMeta = ImageCacheManager.GetImageMeta(imageSource);
+            ImageMeta? imageMeta = await ImageCacheManager.GetImageMeta(imageSource);
 
             if (imageMeta is null)
             {
