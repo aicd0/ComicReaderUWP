@@ -8,9 +8,9 @@ using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.Helpers.Imaging;
 
-internal class ComicImageSource(IComicConnection connection, int index) : IImageSource
+internal class ComicImageSource(ComicConnection connection, int index) : IImageSource
 {
-    private readonly IComicConnection _connection = connection;
+    private readonly ComicConnection _connection = connection;
     private readonly int _index = index;
 
     public string Uri => _connection.GetImageCacheKey(_index);

@@ -549,7 +549,7 @@ internal abstract partial class ComicHandle
     // Comic Connection
     //
 
-    public async Task<IComicConnection?> OpenComicAsync()
+    public async Task<ComicConnection?> OpenComic()
     {
         IComicConnection? connection = await OpenComicConnection();
         if (connection is null)
@@ -574,7 +574,7 @@ internal abstract partial class ComicHandle
             return null;
         }
 
-        return new ComicConnectionWrapper(connection);
+        return new ComicConnection(connection);
     }
 
     private async Task<bool> InitializeConnection(IComicConnection connection)
@@ -807,7 +807,7 @@ internal abstract partial class ComicHandle
             return coverCacheKey;
         }
 
-        using IComicConnection? connection = await OpenComicAsync();
+        using ComicConnection? connection = await OpenComic();
         if (connection is null || connection.GetImageCount() == 0)
         {
             return string.Empty;
