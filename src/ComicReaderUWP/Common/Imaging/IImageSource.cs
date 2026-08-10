@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.IO;
+using System.Threading.Tasks;
 
 namespace ComicReaderUWP.Common.Imaging;
 
@@ -11,9 +12,9 @@ internal interface IImageSource
 
     bool ValidateFingerprint { get; }
 
-    string CalculateFingerprint();
+    Task<string> GetFingerprint();
 
-    Stream? OpenImageStream();
+    Task<Stream?> OpenImageStream();
 
-    IVectorImageService? OpenVectorService();
+    Task<IVectorImageService?> OpenVectorService();
 }

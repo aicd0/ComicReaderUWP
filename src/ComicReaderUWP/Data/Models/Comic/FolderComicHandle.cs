@@ -227,7 +227,7 @@ internal partial class FolderComicHandle : ComicHandle
             return FileUtils.GetFileSignature(_imageFiles[index]);
         }
 
-        public Stream? OpenImageStream(int index)
+        public async Task<Stream?> OpenImageStream(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)
             {

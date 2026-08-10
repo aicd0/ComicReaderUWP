@@ -28,7 +28,7 @@ namespace ComicReaderUWP.Common.Imaging;
 
 internal static partial class ImageCacheManager
 {
-    private const string TAG = "ImageCacheManager";
+    private const string TAG = nameof(ImageCacheManager);
     private const int VERSION = 1;
     private const int IMAGE_META_VERSION = 2;
     private const string IMAGES_FOLDER_NAME = "images";
@@ -133,7 +133,7 @@ internal static partial class ImageCacheManager
 
     private static async Task<SizeF?> TryGetOriginalDimension(CacheRequestContext context)
     {
-        IVectorImageService? vectorService = context.GetVectorService();
+        IVectorImageService? vectorService = await context.GetVectorService();
         if (vectorService is not null)
         {
             return vectorService.Size;
@@ -158,26 +158,26 @@ internal static partial class ImageCacheManager
 
         return await record.Enqueue(async () =>
         {
-            string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
+            string? fingerprint = context.Source.ValidateFingerprint ? await context.GetFingerprint() : null;
             ImageMeta? meta = CreateImageMetaFromCacheRecord(record, fingerprint);
             if (meta is not null)
             {
                 return meta;
             }
 
-            Stream? stream = context.GetSourceStream();
+            Stream? stream = await context.GetSourceStream();
             if (stream is null)
             {
                 return null;
             }
 
-            BitmapDecoder? decoder = context.GetBitmapDecoder();
+            BitmapDecoder? decoder = await context.GetBitmapDecoder();
             if (decoder is null)
             {
                 return null;
             }
 
-            fingerprint ??= context.GetFingerprint();
+            fingerprint ??= await context.GetFingerprint();
             record.Clear();
             SaveImageMetaToCacheRecord(record, fingerprint, stream.Length, decoder);
             record.Save();
@@ -392,11 +392,11 @@ internal static partial class ImageCacheManager
         Action cleanupAction;
         if (useOriginalSize)
         {
-            IVectorImageService? vectorService = context.GetVectorService();
+            IVectorImageService? vectorService = await context.GetVectorService();
             if (vectorService is not null)
             {
                 CalculateDefaultSizeForVector(originalSize.Width, originalSize.Height, out int width, out int height);
-                SoftwareBitmap? softwareBitmap = vectorService.CreateSoftwareBitmap(width, height);
+                SoftwareBitmap? softwareBitmap = await vectorService.CreateSoftwareBitmap(width, height);
 
                 if (softwareBitmap is null)
                 {
@@ -413,7 +413,7 @@ internal static partial class ImageCacheManager
             }
             else
             {
-                Stream? stream = context.GetSourceStream();
+                Stream? stream = await context.GetSourceStream();
                 context.UnrefSourceStream();
 
                 if (stream is null)
@@ -439,7 +439,7 @@ internal static partial class ImageCacheManager
                 return false;
             }
 
-            string? fingerprint = context.Source.ValidateFingerprint ? context.GetFingerprint() : null;
+            string? fingerprint = context.Source.ValidateFingerprint ? await context.GetFingerprint() : null;
 
             Tuple<Func<Task<DecodedImageModel>>, Action>? tuple = await record.Enqueue<Tuple<Func<Task<DecodedImageModel>>, Action>?>(async () =>
             {
@@ -471,15 +471,15 @@ internal static partial class ImageCacheManager
                         if (cacheEntryKeys.Count > 0)
                         {
                             string cacheEntryKey = cacheEntryKeys[0];
-                            fingerprint ??= context.GetFingerprint();
-                            SaveThumbnail(context, cacheEntryKey, fingerprint, originalSize, imageCache, record);
+                            fingerprint ??= await context.GetFingerprint();
+                            await SaveThumbnail(context, cacheEntryKey, fingerprint, originalSize, imageCache, record);
                         }
 
-                        IVectorImageService? vectorService = context.GetVectorService();
+                        IVectorImageService? vectorService = await context.GetVectorService();
                         if (vectorService is not null)
                         {
                             var device = CanvasDevice.GetSharedDevice();
-                            CanvasBitmap? canvasBitmap = vectorService.CreateImageCanvasBitmap(device, desiredSize.Width, desiredSize.Height);
+                            CanvasBitmap? canvasBitmap = await vectorService.CreateImageCanvasBitmap(device, desiredSize.Width, desiredSize.Height);
 
                             if (canvasBitmap is null)
                             {
@@ -497,7 +497,7 @@ internal static partial class ImageCacheManager
                         }
                         else
                         {
-                            Stream? stream = context.GetSourceStream();
+                            Stream? stream = await context.GetSourceStream();
                             context.UnrefSourceStream();
 
                             if (stream is null)
@@ -664,7 +664,7 @@ internal static partial class ImageCacheManager
         return null;
     }
 
-    private static void SaveThumbnail(CacheRequestContext context, string cacheEntryKey, string fingerprint,
+    private static async Task SaveThumbnail(CacheRequestContext context, string cacheEntryKey, string fingerprint,
         SizeF originalSize, LRUCache imageCache, ImageCacheDatabase.CacheRecord record)
     {
         if (!CalculateDesiredThumbnailSize(cacheEntryKey, originalSize, out Size thumbnailSize))
@@ -673,20 +673,20 @@ internal static partial class ImageCacheManager
         }
 
         SoftwareBitmap? thumbnailBitmap;
-        IVectorImageService? vectorService = context.GetVectorService();
+        IVectorImageService? vectorService = await context.GetVectorService();
         if (vectorService is not null)
         {
-            thumbnailBitmap = vectorService.CreateSoftwareBitmap(thumbnailSize.Width, thumbnailSize.Height);
+            thumbnailBitmap = await vectorService.CreateSoftwareBitmap(thumbnailSize.Width, thumbnailSize.Height);
         }
         else
         {
-            BitmapDecoder? decoder = context.GetBitmapDecoder();
+            BitmapDecoder? decoder = await context.GetBitmapDecoder();
             if (decoder is null)
             {
                 return;
             }
 
-            thumbnailBitmap = CreateScaledSoftwareBitmap(decoder, thumbnailSize.Width, thumbnailSize.Height);
+            thumbnailBitmap = await CreateScaledSoftwareBitmap(decoder, thumbnailSize.Width, thumbnailSize.Height);
         }
 
         if (thumbnailBitmap is null)
@@ -705,10 +705,10 @@ internal static partial class ImageCacheManager
 
             try
             {
-                BitmapEncoder encoder = BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, cacheFileStream.AsRandomAccessStream()).AsTask().Result;
+                BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, cacheFileStream.AsRandomAccessStream());
                 encoder.SetSoftwareBitmap(thumbnailBitmap);
                 encoder.IsThumbnailGenerated = false;
-                encoder.FlushAsync().Wait();
+                await encoder.FlushAsync();
             }
             catch (Exception ex)
             {
@@ -726,7 +726,7 @@ internal static partial class ImageCacheManager
         }
     }
 
-    private static SoftwareBitmap? CreateScaledSoftwareBitmap(BitmapDecoder decoder, int scaledWidth, int scaledHeight)
+    private static async Task<SoftwareBitmap?> CreateScaledSoftwareBitmap(BitmapDecoder decoder, int scaledWidth, int scaledHeight)
     {
         BitmapTransform transform = new()
         {
@@ -738,12 +738,12 @@ internal static partial class ImageCacheManager
         SoftwareBitmap? softwareBitmap = null;
         try
         {
-            softwareBitmap = decoder.GetSoftwareBitmapAsync(
+            softwareBitmap = await decoder.GetSoftwareBitmapAsync(
                 BitmapPixelFormat.Bgra8,
                 BitmapAlphaMode.Premultiplied,
                 transform,
                 ExifOrientationMode.RespectExifOrientation,
-                ColorManagementMode.ColorManageToSRgb).AsTask().Result;
+                ColorManagementMode.ColorManageToSRgb);
         }
         catch (Exception ex)
         {
@@ -1013,18 +1013,18 @@ internal static partial class ImageCacheManager
             _vectorService = null;
         }
 
-        public string GetFingerprint()
+        public async Task<string> GetFingerprint()
         {
             if (_fingerprint is not null)
             {
                 return _fingerprint;
             }
 
-            _fingerprint = _source.CalculateFingerprint();
+            _fingerprint = await _source.GetFingerprint();
             return _fingerprint;
         }
 
-        public Stream? GetSourceStream()
+        public async Task<Stream?> GetSourceStream()
         {
             if (_sourceStream is not null)
             {
@@ -1034,7 +1034,7 @@ internal static partial class ImageCacheManager
 
             try
             {
-                _sourceStream = _source.OpenImageStream();
+                _sourceStream = await _source.OpenImageStream();
             }
             catch (Exception ex)
             {
@@ -1050,14 +1050,14 @@ internal static partial class ImageCacheManager
             _bitmapDecoder = null;
         }
 
-        public BitmapDecoder? GetBitmapDecoder()
+        public async Task<BitmapDecoder?> GetBitmapDecoder()
         {
             if (_bitmapDecoder is not null)
             {
                 return _bitmapDecoder;
             }
 
-            Stream? stream = GetSourceStream();
+            Stream? stream = await GetSourceStream();
             if (stream is null)
             {
                 return null;
@@ -1065,7 +1065,7 @@ internal static partial class ImageCacheManager
 
             try
             {
-                _bitmapDecoder = BitmapDecoder.CreateAsync(stream.AsRandomAccessStream()).AsTask().Result;
+                _bitmapDecoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
             }
             catch (Exception ex)
             {
@@ -1075,14 +1075,14 @@ internal static partial class ImageCacheManager
             return _bitmapDecoder;
         }
 
-        public IVectorImageService? GetVectorService()
+        public async Task<IVectorImageService?> GetVectorService()
         {
             if (_vectorService is not null)
             {
                 return _vectorService;
             }
 
-            _vectorService = _source.OpenVectorService();
+            _vectorService = await _source.OpenVectorService();
             return _vectorService;
         }
     }

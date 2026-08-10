@@ -148,13 +148,6 @@ internal partial class ReaderImageCompositor : IDisposable
                 item = res._images[index];
             }
 
-            bool supportVector = false;
-            if (source is not null)
-            {
-                using IVectorImageService? vectorService = source.Source.OpenVectorService();
-                supportVector = vectorService is not null;
-            }
-
             lock (item.Lock)
             {
                 if (item.Source != source || item.FrameSize.Width != frameWidth || item.FrameSize.Height != frameHeight)
@@ -169,7 +162,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
                 item.Source = source;
                 item.FrameSize = new(frameWidth, frameHeight);
-                item.SupportVector = supportVector;
+                item.SupportVector = false;
                 item.ClearPrevious = true;
             }
         }
@@ -283,7 +276,8 @@ internal partial class ReaderImageCompositor : IDisposable
 
         AnimatedBitmapModel? newBitmap = null;
 
-        using IVectorImageService? vectorService = source.Source.OpenVectorService();
+        using IVectorImageService? vectorService = await source.Source.OpenVectorService();
+        item.SupportVector = vectorService is not null;
         if (vectorService is not null)
         {
             double width = frameSize.Width * _scale;
@@ -304,7 +298,7 @@ internal partial class ReaderImageCompositor : IDisposable
                 height = frameSize.Height * ratio;
             }
 
-            CanvasBitmap? bitmap = vectorService.CreateImageCanvasBitmap(_canvasDevice,
+            CanvasBitmap? bitmap = await vectorService.CreateImageCanvasBitmap(_canvasDevice,
                 (int)Math.Round(width), (int)Math.Round(height));
             if (bitmap is not null)
             {
@@ -314,7 +308,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (newBitmap is null)
         {
-            using Stream? stream = source.Source.OpenImageStream();
+            using Stream? stream = await source.Source.OpenImageStream();
             if (stream is null)
             {
                 Logger.W(TAG, $"Decode failed (Cannot open stream) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");

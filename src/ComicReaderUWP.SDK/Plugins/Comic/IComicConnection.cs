@@ -11,5 +11,5 @@ public interface IComicConnection : IDisposable
 
     string GetImageSignature(int index);
 
-    Stream? OpenImageStream(int index);
+    Task<Stream?> OpenImageStream(int index);
 }
