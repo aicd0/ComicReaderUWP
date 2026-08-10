@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.Threading.Tasks;
 
 using Microsoft.Graphics.Canvas;
 
@@ -14,7 +15,7 @@ internal interface IVectorImageService : IDisposable
 {
     SizeF Size { get; }
 
-    SoftwareBitmap? CreateSoftwareBitmap(int width, int height);
+    Task<SoftwareBitmap?> CreateSoftwareBitmap(int width, int height);
 
-    CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int width, int height);
+    Task<CanvasBitmap?> CreateImageCanvasBitmap(ICanvasResourceCreator creator, int width, int height);
 }

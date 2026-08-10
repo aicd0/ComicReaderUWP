@@ -159,7 +159,7 @@ public static partial class PdfManager
 
         SizeF GetPageSize(int pageIndex);
 
-        T? Render<T>(int pageIndex, int width, int height, Func<nint, int, T?> func);
+        Task<T?> Render<T>(int pageIndex, int width, int height, Func<nint, int, T?> func);
     }
 
     private partial class PdfConnection(PdfDocument document) : IPdfConnection
@@ -215,7 +215,7 @@ public static partial class PdfManager
             return Document.PageSizes[pageIndex];
         }
 
-        public T? Render<T>(int pageIndex, int width, int height, Func<nint, int, T?> func)
+        public async Task<T?> Render<T>(int pageIndex, int width, int height, Func<nint, int, T?> func)
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) == 1, this);
 
@@ -224,7 +224,7 @@ public static partial class PdfManager
                 return default;
             }
 
-            return Enqueue(() =>
+            return await Enqueue(() =>
             {
                 nint bitmap = Pdfium.FPDFBitmap_Create(width, height, 1);
                 if (bitmap == nint.Zero)
@@ -264,7 +264,7 @@ public static partial class PdfManager
                 {
                     Pdfium.FPDFBitmap_Destroy(bitmap);
                 }
-            }).Result;
+            });
         }
     }
 }

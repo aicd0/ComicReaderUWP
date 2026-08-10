@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Imaging;
@@ -154,15 +153,19 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
 
         double imageWidth = (double)Application.Current.Resources["ComicItemVerticalDesiredWidth"] - 40.0;
         double imageHeight = (double)Application.Current.Resources["ComicItemVerticalImageHeight"];
-        var tokens = new List<SimpleImageLoader.Token>
+        _imageRequested = true;
+
+        CoroutineUtils.Run(async () =>
         {
-            new(new ComicCoverImageSource(item.Comic), new LoadImageCallback(this, item)) {
+            ComicCoverImageSource source = await ComicCoverImageSource.Create(item.Comic);
+            LoadImageCallback callback = new(this, item);
+            SimpleImageLoader.Token token = new(source, callback)
+            {
                 Width = imageWidth,
                 Height = imageHeight,
-            }
-        };
-        new SimpleImageLoader.Transaction(_loadImageToken.Token, tokens).Commit();
-        _imageRequested = true;
+            };
+            new SimpleImageLoader.Transaction(_loadImageToken.Token, [token]).Commit();
+        });
     }
 
     private void SetImageSource(ImageSource? imageSource)

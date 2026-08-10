@@ -230,7 +230,7 @@ internal partial class ArchiveComicHandle : ComicHandle
             return FileUtils.GetFileSignature(_archiveFile.Path);
         }
 
-        public Stream? OpenImageStream(int index)
+        public async Task<Stream?> OpenImageStream(int index)
         {
             if (index < 0 || index >= _entries.Count)
             {
