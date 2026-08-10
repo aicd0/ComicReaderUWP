@@ -184,13 +184,10 @@ internal partial class FolderComicHandle : ComicHandle
     {
         private readonly IReadOnlyList<string> _imageFiles = [.. imageFiles];
 
+        public int ImageCount => _imageFiles.Count;
+
         public void Dispose()
         {
-        }
-
-        public int GetImageCount()
-        {
-            return _imageFiles.Count;
         }
 
         public string GetImageName(int index)
@@ -225,6 +222,17 @@ internal partial class FolderComicHandle : ComicHandle
             }
 
             return FileUtils.GetFileSignature(_imageFiles[index]);
+        }
+
+        public ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index)
+        {
+            if (index < 0 || index >= _imageFiles.Count)
+            {
+                Logger.F(TAG, $"GetPreferredSchedulerGroup: Index out of range: {index}");
+                return ImageLoaderSchedulerGroup.Default;
+            }
+
+            return ImageLoaderSchedulerGroup.FromPath(_imageFiles[index]);
         }
 
         public async Task<Stream?> OpenImageStream(int index)

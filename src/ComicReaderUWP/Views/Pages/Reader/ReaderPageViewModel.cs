@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.Lifecycle;
-using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
@@ -26,7 +25,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private readonly ITaskDispatcher _loadPreviewDispatcher = TaskDispatcher.Factory.NewQueue("ReaderLoadPreview");
     private double _previewImageHeight;
     private double _previewImageWidth;
 
@@ -249,7 +247,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return [];
         }
 
-        int imageCount = comicConnection.GetImageCount();
+        int imageCount = comicConnection.ImageCount;
         pageIndicesList.RemoveAll(i => i < 0 || i >= imageCount);
         if (pageIndicesList.Count == 0)
         {
@@ -498,7 +496,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
 
         var images = new List<IImageSource>();
-        for (int i = 0; i < connection.GetImageCount(); ++i)
+        for (int i = 0; i < connection.ImageCount; ++i)
         {
             images.Add(new ComicImageSource(connection, i));
         }
@@ -543,7 +541,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         ReaderLoadingInfoLiveData.Emit(new(images, initialPage));
 
         // Load preview images
-        for (int i = 0; i < connection.GetImageCount(); ++i)
+        for (int i = 0; i < connection.ImageCount; ++i)
         {
             PreviewDataSource.Add(new ReaderImagePreviewViewModel
             {
@@ -552,8 +550,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                     Source = new ComicImageSource(connection, i),
                     Width = _previewImageWidth,
                     Height = _previewImageHeight,
-                    Dispatcher = _loadPreviewDispatcher,
-                    DebugDescription = i.ToString()
+                    DebugDescription = i.ToString(),
                 },
                 Page = i + 1,
             });

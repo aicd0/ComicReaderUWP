@@ -11,13 +11,15 @@ namespace ComicReaderUWP.Data.Models.Comic;
 
 internal interface IComicConnection : IDisposable
 {
-    int GetImageCount();
+    int ImageCount { get; }
 
     string GetImageName(int index);
 
     string GetImageCacheKey(int index);
 
     string GetImageSignature(int index);
+
+    ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index);
 
     Task<Stream?> OpenImageStream(int index);
 
