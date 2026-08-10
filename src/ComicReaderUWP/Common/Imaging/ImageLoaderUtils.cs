@@ -9,7 +9,7 @@ using ComicReaderUWP.Core.Common.Threading;
 
 namespace ComicReaderUWP.Common.Imaging;
 
-internal static class SimpleImageLoader
+internal static class ImageLoaderUtils
 {
     public static ITaskDispatcher DefaultDispatcher { get; } = TaskDispatcher.DefaultThreadPool;
 
@@ -47,7 +47,7 @@ internal static class SimpleImageLoader
                         StretchMode = token.StretchMode,
                         Handler = token.ImageResultHandler,
                     };
-                    await ImageCacheManager.LoadImage(token.Source, options);
+                    await ImageLoader.LoadImage(token.Source, options);
                 }
             });
         }

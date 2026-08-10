@@ -159,12 +159,12 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
         {
             ComicCoverImageSource source = await ComicCoverImageSource.Create(item.Comic);
             LoadImageCallback callback = new(this, item);
-            SimpleImageLoader.Token token = new(source, callback)
+            ImageLoaderUtils.Token token = new(source, callback)
             {
                 Width = imageWidth,
                 Height = imageHeight,
             };
-            new SimpleImageLoader.Transaction(_loadImageToken.Token, [token]).Commit();
+            new ImageLoaderUtils.Transaction(_loadImageToken.Token, [token]).Commit();
         });
     }
 

@@ -26,9 +26,9 @@ using Windows.Graphics.Imaging;
 
 namespace ComicReaderUWP.Common.Imaging;
 
-internal static partial class ImageCacheManager
+internal static partial class ImageLoader
 {
-    private const string TAG = nameof(ImageCacheManager);
+    private const string TAG = nameof(ImageLoader);
     private const int VERSION = 1;
     private const int IMAGE_META_VERSION = 2;
     private const string IMAGES_FOLDER_NAME = "images";

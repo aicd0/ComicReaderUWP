@@ -84,7 +84,7 @@ internal partial class SimpleImageView : UserControl
                 StretchMode = viewModel.StretchMode,
                 Handler = handler,
             };
-            await ImageCacheManager.LoadImage(viewModel.Source, options);
+            await ImageLoader.LoadImage(viewModel.Source, options);
         });
     }
 

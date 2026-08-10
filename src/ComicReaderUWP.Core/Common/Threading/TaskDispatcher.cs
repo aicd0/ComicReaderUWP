@@ -82,7 +82,7 @@ public abstract partial class TaskDispatcher(string name) : ITaskDispatcher
     private class QueueDispatcher(string name) : TaskDispatcher(name)
     {
         private readonly ConcurrentQueue<Func<Task>> _queue = [];
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private bool _postDequeueTask = false;
 
         protected override void SubmitInternal(Func<Task> func)
