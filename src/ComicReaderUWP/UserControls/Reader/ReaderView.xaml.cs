@@ -815,7 +815,7 @@ internal partial class ReaderView : UserControl
                 IImageSource image = images[i];
                 int width = 0;
                 int height = 0;
-                SizeF? size = await ImageCacheManager.TryGetOriginalDimension(image);
+                SizeF? size = await ImageLoader.TryGetOriginalDimension(image);
                 if (size.HasValue)
                 {
                     width = (int)Math.Round(size.Value.Width);

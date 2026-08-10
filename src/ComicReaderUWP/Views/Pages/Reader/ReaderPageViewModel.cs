@@ -263,7 +263,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             string imageName = comicConnection.GetImageName(pageIndex);
             var imageSource = new ComicImageSource(comicConnection, pageIndex);
-            ImageMeta? imageMeta = await ImageCacheManager.GetImageMeta(imageSource);
+            ImageMeta? imageMeta = await ImageLoader.GetImageMeta(imageSource);
 
             if (imageMeta is null)
             {

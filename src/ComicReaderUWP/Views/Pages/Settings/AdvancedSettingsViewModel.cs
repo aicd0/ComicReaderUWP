@@ -144,7 +144,7 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
 
     private static void ClearCacheInternal()
     {
-        ImageCacheManager.Clear();
+        ImageLoader.Clear();
         ClearCacheDirectory(StorageLocation.LocalCacheFolderPath);
         ClearCacheDirectory(StorageLocation.TemporaryFolderPath);
     }
