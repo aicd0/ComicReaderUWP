@@ -94,6 +94,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public CompletionStatusEnum CompletionStatus => _internalModel.CompletionStatus;
     public int PageCount => _internalModel.PageCount;
     public IReadOnlyList<string> FolderViewPath => _internalModel.GetFolderViewPath();
+    public string CoverCacheKey => _internalModel.CoverCacheKey;
 
     public string Title
     {
@@ -122,11 +123,6 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     }
 
     public Dictionary<string, HashSet<string>> TagsCopy => _internalModel.Tags.ToDictionary(p => p.Key, p => p.Value.Tags.ToHashSet());
-
-    public Task<string> GetCoverImageCacheKey()
-    {
-        return _internalModel.GetCoverImageCacheKey();
-    }
 
     public string? GetExt(string key)
     {
@@ -389,7 +385,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     private sealed partial class PluginComicConnection(IComicConnection connection) : SDK.Plugins.Comic.IComicConnection
     {
-        public int ImageCount => connection.GetImageCount();
+        public int ImageCount => connection.ImageCount;
 
         public void Dispose()
         {

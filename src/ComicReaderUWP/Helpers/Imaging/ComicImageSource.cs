@@ -16,6 +16,8 @@ internal class ComicImageSource(ComicConnection connection, int index) : IImageS
 
     public string Uri => _connection.GetImageCacheKey(_index);
 
+    public ImageLoaderSchedulerGroup PreferredSchedulerGroup => _connection.GetPreferredSchedulerGroup(_index);
+
     public bool ValidateFingerprint => true;
 
     public async Task<string> GetFingerprint()

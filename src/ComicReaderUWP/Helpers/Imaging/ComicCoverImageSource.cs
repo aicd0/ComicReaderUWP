@@ -13,20 +13,27 @@ internal class ComicCoverImageSource : IImageSource
 {
     public static async Task<ComicCoverImageSource> Create(ComicModel comic)
     {
-        return new ComicCoverImageSource(comic, await comic.GetCoverImageCacheKey());
+        using ComicConnection? connection = await comic.OpenComic();
+        string coverCacheKey = comic.CoverCacheKey;
+        ImageLoaderSchedulerGroup preferredSchedulerGroup = connection?.GetPreferredSchedulerGroup(ComicHandle.COVER_INDEX) ?? ImageLoaderSchedulerGroup.Default;
+        return new ComicCoverImageSource(comic, coverCacheKey, preferredSchedulerGroup);
     }
 
     private readonly ComicModel _comic;
     private readonly string _uri;
+    private readonly ImageLoaderSchedulerGroup _preferredSchedulerGroup;
 
     public string Uri => _uri;
 
+    public ImageLoaderSchedulerGroup PreferredSchedulerGroup => _preferredSchedulerGroup;
+
     public bool ValidateFingerprint => false;
 
-    private ComicCoverImageSource(ComicModel comic, string uri)
+    private ComicCoverImageSource(ComicModel comic, string uri, ImageLoaderSchedulerGroup preferredSchedulerGroup)
     {
         _comic = comic;
         _uri = uri;
+        _preferredSchedulerGroup = preferredSchedulerGroup;
     }
 
     public async Task<string> GetFingerprint()

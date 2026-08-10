@@ -4,7 +4,7 @@
 using System;
 
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -74,7 +74,7 @@ internal partial class SimpleImageView : UserControl
         CancellationSession.IToken token = _cancellationSession.Token;
         IImageResultHandler handler = new WeakImageResultHandler(this);
 
-        viewModel.Dispatcher.SubmitAsync(async () =>
+        CoroutineUtils.Run(async () =>
         {
             LoadImageOptions options = new()
             {
@@ -120,7 +120,6 @@ internal partial class SimpleImageView : UserControl
         public required double Width { get; set; } = double.PositiveInfinity;
         public required double Height { get; set; } = double.PositiveInfinity;
         public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
-        public required ITaskDispatcher Dispatcher { get; set; }
         public string DebugDescription { get; set; } = string.Empty;
 
         public int GetImageHashCode()

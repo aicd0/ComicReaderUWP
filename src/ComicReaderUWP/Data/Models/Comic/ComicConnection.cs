@@ -17,7 +17,9 @@ internal sealed partial class ComicConnection(IComicConnection connection) : ICo
     private int _refCount = 0;
 
     private readonly IComicConnection _connection = connection;
-    private readonly int _imageCount = connection.GetImageCount();
+    private readonly int _imageCount = connection.ImageCount;
+
+    public int ImageCount => _imageCount;
 
     public void Dispose()
     {
@@ -32,11 +34,6 @@ internal sealed partial class ComicConnection(IComicConnection connection) : ICo
         {
             DisposeInternal();
         }
-    }
-
-    public int GetImageCount()
-    {
-        return _imageCount;
     }
 
     public string GetImageName(int index)
@@ -98,6 +95,23 @@ internal sealed partial class ComicConnection(IComicConnection connection) : ICo
             }
 
             return connection.GetImageSignature(index);
+        }
+        finally
+        {
+            UnrefConnection();
+        }
+    }
+
+    public ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index)
+    {
+        if (!TryRefConnection(out IComicConnection? connection))
+        {
+            return ImageLoaderSchedulerGroup.Default;
+        }
+
+        try
+        {
+            return connection.GetPreferredSchedulerGroup(index);
         }
         finally
         {

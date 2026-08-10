@@ -10,6 +10,8 @@ internal interface IImageSource
 {
     string Uri { get; }
 
+    ImageLoaderSchedulerGroup PreferredSchedulerGroup { get; }
+
     bool ValidateFingerprint { get; }
 
     Task<string> GetFingerprint();

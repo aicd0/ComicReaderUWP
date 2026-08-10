@@ -135,14 +135,11 @@ internal partial class PdfComicHandle : ComicHandle
 
     private partial class PdfComicConnection(string pdfPath, PdfManager.IPdfConnection connection) : IComicConnection
     {
+        public int ImageCount => connection.GetPageCount();
+
         public void Dispose()
         {
             connection.Dispose();
-        }
-
-        public int GetImageCount()
-        {
-            return connection.GetPageCount();
         }
 
         public string GetImageName(int index)
@@ -158,6 +155,11 @@ internal partial class PdfComicHandle : ComicHandle
         public string GetImageSignature(int index)
         {
             return FileUtils.GetFileSignature(pdfPath);
+        }
+
+        public ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index)
+        {
+            return ImageLoaderSchedulerGroup.FromPath(pdfPath);
         }
 
         public async Task<Stream?> OpenImageStream(int index)

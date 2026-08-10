@@ -579,7 +579,7 @@ internal abstract partial class ComicHandle
 
     private async Task<bool> InitializeConnection(IComicConnection connection)
     {
-        int pageCount = connection.GetImageCount();
+        int pageCount = connection.ImageCount;
         if (pageCount <= 0)
         {
             Logger.F(TAG, "Comic connection has no images: " + Location);
@@ -797,25 +797,6 @@ internal abstract partial class ComicHandle
         {
             _tags = new([]);
         }
-    }
-
-    public async Task<string> GetCoverImageCacheKey()
-    {
-        string coverCacheKey = CoverCacheKey;
-        if (!string.IsNullOrEmpty(coverCacheKey))
-        {
-            return coverCacheKey;
-        }
-
-        using ComicConnection? connection = await OpenComic();
-        if (connection is null || connection.GetImageCount() == 0)
-        {
-            return string.Empty;
-        }
-
-        coverCacheKey = connection.GetImageCacheKey(COVER_INDEX);
-        SetCoverCacheKey(coverCacheKey);
-        return coverCacheKey;
     }
 
     public static void UpdateAllComics(string reason)

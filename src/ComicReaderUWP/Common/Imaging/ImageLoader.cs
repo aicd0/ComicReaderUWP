@@ -110,25 +110,21 @@ internal static partial class ImageLoader
 
     public static async Task LoadImage(IImageSource source, LoadImageOptions options)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
-        ArgumentNullException.ThrowIfNull(options, nameof(options));
-
-        if (MainThreadUtils.IsMainThread())
-        {
-            Logger.F(TAG, "LoadImage cannot be called on main thread");
-            options.Handler.OnFailure();
-            return;
-        }
-
         options = options.Clone();
-        options.FrameWidth *= 1.2;
-        options.FrameHeight *= 1.2;
 
-        using CacheRequestContext context = new(source);
-        if (!await LoadImage(context, options))
+        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? source.PreferredSchedulerGroup;
+
+        await ImageLoaderScheduler.Submit(async () =>
         {
-            CoroutineUtils.RunInMainThread(options.Handler.OnFailure);
-        }
+            options.FrameWidth *= 1.2;
+            options.FrameHeight *= 1.2;
+
+            using CacheRequestContext context = new(source);
+            if (!await LoadImage(context, options))
+            {
+                CoroutineUtils.RunInMainThread(options.Handler.OnFailure);
+            }
+        }, group, options.Priority);
     }
 
     private static async Task<SizeF?> TryGetOriginalDimension(CacheRequestContext context)

@@ -186,13 +186,10 @@ internal partial class ArchiveComicHandle : ComicHandle
         private readonly StorageFile _archiveFile = archiveFile;
         private readonly List<string> _entries = entries;
 
+        public int ImageCount => _entries.Count;
+
         public void Dispose()
         {
-        }
-
-        public int GetImageCount()
-        {
-            return _entries.Count;
         }
 
         public string GetImageName(int index)
@@ -228,6 +225,11 @@ internal partial class ArchiveComicHandle : ComicHandle
         public string GetImageSignature(int index)
         {
             return FileUtils.GetFileSignature(_archiveFile.Path);
+        }
+
+        public ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index)
+        {
+            return ImageLoaderSchedulerGroup.FromPath(_archiveFile.Path);
         }
 
         public async Task<Stream?> OpenImageStream(int index)

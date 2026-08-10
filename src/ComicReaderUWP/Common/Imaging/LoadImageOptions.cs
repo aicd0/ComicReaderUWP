@@ -12,6 +12,8 @@ internal class LoadImageOptions
     public double FrameWidth { get; set; }
     public double FrameHeight { get; set; }
     public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
+    public ImageLoaderSchedulerGroup? SchedulerGroup { get; set; }
+    public int Priority { get; set; } = 0;
 
     public LoadImageOptions Clone()
     {
@@ -22,6 +24,8 @@ internal class LoadImageOptions
             FrameWidth = FrameWidth,
             FrameHeight = FrameHeight,
             StretchMode = StretchMode,
+            SchedulerGroup = SchedulerGroup,
+            Priority = Priority,
         };
     }
 }

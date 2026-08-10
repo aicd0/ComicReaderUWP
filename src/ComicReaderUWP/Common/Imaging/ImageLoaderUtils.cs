@@ -1,41 +1,23 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
 
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Common.Imaging;
 
 internal static class ImageLoaderUtils
 {
-    public static ITaskDispatcher DefaultDispatcher { get; } = TaskDispatcher.DefaultThreadPool;
-
-    public sealed class Transaction : BaseTransaction
+    public sealed class Transaction(CancellationSession.IToken token, List<Token> tokens) : BaseTransaction
     {
-        private readonly CancellationSession.IToken _sessionToken;
-        private readonly List<Token> _tokens;
-        private ITaskDispatcher _dispatcher = DefaultDispatcher;
-
-        public Transaction(CancellationSession.IToken token, List<Token> tokens)
-        {
-            _sessionToken = token;
-            _tokens = tokens;
-        }
-
-        public Transaction SetDispatcher(ITaskDispatcher dispatcher)
-        {
-            ArgumentNullException.ThrowIfNull(dispatcher);
-
-            _dispatcher = dispatcher;
-            return this;
-        }
+        private readonly CancellationSession.IToken _sessionToken = token;
+        private readonly List<Token> _tokens = tokens;
 
         protected override void CommitImpl()
         {
-            _dispatcher.SubmitAsync(async () =>
+            CoroutineUtils.Run(async () =>
             {
                 foreach (Token token in _tokens)
                 {
