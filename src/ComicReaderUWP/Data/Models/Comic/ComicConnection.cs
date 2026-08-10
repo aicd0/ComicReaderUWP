@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
 
@@ -104,7 +105,7 @@ internal sealed partial class ComicConnection(IComicConnection connection) : ICo
         }
     }
 
-    public Stream? OpenImageStream(int index)
+    public async Task<Stream?> OpenImageStream(int index)
     {
         if (!TryRefConnection(out IComicConnection? connection))
         {
@@ -118,7 +119,7 @@ internal sealed partial class ComicConnection(IComicConnection connection) : ICo
                 return null;
             }
 
-            return connection.OpenImageStream(index);
+            return await connection.OpenImageStream(index);
         }
         finally
         {

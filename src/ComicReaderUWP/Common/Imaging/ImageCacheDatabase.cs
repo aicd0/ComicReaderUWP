@@ -196,7 +196,7 @@ internal class ImageCacheDatabase(string databaseFilePath)
             command.CommandText = "CREATE TABLE IF NOT EXISTS " + MAIN_TABLE + " (" +
                 MAIN_TABLE_FIELD_KEY + " TEXT PRIMARY KEY," +
                 MAIN_TABLE_FIELD_EXT + " TEXT)";
-            command.ExecuteNonQueryAsync().Wait();
+            command.ExecuteNonQuery();
         }
 
         return connection;

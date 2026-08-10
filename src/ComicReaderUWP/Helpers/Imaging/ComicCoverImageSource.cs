@@ -2,23 +2,36 @@
 // Licensed under the MIT License.
 
 using System.IO;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.Helpers.Imaging;
 
-internal class ComicCoverImageSource(ComicModel comic) : IImageSource
+internal class ComicCoverImageSource : IImageSource
 {
-    private readonly ComicModel _comic = comic;
+    public static async Task<ComicCoverImageSource> Create(ComicModel comic)
+    {
+        return new ComicCoverImageSource(comic, await comic.GetCoverImageCacheKey());
+    }
 
-    public string Uri => _comic.CoverImageCacheKey;
+    private readonly ComicModel _comic;
+    private readonly string _uri;
+
+    public string Uri => _uri;
 
     public bool ValidateFingerprint => false;
 
-    public string CalculateFingerprint()
+    private ComicCoverImageSource(ComicModel comic, string uri)
     {
-        using ComicConnection? connection = _comic.OpenComic().Result;
+        _comic = comic;
+        _uri = uri;
+    }
+
+    public async Task<string> GetFingerprint()
+    {
+        using ComicConnection? connection = await _comic.OpenComic();
         if (connection is null)
         {
             return string.Empty;
@@ -27,20 +40,20 @@ internal class ComicCoverImageSource(ComicModel comic) : IImageSource
         return connection.GetImageSignature(ComicHandle.COVER_INDEX);
     }
 
-    public Stream? OpenImageStream()
+    public async Task<Stream?> OpenImageStream()
     {
-        using ComicConnection? connection = _comic.OpenComic().Result;
+        using ComicConnection? connection = await _comic.OpenComic();
         if (connection is null)
         {
             return null;
         }
 
-        return connection.OpenImageStream(ComicHandle.COVER_INDEX);
+        return await connection.OpenImageStream(ComicHandle.COVER_INDEX);
     }
 
-    public IVectorImageService? OpenVectorService()
+    public async Task<IVectorImageService?> OpenVectorService()
     {
-        using ComicConnection? connection = _comic.OpenComic().Result;
+        using ComicConnection? connection = await _comic.OpenComic();
         if (connection is null)
         {
             return null;

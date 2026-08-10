@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.IO;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Data.Models.Comic;
@@ -17,17 +18,17 @@ internal class ComicImageSource(ComicConnection connection, int index) : IImageS
 
     public bool ValidateFingerprint => true;
 
-    public string CalculateFingerprint()
+    public async Task<string> GetFingerprint()
     {
         return _connection.GetImageSignature(_index);
     }
 
-    public Stream? OpenImageStream()
+    public Task<Stream?> OpenImageStream()
     {
         return _connection.OpenImageStream(_index);
     }
 
-    public IVectorImageService? OpenVectorService()
+    public async Task<IVectorImageService?> OpenVectorService()
     {
         return _connection.OpenVectorService(_index);
     }

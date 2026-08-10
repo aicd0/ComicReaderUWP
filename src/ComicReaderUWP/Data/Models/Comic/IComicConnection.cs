@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
 
@@ -18,7 +19,7 @@ internal interface IComicConnection : IDisposable
 
     string GetImageSignature(int index);
 
-    Stream? OpenImageStream(int index);
+    Task<Stream?> OpenImageStream(int index);
 
     IVectorImageService? OpenVectorService(int index);
 }

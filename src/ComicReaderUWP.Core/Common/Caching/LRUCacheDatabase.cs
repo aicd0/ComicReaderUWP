@@ -158,7 +158,7 @@ internal class LRUCacheDatabase(string filePath)
             command.CommandText = "CREATE TABLE IF NOT EXISTS " + CACHE_TABLE + " (" +
                 CACHE_TABLE_FIELD_KEY + " TEXT PRIMARY KEY," +
                 CACHE_TABLE_FIELD_LAST_USED + " INTEGER NOT NULL)";
-            command.ExecuteNonQueryAsync().Wait();
+            command.ExecuteNonQuery();
         }
 
         return connection;

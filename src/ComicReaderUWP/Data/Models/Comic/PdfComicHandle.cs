@@ -160,12 +160,12 @@ internal partial class PdfComicHandle : ComicHandle
             return FileUtils.GetFileSignature(pdfPath);
         }
 
-        public Stream? OpenImageStream(int index)
+        public async Task<Stream?> OpenImageStream(int index)
         {
             SizeF size = connection.GetPageSize(index);
             int width = (int)Math.Round(size.Width);
             int height = (int)Math.Round(size.Height);
-            return connection.Render(index, width, height, (buffer, stride) =>
+            return await connection.Render(index, width, height, (buffer, stride) =>
             {
                 return CreateStreamFromBuffer(buffer, width, height, stride);
             });
@@ -186,7 +186,7 @@ internal partial class PdfComicHandle : ComicHandle
             connection.Dispose();
         }
 
-        public Windows.Graphics.Imaging.SoftwareBitmap? CreateSoftwareBitmap(int width, int height)
+        public Task<Windows.Graphics.Imaging.SoftwareBitmap?> CreateSoftwareBitmap(int width, int height)
         {
             return Render(index, width, height, buffer =>
             {
@@ -205,7 +205,7 @@ internal partial class PdfComicHandle : ComicHandle
             });
         }
 
-        public CanvasBitmap? CreateImageCanvasBitmap(ICanvasResourceCreator creator, int width, int height)
+        public Task<CanvasBitmap?> CreateImageCanvasBitmap(ICanvasResourceCreator creator, int width, int height)
         {
             return Render(index, width, height, buffer =>
             {
@@ -226,7 +226,7 @@ internal partial class PdfComicHandle : ComicHandle
             });
         }
 
-        private T? Render<T>(int index, int width, int height, Func<byte[], T?> func)
+        private async Task<T?> Render<T>(int index, int width, int height, Func<byte[], T?> func)
         {
             int bytesPerPixel = 4;
             int rowBytes = width * bytesPerPixel;
@@ -234,7 +234,7 @@ internal partial class PdfComicHandle : ComicHandle
             byte[] packed = ArrayPool<byte>.Shared.Rent(totalBytes);
             try
             {
-                bool success = connection.Render(index, width, height, (buffer, stride) =>
+                bool success = await connection.Render(index, width, height, (buffer, stride) =>
                 {
                     unsafe
                     {

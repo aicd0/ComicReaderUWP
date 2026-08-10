@@ -78,7 +78,6 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Getters
     //
 
-    public string CoverImageCacheKey => _internalModel.GetCoverImageCacheKey().Result;
     public string Description => _internalModel.Description;
     public bool Hidden => _internalModel.Hidden;
     public long Id => _internalModel.Id;
@@ -123,6 +122,11 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     }
 
     public Dictionary<string, HashSet<string>> TagsCopy => _internalModel.Tags.ToDictionary(p => p.Key, p => p.Value.Tags.ToHashSet());
+
+    public Task<string> GetCoverImageCacheKey()
+    {
+        return _internalModel.GetCoverImageCacheKey();
+    }
 
     public string? GetExt(string key)
     {
@@ -402,7 +406,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
             return connection.GetImageSignature(index);
         }
 
-        public Stream? OpenImageStream(int index)
+        public Task<Stream?> OpenImageStream(int index)
         {
             return connection.OpenImageStream(index);
         }
