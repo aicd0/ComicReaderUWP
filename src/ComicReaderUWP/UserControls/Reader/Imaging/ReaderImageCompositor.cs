@@ -596,6 +596,8 @@ internal partial class ReaderImageCompositor : IDisposable
             res._rootVisual.Children.InsertAtTop(visual);
         }
 
+        res._compositionVisual.Size = new Vector2(frameSize.Width, frameSize.Height);
+
         Windows.Foundation.Size surfaceSize = new((int)Math.Ceiling(canvasSize.Width), (int)Math.Ceiling(canvasSize.Height));
         if (res._groupRenderResource is not null && res._groupRenderResource.Value.Surface.Size != surfaceSize)
         {
@@ -624,7 +626,6 @@ internal partial class ReaderImageCompositor : IDisposable
             };
 
             res._groupRenderResource = new(groupRenderResource);
-            res._compositionVisual.Size = new Vector2(frameSize.Width, frameSize.Height);
             res._compositionVisual.Brush = brush;
         }
 
