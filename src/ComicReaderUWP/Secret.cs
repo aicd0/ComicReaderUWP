@@ -3,8 +3,8 @@
 
 namespace ComicReaderUWP;
 
-internal static class SecretImpl
+internal static class Secret
 {
-    public static string AdditionalDebugInformation => "";
+    public static string ExtraDebugFields => "";
     public static string SentryDsn => "";
 }
