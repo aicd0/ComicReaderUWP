@@ -84,6 +84,7 @@ internal partial class ReaderView : UserControl
     private double _initialPage = 1.0;
 
     private readonly CancellationSession _reloadSession;
+    private readonly ObservableCollection<ReaderFrameViewModel> _frameItemsSource = [];
     private Action<int>? _frameReadyHandler;
     private IPageLayoutManager? _pendingPageLayoutManager = null;
     private IPageLayoutManager _pageLayoutManager = new SimplePageLayoutManager();
@@ -92,7 +93,7 @@ internal partial class ReaderView : UserControl
     private double _minZoomFactor = double.MaxValue;
     private double _maxZoomFactor = double.MinValue;
 
-    private ObservableCollection<ReaderFrameViewModel> FrameDataSource { get; } = [];
+    private IReadOnlyList<IReaderListViewItemViewModel> FrameItemsSource => _frameItemsSource;
 
     #endregion
 
@@ -136,7 +137,7 @@ internal partial class ReaderView : UserControl
 
     public int PageCount { get; private set; } = 0;
     public double CurrentPage { get; private set; } = 0.0;
-    public int FrameCount => FrameDataSource.Count;
+    public int FrameCount => _frameItemsSource.Count;
     public int CurrentFrameIndex { get; private set; } = 0;
     public bool OverScrollEnabled { get; set; }
 
@@ -183,12 +184,12 @@ internal partial class ReaderView : UserControl
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(page, 0);
 
         int left = 0;
-        int right = FrameDataSource.Count - 1;
+        int right = _frameItemsSource.Count - 1;
 
         while (left <= right)
         {
             int mid = left + (right - left) / 2;
-            ReaderFrameViewModel frame = FrameDataSource[mid];
+            ReaderFrameViewModel frame = _frameItemsSource[mid];
 
             if (frame.PageL == page || frame.PageR == page)
             {
@@ -383,11 +384,11 @@ internal partial class ReaderView : UserControl
     public void SetFrameIndex(int frameIndex)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(frameIndex);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(frameIndex, FrameDataSource.Count);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(frameIndex, _frameItemsSource.Count);
 
         if (ComicLoaded)
         {
-            double page = FrameDataSource[frameIndex].Page;
+            double page = _frameItemsSource[frameIndex].Page;
             SetScrollViewer2("SetFrameIndex", ScrollSource.UserPrecise, page: page);
         }
     }
@@ -412,7 +413,7 @@ internal partial class ReaderView : UserControl
         _isDestoryed = true;
         UpdateLoadedState();
         _reloadSession.Next();
-        FrameDataSource.Clear();
+        _frameItemsSource.Clear();
     }
 
     public void StartLoadingImages(IEnumerable<IImageSource> images)
@@ -534,7 +535,7 @@ internal partial class ReaderView : UserControl
 
     private bool UpdatePage()
     {
-        if (!_isInitialFrameLoaded || FrameDataSource.Count == 0)
+        if (!_isInitialFrameLoaded || _frameItemsSource.Count == 0)
         {
             return false;
         }
@@ -548,7 +549,7 @@ internal partial class ReaderView : UserControl
 
         // Locate nearest frames using binary search
         int lo = 0;
-        int hi = FrameDataSource.Count;
+        int hi = _frameItemsSource.Count;
         while (hi - lo > 2)
         {
             int i = (lo + hi) / 2;
@@ -596,7 +597,7 @@ internal partial class ReaderView : UserControl
         }
 
         int frame = CurrentFrameIndex;
-        if (frame < 0 || frame >= FrameDataSource.Count)
+        if (frame < 0 || frame >= _frameItemsSource.Count)
         {
             return;
         }
@@ -628,18 +629,18 @@ internal partial class ReaderView : UserControl
         int preloadedPagesAfter = 0;
         int preloadedPagesBefore = 0;
 
-        for (int i = 0; i < FrameDataSource.Count; i++)
+        for (int i = 0; i < _frameItemsSource.Count; i++)
         {
             if (i == 0)
             {
-                AddToLoaderQueue(FrameDataSource[frame]);
+                AddToLoaderQueue(_frameItemsSource[frame]);
                 continue;
             }
 
             int frameAfter = frame + i;
-            if (frameAfter >= 0 && frameAfter < FrameDataSource.Count)
+            if (frameAfter >= 0 && frameAfter < _frameItemsSource.Count)
             {
-                ReaderFrameViewModel model = FrameDataSource[frameAfter];
+                ReaderFrameViewModel model = _frameItemsSource[frameAfter];
                 if (preloadedPagesAfter < maxPreloadPagesAfter)
                 {
                     AddToLoaderQueue(model);
@@ -652,9 +653,9 @@ internal partial class ReaderView : UserControl
             }
 
             int frameBefore = frame - i;
-            if (frameBefore >= 0 && frameBefore < FrameDataSource.Count)
+            if (frameBefore >= 0 && frameBefore < _frameItemsSource.Count)
             {
-                ReaderFrameViewModel model = FrameDataSource[frameBefore];
+                ReaderFrameViewModel model = _frameItemsSource[frameBefore];
                 if (preloadedPagesBefore < maxPreloadPagesBefore)
                 {
                     AddToLoaderQueue(model);
@@ -720,13 +721,13 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            if (index < 0 || index >= FrameDataSource.Count)
+            if (index < 0 || index >= _frameItemsSource.Count)
             {
                 Logger.F(TAG, $"Invalid frame index {index} in ready handler");
                 return;
             }
 
-            ReaderFrameViewModel frame = FrameDataSource[index];
+            ReaderFrameViewModel frame = _frameItemsSource[index];
             if (frame.MaxPage == ReaderFrameViewModel.NO_PAGE)
             {
                 Logger.F(TAG, $"Invalid max page for frame index {index} in ready handler");
@@ -757,14 +758,14 @@ internal partial class ReaderView : UserControl
         // Start loading frames
         DispatchReaderStateChangeEvent(ReaderState.Loading, StringResourceProvider.Instance.ReaderStatusLoading);
 
-        for (int i = FrameDataSource.Count - 1; i >= 0; --i)
+        for (int i = _frameItemsSource.Count - 1; i >= 0; --i)
         {
-            FrameDataSource.RemoveAt(i);
+            _frameItemsSource.RemoveAt(i);
         }
 
-        for (int i = 0; i < FrameDataSource.Count; ++i)
+        for (int i = 0; i < _frameItemsSource.Count; ++i)
         {
-            ReaderFrameViewModel item = FrameDataSource[i];
+            ReaderFrameViewModel item = _frameItemsSource[i];
             item.PageL = ReaderFrameViewModel.NO_PAGE;
             item.PageR = ReaderFrameViewModel.NO_PAGE;
         }
@@ -873,7 +874,7 @@ internal partial class ReaderView : UserControl
 
     private void IncreaseReadyPageIndex(bool assertCompletion)
     {
-        int readyFrameCount = FrameDataSource.Count;
+        int readyFrameCount = _frameItemsSource.Count;
 
         for (int page = _readyPageCount + 1; page <= PageCount; page++)
         {
@@ -900,14 +901,15 @@ internal partial class ReaderView : UserControl
             }
 
             int frameIndex = pageLayout.FrameIndex;
-            if (frameIndex < FrameDataSource.Count)
+            if (frameIndex < _frameItemsSource.Count)
             {
                 continue;
             }
 
-            if (frameIndex != FrameDataSource.Count)
+            if (frameIndex != _frameItemsSource.Count)
             {
-                throw new InvalidOperationException($"Expect frame {FrameDataSource.Count}, get frame {frameIndex}.");
+                Logger.F(TAG, $"Expect frame {_frameItemsSource.Count}, get frame {frameIndex}");
+                break;
             }
 
             bool isDoubleWidth;
@@ -1085,10 +1087,10 @@ internal partial class ReaderView : UserControl
             UpdateMinMaxZoomFactor(frameIndex);
             item.RebindEntireViewModel();
             _readyPageCount = page;
-            FrameDataSource.Add(item);
+            _frameItemsSource.Add(item);
         }
 
-        for (int i = readyFrameCount; i < FrameDataSource.Count; i++)
+        for (int i = readyFrameCount; i < _frameItemsSource.Count; i++)
         {
             _frameReadyHandler?.Invoke(i);
         }
@@ -1341,10 +1343,10 @@ internal partial class ReaderView : UserControl
             if (_zoom < FORCE_CONTINUOUS_ZOOM_THRESHOLD)
             {
                 int frame = SCCurrentFrameIndexFinal;
-                frame = Math.Max(0, Math.Min(FrameDataSource.Count - 1, frame));
-                if (frame < FrameDataSource.Count)
+                frame = Math.Max(0, Math.Min(_frameItemsSource.Count - 1, frame));
+                if (frame < _frameItemsSource.Count)
                 {
-                    double page = FrameDataSource[frame].Page;
+                    double page = _frameItemsSource[frame].Page;
                     if (_isContinuous)
                     {
                         // Stick to the vertical center of current frame.
@@ -1953,9 +1955,9 @@ internal partial class ReaderView : UserControl
                 double targetDelay = 1000.0 / Math.Abs(_autoScrollParallelVelocity); // (0, PositiveInfinite)
 
                 int frameIndex = SCCurrentFrameIndexFinal;
-                if (frameIndex >= 0 && frameIndex < FrameDataSource.Count)
+                if (frameIndex >= 0 && frameIndex < _frameItemsSource.Count)
                 {
-                    ReaderFrameViewModel frame = FrameDataSource[frameIndex];
+                    ReaderFrameViewModel frame = _frameItemsSource[frameIndex];
                     if (frame.PageL != ReaderFrameViewModel.NO_PAGE && frame.PageR != ReaderFrameViewModel.NO_PAGE)
                     {
                         targetDelay *= AUTO_SCROLL_DUAL_FRAME_MULTIPLIER;
@@ -2295,14 +2297,14 @@ internal partial class ReaderView : UserControl
 
     private void MoveFrameInternal(string reason, ScrollSource source, int increment)
     {
-        if (FrameDataSource.Count == 0)
+        if (_frameItemsSource.Count == 0)
         {
             return;
         }
 
         int frame = SCCurrentFrameIndexFinal + increment;
 
-        if (frame >= FrameDataSource.Count)
+        if (frame >= _frameItemsSource.Count)
         {
             DispatchOverScrollEvent(true);
             return;
@@ -2314,7 +2316,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        double page = FrameDataSource[frame].Page;
+        double page = _frameItemsSource[frame].Page;
         float? zoom = _zoom > 1.01F ? 1F : null;
         SetScrollViewer2(reason, source, zoom: zoom, page: page, disableAnimation: !AppSettingsModel.Instance.TransitionAnimation);
     }
@@ -2587,14 +2589,14 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            if (newFrameIndex < 0 || newFrameIndex >= FrameDataSource.Count)
+            if (newFrameIndex < 0 || newFrameIndex >= _frameItemsSource.Count)
             {
                 newFrameIndex = 0;
             }
 
-            if (newFrameIndex < FrameDataSource.Count)
+            if (newFrameIndex < _frameItemsSource.Count)
             {
-                newFrame = FrameDataSource[newFrameIndex];
+                newFrame = _frameItemsSource[newFrameIndex];
                 zoomCoefficientNew = CalculateZoomCoefficient(newFrame);
                 Log("Jump", "Zoom#1:"
                     + $" PN={pageNew}"
@@ -2642,7 +2644,7 @@ internal partial class ReaderView : UserControl
         else
         {
             int frame = SCCurrentFrameIndexFinal;
-            if (frame < 0 || frame >= FrameDataSource.Count)
+            if (frame < 0 || frame >= _frameItemsSource.Count)
             {
                 frame = 0;
             }
@@ -2799,7 +2801,7 @@ internal partial class ReaderView : UserControl
 
     private void AdjustParallelOffset(ScrollContext context)
     {
-        if (FrameDataSource.Count == 0)
+        if (_frameItemsSource.Count == 0)
         {
             return;
         }
@@ -2830,7 +2832,7 @@ internal partial class ReaderView : UserControl
         double? movementForward = null;
         if (_isFirstFrameLoaded)
         {
-            Thickness firstFrameMargin = FrameDataSource[0].FrameMargin;
+            Thickness firstFrameMargin = _frameItemsSource[0].FrameMargin;
             double frameMarginStart = _isVertical ? firstFrameMargin.Top :
                 (_isLeftToRight ? firstFrameMargin.Left : firstFrameMargin.Right);
             double imageStartOffset = frameMarginStart * zoom;
@@ -2841,7 +2843,7 @@ internal partial class ReaderView : UserControl
         if (_isLastFrameLoaded)
         {
             // ExtentLength is unreliable, use frame offset instead
-            FrameOffsetData? lastFrameOffset = FrameOffset(FrameDataSource.Count - 1);
+            FrameOffsetData? lastFrameOffset = FrameOffset(_frameItemsSource.Count - 1);
             if (lastFrameOffset.HasValue)
             {
                 double imageEndOffset = lastFrameOffset.Value.ParallelEnd * zoom;
@@ -2882,12 +2884,12 @@ internal partial class ReaderView : UserControl
 
     private ZoomCoefficient? CalculateZoomCoefficient(int frameIndex)
     {
-        if (frameIndex < 0 || frameIndex >= FrameDataSource.Count)
+        if (frameIndex < 0 || frameIndex >= _frameItemsSource.Count)
         {
             return null;
         }
 
-        return CalculateZoomCoefficient(FrameDataSource[frameIndex]);
+        return CalculateZoomCoefficient(_frameItemsSource[frameIndex]);
     }
 
     private ZoomCoefficient? CalculateZoomCoefficient(ReaderFrameViewModel frame)
@@ -2974,7 +2976,7 @@ internal partial class ReaderView : UserControl
 
     private AnchorConverter? CreateAnchorConverter(int startFrame, int endFrame)
     {
-        if (FrameDataSource.Count == 0 || startFrame >= endFrame || startFrame < 0 || endFrame > FrameDataSource.Count)
+        if (_frameItemsSource.Count == 0 || startFrame >= endFrame || startFrame < 0 || endFrame > _frameItemsSource.Count)
         {
             return null;
         }
@@ -2982,7 +2984,7 @@ internal partial class ReaderView : UserControl
         var anchorConverter = new AnchorConverter();
 
         int minFrame = Math.Max(startFrame - 1, 0);
-        int maxFrame = Math.Min(endFrame + 1, FrameDataSource.Count);
+        int maxFrame = Math.Min(endFrame + 1, _frameItemsSource.Count);
         FrameOffsetData? lastOffset = null;
         for (int frame = minFrame; frame < maxFrame; frame++)
         {
@@ -2992,7 +2994,7 @@ internal partial class ReaderView : UserControl
                 break;
             }
 
-            ReaderFrameViewModel frameModel = FrameDataSource[frame];
+            ReaderFrameViewModel frameModel = _frameItemsSource[frame];
             if (frameModel.IsEmpty)
             {
                 break;
@@ -3003,7 +3005,7 @@ internal partial class ReaderView : UserControl
                 anchorConverter.Insert(0.5, offset.Value.ParallelStart);
             }
 
-            if (frame == FrameDataSource.Count - 1)
+            if (frame == _frameItemsSource.Count - 1)
             {
                 anchorConverter.Insert(PageCount + 0.5, offset.Value.ParallelEnd);
             }
@@ -3044,7 +3046,7 @@ internal partial class ReaderView : UserControl
             if (lastOffset.HasValue)
             {
                 double midPointOffset = (offset.Value.ParallelStart + lastOffset.Value.ParallelEnd) * 0.5;
-                double midPointPage = (FrameDataSource[frame - 1].MaxPage + frameModel.MinPage) * 0.5;
+                double midPointPage = (_frameItemsSource[frame - 1].MaxPage + frameModel.MinPage) * 0.5;
                 anchorConverter.Insert(midPointPage, midPointOffset);
             }
 
@@ -3061,13 +3063,17 @@ internal partial class ReaderView : UserControl
 
     private FrameOffsetData? FrameOffset(int frame)
     {
-        if (frame < 0 || frame >= FrameDataSource.Count)
+        if (frame < 0 || frame >= _frameItemsSource.Count)
         {
             return null;
         }
 
-        ReaderFrameViewModel item = FrameDataSource[frame];
-        Windows.Foundation.Rect rect = ThisListView.GetItemRect(frame);
+        ReaderFrameViewModel item = _frameItemsSource[frame];
+
+        if (!ThisListView.TryGetItemRect(frame, out Windows.Foundation.Rect rect))
+        {
+            return null;
+        }
 
         double parallelOffset = _isVertical ? rect.Y : rect.X;
         double perpendicularOffset = _isVertical ? rect.X : rect.Y;
@@ -3132,12 +3138,12 @@ internal partial class ReaderView : UserControl
         }
 
         int frameIdx = SCCurrentFrameIndexFinal;
-        if (frameIdx < 0 || frameIdx >= FrameDataSource.Count)
+        if (frameIdx < 0 || frameIdx >= _frameItemsSource.Count)
         {
             return;
         }
 
-        ReaderFrameViewModel frameModel = FrameDataSource[frameIdx];
+        ReaderFrameViewModel frameModel = _frameItemsSource[frameIdx];
         ZoomCoefficient? zoomCoefficient = CalculateZoomCoefficient(frameModel);
         if (zoomCoefficient is null)
         {

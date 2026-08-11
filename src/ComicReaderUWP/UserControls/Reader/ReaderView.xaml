@@ -256,27 +256,6 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="VerticalReaderListViewItemStyle" TargetType="ListViewItem">
-                <Setter Property="Padding" Value="0" />
-                <Setter Property="HorizontalAlignment" Value="Center" />
-                <Setter Property="MinHeight" Value="0" />
-                <Setter Property="MinWidth" Value="0" />
-            </Style>
-
-            <Style x:Key="HorizontalReaderListViewItemStyle" TargetType="ListViewItem">
-                <Setter Property="Padding" Value="0" />
-                <Setter Property="MinHeight" Value="0" />
-                <Setter Property="MinWidth" Value="0" />
-            </Style>
-
-            <ItemsPanelTemplate x:Key="VerticalReaderListViewItemPanelTemplate">
-                <ItemsStackPanel Orientation="Vertical" />
-            </ItemsPanelTemplate>
-
-            <ItemsPanelTemplate x:Key="HorizontalReaderListViewItemPanelTemplate">
-                <ItemsStackPanel Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -302,7 +281,7 @@
                     x:Name="ContentListView"
                     VerticalAlignment="Top"
                     IsTabStop="True"
-                    ItemsSource="{x:Bind FrameDataSource, Mode=OneWay}"
+                    ItemsSource="{x:Bind FrameItemsSource}"
                     Loaded="OnReaderListViewLoadedOrUnloaded"
                     PreviewKeyDown="OnReaderKeyDown"
                     TabFocusNavigation="Local"
