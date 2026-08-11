@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 
+using ComicReaderUWP.Core.Common.DebugTools;
+
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -13,6 +15,8 @@ namespace ComicReaderUWP.UserControls.Reader.FrameLayout;
 
 internal sealed partial class ReaderListViewPanel : Panel
 {
+    private const string TAG = nameof(ReaderListViewPanel);
+
     public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register(
         nameof(Orientation), typeof(Orientation), typeof(ReaderListViewPanel), new PropertyMetadata(Orientation.Vertical, OnOrientationChanged));
 
@@ -36,19 +40,21 @@ internal sealed partial class ReaderListViewPanel : Panel
         _itemLayoutCache.RemoveRange(startIndex, _itemLayoutCache.Count - startIndex);
     }
 
-    public Rect GetItemRect(int index)
+    public bool TryGetItemRect(int index, out Rect rect)
     {
         if (index < 0 || index >= Items.Count)
         {
-            throw new ArgumentOutOfRangeException(nameof(index), "Index is out of range.");
+            rect = default;
+            return false;
         }
 
         EnsureCache();
         ItemLayoutCache lastItem = _itemLayoutCache[^1];
         ItemLayoutCache cache = _itemLayoutCache[index];
-        return Orientation == Orientation.Vertical ?
+        rect = Orientation == Orientation.Vertical ?
             new Rect((lastItem.MaxWidthUntilNow - cache.Width) * 0.5, cache.TotalHeightUntilNow - cache.Height, cache.Width, cache.Height) :
             new Rect(cache.TotalWidthUntilNow - cache.Width, (lastItem.MaxHeightUntilNow - cache.Height) * 0.5, cache.Width, cache.Height);
+        return true;
     }
 
     private void EnsureCache()
@@ -72,7 +78,19 @@ internal sealed partial class ReaderListViewPanel : Panel
         for (int i = _itemLayoutCache.Count; i < Items.Count; i++)
         {
             double itemWidth = Items[i].Width;
+            if (double.IsNaN(itemWidth) || double.IsInfinity(itemWidth) || itemWidth < 0.0)
+            {
+                itemWidth = 0.0;
+                Logger.F(TAG, $"Invalid item width {itemWidth}");
+            }
+
             double itemHeight = Items[i].Height;
+            if (double.IsNaN(itemHeight) || double.IsInfinity(itemHeight) || itemHeight < 0.0)
+            {
+                itemHeight = 0.0;
+                Logger.F(TAG, $"Invalid item height {itemHeight}");
+            }
+
             maxWidth = Math.Max(maxWidth, itemWidth);
             maxHeight = Math.Max(maxHeight, itemHeight);
             totalWidth += itemWidth;
@@ -106,32 +124,29 @@ internal sealed partial class ReaderListViewPanel : Panel
         double right = double.NegativeInfinity;
         double bottom = double.NegativeInfinity;
 
-        int count = Math.Min(Children.Count, Items.Count);
-
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < Children.Count; i++)
         {
             UIElement child = Children[i];
-            Rect rect = GetItemRect(i);
 
-            double w = double.IsInfinity(rect.Width) || rect.Width < 0 ? 0 : rect.Width;
-            double h = double.IsInfinity(rect.Height) || rect.Height < 0 ? 0 : rect.Height;
-            child.Measure(new Size(w, h));
-
-            left = Math.Min(left, rect.X);
-            top = Math.Min(top, rect.Y);
-            right = Math.Max(right, rect.Right);
-            bottom = Math.Max(bottom, rect.Bottom);
-        }
-
-        for (int i = count; i < Children.Count; i++)
-        {
-            UIElement child = Children[i];
-            child.Measure(availableSize);
-            Size d = child.DesiredSize;
-            left = Math.Min(left, 0);
-            top = Math.Min(top, 0);
-            right = Math.Max(right, d.Width);
-            bottom = Math.Max(bottom, d.Height);
+            if (TryGetItemRect(i, out Rect rect))
+            {
+                double w = double.IsInfinity(rect.Width) || rect.Width < 0 ? 0 : rect.Width;
+                double h = double.IsInfinity(rect.Height) || rect.Height < 0 ? 0 : rect.Height;
+                child.Measure(new Size(w, h));
+                left = Math.Min(left, rect.X);
+                top = Math.Min(top, rect.Y);
+                right = Math.Max(right, rect.Right);
+                bottom = Math.Max(bottom, rect.Bottom);
+            }
+            else
+            {
+                child.Measure(availableSize);
+                Size d = child.DesiredSize;
+                left = Math.Min(left, 0);
+                top = Math.Min(top, 0);
+                right = Math.Max(right, d.Width);
+                bottom = Math.Max(bottom, d.Height);
+            }
         }
 
         if (double.IsPositiveInfinity(left))
@@ -162,19 +177,18 @@ internal sealed partial class ReaderListViewPanel : Panel
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        int count = Math.Min(Children.Count, Items.Count);
-
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < Children.Count; i++)
         {
             UIElement child = Children[i];
-            Rect rect = GetItemRect(i);
-            child.Arrange(rect);
-        }
 
-        for (int i = count; i < Children.Count; i++)
-        {
-            UIElement child = Children[i];
-            child.Arrange(new Rect(0, 0, Math.Max(0, finalSize.Width), Math.Max(0, finalSize.Height)));
+            if (TryGetItemRect(i, out Rect rect))
+            {
+                child.Arrange(rect);
+            }
+            else
+            {
+                child.Arrange(new Rect(0, 0, Math.Max(0, finalSize.Width), Math.Max(0, finalSize.Height)));
+            }
         }
 
         return finalSize;
