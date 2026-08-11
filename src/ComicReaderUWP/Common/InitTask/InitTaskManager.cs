@@ -64,8 +64,8 @@ internal class InitTaskManager
         IsFirstInstance = TryRegisterFirstInstance();
         RegisterExitHandler();
 
-        EnvironmentProvider.Instance.Initialize(SecretImpl.AdditionalDebugInformation);
-        SentryManager.Initialize(SecretImpl.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
+        EnvironmentProvider.Instance.Initialize(Secret.ExtraDebugFields);
+        SentryManager.Initialize(Secret.SentryDsn, EnvironmentProvider.Instance.GetEnvironmentTags());
 
         if (DebugModel.WaitForDebugger)
         {

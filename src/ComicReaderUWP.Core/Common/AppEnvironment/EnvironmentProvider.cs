@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 using ComicReaderUWP.Core.Common.Constants;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -31,8 +32,8 @@ public class EnvironmentProvider
 
     public static EnvironmentProvider Instance { get; } = new();
 
-    private readonly object _lock = new();
-    private string _additionalDebugInformation = string.Empty;
+    private readonly Lock _lock = new();
+    private string _extraDebugFields = string.Empty;
     private string _appLanguageTag = string.Empty;
     private string _actualDeviceId = string.Empty;
     private string _deviceId = string.Empty;
@@ -49,9 +50,9 @@ public class EnvironmentProvider
     /// Initialize the EnvironmentProvider instance. Some fields like launch time
     /// require the static instance to be initialized as soon as possible.
     /// </summary>
-    public void Initialize(string additionalDebugInformation)
+    public void Initialize(string extraDebugFields)
     {
-        _additionalDebugInformation = additionalDebugInformation;
+        _extraDebugFields = extraDebugFields;
         TaskDispatcher.DefaultThreadPool.Submit(() =>
         {
             string deviceId = RecalculateDeviceId();
@@ -62,29 +63,70 @@ public class EnvironmentProvider
 
     public void AppendDebugText(StringBuilder sb)
     {
-        sb.SafeAppend("Awake time", () => GetAwakeTime());
-        sb.SafeAppend("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
-        sb.SafeAppend("Current app language", GetCurrentAppLanguage);
-        sb.SafeAppend("Current system language", GetCurrentSystemLanguage);
-        sb.SafeAppend("Device ID", GetDeviceId);
-        sb.SafeAppend("Device model", DeviceInformationHelper.Instance.GetDeviceModel);
-        sb.SafeAppend("Host version", GetHostVersion);
-        sb.SafeAppend("Installed system language", GetInstalledSystemLanguage);
-        sb.SafeAppend("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
-        sb.SafeAppend("OEM name", DeviceInformationHelper.Instance.GetDeviceOemName);
-        sb.SafeAppend("OS architecture", GetSystemArchitecture);
-        sb.SafeAppend("OS build", DeviceInformationHelper.Instance.GetOsBuild);
-        sb.SafeAppend("OS version", DeviceInformationHelper.Instance.GetOsVersion);
-        sb.SafeAppend("Portable", () => IsPortable());
-        sb.SafeAppend("Process architecture", GetProcessArchitecture);
-        sb.SafeAppend("Processor count", () => Environment.ProcessorCount);
-        sb.SafeAppend("Safe mode", () => IsSafeMode());
-        sb.SafeAppend("SDK version", GetSDKVersion);
+        Dictionary<string, string> fields = [];
 
-        if (_additionalDebugInformation.Length > 0)
+        void AddField(string category, Func<object?> func)
         {
-            sb.Append(_additionalDebugInformation);
-            sb.Append('\n');
+            string value;
+            try
+            {
+                value = func()?.ToString() ?? "[null]";
+            }
+            catch (Exception)
+            {
+                value = "[error]";
+            }
+
+            fields.TryAdd(category, value);
+        }
+
+        AddField("Awake time", () => GetAwakeTime());
+        AddField("Build type", () => DebugUtils.DebugBuild ? "Debug" : "Release");
+        AddField("Current app language", GetCurrentAppLanguage);
+        AddField("Current system language", GetCurrentSystemLanguage);
+        AddField("Device ID", GetDeviceId);
+        AddField("Device model", DeviceInformationHelper.Instance.GetDeviceModel);
+        AddField("Host version", GetHostVersion);
+        AddField("Installed system language", GetInstalledSystemLanguage);
+        AddField("Launch time", () => GetLaunchTime().ToString("yyyy/M/d HH:mm:ss.fff"));
+        AddField("OEM name", DeviceInformationHelper.Instance.GetDeviceOemName);
+        AddField("OS architecture", GetSystemArchitecture);
+        AddField("OS build", DeviceInformationHelper.Instance.GetOsBuild);
+        AddField("OS version", DeviceInformationHelper.Instance.GetOsVersion);
+        AddField("Portable", () => IsPortable());
+        AddField("Process architecture", GetProcessArchitecture);
+        AddField("Processor count", () => Environment.ProcessorCount);
+        AddField("Safe mode", () => IsSafeMode());
+        AddField("SDK version", GetSDKVersion);
+
+        if (_extraDebugFields.Length > 0)
+        {
+            Dictionary<string, object?> extraFields;
+            try
+            {
+                extraFields = JsonSerializer.Deserialize<Dictionary<string, object?>>(_extraDebugFields) ?? [];
+            }
+            catch (Exception)
+            {
+                extraFields = [];
+            }
+
+            foreach (KeyValuePair<string, object?> item in extraFields)
+            {
+                AddField(item.Key, () => item.Value);
+            }
+        }
+
+        bool first = true;
+        foreach (string key in fields.Keys.Order())
+        {
+            if (!first)
+            {
+                sb.AppendLine();
+            }
+
+            sb.Append(key).Append(": ").Append(fields[key]);
+            first = false;
         }
     }
 
