@@ -3,7 +3,7 @@
 
 using System;
 
-namespace ComicReaderUWP.UserControls.Reader.Models;
+namespace ComicReaderUWP.UserControls.Reader;
 
 internal class ZoomCoefficient
 {
