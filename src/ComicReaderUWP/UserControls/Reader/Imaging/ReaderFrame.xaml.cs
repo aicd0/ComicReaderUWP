@@ -85,16 +85,21 @@ internal sealed partial class ReaderFrame : BaseUserControl
         });
     }
 
+    protected override void OnStart()
+    {
+        base.OnStart();
+        _imageCompositor = new(ImageHost);
+    }
+
     protected override void OnResume()
     {
         base.OnResume();
-        _imageCompositor = new(ImageHost);
         ConnectViewModel();
     }
 
-    protected override void OnPause()
+    protected override void OnStop()
     {
-        base.OnPause();
+        base.OnStop();
         DisconnectViewModel();
         _imageCompositor?.Dispose();
         _imageCompositor = null;
@@ -102,6 +107,11 @@ internal sealed partial class ReaderFrame : BaseUserControl
 
     private void ReaderFrame_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
+        if (ReferenceEquals(ViewModel, args.NewValue))
+        {
+            return;
+        }
+
         DisconnectViewModel();
         ViewModel = null;
 

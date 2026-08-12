@@ -413,6 +413,7 @@ internal partial class ReaderView : UserControl
         UpdateLoadedState();
         _reloadSession.Next();
         _frameItemsSource.Clear();
+        ThisListView.MarkAsStopped();
     }
 
     public void StartLoadingImages(IEnumerable<IImageSource> images)
