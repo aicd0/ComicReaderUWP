@@ -16,7 +16,6 @@ using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.UserControls.Reader.FrameLayout;
 using ComicReaderUWP.UserControls.Reader.Imaging;
-using ComicReaderUWP.UserControls.Reader.Models;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
 
 using Microsoft.UI.Dispatching;
