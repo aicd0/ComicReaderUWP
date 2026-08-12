@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
+using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Core.Common.DebugTools;
 
 using Microsoft.UI.Xaml;
@@ -14,7 +15,7 @@ using Windows.Foundation;
 
 namespace ComicReaderUWP.UserControls.Reader.FrameLayout;
 
-internal sealed partial class ReaderListView : UserControl
+internal sealed partial class ReaderListView : BaseUserControl
 {
     private const string TAG = nameof(ReaderListView);
 
@@ -54,16 +55,10 @@ internal sealed partial class ReaderListView : UserControl
         if (e.NewValue is INotifyCollectionChanged notifyCollection)
         {
             view._collectionChangedSource = notifyCollection;
-            if (view.IsLoaded)
-            {
-                view.SubscribeItemsSourceChange();
-            }
+            view.SubscribeItemsSourceChange();
         }
 
-        if (view.IsLoaded)
-        {
-            view.RefreshAllItems();
-        }
+        view.RefreshAllItems();
     }
 
     public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register(
@@ -122,25 +117,38 @@ internal sealed partial class ReaderListView : UserControl
         return ContentPanel.TryGetItemRect(index, out rect);
     }
 
-    private void UserControl_Loaded(object sender, RoutedEventArgs e)
+    protected override void OnStart()
     {
-        if (!IsLoaded)
-        {
-            return;
-        }
-
+        base.OnStart();
         SubscribeItemsSourceChange();
         RefreshAllItems();
     }
 
-    private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+    protected override void OnStop()
     {
-        if (IsLoaded)
-        {
-            return;
-        }
+        base.OnStop();
 
         UnsubscribeItemsSourceChange();
+
+        foreach (UIElement? item in _realizedContainers)
+        {
+            if (item is BaseUserControl lifecyleItem)
+            {
+                lifecyleItem.MarkAsStopped();
+            }
+        }
+
+        _realizedContainers.Clear();
+
+        foreach (UIElement? item in _recycledContainers)
+        {
+            if (item is BaseUserControl lifecyleItem)
+            {
+                lifecyleItem.MarkAsStopped();
+            }
+        }
+
+        _recycledContainers.Clear();
     }
 
     private void SubscribeItemsSourceChange()

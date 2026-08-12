@@ -14,6 +14,7 @@ public partial class BaseUserControl : UserControl, ILifecycleOwner
 {
     private readonly SimpleLifecycleManager _lifecycleManager = new();
     private bool _isLoaded = false;
+    private bool _isStopped = false;
 
     public bool IsResumed => _lifecycleManager.GetLifecycle().GetState() >= ILifecycle.State.Resumed;
 
@@ -34,6 +35,12 @@ public partial class BaseUserControl : UserControl, ILifecycleOwner
         return _lifecycleManager.GetLifecycle();
     }
 
+    public void MarkAsStopped()
+    {
+        _isStopped = true;
+        UpdateLifecycleState();
+    }
+
     protected virtual void OnStart()
     {
     }
@@ -43,6 +50,10 @@ public partial class BaseUserControl : UserControl, ILifecycleOwner
     }
 
     protected virtual void OnPause()
+    {
+    }
+
+    protected virtual void OnStop()
     {
     }
 
@@ -75,7 +86,8 @@ public partial class BaseUserControl : UserControl, ILifecycleOwner
             return;
         }
 
-        ILifecycle.State finalState = _isLoaded ? ILifecycle.State.Resumed : ILifecycle.State.Started;
+        ILifecycle.State finalState = _isStopped ? ILifecycle.State.Stopped :
+            (_isLoaded ? ILifecycle.State.Resumed : ILifecycle.State.Started);
         _lifecycleManager.SetState(finalState);
     }
 
@@ -114,6 +126,7 @@ public partial class BaseUserControl : UserControl, ILifecycleOwner
 
         public void PostStop()
         {
+            control.OnStop();
         }
     }
 }

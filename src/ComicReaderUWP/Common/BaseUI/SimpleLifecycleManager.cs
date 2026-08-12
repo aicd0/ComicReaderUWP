@@ -50,6 +50,9 @@ internal class SimpleLifecycleManager
         {
             switch (toState)
             {
+                case ILifecycle.State.Stopped:
+                    // Initialized -> Stopped: No-op for symmetry
+                    break;
                 case ILifecycle.State.Started:
                     OnLifecycleStart(pre);
                     break;
