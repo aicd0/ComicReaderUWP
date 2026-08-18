@@ -18,8 +18,6 @@ internal sealed partial class ReaderFrame : BaseUserControl
 
     private readonly IValueObserver<bool> _rebindObserver;
     private readonly IValueObserver<bool> _redrawImageObserver;
-    private readonly IValueObserver<bool> _leftImageVisibleObserver;
-    private readonly IValueObserver<bool> _rightImageVisibleObserver;
     private readonly IValueObserver<double> _scaleObserver;
 
     public ReaderFrame()
@@ -41,36 +39,6 @@ internal sealed partial class ReaderFrame : BaseUserControl
             }
 
             compositor.Invalidate();
-        });
-
-        _leftImageVisibleObserver = ObserverUtils.Create<bool>(visible =>
-        {
-            ReaderFrameViewModel? vm = ViewModel;
-            ReaderImageCompositor? compositor = _imageCompositor;
-            if (vm is null || compositor is null)
-            {
-                return;
-            }
-
-            compositor.Name = vm.Page.ToString();
-            compositor.PlaceholderMode = vm.IsDualPage;
-            compositor.SetImage(0, visible ? vm.LeftImageSource : null,
-                (float)vm.LeftImageWidth, (float)vm.LeftImageHeight);
-        });
-
-        _rightImageVisibleObserver = ObserverUtils.Create<bool>(visible =>
-        {
-            ReaderFrameViewModel? vm = ViewModel;
-            ReaderImageCompositor? compositor = _imageCompositor;
-            if (vm is null || compositor is null)
-            {
-                return;
-            }
-
-            compositor.Name = vm.Page.ToString();
-            compositor.PlaceholderMode = vm.IsDualPage;
-            compositor.SetImage(1, visible ? vm.RightImageSource : null,
-                (float)vm.RightImageWidth, (float)vm.RightImageHeight);
         });
 
         _scaleObserver = ObserverUtils.Create<double>(scale =>
@@ -135,9 +103,16 @@ internal sealed partial class ReaderFrame : BaseUserControl
 
         vm.RebindLiveData.ObserveSticky(this, _rebindObserver);
         vm.RedrawImageLiveDate.Observe(this, _redrawImageObserver);
-        vm.LeftImageVisibleLiveData.ObserveSticky(this, _leftImageVisibleObserver);
-        vm.RightImageVisibleLiveData.ObserveSticky(this, _rightImageVisibleObserver);
         vm.ScaleLiveData.ObserveSticky(this, _scaleObserver);
+
+        ReaderImageCompositor? compositor = _imageCompositor;
+        if (compositor is not null)
+        {
+            compositor.Name = vm.Page.ToString();
+            compositor.PlaceholderMode = vm.IsDualPage;
+            compositor.SetImage(0, vm.LeftImageSource, (float)vm.LeftImageWidth, (float)vm.LeftImageHeight);
+            compositor.SetImage(1, vm.RightImageSource, (float)vm.RightImageWidth, (float)vm.RightImageHeight);
+        }
     }
 
     private void DisconnectViewModel()
@@ -150,8 +125,13 @@ internal sealed partial class ReaderFrame : BaseUserControl
 
         vm.RebindLiveData.RemoveObserver(_rebindObserver);
         vm.RedrawImageLiveDate.RemoveObserver(_redrawImageObserver);
-        vm.LeftImageVisibleLiveData.RemoveObserver(_leftImageVisibleObserver);
-        vm.RightImageVisibleLiveData.RemoveObserver(_rightImageVisibleObserver);
         vm.ScaleLiveData.RemoveObserver(_scaleObserver);
+
+        ReaderImageCompositor? compositor = _imageCompositor;
+        if (compositor is not null)
+        {
+            compositor.SetImage(0, null, 0, 0);
+            compositor.SetImage(1, null, 0, 0);
+        }
     }
 }

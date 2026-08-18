@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -47,7 +48,7 @@ internal sealed partial class ReaderListView : BaseUserControl
             throw new InvalidOperationException("ItemsSource has to be IReadOnlyList<IReaderListViewItemViewModel>.");
         }
 
-        view.ContentPanel.Items = list;
+        view._layoutCache.Items = list;
 
         view.UnsubscribeItemsSourceChange();
         view._collectionChangedSource = null;
@@ -75,10 +76,11 @@ internal sealed partial class ReaderListView : BaseUserControl
     }
 
     private INotifyCollectionChanged? _collectionChangedSource;
+    private readonly LayoutCache _layoutCache = new();
+    private readonly List<int> _containerToItemIndexMapper = [];
+    private readonly List<int> _visibleItemIndices = [];
     private readonly Queue<UIElement> _recycledContainers = [];
-    private readonly List<UIElement?> _realizedContainers = [];
     private bool _isChanging = false;
-    private bool _changesInvalidated = false;
 
     public DataTemplate? ItemTemplate
     {
@@ -110,11 +112,45 @@ internal sealed partial class ReaderListView : BaseUserControl
             Path = new PropertyPath(nameof(Orientation)),
             Mode = Microsoft.UI.Xaml.Data.BindingMode.TwoWay
         });
+
+        _layoutCache.Items = ItemsSource;
+
+        ContentPanel.RequestItemRect = index =>
+        {
+            if (index < 0 || index >= _containerToItemIndexMapper.Count)
+            {
+                Logger.F(TAG, $"Container {index} not found.");
+                return null;
+            }
+
+            int itemIndex = _containerToItemIndexMapper[index];
+            if (_layoutCache.TryGetItemRect(itemIndex, out Rect rect, Orientation))
+            {
+                return rect;
+            }
+
+            return null;
+        };
+
+        ContentPanel.RequestSize = () =>
+        {
+            return _layoutCache.GetSize(Orientation);
+        };
     }
 
     public bool TryGetItemRect(int index, out Rect rect)
     {
-        return ContentPanel.TryGetItemRect(index, out rect);
+        return _layoutCache.TryGetItemRect(index, out rect, Orientation);
+    }
+
+    public void SetVisibleItemIndices(IEnumerable<int> indices)
+    {
+        ChangeItems(() =>
+        {
+            _visibleItemIndices.Clear();
+            _visibleItemIndices.AddRange(indices);
+            HandleItemDiff([.. _containerToItemIndexMapper]);
+        });
     }
 
     protected override void OnStart()
@@ -130,17 +166,21 @@ internal sealed partial class ReaderListView : BaseUserControl
 
         UnsubscribeItemsSourceChange();
 
-        foreach (UIElement? item in _realizedContainers)
+        ReaderListViewPanel? panel = ContentPanel;
+        if (panel is not null)
         {
-            if (item is BaseUserControl lifecyleItem)
+            foreach (UIElement item in panel.Children)
             {
-                lifecyleItem.MarkAsStopped();
+                if (item is BaseUserControl lifecyleItem)
+                {
+                    lifecyleItem.MarkAsStopped();
+                }
             }
+
+            panel.Children.Clear();
         }
 
-        _realizedContainers.Clear();
-
-        foreach (UIElement? item in _recycledContainers)
+        foreach (UIElement item in _recycledContainers)
         {
             if (item is BaseUserControl lifecyleItem)
             {
@@ -186,183 +226,135 @@ internal sealed partial class ReaderListView : BaseUserControl
 
     private void RefreshAllItems()
     {
-        ChangeItems(RefreshAllItemsInternal);
+        ChangeItems(() =>
+        {
+            _layoutCache.InvalidateCache();
+            HandleItemDiff([.. Enumerable.Repeat(-1, _containerToItemIndexMapper.Count)]);
+        });
     }
 
     private void HandleItemsAdded(int baseIndex, int itemCount)
     {
-        ChangeItems(panel =>
+        ChangeItems(() =>
         {
-            panel.InvalidateCache(baseIndex);
+            _layoutCache.InvalidateCache(baseIndex);
 
-            DataTemplate? template = ItemTemplate;
-            IReadOnlyList<IReaderListViewItemViewModel> itemsSource = ItemsSource;
-
-            while (_realizedContainers.Count < itemsSource.Count)
+            List<int> oldIndices = [.. _containerToItemIndexMapper];
+            for (int i = 0; i < oldIndices.Count; i++)
             {
-                _realizedContainers.Add(null);
+                if (oldIndices[i] < baseIndex)
+                {
+                    continue;
+                }
+
+                oldIndices[i] += itemCount;
             }
 
-            for (int i = itemsSource.Count - itemCount - 1; i >= baseIndex; i--)
-            {
-                int oldIndex = i;
-                int newIndex = i + itemCount;
-                UIElement container = ClearRealizedContainer(oldIndex);
-                _realizedContainers[newIndex] = container;
-            }
-
-            for (int i = 0; i < itemCount; i++)
-            {
-                int itemIndex = baseIndex + i;
-                IReaderListViewItemViewModel? item = itemsSource[itemIndex];
-                UIElement container = GetOrCreateContainer(item, template);
-                _realizedContainers[itemIndex] = container;
-                panel.Children.Insert(itemIndex, container);
-            }
+            HandleItemDiff(oldIndices);
         });
     }
 
     private void HandleItemsRemoved(int baseIndex, int itemCount)
     {
-        ChangeItems(panel =>
+        ChangeItems(() =>
         {
-            panel.InvalidateCache(baseIndex);
+            _layoutCache.InvalidateCache(baseIndex);
 
-            for (int i = itemCount - 1; i >= 0; i--)
+            List<int> oldIndices = [.. _containerToItemIndexMapper];
+            for (int i = 0; i < oldIndices.Count; i++)
             {
-                int removeIndex = baseIndex + i;
-                UIElement container = ClearRealizedContainer(removeIndex);
-                _realizedContainers.RemoveAt(removeIndex);
-                RecycleContainer(container);
-                panel.Children.RemoveAt(removeIndex);
+                if (oldIndices[i] < baseIndex)
+                {
+                    continue;
+                }
+
+                if (oldIndices[i] < baseIndex + itemCount)
+                {
+                    oldIndices[i] = -1;
+                }
+                else
+                {
+                    oldIndices[i] -= itemCount;
+                }
             }
+
+            HandleItemDiff(oldIndices);
         });
     }
 
     private void HandleItemsReplaced(int baseIndex, int oldCount, int newCount)
     {
-        ChangeItems(panel =>
+        ChangeItems(() =>
         {
-            panel.InvalidateCache(baseIndex);
+            _layoutCache.InvalidateCache(baseIndex);
 
-            DataTemplate? template = ItemTemplate;
-            IReadOnlyList<IReaderListViewItemViewModel> itemsSource = ItemsSource;
-
-            int count = Math.Min(oldCount, newCount);
-            for (int i = 0; i < count; i++)
+            List<int> oldIndices = [.. _containerToItemIndexMapper];
+            int diff = newCount - oldCount;
+            for (int i = 0; i < oldIndices.Count; i++)
             {
-                int index = baseIndex + i;
-                UIElement container = ClearRealizedContainer(index);
-                RecycleContainer(container);
-                IReaderListViewItemViewModel? item = itemsSource[index];
-                UIElement newContainer = GetOrCreateContainer(item, template);
-                _realizedContainers[index] = newContainer;
-                panel.Children[index] = newContainer;
-            }
-
-            if (oldCount > newCount)
-            {
-                for (int i = oldCount - 1; i >= count; i--)
+                if (oldIndices[i] < baseIndex)
                 {
-                    int removeIndex = baseIndex + i;
-                    UIElement container = ClearRealizedContainer(removeIndex);
-                    _realizedContainers.RemoveAt(removeIndex);
-                    RecycleContainer(container);
-                    panel.Children.RemoveAt(removeIndex);
+                    continue;
+                }
+
+                if (oldIndices[i] < baseIndex + oldCount)
+                {
+                    oldIndices[i] = -1;
+                }
+                else
+                {
+                    oldIndices[i] += diff;
                 }
             }
-            else
-            {
-                for (int i = count; i < newCount; i++)
-                {
-                    int itemIndex = baseIndex + i;
-                    IReaderListViewItemViewModel? item = itemsSource[itemIndex];
-                    UIElement container = GetOrCreateContainer(item, template);
-                    _realizedContainers.Insert(itemIndex, container);
-                    panel.Children.Insert(itemIndex, container);
-                }
-            }
+
+            HandleItemDiff(oldIndices);
         });
     }
 
     private void HandleItemsMoved(int oldIndex, int newIndex, int itemCount)
     {
-        ChangeItems(panel =>
+        ChangeItems(() =>
         {
-            panel.InvalidateCache(Math.Min(oldIndex, newIndex));
+            int startIndex = Math.Min(oldIndex, newIndex);
+            int endIndex = Math.Max(oldIndex, newIndex) + itemCount;
 
-            int indexDiff = Math.Abs(oldIndex - newIndex);
-            if (indexDiff < itemCount)
-            {
-                (oldIndex, newIndex) = (newIndex, oldIndex);
-                (indexDiff, itemCount) = (itemCount, indexDiff);
-            }
+            _layoutCache.InvalidateCache(startIndex);
 
-            if (newIndex > oldIndex)
+            List<int> oldIndices = [.. _containerToItemIndexMapper];
+            int diff = newIndex - oldIndex;
+            for (int i = 0; i < oldIndices.Count; i++)
             {
-                int targetIndex = newIndex + indexDiff - 1;
-                for (int i = itemCount - 1; i >= 0; i--)
+                int itemIndex = oldIndices[i];
+                if (itemIndex < startIndex || itemIndex >= endIndex)
                 {
-                    int sourceIndex = oldIndex + i;
-                    UIElement container = ClearRealizedContainer(sourceIndex);
-                    _realizedContainers.RemoveAt(sourceIndex);
-                    panel.Children.RemoveAt(sourceIndex);
-                    _realizedContainers.Insert(targetIndex, container);
-                    panel.Children.Insert(targetIndex, container);
+                    continue;
+                }
+
+                if (itemIndex >= oldIndex && itemIndex < oldIndex + itemCount)
+                {
+                    oldIndices[i] += diff;
+                }
+                else
+                {
+                    oldIndices[i] -= diff;
                 }
             }
-            else
-            {
-                for (int i = itemCount - 1; i >= 0; i--)
-                {
-                    int sourceIndex = oldIndex + i;
-                    int targetIndex = newIndex + i;
-                    UIElement container = ClearRealizedContainer(sourceIndex);
-                    _realizedContainers.RemoveAt(sourceIndex);
-                    panel.Children.RemoveAt(sourceIndex);
-                    _realizedContainers.Insert(targetIndex, container);
-                    panel.Children.Insert(targetIndex, container);
-                }
-            }
+
+            HandleItemDiff(oldIndices);
         });
     }
 
-    private void ChangeItems(Action<ReaderListViewPanel> action)
+    private void ChangeItems(Action action)
     {
-        ReaderListViewPanel? panel = ContentPanel;
-        if (panel is null)
-        {
-            return;
-        }
-
         if (_isChanging)
         {
-            Logger.F(TAG, "Reentered ChangeItems.");
-            _changesInvalidated = true;
-            return;
+            throw new InvalidOperationException("Cannot start an item change while another change is ongoing.");
         }
 
         _isChanging = true;
         try
         {
-            do
-            {
-                _changesInvalidated = false;
-
-                if (_realizedContainers.Count != panel.Children.Count)
-                {
-                    Logger.F(TAG, $"Inconsistency detected before items change (containers=${_realizedContainers.Count}, children=${panel.Children.Count})");
-                }
-
-                action(panel);
-
-                if (_realizedContainers.Count != panel.Children.Count || _realizedContainers.Count != ItemsSource.Count)
-                {
-                    Logger.F(TAG, $"Inconsistency detected after items change (items=${ItemsSource.Count}, containers=${_realizedContainers.Count}, children=${panel.Children.Count})");
-                }
-
-                action = RefreshAllItemsInternal;
-            } while (_changesInvalidated);
+            action();
         }
         finally
         {
@@ -370,27 +362,36 @@ internal sealed partial class ReaderListView : BaseUserControl
         }
     }
 
-    private void RefreshAllItemsInternal(ReaderListViewPanel panel)
+    private void HandleItemDiff(List<int> oldItemIndices)
     {
-        panel.InvalidateCache();
-
-        for (int i = 0; i < _realizedContainers.Count; i++)
+        ReaderListViewPanel? panel = ContentPanel;
+        if (panel is null)
         {
-            UIElement container = ClearRealizedContainer(i);
-            RecycleContainer(container);
+            return;
         }
 
-        _realizedContainers.Clear();
-        panel.Children.Clear();
+        IReadOnlyList<IReaderListViewItemViewModel> itemsSource = ItemsSource;
+        List<int> added = [.. _visibleItemIndices.Where(i => i < itemsSource.Count)];
+
+        for (int containerIndex = oldItemIndices.Count - 1; containerIndex >= 0; containerIndex--)
+        {
+            int itemIndex = oldItemIndices[containerIndex];
+            if (!added.Remove(itemIndex))
+            {
+                _containerToItemIndexMapper.RemoveAt(containerIndex);
+                UIElement container = panel.Children[containerIndex];
+                panel.Children.RemoveAt(containerIndex);
+                RecycleContainer(container);
+            }
+        }
 
         DataTemplate? template = ItemTemplate;
-        IReadOnlyList<IReaderListViewItemViewModel> itemsSource = ItemsSource;
 
-        for (int i = 0; i < itemsSource.Count; i++)
+        foreach (int itemIndex in added)
         {
-            IReaderListViewItemViewModel? item = itemsSource[i];
+            _containerToItemIndexMapper.Add(itemIndex);
+            IReaderListViewItemViewModel? item = itemsSource[itemIndex];
             UIElement container = GetOrCreateContainer(item, template);
-            _realizedContainers.Add(container);
             panel.Children.Add(container);
         }
     }
@@ -441,17 +442,5 @@ internal sealed partial class ReaderListView : BaseUserControl
         }
 
         _recycledContainers.Enqueue(container);
-    }
-
-    private UIElement ClearRealizedContainer(int index)
-    {
-        UIElement container = GetRealizedContainer(index);
-        _realizedContainers[index] = null;
-        return container;
-    }
-
-    private UIElement GetRealizedContainer(int index)
-    {
-        return _realizedContainers[index] ?? throw new InvalidOperationException($"No realized container found for index {index}.");
     }
 }

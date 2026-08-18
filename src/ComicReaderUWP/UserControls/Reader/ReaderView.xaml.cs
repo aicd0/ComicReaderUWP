@@ -602,28 +602,9 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        double rasterizationScale = DisplayUtils.GetRasterizationScale(this);
-        double imageScale = SCZoomFactorFinal / _imageSettings.AntiAliasingFilterRatio * rasterizationScale;
-
-        void AddToLoaderQueue(ReaderFrameViewModel model)
-        {
-            model.SetScale(imageScale);
-            model.SetLeftImageVisibility(true);
-            model.SetRightImageVisibility(true);
-
-            if (redraw)
-            {
-                model.RedrawImage();
-            }
-        }
-
-        void ClearImage(ReaderFrameViewModel model)
-        {
-            model.SetLeftImageVisibility(false);
-            model.SetRightImageVisibility(false);
-        }
-
         Log("LoadImage", $"Reason={reason},F={frame}");
+
+        List<int> frameIndices = [];
         int maxPreloadPagesAfter = AppSettingsModel.Instance.PreloadPagesAfter;
         int maxPreloadPagesBefore = AppSettingsModel.Instance.PreloadPagesBefore;
         int preloadedPagesAfter = 0;
@@ -633,7 +614,7 @@ internal partial class ReaderView : UserControl
         {
             if (i == 0)
             {
-                AddToLoaderQueue(_frameItemsSource[frame]);
+                frameIndices.Add(frame);
                 continue;
             }
 
@@ -643,12 +624,8 @@ internal partial class ReaderView : UserControl
                 ReaderFrameViewModel model = _frameItemsSource[frameAfter];
                 if (preloadedPagesAfter < maxPreloadPagesAfter)
                 {
-                    AddToLoaderQueue(model);
+                    frameIndices.Add(frameAfter);
                     preloadedPagesAfter += model.PageCount;
-                }
-                else
-                {
-                    ClearImage(model);
                 }
             }
 
@@ -658,13 +635,25 @@ internal partial class ReaderView : UserControl
                 ReaderFrameViewModel model = _frameItemsSource[frameBefore];
                 if (preloadedPagesBefore < maxPreloadPagesBefore)
                 {
-                    AddToLoaderQueue(model);
+                    frameIndices.Add(frameBefore);
                     preloadedPagesBefore += model.PageCount;
                 }
-                else
-                {
-                    ClearImage(model);
-                }
+            }
+        }
+
+        ThisListView.SetVisibleItemIndices(frameIndices);
+
+        double rasterizationScale = DisplayUtils.GetRasterizationScale(this);
+        double imageScale = SCZoomFactorFinal / _imageSettings.AntiAliasingFilterRatio * rasterizationScale;
+
+        foreach (int i in frameIndices)
+        {
+            ReaderFrameViewModel model = _frameItemsSource[i];
+            model.SetScale(imageScale);
+
+            if (redraw)
+            {
+                model.RedrawImage();
             }
         }
     }
