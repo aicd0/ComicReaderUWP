@@ -16,8 +16,6 @@ internal class ReaderFrameViewModel : IReaderListViewItemViewModel
 
     public readonly MutableLiveData<bool> RebindLiveData = new();
     public readonly MutableLiveData<bool> RedrawImageLiveDate = new();
-    public readonly MutableLiveData<bool> LeftImageVisibleLiveData = new();
-    public readonly MutableLiveData<bool> RightImageVisibleLiveData = new();
     public readonly MutableLiveData<double> ScaleLiveData = new();
 
     public Thickness FrameMargin { get; set; } = new(0.0, 0.0, 0.0, 0.0);
@@ -51,26 +49,6 @@ internal class ReaderFrameViewModel : IReaderListViewItemViewModel
     public void RedrawImage()
     {
         RedrawImageLiveDate.Emit(true);
-    }
-
-    public void SetLeftImageVisibility(bool visible)
-    {
-        if (LeftImageVisibleLiveData.HasValue && LeftImageVisibleLiveData.Value == visible)
-        {
-            return;
-        }
-
-        LeftImageVisibleLiveData.Emit(visible);
-    }
-
-    public void SetRightImageVisibility(bool visible)
-    {
-        if (RightImageVisibleLiveData.HasValue && RightImageVisibleLiveData.Value == visible)
-        {
-            return;
-        }
-
-        RightImageVisibleLiveData.Emit(visible);
     }
 
     public void SetScale(double scale)
