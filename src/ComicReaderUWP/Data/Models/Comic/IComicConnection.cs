@@ -19,8 +19,6 @@ internal interface IComicConnection : IDisposable
 
     string GetImageSignature(int index);
 
-    ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index);
-
     Task<Stream?> OpenImageStream(int index);
 
     IVectorImageService? OpenVectorService(int index);

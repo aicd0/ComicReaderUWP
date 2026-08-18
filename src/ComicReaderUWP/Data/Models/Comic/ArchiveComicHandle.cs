@@ -227,11 +227,6 @@ internal partial class ArchiveComicHandle : ComicHandle
             return FileUtils.GetFileSignature(_archiveFile.Path);
         }
 
-        public ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index)
-        {
-            return ImageLoaderSchedulerGroup.FromPath(_archiveFile.Path);
-        }
-
         public async Task<Stream?> OpenImageStream(int index)
         {
             if (index < 0 || index >= _entries.Count)

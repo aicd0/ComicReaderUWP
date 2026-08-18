@@ -13,9 +13,14 @@ internal class ComicCoverImageSource : IImageSource
 {
     public static async Task<ComicCoverImageSource> Create(ComicModel comic)
     {
-        using ComicConnection? connection = await comic.OpenComic();
         string coverCacheKey = comic.CoverCacheKey;
-        ImageLoaderSchedulerGroup preferredSchedulerGroup = connection?.GetPreferredSchedulerGroup(ComicHandle.COVER_INDEX) ?? ImageLoaderSchedulerGroup.Default;
+        if (string.IsNullOrEmpty(coverCacheKey))
+        {
+            using ComicConnection? connection = await comic.OpenComic();
+            coverCacheKey = comic.CoverCacheKey;
+        }
+
+        var preferredSchedulerGroup = ImageLoaderSchedulerGroup.FromPath(comic.Location);
         return new ComicCoverImageSource(comic, coverCacheKey, preferredSchedulerGroup);
     }
 

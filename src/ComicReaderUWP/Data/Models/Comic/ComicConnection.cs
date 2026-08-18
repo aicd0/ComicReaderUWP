@@ -102,23 +102,6 @@ internal sealed partial class ComicConnection(IComicConnection connection) : ICo
         }
     }
 
-    public ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index)
-    {
-        if (!TryRefConnection(out IComicConnection? connection))
-        {
-            return ImageLoaderSchedulerGroup.Default;
-        }
-
-        try
-        {
-            return connection.GetPreferredSchedulerGroup(index);
-        }
-        finally
-        {
-            UnrefConnection();
-        }
-    }
-
     public async Task<Stream?> OpenImageStream(int index)
     {
         if (!TryRefConnection(out IComicConnection? connection))
