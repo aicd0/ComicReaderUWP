@@ -224,17 +224,6 @@ internal partial class FolderComicHandle : ComicHandle
             return FileUtils.GetFileSignature(_imageFiles[index]);
         }
 
-        public ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index)
-        {
-            if (index < 0 || index >= _imageFiles.Count)
-            {
-                Logger.F(TAG, $"GetPreferredSchedulerGroup: Index out of range: {index}");
-                return ImageLoaderSchedulerGroup.Default;
-            }
-
-            return ImageLoaderSchedulerGroup.FromPath(_imageFiles[index]);
-        }
-
         public async Task<Stream?> OpenImageStream(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)

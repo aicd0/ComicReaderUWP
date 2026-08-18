@@ -240,14 +240,15 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     public async Task<IReadOnlyList<string>> GetImageDescriptions(IEnumerable<int> pageIndices)
     {
+        ComicModel? comic = _comic;
         ComicConnection? comicConnection = _comicConnection;
-        List<int> pageIndicesList = [.. pageIndices];
-        if (comicConnection is null)
+        if (comic is null || comicConnection is null)
         {
             return [];
         }
 
         int imageCount = comicConnection.ImageCount;
+        List<int> pageIndicesList = [.. pageIndices];
         pageIndicesList.RemoveAll(i => i < 0 || i >= imageCount);
         if (pageIndicesList.Count == 0)
         {
@@ -260,7 +261,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         foreach (int pageIndex in pageIndicesList)
         {
             string imageName = comicConnection.GetImageName(pageIndex);
-            var imageSource = new ComicImageSource(comicConnection, pageIndex);
+            var imageSource = new ComicImageSource(comic, comicConnection, pageIndex);
             ImageMeta? imageMeta = await ImageLoader.GetImageMeta(imageSource);
 
             if (imageMeta is null)
@@ -498,7 +499,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         var images = new List<IImageSource>();
         for (int i = 0; i < connection.ImageCount; ++i)
         {
-            images.Add(new ComicImageSource(connection, i));
+            images.Add(new ComicImageSource(comic, connection, i));
         }
 
         if (images.Count == 0)
@@ -547,7 +548,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             {
                 Image = new SimpleImageView.Model
                 {
-                    Source = new ComicImageSource(connection, i),
+                    Source = new ComicImageSource(comic, connection, i),
                     Width = _previewImageWidth,
                     Height = _previewImageHeight,
                     DebugDescription = i.ToString(),

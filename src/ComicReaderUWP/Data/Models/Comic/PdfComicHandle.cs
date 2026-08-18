@@ -157,11 +157,6 @@ internal partial class PdfComicHandle : ComicHandle
             return FileUtils.GetFileSignature(pdfPath);
         }
 
-        public ImageLoaderSchedulerGroup GetPreferredSchedulerGroup(int index)
-        {
-            return ImageLoaderSchedulerGroup.FromPath(pdfPath);
-        }
-
         public async Task<Stream?> OpenImageStream(int index)
         {
             SizeF size = connection.GetPageSize(index);
