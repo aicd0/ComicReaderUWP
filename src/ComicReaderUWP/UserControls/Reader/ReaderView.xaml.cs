@@ -1287,10 +1287,11 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            double parallelDiff = Math.Abs(ParallelOffset - SCParallelOffsetFinal);
-            if (parallelDiff < 10)
+            double parallelDiff = ParallelOffset - SCParallelOffsetFinal;
+            float zoomDiff = ZoomFactor / SCZoomFactorFinal - 1F;
+            if (Math.Abs(parallelDiff) < 10 && Math.Abs(zoomDiff) < 0.05)
             {
-                Log("ViewChanged", $"InitialFrameJumped (P={ParallelOffset},PF={SCParallelOffsetFinal})");
+                Log("ViewChanged", $"InitialFrameJumped (PD={parallelDiff},ZD={zoomDiff})");
                 _isInitialFrameJumped = true;
             }
             else
