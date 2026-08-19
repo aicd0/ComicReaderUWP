@@ -596,7 +596,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        int frame = CurrentFrameIndex;
+        int frame = SCCurrentFrameIndexFinal;
         if (frame < 0 || frame >= _frameItemsSource.Count)
         {
             return;
@@ -676,6 +676,9 @@ internal partial class ReaderView : UserControl
         _reloadSession.Next();
         CancellationSession.IToken token = _reloadSession.Token;
 
+        // Reset visible frames
+        ThisListView.SetVisibleItemIndices([]);
+
         // Reset internal states
         PageCount = images.Count;
         _pageModels = new PageModel?[PageCount];
@@ -685,10 +688,15 @@ internal partial class ReaderView : UserControl
         _minZoomFactor = double.MaxValue;
         _maxZoomFactor = double.MinValue;
         SCClearFinalVal("Reload");
+        Log("Reload", $"IP={InitialPage},LP={PageCount}");
 
         // Reset loader
-        Log("Reload", $"IP={InitialPage},LP={PageCount}");
-        ResetLoader();
+        Log("Load", "Reset");
+        _isInitialFrameLoaded = false;
+        _isInitialFrameActionPerformed = false;
+        _isInitialFrameJumped = false;
+        _isFirstFrameLoaded = false;
+        _isLastFrameLoaded = false;
 
         // Reset page layout manager
         if (_pendingPageLayoutManager is not null)
@@ -1083,16 +1091,6 @@ internal partial class ReaderView : UserControl
         {
             _frameReadyHandler?.Invoke(i);
         }
-    }
-
-    private void ResetLoader()
-    {
-        Log("Load", "Reset");
-        _isInitialFrameLoaded = false;
-        _isInitialFrameActionPerformed = false;
-        _isInitialFrameJumped = false;
-        _isFirstFrameLoaded = false;
-        _isLastFrameLoaded = false;
     }
 
     private void UpdateLoader(string reason)

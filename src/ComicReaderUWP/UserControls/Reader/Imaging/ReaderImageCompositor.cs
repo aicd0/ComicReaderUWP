@@ -33,6 +33,11 @@ internal partial class ReaderImageCompositor : IDisposable
     private static readonly ITaskDispatcher _decodeDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private static readonly ITaskDispatcher _layoutDispatcher = TaskDispatcher.Factory.NewQueue("ReaderImageLayoutWorker");
 
+    private static void Log(string tag, params object?[] values)
+    {
+        Logger.I(LogTag.N(TAG, tag), string.Join(',', values));
+    }
+
     public string Name { get; set; } = string.Empty;
 
     private float _scale = float.PositiveInfinity;
@@ -129,10 +134,11 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (!_resourceRef.TryRef(out InstanceResourceModel? res))
         {
-            Logger.F(TAG, "SetImage: Container is already disposed");
+            Logger.F(TAG, "SetImage failed: Container is already disposed");
             return;
         }
 
+        Log("SetImage", $"name={Name}-{index}, uri={source?.Source.Uri}");
         ImageItem item;
         try
         {
@@ -241,7 +247,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private async Task PerformDecode(ImageItem item)
     {
-        Logger.I(TAG, $"Decode (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
+        Log("Decode", $"name={Name}-{item.Index}, uri={item.Source?.Source.Uri}");
         ReaderImageSource? source;
         bool clearPrevious;
         SizeF frameSize;
@@ -286,7 +292,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             if (resolution < 1E-2)
             {
-                Logger.W(TAG, $"Decode failed (Invalid resolution) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
+                Logger.W(TAG, $"Decode failed (Invalid resolution) (name={Name}-{item.Index}, uri={item.Source?.Source.Uri})");
                 return;
             }
 
@@ -311,7 +317,7 @@ internal partial class ReaderImageCompositor : IDisposable
             using Stream? stream = await source.Source.OpenImageStream();
             if (stream is null)
             {
-                Logger.W(TAG, $"Decode failed (Cannot open stream) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
+                Logger.W(TAG, $"Decode failed (Cannot open stream) (name={Name}-{item.Index}, uri={item.Source?.Source.Uri})");
                 return;
             }
 
@@ -340,7 +346,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (newBitmap is null)
         {
-            Logger.W(TAG, $"Decode failed (Unknown format) (i={Name}-{item.Index},uri={item.Source?.Source.Uri})");
+            Logger.W(TAG, $"Decode failed (Unknown format) (name={Name}-{item.Index}, uri={item.Source?.Source.Uri})");
             return;
         }
 
@@ -386,7 +392,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PerformLayout(InstanceResourceModel res, int version)
     {
-        Logger.I(TAG, $"Layout (i={Name},v={version})");
+        Log("Layout", $"name={Name}, v={version}");
         DrawingItem?[] items;
         SizeF[] frameSizes;
         lock (res._images)
@@ -473,7 +479,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
                 try
                 {
-                    Logger.I(TAG, $"Clear (i={Name},v={version})");
+                    Log("Layout", $"Clear (name={Name}, v={version})");
                     res.DisposeCompositionComponents();
                 }
                 finally
@@ -577,7 +583,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             try
             {
-                Logger.I(TAG, $"Composite (i={Name},v={version})");
+                Log("Composite", $"name={Name}, v={version}");
                 PerformComposition(res, items, mergedFrameSize, canvasSize);
             }
             finally
@@ -631,7 +637,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (_compositionGroup is not null)
         {
-            Logger.I(TAG, $"Composite remove group (i={Name},gi={_compositionGroup.Id})");
+            Log("Composite", $"Remove group (name={Name}, group={_compositionGroup.Id})");
             ReaderImageUpdateScheduler.Instance.RemoveGroup(_compositionGroup);
             _compositionGroup = null;
         }
@@ -658,7 +664,8 @@ internal partial class ReaderImageCompositor : IDisposable
             ResourceRef = res._groupRenderResource,
             Items = compositionItems
         };
-        Logger.I(TAG, $"Composite add group (i={Name},gi={_compositionGroup.Id})");
+
+        Log("Composite", $"Add group (name={Name},group={_compositionGroup.Id})");
         ReaderImageUpdateScheduler.Instance.AddGroup(_compositionGroup);
     }
 
