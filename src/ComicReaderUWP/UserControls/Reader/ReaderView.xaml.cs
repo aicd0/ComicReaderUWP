@@ -687,6 +687,7 @@ internal partial class ReaderView : UserControl
         CurrentFrameIndex = 0;
         _minZoomFactor = double.MaxValue;
         _maxZoomFactor = double.MinValue;
+        _isPreciseScrolling = false;
         SCClearFinalVal("Reload");
         Log("Reload", $"IP={InitialPage},LP={PageCount}");
 
