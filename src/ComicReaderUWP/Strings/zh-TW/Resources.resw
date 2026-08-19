@@ -192,6 +192,9 @@
   <data name="AutoSwitch" xml:space="preserve">
     <value>自動切換</value>
   </data>
+  <data name="AutoToggleOverlaysOnCursor" xml:space="preserve">
+    <value>根據游標位置自動顯示或隱藏未固定的浮層</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>背景</value>
   </data>

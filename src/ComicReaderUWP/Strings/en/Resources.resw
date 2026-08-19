@@ -192,6 +192,9 @@
   <data name="AutoSwitch" xml:space="preserve">
     <value>Auto switch</value>
   </data>
+  <data name="AutoToggleOverlaysOnCursor" xml:space="preserve">
+    <value>Automatically show or hide unpinned overlays based on cursor position</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>Background</value>
   </data>

@@ -192,6 +192,9 @@
   <data name="AutoSwitch" xml:space="preserve">
     <value>Changement automatique</value>
   </data>
+  <data name="AutoToggleOverlaysOnCursor" xml:space="preserve">
+    <value>Afficher ou masquer automatiquement les superpositions non épinglées selon la position du curseur</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>Arrière-plan</value>
   </data>

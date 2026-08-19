@@ -216,15 +216,11 @@ internal sealed partial class MainPage : BasePage
             ViewModel.Refreshing = scanning;
         });
 
-        GetWindowEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, delegate (double opacity)
+        GetWindowEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, opacity =>
         {
             TopTile.Opacity = opacity;
             SidebarSplitView.Opacity = opacity;
-
-            if (_tabContainerGrid is not null)
-            {
-                _tabContainerGrid.Opacity = opacity;
-            }
+            _tabContainerGrid?.Opacity = opacity;
         });
 
         GetWindowEventBus().With<string>(EventId.CloseTab).Observe(this, CloseTabNoLock);
@@ -904,11 +900,7 @@ internal sealed partial class MainPage : BasePage
         bool isVisible = _isOverlayVisible || _isHiddenOverlayHitTestVisible;
         TopTile.IsHitTestVisible = isVisible;
         SidebarSplitView.IsHitTestVisible = isVisible;
-
-        if (_tabContainerGrid is not null)
-        {
-            _tabContainerGrid.IsHitTestVisible = isVisible;
-        }
+        _tabContainerGrid?.IsHitTestVisible = isVisible;
     }
 
     //

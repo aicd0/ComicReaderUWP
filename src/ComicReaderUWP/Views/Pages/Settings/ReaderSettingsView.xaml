@@ -43,6 +43,10 @@
             Content="{x:Bind StringResource.StartEndFromScrollingArea}"
             IsChecked="{x:Bind ViewModel.UseScrollingAreaAsStartEnd, Mode=TwoWay}" />
         <CheckBox
+            Click="AutoToggleOverlaysOnCursorCheckBox_Click"
+            Content="{x:Bind StringResource.AutoToggleOverlaysOnCursor}"
+            IsChecked="{x:Bind ViewModel.AutoToggleOverlaysOnCursor, Mode=TwoWay}" />
+        <CheckBox
             Click="HideCursorAutomaticallyCheckBox_Click"
             Content="{x:Bind StringResource.HideCursorAutomatically}"
             IsChecked="{x:Bind ViewModel.AutomaticallyHideCursor, Mode=TwoWay}" />

@@ -192,6 +192,9 @@
   <data name="AutoSwitch" xml:space="preserve">
     <value>자동 전환</value>
   </data>
+  <data name="AutoToggleOverlaysOnCursor" xml:space="preserve">
+    <value>커서 위치에 따라 고정되지 않은 오버레이 자동 표시 또는 숨기기</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>배경</value>
   </data>
