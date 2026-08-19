@@ -75,12 +75,16 @@ internal sealed partial class ReaderListView : BaseUserControl
         view.RefreshAllItems();
     }
 
+    private bool _isChanging = false;
     private INotifyCollectionChanged? _collectionChangedSource;
     private readonly LayoutCache _layoutCache = new();
     private readonly List<int> _containerToItemIndexMapper = [];
     private readonly List<int> _visibleItemIndices = [];
-    private readonly Queue<UIElement> _recycledContainers = [];
-    private bool _isChanging = false;
+
+    // In a recycle-then-reuse routine, loaded containers will be presented at the top of the stack,
+    // which allows DataContextChange events to be immediately triggered for those new items at the
+    // front of the list. This way we are able to preserve the loading order for new items.
+    private readonly Stack<UIElement> _recycledContainers = [];
 
     public DataTemplate? ItemTemplate
     {
@@ -402,7 +406,7 @@ internal sealed partial class ReaderListView : BaseUserControl
 
         if (_recycledContainers.Count > 0)
         {
-            container = _recycledContainers.Dequeue();
+            container = _recycledContainers.Pop();
             if (container is FrameworkElement frameworkElement)
             {
                 frameworkElement.DataContext = item;
@@ -441,6 +445,6 @@ internal sealed partial class ReaderListView : BaseUserControl
             frameworkElement.DataContext = null;
         }
 
-        _recycledContainers.Enqueue(container);
+        _recycledContainers.Push(container);
     }
 }
