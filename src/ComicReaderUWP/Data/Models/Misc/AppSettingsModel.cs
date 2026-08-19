@@ -37,7 +37,7 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     // Properties
     //
 
-    public bool AutomaticallyHideCursor
+    public bool AutoHideCursor
     {
         get
         {
@@ -59,6 +59,19 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         set
         {
             Write(model => model.AutoSwitch = value);
+            Save();
+        }
+    }
+
+    public bool AutoToggleOverlaysOnCursor
+    {
+        get
+        {
+            return Read(model => model.AutoToggleOverlaysOnCursor ?? true);
+        }
+        set
+        {
+            Write(model => model.AutoToggleOverlaysOnCursor = value);
             Save();
         }
     }
@@ -611,11 +624,14 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
     public class JsonModel
     {
-        [JsonPropertyName("AutomaticallyHideCursor")]
-        public bool? AutomaticallyHideCursor { get; set; }
-
         [JsonPropertyName("AutoSwitch")]
         public bool? AutoSwitch { get; set; }
+
+        [JsonPropertyName("AutoToggleOverlaysOnCursor")]
+        public bool? AutoToggleOverlaysOnCursor { get; set; }
+
+        [JsonPropertyName("AutomaticallyHideCursor")]
+        public bool? AutomaticallyHideCursor { get; set; }
 
         [JsonPropertyName("Background")]
         public string? Background { get; set; }

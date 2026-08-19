@@ -219,6 +219,10 @@ internal sealed partial class ReaderPage : BasePage
         GetWindowEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, opacity =>
         {
             BottomGrid.Opacity = opacity;
+
+            bool autoToggleOverlaysOnCursor = AppSettingsModel.Instance.AutoToggleOverlaysOnCursor;
+            BottomGrid.IsHitTestVisible = autoToggleOverlaysOnCursor || opacity >= 0.5;
+            GetMainPageAbility().SetHiddenOverlayHitTestVisibility(autoToggleOverlaysOnCursor);
         });
 
         GetMainWindowAbility().RegisterMinimizeChangedHandler(this, isMinimized =>
@@ -780,19 +784,26 @@ internal sealed partial class ReaderPage : BasePage
 
         _shouldOverlayVisible = shouldOverlayVisible;
 
-        if (shouldOverlayVisible)
+        if (AppSettingsModel.Instance.AutoToggleOverlaysOnCursor)
         {
-            ShowOverlay();
-        }
-        else
-        {
-            TryHideOverlay(1000);
+            if (shouldOverlayVisible)
+            {
+                ShowOverlay();
+            }
+            else
+            {
+                TryHideOverlay(1000);
+            }
         }
     }
 
     private void TryHideOverlay(int delayMilliseconds = 0)
     {
-        if (!_isOverlayVisible)
+        if (!_isOverlayVisible ||
+            ViewModel.IsPinned ||
+            _isOverlayHold ||
+            _shouldOverlayVisible ||
+            GridViewModeEnabled)
         {
             return;
         }
@@ -823,14 +834,6 @@ internal sealed partial class ReaderPage : BasePage
 
             _hideOverlayDeadline = GetTick() + delayMilliseconds;
             PostHideTask(delayMilliseconds);
-            return;
-        }
-
-        if (ViewModel.IsPinned ||
-            _isOverlayHold ||
-            _shouldOverlayVisible ||
-            GridViewModeEnabled)
-        {
             return;
         }
 

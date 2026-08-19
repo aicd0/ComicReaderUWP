@@ -27,7 +27,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _transitionAnimation = true;
+    private bool _transitionAnimation;
     public bool TransitionAnimation
     {
         get => _transitionAnimation;
@@ -38,7 +38,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _restoreLastReadingPosition = true;
+    private bool _restoreLastReadingPosition;
     public bool RestoreLastReadingPosition
     {
         get => _restoreLastReadingPosition;
@@ -49,7 +49,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _restoreLastReadingPositionOnlyAppliesToReadingComics = true;
+    private bool _restoreLastReadingPositionOnlyAppliesToReadingComics;
     public bool RestoreLastReadingPositionOnlyAppliesToReadingComics
     {
         get => _restoreLastReadingPositionOnlyAppliesToReadingComics;
@@ -60,7 +60,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _useScrollingAreaAsStartEnd = true;
+    private bool _useScrollingAreaAsStartEnd;
     public bool UseScrollingAreaAsStartEnd
     {
         get => _useScrollingAreaAsStartEnd;
@@ -71,7 +71,18 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _automaticallyHideCursor = true;
+    private bool _autoToggleOverlaysOnCursor;
+    public bool AutoToggleOverlaysOnCursor
+    {
+        get => _autoToggleOverlaysOnCursor;
+        set
+        {
+            _autoToggleOverlaysOnCursor = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoToggleOverlaysOnCursor)));
+        }
+    }
+
+    private bool _automaticallyHideCursor;
     public bool AutomaticallyHideCursor
     {
         get => _automaticallyHideCursor;
@@ -82,7 +93,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private int _preloadPagesAfter = 0;
+    private int _preloadPagesAfter;
     public int PreloadPagesAfter
     {
         get => _preloadPagesAfter;
@@ -93,7 +104,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private int _preloadPagesBefore = 0;
+    private int _preloadPagesBefore;
     public int PreloadPagesBefore
     {
         get => _preloadPagesBefore;
@@ -115,7 +126,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    private int _keepScreenOnBehaviorIndex = 0;
+    private int _keepScreenOnBehaviorIndex;
     public int KeepScreenOnBehaviorIndex
     {
         get => _keepScreenOnBehaviorIndex;
@@ -179,7 +190,8 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
             RestoreLastReadingPosition = AppSettingsModel.Instance.RestoreLastReadingPosition;
             RestoreLastReadingPositionOnlyAppliesToReadingComics = AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics;
             UseScrollingAreaAsStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
-            AutomaticallyHideCursor = AppSettingsModel.Instance.AutomaticallyHideCursor;
+            AutoToggleOverlaysOnCursor = AppSettingsModel.Instance.AutoToggleOverlaysOnCursor;
+            AutomaticallyHideCursor = AppSettingsModel.Instance.AutoHideCursor;
             PreloadPagesAfter = AppSettingsModel.Instance.PreloadPagesAfter;
             PreloadPagesBefore = AppSettingsModel.Instance.PreloadPagesBefore;
         });

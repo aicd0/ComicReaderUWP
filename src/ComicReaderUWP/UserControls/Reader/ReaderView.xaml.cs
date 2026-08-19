@@ -1380,7 +1380,7 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppSettingsModel.Instance.AutomaticallyHideCursor)
+        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppSettingsModel.Instance.AutoHideCursor)
         {
             ShowCursor();
             HideCursorDelayed(3000);

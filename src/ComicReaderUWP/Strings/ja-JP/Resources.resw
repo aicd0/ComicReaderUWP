@@ -192,6 +192,9 @@
   <data name="AutoSwitch" xml:space="preserve">
     <value>自動切り替え</value>
   </data>
+  <data name="AutoToggleOverlaysOnCursor" xml:space="preserve">
+    <value>カーソルの位置に応じて固定されていないオーバーレイを自動的に表示・非表示</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>背景</value>
   </data>

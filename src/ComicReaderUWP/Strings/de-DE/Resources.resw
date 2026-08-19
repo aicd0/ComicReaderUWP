@@ -192,6 +192,9 @@
   <data name="AutoSwitch" xml:space="preserve">
     <value>Automatischer wechsel</value>
   </data>
+  <data name="AutoToggleOverlaysOnCursor" xml:space="preserve">
+    <value>Nicht angeheftete Overlays automatisch je nach Cursorposition ein- oder ausblenden</value>
+  </data>
   <data name="Background" xml:space="preserve">
     <value>Hintergrund</value>
   </data>

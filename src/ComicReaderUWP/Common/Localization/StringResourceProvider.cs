@@ -32,6 +32,7 @@ public class StringResourceProvider
     public string Auto => GetResourceString("Auto");
     public string AutoScrolling => GetResourceString("AutoScrolling");
     public string AutoSwitch => GetResourceString("AutoSwitch");
+    public string AutoToggleOverlaysOnCursor => GetResourceString("AutoToggleOverlaysOnCursor");
     public string Background => GetResourceString("Background");
     public string BackgroundAcrylic => GetResourceString("BackgroundAcrylic");
     public string Calculating => GetResourceString("Calculating");
