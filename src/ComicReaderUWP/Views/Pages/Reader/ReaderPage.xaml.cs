@@ -14,7 +14,6 @@ using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
-using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
@@ -291,7 +290,7 @@ internal sealed partial class ReaderPage : BasePage
             }
         });
 
-        ViewModel.ComicChangedLiveData.ObserveSticky(this, delegate
+        ViewModel.ComicChangedLiveData.ObserveSticky(this, _ =>
         {
             SyncCurrentComic();
         });
@@ -1099,18 +1098,15 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         HashSet<int> pageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount);
-        TaskDispatcher.DefaultThreadPool.Submit(() =>
+        CoroutineUtils.Run(async () =>
         {
-            CoroutineUtils.Run(async () =>
+            ComicChangedEventArgs args = new()
             {
-                ComicChangedEventArgs args = new()
-                {
-                    Comic = comic,
-                    Playlist = ViewModel.Playlist,
-                    ImageDescriptions = await ViewModel.GetImageDescriptions(pageIndices),
-                };
-                GetWindowEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
-            });
+                Comic = comic,
+                Playlist = ViewModel.Playlist,
+                ImageDescriptions = await ViewModel.GetImageDescriptions(pageIndices),
+            };
+            GetWindowEventBus().With<ComicChangedEventArgs>(EventId.ComicInfoChanged).Emit(args);
         });
 
         if (comic is not null)

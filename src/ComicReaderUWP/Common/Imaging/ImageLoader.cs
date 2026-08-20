@@ -86,24 +86,12 @@ internal static partial class ImageLoader
 
     public static async Task<SizeF?> TryGetOriginalDimension(IImageSource source)
     {
-        if (MainThreadUtils.IsMainThread())
-        {
-            Logger.F(TAG, "GetOriginalDimension cannot be called on main thread");
-            return null;
-        }
-
         using CacheRequestContext context = new(source);
         return await TryGetOriginalDimension(context);
     }
 
     public static async Task<ImageMeta?> GetImageMeta(IImageSource source)
     {
-        if (MainThreadUtils.IsMainThread())
-        {
-            Logger.F(TAG, "GetImageMeta cannot be called on main thread");
-            return null;
-        }
-
         using CacheRequestContext context = new(source);
         return await GetImageMeta(context);
     }
