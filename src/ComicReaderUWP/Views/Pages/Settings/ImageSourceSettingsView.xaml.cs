@@ -85,7 +85,7 @@ internal sealed partial class ImageSourceSettingsView : BaseUserControl
             .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
             .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
             .Build();
-        ViewModel.Shared.ActionHandler.Handle(action);
+        ViewModel.Shared.ActionHandler.HandleNoResult(action);
     }
 
     private void DefaultArchiveCodePageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

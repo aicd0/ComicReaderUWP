@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.Linq;
 
 using ComicReaderUWP.Common.Actions;
-using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Common.Algorithm;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
@@ -17,9 +16,7 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
-using ComicReaderUWP.UserControls.ComicItemView;
 using ComicReaderUWP.ViewModels;
-using ComicReaderUWP.Views.Pages.Home;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -117,6 +114,17 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isAnyComicSelected = false;
+    public bool IsAnyComicSelected
+    {
+        get => _isAnyComicSelected;
+        set
+        {
+            _isAnyComicSelected = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAnyComicSelected)));
+        }
+    }
+
     private bool _isCommandBarSelectAllToggled = false;
     public bool IsCommandBarSelectAllToggled
     {
@@ -147,17 +155,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         {
             _isCommandBarUnFavoriteEnabled = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnFavoriteEnabled)));
-        }
-    }
-
-    private bool _isCommandBarCompletionStatusEnabled = false;
-    public bool IsCommandBarCompletionStatusEnabled
-    {
-        get => _isCommandBarCompletionStatusEnabled;
-        set
-        {
-            _isCommandBarCompletionStatusEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarCompletionStatusEnabled)));
         }
     }
 
@@ -236,15 +233,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         UpdateCommandBarButtonStates();
     }
 
-    public void ApplyOperationToComicSelection(ComicOperationType operationType)
-    {
-        List<ComicItemViewModel> selectedItems = [.. _selectedItems];
-        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-        {
-            await HomePageViewModel.BatchApplyOperation(operationType, selectedItems);
-        }));
-    }
-
     public IReadOnlyList<ComicModel> GetSelectedComics()
     {
         return [.. _selectedItems.Select(x => x.Comic)];
@@ -253,14 +241,16 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
     private void UpdateCommandBarButtonStates()
     {
         bool allSelected = _selectedItems.Count == SearchResults.Count;
+        bool anySelected = false;
         bool favoriteEnabled = false;
         bool unfavoriteEnabled = false;
-        bool completionStatusEnabled = false;
         bool hideEnabled = false;
         bool unhideEnabled = false;
 
         foreach (ComicItemViewModel item in _selectedItems)
         {
+            anySelected = true;
+
             if (item.IsFavorite)
             {
                 unfavoriteEnabled = true;
@@ -269,8 +259,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
             {
                 favoriteEnabled = true;
             }
-
-            completionStatusEnabled = true;
 
             if (item.IsHide)
             {
@@ -282,10 +270,10 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
             }
         }
 
+        IsAnyComicSelected = anySelected;
         IsCommandBarSelectAllToggled = allSelected;
         IsCommandBarFavoriteEnabled = favoriteEnabled;
         IsCommandBarUnFavoriteEnabled = unfavoriteEnabled;
-        IsCommandBarCompletionStatusEnabled = completionStatusEnabled;
         IsCommandBarHideEnabled = hideEnabled;
         IsCommandBarUnHideEnabled = unhideEnabled;
     }

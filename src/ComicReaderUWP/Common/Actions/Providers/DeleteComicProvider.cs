@@ -12,9 +12,9 @@ using ComicReaderUWP.Views.Dialogs.EditComicInfo;
 
 namespace ComicReaderUWP.Common.Actions.Providers;
 
-internal class EditComicProvider : IActionProvider
+internal class DeleteComicProvider : IActionProvider
 {
-    public const string NAME = "EditComic";
+    public const string NAME = "DeleteComic";
     public const string PARAM_COMIC_ID = "ComicId";
 
     public string Name => NAME;

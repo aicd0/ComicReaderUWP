@@ -216,7 +216,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                     .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                     .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                     .Build();
-                _actionHandler.Handle(actionModel);
+                _actionHandler.HandleNoResult(actionModel);
             },
         });
 
@@ -231,7 +231,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                     .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                     .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
                     .Build();
-                _actionHandler.Handle(actionModel);
+                _actionHandler.HandleNoResult(actionModel);
             },
         });
 
@@ -248,7 +248,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                     ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
                         .AddParameter(FullscreenServiceProvider.PARAM_ENTER, "0")
                         .Build();
-                    _actionHandler.Handle(actionModel);
+                    _actionHandler.HandleNoResult(actionModel);
                 },
             });
         }
@@ -263,7 +263,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                     ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
                         .AddParameter(FullscreenServiceProvider.PARAM_ENTER, "1")
                         .Build();
-                    _actionHandler.Handle(actionModel);
+                    _actionHandler.HandleNoResult(actionModel);
                 },
             });
         }
@@ -293,7 +293,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                     .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                     .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                     .Build();
-                _actionHandler.Handle(actionModel);
+                _actionHandler.HandleNoResult(actionModel);
             },
         });
 
@@ -310,7 +310,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
                         .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                         .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
                         .Build();
-                    _actionHandler.Handle(actionModel);
+                    _actionHandler.HandleNoResult(actionModel);
                 },
             });
         }

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Specialized;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.Utils;
@@ -18,13 +19,12 @@ internal class MessageDialogProvider : IActionProvider
 
     public string Name => NAME;
 
-    public void Handle(IActionProviderContext context, NameValueCollection parameters)
+    public async Task<ActionResult> Handle(IActionProviderContext context, NameValueCollection parameters)
     {
         IMainWindowComponent? mainWindowCom = context.GetComponent<IMainWindowComponent>();
         if (mainWindowCom is null)
         {
-            context.SetError("No IMainWindowComponent component found.");
-            return;
+            return ActionResult.FromFailure("IMainWindowComponent component not found.");
         }
 
         string title = parameters[PARAM_TITLE] ?? "Untitled";
@@ -34,6 +34,6 @@ internal class MessageDialogProvider : IActionProvider
             .SetContent(message)
             .Build();
         CoroutineUtils.Run(() => DialogUtils.EnqueueDialogAsync(mainWindowCom.WindowId, options));
-        context.SetSuccess();
+        return ActionResult.FromSuccess();
     }
 }

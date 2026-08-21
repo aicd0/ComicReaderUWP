@@ -146,6 +146,6 @@ internal partial class EventRecorder
             .AddParameter(MessageDialogProvider.PARAM_TITLE, StringResourceProvider.Instance.Error)
             .AddParameter(MessageDialogProvider.PARAM_MESSAGE, StringResourceProvider.Instance.ErrorCommonDescription + "\n" + detailedMessage)
             .Build();
-        actionHandler.Handle(actionModel);
+        actionHandler.HandleNoResult(actionModel);
     }
 }

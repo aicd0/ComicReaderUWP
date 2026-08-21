@@ -6,8 +6,4 @@ namespace ComicReaderUWP.Common.Actions;
 internal interface IActionProviderContext
 {
     T? GetComponent<T>() where T : IActionComponent;
-
-    void SetError(string message);
-
-    void SetSuccess();
 }

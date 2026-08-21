@@ -24,6 +24,7 @@ using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
@@ -89,7 +90,7 @@ internal static class MenuFlyoutItemsCreator
                     .AddParameter(OpenTabProvider.PARAM_URL, primaryComicRoute.Url)
                     .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                     .Build();
-                actionHandler.Handle(actionModel);
+                actionHandler.HandleNoResult(actionModel);
             },
         });
 
@@ -98,6 +99,20 @@ internal static class MenuFlyoutItemsCreator
             Text = StringResourceProvider.Instance.SendToWindow,
             Icon = new FontIconSource() { Glyph = "\uE78B" },
             Items = CreateSendToWindowMenuItems(primaryComicRoute.Url, actionHandler),
+        });
+
+        items.Add(new SeparatorMenuFlyoutItemModel());
+
+        items.Add(new SimpleMenuFlyoutItemModel()
+        {
+            Text = StringResourceProvider.Instance.OpenInFileExplorer,
+            Icon = new FontIconSource() { Glyph = "\uE838" },
+            Click = () =>
+            {
+                var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
+                primaryComic.ShowInFileExplorer(er);
+                er.DisplayErrorMessage(actionHandler);
+            },
         });
 
         items.Add(new SeparatorMenuFlyoutItemModel());
@@ -197,11 +212,11 @@ internal static class MenuFlyoutItemsCreator
                 Click = () =>
                 {
                     List<ComicModel> items = [.. selectedComics];
-                    string idList = string.Join(',', items.ConvertAll(x => x.Id.ToString()));
+                    string idList = string.Join(',', items.Select(x => x.Id.ToString()));
                     ActionModel actionModel = ActionModel.Builder.Create(EditComicProvider.NAME)
                         .AddParameter(EditComicProvider.PARAM_COMIC_ID, idList)
                         .Build();
-                    actionHandler.Handle(actionModel);
+                    actionHandler.HandleNoResult(actionModel);
                 },
             });
         }
@@ -210,13 +225,23 @@ internal static class MenuFlyoutItemsCreator
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {
-            Text = StringResourceProvider.Instance.OpenInFileExplorer,
-            Icon = new FontIconSource() { Glyph = "\uE838" },
+            Text = StringResourceProvider.Instance.Delete,
+            Icon = new FontIconSource()
+            {
+                Glyph = "\uE74D",
+                Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 69, 0)),
+            },
             Click = () =>
             {
-                var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
-                primaryComic.ShowInFileExplorer(er);
-                er.DisplayErrorMessage(actionHandler);
+                CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
+                {
+                    List<ComicModel> items = [.. selectedComics];
+                    string idList = string.Join(',', items.Select(x => x.Id.ToString()));
+                    ActionModel actionModel = ActionModel.Builder.Create(DeleteComicProvider.NAME)
+                        .AddParameter(DeleteComicProvider.PARAM_COMIC_ID, idList)
+                        .Build();
+                    await actionHandler.Handle(actionModel);
+                }));
             },
         });
 
@@ -284,7 +309,7 @@ internal static class MenuFlyoutItemsCreator
                     .AddParameter(CustomActionProvider.PARAM_SOURCE, CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU)
                     .AddParameter(CustomActionProvider.PARAM_NAME, CUSTOM_ACTION_NAME_SELECT)
                     .Build();
-                actionHandler.Handle(actionModel);
+                actionHandler.HandleNoResult(actionModel);
             },
         };
     }
@@ -419,7 +444,7 @@ internal static class MenuFlyoutItemsCreator
                         .AddParameter(OpenTabProvider.PARAM_URL, url)
                         .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, windowId.ToString())
                         .Build();
-                    actionHandler.Handle(actionModel);
+                    actionHandler.HandleNoResult(actionModel);
                 }
             });
         }
@@ -433,7 +458,7 @@ internal static class MenuFlyoutItemsCreator
                     .AddParameter(OpenTabProvider.PARAM_URL, url)
                     .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
                     .Build();
-                actionHandler.Handle(actionModel);
+                actionHandler.HandleNoResult(actionModel);
             }
         });
 
@@ -509,7 +534,7 @@ internal static class MenuFlyoutItemsCreator
                                 .AddParameter(MessageDialogProvider.PARAM_TITLE, StringResourceProvider.Instance.LinkErrorTitle)
                                 .AddParameter(MessageDialogProvider.PARAM_MESSAGE, StringResourceProvider.Instance.LinkErrorContent.Replace("$link", link.Link))
                                 .Build();
-                            actionHandler.Handle(actionModel);
+                            actionHandler.HandleNoResult(actionModel);
                         }
                     }
                 });
@@ -552,7 +577,7 @@ internal static class MenuFlyoutItemsCreator
                             .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                             .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                             .Build();
-                        actionHandler.Handle(actionModel);
+                        actionHandler.HandleNoResult(actionModel);
                     }
                 });
             }

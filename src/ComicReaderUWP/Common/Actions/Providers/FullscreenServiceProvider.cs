@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Specialized;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Views.AppWindows.Main;
@@ -16,7 +17,7 @@ internal class FullscreenServiceProvider : IActionProvider
 
     public string Name => NAME;
 
-    public void Handle(IActionProviderContext context, NameValueCollection parameters)
+    public async Task<ActionResult> Handle(IActionProviderContext context, NameValueCollection parameters)
     {
         string windowIdString = parameters[PARAM_WINDOW_ID] ?? string.Empty;
         int windowId;
@@ -25,31 +26,27 @@ internal class FullscreenServiceProvider : IActionProvider
             IMainWindowComponent? mainWindowCom = context.GetComponent<IMainWindowComponent>();
             if (mainWindowCom is null)
             {
-                context.SetError("IMainWindowComponent component not found.");
-                return;
+                return ActionResult.FromFailure("IMainWindowComponent component not found.");
             }
 
             windowId = mainWindowCom.WindowId;
         }
         else if (!int.TryParse(windowIdString, out windowId) || windowId < 0)
         {
-            context.SetError($"'{windowIdString}' is not a valid window ID.");
-            return;
+            return ActionResult.FromFailure($"'{windowIdString}' is not a valid window ID.");
         }
 
         string enterString = parameters[PARAM_ENTER] ?? string.Empty;
         if (enterString != "0" && enterString != "1")
         {
-            context.SetError($"Invalid Enter parameter '{enterString}'.");
-            return;
+            return ActionResult.FromFailure($"Invalid Enter parameter '{enterString}'.");
         }
 
         bool enter = enterString == "1";
         MainWindow? window = App.Instance.WindowManager.GetWindow(windowId);
         if (window is null)
         {
-            context.SetError($"Window {windowId} not found.");
-            return;
+            return ActionResult.FromFailure($"Window {windowId} not found.");
         }
 
         if (enter)
@@ -61,6 +58,6 @@ internal class FullscreenServiceProvider : IActionProvider
             window.ExitFullscreen();
         }
 
-        context.SetSuccess();
+        return ActionResult.FromSuccess();
     }
 }
