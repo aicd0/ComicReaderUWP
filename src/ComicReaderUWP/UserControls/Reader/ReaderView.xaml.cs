@@ -2179,8 +2179,8 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    private int _SCCurrentPageFinal;
-    private int SCCurrentPageFinal
+    private double _SCCurrentPageFinal;
+    private double SCCurrentPageFinal
     {
         get
         {
@@ -2266,7 +2266,7 @@ internal partial class ReaderView : UserControl
 
         _finalValueSynced = true;
         _SCCurrentFrameIndexFinal = CurrentFrameIndex;
-        _SCCurrentPageFinal = ToDiscretePage(CurrentPage);
+        _SCCurrentPageFinal = CurrentPage;
         _SCHorizontalOffsetFinal = HorizontalOffset;
         _SCVerticalOffsetFinal = VerticalOffset;
         _SCZoomFactorFinal = ZoomFactor;
@@ -2286,28 +2286,42 @@ internal partial class ReaderView : UserControl
 
     private void MoveFrameInternal(string reason, ScrollSource source, int increment)
     {
-        if (_frameItemsSource.Count == 0)
+        int currentFrame = SCCurrentFrameIndexFinal;
+        if (currentFrame < 0 || currentFrame >= _frameItemsSource.Count)
         {
             return;
         }
 
-        int frame = SCCurrentFrameIndexFinal + increment;
+        double currentPage = SCCurrentPageFinal;
+        double currentFramePage = _frameItemsSource[currentFrame].Page;
+        double pageDiff = currentPage - currentFramePage;
 
-        if (frame >= _frameItemsSource.Count)
+        if (pageDiff > 0.1 && increment < 0)
+        {
+            increment++;
+        }
+        else if (pageDiff < -0.1 && increment > 0)
+        {
+            increment--;
+        }
+
+        int targetFrame = currentFrame + increment;
+
+        if (targetFrame >= _frameItemsSource.Count)
         {
             DispatchOverScrollEvent(true);
             return;
         }
 
-        if (frame < 0)
+        if (targetFrame < 0)
         {
             DispatchOverScrollEvent(false);
             return;
         }
 
-        double page = _frameItemsSource[frame].Page;
+        double targetPage = _frameItemsSource[targetFrame].Page;
         float? zoom = _zoom > 1.01F ? 1F : null;
-        SetScrollViewer2(reason, source, zoom: zoom, page: page, disableAnimation: !AppSettingsModel.Instance.TransitionAnimation);
+        SetScrollViewer2(reason, source, zoom: zoom, page: targetPage, disableAnimation: !AppSettingsModel.Instance.TransitionAnimation);
     }
 
     private ScrollResult SetScrollViewer1(
@@ -2516,8 +2530,8 @@ internal partial class ReaderView : UserControl
 
         if (request.Page.HasValue)
         {
-            int targetPage = ToDiscretePage(request.Page.Value);
-            if (!TryConvertPageToFrameIndex(targetPage, out int targetFrameIndex))
+            double targetPage = request.Page.Value;
+            if (!TryConvertPageToFrameIndex(ToDiscretePage(targetPage), out int targetFrameIndex))
             {
                 context.Result = ScrollResult.UnknownFailure;
                 return;
@@ -2563,7 +2577,7 @@ internal partial class ReaderView : UserControl
         ReaderFrameViewModel? newFrame = null;
         ZoomCoefficient? zoomCoefficientNew = null;
         {
-            int pageNew = request.Page.HasValue ? (int)Math.Round(request.Page.Value) : SCCurrentPageFinal;
+            int pageNew = (int)Math.Round(request.Page ?? SCCurrentPageFinal);
             pageNew = Math.Max(1, Math.Min(pageNew, PageCount));
 
             if (pageNew > PageCount)
