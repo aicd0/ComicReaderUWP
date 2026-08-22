@@ -499,8 +499,7 @@ internal abstract partial class ComicHandle
             {
                 if (_isLibraryScanPending)
                 {
-                    // Fast exit
-                    return;
+                    return; // Fast exit
                 }
 
                 switch (itemInfo.Type)
@@ -837,6 +836,11 @@ internal abstract partial class ComicHandle
                     .Execute();
             });
         });
+    }
+
+    public void MarkAsExternal()
+    {
+        Id = -1;
     }
 
     //

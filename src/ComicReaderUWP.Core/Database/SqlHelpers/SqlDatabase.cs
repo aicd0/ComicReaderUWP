@@ -5,7 +5,7 @@ using Microsoft.Data.Sqlite;
 
 namespace ComicReaderUWP.Core.Database.SqlHelpers;
 
-public sealed class SqlDatabase : IDisposable
+public sealed partial class SqlDatabase : IDisposable
 {
     private readonly string _filePath;
     private readonly SqliteConnection _connection;
