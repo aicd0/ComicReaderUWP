@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
@@ -230,27 +231,31 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return _internalModel.OpenComic();
     }
 
-    public void ShowInFileExplorer(EventRecorder er)
+    public ErrorLogger<bool> ShowInFileExplorer()
     {
+        var err = ErrorLogger<bool>.Create(TAG);
+
         string fileExplorerPath = _internalModel.FileExplorerPath;
         if (string.IsNullOrEmpty(fileExplorerPath))
         {
-            er.SetError("ShowInFileExplorer: FileExplorerPath is null or empty.", fatal: true);
-            return;
+            err.SetError("ShowInFileExplorer: FileExplorerPath is null or empty.", isFatal: true);
+            return err;
         }
 
         if (File.Exists(fileExplorerPath))
         {
-            StartProcess(er, "explorer.exe", $"/select,\"{fileExplorerPath}\"");
+            StartProcess("explorer.exe", $"/select,\"{fileExplorerPath}\"").CopyErrorTo(err);
         }
         else if (Directory.Exists(fileExplorerPath))
         {
-            StartProcess(er, "explorer.exe", $"\"{fileExplorerPath}\"");
+            StartProcess("explorer.exe", $"\"{fileExplorerPath}\"").CopyErrorTo(err);
         }
         else
         {
-            er.SetError($"Path does not exist: {fileExplorerPath}");
+            err.SetError($"Path does not exist: {fileExplorerPath}");
         }
+
+        return err;
     }
 
     //
@@ -668,20 +673,24 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Static Helpers
     //
 
-    private static void StartProcess(EventRecorder er, string fileName, string arguments)
+    private static ErrorLogger<bool> StartProcess(string fileName, string arguments)
     {
+        var err = ErrorLogger<bool>.Create(TAG);
+
         try
         {
             Process.Start(fileName, arguments);
         }
         catch (Win32Exception ex)
         {
-            er.SetError(ex.Message);
+            err.SetError(ex.Message);
         }
         catch (Exception ex)
         {
-            er.SetError(ex, fatal: true);
+            err.SetError(ex, isFatal: true);
         }
+
+        return err;
     }
 
     private static void DispatchUpdateEvent()

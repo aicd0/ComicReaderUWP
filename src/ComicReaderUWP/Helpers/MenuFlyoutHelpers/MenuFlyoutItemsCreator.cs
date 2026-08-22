@@ -109,9 +109,7 @@ internal static class MenuFlyoutItemsCreator
             Icon = new FontIconSource() { Glyph = "\uE838" },
             Click = () =>
             {
-                var er = EventRecorder.Create("OpenInFileExplorer#OnClicked");
-                primaryComic.ShowInFileExplorer(er);
-                er.DisplayErrorMessage(actionHandler);
+                primaryComic.ShowInFileExplorer().DisplayErrorMessage(actionHandler);
             },
         });
 
