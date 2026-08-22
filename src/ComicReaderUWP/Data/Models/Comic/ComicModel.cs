@@ -612,12 +612,12 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Static Utilities
     //
 
-    public static void UpdateAllComics(string reason)
+    public static void RescanLibrary(string reason)
     {
-        ComicHandle.UpdateAllComics(reason);
+        ComicHandle.RescanLibrary(reason);
     }
 
-    public static async Task RemoveComics(IEnumerable<long> comicIds)
+    public static async Task RemoveComics(IEnumerable<ComicModel> comics)
     {
 
     }

@@ -93,7 +93,7 @@ internal sealed partial class HomePage : BasePage
 
         GetMainPageAbility().RegisterRefreshHandler(this, () =>
         {
-            ComicModel.UpdateAllComics("HomePage#RefreshPage");
+            ComicModel.RescanLibrary("HomePage#RefreshPage");
         });
 
         ViewModel.UrlLiveData.ObserveSticky(this, url =>
@@ -485,7 +485,7 @@ internal sealed partial class HomePage : BasePage
             }
 
             AppSettingsModel.Instance.AddComicFolder(folder.Path);
-            ComicModel.UpdateAllComics("HomePage#AddNewFolder");
+            ComicModel.RescanLibrary("HomePage#AddNewFolder");
         });
     }
 
@@ -496,7 +496,7 @@ internal sealed partial class HomePage : BasePage
 
     private void RefreshHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
     {
-        ComicModel.UpdateAllComics("RefreshPage");
+        ComicModel.RescanLibrary("RefreshPage");
     }
 
     //

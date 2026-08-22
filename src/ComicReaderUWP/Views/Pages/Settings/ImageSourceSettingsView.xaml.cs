@@ -74,7 +74,7 @@ internal sealed partial class ImageSourceSettingsView : BaseUserControl
 
     private void OnRescanFilesClicked(object sender, RoutedEventArgs e)
     {
-        ComicModel.UpdateAllComics("OnRescanFilesClicked");
+        ComicModel.RescanLibrary("OnRescanFilesClicked");
     }
 
     private void ShowHiddenComicButton_Click(object sender, RoutedEventArgs e)

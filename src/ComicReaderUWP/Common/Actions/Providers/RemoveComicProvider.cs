@@ -70,7 +70,7 @@ internal class RemoveComicProvider : IActionProvider
             return ActionResult.FromFailure("Cancelled by user.");
         }
 
-        await BusyStateManager.WithBusyState(() => ComicModel.RemoveComics(comics.Select(x => x.Id)));
+        await BusyStateManager.WithBusyState(() => ComicModel.RemoveComics(comics));
         return ActionResult.FromSuccess();
     }
 }
