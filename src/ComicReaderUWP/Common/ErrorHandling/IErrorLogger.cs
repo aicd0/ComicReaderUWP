@@ -12,7 +12,9 @@ internal interface IErrorLogger
 
     string Message { get; }
 
-    IReadOnlyList<IErrorLogger> Children { get; }
+    Exception? Exception { get; }
 
-    void SetError(string message, Exception? exception, bool isFatal);
+    bool IsFatal { get; }
+
+    IReadOnlyList<IErrorLogger> Children { get; }
 }

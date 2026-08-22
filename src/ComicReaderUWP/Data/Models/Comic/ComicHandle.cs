@@ -443,14 +443,21 @@ internal abstract partial class ComicHandle
                 ComicType type = pair.Value;
                 newLocations.Add(location);
 
-                if (!oldLocations.Contains(location))
+                if (oldLocations.Contains(location))
                 {
-                    updateQueue.Add(new UpdateItemInfo
-                    {
-                        Location = location,
-                        ItemType = type,
-                    });
+                    continue;
                 }
+
+                if (ComicImportExclusionModel.Instance.Contains(location))
+                {
+                    continue;
+                }
+
+                updateQueue.Add(new UpdateItemInfo
+                {
+                    Location = location,
+                    ItemType = type,
+                });
             }
 
             pendingLocations.Clear();

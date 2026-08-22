@@ -240,6 +240,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>모두 접기</value>
   </data>
+  <data name="ComicExclusionExplaination" xml:space="preserve">
+    <value>"제외 목록에 추가"를 선택하면 다음에 라이브러리를 업데이트할 때 이 만화가 다시 가져와지지 않습니다.</value>
+  </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>만화 정보</value>
   </data>
@@ -336,6 +339,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>편집하다</value>
+  </data>
+  <data name="EditImportExclusionList" xml:space="preserve">
+    <value>가져오기 제외 목록 편집</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>프리셋 편집</value>
@@ -799,7 +805,10 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
     <value>랜덤 시드 새로고침</value>
   </data>
   <data name="Remove" xml:space="preserve">
-    <value>제거하다</value>
+    <value>제거</value>
+  </data>
+  <data name="RemoveAndExclude" xml:space="preserve">
+    <value>제거 (제외 목록에 추가)</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>즐겨찾기에서 제거</value>

@@ -4,9 +4,11 @@
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.Views.Dialogs.ChooseLocation;
@@ -75,6 +77,16 @@ internal sealed partial class ImageSourceSettingsView : BaseUserControl
     private void OnRescanFilesClicked(object sender, RoutedEventArgs e)
     {
         ComicModel.RescanLibrary("OnRescanFilesClicked");
+    }
+
+    private void EditImportExclusionListButton_Click(object sender, RoutedEventArgs e)
+    {
+        CoroutineUtils.Run(async () =>
+        {
+            ErrorResult<bool> err = await ComicImportExclusionModel.Instance.EditWithNotepad();
+            err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+        });
+
     }
 
     private void ShowHiddenComicButton_Click(object sender, RoutedEventArgs e)

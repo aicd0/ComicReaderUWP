@@ -240,6 +240,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Contraer todo</value>
   </data>
+  <data name="ComicExclusionExplaination" xml:space="preserve">
+    <value>Seleccionar "añadir a la lista de exclusión" evitará que el cómic se vuelva a importar la próxima vez que se actualice la biblioteca.</value>
+  </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Información del cómic</value>
   </data>
@@ -336,6 +339,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Editar</value>
+  </data>
+  <data name="EditImportExclusionList" xml:space="preserve">
+    <value>Editar lista de exclusión de importación</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Editar ajuste preestablecido</value>
@@ -799,6 +805,9 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Eliminar</value>
+  </data>
+  <data name="RemoveAndExclude" xml:space="preserve">
+    <value>Eliminar (añadir a la lista de exclusión)</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Eliminar de favoritos</value>

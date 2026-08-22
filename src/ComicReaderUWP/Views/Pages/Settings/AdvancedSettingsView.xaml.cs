@@ -81,18 +81,21 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
 
     private async void OnOpenUserDataFolderClick(object sender, RoutedEventArgs e)
     {
-        var err = ErrorLogger<bool>.Create(nameof(OnOpenUserDataFolderClick));
+        ErrorResult<bool> err = await ErrorLogger<bool>.Run(nameof(OnOpenUserDataFolderClick), async err =>
+        {
+            string path = StorageLocation.LocalFolderPath;
+            try
+            {
+                Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
+                await Windows.System.Launcher.LaunchFolderAsync(folder);
+            }
+            catch (Exception ex)
+            {
+                return err.SetError(ex);
+            }
 
-        string path = StorageLocation.LocalFolderPath;
-        try
-        {
-            Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
-            await Windows.System.Launcher.LaunchFolderAsync(folder);
-        }
-        catch (Exception ex)
-        {
-            err.SetError(ex);
-        }
+            return err.SetResult(default);
+        });
 
         err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
     }

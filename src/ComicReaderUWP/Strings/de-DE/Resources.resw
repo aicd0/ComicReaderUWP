@@ -240,6 +240,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Alle ausblenden</value>
   </data>
+  <data name="ComicExclusionExplaination" xml:space="preserve">
+    <value>Mit der Option „zur Ausschlussliste hinzufügen“ wird verhindert, dass der Comic beim nächsten Aktualisieren der Bibliothek erneut importiert wird.</value>
+  </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Comic-Informationen</value>
   </data>
@@ -336,6 +339,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Bearbeiten</value>
+  </data>
+  <data name="EditImportExclusionList" xml:space="preserve">
+    <value>Import-Ausschlussliste bearbeiten</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Voreinstellung bearbeiten</value>
@@ -799,6 +805,9 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Entfernen</value>
+  </data>
+  <data name="RemoveAndExclude" xml:space="preserve">
+    <value>Entfernen (zur Ausschlussliste hinzufügen)</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Aus Favoriten entfernen</value>

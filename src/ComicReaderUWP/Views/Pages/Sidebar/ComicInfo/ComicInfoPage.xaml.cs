@@ -169,17 +169,22 @@ internal sealed partial class ComicInfoPage : BasePage
 
     private void OnDirectoryTapped(object sender, TappedRoutedEventArgs e)
     {
-        var err = ErrorLogger<bool>.Create(nameof(OnDirectoryTapped));
+        ErrorResult<bool> err = ErrorLogger<bool>.Run(nameof(OnDirectoryTapped), err =>
+        {
+            ComicModel? comic = ViewModel.Comic;
+            if (comic is null)
+            {
+                return err.SetError("Comic is null.");
+            }
 
-        ComicModel? comic = ViewModel.Comic;
-        if (comic is null)
-        {
-            err.SetError("Comic is null.");
-        }
-        else
-        {
-            comic.ShowInFileExplorer().CopyErrorTo(err);
-        }
+            ErrorResult<bool> innerErr = comic.ShowInFileExplorer();
+            if (!innerErr.IsSuccessful)
+            {
+                return err.SetError(innerErr);
+            }
+
+            return err.SetResult(default);
+        });
 
         err.DisplayErrorMessage(PageActionHandler);
     }

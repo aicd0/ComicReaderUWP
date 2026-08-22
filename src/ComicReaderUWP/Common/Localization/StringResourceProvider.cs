@@ -45,6 +45,7 @@ public class StringResourceProvider
     public string CloseSidebar => GetResourceString("CloseSidebar");
     public string CloseWindow => GetResourceString("CloseWindow");
     public string CollapseAll => GetResourceString("CollapseAll");
+    public string ComicExclusionExplaination => GetResourceString("ComicExclusionExplaination");
     public string ComicInfo => GetResourceString("ComicInfo");
     public string ComicRemovalPromptContent => GetResourceString("ComicRemovalPromptContent");
     public string CompletionStatus => GetResourceString("CompletionStatus");
@@ -74,6 +75,7 @@ public class StringResourceProvider
     public string DownloadPluginsFromGitHub => GetResourceString("DownloadPluginsFromGitHub");
     public string DuringAutoScrolling => GetResourceString("DuringAutoScrolling");
     public string Edit => GetResourceString("Edit");
+    public string EditImportExclusionList => GetResourceString("EditImportExclusionList");
     public string EditPreset => GetResourceString("EditPreset");
     public string Enable => GetResourceString("Enable");
     public string Enabled => GetResourceString("Enabled");
@@ -183,6 +185,7 @@ public class StringResourceProvider
     public string Refresh => GetResourceString("Refresh");
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
     public string Remove => GetResourceString("Remove");
+    public string RemoveAndExclude => GetResourceString("RemoveAndExclude");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
     public string RemovePluginsConfirmation => GetResourceString("RemovePluginsConfirmation");
     public string Repeat => GetResourceString("Repeat");

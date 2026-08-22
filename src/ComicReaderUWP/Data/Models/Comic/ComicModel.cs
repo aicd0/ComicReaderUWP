@@ -233,31 +233,38 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return _internalModel.OpenComic();
     }
 
-    public ErrorLogger<bool> ShowInFileExplorer()
+    public ErrorResult<bool> ShowInFileExplorer()
     {
         var err = ErrorLogger<bool>.Create(TAG);
 
         string fileExplorerPath = _internalModel.FileExplorerPath;
         if (string.IsNullOrEmpty(fileExplorerPath))
         {
-            err.SetError("ShowInFileExplorer: FileExplorerPath is null or empty.", isFatal: true);
-            return err;
+            return err.SetError("ShowInFileExplorer: FileExplorerPath is null or empty.", isFatal: true);
         }
 
         if (File.Exists(fileExplorerPath))
         {
-            StartProcess("explorer.exe", $"/select,\"{fileExplorerPath}\"").CopyErrorTo(err);
+            ErrorResult<bool> innerErr = StartProcess("explorer.exe", $"/select,\"{fileExplorerPath}\"");
+            if (!innerErr.IsSuccessful)
+            {
+                return err.SetError(innerErr);
+            }
         }
         else if (Directory.Exists(fileExplorerPath))
         {
-            StartProcess("explorer.exe", $"\"{fileExplorerPath}\"").CopyErrorTo(err);
+            ErrorResult<bool> innerErr = StartProcess("explorer.exe", $"\"{fileExplorerPath}\"");
+            if (!innerErr.IsSuccessful)
+            {
+                return err.SetError(innerErr);
+            }
         }
         else
         {
-            err.SetError($"Path does not exist: {fileExplorerPath}");
+            return err.SetError($"Path does not exist: {fileExplorerPath}");
         }
 
-        return err;
+        return err.SetResult(default);
     }
 
     //
@@ -582,7 +589,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     public static async Task<List<ComicModel>> BatchFromId(IEnumerable<long> ids)
     {
-        HashSet<long> idsUnique = [.. ids];
+        HashSet<long> idsUnique = [.. ids.Where(x => x >= 0)];
         List<ComicModel> results = [];
         List<long> requestingIds = [];
 
@@ -727,7 +734,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Static Helpers
     //
 
-    private static ErrorLogger<bool> StartProcess(string fileName, string arguments)
+    private static ErrorResult<bool> StartProcess(string fileName, string arguments)
     {
         var err = ErrorLogger<bool>.Create(TAG);
 
@@ -737,14 +744,14 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
         catch (Win32Exception ex)
         {
-            err.SetError(ex.Message);
+            return err.SetError(ex.Message);
         }
         catch (Exception ex)
         {
-            err.SetError(ex, isFatal: true);
+            return err.SetError(ex, isFatal: true);
         }
 
-        return err;
+        return err.SetResult(default);
     }
 
     private static void DispatchUpdateEvent()

@@ -240,6 +240,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Réduire tout</value>
   </data>
+  <data name="ComicExclusionExplaination" xml:space="preserve">
+    <value>Sélectionner « ajouter à la liste d’exclusion » empêchera la réimportation de la BD lors de la prochaine mise à jour de la bibliothèque.</value>
+  </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Informations sur la bande dessinée</value>
   </data>
@@ -336,6 +339,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Modifier</value>
+  </data>
+  <data name="EditImportExclusionList" xml:space="preserve">
+    <value>Modifier la liste d’exclusion à l’importation</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Modifier le préréglage</value>
@@ -799,6 +805,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Retirer</value>
+  </data>
+  <data name="RemoveAndExclude" xml:space="preserve">
+    <value>Retirer (ajouter à la liste d’exclusion)</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Supprimer des favoris</value>

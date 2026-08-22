@@ -240,6 +240,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>すべて折りたたむ</value>
   </data>
+  <data name="ComicExclusionExplaination" xml:space="preserve">
+    <value>「除外リストに追加」を選択すると、次回ライブラリを更新したときにこのコミックが再度インポートされなくなります。</value>
+  </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>コミック情報</value>
   </data>
@@ -336,6 +339,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>編集</value>
+  </data>
+  <data name="EditImportExclusionList" xml:space="preserve">
+    <value>インポート除外リストを編集</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>プリセットを編集</value>
@@ -798,7 +804,10 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
     <value>乱数シードを更新</value>
   </data>
   <data name="Remove" xml:space="preserve">
-    <value>取り除く</value>
+    <value>除外</value>
+  </data>
+  <data name="RemoveAndExclude" xml:space="preserve">
+    <value>除外（除外リストに追加）</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>お気に入りから削除</value>
