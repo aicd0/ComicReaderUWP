@@ -146,9 +146,9 @@
                     </AppBarButton.Icon>
                 </AppBarButton>
                 <AppBarButton
-                    Click="CommandBarDeleteButton_Click"
+                    Click="CommandBarRemoveButton_Click"
                     IsEnabled="{x:Bind ViewModel.IsAnyComicSelected, Mode=OneWay}"
-                    Label="{x:Bind StringResource.Delete}">
+                    Label="{x:Bind StringResource.Remove}">
                     <AppBarButton.Icon>
                         <FontIcon Foreground="#FF4500" Glyph="&#xE74D;" />
                     </AppBarButton.Icon>

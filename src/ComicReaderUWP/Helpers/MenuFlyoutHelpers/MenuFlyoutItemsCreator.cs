@@ -60,6 +60,8 @@ internal static class MenuFlyoutItemsCreator
             }
         }
 
+        List<ComicModel> inLibraryComics = [.. selectedComics.Where(x => !x.IsExternal)];
+
         Route primaryComicRoute = OpenComicHelper.GetComicRoute(
             primaryComic,
             playlist: playlist,
@@ -129,7 +131,7 @@ internal static class MenuFlyoutItemsCreator
             Items = CreateComicTagMenuItems(primaryComic, actionHandler),
         });
 
-        if (canEdit && !selectedComics.All(i => i.IsExternal))
+        if (canEdit && inLibraryComics.Count > 0)
         {
             items.Add(new SeparatorMenuFlyoutItemModel());
 
@@ -142,8 +144,7 @@ internal static class MenuFlyoutItemsCreator
                     Icon = new FontIconSource() { Glyph = "\uE8D9" },
                     Click = () =>
                     {
-                        List<ComicModel> items = [.. selectedComics];
-                        FavoriteModel.Instance.BatchRemoveWithId(items.ConvertAll(x => x.Id));
+                        FavoriteModel.Instance.BatchRemoveWithId(inLibraryComics.ConvertAll(x => x.Id));
                     },
                 });
             }
@@ -155,8 +156,7 @@ internal static class MenuFlyoutItemsCreator
                     Icon = new FontIconSource() { Glyph = "\uE734" },
                     Click = () =>
                     {
-                        List<ComicModel> items = [.. selectedComics];
-                        FavoriteModel.Instance.BatchAdd(items.ConvertAll(x => new FavoriteModel.FavoriteItem
+                        FavoriteModel.Instance.BatchAdd(inLibraryComics.ConvertAll(x => new FavoriteModel.FavoriteItem
                         {
                             Id = x.Id,
                             Title = x.Title,
@@ -169,7 +169,7 @@ internal static class MenuFlyoutItemsCreator
             {
                 Text = StringResourceProvider.Instance.SetCompletionState,
                 Icon = new FontIconSource() { Glyph = "\uE7C1" },
-                Items = CreateCompletionStatusMenuItems(selectedComics),
+                Items = CreateCompletionStatusMenuItems(inLibraryComics),
             });
 
             if (primaryComic.Hidden)
@@ -182,7 +182,7 @@ internal static class MenuFlyoutItemsCreator
                     {
                         CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                         {
-                            await Task.WhenAll(selectedComics.Select(x => x.SetHidden(false)));
+                            await Task.WhenAll(inLibraryComics.Select(x => x.SetHidden(false)));
                         }));
                     },
                 });
@@ -197,7 +197,7 @@ internal static class MenuFlyoutItemsCreator
                     {
                         CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
                         {
-                            await Task.WhenAll(selectedComics.Select(x => x.SetHidden(true)));
+                            await Task.WhenAll(inLibraryComics.Select(x => x.SetHidden(true)));
                         }));
                     },
                 });
@@ -209,39 +209,34 @@ internal static class MenuFlyoutItemsCreator
                 Icon = new FontIconSource() { Glyph = "\uE70F" },
                 Click = () =>
                 {
-                    List<ComicModel> items = [.. selectedComics];
-                    string idList = string.Join(',', items.Select(x => x.Id.ToString()));
+                    string idList = string.Join(',', inLibraryComics.Select(x => x.Id.ToString()));
                     ActionModel actionModel = ActionModel.Builder.Create(EditComicProvider.NAME)
                         .AddParameter(EditComicProvider.PARAM_COMIC_ID, idList)
                         .Build();
                     actionHandler.HandleNoResult(actionModel);
                 },
             });
-        }
 
-        items.Add(new SeparatorMenuFlyoutItemModel());
+            items.Add(new SeparatorMenuFlyoutItemModel());
 
-        items.Add(new SimpleMenuFlyoutItemModel()
-        {
-            Text = StringResourceProvider.Instance.Delete,
-            Icon = new FontIconSource()
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
-                Glyph = "\uE74D",
-                Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 69, 0)),
-            },
-            Click = () =>
-            {
-                CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
+                Text = StringResourceProvider.Instance.Remove,
+                Icon = new FontIconSource()
                 {
-                    List<ComicModel> items = [.. selectedComics];
-                    string idList = string.Join(',', items.Select(x => x.Id.ToString()));
-                    ActionModel actionModel = ActionModel.Builder.Create(DeleteComicProvider.NAME)
-                        .AddParameter(DeleteComicProvider.PARAM_COMIC_ID, idList)
+                    Glyph = "\uE74D",
+                    Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 69, 0)),
+                },
+                Click = () =>
+                {
+                    string idList = string.Join(',', inLibraryComics.Select(x => x.Id.ToString()));
+                    ActionModel actionModel = ActionModel.Builder.Create(RemoveComicProvider.NAME)
+                        .AddParameter(RemoveComicProvider.PARAM_COMIC_ID, idList)
                         .Build();
-                    await actionHandler.Handle(actionModel);
-                }));
-            },
-        });
+                    actionHandler.HandleNoResult(actionModel);
+                },
+            });
+        }
 
         {
             var windowContext = PluginWindowContext.From(actionHandler);

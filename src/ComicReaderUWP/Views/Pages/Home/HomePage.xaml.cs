@@ -368,17 +368,14 @@ internal sealed partial class HomePage : BasePage
         }));
     }
 
-    private void CommandBarDeleteButton_Click(object sender, RoutedEventArgs e)
+    private void CommandBarRemoveButton_Click(object sender, RoutedEventArgs e)
     {
         IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
         string idList = string.Join(',', comics.Select(x => x.Id.ToString()));
-        ActionModel actionModel = ActionModel.Builder.Create(DeleteComicProvider.NAME)
-            .AddParameter(DeleteComicProvider.PARAM_COMIC_ID, idList)
+        ActionModel actionModel = ActionModel.Builder.Create(RemoveComicProvider.NAME)
+            .AddParameter(RemoveComicProvider.PARAM_COMIC_ID, idList)
             .Build();
-        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-        {
-            await PageActionHandler.Handle(actionModel);
-        }));
+        PageActionHandler.HandleNoResult(actionModel);
     }
 
     //

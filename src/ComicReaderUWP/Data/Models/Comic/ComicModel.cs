@@ -617,6 +617,11 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         ComicHandle.UpdateAllComics(reason);
     }
 
+    public static async Task RemoveComics(IEnumerable<long> comicIds)
+    {
+
+    }
+
     public static Task<List<string>> GetAllTagCategories()
     {
         return ComicHandle.Enqueue<List<string>>(() =>
