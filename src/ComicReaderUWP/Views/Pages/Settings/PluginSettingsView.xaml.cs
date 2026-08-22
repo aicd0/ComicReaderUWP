@@ -67,18 +67,21 @@ internal sealed partial class PluginSettingsView : BaseUserControl
     {
         CoroutineUtils.Run(async () =>
         {
-            var err = ErrorLogger<bool>.Create(nameof(OpenPluginsFolderButton_Click));
+            ErrorResult<bool> err = await ErrorLogger<bool>.Run(nameof(OpenPluginsFolderButton_Click), async err =>
+            {
+                string path = PluginManager.PluginsFolderPath;
+                try
+                {
+                    Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
+                    await Windows.System.Launcher.LaunchFolderAsync(folder);
+                }
+                catch (Exception ex)
+                {
+                    return err.SetError(ex);
+                }
 
-            string path = PluginManager.PluginsFolderPath;
-            try
-            {
-                Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
-                await Windows.System.Launcher.LaunchFolderAsync(folder);
-            }
-            catch (Exception ex)
-            {
-                err.SetError(ex);
-            }
+                return err.SetResult(default);
+            });
 
             err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
         });
@@ -114,16 +117,19 @@ internal sealed partial class PluginSettingsView : BaseUserControl
             string pluginsFolderPath = PluginManager.PluginsFolderPath;
             string dstFilePath = Path.Combine(pluginsFolderPath, file.Name);
 
-            var err = ErrorLogger<bool>.Create(nameof(InstallPluginButton_Click));
+            ErrorResult<bool> err = ErrorLogger<bool>.Run(nameof(InstallPluginButton_Click), err =>
+            {
+                try
+                {
+                    File.Copy(file.Path, dstFilePath, true);
+                }
+                catch (Exception ex)
+                {
+                    return err.SetError(ex);
+                }
 
-            try
-            {
-                File.Copy(file.Path, dstFilePath, true);
-            }
-            catch (Exception ex)
-            {
-                err.SetError(ex);
-            }
+                return err.SetResult(default);
+            });
 
             if (err.IsSuccessful)
             {

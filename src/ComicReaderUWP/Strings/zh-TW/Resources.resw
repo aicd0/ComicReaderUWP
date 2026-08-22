@@ -240,6 +240,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>折疊全部</value>
   </data>
+  <data name="ComicExclusionExplaination" xml:space="preserve">
+    <value>選擇「加入排除清單」後，下次更新媒體庫時將不會再次匯入此漫畫。</value>
+  </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>漫畫資訊</value>
   </data>
@@ -336,6 +339,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>編輯</value>
+  </data>
+  <data name="EditImportExclusionList" xml:space="preserve">
+    <value>編輯匯入排除清單</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>編輯預設</value>
@@ -799,6 +805,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="Remove" xml:space="preserve">
     <value>移除</value>
+  </data>
+  <data name="RemoveAndExclude" xml:space="preserve">
+    <value>移除（加入排除清單）</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>取消收藏</value>

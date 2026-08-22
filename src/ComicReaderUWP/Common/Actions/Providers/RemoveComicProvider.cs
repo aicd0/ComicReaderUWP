@@ -12,6 +12,7 @@ using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.SDK.Models;
 
 namespace ComicReaderUWP.Common.Actions.Providers;
@@ -58,16 +59,24 @@ internal class RemoveComicProvider : IActionProvider
         string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
             .Replace("$count", comics.Count.ToString())
             .Replace("$comics", string.Join('\n', comics.Select(x => x.Location)));
+        promptContent += $"\n\n{StringResourceProvider.Instance.ComicExclusionExplaination}";
         DialogOptions options = new DialogOptions.Builder()
             .SetTitle(StringResourceProvider.Instance.Warning)
             .SetContent(promptContent)
-            .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
+            .SetPrimaryButtonText(StringResourceProvider.Instance.RemoveAndExclude)
+            .SetSecondaryButtonText(StringResourceProvider.Instance.Remove)
             .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
             .Build();
         DialogResult result = await DialogUtils.EnqueueDialogAsync(mainWindowCom.WindowId, options);
-        if (result != DialogResult.Primary)
+
+        if (result != DialogResult.Primary && result != DialogResult.Secondary)
         {
             return ActionResult.FromFailure("Cancelled by user.");
+        }
+
+        if (result == DialogResult.Primary)
+        {
+            ComicImportExclusionModel.Instance.Add(comics);
         }
 
         await BusyStateManager.WithBusyState(() => ComicModel.RemoveComics(comics));

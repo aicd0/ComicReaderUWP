@@ -25,6 +25,10 @@
 
     <StackPanel Orientation="Vertical">
         <Button x:Uid="ChooseLocationButton" Click="ChooseLocationsClick" />
+        <Button
+            Margin="0,8,0,0"
+            Click="EditImportExclusionListButton_Click"
+            Content="{x:Bind StringResource.EditImportExclusionList}" />
         <CheckBox
             Margin="0,16,0,0"
             Click="ScanOnLaunchCheckBox_Click"

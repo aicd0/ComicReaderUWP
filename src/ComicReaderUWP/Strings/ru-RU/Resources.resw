@@ -240,6 +240,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Свернуть все</value>
   </data>
+  <data name="ComicExclusionExplaination" xml:space="preserve">
+    <value>Выбор пункта «добавить в список исключений» не позволит повторно импортировать комикс при следующем обновлении библиотеки.</value>
+  </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Информация о комиксах</value>
   </data>
@@ -336,6 +339,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Редактировать</value>
+  </data>
+  <data name="EditImportExclusionList" xml:space="preserve">
+    <value>Изменить список исключений при импорте</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Редактировать пресет</value>
@@ -800,6 +806,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Удалять</value>
+  </data>
+  <data name="RemoveAndExclude" xml:space="preserve">
+    <value>Удалить (добавить в список исключений)</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Удалить из избранного</value>

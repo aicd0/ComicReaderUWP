@@ -240,6 +240,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Collapse all</value>
   </data>
+  <data name="ComicExclusionExplaination" xml:space="preserve">
+    <value>Selecting "add to exclusion list" will prevent the comic from being imported again the next time the library is updated.</value>
+  </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Comic information</value>
   </data>
@@ -336,6 +339,9 @@ $comics</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Edit</value>
+  </data>
+  <data name="EditImportExclusionList" xml:space="preserve">
+    <value>Edit import exclusion list</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Edit preset</value>
@@ -801,6 +807,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>
+  </data>
+  <data name="RemoveAndExclude" xml:space="preserve">
+    <value>Remove (add to exclusion list)</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Remove from favorites</value>

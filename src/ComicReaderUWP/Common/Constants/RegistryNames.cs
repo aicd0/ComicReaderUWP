@@ -12,6 +12,7 @@ internal static class RegistryNames
     public const string GLOBAL = "/Global";
     public const string SEARCH_HISTORY = $"{GLOBAL}/SearchHistory";
     public const string SETTINGS = $"{GLOBAL}/Settings";
+    public const string COMIC_IMPORT_EXCLUSIONS = $"{SETTINGS}/ComicImportExclusions";
     public const string RESOURCES = "/Resources";
     public const string RUNTIME_RESOURCES = $"{RESOURCES}/Runtime";
     public const string PLAYLISTS = $"{RUNTIME_RESOURCES}/Playlists";
