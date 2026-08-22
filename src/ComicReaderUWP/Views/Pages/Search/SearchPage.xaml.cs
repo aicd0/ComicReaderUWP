@@ -2,7 +2,10 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
@@ -11,6 +14,7 @@ using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.UserControls.ComicItemView;
@@ -163,17 +167,23 @@ internal sealed partial class SearchPage : BasePage
         }
     }
 
-    private void CommandBarFavoriteClicked(object sender, RoutedEventArgs e)
+    private void CommandBarFavoriteButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.ApplyOperationToComicSelection(ComicOperationType.Favorite);
+        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        FavoriteModel.Instance.BatchAdd([.. comics.Select(x => new FavoriteModel.FavoriteItem
+        {
+            Id = x.Id,
+            Title = x.Title,
+        })]);
     }
 
-    private void CommandBarUnFavoriteClicked(object sender, RoutedEventArgs e)
+    private void CommandBarUnfavoriteButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.ApplyOperationToComicSelection(ComicOperationType.Unfavorite);
+        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        FavoriteModel.Instance.BatchRemoveWithId([.. comics.Select(x => x.Id)]);
     }
 
-    private void CommandBarCompletionStatusClicked(object sender, RoutedEventArgs e)
+    private void CommandBarCompletionStatusButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement fe)
         {
@@ -192,14 +202,32 @@ internal sealed partial class SearchPage : BasePage
         flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.Top });
     }
 
-    private void CommandBarHideClicked(object sender, RoutedEventArgs e)
+    private void CommandBarHideButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.ApplyOperationToComicSelection(ComicOperationType.Hide);
+        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
+        {
+            await Task.WhenAll(comics.Select(x => x.SetHidden(true)));
+        }));
     }
 
-    private void CommandBarUnhideClicked(object sender, RoutedEventArgs e)
+    private void CommandBarUnhideButton_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.ApplyOperationToComicSelection(ComicOperationType.Unhide);
+        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
+        {
+            await Task.WhenAll(comics.Select(x => x.SetHidden(false)));
+        }));
+    }
+
+    private void CommandBarRemoveButton_Click(object sender, RoutedEventArgs e)
+    {
+        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        string idList = string.Join(',', comics.Select(x => x.Id.ToString()));
+        ActionModel actionModel = ActionModel.Builder.Create(RemoveComicProvider.NAME)
+            .AddParameter(RemoveComicProvider.PARAM_COMIC_ID, idList)
+            .Build();
+        PageActionHandler.HandleNoResult(actionModel);
     }
 
     //

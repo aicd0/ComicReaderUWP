@@ -49,7 +49,7 @@ internal static class OpenComicHelper
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
                         .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                         .Build();
-                    actionHandler.Handle(actionModel);
+                    actionHandler.HandleNoResult(actionModel);
                 }
                 break;
             case AppSettingsModel.OpenComicBehaviorEnum.OpenInNewTab:
@@ -58,7 +58,7 @@ internal static class OpenComicHelper
                         .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                         .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                         .Build();
-                    actionHandler.Handle(actionModel);
+                    actionHandler.HandleNoResult(actionModel);
                 }
                 break;
             case AppSettingsModel.OpenComicBehaviorEnum.OpenInLastActiveReaderTab:
@@ -76,7 +76,7 @@ internal static class OpenComicHelper
                         .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, windowId.ToString())
                         .AddParameter(OpenTabProvider.PARAM_TAB_ID, tabId)
                         .Build();
-                    actionHandler.Handle(actionModel);
+                    actionHandler.HandleNoResult(actionModel);
                 }
                 break;
             default:

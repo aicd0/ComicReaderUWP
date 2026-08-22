@@ -4,8 +4,8 @@
 using System;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Storage;
@@ -81,8 +81,9 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
 
     private async void OnOpenUserDataFolderClick(object sender, RoutedEventArgs e)
     {
+        var err = ErrorLogger<bool>.Create(nameof(OnOpenUserDataFolderClick));
+
         string path = StorageLocation.LocalFolderPath;
-        var er = EventRecorder.Create("OnOpenUserDataFolderClick");
         try
         {
             Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
@@ -90,10 +91,10 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
         }
         catch (Exception ex)
         {
-            er.SetError(ex);
+            err.SetError(ex);
         }
 
-        er.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+        err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
     }
 
     private void ResetAllSettingsButton_Click(object sender, RoutedEventArgs e)

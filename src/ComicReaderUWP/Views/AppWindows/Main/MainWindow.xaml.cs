@@ -356,7 +356,7 @@ internal sealed partial class MainWindow : Window
             {
                 // Update comic library
                 // This operation is deferred to here because it may involve dialog displaying which requires a loaded window
-                ComicModel.UpdateAllComics("InitOnAppLaunchInternal");
+                ComicModel.RescanLibrary("InitOnAppLaunchInternal");
             }
         }
 

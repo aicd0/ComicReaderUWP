@@ -195,22 +195,22 @@
                         IsChecked="{x:Bind ViewModel.IsCommandBarSelectAllToggled, Mode=OneWay}" />
                     <AppBarSeparator />
                     <AppBarButton
-                        Click="CommandBarFavoriteClicked"
+                        Click="CommandBarFavoriteButton_Click"
                         Icon="Favorite"
                         IsEnabled="{x:Bind ViewModel.IsCommandBarFavoriteEnabled, Mode=OneWay}"
                         Label="{x:Bind StringResource.Favorite}" />
                     <AppBarButton
-                        Click="CommandBarUnFavoriteClicked"
+                        Click="CommandBarUnfavoriteButton_Click"
                         Icon="UnFavorite"
                         IsEnabled="{x:Bind ViewModel.IsCommandBarUnFavoriteEnabled, Mode=OneWay}"
                         Label="{x:Bind StringResource.Unfavorite}" />
                     <AppBarButton
-                        Click="CommandBarCompletionStatusClicked"
+                        Click="CommandBarCompletionStatusButton_Click"
                         Icon="Flag"
-                        IsEnabled="{x:Bind ViewModel.IsCommandBarCompletionStatusEnabled, Mode=OneWay}"
+                        IsEnabled="{x:Bind ViewModel.IsAnyComicSelected, Mode=OneWay}"
                         Label="{x:Bind StringResource.CompletionStatus}" />
                     <AppBarButton
-                        Click="CommandBarHideClicked"
+                        Click="CommandBarHideButton_Click"
                         IsEnabled="{x:Bind ViewModel.IsCommandBarHideEnabled, Mode=OneWay}"
                         Label="{x:Bind StringResource.Hide}">
                         <AppBarButton.Icon>
@@ -218,11 +218,19 @@
                         </AppBarButton.Icon>
                     </AppBarButton>
                     <AppBarButton
-                        Click="CommandBarUnhideClicked"
+                        Click="CommandBarUnhideButton_Click"
                         IsEnabled="{x:Bind ViewModel.IsCommandBarUnHideEnabled, Mode=OneWay}"
                         Label="{x:Bind StringResource.Unhide}">
                         <AppBarButton.Icon>
                             <FontIcon Glyph="&#xE7B3;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                    <AppBarButton
+                        Click="CommandBarRemoveButton_Click"
+                        IsEnabled="{x:Bind ViewModel.IsAnyComicSelected, Mode=OneWay}"
+                        Label="{x:Bind StringResource.Remove}">
+                        <AppBarButton.Icon>
+                            <FontIcon Foreground="#FF4500" Glyph="&#xE74D;" />
                         </AppBarButton.Icon>
                     </AppBarButton>
                 </StackPanel>

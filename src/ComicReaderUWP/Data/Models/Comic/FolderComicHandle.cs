@@ -16,28 +16,18 @@ using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Tables;
 
-using Windows.Storage;
-
 namespace ComicReaderUWP.Data.Models.Comic;
 
 internal partial class FolderComicHandle : ComicHandle
 {
     private const string TAG = nameof(FolderComicHandle);
 
-    public static ComicHandle? FromExternal(string directory, List<StorageFile> imageFiles)
+    public static ComicHandle FromExternal(string directory)
     {
-        if (imageFiles.Count == 0)
-        {
-            return null;
-        }
-
         return new FolderComicHandle()
         {
             Location = directory,
             Title1 = Path.GetFileName(directory),
-            _imageFiles = [.. imageFiles
-                .OrderBy(x => StringUtils.SmartFileNameKeySelector(x.DisplayName), StringUtils.SmartFileNameComparer)
-                .Select(x => x.Path)],
         };
     }
 
@@ -154,11 +144,6 @@ internal partial class FolderComicHandle : ComicHandle
 
     private async Task<bool> ReloadImages()
     {
-        if (IsExternal)
-        {
-            return _imageFiles.Count > 0;
-        }
-
         IEnumerable<string> files;
         try
         {

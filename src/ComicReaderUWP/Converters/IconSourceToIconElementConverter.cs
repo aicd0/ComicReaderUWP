@@ -12,6 +12,27 @@ internal partial class IconSourceToIconElementConverter : IValueConverter
 {
     public static IconElement? Convert(IconSource? value)
     {
+        IconElement CreateFontIcon(FontIconSource s)
+        {
+            var icon = new FontIcon
+            {
+                Glyph = s.Glyph,
+                FontFamily = s.FontFamily,
+                FontStyle = s.FontStyle,
+                FontSize = s.FontSize,
+                FontWeight = s.FontWeight,
+                IsTextScaleFactorEnabled = s.IsTextScaleFactorEnabled,
+                MirroredWhenRightToLeft = s.MirroredWhenRightToLeft,
+            };
+
+            if (s.Foreground is not null)
+            {
+                icon.Foreground = s.Foreground;
+            }
+
+            return icon;
+        }
+
         return value switch
         {
             SymbolIconSource s => new SymbolIcon
@@ -23,16 +44,7 @@ internal partial class IconSourceToIconElementConverter : IValueConverter
                 UriSource = s.UriSource,
                 ShowAsMonochrome = s.ShowAsMonochrome,
             },
-            FontIconSource s => new FontIcon
-            {
-                Glyph = s.Glyph,
-                FontFamily = s.FontFamily,
-                FontStyle = s.FontStyle,
-                FontSize = s.FontSize,
-                FontWeight = s.FontWeight,
-                IsTextScaleFactorEnabled = s.IsTextScaleFactorEnabled,
-                MirroredWhenRightToLeft = s.MirroredWhenRightToLeft,
-            },
+            FontIconSource s => CreateFontIcon(s),
             PathIconSource s => new PathIcon
             {
                 Data = s.Data,

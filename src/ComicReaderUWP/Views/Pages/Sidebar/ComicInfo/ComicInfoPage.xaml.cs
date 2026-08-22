@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
@@ -168,9 +169,19 @@ internal sealed partial class ComicInfoPage : BasePage
 
     private void OnDirectoryTapped(object sender, TappedRoutedEventArgs e)
     {
-        var er = EventRecorder.Create("OnDirectoryTapped");
-        ViewModel.Comic?.ShowInFileExplorer(er);
-        er.DisplayErrorMessage(PageActionHandler);
+        var err = ErrorLogger<bool>.Create(nameof(OnDirectoryTapped));
+
+        ComicModel? comic = ViewModel.Comic;
+        if (comic is null)
+        {
+            err.SetError("Comic is null.");
+        }
+        else
+        {
+            comic.ShowInFileExplorer().CopyErrorTo(err);
+        }
+
+        err.DisplayErrorMessage(PageActionHandler);
     }
 
     private void OnEditInfoClick(object sender, RoutedEventArgs e)

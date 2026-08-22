@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Threading.Tasks;
 
 namespace ComicReaderUWP.Common.Actions.Providers;
 
@@ -14,7 +15,7 @@ internal class CustomActionProvider(CustomActionProvider.IHandler handler) : IAc
 
     public string Name => NAME;
 
-    public void Handle(IActionProviderContext context, NameValueCollection parameters)
+    public async Task<ActionResult> Handle(IActionProviderContext context, NameValueCollection parameters)
     {
         string source = parameters[PARAM_SOURCE] ?? string.Empty;
         string name = parameters[PARAM_NAME] ?? string.Empty;
@@ -33,7 +34,7 @@ internal class CustomActionProvider(CustomActionProvider.IHandler handler) : IAc
         }
 
         handler.Handle(source, name, args);
-        context.SetSuccess();
+        return ActionResult.FromSuccess();
     }
 
     public interface IHandler

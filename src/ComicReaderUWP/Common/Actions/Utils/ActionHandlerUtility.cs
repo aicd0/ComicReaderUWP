@@ -16,6 +16,7 @@ internal class ActionHandlerUtility
         handler.RegisterProvider(new MessageDialogProvider());
         handler.RegisterProvider(new OpenTabProvider());
         handler.RegisterProvider(new EditComicProvider());
+        handler.RegisterProvider(new RemoveComicProvider());
         handler.RegisterProvider(new FullscreenServiceProvider());
     }
 }

@@ -11,12 +11,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Database.SqlHelpers;
+using ComicReaderUWP.Data.Database;
+using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Data.Tables;
 
@@ -230,27 +233,31 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return _internalModel.OpenComic();
     }
 
-    public void ShowInFileExplorer(EventRecorder er)
+    public ErrorLogger<bool> ShowInFileExplorer()
     {
+        var err = ErrorLogger<bool>.Create(TAG);
+
         string fileExplorerPath = _internalModel.FileExplorerPath;
         if (string.IsNullOrEmpty(fileExplorerPath))
         {
-            er.SetError("ShowInFileExplorer: FileExplorerPath is null or empty.", fatal: true);
-            return;
+            err.SetError("ShowInFileExplorer: FileExplorerPath is null or empty.", isFatal: true);
+            return err;
         }
 
         if (File.Exists(fileExplorerPath))
         {
-            StartProcess(er, "explorer.exe", $"/select,\"{fileExplorerPath}\"");
+            StartProcess("explorer.exe", $"/select,\"{fileExplorerPath}\"").CopyErrorTo(err);
         }
         else if (Directory.Exists(fileExplorerPath))
         {
-            StartProcess(er, "explorer.exe", $"\"{fileExplorerPath}\"");
+            StartProcess("explorer.exe", $"\"{fileExplorerPath}\"").CopyErrorTo(err);
         }
         else
         {
-            er.SetError($"Path does not exist: {fileExplorerPath}");
+            err.SetError($"Path does not exist: {fileExplorerPath}");
         }
+
+        return err;
     }
 
     //
@@ -373,10 +380,15 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     {
         string oldLocation = Location;
         bool success = await _internalModel.MoveToLocation(location);
+
         if (success)
         {
-            _locationPool.TryRemove(oldLocation, out _);
-            _locationPool.GetOrAdd(location, this);
+            if (IsExternal)
+            {
+                _locationPool.TryRemove(oldLocation, out _);
+                _locationPool.GetOrAdd(location, this);
+            }
+
             DispatchUpdateEvent();
         }
 
@@ -419,29 +431,29 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
             return model;
         }
 
-        ComicHandle? comicData = await ComicHandle.FromId(id);
-        if (comicData == null)
+        ComicHandle? comicHandle = await ComicHandle.FromId(id);
+        if (comicHandle is not null)
         {
-            return null;
+            return ReplaceWithExisting(comicHandle);
         }
 
-        return ReplaceWithExisting(comicData);
+        return null;
     }
 
     public static async Task<ComicModel?> FromLocation(string location)
     {
+        ComicHandle? comicHandle = await ComicHandle.FromLocation(location);
+        if (comicHandle is not null)
+        {
+            return ReplaceWithExisting(comicHandle);
+        }
+
         if (TryGetExisting(location, out ComicModel? model))
         {
             return model;
         }
 
-        ComicHandle? comicData = await ComicHandle.FromLocation(location);
-        if (comicData == null)
-        {
-            return null;
-        }
-
-        return ReplaceWithExisting(comicData);
+        return null;
     }
 
     public static async Task<ComicModel?> FromFile(StorageFile file)
@@ -476,14 +488,9 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return ReplaceWithExisting(comic);
     }
 
-    public static ComicModel? FromImageFiles(string directory, List<StorageFile> imageFiles)
+    public static ComicModel FromFolder(string directory)
     {
-        ComicHandle? comic = FolderComicHandle.FromExternal(directory, imageFiles);
-        if (comic is null)
-        {
-            return null;
-        }
-
+        ComicHandle comic = FolderComicHandle.FromExternal(directory);
         return ReplaceWithExisting(comic);
     }
 
@@ -559,7 +566,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
                 return null;
             }
 
-            comic = FromImageFiles(location, files);
+            comic = FromFolder(location);
             if (comic is null)
             {
                 Logger.E(TAG, $"Failed to create comic from image files in directory: {location}");
@@ -607,9 +614,66 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Static Utilities
     //
 
-    public static void UpdateAllComics(string reason)
+    public static void RescanLibrary(string reason)
     {
-        ComicHandle.UpdateAllComics(reason);
+        ComicHandle.RescanLibrary(reason);
+    }
+
+    public static Task RemoveComics(IEnumerable<ComicModel> comics)
+    {
+        List<ComicModel> removingComics = [.. comics.Where(x => !x.IsExternal)];
+
+        if (removingComics.Count == 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        HashSet<long> ids = [];
+        foreach (ComicModel comic in removingComics)
+        {
+            long id = comic.Id;
+            ids.Add(id);
+
+            comic._internalModel.MarkAsExternal();
+            _locationPool.GetOrAdd(comic.Location, comic);
+            _idPool.TryRemove(id, out _);
+        }
+
+        return ComicHandle.AlterLibrary(async () =>
+        {
+            await ComicHandle.Enqueue(() =>
+            {
+                SqliteDB.MainDatabase.WithTransaction(() =>
+                {
+                    foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
+                    {
+                        DeleteCommand.Create(TagTable.Instance)
+                            .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnComicId), idChunk))
+                            .Execute();
+                        DeleteCommand.Create(TagCategoryTable.Instance)
+                            .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), idChunk))
+                            .Execute();
+                        DeleteCommand.Create(ComicTable.Instance)
+                            .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), idChunk))
+                            .Execute();
+                    }
+                });
+            });
+
+            await SqliteDB.MiscDatabaseDispatcher.Submit(() =>
+            {
+                foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
+                {
+                    DeleteCommand.Create(ComicHistoryTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicHistoryTable.ColumnComicId), idChunk))
+                        .Execute();
+                }
+            });
+
+            FavoriteModel.Instance.BatchRemoveWithId([.. ids]);
+
+            DispatchUpdateEvent();
+        });
     }
 
     public static Task<List<string>> GetAllTagCategories()
@@ -647,18 +711,13 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return _locationPool.TryGetValue(location, out model);
     }
 
-    private static ComicModel ReplaceWithExisting(ComicHandle comicData)
+    private static ComicModel ReplaceWithExisting(ComicHandle comicHandle)
     {
-        var model = new ComicModel(comicData);
-        if (comicData.Id >= 0)
-        {
-            return _idPool.GetOrAdd(model.Id, model);
-        }
+        var model = new ComicModel(comicHandle);
 
         if (!model.IsExternal)
         {
-            // This should never happen, as all comics in the database should have an ID.
-            Logger.AssertNotReachHere("C1A98069CD40CC1A");
+            return _idPool.GetOrAdd(model.Id, model);
         }
 
         return _locationPool.GetOrAdd(model.Location, model);
@@ -668,20 +727,24 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Static Helpers
     //
 
-    private static void StartProcess(EventRecorder er, string fileName, string arguments)
+    private static ErrorLogger<bool> StartProcess(string fileName, string arguments)
     {
+        var err = ErrorLogger<bool>.Create(TAG);
+
         try
         {
             Process.Start(fileName, arguments);
         }
         catch (Win32Exception ex)
         {
-            er.SetError(ex.Message);
+            err.SetError(ex.Message);
         }
         catch (Exception ex)
         {
-            er.SetError(ex, fatal: true);
+            err.SetError(ex, isFatal: true);
         }
+
+        return err;
     }
 
     private static void DispatchUpdateEvent()

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Specialized;
+using System.Threading.Tasks;
 
 namespace ComicReaderUWP.Common.Actions;
 
@@ -9,5 +10,5 @@ internal interface IActionProvider
 {
     string Name { get; }
 
-    void Handle(IActionProviderContext context, NameValueCollection parameters);
+    Task<ActionResult> Handle(IActionProviderContext context, NameValueCollection parameters);
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Specialized;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Views.AppWindows.Main;
@@ -17,13 +18,12 @@ internal class OpenTabProvider : IActionProvider
 
     public string Name => NAME;
 
-    public void Handle(IActionProviderContext context, NameValueCollection parameters)
+    public async Task<ActionResult> Handle(IActionProviderContext context, NameValueCollection parameters)
     {
         string url = parameters[PARAM_URL] ?? string.Empty;
         if (string.IsNullOrEmpty(url))
         {
-            context.SetError("URL missing.");
-            return;
+            return ActionResult.FromFailure("URL missing.");
         }
 
         string windowIdString = parameters[PARAM_WINDOW_ID] ?? string.Empty;
@@ -33,16 +33,14 @@ internal class OpenTabProvider : IActionProvider
             IMainWindowComponent? mainWindowCom = context.GetComponent<IMainWindowComponent>();
             if (mainWindowCom is null)
             {
-                context.SetError("IMainWindowComponent component not found.");
-                return;
+                return ActionResult.FromFailure("IMainWindowComponent component not found.");
             }
 
             windowId = mainWindowCom.WindowId;
         }
         else if (!int.TryParse(windowIdString, out windowId) || windowId < -1)
         {
-            context.SetError($"'{windowIdString}' is not a valid window ID.");
-            return;
+            return ActionResult.FromFailure($"'{windowIdString}' is not a valid window ID.");
         }
 
         string? tabId = parameters[PARAM_TAB_ID];
@@ -56,8 +54,7 @@ internal class OpenTabProvider : IActionProvider
             MainWindow? window = App.Instance.WindowManager.GetWindow(windowId);
             if (window is null)
             {
-                context.SetError($"Window {windowId} not found.");
-                return;
+                return ActionResult.FromFailure($"Window {windowId} not found.");
             }
 
             tabId ??= window.CurrentTab?.Id ?? string.Empty;
@@ -66,6 +63,6 @@ internal class OpenTabProvider : IActionProvider
             window.OpenTab(url, tabId, initiateTabId);
         }
 
-        context.SetSuccess();
+        return ActionResult.FromSuccess();
     }
 }

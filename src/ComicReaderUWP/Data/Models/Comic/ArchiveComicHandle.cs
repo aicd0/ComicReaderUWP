@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
-using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -29,13 +28,11 @@ internal partial class ArchiveComicHandle : ComicHandle
         {
             Location = archive.Path,
             Title1 = archive.DisplayName,
-            _archive = archive,
         };
 
         return comic;
     }
 
-    private StorageFile? _archive;
     private List<string> _entries = [];
 
     public override bool IsEditable => !IsExternal;
@@ -61,68 +58,14 @@ internal partial class ArchiveComicHandle : ComicHandle
             return null;
         }
 
-        StorageFile? archive = _archive;
-        if (archive is null)
-        {
-            Logger.F(TAG, "Archive file is null");
-            return null;
-        }
-
-        List<string> entries = IsExternal ? _entries : [.. _entries.Select(GetSubPathFromFilename)];
-        return new ArchiveComicConnection(this, archive, entries);
-    }
-
-    private async Task<StorageFile?> GetArchive()
-    {
-        StorageFile? archive = _archive;
-        if (archive != null)
-        {
-            return archive;
-        }
-
-        if (Location == null)
-        {
-            return null;
-        }
-
-        string basePath = ArchiveAccess.GetBasePath(Location, false);
-        archive = await Storage.TryGetFile(basePath);
-        if (archive == null)
-        {
-            return null;
-        }
-
-        _archive = archive;
-        return archive;
-    }
-
-    private string GetSubPathFromFilename(string filename)
-    {
-        if (IsExternal)
-        {
-            Logger.F(TAG, "GetSubPathFromFilename should not be called for external comics");
-        }
-
-        string subPath = ArchiveAccess.GetSubPath(Location, false);
-        if (subPath.Length == 0)
-        {
-            return filename;
-        }
-        else
-        {
-            return subPath + "\\" + filename;
-        }
+        string archivePath = ArchiveAccess.GetBasePath(Location, false);
+        return new ArchiveComicConnection(archivePath, _entries);
     }
 
     private async Task<bool> ReloadImages()
     {
-        StorageFile? archive = await GetArchive();
-        if (archive is null)
-        {
-            return false;
-        }
-
         var entries = new List<string>();
+
         if (IsExternal)
         {
             string basePath = ArchiveAccess.GetBasePath(Location, false) + ArchiveAccess.FileSeperator;
@@ -152,12 +95,13 @@ internal partial class ArchiveComicHandle : ComicHandle
         }
         else
         {
+            string archivePath = ArchiveAccess.GetBasePath(Location, false);
             string subPath = ArchiveAccess.GetSubPath(Location, false);
             var subfiles = new List<string>();
 
             await TaskDispatcher.DefaultThreadPool.Submit(() =>
             {
-                ArchiveAccess.TryGetSubFiles(archive.Path, subPath, subfiles);
+                ArchiveAccess.TryGetSubFiles(archivePath, subPath, subfiles);
             });
 
             foreach (string subfile in subfiles)
@@ -168,7 +112,14 @@ internal partial class ArchiveComicHandle : ComicHandle
                     continue;
                 }
 
-                entries.Add(subfile);
+                if (subPath.Length == 0)
+                {
+                    entries.Add(subfile);
+                }
+                else
+                {
+                    entries.Add(subPath + "\\" + subfile);
+                }
             }
         }
 
@@ -181,9 +132,9 @@ internal partial class ArchiveComicHandle : ComicHandle
         return true;
     }
 
-    private partial class ArchiveComicConnection(ArchiveComicHandle comic, StorageFile archiveFile, List<string> entries) : IComicConnection
+    private partial class ArchiveComicConnection(string archivePath, List<string> entries) : IComicConnection
     {
-        private readonly StorageFile _archiveFile = archiveFile;
+        private readonly string _archivePath = archivePath;
         private readonly List<string> _entries = entries;
 
         public int ImageCount => _entries.Count;
@@ -200,31 +151,34 @@ internal partial class ArchiveComicHandle : ComicHandle
                 return string.Empty;
             }
 
-            return _entries[index];
+            string path = _entries[index];
+            int spliterIndex = path.IndexOf('\\');
+
+            if (spliterIndex < 0)
+            {
+                return path;
+            }
+            else
+            {
+                return path[(spliterIndex + 1)..];
+            }
         }
 
         public string GetImageCacheKey(int index)
         {
-            StorageFile? archive = _archiveFile;
-            if (archive == null)
-            {
-                Logger.AssertNotReachHere("");
-                return string.Empty;
-            }
-
             if (index >= _entries.Count)
             {
                 Logger.AssertNotReachHere("");
                 return string.Empty;
             }
 
-            string subPath = comic.IsExternal ? _entries[index] : comic.GetSubPathFromFilename(_entries[index]);
-            return archive.Path + ArchiveAccess.FileSeperator + subPath;
+            string subPath = _entries[index];
+            return _archivePath + ArchiveAccess.FileSeperator + subPath;
         }
 
         public string GetImageSignature(int index)
         {
-            return FileUtils.GetFileSignature(_archiveFile.Path);
+            return FileUtils.GetFileSignature(_archivePath);
         }
 
         public async Task<Stream?> OpenImageStream(int index)
@@ -237,7 +191,7 @@ internal partial class ArchiveComicHandle : ComicHandle
 
             string path = _entries[index];
 
-            Stream? stream = ArchiveAccess.TryGetFileStream(_archiveFile.Path, path);
+            Stream? stream = ArchiveAccess.TryGetFileStream(_archivePath, path);
             if (stream is null)
             {
                 Logger.I(TAG, $"Failed to access entry :{path}");

@@ -5,8 +5,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Common.Actions;
 
@@ -15,8 +17,6 @@ internal class ActionHandler
     private const string TAG = nameof(ActionHandler);
 
     public static ActionHandler Dummy { get; } = new();
-
-    public IActionCallback DefaultCallback { get; set; } = new DefaultActionCallback();
 
     private readonly ConcurrentDictionary<Type, IActionComponent> _components = [];
     private readonly ConcurrentDictionary<string, IActionProvider> _providers = [];
@@ -69,41 +69,28 @@ internal class ActionHandler
         return true;
     }
 
-    public void Handle(ActionModel action, IActionCallback? callback = null)
+    public async Task<ActionResult> Handle(ActionModel action)
     {
-        callback ??= DefaultCallback;
         ArgumentNullException.ThrowIfNull(action, nameof(action));
 
         string host = action.Name;
         if (!_providers.TryGetValue(host, out IActionProvider? provider))
         {
-            callback.OnError($"No provider found for action '{host}'.");
-            return;
+            return ActionResult.FromFailure($"No provider found for action '{host}'.");
         }
 
         NameValueCollection queires = action.Parameters;
-        ActionProviderContext providerContext = new(this, callback);
-        provider.Handle(providerContext, queires);
+        ActionProviderContext providerContext = new(this);
+        return await provider.Handle(providerContext, queires);
     }
 
-    private class DefaultActionCallback : IActionCallback
+    public void HandleNoResult(ActionModel action)
     {
-        public void OnSuccess()
-        {
-        }
-
-        public void OnError(string message)
-        {
-            Logger.E(TAG, $"Action failed: {message}");
-        }
+        CoroutineUtils.Run(() => Handle(action));
     }
 
-    private class ActionProviderContext(ActionHandler handler, IActionCallback callback) : IActionProviderContext
+    private class ActionProviderContext(ActionHandler handler) : IActionProviderContext
     {
-        public bool Completed { get; private set; } = false;
-        public bool Successful { get; private set; } = true;
-        public string ErrorMessage { get; private set; } = string.Empty;
-
         private readonly ActionHandler _handler = handler;
 
         public T? GetComponent<T>() where T : IActionComponent
@@ -115,45 +102,6 @@ internal class ActionHandler
             }
 
             return default;
-        }
-
-        public void SetError(string message)
-        {
-            if (Completed)
-            {
-                Logger.F(TAG, "ActionProviderContext is already completed");
-                return;
-            }
-
-            Completed = true;
-            Successful = false;
-            ErrorMessage = message;
-            DispatchCallback();
-        }
-
-        public void SetSuccess()
-        {
-            if (Completed)
-            {
-                Logger.F(TAG, "ActionProviderContext is already completed");
-                return;
-            }
-
-            Completed = true;
-            Successful = true;
-            DispatchCallback();
-        }
-
-        private void DispatchCallback()
-        {
-            if (Successful)
-            {
-                callback.OnSuccess();
-            }
-            else
-            {
-                callback.OnError(ErrorMessage);
-            }
         }
     }
 }

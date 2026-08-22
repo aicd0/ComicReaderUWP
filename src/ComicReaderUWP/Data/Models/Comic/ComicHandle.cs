@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
@@ -42,9 +43,10 @@ internal abstract partial class ComicHandle
     private static readonly MutableLiveData<bool> _isScanningLibraryLiveData = new(false);
     public static LiveData<bool> IsScanningLibraryLiveData => _isScanningLibraryLiveData;
 
-    private static readonly object _scanLibraryLock = new();
-    private static bool _isScanningLibrary = false;
-    private static bool _libraryScanningInvalidated = false;
+    private static readonly Lock _alterLibraryLock = new();
+    private static readonly Queue<QueuedTask> _pendingAlterLibraryTasks = [];
+    private static bool _isAlteringLibrary = false;
+    private static bool _isLibraryScanPending = false;
 
     //
     // Static Methods
@@ -82,6 +84,43 @@ internal abstract partial class ComicHandle
         {
             return BatchFromIdNoLock(ids);
         });
+    }
+
+    public static Task AlterLibrary(Func<Task> func)
+    {
+        QueuedTask item = new(func);
+        bool shouldStartWorker;
+
+        lock (_alterLibraryLock)
+        {
+            _pendingAlterLibraryTasks.Enqueue(item);
+            shouldStartWorker = !_isAlteringLibrary;
+            _isAlteringLibrary = true;
+        }
+
+        if (shouldStartWorker)
+        {
+            TaskDispatcher.DefaultThreadPool.SubmitAsync(AlterLibraryWorker);
+        }
+
+        return item.Task;
+    }
+
+    public static void RescanLibrary(string reason)
+    {
+        Logger.I(TAG, $"UpdateAllComics (reason={reason})");
+
+        lock (_alterLibraryLock)
+        {
+            if (_isLibraryScanPending)
+            {
+                return;
+            }
+
+            _isLibraryScanPending = true;
+        }
+
+        AlterLibrary(() => Task.CompletedTask); // Start a worker if not
     }
 
     private static Task TransactionBlock(Action action)
@@ -322,6 +361,260 @@ internal abstract partial class ComicHandle
         return CompletionStatusEnum.Unread;
     }
 
+    private static void RemoveWithLocationNoLock(string location)
+    {
+        int count = DeleteCommand.Create(ComicTable.Instance)
+            .AppendCondition(ComicTable.ColumnLocation, location)
+            .Execute();
+        if (count != 1)
+        {
+            Logger.F(TAG, $"RemoveWithLocationNoLock: Deleted {count} rows for location '{location}'");
+        }
+    }
+
+    private static async Task AlterLibraryWorker()
+    {
+        while (true)
+        {
+            QueuedTask? next;
+
+            lock (_alterLibraryLock)
+            {
+                if (_pendingAlterLibraryTasks.Count > 0)
+                {
+                    next = _pendingAlterLibraryTasks.Dequeue();
+                }
+                else if (_isLibraryScanPending)
+                {
+                    _isLibraryScanPending = false;
+                    next = new(async () =>
+                    {
+                        _isScanningLibraryLiveData.Emit(true);
+                        try
+                        {
+                            await RescanLibraryInternal();
+                        }
+                        finally
+                        {
+                            _isScanningLibraryLiveData.Emit(false);
+                        }
+                    });
+                }
+                else
+                {
+                    _isAlteringLibrary = false;
+                    return;
+                }
+            }
+
+            await next.ExecuteAsync();
+        }
+    }
+
+    private static async Task RescanLibraryInternal()
+    {
+        AppSettingsModel.ExternalModel appSettings = AppSettingsModel.Instance.GetModel();
+        bool comicUpdatedSinceLastBroadcast = false;
+
+        // Get all locations from database
+        HashSet<string> oldLocations = [];
+        await Enqueue(() =>
+        {
+            var command = SelectCommand.Create(ComicTable.Instance);
+            IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
+            using SelectCommand.IReader reader = command.Execute();
+            while (reader.Read())
+            {
+                oldLocations.Add(locationToken.GetValue());
+            }
+        });
+
+        // Scan comics
+        Dictionary<string, ComicType> pendingLocations = [];
+        HashSet<string> newLocations = [];
+        HashSet<string> noAccessLocations = [];
+
+        async Task FlushPendingLocations()
+        {
+            List<UpdateItemInfo> updateQueue = [];
+            foreach (KeyValuePair<string, ComicType> pair in pendingLocations)
+            {
+                string location = pair.Key;
+                ComicType type = pair.Value;
+                newLocations.Add(location);
+
+                if (!oldLocations.Contains(location))
+                {
+                    updateQueue.Add(new UpdateItemInfo
+                    {
+                        Location = location,
+                        ItemType = type,
+                    });
+                }
+            }
+
+            pendingLocations.Clear();
+
+            if (updateQueue.Count > 0)
+            {
+                comicUpdatedSinceLastBroadcast = true;
+                await TransactionBlock(() =>
+                {
+                    foreach (UpdateItemInfo info in updateQueue)
+                    {
+                        ComicHandle? comic = FromType(info.ItemType);
+                        if (comic is null)
+                        {
+                            continue;
+                        }
+
+                        comic.Location = info.Location;
+                        comic.SetAsDefaultInfo();
+
+                        var command = InsertCommand.Create(ComicTable.Instance);
+                        foreach (IColumnTypeless column in _allNonIdColumns.Value)
+                        {
+                            command.AppendColumn(column, comic.GetColumnValue(column));
+                        }
+
+                        comic.Id = command.Execute();
+                        comic.InternalSaveTagsNoLock();
+                    }
+                });
+            }
+        }
+
+        var watch = new Stopwatch();
+        watch.Start();
+
+        foreach (string folderPath in appSettings.ComicFolders)
+        {
+            if (!Directory.Exists(folderPath))
+            {
+                Logger.I(TAG, $"Folder not exists, skipped: {folderPath}");
+                continue;
+            }
+
+            foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(folderPath, ComicScanner.PathType.Folder))
+            {
+                if (_isLibraryScanPending)
+                {
+                    return; // Fast exit
+                }
+
+                switch (itemInfo.Type)
+                {
+                    case ComicScanner.ItemType.Folder:
+                        continue;
+                    case ComicScanner.ItemType.File:
+                        break;
+                    case ComicScanner.ItemType.NoAccessLocation:
+                        noAccessLocations.Add(itemInfo.Path);
+                        continue;
+                    default:
+                        Logger.F(TAG, $"Unknown item type '{itemInfo.Type}' for path '{itemInfo.Path}'");
+                        continue;
+                }
+
+                string filename = StringUtils.ItemNameFromPath(itemInfo.Path);
+                string extension = StringUtils.ExtensionFromFilename(filename).ToLowerInvariant();
+                if (AppInfoProvider.IsSupportedImageExtension(extension))
+                {
+                    string location = StringUtils.ParentLocationFromLocation(itemInfo.Path);
+                    ComicType type = ArchiveAccess.IsArchivePath(itemInfo.Path) ? ComicType.Archive : ComicType.Folder;
+                    pendingLocations[location] = type;
+                }
+                else
+                {
+                    switch (extension)
+                    {
+                        case ".pdf":
+                            pendingLocations[itemInfo.Path] = ComicType.PDF;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (watch.LapSpan().TotalSeconds > 2)
+                {
+                    await FlushPendingLocations();
+
+                    if (comicUpdatedSinceLastBroadcast)
+                    {
+                        comicUpdatedSinceLastBroadcast = false;
+                        DispatchComicUpdateEvent();
+                    }
+
+                    watch.Lap();
+                }
+            }
+        }
+
+        await FlushPendingLocations();
+
+        // Remove unreachable comics
+        if (appSettings.RemoveUnreachableComics)
+        {
+            List<string> locationRemoved = [.. oldLocations.Except(newLocations)];
+
+            for (int i = locationRemoved.Count - 1; i >= 0; i--)
+            {
+                string location = locationRemoved[i];
+                foreach (string noAccessLocation in noAccessLocations)
+                {
+                    if (StringUtils.FolderContain(noAccessLocation, location))
+                    {
+                        locationRemoved.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            if (locationRemoved.Count > 0)
+            {
+                bool proceed = true;
+                if (appSettings.PromptBeforeRemovingComics)
+                {
+                    string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
+                        .Replace("$count", locationRemoved.Count.ToString())
+                        .Replace("$comics", string.Join('\n', locationRemoved));
+                    DialogOptions options = new DialogOptions.Builder()
+                        .SetTitle(StringResourceProvider.Instance.Warning)
+                        .SetContent(promptContent)
+                        .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
+                        .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
+                        .Build();
+                    DialogResult result = await DialogUtils.EnqueueDialogAsync(options);
+                    proceed = result == DialogResult.Primary;
+                }
+
+                if (proceed)
+                {
+                    comicUpdatedSinceLastBroadcast = true;
+                    await TransactionBlock(() =>
+                    {
+                        foreach (string location in locationRemoved)
+                        {
+                            Logger.I(TAG, $"Removing: {location}");
+                            RemoveWithLocationNoLock(location);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (comicUpdatedSinceLastBroadcast)
+        {
+            DispatchComicUpdateEvent();
+        }
+    }
+
+    private static void DispatchComicUpdateEvent()
+    {
+        GlobalEvent.Instance.ComicUpdated.Emit(0);
+    }
+
     //
     // Member variables
     //
@@ -543,6 +836,11 @@ internal abstract partial class ComicHandle
                     .Execute();
             });
         });
+    }
+
+    public void MarkAsExternal()
+    {
+        Id = -1;
     }
 
     //
@@ -799,53 +1097,6 @@ internal abstract partial class ComicHandle
         }
     }
 
-    public static void UpdateAllComics(string reason)
-    {
-        Logger.I(TAG, $"UpdateAllComics(reason={reason})");
-        TaskDispatcher.LongRunningThreadPool.SubmitAsync(async () =>
-        {
-            lock (_scanLibraryLock)
-            {
-                if (_isScanningLibrary)
-                {
-                    _libraryScanningInvalidated = true;
-                    return;
-                }
-
-                _isScanningLibraryLiveData.Emit(true);
-                _isScanningLibrary = true;
-            }
-
-            try
-            {
-
-                while (true)
-                {
-                    await UpdateAllComicsInternal();
-
-                    lock (_scanLibraryLock)
-                    {
-                        if (!_libraryScanningInvalidated)
-                        {
-                            break;
-                        }
-
-                        _libraryScanningInvalidated = false;
-                    }
-                }
-
-            }
-            finally
-            {
-                lock (_scanLibraryLock)
-                {
-                    _isScanningLibrary = false;
-                    _isScanningLibraryLiveData.Emit(false);
-                }
-            }
-        });
-    }
-
     private void InternalSaveTagsNoLock()
     {
         DeleteCommand.Create(TagCategoryTable.Instance)
@@ -884,225 +1135,6 @@ internal abstract partial class ComicHandle
         }
 
         action();
-    }
-
-    private static void RemoveWithLocationNoLock(string location)
-    {
-        int count = DeleteCommand.Create(ComicTable.Instance)
-            .AppendCondition(ComicTable.ColumnLocation, location)
-            .Execute();
-        if (count != 1)
-        {
-            Logger.F(TAG, $"RemoveWithLocationNoLock: Deleted {count} rows for location '{location}'");
-        }
-    }
-
-    private static async Task UpdateAllComicsInternal()
-    {
-        AppSettingsModel.ExternalModel appSettings = AppSettingsModel.Instance.GetModel();
-        bool comicUpdatedSinceLastBroadcast = false;
-
-        // Get all locations from database
-        HashSet<string> oldLocations = [];
-        await Enqueue(() =>
-        {
-            var command = SelectCommand.Create(ComicTable.Instance);
-            IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
-            using SelectCommand.IReader reader = command.Execute();
-            while (reader.Read())
-            {
-                oldLocations.Add(locationToken.GetValue());
-            }
-        });
-
-        // Scan comics
-        Dictionary<string, ComicType> pendingLocations = [];
-        HashSet<string> newLocations = [];
-        HashSet<string> noAccessLocations = [];
-
-        async Task FlushPendingLocations()
-        {
-            List<UpdateItemInfo> updateQueue = [];
-            foreach (KeyValuePair<string, ComicType> pair in pendingLocations)
-            {
-                string location = pair.Key;
-                ComicType type = pair.Value;
-                newLocations.Add(location);
-
-                if (!oldLocations.Contains(location))
-                {
-                    updateQueue.Add(new UpdateItemInfo
-                    {
-                        Location = location,
-                        ItemType = type,
-                    });
-                }
-            }
-
-            pendingLocations.Clear();
-
-            if (updateQueue.Count > 0)
-            {
-                comicUpdatedSinceLastBroadcast = true;
-                await TransactionBlock(() =>
-                {
-                    foreach (UpdateItemInfo info in updateQueue)
-                    {
-                        ComicHandle? comic = FromType(info.ItemType);
-                        if (comic is null)
-                        {
-                            continue;
-                        }
-
-                        comic.Location = info.Location;
-                        comic.SetAsDefaultInfo();
-
-                        var command = InsertCommand.Create(ComicTable.Instance);
-                        foreach (IColumnTypeless column in _allNonIdColumns.Value)
-                        {
-                            command.AppendColumn(column, comic.GetColumnValue(column));
-                        }
-
-                        comic.Id = command.Execute();
-                        comic.InternalSaveTagsNoLock();
-                    }
-                });
-            }
-        }
-
-        var watch = new Stopwatch();
-        watch.Start();
-        foreach (string folderPath in appSettings.ComicFolders)
-        {
-            if (!Directory.Exists(folderPath))
-            {
-                Logger.I(TAG, $"Folder not exists, skipped: {folderPath}");
-                continue;
-            }
-
-            foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(folderPath, ComicScanner.PathType.Folder))
-            {
-                if (_libraryScanningInvalidated)
-                {
-                    // Fast exit
-                    return;
-                }
-
-                switch (itemInfo.Type)
-                {
-                    case ComicScanner.ItemType.Folder:
-                        continue;
-                    case ComicScanner.ItemType.File:
-                        break;
-                    case ComicScanner.ItemType.NoAccessLocation:
-                        noAccessLocations.Add(itemInfo.Path);
-                        continue;
-                    default:
-                        Logger.F(TAG, $"Unknown item type '{itemInfo.Type}' for path '{itemInfo.Path}'");
-                        continue;
-                }
-
-                string filename = StringUtils.ItemNameFromPath(itemInfo.Path);
-                string extension = StringUtils.ExtensionFromFilename(filename).ToLowerInvariant();
-                if (AppInfoProvider.IsSupportedImageExtension(extension))
-                {
-                    string location = StringUtils.ParentLocationFromLocation(itemInfo.Path);
-                    ComicType type = ArchiveAccess.IsArchivePath(itemInfo.Path) ? ComicType.Archive : ComicType.Folder;
-                    pendingLocations[location] = type;
-                }
-                else
-                {
-                    switch (extension)
-                    {
-                        case ".pdf":
-                            pendingLocations[itemInfo.Path] = ComicType.PDF;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                if (watch.LapSpan().TotalSeconds > 2)
-                {
-                    await FlushPendingLocations();
-
-                    if (comicUpdatedSinceLastBroadcast)
-                    {
-                        comicUpdatedSinceLastBroadcast = false;
-                        DispatchComicUpdateEvent();
-                    }
-
-                    watch.Lap();
-                }
-            }
-        }
-
-        await FlushPendingLocations();
-
-        // Remove unreachable comics
-        if (appSettings.RemoveUnreachableComics)
-        {
-            List<string> locationRemoved = [.. oldLocations.Except(newLocations)];
-
-            for (int i = locationRemoved.Count - 1; i >= 0; i--)
-            {
-                string location = locationRemoved[i];
-                foreach (string noAccessLocation in noAccessLocations)
-                {
-                    if (StringUtils.FolderContain(noAccessLocation, location))
-                    {
-                        locationRemoved.RemoveAt(i);
-                        break;
-                    }
-                }
-            }
-
-            if (locationRemoved.Count > 0)
-            {
-                bool proceed = true;
-                if (appSettings.PromptBeforeRemovingComics)
-                {
-                    string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
-                        .Replace("$count", locationRemoved.Count.ToString())
-                        .Replace("$comics", string.Join('\n', locationRemoved));
-                    DialogOptions options = new DialogOptions.Builder()
-                        .SetTitle(StringResourceProvider.Instance.Warning)
-                        .SetContent(promptContent)
-                        .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
-                        .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
-                        .Build();
-                    DialogResult result = await DialogUtils.EnqueueDialogAsync(options);
-                    proceed = result == DialogResult.Primary;
-                }
-
-                if (proceed)
-                {
-                    comicUpdatedSinceLastBroadcast = true;
-                    await TransactionBlock(() =>
-                    {
-                        foreach (string location in locationRemoved)
-                        {
-                            Logger.I(TAG, $"Removing: {location}");
-                            RemoveWithLocationNoLock(location);
-                        }
-                    });
-                }
-            }
-        }
-
-        if (comicUpdatedSinceLastBroadcast)
-        {
-            DispatchComicUpdateEvent();
-        }
-    }
-
-    //
-    // Helper Methods
-    //
-
-    private static void DispatchComicUpdateEvent()
-    {
-        GlobalEvent.Instance.ComicUpdated.Emit(0);
     }
 
     //
@@ -1181,6 +1213,27 @@ internal abstract partial class ComicHandle
         public long ComicId = -1;
         public string Name = "";
         public HashSet<string> Tags = [];
+    }
+
+    private sealed class QueuedTask(Func<Task> func)
+    {
+        private readonly Func<Task> _func = func;
+        private readonly TaskCompletionSource _source = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task Task => _source.Task;
+
+        public async Task ExecuteAsync()
+        {
+            try
+            {
+                await _func();
+                _source.SetResult();
+            }
+            catch (Exception ex)
+            {
+                _source.SetException(ex);
+            }
+        }
     }
 
     //

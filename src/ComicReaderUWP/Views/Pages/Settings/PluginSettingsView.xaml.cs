@@ -7,8 +7,8 @@ using System.IO;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Lifecycle;
@@ -67,8 +67,9 @@ internal sealed partial class PluginSettingsView : BaseUserControl
     {
         CoroutineUtils.Run(async () =>
         {
+            var err = ErrorLogger<bool>.Create(nameof(OpenPluginsFolderButton_Click));
+
             string path = PluginManager.PluginsFolderPath;
-            var er = EventRecorder.Create("OpenPluginsFolderClick");
             try
             {
                 Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
@@ -76,9 +77,10 @@ internal sealed partial class PluginSettingsView : BaseUserControl
             }
             catch (Exception ex)
             {
-                er.SetError(ex);
-                er.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+                err.SetError(ex);
             }
+
+            err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
         });
     }
 
@@ -112,19 +114,23 @@ internal sealed partial class PluginSettingsView : BaseUserControl
             string pluginsFolderPath = PluginManager.PluginsFolderPath;
             string dstFilePath = Path.Combine(pluginsFolderPath, file.Name);
 
-            var er = EventRecorder.Create("InstallPluginClick");
+            var err = ErrorLogger<bool>.Create(nameof(InstallPluginButton_Click));
+
             try
             {
                 File.Copy(file.Path, dstFilePath, true);
             }
             catch (Exception ex)
             {
-                er.SetError(ex);
-                er.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
-                return;
+                err.SetError(ex);
             }
 
-            ViewModel.ApplyOnNextLaunchVisible = true;
+            if (err.IsSuccessful)
+            {
+                ViewModel.ApplyOnNextLaunchVisible = true;
+            }
+
+            err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
         });
     }
 

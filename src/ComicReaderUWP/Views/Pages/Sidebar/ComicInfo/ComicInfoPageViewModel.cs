@@ -273,7 +273,7 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
                             .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                             .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
                             .Build();
-                        _actionHandler.Handle(actionModel);
+                        _actionHandler.HandleNoResult(actionModel);
                     },
                     OnRequestContextFlyoutAsync = () =>
                     {
