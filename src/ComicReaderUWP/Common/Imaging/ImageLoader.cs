@@ -84,7 +84,7 @@ internal static partial class ImageLoader
         sImageCache?.Clear();
     }
 
-    public static async Task<SizeF?> TryGetOriginalDimension(IImageSource source)
+    public static async Task<Size?> TryGetOriginalDimension(IImageSource source)
     {
         using CacheRequestContext context = new(source);
         return await TryGetOriginalDimension(context);
@@ -115,14 +115,8 @@ internal static partial class ImageLoader
         }, group, options.Priority);
     }
 
-    private static async Task<SizeF?> TryGetOriginalDimension(CacheRequestContext context)
+    private static async Task<Size?> TryGetOriginalDimension(CacheRequestContext context)
     {
-        IVectorImageService? vectorService = await context.GetVectorService();
-        if (vectorService is not null)
-        {
-            return vectorService.Size;
-        }
-
         ImageMeta? meta = await GetImageMeta(context);
         if (meta is not null)
         {
@@ -355,13 +349,13 @@ internal static partial class ImageLoader
             return false;
         }
 
-        SizeF? originalSizeNullable = await TryGetOriginalDimension(context);
+        Size? originalSizeNullable = await TryGetOriginalDimension(context);
         if (!originalSizeNullable.HasValue)
         {
             return false;
         }
 
-        SizeF originalSize = originalSizeNullable.Value;
+        Size originalSize = originalSizeNullable.Value;
         CalculateDesiredDimension(
             options.FrameWidth,
             options.FrameHeight,
@@ -649,7 +643,7 @@ internal static partial class ImageLoader
     }
 
     private static async Task SaveThumbnail(CacheRequestContext context, string cacheEntryKey, string fingerprint,
-        SizeF originalSize, LRUCache imageCache, ImageCacheDatabase.CacheRecord record)
+        Size originalSize, LRUCache imageCache, ImageCacheDatabase.CacheRecord record)
     {
         if (!CalculateDesiredThumbnailSize(cacheEntryKey, originalSize, out Size thumbnailSize))
         {
@@ -737,7 +731,7 @@ internal static partial class ImageLoader
         return softwareBitmap;
     }
 
-    private static bool CalculateDesiredThumbnailSize(string cacheEntryKey, SizeF originalSize, out Size thumbnailSize)
+    private static bool CalculateDesiredThumbnailSize(string cacheEntryKey, Size originalSize, out Size thumbnailSize)
     {
         thumbnailSize = new();
 
@@ -750,7 +744,8 @@ internal static partial class ImageLoader
         double sourceResolution = originalSize.Width * originalSize.Height;
         if (sourceResolution <= cacheResolution)
         {
-            return false;
+            thumbnailSize = originalSize;
+            return true;
         }
 
         double scaleRatio = cacheResolution / sourceResolution;

@@ -176,8 +176,6 @@ internal partial class PdfComicHandle : ComicHandle
 
     private partial class VectorService(PdfManager.IPdfConnection connection, int index) : IVectorImageService
     {
-        public SizeF Size => connection.GetPageSize(index);
-
         public void Dispose()
         {
             connection.Dispose();
