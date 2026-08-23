@@ -280,9 +280,15 @@ internal partial class ReaderImageCompositor : IDisposable
             return;
         }
 
+        using IImageConnection? connection = await source.Source.Open();
+        if (connection is null)
+        {
+            return;
+        }
+
         AnimatedBitmapModel? newBitmap = null;
 
-        using IVectorImageService? vectorService = await source.Source.OpenVectorService();
+        using IVectorImageService? vectorService = connection.OpenVectorService();
         item.SupportVector = vectorService is not null;
         if (vectorService is not null)
         {
@@ -314,7 +320,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (newBitmap is null)
         {
-            using Stream? stream = await source.Source.OpenImageStream();
+            using Stream? stream = await connection.OpenImageStream();
             if (stream is null)
             {
                 Logger.W(TAG, $"Decode failed (Cannot open stream) (name={Name}-{item.Index}, uri={item.Source?.Source.Uri})");

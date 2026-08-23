@@ -9,7 +9,7 @@ using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.Helpers.Imaging;
 
-internal class ComicCoverImageSource : IImageSource
+internal sealed partial class ComicCoverImageSource : IImageSource
 {
     public static async Task<ComicCoverImageSource> Create(ComicModel comic)
     {
@@ -41,36 +41,34 @@ internal class ComicCoverImageSource : IImageSource
         _preferredSchedulerGroup = preferredSchedulerGroup;
     }
 
-    public async Task<string> GetFingerprint()
+    public async Task<IImageConnection?> Open()
     {
-        using ComicConnection? connection = await _comic.OpenComic();
-        if (connection is null)
-        {
-            return string.Empty;
-        }
-
-        return connection.GetImageSignature(ComicHandle.COVER_INDEX);
-    }
-
-    public async Task<Stream?> OpenImageStream()
-    {
-        using ComicConnection? connection = await _comic.OpenComic();
+        ComicConnection? connection = await _comic.OpenComic();
         if (connection is null)
         {
             return null;
         }
 
-        return await connection.OpenImageStream(ComicHandle.COVER_INDEX);
+        return new ImageConnection(connection);
     }
 
-    public async Task<IVectorImageService?> OpenVectorService()
+    private sealed partial class ImageConnection(ComicConnection connection) : IImageConnection
     {
-        using ComicConnection? connection = await _comic.OpenComic();
-        if (connection is null)
+        public string Fingerprint => connection.GetImageSignature(ComicHandle.COVER_INDEX);
+
+        public void Dispose()
         {
-            return null;
+            connection.Dispose();
         }
 
-        return connection.OpenVectorService(ComicHandle.COVER_INDEX);
+        public Task<Stream?> OpenImageStream()
+        {
+            return connection.OpenImageStream(ComicHandle.COVER_INDEX);
+        }
+
+        public IVectorImageService? OpenVectorService()
+        {
+            return connection.OpenVectorService(ComicHandle.COVER_INDEX);
+        }
     }
 }

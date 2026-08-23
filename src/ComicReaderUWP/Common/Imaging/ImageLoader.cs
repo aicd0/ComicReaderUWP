@@ -976,6 +976,10 @@ internal static partial class ImageLoader
     private partial class CacheRequestContext(IImageSource source) : IDisposable
     {
         private readonly IImageSource _source = source;
+
+        private bool _connectionInitialized = false;
+        private IImageConnection? _connection = null;
+
         private string? _fingerprint = null;
         private Stream? _sourceStream = null;
         private BitmapDecoder? _bitmapDecoder = null;
@@ -985,6 +989,8 @@ internal static partial class ImageLoader
 
         public void Dispose()
         {
+            _connection?.Dispose();
+            _connection = null;
             _sourceStream?.Dispose();
             _sourceStream = null;
             _bitmapDecoder = null;
@@ -999,7 +1005,13 @@ internal static partial class ImageLoader
                 return _fingerprint;
             }
 
-            _fingerprint = await _source.GetFingerprint();
+            IImageConnection? connection = await GetConnection();
+            if (connection is null)
+            {
+                return string.Empty;
+            }
+
+            _fingerprint = connection.Fingerprint;
             return _fingerprint;
         }
 
@@ -1011,9 +1023,15 @@ internal static partial class ImageLoader
                 return _sourceStream;
             }
 
+            IImageConnection? connection = await GetConnection();
+            if (connection is null)
+            {
+                return null;
+            }
+
             try
             {
-                _sourceStream = await _source.OpenImageStream();
+                _sourceStream = await connection.OpenImageStream();
             }
             catch (Exception ex)
             {
@@ -1061,8 +1079,25 @@ internal static partial class ImageLoader
                 return _vectorService;
             }
 
-            _vectorService = await _source.OpenVectorService();
+            IImageConnection? connection = await GetConnection();
+            if (connection is null)
+            {
+                return null;
+            }
+
+            _vectorService = connection.OpenVectorService();
             return _vectorService;
+        }
+
+        private async Task<IImageConnection?> GetConnection()
+        {
+            if (!_connectionInitialized)
+            {
+                _connection = await _source.Open();
+                _connectionInitialized = true;
+            }
+
+            return _connection;
         }
     }
 
