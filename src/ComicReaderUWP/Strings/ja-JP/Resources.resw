@@ -248,6 +248,7 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>以下の $count 件のコミックがライブラリから完全に削除されます：
+
 $comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
@@ -559,6 +560,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>彩度</value>
+  </data>
+  <data name="IncludeHiddenComics" xml:space="preserve">
+    <value>非表示の漫画を含める</value>
   </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>プラグインをインストール</value>

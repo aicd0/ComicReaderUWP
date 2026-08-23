@@ -10,9 +10,17 @@ namespace ComicReaderUWP.Helpers.Search;
 
 internal class ComicSearchSQLProvider(Common.Expression.Filter.Sql.ISQLCommandProvider expProvider) : ISQLCommandProvider
 {
-
     private readonly Common.Expression.Filter.Sql.ISQLCommandProvider _expProvider = expProvider;
-    private bool _hasHiddenCondition = false;
+
+    public bool IsHiddenFilter(string key)
+    {
+        return key == ComicSQLProviderUtils.VAR_HIDDEN;
+    }
+
+    public ICondition CreateNotHiddenCondition()
+    {
+        return new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false));
+    }
 
     public ICondition CreateFilterCondition(string key, string value)
     {
@@ -42,34 +50,22 @@ internal class ComicSearchSQLProvider(Common.Expression.Filter.Sql.ISQLCommandPr
 
                     return condition;
                 }
+
             case ComicSQLProviderUtils.VAR_TAG:
                 return ComicSQLProviderUtils.CreateTagCondition(new ComparisonCondition(ColumnOrValue.FromColumn(TagTable.ColumnContent), ColumnOrValue.FromValue(value)));
+
             case ComicSQLProviderUtils.VAR_HIDDEN:
-                if (value == "1")
+                return value switch
                 {
-                    _hasHiddenCondition = true;
-                    return new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(true));
-                }
-                else if (value == "0")
-                {
-                    _hasHiddenCondition = true;
-                    return new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false));
-                }
-                break;
+                    "0" => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false)),
+                    "1" => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(true)),
+                    _ => new BooleanCondition(true),
+                };
+
             default:
                 break;
         }
 
         return ComicSQLProviderUtils.CreateTagInTagCategoryCondition(key, new ComparisonCondition(ColumnOrValue.FromColumn(TagTable.ColumnContent), ColumnOrValue.FromValue(value)));
-    }
-
-    public ICondition? GetAdditionalCondition()
-    {
-        if (!_hasHiddenCondition)
-        {
-            return new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false));
-        }
-
-        return null;
     }
 }

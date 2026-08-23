@@ -248,6 +248,7 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>The following $count comics will be permanently removed from your library:
+
 $comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
@@ -561,6 +562,9 @@ The evaluation will be performed in the following order:
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Saturation</value>
+  </data>
+  <data name="IncludeHiddenComics" xml:space="preserve">
+    <value>Include hidden comics</value>
   </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>Install plugin</value>

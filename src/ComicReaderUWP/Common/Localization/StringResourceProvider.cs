@@ -122,6 +122,7 @@ public class StringResourceProvider
     public string ImageContrast => GetResourceString("ImageContrast");
     public string ImageProcessing => GetResourceString("ImageProcessing");
     public string ImageSaturation => GetResourceString("ImageSaturation");
+    public string IncludeHiddenComics => GetResourceString("IncludeHiddenComics");
     public string InstallPlugin => GetResourceString("InstallPlugin");
     public string InstallPluginWarning => GetResourceString("InstallPluginWarning");
     public string InvertImage => GetResourceString("InvertImage");

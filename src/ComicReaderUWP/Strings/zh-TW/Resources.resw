@@ -248,6 +248,7 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>以下 $count 本漫畫將永久從你的庫中移除：
+
 $comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
@@ -559,6 +560,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>飽和度</value>
+  </data>
+  <data name="IncludeHiddenComics" xml:space="preserve">
+    <value>包含隱藏漫畫</value>
   </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>安裝外掛程式</value>

@@ -9,7 +9,11 @@ namespace ComicReaderUWP.Common.Expression.Search.Sql;
 
 internal static class SQLGenerator
 {
-    public static ICondition CreateQuery(List<ExpressionToken> tokens, ISQLCommandProvider commandProvider, out List<string> unconsumedKeywords)
+    public static ICondition CreateQuery(
+        List<ExpressionToken> tokens,
+        bool includeHidden,
+        ISQLCommandProvider commandProvider,
+        out List<string> unconsumedKeywords)
     {
         InternalContext context = new();
 
@@ -23,10 +27,9 @@ internal static class SQLGenerator
             }
         }
 
-        ICondition? additionalCondition = commandProvider.GetAdditionalCondition();
-        if (additionalCondition is not null)
+        if (!context.ContainsHiddenFilters && !includeHidden)
         {
-            conditions.Add(additionalCondition);
+            conditions.Add(commandProvider.CreateNotHiddenCondition());
         }
 
         ICondition finalCondition = new AndCondition(conditions);
@@ -45,7 +48,7 @@ internal static class SQLGenerator
         {
             ExpressionToken.TYPE_FINAL_EMPTY => new BooleanCondition(true),
             ExpressionToken.TYPE_FINAL_VALUE => CreateValueCondition(context, token),
-            ExpressionToken.TYPE_FINAL_FILTER => CreateFilterCondition(token, commandProvider),
+            ExpressionToken.TYPE_FINAL_FILTER => CreateFilterCondition(context, token, commandProvider),
             _ => throw new ExpressionException($"Unknown token type: {token.Type}"),
         };
     }
@@ -56,8 +59,13 @@ internal static class SQLGenerator
         return null;
     }
 
-    private static ICondition CreateFilterCondition(ExpressionToken token, ISQLCommandProvider commandProvider)
+    private static ICondition CreateFilterCondition(InternalContext context, ExpressionToken token, ISQLCommandProvider commandProvider)
     {
+        if (commandProvider.IsHiddenFilter(token.FinalFilterExtra.Key))
+        {
+            context.ContainsHiddenFilters = true;
+        }
+
         ICondition condition = commandProvider.CreateFilterCondition(token.FinalFilterExtra.Key, token.FinalFilterExtra.Value);
         if (token.FinalFilterExtra.Inverse)
         {
@@ -69,6 +77,7 @@ internal static class SQLGenerator
 
     private class InternalContext
     {
+        public bool ContainsHiddenFilters = false;
         public readonly List<string> UnconsumedKeywords = [];
     }
 }

@@ -26,19 +26,9 @@ internal class ComicSearchEngine
     private Action<IReadOnlyList<ComicModel>>? _resultCallback = null;
     private readonly List<ComicModel> _comicItems = [];
 
-    private volatile string _searchText = string.Empty;
-    public string SearchText
-    {
-        get => _searchText;
-        set => _searchText = value;
-    }
-
-    private volatile string _expression = string.Empty;
-    public string Expression
-    {
-        get => _expression;
-        set => _expression = value;
-    }
+    public string SearchText { get; set; } = string.Empty;
+    public string Expression { get; set; } = string.Empty;
+    public bool IncludeHidden { get; set; } = false;
 
     public void SetResultCallback(Action<IReadOnlyList<ComicModel>>? callback)
     {
@@ -68,11 +58,13 @@ internal class ComicSearchEngine
     {
         Logger.I(TAG, "UpdateNoLock");
 
-        string searchText = _searchText;
-        string expression = _expression;
+        string searchText = SearchText;
+        string expression = Expression;
+        bool includeHidden = IncludeHidden;
+
         ICondition? expressionCondition = ParseExpression(expression);
 
-        List<long> ids = await SearchByKeywords(searchText, expressionCondition);
+        List<long> ids = await SearchByKeywords(searchText, includeHidden, expressionCondition);
         List<ComicModel> comicItems = await ComicModel.BatchFromId(ids);
 
         Dictionary<long, int> order = [];
@@ -128,7 +120,7 @@ internal class ComicSearchEngine
         return condition;
     }
 
-    private ICondition? ParseSearchExpresssion(string expression, out List<string> remainingKeywords)
+    private ICondition? ParseSearchExpresssion(string expression, bool includeHidden, out List<string> remainingKeywords)
     {
         List<Common.Expression.Search.ExpressionToken> tokens;
         try
@@ -145,7 +137,7 @@ internal class ComicSearchEngine
         ICondition condition;
         try
         {
-            condition = Common.Expression.Search.Sql.SQLGenerator.CreateQuery(tokens, new ComicSearchSQLProvider(new ComicFilterSQLProvider()), out remainingKeywords);
+            condition = Common.Expression.Search.Sql.SQLGenerator.CreateQuery(tokens, includeHidden, new ComicSearchSQLProvider(new ComicFilterSQLProvider()), out remainingKeywords);
         }
         catch (Exception ex)
         {
@@ -157,9 +149,9 @@ internal class ComicSearchEngine
         return condition;
     }
 
-    private async Task<List<long>> SearchByKeywords(string searchText, ICondition? additionalCondition)
+    private async Task<List<long>> SearchByKeywords(string searchText, bool includeHidden, ICondition? additionalCondition)
     {
-        ICondition? searchCondition = ParseSearchExpresssion(searchText, out List<string> remaining);
+        ICondition? searchCondition = ParseSearchExpresssion(searchText, includeHidden, out List<string> remaining);
         for (int i = 0; i < remaining.Count; i++)
         {
             remaining[i] = remaining[i].ToLowerInvariant();
@@ -186,7 +178,6 @@ internal class ComicSearchEngine
             using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {
-                // Calculate similarity.
                 int similarity = 0;
                 string title1 = title1Token.GetValue();
                 string title2 = title2Token.GetValue();
@@ -201,7 +192,6 @@ internal class ComicSearchEngine
                     }
                 }
 
-                // Save results.
                 matches.Add(new Match
                 {
                     Id = idToken.GetValue(),
