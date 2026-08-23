@@ -11,7 +11,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
-using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Pdf;
 using ComicReaderUWP.Core.Common.Utils;
@@ -54,13 +53,7 @@ internal partial class PdfComicHandle : ComicHandle
 
     protected override async Task<IComicConnection?> OpenComicConnection()
     {
-        StorageFile? file = await GetFile();
-        if (file is null)
-        {
-            return null;
-        }
-
-        PdfManager.IPdfConnection? connection = await PdfManager.OpenPdf(file.Path, null);
+        PdfManager.IPdfConnection? connection = await PdfManager.OpenPdf(Location, null);
         if (connection is null)
         {
             return null;
@@ -72,24 +65,7 @@ internal partial class PdfComicHandle : ComicHandle
             return null;
         }
 
-        return new PdfComicConnection(file.Path, connection);
-    }
-
-    private async Task<StorageFile?> GetFile()
-    {
-        if (string.IsNullOrEmpty(Location))
-        {
-            return null;
-        }
-
-        string basePath = ArchiveAccess.GetBasePath(Location, false);
-        StorageFile? file = await Storage.TryGetFile(basePath);
-        if (file is null)
-        {
-            return null;
-        }
-
-        return file;
+        return new PdfComicConnection(Location, connection);
     }
 
     private static MemoryStream CreateStreamFromBuffer(nint buffer, int width, int height, int stride)

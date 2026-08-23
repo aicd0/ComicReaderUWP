@@ -31,8 +31,6 @@ internal partial class FolderComicHandle : ComicHandle
         };
     }
 
-    private List<string> _imageFiles = [];
-
     public override bool IsEditable => !IsExternal;
 
     protected override ComicType Type => ComicType.Folder;
@@ -134,15 +132,16 @@ internal partial class FolderComicHandle : ComicHandle
 
     protected override async Task<IComicConnection?> OpenComicConnection()
     {
-        if (!await ReloadImages())
+        IReadOnlyList<string> imageFiles = await ReloadImages();
+        if (imageFiles.Count == 0)
         {
             return null;
         }
 
-        return new FolderComicConnection(_imageFiles);
+        return new FolderComicConnection(imageFiles);
     }
 
-    private async Task<bool> ReloadImages()
+    private async Task<IReadOnlyList<string>> ReloadImages()
     {
         IEnumerable<string> files;
         try
@@ -152,17 +151,16 @@ internal partial class FolderComicHandle : ComicHandle
         catch (Exception ex)
         {
             Logger.E(TAG, $"Cannot access folder '{Location}'", ex);
-            return false;
+            return [];
         }
 
-        _imageFiles = [.. files
+        return [.. files
             .Where(file =>
             {
                 string extension = Path.GetExtension(file);
                 return AppInfoProvider.IsSupportedImageExtension(extension);
             })
             .OrderBy(file => StringUtils.SmartFileNameKeySelector(Path.GetFileNameWithoutExtension(file)), StringUtils.SmartFileNameComparer)];
-        return _imageFiles.Count > 0;
     }
 
     private partial class FolderComicConnection(IEnumerable<string> imageFiles) : IComicConnection
