@@ -113,6 +113,7 @@ public class StringResourceProvider
     public string GoForward => GetResourceString("GoForward");
     public string Group => GetResourceString("Group");
     public string Help => GetResourceString("Help");
+    public string Hidden => GetResourceString("Hidden");
     public string Hide => GetResourceString("Hide");
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");

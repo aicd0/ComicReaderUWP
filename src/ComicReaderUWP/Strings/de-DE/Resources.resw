@@ -506,6 +506,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Help" xml:space="preserve">
     <value>Helfen</value>
   </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>Ausgeblendet</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>Verstecken</value>
   </data>

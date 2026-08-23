@@ -335,11 +335,14 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             return result;
         }
 
-        long comicCount = 0;
+        long total = 0;
+        long hiddenCount = 0;
         List<Tuple<CompletionStatusEnum, long>> statusCount = [];
         await ComicHandle.Enqueue(() =>
         {
-            comicCount = QueryComicCount();
+            total = QueryComicCount();
+            hiddenCount = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnHidden, true));
+
             foreach (CompletionStatusEnum status in CompletionStatusService.AllStatus)
             {
                 long count = QueryComicCount(c => c.AppendCondition(ComicTable.ColumnCompletionStatus, (int)status));
@@ -349,14 +352,18 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
         StringBuilder sb = new();
         sb.Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.TotalComics))
-            .Append(comicCount.ToString("#,#0", CultureInfo.InvariantCulture));
+            .Append(total.ToString("#,#0", CultureInfo.InvariantCulture))
+            .AppendLine()
+            .Append(StringResourceProvider.Instance.WithColon(StringResourceProvider.Instance.Hidden))
+            .Append(hiddenCount.ToString("#,#0", CultureInfo.InvariantCulture));
 
+        sb.AppendLine();
         foreach (Tuple<CompletionStatusEnum, long> pair in statusCount)
         {
             CompletionStatusEnum status = pair.Item1;
             long count = pair.Item2;
-            int percentage = (int)Math.Round(100.0 * count / Math.Max(1, comicCount));
-            sb.Append('\n')
+            int percentage = (int)Math.Round(100.0 * count / Math.Max(1, total));
+            sb.AppendLine()
                 .Append(StringResourceProvider.Instance.WithColon(CompletionStatusService.EnumToString(status)))
                 .Append(count.ToString("#,#0", CultureInfo.InvariantCulture))
                 .Append(" (").Append(percentage).Append("%)");
