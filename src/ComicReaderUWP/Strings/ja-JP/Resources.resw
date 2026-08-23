@@ -506,6 +506,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Help" xml:space="preserve">
     <value>ヘルプ</value>
   </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>非表示</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>隠れる</value>
   </data>

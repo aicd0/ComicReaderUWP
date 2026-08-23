@@ -507,6 +507,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Help" xml:space="preserve">
     <value>돕다</value>
   </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>숨김</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>숨다</value>
   </data>

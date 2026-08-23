@@ -508,6 +508,9 @@ The evaluation will be performed in the following order:
   <data name="Help" xml:space="preserve">
     <value>Help</value>
   </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>Hidden</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>Hide</value>
   </data>

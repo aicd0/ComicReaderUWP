@@ -506,6 +506,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="Help" xml:space="preserve">
     <value>Ayuda</value>
   </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>Oculto</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>Esconder</value>
   </data>

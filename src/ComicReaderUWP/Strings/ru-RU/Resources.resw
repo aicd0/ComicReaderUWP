@@ -507,6 +507,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Help" xml:space="preserve">
     <value>Помощь</value>
   </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>Скрыто</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>Скрывать</value>
   </data>

@@ -506,6 +506,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="Help" xml:space="preserve">
     <value>幫助</value>
   </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>已隱藏</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>隱藏</value>
   </data>
