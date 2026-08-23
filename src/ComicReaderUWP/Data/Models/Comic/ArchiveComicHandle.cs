@@ -33,8 +33,6 @@ internal partial class ArchiveComicHandle : ComicHandle
         return comic;
     }
 
-    private List<string> _entries = [];
-
     public override bool IsEditable => !IsExternal;
     public override string FileExplorerPath => ArchiveAccess.GetBasePath(Location, false);
 
@@ -53,16 +51,17 @@ internal partial class ArchiveComicHandle : ComicHandle
 
     protected override async Task<IComicConnection?> OpenComicConnection()
     {
-        if (!await ReloadImages())
+        IReadOnlyList<string> entries = await ReloadImages();
+        if (entries.Count == 0)
         {
             return null;
         }
 
         string archivePath = ArchiveAccess.GetBasePath(Location, false);
-        return new ArchiveComicConnection(archivePath, _entries);
+        return new ArchiveComicConnection(archivePath, entries);
     }
 
-    private async Task<bool> ReloadImages()
+    private async Task<IReadOnlyList<string>> ReloadImages()
     {
         var entries = new List<string>();
 
@@ -123,19 +122,13 @@ internal partial class ArchiveComicHandle : ComicHandle
             }
         }
 
-        if (entries.Count == 0)
-        {
-            return false;
-        }
-
-        _entries = [.. entries.OrderBy(x => StringUtils.SmartFileNameKeySelector(x), StringUtils.SmartFileNameComparer)];
-        return true;
+        return [.. entries.OrderBy(x => StringUtils.SmartFileNameKeySelector(x), StringUtils.SmartFileNameComparer)];
     }
 
-    private partial class ArchiveComicConnection(string archivePath, List<string> entries) : IComicConnection
+    private partial class ArchiveComicConnection(string archivePath, IReadOnlyList<string> entries) : IComicConnection
     {
         private readonly string _archivePath = archivePath;
-        private readonly List<string> _entries = entries;
+        private readonly IReadOnlyList<string> _entries = entries;
 
         public int ImageCount => _entries.Count;
 
