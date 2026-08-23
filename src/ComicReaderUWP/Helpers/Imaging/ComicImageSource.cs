@@ -9,7 +9,7 @@ using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.Helpers.Imaging;
 
-internal class ComicImageSource(ComicModel comic, ComicConnection connection, int index) : IImageSource
+internal sealed partial class ComicImageSource(ComicModel comic, ComicConnection connection, int index) : IImageSource
 {
     private readonly ImageLoaderSchedulerGroup _preferredSchedulerGroup = ImageLoaderSchedulerGroup.FromPath(comic.Location);
     private readonly ComicConnection _connection = connection;
@@ -21,18 +21,27 @@ internal class ComicImageSource(ComicModel comic, ComicConnection connection, in
 
     public bool ValidateFingerprint => true;
 
-    public async Task<string> GetFingerprint()
+    public async Task<IImageConnection?> Open()
     {
-        return _connection.GetImageSignature(_index);
+        return new ImageConnection(_connection, _index);
     }
 
-    public Task<Stream?> OpenImageStream()
+    private sealed partial class ImageConnection(ComicConnection connection, int index) : IImageConnection
     {
-        return _connection.OpenImageStream(_index);
-    }
+        public string Fingerprint => connection.GetImageSignature(index);
 
-    public async Task<IVectorImageService?> OpenVectorService()
-    {
-        return _connection.OpenVectorService(_index);
+        public void Dispose()
+        {
+        }
+
+        public Task<Stream?> OpenImageStream()
+        {
+            return connection.OpenImageStream(index);
+        }
+
+        public IVectorImageService? OpenVectorService()
+        {
+            return connection.OpenVectorService(index);
+        }
     }
 }
