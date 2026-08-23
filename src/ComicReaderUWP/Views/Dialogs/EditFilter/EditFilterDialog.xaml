@@ -69,25 +69,28 @@
                 IsTextPredictionEnabled="False"
                 TextChanged="ExpressionTextBox_TextChanged"
                 TextWrapping="Wrap" />
-            <StackPanel
+            <ScrollView
                 Grid.Row="4"
                 Grid.Column="2"
-                Orientation="Vertical">
-                <TextBlock
-                    x:Name="ParseResultTextBlock"
-                    TextWrapping="Wrap"
-                    Visibility="Collapsed" />
-                <muxc:ItemsRepeater Margin="0,8,0,0" ItemsSource="{x:Bind ViewModel.ExpressionButtons, Mode=OneWay}">
-                    <muxc:ItemsRepeater.ItemTemplate>
-                        <DataTemplate x:DataType="vm:TagViewModel">
-                            <controls:TagButton DataContext="{x:Bind}" />
-                        </DataTemplate>
-                    </muxc:ItemsRepeater.ItemTemplate>
-                    <muxc:ItemsRepeater.Layout>
-                        <cwc:WrapLayout HorizontalSpacing="5" VerticalSpacing="5" />
-                    </muxc:ItemsRepeater.Layout>
-                </muxc:ItemsRepeater>
-            </StackPanel>
+                MaxHeight="300"
+                VerticalScrollBarVisibility="Auto">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock
+                        x:Name="ParseResultTextBlock"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <muxc:ItemsRepeater Margin="0,8,0,0" ItemsSource="{x:Bind ViewModel.ExpressionButtons, Mode=OneWay}">
+                        <muxc:ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TagViewModel">
+                                <controls:TagButton DataContext="{x:Bind}" />
+                            </DataTemplate>
+                        </muxc:ItemsRepeater.ItemTemplate>
+                        <muxc:ItemsRepeater.Layout>
+                            <cwc:WrapLayout HorizontalSpacing="5" VerticalSpacing="5" />
+                        </muxc:ItemsRepeater.Layout>
+                    </muxc:ItemsRepeater>
+                </StackPanel>
+            </ScrollView>
         </Grid>
         <CheckBox
             Margin="0,16,0,0"
