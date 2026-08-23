@@ -709,13 +709,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
 
         // Update comics
-        if (_searchEngine.Expression == filter.Expression)
+        if (_searchEngine.Expression == filter.Expression && _searchEngine.IncludeHidden == filter.IncludeHiddenComics)
         {
             ScheduleDisplayComics();
         }
         else
         {
             _searchEngine.Expression = filter.Expression;
+            _searchEngine.IncludeHidden = filter.IncludeHiddenComics;
             ScheduleUpdateComics();
         }
     }

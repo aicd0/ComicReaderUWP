@@ -248,6 +248,7 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>다음 $count개의 만화가 라이브러리에서 영구적으로 삭제됩니다:
+
 $comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
@@ -560,6 +561,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>채도</value>
+  </data>
+  <data name="IncludeHiddenComics" xml:space="preserve">
+    <value>숨겨진 만화 포함</value>
   </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>플러그인 설치</value>

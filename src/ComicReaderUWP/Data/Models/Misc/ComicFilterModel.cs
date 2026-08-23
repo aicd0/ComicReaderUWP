@@ -101,6 +101,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         public ComicPropertyModel? GroupSortingProperty { get; set; } = null;
         public IReadOnlySet<string> CollapsedGroups { get; set; } = FrozenSet<string>.Empty;
         public ViewTypeEnum ViewType { get; set; } = ViewTypeEnum.Large;
+        public bool IncludeHiddenComics { get; set; } = false;
         public bool SaveViewSettings { get; set; } = false;
         public bool SaveSortingAndGroupingSettings { get; set; } = true;
         public string Expression { get; set; } = string.Empty;
@@ -126,6 +127,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 GroupSortingProperty = GroupSortingProperty?.ToJson(),
                 CollapsedGroups = [.. CollapsedGroups],
                 ViewType = ViewTypeToString(ViewType),
+                IncludeHiddenComics = IncludeHiddenComics,
                 SaveViewSettings = SaveViewSettings,
                 SaveSortingAndGroupingSettings = SaveSortingAndGroupingSettings,
                 Expression = Expression,
@@ -153,6 +155,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 CollapsedGroups = (model.CollapsedGroups ?? []).Where(x => !string.IsNullOrEmpty(x)).Select(x => x!).ToFrozenSet(),
                 ViewType = string.IsNullOrEmpty(model.ViewType) ?
                     defaultModel.ViewType : StringToViewType(model.ViewType),
+                IncludeHiddenComics = model.IncludeHiddenComics ?? defaultModel.IncludeHiddenComics,
                 SaveViewSettings = model.SaveViewSettings ?? defaultModel.SaveViewSettings,
                 SaveSortingAndGroupingSettings = model.SaveSortingAndGroupingSettings ?? defaultModel.SaveSortingAndGroupingSettings,
                 Expression = model.Expression ?? defaultModel.Expression,
@@ -276,17 +279,14 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
     public class FilterModel
     {
-        [JsonPropertyName("Name")]
-        public string? Name { get; set; }
-
-        [JsonPropertyName("Modified")]
-        public bool? Modified { get; set; }
-
-        [JsonPropertyName("SortBy")]
-        public JsonNode? SortBy { get; set; }
+        [JsonPropertyName("CollapsedGroups")]
+        public List<string?>? CollapsedGroups { get; set; }
 
         [JsonPropertyName("ComicOrderMethod")]
         public string? ComicOrderMethod { get; set; }
+
+        [JsonPropertyName("Expression")]
+        public string? Expression { get; set; }
 
         [JsonPropertyName("GroupBy")]
         public JsonNode? GroupBy { get; set; }
@@ -300,19 +300,25 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         [JsonPropertyName("GroupSortingProperty")]
         public JsonNode? GroupSortingProperty { get; set; }
 
-        [JsonPropertyName("CollapsedGroups")]
-        public List<string?>? CollapsedGroups { get; set; }
+        [JsonPropertyName("IncludeHiddenComics")]
+        public bool? IncludeHiddenComics { get; set; }
 
-        [JsonPropertyName("ViewType")]
-        public string? ViewType { get; set; }
+        [JsonPropertyName("Modified")]
+        public bool? Modified { get; set; }
 
-        [JsonPropertyName("SaveViewConfig")]
-        public bool? SaveViewSettings { get; set; }
+        [JsonPropertyName("Name")]
+        public string? Name { get; set; }
 
         [JsonPropertyName("SaveSortingAndGroupingSettings")]
         public bool? SaveSortingAndGroupingSettings { get; set; }
 
-        [JsonPropertyName("Expression")]
-        public string? Expression { get; set; }
+        [JsonPropertyName("SaveViewConfig")]
+        public bool? SaveViewSettings { get; set; }
+
+        [JsonPropertyName("SortBy")]
+        public JsonNode? SortBy { get; set; }
+
+        [JsonPropertyName("ViewType")]
+        public string? ViewType { get; set; }
     }
 }

@@ -204,6 +204,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
         FilterPresetDropDownLiveData.Emit(filterPresetDropdown);
 
         _searchEngine.Expression = selectedFilter.Expression;
+        _searchEngine.IncludeHidden = selectedFilter.IncludeHiddenComics;
         _searchEngine.Update();
     }
 

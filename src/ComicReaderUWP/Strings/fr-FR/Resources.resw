@@ -248,6 +248,7 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>Les $count bandes dessinées suivantes seront définitivement supprimées de votre bibliothèque :
+
 $comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
@@ -559,6 +560,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Saturation</value>
+  </data>
+  <data name="IncludeHiddenComics" xml:space="preserve">
+    <value>Inclure les comics masqués</value>
   </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>Installer le module</value>

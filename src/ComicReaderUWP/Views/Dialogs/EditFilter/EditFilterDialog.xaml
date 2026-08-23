@@ -91,13 +91,17 @@
         </Grid>
         <CheckBox
             Margin="0,16,0,0"
+            Click="IncludeHiddenComicsCheckBox_Click"
+            Content="{x:Bind StringResource.IncludeHiddenComics}"
+            IsChecked="{x:Bind ViewModel.IncludeHiddenComics, Mode=TwoWay}" />
+        <CheckBox
             Click="SaveViewSettingsCheckBox_Click"
             Content="{x:Bind StringResource.SaveViewSettings}"
-            IsChecked="{x:Bind ViewModel.SaveViewSettings, Mode=OneWay}" />
+            IsChecked="{x:Bind ViewModel.SaveViewSettings, Mode=TwoWay}" />
         <CheckBox
             Click="SaveSortingAndGroupingSettingsCheckBox_Click"
             Content="{x:Bind StringResource.SaveSortingAndGroupingSettings}"
-            IsChecked="{x:Bind ViewModel.SaveSortingAndGroupingSettings, Mode=OneWay}" />
+            IsChecked="{x:Bind ViewModel.SaveSortingAndGroupingSettings, Mode=TwoWay}" />
         <Grid Margin="0,16,0,0" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

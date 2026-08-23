@@ -51,17 +51,25 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _includeHiddenComics = false;
+    public bool IncludeHiddenComics
+    {
+        get => _includeHiddenComics;
+        set
+        {
+            _includeHiddenComics = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IncludeHiddenComics)));
+        }
+    }
+
     private bool _saveViewSettings = false;
     public bool SaveViewSettings
     {
         get => _saveViewSettings;
         set
         {
-            if (_saveViewSettings != value)
-            {
-                _saveViewSettings = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveViewSettings)));
-            }
+            _saveViewSettings = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveViewSettings)));
         }
     }
 
@@ -71,11 +79,8 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         get => _saveSortingAndGroupingSettings;
         set
         {
-            if (_saveSortingAndGroupingSettings != value)
-            {
-                _saveSortingAndGroupingSettings = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveSortingAndGroupingSettings)));
-            }
+            _saveSortingAndGroupingSettings = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveSortingAndGroupingSettings)));
         }
     }
 
@@ -104,6 +109,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         {
             return;
         }
+
         _expression = expression;
 
         ComicFilterModel.ExternalFilterModel? filter = _filter;
@@ -112,53 +118,26 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             return;
         }
 
-        void onExpressionInvalid(string message)
-        {
-            _isExpressionValid = false;
-            string hintMessage = StringResourceProvider.Instance.ExpressionInvalid.Replace("$reason", message);
-            ParseResultLiveData.Emit(hintMessage);
-            UpdateButtonStates();
-        }
-
-        ExpressionToken token;
-        try
-        {
-            token = ExpressionParser.ParseFilter(expression);
-        }
-        catch (ExpressionException e)
-        {
-            onExpressionInvalid(e.Message);
-            return;
-        }
-
-        ICondition condition;
-        try
-        {
-            condition = SQLGenerator.CreateQuery(token, new ComicFilterSQLProvider());
-        }
-        catch (ExpressionException e)
-        {
-            onExpressionInvalid(e.Message);
-            return;
-        }
-
-        var command = SelectCommand.Create(ComicTable.Instance);
-        command.PutQueryInt64(ComicTable.ColumnId);
-        command.AppendCondition(condition);
-
-        _isExpressionValid = true;
-        string hintMessage = StringResourceProvider.Instance.ExpressionValid.Replace("$query", command.ToString());
-        ParseResultLiveData.Emit(hintMessage);
         filter.Expression = expression;
-        UpdateButtonStates();
+        UpdateSQLQuery();
+    }
+
+    public void SetIncludeHiddenComics(bool includeHiddenComics)
+    {
+        ComicFilterModel.ExternalFilterModel? filter = _filter;
+        if (filter is null)
+        {
+            return;
+        }
+
+        filter.IncludeHiddenComics = includeHiddenComics;
+        UpdateSQLQuery();
     }
 
     public void SetSaveViewSettings(bool save)
     {
-        _saveViewSettings = save;
-
         ComicFilterModel.ExternalFilterModel? filter = _filter;
-        if (filter == null)
+        if (filter is null)
         {
             return;
         }
@@ -168,10 +147,8 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
 
     public void SetSaveSortingAndGroupingSettings(bool save)
     {
-        _saveSortingAndGroupingSettings = save;
-
         ComicFilterModel.ExternalFilterModel? filter = _filter;
-        if (filter == null)
+        if (filter is null)
         {
             return;
         }
@@ -286,6 +263,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Title2, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TITLE2}") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.PageCount, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_PAGE_COUNT}") });
             buttons.Add(new() { Tag = StringResourceProvider.Instance.Tag, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_TAG}") });
+            buttons.Add(new() { Tag = StringResourceProvider.Instance.Hidden, OnClicked = () => OnClickButton($"%{ComicSQLProviderUtils.VAR_HIDDEN}") });
 
             List<string> tagCategories = await ComicModel.GetAllTagCategories();
             foreach (string category in tagCategories)
@@ -309,9 +287,58 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             NameLiveData.Emit(filter.Name);
             UpdateExpression(filter.Expression);
             ExpressionLiveData.Emit(filter.Expression);
+            IncludeHiddenComics = filter.IncludeHiddenComics;
             SaveViewSettings = filter.SaveViewSettings;
             SaveSortingAndGroupingSettings = filter.SaveSortingAndGroupingSettings;
         }
+    }
+
+    private void UpdateSQLQuery()
+    {
+        ComicFilterModel.ExternalFilterModel? filter = _filter;
+        if (filter is null)
+        {
+            return;
+        }
+
+        void OnInvalidExpression(string message)
+        {
+            _isExpressionValid = false;
+            string hintMessage = StringResourceProvider.Instance.ExpressionInvalid.Replace("$reason", message);
+            ParseResultLiveData.Emit(hintMessage);
+            UpdateButtonStates();
+        }
+
+        ExpressionToken token;
+        try
+        {
+            token = ExpressionParser.ParseFilter(filter.Expression, filter.IncludeHiddenComics);
+        }
+        catch (ExpressionException e)
+        {
+            OnInvalidExpression(e.Message);
+            return;
+        }
+
+        ICondition condition;
+        try
+        {
+            condition = SQLGenerator.CreateQuery(token, new ComicFilterSQLProvider());
+        }
+        catch (ExpressionException e)
+        {
+            OnInvalidExpression(e.Message);
+            return;
+        }
+
+        var command = SelectCommand.Create(ComicTable.Instance);
+        command.PutQueryInt64(ComicTable.ColumnId);
+        command.AppendCondition(condition);
+
+        _isExpressionValid = true;
+        string hintMessage = StringResourceProvider.Instance.ExpressionValid.Replace("$query", command.ToString());
+        ParseResultLiveData.Emit(hintMessage);
+        UpdateButtonStates();
     }
 
     private void UpdateButtonStates()

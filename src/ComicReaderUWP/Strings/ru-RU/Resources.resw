@@ -248,6 +248,7 @@
   </data>
   <data name="ComicRemovalPromptContent" xml:space="preserve">
     <value>Следующие $count комиксов будут безвозвратно удалены из вашей библиотеки:
+
 $comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
@@ -560,6 +561,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Насыщенность</value>
+  </data>
+  <data name="IncludeHiddenComics" xml:space="preserve">
+    <value>Включать скрытые комиксы</value>
   </data>
   <data name="InstallPlugin" xml:space="preserve">
     <value>Установить плагин</value>

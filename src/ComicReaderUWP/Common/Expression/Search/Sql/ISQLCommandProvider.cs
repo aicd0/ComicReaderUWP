@@ -7,7 +7,9 @@ namespace ComicReaderUWP.Common.Expression.Search.Sql;
 
 internal interface ISQLCommandProvider
 {
-    ICondition CreateFilterCondition(string key, string value);
+    bool IsHiddenFilter(string key);
 
-    ICondition? GetAdditionalCondition();
+    ICondition CreateNotHiddenCondition();
+
+    ICondition CreateFilterCondition(string key, string value);
 }
