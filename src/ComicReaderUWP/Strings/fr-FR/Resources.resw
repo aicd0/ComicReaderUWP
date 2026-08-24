@@ -706,9 +706,6 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Ouvrir dans l’onglet actuel</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>Ouvrir dans l'explorateur de fichiers</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>Ouvrir dans le dernier onglet de lecture actif</value>
   </data>
@@ -916,6 +913,9 @@ Démarrer en mode sans échec ?</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>Afficher les bandes dessinées cachées</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>Afficher dans l’Explorateur de fichiers</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Afficher l'ID de la balise</value>

@@ -4,14 +4,18 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.ErrorHandling;
+using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
@@ -391,6 +395,32 @@ internal sealed partial class ReaderPage : BasePage
                 ViewModel.Playback.Previous(fromOverScroll: true);
             }
         };
+
+        MainReaderView.ImageContextRequested = async (sender, image) =>
+        {
+            IReadOnlyList<BaseMenuFlyoutItemModel> imageItems = CreateImageContextMenuItems(image);
+            IReadOnlyList<BaseMenuFlyoutItemModel> comicItems = await CreateComicContextMenuItems();
+
+            if (imageItems.Count == 0)
+            {
+                return comicItems;
+            }
+
+            List<BaseMenuFlyoutItemModel> items = [.. imageItems];
+
+            if (comicItems.Count > 0)
+            {
+                items.Add(new SeparatorMenuFlyoutItemModel());
+                items.Add(new SubItemMenuFlyoutItemModel()
+                {
+                    Text = StringResourceProvider.Instance.More,
+                    Icon = new FontIconSource() { Glyph = "\uE712" },
+                    Items = comicItems,
+                });
+            }
+
+            return items;
+        };
     }
 
     private async Task<PlaylistModel> GetPlaylist(PageBundle bundle)
@@ -457,21 +487,11 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        ComicModel? comic = ViewModel.Comic;
-        if (comic is null)
-        {
-            return;
-        }
-
         args.Handled = true;
 
         CoroutineUtils.Run(async () =>
         {
-            List<BaseMenuFlyoutItemModel> menuItems = await MenuFlyoutItemsCreator.CreateComicMenuItems(
-                PageActionHandler,
-                comic,
-                playlist: ViewModel.Playlist.ToBuilder(),
-                playback: ViewModel.Playback.ToBuilder());
+            IReadOnlyList<BaseMenuFlyoutItemModel> menuItems = await CreateComicContextMenuItems();
 
             var flyout = new MenuFlyout();
             foreach (BaseMenuFlyoutItemModel item in menuItems)
@@ -1116,6 +1136,64 @@ internal sealed partial class ReaderPage : BasePage
                 plugin.SetReadingComic(GetMainWindowAbility().PluginWindowContext, comic);
             }
         }
+    }
+
+    private IReadOnlyList<BaseMenuFlyoutItemModel> CreateImageContextMenuItems(IImageSource image)
+    {
+        List<BaseMenuFlyoutItemModel> items = [];
+
+        items.Add(new SimpleMenuFlyoutItemModel()
+        {
+            Text = StringResourceProvider.Instance.Copy,
+            Icon = new FontIconSource() { Glyph = "\uE8C8" },
+            Click = () =>
+            {
+                CoroutineUtils.Run(async () =>
+                {
+                    ErrorResult<bool> err = await ErrorLogger<bool>.Run($"{nameof(CreateImageContextMenuItems)}#Copy", async err =>
+                    {
+                        using IImageConnection? connection = await image.Open();
+                        if (connection is null)
+                        {
+                            return err.SetError("Failed to open image connection.");
+                        }
+
+                        using Stream? stream = await connection.OpenImageStream();
+                        if (stream is null)
+                        {
+                            return err.SetError("Failed to open image stream.");
+                        }
+
+                        ErrorResult<bool> innerErr = await ClipboardUtils.SetImage(stream);
+                        if (!innerErr.IsSuccessful)
+                        {
+                            return err.SetError(innerErr);
+                        }
+
+                        return err.SetResult(default);
+                    });
+
+                    err.DisplayErrorMessage(PageActionHandler);
+                });
+            },
+        });
+
+        return items;
+    }
+
+    private async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateComicContextMenuItems()
+    {
+        ComicModel? comic = ViewModel.Comic;
+        if (comic is null)
+        {
+            return [];
+        }
+
+        return await MenuFlyoutItemsCreator.CreateComicMenuItems(
+            PageActionHandler,
+            comic,
+            playlist: ViewModel.Playlist.ToBuilder(),
+            playback: ViewModel.Playback.ToBuilder());
     }
 
     private void AddToActiveTabs()

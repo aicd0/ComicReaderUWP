@@ -128,6 +128,39 @@ internal partial class ReaderImageCompositor : IDisposable
         PostLayoutTask();
     }
 
+    public int HitTest(Windows.Foundation.Point point)
+    {
+        if (!_resourceRef.TryRef(out InstanceResourceModel? res))
+        {
+            return -1;
+        }
+
+        try
+        {
+            PointF pointF = new((float)point.X, (float)point.Y);
+            lock (res._images)
+            {
+                for (int i = 0; i < res._images.Count; i++)
+                {
+                    ImageItem item = res._images[i];
+                    lock (item.Lock)
+                    {
+                        if (item.HitRect.Contains(pointF))
+                        {
+                            return i;
+                        }
+                    }
+                }
+            }
+
+            return -1;
+        }
+        finally
+        {
+            _resourceRef.Unref();
+        }
+    }
+
     public void SetImage(int index, ReaderImageSource? source, float frameWidth, float frameHeight)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
@@ -573,6 +606,27 @@ internal partial class ReaderImageCompositor : IDisposable
             canvasSize = canvasWidthRatio < canvasHeightRatio ?
                 new(mergedFrameSize.Width * canvasHeightRatio, contentSize.Height) :
                 new(contentSize.Width, mergedFrameSize.Height * canvasWidthRatio);
+
+            lock (res._images)
+            {
+                for (int i = 0; i < items.Length; i++)
+                {
+                    RectangleF hitRect = new(0, 0, 0, 0);
+
+                    DrawingItem? item = items[i];
+                    if (item is not null)
+                    {
+                        RectangleF canvasRect = item.CanvasRect;
+                        hitRect = new RectangleF(
+                            canvasRect.X / canvasWidthRatio,
+                            canvasRect.Y / canvasHeightRatio,
+                            canvasRect.Width / canvasWidthRatio,
+                            canvasRect.Height / canvasHeightRatio);
+                    }
+
+                    res._images[i].HitRect = hitRect;
+                }
+            }
         }
 
         CoroutineUtils.RunInMainThread(() =>
@@ -683,6 +737,7 @@ internal partial class ReaderImageCompositor : IDisposable
         public object Lock { get; } = new();
         public ReaderImageSource? Source { get; set; }
         public SizeF FrameSize { get; set; }
+        public RectangleF HitRect { get; set; }
         public bool SupportVector { get; set; } = false;
         public bool ClearPrevious { get; set; } = false;
 

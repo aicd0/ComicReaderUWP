@@ -706,9 +706,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>現在のタブで開く</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>エクスプローラーで開く</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>最後に使用したリーダータブで開く</value>
   </data>
@@ -916,6 +913,9 @@ $plugins</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>非表示のコミックを見る</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>エクスプローラーで表示</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>タグIDを表示</value>

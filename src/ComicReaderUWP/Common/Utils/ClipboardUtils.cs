@@ -2,10 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
+using System.IO;
+using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.DebugTools;
 
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage.Streams;
 
 namespace ComicReaderUWP.Common.Utils;
 
@@ -26,5 +30,40 @@ internal static class ClipboardUtils
         {
             Logger.E(TAG, "Failed to set clipboard text.", ex);
         }
+    }
+
+    public static async Task<ErrorResult<bool>> SetImage(Stream stream)
+    {
+        var err = ErrorLogger<bool>.Create(nameof(SetImage));
+
+        try
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+
+            // The clipboard broker reads bitmap data lazily, often on a background
+            // thread or out of process. The AsRandomAccessStream() adapter over a
+            // managed Stream is not reliable in that scenario (it can silently leave
+            // the clipboard empty), so fully buffer the image into an
+            // InMemoryRandomAccessStream first and keep the buffer alive.
+            var buffer = new InMemoryRandomAccessStream();
+            IRandomAccessStream input = stream.AsRandomAccessStream();
+            await RandomAccessStream.CopyAsync(input, buffer);
+            buffer.Seek(0);
+
+            DataPackage dataPackage = new()
+            {
+                RequestedOperation = DataPackageOperation.Copy
+            };
+            dataPackage.SetBitmap(RandomAccessStreamReference.CreateFromStream(buffer));
+
+            Clipboard.SetContent(dataPackage);
+            Clipboard.Flush();
+        }
+        catch (Exception ex)
+        {
+            return err.SetError(ex);
+        }
+
+        return err.SetResult(default);
     }
 }

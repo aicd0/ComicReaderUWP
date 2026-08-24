@@ -12,12 +12,15 @@
     DataContextChanged="ReaderFrame_DataContextChanged"
     mc:Ignorable="d">
 
-    <Grid Padding="{x:Bind ViewModel.FrameMargin}">
+    <Grid>
         <Grid
             x:Name="ImageHost"
             Width="{x:Bind ViewModel.FrameWidth}"
             Height="{x:Bind ViewModel.FrameHeight}"
-            VerticalAlignment="Center" />
+            Margin="{x:Bind ViewModel.FrameMargin}"
+            VerticalAlignment="Center"
+            Background="Transparent"
+            ContextRequested="ImageHost_ContextRequested" />
     </Grid>
 
 </base:BaseUserControl>

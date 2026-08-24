@@ -706,9 +706,6 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Im aktuellen Tab öffnen</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>Im Datei-Explorer öffnen</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>Im zuletzt aktiven Reader-Tab öffnen</value>
   </data>
@@ -916,6 +913,9 @@ Im abgesicherten Modus starten?</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>Versteckte Comics anzeigen</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>Im Datei-Explorer anzeigen</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Tag-ID anzeigen</value>

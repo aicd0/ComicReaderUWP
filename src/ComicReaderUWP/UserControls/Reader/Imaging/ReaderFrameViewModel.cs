@@ -2,8 +2,11 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.UserControls.Reader.FrameLayout;
 
 using Microsoft.UI.Xaml;
@@ -18,18 +21,19 @@ internal class ReaderFrameViewModel : IReaderListViewItemViewModel
     public readonly MutableLiveData<bool> RedrawImageLiveDate = new();
     public readonly MutableLiveData<double> ScaleLiveData = new();
 
-    public Thickness FrameMargin { get; set; } = new(0.0, 0.0, 0.0, 0.0);
-    public ReaderImageSource? LeftImageSource { get; set; }
-    public double LeftImageWidth { get; set; } = 0.0;
-    public double LeftImageHeight { get; set; } = 0.0;
-    public ReaderImageSource? RightImageSource { get; set; }
-    public double RightImageWidth { get; set; } = 0.0;
-    public double RightImageHeight { get; set; } = 0.0;
+    public required Thickness FrameMargin { get; init; }
+    public required ReaderImageSource? LeftImageSource { get; init; }
+    public required double LeftImageWidth { get; init; }
+    public required double LeftImageHeight { get; init; }
+    public required ReaderImageSource? RightImageSource { get; init; }
+    public required double RightImageWidth { get; init; }
+    public required double RightImageHeight { get; init; }
+    public required Func<int, Task<IReadOnlyList<BaseMenuFlyoutItemModel>>> RequestImageContextMenu { get; init; }
+
     public double FrameWidth => LeftImageWidth + RightImageWidth;
     public double FrameHeight => Math.Max(LeftImageHeight, RightImageHeight);
-
-    public int PageL { get; set; } = NO_PAGE;
-    public int PageR { get; set; } = NO_PAGE;
+    public int PageL { get; init; } = NO_PAGE;
+    public int PageR { get; init; } = NO_PAGE;
     public double Page => PageL != NO_PAGE && PageR != NO_PAGE ? (PageL + PageR) * 0.5 : (PageL == NO_PAGE ? PageR : PageL);
     public bool IsDualPage => PageL != NO_PAGE && PageR != NO_PAGE;
     public bool IsEmpty => PageL == NO_PAGE && PageR == NO_PAGE;

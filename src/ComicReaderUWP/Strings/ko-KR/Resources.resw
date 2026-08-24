@@ -707,9 +707,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>현재 탭에서 열기</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>파일 탐색기에서 열기</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>마지막으로 활성화된 리더 탭에서 열기</value>
   </data>
@@ -917,6 +914,9 @@ $plugins</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>숨겨진 만화 보기</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>파일 탐색기에서 보기</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>태그 ID 표시</value>

@@ -706,9 +706,6 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Abrir en la pestaña actual</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>Abrir en el Explorador de archivos</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>Abrir en la última pestaña activa del lector</value>
   </data>
@@ -916,6 +913,9 @@ $plugins</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>Mostrar cómics ocultos</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>Mostrar en el Explorador de archivos</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Mostrar ID de etiqueta</value>

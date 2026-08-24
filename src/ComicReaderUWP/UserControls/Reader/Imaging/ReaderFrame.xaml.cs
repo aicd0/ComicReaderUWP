@@ -1,12 +1,19 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
+
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Lifecycle.Utils;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
 
 namespace ComicReaderUWP.UserControls.Reader.Imaging;
 
@@ -91,6 +98,61 @@ internal sealed partial class ReaderFrame : BaseUserControl
                 ConnectViewModel();
             }
         }
+    }
+
+    private void ImageHost_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    {
+        if (sender is not FrameworkElement fe)
+        {
+            return;
+        }
+
+        if (!args.TryGetPosition(fe, out Windows.Foundation.Point point))
+        {
+            return;
+        }
+
+        ReaderImageCompositor? compositor = _imageCompositor;
+        if (compositor is null)
+        {
+            return;
+        }
+
+        int imageIndex = compositor.HitTest(point);
+        if (imageIndex < 0)
+        {
+            return;
+        }
+
+        ReaderFrameViewModel? vm = ViewModel;
+        if (vm is null)
+        {
+            return;
+        }
+
+        args.Handled = true;
+
+        CoroutineUtils.Run(async () =>
+        {
+            IReadOnlyList<BaseMenuFlyoutItemModel> menuItems = await vm.RequestImageContextMenu(imageIndex);
+
+            var flyout = new MenuFlyout();
+            foreach (BaseMenuFlyoutItemModel item in menuItems)
+            {
+                flyout.Items.Add(item.CreateMenuFlyoutItem());
+            }
+
+            if (flyout.Items.Count == 0)
+            {
+                flyout.Items.Add(new MenuFlyoutItem()
+                {
+                    Text = StringResourceProvider.Instance.None,
+                    IsEnabled = false,
+                });
+            }
+
+            flyout.ShowAt(fe, new FlyoutShowOptions { Position = point });
+        });
     }
 
     private void ConnectViewModel()
