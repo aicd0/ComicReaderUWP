@@ -708,9 +708,6 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Open in current tab</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>Open in File Explorer</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>Open in last active reader tab</value>
   </data>
@@ -918,6 +915,9 @@ Start in Safe Mode?</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>Show hidden comics</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>Show in File Explorer</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Show tag ID</value>

@@ -107,7 +107,7 @@ internal static class MenuFlyoutItemsCreator
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {
-            Text = StringResourceProvider.Instance.OpenInFileExplorer,
+            Text = StringResourceProvider.Instance.ShowInFileExplorer,
             Icon = new FontIconSource() { Glyph = "\uE838" },
             Click = () =>
             {

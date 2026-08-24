@@ -91,7 +91,7 @@
                                     FontSize="13"
                                     Glyph="&#xE838;"
                                     Tapped="OnDirectoryTapped"
-                                    ToolTipService.ToolTip="{x:Bind StringResource.OpenInFileExplorer}" />
+                                    ToolTipService.ToolTip="{x:Bind StringResource.ShowInFileExplorer}" />
                             </InlineUIContainer>
                         </Paragraph>
                     </RichTextBlock>

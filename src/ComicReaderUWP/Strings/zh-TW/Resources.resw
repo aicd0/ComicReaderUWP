@@ -706,9 +706,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>在目前的分頁中開啟</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>在資源管理器中開啟</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>在上一個作用中的閱讀器分頁中開啟</value>
   </data>
@@ -916,6 +913,9 @@ $plugins</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>顯示隱藏的漫畫</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>在檔案總管中顯示</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>顯示標籤ID</value>

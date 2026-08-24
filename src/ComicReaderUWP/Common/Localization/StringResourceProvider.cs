@@ -155,7 +155,6 @@ public class StringResourceProvider
     public string OpenComicDefaultBehavior => GetResourceString("OpenComicDefaultBehavior");
     public string OpenHomePage => GetResourceString("OpenHomePage");
     public string OpenInCurrentTab => GetResourceString("OpenInCurrentTab");
-    public string OpenInFileExplorer => GetResourceString("OpenInFileExplorer");
     public string OpenInLastActiveReaderTab => GetResourceString("OpenInLastActiveReaderTab");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenPluginsFolder => GetResourceString("OpenPluginsFolder");
@@ -214,6 +213,7 @@ public class StringResourceProvider
     public string SetAsDefault => GetResourceString("SetAsDefault");
     public string SetCompletionState => GetResourceString("SetCompletionState");
     public string Settings => GetResourceString("Settings");
+    public string ShowInFileExplorer => GetResourceString("ShowInFileExplorer");
     public string ShowTagId => GetResourceString("ShowTagId");
     public string Shuffle => GetResourceString("Shuffle");
     public string ShuffleStable => GetResourceString("ShuffleStable");

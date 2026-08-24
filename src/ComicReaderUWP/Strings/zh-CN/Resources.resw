@@ -706,9 +706,6 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>在当前标签页中打开</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>在资源管理器中打开</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>在上一个活动的阅读器标签页中打开</value>
   </data>
@@ -916,6 +913,9 @@ $plugins</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>查看隐藏漫画</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>在文件资源管理器中显示</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>显示标签ID</value>

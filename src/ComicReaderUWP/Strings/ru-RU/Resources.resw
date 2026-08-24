@@ -707,9 +707,6 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="OpenInCurrentTab" xml:space="preserve">
     <value>Открыть в текущей вкладке</value>
   </data>
-  <data name="OpenInFileExplorer" xml:space="preserve">
-    <value>Открыть в проводнике</value>
-  </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
     <value>Открыть в последней активной вкладке читалки</value>
   </data>
@@ -917,6 +914,9 @@ $plugins</value>
   </data>
   <data name="ShowHiddenComicButton.Content" xml:space="preserve">
     <value>Показать скрытые комиксы</value>
+  </data>
+  <data name="ShowInFileExplorer" xml:space="preserve">
+    <value>Показать в проводнике</value>
   </data>
   <data name="ShowTagId" xml:space="preserve">
     <value>Показать идентификатор тега</value>

@@ -275,8 +275,7 @@
             <Grid
                 x:Name="ContentGrid"
                 HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                IsHitTestVisible="False">
+                VerticalAlignment="Top">
                 <framelayout:ReaderListView
                     x:Name="ContentListView"
                     VerticalAlignment="Top"
