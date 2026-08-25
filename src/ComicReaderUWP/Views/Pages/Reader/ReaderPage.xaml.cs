@@ -398,16 +398,15 @@ internal sealed partial class ReaderPage : BasePage
             }
         };
 
-        MainReaderView.ImageContextRequested = async (sender, image) =>
+        MainReaderView.ImageContextRequested = async (sender, args) =>
         {
-            IReadOnlyList<BaseMenuFlyoutItemModel> imageItems = await CreateImageContextMenuItems(image);
-
             ComicModel? comic = ViewModel.Comic;
             if (comic is null)
             {
-                return imageItems;
+                return [];
             }
 
+            IReadOnlyList<BaseMenuFlyoutItemModel> imageItems = await CreateImageContextMenuItems(comic, args);
             IReadOnlyList<BaseMenuFlyoutItemModel> comicItems = await CreateComicContextMenuItems(comic);
 
             if (imageItems.Count == 0)
@@ -1166,10 +1165,10 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    private async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateImageContextMenuItems(IImageSource image)
+    private async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateImageContextMenuItems(ComicModel comic, ImageContextRequestedCallbackArgs args)
     {
-        using IImageConnection? connection = await image.Open();
-        if (connection is null)
+        using IImageConnection? imageConnection = await args.Image.Open();
+        if (imageConnection is null)
         {
             return [];
         }
@@ -1186,7 +1185,7 @@ internal sealed partial class ReaderPage : BasePage
                 {
                     ErrorResult<bool> err = await ErrorLogger<bool>.Run($"{nameof(CreateImageContextMenuItems)}#Copy", async err =>
                     {
-                        using IImageConnection? connection = await image.Open();
+                        using IImageConnection? connection = await args.Image.Open();
                         if (connection is null)
                         {
                             return err.SetError("Failed to open image connection.");
@@ -1212,18 +1211,44 @@ internal sealed partial class ReaderPage : BasePage
             },
         });
 
-        string imagePath = connection.Path;
-        items.Add(new SimpleMenuFlyoutItemModel()
         {
-            Text = StringResourceProvider.Instance.ShowInFileExplorer,
-            Icon = new FontIconSource() { Glyph = "\uE838" },
-            IsEnabled = !string.IsNullOrEmpty(imagePath),
-            Click = () =>
+            string imagePath = imageConnection.Path;
+            items.Add(new SimpleMenuFlyoutItemModel()
             {
-                ErrorResult<bool> err = ThirdPartyLauncher.ShowInFileExplorer(imagePath);
-                err.DisplayErrorMessage(PageActionHandler);
+                Text = StringResourceProvider.Instance.ShowInFileExplorer,
+                Icon = new FontIconSource() { Glyph = "\uE838" },
+                IsEnabled = !string.IsNullOrEmpty(imagePath),
+                Click = () =>
+                {
+                    ErrorResult<bool> err = ThirdPartyLauncher.ShowInFileExplorer(imagePath);
+                    err.DisplayErrorMessage(PageActionHandler);
+                }
+            });
+        }
+
+        {
+            string? coverIndexString = comic.GetExt(ComicExt.COVER_INDEX);
+            if (string.IsNullOrEmpty(coverIndexString) || !int.TryParse(coverIndexString, out int coverIndex))
+            {
+                coverIndex = 0;
             }
-        });
+
+            items.Add(new SimpleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.SetAsCover,
+                Icon = new FontIconSource() { Glyph = "\uE82D" },
+                IsEnabled = coverIndex != args.ImageIndex,
+                Click = () =>
+                {
+                    CoroutineUtils.Run(async () =>
+                    {
+                        comic.SetExt(ComicExt.COVER_INDEX, args.ImageIndex.ToString());
+                        comic.SetExt(ComicExt.COVER_CACHE_KEY, null);
+                        await comic.FlushExt();
+                    });
+                },
+            });
+        }
 
         return items;
     }

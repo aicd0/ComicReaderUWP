@@ -902,6 +902,9 @@ $plugins</value>
   <data name="Separate" xml:space="preserve">
     <value>スプリット</value>
   </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>表紙に設定</value>
+  </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>デフォルトに設定</value>
   </data>

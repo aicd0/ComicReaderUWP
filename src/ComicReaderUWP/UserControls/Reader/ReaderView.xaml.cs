@@ -135,7 +135,7 @@ internal partial class ReaderView : UserControl
     public delegate void ReaderEventOverScrollEventHandler(ReaderView sender, bool forward);
     public event ReaderEventOverScrollEventHandler? ReaderEventOverScroll;
 
-    public delegate Task<IReadOnlyList<BaseMenuFlyoutItemModel>> ImageContextRequestedCallback(ReaderView sender, IImageSource image);
+    public delegate Task<IReadOnlyList<BaseMenuFlyoutItemModel>> ImageContextRequestedCallback(ReaderView sender, ImageContextRequestedCallbackArgs args);
     public ImageContextRequestedCallback? ImageContextRequested { private get; set; }
 
     public int PageCount { get; private set; } = 0;
@@ -1090,13 +1090,21 @@ internal partial class ReaderView : UserControl
                 }
 
                 IImageSource? image = null;
+                int page;
+
                 if (imageIndex == 0)
                 {
                     image = leftImageSource?.Source;
+                    page = pageL;
                 }
                 else if (imageIndex == 1)
                 {
                     image = rightImageSource?.Source;
+                    page = pageR;
+                }
+                else
+                {
+                    return [];
                 }
 
                 if (image is null)
@@ -1104,7 +1112,11 @@ internal partial class ReaderView : UserControl
                     return [];
                 }
 
-                return await callback(this, image);
+                return await callback(this, new()
+                {
+                    ImageIndex = page - 1,
+                    Image = image,
+                });
             }
 
             ReaderFrameViewModel item = new()

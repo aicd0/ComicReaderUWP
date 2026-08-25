@@ -902,6 +902,9 @@ $plugins</value>
   <data name="Separate" xml:space="preserve">
     <value>Separado</value>
   </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>Establecer como portada</value>
+  </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>Establecer como predeterminado</value>
   </data>

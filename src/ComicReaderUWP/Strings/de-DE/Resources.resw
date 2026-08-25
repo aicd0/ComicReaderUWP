@@ -902,6 +902,9 @@ Im abgesicherten Modus starten?</value>
   <data name="Separate" xml:space="preserve">
     <value>Getrennt</value>
   </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>Als Titelbild festlegen</value>
+  </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>Als Standard festlegen</value>
   </data>

@@ -902,6 +902,9 @@ $plugins</value>
   <data name="Separate" xml:space="preserve">
     <value>分割</value>
   </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>設為封面</value>
+  </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>設為預設</value>
   </data>

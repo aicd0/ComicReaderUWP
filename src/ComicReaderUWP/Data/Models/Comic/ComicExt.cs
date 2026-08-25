@@ -5,7 +5,9 @@ namespace ComicReaderUWP.Data.Models.Comic;
 
 internal static class ComicExt
 {
-    public const string READER_SETTING_PRESET_KEY = "ReaderSettingPresetKey";
+    public const string COVER_CACHE_KEY = "CoverCacheKey";
+    public const string COVER_INDEX = "CoverIndex";
     public const string CUSTOM_READER_SETTINGS = "CustomReaderSettings";
     public const string LINKS = "Links";
+    public const string READER_SETTING_PRESET_KEY = "ReaderSettingPresetKey";
 }
