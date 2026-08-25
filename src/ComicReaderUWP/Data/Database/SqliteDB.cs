@@ -13,7 +13,7 @@ namespace ComicReaderUWP.Data.Database;
 
 public static class SqliteDB
 {
-    public const int DATABASE_VERSION = 7;
+    public const int DATABASE_VERSION = 8;
 
     private const string TAG = nameof(SqliteDB);
 
@@ -97,7 +97,7 @@ public static class SqliteDB
             case 2:
                 ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN image_aspect_ratios");
                 ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN cover_file_name");
-                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnCoverCacheKey.Name} TEXT DEFAULT ''");
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN cover_cache_key TEXT DEFAULT ''");
                 ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} ADD COLUMN {ComicTable.ColumnDescription.Name} TEXT DEFAULT ''");
                 goto case 3;
             case 3:
@@ -111,6 +111,9 @@ public static class SqliteDB
                 goto case 6;
             case 6:
                 ExecuteCommand(MainDatabase, $"UPDATE {comicTable} SET {ComicTable.ColumnRating.Name} = {ComicTable.ColumnRating.Name} * 20 WHERE {ComicTable.ColumnRating.Name} >= 0");
+                goto case 7;
+            case 7: // 3.3.0
+                ExecuteCommand(MainDatabase, $"ALTER TABLE {comicTable} DROP COLUMN cover_cache_key");
                 goto case DATABASE_VERSION;
             case DATABASE_VERSION:
                 break;
@@ -140,7 +143,6 @@ public static class SqliteDB
             "," + ComicTable.ColumnProgress.Name + " INTEGER NOT NULL" +
             "," + ComicTable.ColumnLastVisit.Name + " TIMESTAMP NOT NULL" +
             "," + ComicTable.ColumnLastPosition.Name + " REAL NOT NULL" +
-            "," + ComicTable.ColumnCoverCacheKey.Name + " TEXT" +
             "," + ComicTable.ColumnDescription.Name + " TEXT" +
             "," + ComicTable.ColumnCompletionStatus.Name + " INTEGER NOT NULL" +
             "," + ComicTable.ColumnPageCount.Name + " INTEGER NOT NULL" +

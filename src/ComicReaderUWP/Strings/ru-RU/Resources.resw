@@ -903,6 +903,9 @@ $plugins</value>
   <data name="Separate" xml:space="preserve">
     <value>Раздельный</value>
   </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>Сделать обложкой</value>
+  </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>Сделать по умолчанию</value>
   </data>

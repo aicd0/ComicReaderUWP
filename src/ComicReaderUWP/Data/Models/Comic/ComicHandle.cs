@@ -33,7 +33,6 @@ internal abstract partial class ComicHandle
     // Constants
     //
 
-    public const int COVER_INDEX = 0;
     private const string TAG = nameof(ComicHandle);
 
     //
@@ -172,7 +171,6 @@ internal abstract partial class ComicHandle
             IReaderToken<int> progressToken = command.PutQueryInt32(ComicTable.ColumnProgress);
             IReaderToken<DateTimeOffset> lastVisitToken = command.PutQueryDateTimeOffset(ComicTable.ColumnLastVisit);
             IReaderToken<double> lastPositionToken = command.PutQueryDouble(ComicTable.ColumnLastPosition);
-            IReaderToken<string> coverCacheKeyToken = command.PutQueryString(ComicTable.ColumnCoverCacheKey);
             IReaderToken<string> descriptionToken = command.PutQueryString(ComicTable.ColumnDescription);
             IReaderToken<int> completionStatusToken = command.PutQueryInt32(ComicTable.ColumnCompletionStatus);
             IReaderToken<int> pageCountToken = command.PutQueryInt32(ComicTable.ColumnPageCount);
@@ -191,7 +189,6 @@ internal abstract partial class ComicHandle
                 int progress = progressToken.GetValue();
                 DateTimeOffset lastVisit = lastVisitToken.GetValue();
                 double lastPosition = lastPositionToken.GetValue();
-                string coverCacheKey = coverCacheKeyToken.GetValue();
                 string description = descriptionToken.GetValue();
                 CompletionStatusEnum completionStatus = ParseCompletionStatus(completionStatusToken.GetValue());
                 int pageCount = pageCountToken.GetValue();
@@ -212,7 +209,6 @@ internal abstract partial class ComicHandle
                 comic.Progress = progress;
                 comic.LastVisit = lastVisit;
                 comic.LastPosition = lastPosition;
-                comic.CoverCacheKey = coverCacheKey;
                 comic.Description = description;
                 comic._tags = new([]);
                 comic.CompletionStatus = completionStatus;
@@ -643,7 +639,6 @@ internal abstract partial class ComicHandle
     public int Progress { get; protected set; } = -1;
     public DateTimeOffset LastVisit { get; protected set; } = DateTimeOffset.MinValue;
     public double LastPosition { get; protected set; } = 0.0;
-    public string CoverCacheKey { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
     public IReadOnlyDictionary<string, ComicTagCategory> Tags => _tags;
     public IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory> TagsForPlugin => _tags;
@@ -884,6 +879,9 @@ internal abstract partial class ComicHandle
 
     private async Task<bool> InitializeConnection(IComicConnection connection)
     {
+        bool needFlushExt = false;
+
+        // Refresh page count
         int pageCount = connection.ImageCount;
         if (pageCount <= 0)
         {
@@ -893,11 +891,27 @@ internal abstract partial class ComicHandle
 
         await SetPageCount(pageCount);
 
-        // Refresh cover cache key
-        string newCoverCacheKey = connection.GetImageCacheKey(COVER_INDEX);
-        if (!string.IsNullOrEmpty(newCoverCacheKey) && CoverCacheKey != newCoverCacheKey)
+        // Refresh cover index
+        string? coverIndexString = GetExt(ComicExt.COVER_INDEX);
+        if (string.IsNullOrEmpty(coverIndexString) || !int.TryParse(coverIndexString, out int coverIndex) || coverIndex < 0 || coverIndex >= pageCount)
         {
-            SetCoverCacheKey(newCoverCacheKey);
+            coverIndex = 0;
+            SetExt(ComicExt.COVER_INDEX, coverIndex.ToString());
+            needFlushExt = true;
+        }
+
+        // Refresh cover cache key
+        string oldCoverCacheKey = GetExt(ComicExt.COVER_CACHE_KEY) ?? string.Empty;
+        string newCoverCacheKey = connection.GetImageCacheKey(coverIndex);
+        if (!string.IsNullOrEmpty(newCoverCacheKey) && oldCoverCacheKey != newCoverCacheKey)
+        {
+            SetExt(ComicExt.COVER_CACHE_KEY, newCoverCacheKey);
+            needFlushExt = true;
+        }
+
+        if (needFlushExt)
+        {
+            await FlushExt();
         }
 
         return true;
@@ -945,7 +959,6 @@ internal abstract partial class ComicHandle
             ComicTable.ColumnProgress,
             ComicTable.ColumnLastVisit,
             ComicTable.ColumnLastPosition,
-            ComicTable.ColumnCoverCacheKey,
             ComicTable.ColumnDescription,
             ComicTable.ColumnCompletionStatus,
             ComicTable.ColumnExt,
@@ -966,7 +979,6 @@ internal abstract partial class ComicHandle
         evaluators[ComicTable.ColumnProgress.Name] = i => TypeAssert.AssertInt(i.Progress);
         evaluators[ComicTable.ColumnLastVisit.Name] = i => TypeAssert.AssertDateTimeOffset(i.LastVisit);
         evaluators[ComicTable.ColumnLastPosition.Name] = i => TypeAssert.AssertDouble(i.LastPosition);
-        evaluators[ComicTable.ColumnCoverCacheKey.Name] = i => TypeAssert.AssertString(i.CoverCacheKey);
         evaluators[ComicTable.ColumnDescription.Name] = i => TypeAssert.AssertString(i.Description);
         evaluators[ComicTable.ColumnCompletionStatus.Name] = i => TypeAssert.AssertInt((int)i.CompletionStatus);
         evaluators[ComicTable.ColumnExt.Name] = i => TypeAssert.AssertString(JsonSerializer.Serialize(i._ext));
@@ -1046,22 +1058,6 @@ internal abstract partial class ComicHandle
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
                     .AppendColumn(ComicTable.ColumnLastVisit, GetColumnValue(ComicTable.ColumnLastVisit))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
-        }));
-    }
-
-    public void SetCoverCacheKey(string key)
-    {
-        CoverCacheKey = key;
-
-        CoroutineUtils.Run(() => Enqueue(() =>
-        {
-            SaveNoLock(() =>
-            {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnCoverCacheKey, GetColumnValue(ComicTable.ColumnCoverCacheKey))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });

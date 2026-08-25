@@ -903,6 +903,9 @@ $plugins</value>
   <data name="Separate" xml:space="preserve">
     <value>분리된</value>
   </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>표지로 설정</value>
+  </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>기본값으로 설정</value>
   </data>

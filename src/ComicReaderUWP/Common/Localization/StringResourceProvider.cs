@@ -210,6 +210,7 @@ public class StringResourceProvider
     public string SendToWindow => GetResourceString("SendToWindow");
     public string SendUsageData => GetResourceString("SendUsageData");
     public string Separate => GetResourceString("Separate");
+    public string SetAsCover => GetResourceString("SetAsCover");
     public string SetAsDefault => GetResourceString("SetAsDefault");
     public string SetCompletionState => GetResourceString("SetCompletionState");
     public string Settings => GetResourceString("Settings");

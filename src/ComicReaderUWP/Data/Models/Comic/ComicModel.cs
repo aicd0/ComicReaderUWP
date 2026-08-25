@@ -76,7 +76,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         => !(left == right);
 
     //
-    // Getters
+    // Getters/Setters
     //
 
     public string Description => _internalModel.Description;
@@ -95,7 +95,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public CompletionStatusEnum CompletionStatus => _internalModel.CompletionStatus;
     public int PageCount => _internalModel.PageCount;
     public IReadOnlyList<string> FolderViewPath => _internalModel.GetFolderViewPath();
-    public string CoverCacheKey => _internalModel.CoverCacheKey;
+    public Dictionary<string, HashSet<string>> TagsCopy => _internalModel.Tags.ToDictionary(p => p.Key, p => p.Value.Tags.ToHashSet());
 
     public string Title
     {
@@ -123,16 +123,10 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
     }
 
-    public Dictionary<string, HashSet<string>> TagsCopy => _internalModel.Tags.ToDictionary(p => p.Key, p => p.Value.Tags.ToHashSet());
-
     public string? GetExt(string key)
     {
         return _internalModel.GetExt(key);
     }
-
-    //
-    // Setters
-    //
 
     public void SetExt(string key, string? value)
     {

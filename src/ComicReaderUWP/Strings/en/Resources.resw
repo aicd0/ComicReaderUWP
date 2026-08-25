@@ -904,6 +904,9 @@ Start in Safe Mode?</value>
   <data name="Separate" xml:space="preserve">
     <value>Separate</value>
   </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>Set as cover</value>
+  </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>Set as default</value>
   </data>
