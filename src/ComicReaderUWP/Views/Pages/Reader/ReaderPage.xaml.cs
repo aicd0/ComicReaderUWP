@@ -401,11 +401,31 @@ internal sealed partial class ReaderPage : BasePage
         MainReaderView.ImageContextRequested = async (sender, image) =>
         {
             IReadOnlyList<BaseMenuFlyoutItemModel> imageItems = CreateImageContextMenuItems(image);
-            IReadOnlyList<BaseMenuFlyoutItemModel> comicItems = await CreateComicContextMenuItems();
+
+            ComicModel? comic = ViewModel.Comic;
+            if (comic is null)
+            {
+                return imageItems;
+            }
+
+            IReadOnlyList<BaseMenuFlyoutItemModel> comicItems = await CreateComicContextMenuItems(comic);
 
             if (imageItems.Count == 0)
             {
                 return comicItems;
+            }
+
+            string TrimText(string text)
+            {
+                const int maxLength = 30;
+
+                if (text.Length <= maxLength)
+                {
+                    return text;
+                }
+
+                int count = maxLength / 2 - 1;
+                return $"{text[..count]} ... {text[^count..]}";
             }
 
             List<BaseMenuFlyoutItemModel> items = [.. imageItems];
@@ -415,8 +435,8 @@ internal sealed partial class ReaderPage : BasePage
                 items.Add(new SeparatorMenuFlyoutItemModel());
                 items.Add(new SubItemMenuFlyoutItemModel()
                 {
-                    Text = StringResourceProvider.Instance.More,
-                    Icon = new FontIconSource() { Glyph = "\uE712" },
+                    Text = TrimText(comic.Title),
+                    Icon = new FontIconSource() { Glyph = "\uE7AA" },
                     Items = comicItems,
                 });
             }
@@ -489,11 +509,17 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
+        ComicModel? comic = ViewModel.Comic;
+        if (comic is null)
+        {
+            return;
+        }
+
         args.Handled = true;
 
         CoroutineUtils.Run(async () =>
         {
-            IReadOnlyList<BaseMenuFlyoutItemModel> menuItems = await CreateComicContextMenuItems();
+            IReadOnlyList<BaseMenuFlyoutItemModel> menuItems = await CreateComicContextMenuItems(comic);
 
             var flyout = new MenuFlyout();
             foreach (BaseMenuFlyoutItemModel item in menuItems)
@@ -1183,14 +1209,8 @@ internal sealed partial class ReaderPage : BasePage
         return items;
     }
 
-    private async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateComicContextMenuItems()
+    private async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateComicContextMenuItems(ComicModel comic)
     {
-        ComicModel? comic = ViewModel.Comic;
-        if (comic is null)
-        {
-            return [];
-        }
-
         return await MenuFlyoutItemsCreator.CreateComicMenuItems(
             PageActionHandler,
             comic,
