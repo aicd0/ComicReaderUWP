@@ -42,11 +42,6 @@ internal sealed partial class SettingsPage : BasePage
         ViewModel.Shared.ActionHandler = PageActionHandler;
         ViewModel.Initialize();
 
-        GlobalEvent.Instance.ComicUpdated.Observe(this, _ =>
-        {
-            ViewModel.UpdateStatistics();
-        });
-
         GeneralSettingsSection.Initialize(ViewModel.Shared);
         ImageSourceSettingsSection.Initialize(this, ViewModel.Shared);
         ReaderSettingsSection.Initialize(ViewModel.Shared);
@@ -55,12 +50,24 @@ internal sealed partial class SettingsPage : BasePage
 
         ViewModel.Shared.UpdateStarted += Update;
         ViewModel.Shared.Update();
+
+        ObserveData();
     }
 
     protected override void OnStop()
     {
         base.OnStop();
         ViewModel.Shared.UpdateStarted -= Update;
+    }
+
+    private void ObserveData()
+    {
+        GlobalEvent.Instance.ComicUpdated.Observe(this, _ =>
+        {
+            ViewModel.UpdateStatistics();
+        });
+
+        GetMainPageAbility().RegisterRefreshHandler(this, ViewModel.Shared.Update);
     }
 
     private void Update()

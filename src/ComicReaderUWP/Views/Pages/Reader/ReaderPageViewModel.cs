@@ -401,7 +401,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             TitleLiveData.Emit(StringResourceProvider.Instance.Error);
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
         }
-        else if (playlistItem.Comic != _comic)
+        else if (playlistItem.Comic != _comic || reason == PlaybackModel.StatusChangeReason.Refresh)
         {
             TitleLiveData.Emit(playlistItem.Comic.Title);
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
@@ -454,10 +454,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     private async Task LoadComicInternal(LoadingComicInfo info)
     {
         ComicModel? comic = info.Comic;
-        if (comic == _comic)
-        {
-            return;
-        }
 
         // Close previous comic
         CloseComicConnection();
