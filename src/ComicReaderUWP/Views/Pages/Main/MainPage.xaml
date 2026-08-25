@@ -246,10 +246,11 @@
                             x:Uid="HomeButton"
                             Click="HomeButton_Click"
                             Icon="Home"
-                            Style="{StaticResource NavigationPageTopTileAppBarButton}"
-                            Visibility="{x:Bind ViewModel.IsHomePage, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
-                        <Grid Visibility="{x:Bind ViewModel.IsHomePage, Mode=OneWay}">
+                            IsEnabled="{x:Bind ViewModel.IsHomePage, Converter={StaticResource BooleanNegationConverter}, Mode=OneWay}"
+                            Style="{StaticResource NavigationPageTopTileAppBarButton}" />
+                        <Grid>
                             <AppBarButton
+                                x:Name="RefreshButton"
                                 Click="RefreshButton_Click"
                                 Icon="Refresh"
                                 Style="{StaticResource NavigationPageTopTileAppBarButton}"

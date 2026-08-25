@@ -1201,6 +1201,7 @@ internal sealed partial class MainPage : BasePage
 
         private readonly string _tabId;
         private readonly EventBus _eventBus = new();
+        private bool _isRefreshButtonEnabled = false;
         private WeakReference<UIElement>? _customNavigationBar;
         private bool _isHiddenOverlayHitTestVisible = true;
 
@@ -1229,6 +1230,10 @@ internal sealed partial class MainPage : BasePage
         public void ClearStates()
         {
             _eventBus.Clear();
+
+            _isRefreshButtonEnabled = false;
+            _customNavigationBar = null;
+            _isHiddenOverlayHitTestVisible = true;
         }
 
         public void RestoreStates()
@@ -1238,6 +1243,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
+            SetRefreshButtonAvailabilityInternal(parent);
             SetCustomNavigationBarInternal(parent);
             SetHiddenOverlayHitTestVisibilityInternal(parent);
         }
@@ -1264,10 +1270,23 @@ internal sealed partial class MainPage : BasePage
 
         public void RegisterRefreshHandler(ILifecycleOwner owner, IMainPageAbilityForTab.CommonEventHandler handler)
         {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
             _eventBus.With<bool>(EVENT_REFRESH).Observe(owner, _ =>
             {
                 handler();
             });
+
+            _isRefreshButtonEnabled = true;
+            SetRefreshButtonAvailabilityInternal(parent);
+        }
+
+        private void SetRefreshButtonAvailabilityInternal(MainPage page)
+        {
+            page.RefreshButton.IsEnabled = _isRefreshButtonEnabled;
         }
 
         public void SendRefreshEvent()

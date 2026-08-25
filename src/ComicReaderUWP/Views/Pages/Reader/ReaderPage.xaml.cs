@@ -235,6 +235,8 @@ internal sealed partial class ReaderPage : BasePage
 
         GetMainWindowAbility().RegisterFullscreenChangedHandler(this, ViewModel.SetFullscreen);
 
+        GetMainPageAbility().RegisterRefreshHandler(this, ViewModel.Playback.Refresh);
+
         GetMainPageAbility().RegisterOverlayVisibilityChangedHandler(this, visible =>
         {
             if (visible)

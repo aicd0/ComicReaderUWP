@@ -126,6 +126,11 @@ internal class PlaybackModel
         UpdateInternalStates(firstId);
     }
 
+    public void Refresh()
+    {
+        DispatchPlaybackStatusChange(StatusChangeReason.Refresh);
+    }
+
     public void Next()
     {
         if (_cursor >= Items.Count - 1)
@@ -281,6 +286,7 @@ internal class PlaybackModel
     public enum StatusChangeReason
     {
         Other,
+        Refresh,
         Next,
         Previous,
         PreviousByOverScroll,
