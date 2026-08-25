@@ -9,6 +9,8 @@ namespace ComicReaderUWP.Common.Imaging;
 
 internal interface IImageConnection : IDisposable
 {
+    string Path { get; }
+
     string Fingerprint { get; }
 
     Task<Stream?> OpenImageStream();

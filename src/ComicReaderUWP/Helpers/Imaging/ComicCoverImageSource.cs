@@ -1,7 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System.IO;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
@@ -49,26 +48,6 @@ internal sealed partial class ComicCoverImageSource : IImageSource
             return null;
         }
 
-        return new ImageConnection(connection);
-    }
-
-    private sealed partial class ImageConnection(ComicConnection connection) : IImageConnection
-    {
-        public string Fingerprint => connection.GetImageSignature(ComicHandle.COVER_INDEX);
-
-        public void Dispose()
-        {
-            connection.Dispose();
-        }
-
-        public Task<Stream?> OpenImageStream()
-        {
-            return connection.OpenImageStream(ComicHandle.COVER_INDEX);
-        }
-
-        public IVectorImageService? OpenVectorService()
-        {
-            return connection.OpenVectorService(ComicHandle.COVER_INDEX);
-        }
+        return new ComicImageConnection(connection, ComicHandle.COVER_INDEX, ownConnection: true);
     }
 }

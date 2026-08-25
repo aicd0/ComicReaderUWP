@@ -10,13 +10,13 @@ using ComicReaderUWP.Common.Imaging;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
-internal sealed partial class ComicConnection(IComicConnection connection) : IComicConnection
+internal sealed partial class ComicConnection(BaseComicConnection connection) : IComicConnection
 {
     private bool _disposeRequested = false;
     private readonly Lock _refLock = new();
     private int _refCount = 0;
 
-    private readonly IComicConnection _connection = connection;
+    private readonly BaseComicConnection _connection = connection;
     private readonly int _imageCount = connection.ImageCount;
 
     public int ImageCount => _imageCount;
@@ -51,6 +51,28 @@ internal sealed partial class ComicConnection(IComicConnection connection) : ICo
             }
 
             return connection.GetImageName(index);
+        }
+        finally
+        {
+            UnrefConnection();
+        }
+    }
+
+    public string GetImagePath(int index)
+    {
+        if (!TryRefConnection(out IComicConnection? connection))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            if (index < 0 || index >= _imageCount)
+            {
+                return string.Empty;
+            }
+
+            return connection.GetImagePath(index);
         }
         finally
         {

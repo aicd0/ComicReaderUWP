@@ -400,7 +400,7 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ImageContextRequested = async (sender, image) =>
         {
-            IReadOnlyList<BaseMenuFlyoutItemModel> imageItems = CreateImageContextMenuItems(image);
+            IReadOnlyList<BaseMenuFlyoutItemModel> imageItems = await CreateImageContextMenuItems(image);
 
             ComicModel? comic = ViewModel.Comic;
             if (comic is null)
@@ -1166,8 +1166,14 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    private IReadOnlyList<BaseMenuFlyoutItemModel> CreateImageContextMenuItems(IImageSource image)
+    private async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateImageContextMenuItems(IImageSource image)
     {
+        using IImageConnection? connection = await image.Open();
+        if (connection is null)
+        {
+            return [];
+        }
+
         List<BaseMenuFlyoutItemModel> items = [];
 
         items.Add(new SimpleMenuFlyoutItemModel()
@@ -1204,6 +1210,19 @@ internal sealed partial class ReaderPage : BasePage
                     err.DisplayErrorMessage(PageActionHandler);
                 });
             },
+        });
+
+        string imagePath = connection.Path;
+        items.Add(new SimpleMenuFlyoutItemModel()
+        {
+            Text = StringResourceProvider.Instance.ShowInFileExplorer,
+            Icon = new FontIconSource() { Glyph = "\uE838" },
+            IsEnabled = !string.IsNullOrEmpty(imagePath),
+            Click = () =>
+            {
+                ErrorResult<bool> err = ThirdPartyLauncher.ShowInFileExplorer(imagePath);
+                err.DisplayErrorMessage(PageActionHandler);
+            }
         });
 
         return items;

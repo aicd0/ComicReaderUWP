@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -14,9 +15,42 @@ using ComicReaderUWP.Core.Common.Storage;
 
 namespace ComicReaderUWP.Common.Utils;
 
-internal class ThirdPartyLauncher
+internal static class ThirdPartyLauncher
 {
     private const string TAG = nameof(ThirdPartyLauncher);
+
+    public static ErrorResult<bool> ShowInFileExplorer(string path)
+    {
+        var err = ErrorLogger<bool>.Create(TAG);
+
+        if (string.IsNullOrEmpty(path))
+        {
+            return err.SetError("Path is empty.", isFatal: true);
+        }
+
+        if (File.Exists(path))
+        {
+            ErrorResult<bool> innerErr = StartProcess("explorer.exe", $"/select,\"{path}\"");
+            if (!innerErr.IsSuccessful)
+            {
+                return err.SetError(innerErr);
+            }
+        }
+        else if (Directory.Exists(path))
+        {
+            ErrorResult<bool> innerErr = StartProcess("explorer.exe", $"\"{path}\"");
+            if (!innerErr.IsSuccessful)
+            {
+                return err.SetError(innerErr);
+            }
+        }
+        else
+        {
+            return err.SetError($"Path does not exist: {path}");
+        }
+
+        return err.SetResult(default);
+    }
 
     public static void StartTemporaryTextFile(string filename, string text)
     {
@@ -103,5 +137,25 @@ internal class ThirdPartyLauncher
         }
 
         return err.SetResult(filePath);
+    }
+
+    private static ErrorResult<bool> StartProcess(string fileName, string arguments)
+    {
+        var err = ErrorLogger<bool>.Create(TAG);
+
+        try
+        {
+            Process.Start(fileName, arguments);
+        }
+        catch (Win32Exception ex)
+        {
+            return err.SetError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return err.SetError(ex, isFatal: true);
+        }
+
+        return err.SetResult(default);
     }
 }
