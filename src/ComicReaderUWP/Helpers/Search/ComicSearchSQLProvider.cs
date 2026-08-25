@@ -35,7 +35,7 @@ internal class ComicSearchSQLProvider(Common.Expression.Filter.Sql.ISQLCommandPr
                     }
                     catch (ExpressionException)
                     {
-                        break;
+                        return new BooleanCondition(false);
                     }
 
                     ICondition condition;
@@ -45,7 +45,7 @@ internal class ComicSearchSQLProvider(Common.Expression.Filter.Sql.ISQLCommandPr
                     }
                     catch (ExpressionException)
                     {
-                        break;
+                        return new BooleanCondition(false);
                     }
 
                     return condition;
@@ -59,13 +59,11 @@ internal class ComicSearchSQLProvider(Common.Expression.Filter.Sql.ISQLCommandPr
                 {
                     "0" => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(false)),
                     "1" => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(true)),
-                    _ => new BooleanCondition(true),
+                    _ => new BooleanCondition(false),
                 };
 
             default:
-                break;
+                return ComicSQLProviderUtils.CreateTagInTagCategoryCondition(key, new ComparisonCondition(ColumnOrValue.FromColumn(TagTable.ColumnContent), ColumnOrValue.FromValue(value)));
         }
-
-        return ComicSQLProviderUtils.CreateTagInTagCategoryCondition(key, new ComparisonCondition(ColumnOrValue.FromColumn(TagTable.ColumnContent), ColumnOrValue.FromValue(value)));
     }
 }

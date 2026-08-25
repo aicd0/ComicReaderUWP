@@ -8,7 +8,7 @@ using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.Helpers.Imaging;
 
-internal sealed partial class ComicCoverImageSource : IImageSource
+internal sealed class ComicCoverImageSource : IImageSource
 {
     public static async Task<ComicCoverImageSource> Create(ComicModel comic)
     {

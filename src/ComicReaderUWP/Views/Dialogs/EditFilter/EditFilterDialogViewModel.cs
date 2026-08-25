@@ -131,7 +131,6 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         }
 
         filter.IncludeHiddenComics = includeHiddenComics;
-        UpdateSQLQuery();
     }
 
     public void SetSaveViewSettings(bool save)
@@ -312,7 +311,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         ExpressionToken token;
         try
         {
-            token = ExpressionParser.ParseFilter(filter.Expression, filter.IncludeHiddenComics);
+            token = ExpressionParser.ParseFilter(filter.Expression);
         }
         catch (ExpressionException e)
         {

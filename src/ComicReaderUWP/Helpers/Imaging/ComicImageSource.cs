@@ -8,7 +8,7 @@ using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.Helpers.Imaging;
 
-internal sealed partial class ComicImageSource(ComicModel comic, ComicConnection connection, int index) : IImageSource
+internal sealed class ComicImageSource(ComicModel comic, ComicConnection connection, int index) : IImageSource
 {
     private readonly ImageLoaderSchedulerGroup _preferredSchedulerGroup = ImageLoaderSchedulerGroup.FromPath(comic.Location);
     private readonly ComicConnection _connection = connection;
