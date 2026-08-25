@@ -15,6 +15,8 @@ internal interface IComicConnection : IDisposable
 
     string GetImageName(int index);
 
+    string GetImagePath(int index);
+
     string GetImageCacheKey(int index);
 
     string GetImageSignature(int index);

@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -34,7 +33,7 @@ internal partial class ArchiveComicHandle : ComicHandle
     }
 
     public override bool IsEditable => !IsExternal;
-    public override string FileExplorerPath => ArchiveAccess.GetBasePath(Location, false);
+    public override string FileSystemPath => ArchiveAccess.GetBasePath(Location, false);
 
     protected override ComicType Type => ComicType.Archive;
 
@@ -49,7 +48,7 @@ internal partial class ArchiveComicHandle : ComicHandle
         return pieces[..^1];
     }
 
-    protected override async Task<IComicConnection?> OpenComicConnection()
+    protected override async Task<BaseComicConnection?> OpenComicConnection()
     {
         IReadOnlyList<string> entries = await ReloadImages();
         if (entries.Count == 0)
@@ -125,18 +124,18 @@ internal partial class ArchiveComicHandle : ComicHandle
         return [.. entries.OrderBy(x => StringUtils.SmartFileNameKeySelector(x), StringUtils.SmartFileNameComparer)];
     }
 
-    private partial class ArchiveComicConnection(string archivePath, IReadOnlyList<string> entries) : IComicConnection
+    private partial class ArchiveComicConnection(string archivePath, IReadOnlyList<string> entries) : BaseComicConnection
     {
         private readonly string _archivePath = archivePath;
         private readonly IReadOnlyList<string> _entries = entries;
 
-        public int ImageCount => _entries.Count;
+        public override int ImageCount => _entries.Count;
 
-        public void Dispose()
+        public override void Dispose()
         {
         }
 
-        public string GetImageName(int index)
+        public override string GetImageName(int index)
         {
             if (index < 0 || index >= _entries.Count)
             {
@@ -157,7 +156,7 @@ internal partial class ArchiveComicHandle : ComicHandle
             }
         }
 
-        public string GetImageCacheKey(int index)
+        public override string GetImageCacheKey(int index)
         {
             if (index >= _entries.Count)
             {
@@ -169,12 +168,12 @@ internal partial class ArchiveComicHandle : ComicHandle
             return _archivePath + ArchiveAccess.FileSeperator + subPath;
         }
 
-        public string GetImageSignature(int index)
+        public override string GetImageSignature(int index)
         {
             return FileUtils.GetFileSignature(_archivePath);
         }
 
-        public async Task<Stream?> OpenImageStream(int index)
+        public override async Task<Stream?> OpenImageStream(int index)
         {
             if (index < 0 || index >= _entries.Count)
             {
@@ -192,11 +191,6 @@ internal partial class ArchiveComicHandle : ComicHandle
             }
 
             return stream;
-        }
-
-        public IVectorImageService? OpenVectorService(int index)
-        {
-            return null;
         }
     }
 }

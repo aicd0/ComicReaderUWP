@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -235,36 +233,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     public ErrorResult<bool> ShowInFileExplorer()
     {
-        var err = ErrorLogger<bool>.Create(TAG);
-
-        string fileExplorerPath = _internalModel.FileExplorerPath;
-        if (string.IsNullOrEmpty(fileExplorerPath))
-        {
-            return err.SetError("ShowInFileExplorer: FileExplorerPath is null or empty.", isFatal: true);
-        }
-
-        if (File.Exists(fileExplorerPath))
-        {
-            ErrorResult<bool> innerErr = StartProcess("explorer.exe", $"/select,\"{fileExplorerPath}\"");
-            if (!innerErr.IsSuccessful)
-            {
-                return err.SetError(innerErr);
-            }
-        }
-        else if (Directory.Exists(fileExplorerPath))
-        {
-            ErrorResult<bool> innerErr = StartProcess("explorer.exe", $"\"{fileExplorerPath}\"");
-            if (!innerErr.IsSuccessful)
-            {
-                return err.SetError(innerErr);
-            }
-        }
-        else
-        {
-            return err.SetError($"Path does not exist: {fileExplorerPath}");
-        }
-
-        return err.SetResult(default);
+        return ThirdPartyLauncher.ShowInFileExplorer(_internalModel.FileSystemPath);
     }
 
     //
@@ -733,26 +702,6 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     //
     // Static Helpers
     //
-
-    private static ErrorResult<bool> StartProcess(string fileName, string arguments)
-    {
-        var err = ErrorLogger<bool>.Create(TAG);
-
-        try
-        {
-            Process.Start(fileName, arguments);
-        }
-        catch (Win32Exception ex)
-        {
-            return err.SetError(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return err.SetError(ex, isFatal: true);
-        }
-
-        return err.SetResult(default);
-    }
 
     private static void DispatchUpdateEvent()
     {

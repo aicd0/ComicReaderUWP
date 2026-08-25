@@ -650,7 +650,7 @@ internal abstract partial class ComicHandle
     public int PageCount { get; private set; } = -1;
 
     public abstract bool IsEditable { get; }
-    public virtual string FileExplorerPath => Location;
+    public virtual string FileSystemPath => Location;
     public bool IsExternal => Id < 0;
 
     protected abstract ComicType Type { get; }
@@ -856,7 +856,7 @@ internal abstract partial class ComicHandle
 
     public async Task<ComicConnection?> OpenComic()
     {
-        IComicConnection? connection = await OpenComicConnection();
+        BaseComicConnection? connection = await OpenComicConnection();
         if (connection is null)
         {
             return null;
@@ -927,7 +927,7 @@ internal abstract partial class ComicHandle
 
     public abstract IReadOnlyList<string> GetFolderViewPath();
 
-    protected abstract Task<IComicConnection?> OpenComicConnection();
+    protected abstract Task<BaseComicConnection?> OpenComicConnection();
 
     //
     // DB Helpers

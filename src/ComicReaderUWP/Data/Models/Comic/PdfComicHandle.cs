@@ -51,7 +51,7 @@ internal partial class PdfComicHandle : ComicHandle
         return dirName.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
     }
 
-    protected override async Task<IComicConnection?> OpenComicConnection()
+    protected override async Task<BaseComicConnection?> OpenComicConnection()
     {
         PdfManager.IPdfConnection? connection = await PdfManager.OpenPdf(Location, null);
         if (connection is null)
@@ -109,31 +109,26 @@ internal partial class PdfComicHandle : ComicHandle
         return stream;
     }
 
-    private partial class PdfComicConnection(string pdfPath, PdfManager.IPdfConnection connection) : IComicConnection
+    private partial class PdfComicConnection(string pdfPath, PdfManager.IPdfConnection connection) : BaseComicConnection
     {
-        public int ImageCount => connection.GetPageCount();
+        public override int ImageCount => connection.GetPageCount();
 
-        public void Dispose()
+        public override void Dispose()
         {
             connection.Dispose();
         }
 
-        public string GetImageName(int index)
-        {
-            return string.Empty;
-        }
-
-        public string GetImageCacheKey(int index)
+        public override string GetImageCacheKey(int index)
         {
             return pdfPath + ":" + index.ToString();
         }
 
-        public string GetImageSignature(int index)
+        public override string GetImageSignature(int index)
         {
             return FileUtils.GetFileSignature(pdfPath);
         }
 
-        public async Task<Stream?> OpenImageStream(int index)
+        public override async Task<Stream?> OpenImageStream(int index)
         {
             SizeF size = connection.GetPageSize(index);
             int width = (int)Math.Round(size.Width);
@@ -144,7 +139,7 @@ internal partial class PdfComicHandle : ComicHandle
             });
         }
 
-        public IVectorImageService? OpenVectorService(int index)
+        public override IVectorImageService? OpenVectorService(int index)
         {
             return new VectorService(connection.Clone(), index);
         }

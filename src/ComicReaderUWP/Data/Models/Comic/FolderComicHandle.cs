@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -130,7 +129,7 @@ internal partial class FolderComicHandle : ComicHandle
         });
     }
 
-    protected override async Task<IComicConnection?> OpenComicConnection()
+    protected override async Task<BaseComicConnection?> OpenComicConnection()
     {
         IReadOnlyList<string> imageFiles = await ReloadImages();
         if (imageFiles.Count == 0)
@@ -163,21 +162,21 @@ internal partial class FolderComicHandle : ComicHandle
             .OrderBy(file => StringUtils.SmartFileNameKeySelector(Path.GetFileNameWithoutExtension(file)), StringUtils.SmartFileNameComparer)];
     }
 
-    private partial class FolderComicConnection(IEnumerable<string> imageFiles) : IComicConnection
+    private partial class FolderComicConnection(IEnumerable<string> imageFiles) : BaseComicConnection
     {
         private readonly IReadOnlyList<string> _imageFiles = [.. imageFiles];
 
-        public int ImageCount => _imageFiles.Count;
+        public override int ImageCount => _imageFiles.Count;
 
-        public void Dispose()
+        public override void Dispose()
         {
         }
 
-        public string GetImageName(int index)
+        public override string GetImageName(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)
             {
-                Logger.F(TAG, "GetImageName");
+                Logger.F(TAG, $"[{nameof(GetImageName)}] Index out of range: {index}");
                 return string.Empty;
             }
 
@@ -185,33 +184,44 @@ internal partial class FolderComicHandle : ComicHandle
             return Path.GetFileName(imageFile);
         }
 
-        public string GetImageCacheKey(int index)
+        public override string GetImagePath(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)
             {
-                Logger.F(TAG, "GetImageCacheKey");
+                Logger.F(TAG, $"[{nameof(GetImagePath)}] Index out of range: {index}");
                 return string.Empty;
             }
 
             return _imageFiles[index];
         }
 
-        public string GetImageSignature(int index)
+        public override string GetImageCacheKey(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)
             {
-                Logger.F(TAG, "GetImageSignature");
+                Logger.F(TAG, $"[{nameof(GetImageCacheKey)}] Index out of range: {index}");
+                return string.Empty;
+            }
+
+            return _imageFiles[index];
+        }
+
+        public override string GetImageSignature(int index)
+        {
+            if (index < 0 || index >= _imageFiles.Count)
+            {
+                Logger.F(TAG, $"[{nameof(GetImageSignature)}] Index out of range: {index}");
                 return string.Empty;
             }
 
             return FileUtils.GetFileSignature(_imageFiles[index]);
         }
 
-        public async Task<Stream?> OpenImageStream(int index)
+        public override async Task<Stream?> OpenImageStream(int index)
         {
             if (index < 0 || index >= _imageFiles.Count)
             {
-                Logger.F(TAG, $"OpenImageStream: Index out of range: {index}");
+                Logger.F(TAG, $"[{nameof(OpenImageStream)}] Index out of range: {index}");
                 return null;
             }
 
@@ -240,11 +250,6 @@ internal partial class FolderComicHandle : ComicHandle
                 Logger.F(TAG, $"Cannot open '{imageFile}'", ex);
                 return null;
             }
-        }
-
-        public IVectorImageService? OpenVectorService(int index)
-        {
-            return null;
         }
     }
 }
