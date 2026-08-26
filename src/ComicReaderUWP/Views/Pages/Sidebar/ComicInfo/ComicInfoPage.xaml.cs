@@ -169,24 +169,27 @@ internal sealed partial class ComicInfoPage : BasePage
 
     private void OnDirectoryTapped(object sender, TappedRoutedEventArgs e)
     {
-        ErrorResult<bool> err = ErrorLogger<bool>.Run(nameof(OnDirectoryTapped), err =>
+        CoroutineUtils.Run(async () =>
         {
-            ComicModel? comic = ViewModel.Comic;
-            if (comic is null)
+            ErrorResult<bool> err = await ErrorLogger<bool>.Run(nameof(OnDirectoryTapped), async err =>
             {
-                return err.SetError("Comic is null.");
-            }
+                ComicModel? comic = ViewModel.Comic;
+                if (comic is null)
+                {
+                    return err.SetError("Comic is null.");
+                }
 
-            ErrorResult<bool> innerErr = comic.ShowInFileExplorer();
-            if (!innerErr.IsSuccessful)
-            {
-                return err.SetError(innerErr);
-            }
+                ErrorResult<bool> innerErr = await comic.ShowInFileExplorer();
+                if (!innerErr.IsSuccessful)
+                {
+                    return err.SetError(innerErr);
+                }
 
-            return err.SetResult(default);
+                return err.SetResult(default);
+            });
+
+            err.DisplayErrorMessage(PageActionHandler);
         });
-
-        err.DisplayErrorMessage(PageActionHandler);
     }
 
     private void OnEditInfoClick(object sender, RoutedEventArgs e)

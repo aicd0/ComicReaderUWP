@@ -16,6 +16,7 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.SDK.Models;
 
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 
@@ -145,7 +146,11 @@ internal partial class PluginSettingsViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Remove,
-            Icon = new FontIconSource() { Glyph = "\uE74D" },
+            Icon = new FontIconSource()
+            {
+                Glyph = "\uE74D",
+                Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 69, 0)),
+            },
             Click = () =>
             {
                 CoroutineUtils.Run(async () =>

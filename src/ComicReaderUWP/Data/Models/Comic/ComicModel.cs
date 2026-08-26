@@ -225,7 +225,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return _internalModel.OpenComic();
     }
 
-    public ErrorResult<bool> ShowInFileExplorer()
+    public Task<ErrorResult<bool>> ShowInFileExplorer()
     {
         return ThirdPartyLauncher.ShowInFileExplorer(_internalModel.FileSystemPath);
     }

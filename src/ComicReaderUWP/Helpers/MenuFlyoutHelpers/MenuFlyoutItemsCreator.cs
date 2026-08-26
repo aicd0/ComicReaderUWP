@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.Actions.Providers;
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
@@ -111,7 +112,11 @@ internal static class MenuFlyoutItemsCreator
             Icon = new FontIconSource() { Glyph = "\uE838" },
             Click = () =>
             {
-                primaryComic.ShowInFileExplorer().DisplayErrorMessage(actionHandler);
+                CoroutineUtils.Run(async () =>
+                {
+                    ErrorResult<bool> err = await primaryComic.ShowInFileExplorer();
+                    err.DisplayErrorMessage(actionHandler);
+                });
             },
         });
 

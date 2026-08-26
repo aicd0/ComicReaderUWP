@@ -1220,8 +1220,11 @@ internal sealed partial class ReaderPage : BasePage
                 IsEnabled = !string.IsNullOrEmpty(imagePath),
                 Click = () =>
                 {
-                    ErrorResult<bool> err = ThirdPartyLauncher.ShowInFileExplorer(imagePath);
-                    err.DisplayErrorMessage(PageActionHandler);
+                    CoroutineUtils.Run(async () =>
+                    {
+                        ErrorResult<bool> err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
+                        err.DisplayErrorMessage(PageActionHandler);
+                    });
                 }
             });
         }
