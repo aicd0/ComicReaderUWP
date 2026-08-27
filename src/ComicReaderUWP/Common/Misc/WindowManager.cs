@@ -22,14 +22,14 @@ using Microsoft.UI.Xaml;
 
 namespace ComicReaderUWP.Common.Misc;
 
-class WindowManager
+internal sealed class WindowManager
 {
     private const string TAG = nameof(WindowManager);
 
     private int _highestWindowId = 0;
     private readonly ConcurrentDictionary<int, WindowWrapper> _windows = [];
-    private bool _saveWindowStatusScheduled = false;
-    private bool _windowStatusLocked = false;
+    private bool _isSavingWindowStateScheduled = false;
+    private bool _isWindowStateLocked = false;
 
     public int RegisterWindow(MainWindow window)
     {
@@ -123,47 +123,47 @@ class WindowManager
         return result;
     }
 
-    public void ScheduleSaveWindowStatus()
+    public void ScheduleSavingWindowState()
     {
-        if (_saveWindowStatusScheduled || _windowStatusLocked)
+        if (_isSavingWindowStateScheduled || _isWindowStateLocked)
         {
             return;
         }
 
-        _saveWindowStatusScheduled = true;
+        _isSavingWindowStateScheduled = true;
         CoroutineUtils.Run(async () =>
         {
             await Task.Delay(500);
-            _saveWindowStatusScheduled = false;
-            if (_windowStatusLocked)
+            _isSavingWindowStateScheduled = false;
+            if (_isWindowStateLocked)
             {
                 return;
             }
 
-            SaveWindowStatus();
+            SaveWindowState();
         });
     }
 
-    public void LockWindowStatus()
+    public void LockWindowState()
     {
-        if (_windowStatusLocked)
+        if (_isWindowStateLocked)
         {
             return;
         }
 
-        _windowStatusLocked = true;
-        SaveWindowStatus();
+        _isWindowStateLocked = true;
+        SaveWindowState();
     }
 
-    public void RestoreWindowStatus()
+    public void RestoreWindowState()
     {
-        WindowStatusModel? model = null;
+        WindowStateModel? model = null;
         string? serialized = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValue<string>(KVNames.KV_KEY_APP_WINDOW_STATUS);
         if (!string.IsNullOrEmpty(serialized))
         {
             try
             {
-                model = JsonSerializer.Deserialize<WindowStatusModel>(serialized);
+                model = JsonSerializer.Deserialize<WindowStateModel>(serialized);
             }
             catch (JsonException ex)
             {
@@ -173,18 +173,18 @@ class WindowManager
 
         CleanUpTabResources(model);
 
-        List<MainWindow.WindowStatusModel> windows = [.. model?.Windows?.Where(x => x is not null).Select(x => x!) ?? []];
-        foreach (MainWindow.WindowStatusModel? windowStatus in windows)
+        List<MainWindow.WindowStateModel> windows = [.. model?.Windows?.Where(x => x is not null).Select(x => x!) ?? []];
+        foreach (MainWindow.WindowStateModel? windowState in windows)
         {
-            MainWindow.Open(windowStatus);
+            MainWindow.Open(windowState);
         }
     }
 
-    private void SaveWindowStatus()
+    private void SaveWindowState()
     {
         CoroutineUtils.Run(async () =>
         {
-            WindowStatusModel model = new()
+            WindowStateModel model = new()
             {
                 Windows = []
             };
@@ -193,10 +193,10 @@ class WindowManager
             {
                 foreach (WindowWrapper wrapper in _windows.Values)
                 {
-                    MainWindow.WindowStatusModel? windowStatus = wrapper.Window.GetWindowStatus();
-                    if (windowStatus is not null)
+                    MainWindow.WindowStateModel? windowState = wrapper.Window.GetWindowState();
+                    if (windowState is not null)
                     {
-                        model.Windows.Add(windowStatus);
+                        model.Windows.Add(windowState);
                     }
                 }
             });
@@ -206,7 +206,7 @@ class WindowManager
         });
     }
 
-    private static void CleanUpTabResources(WindowStatusModel? model)
+    private static void CleanUpTabResources(WindowStateModel? model)
     {
         IEnumerable<string> tabIds = model?.Windows?
             .Where(x => x is not null)
@@ -235,9 +235,9 @@ class WindowManager
         public EventBus EventBus { get; } = new();
     }
 
-    private class WindowStatusModel
+    private class WindowStateModel
     {
         [JsonPropertyName("Windows")]
-        public required List<MainWindow.WindowStatusModel?>? Windows { get; init; }
+        public required List<MainWindow.WindowStateModel?>? Windows { get; init; }
     }
 }

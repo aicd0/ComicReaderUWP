@@ -185,7 +185,7 @@ public partial class App : Application
         {
             if (fromLaunch && !InitTaskManager.Instance.SafeMode)
             {
-                WindowManager.RestoreWindowStatus();
+                WindowManager.RestoreWindowState();
             }
 
             MainWindow? window = WindowManager.GetAnyWindow();

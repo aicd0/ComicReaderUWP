@@ -59,7 +59,7 @@ internal sealed partial class MainWindow : Window
         var tab = MainPage.TabJsonModel.Create();
         tab.Url = url;
         tab.OldTabId = oldTabId;
-        WindowStatusModel windowStatus = new()
+        WindowStateModel windowState = new()
         {
             Fullscreen = false,
             WindowPlacement = null,
@@ -69,13 +69,13 @@ internal sealed partial class MainWindow : Window
                 Tabs = [tab],
             },
         };
-        MainWindow window = new(windowStatus, restorePlacement);
+        MainWindow window = new(windowState, restorePlacement);
         window.Activate();
     }
 
-    public static void Open(WindowStatusModel windowStatus)
+    public static void Open(WindowStateModel windowState)
     {
-        MainWindow window = new(windowStatus, restorePlacement: true);
+        MainWindow window = new(windowState, restorePlacement: true);
         window.Activate();
     }
 
@@ -107,7 +107,7 @@ internal sealed partial class MainWindow : Window
     // Constructors
     //
 
-    private MainWindow(WindowStatusModel? windowStatus, bool restorePlacement)
+    private MainWindow(WindowStateModel? windowState, bool restorePlacement)
     {
         InitializeComponent();
 
@@ -115,7 +115,7 @@ internal sealed partial class MainWindow : Window
         WindowHandle = WindowNative.GetWindowHandle(this);
 
         _members = new(this);
-        Members._requestWindowStatus = windowStatus;
+        Members._requestedWindowState = windowState;
         _requestRestorePlacement = restorePlacement;
 
         Title = StringResourceProvider.Instance.AppDisplayName;
@@ -147,7 +147,7 @@ internal sealed partial class MainWindow : Window
         return dpi / 96.0;
     }
 
-    public WindowStatusModel? GetWindowStatus()
+    public WindowStateModel? GetWindowState()
     {
         MainThreadUtils.AssertOnMainThread();
 
@@ -156,8 +156,8 @@ internal sealed partial class MainWindow : Window
             return null;
         }
 
-        MainPage.LastTabStatusJsonModel? tabStatus = Members._mainPage.GetTabStatus();
-        if (tabStatus is null)
+        MainPage.MainPageStateJsonModel? tabState = Members._mainPage.GetState();
+        if (tabState is null)
         {
             return null;
         }
@@ -166,7 +166,7 @@ internal sealed partial class MainWindow : Window
         {
             Fullscreen = _isFullscreen,
             WindowPlacement = Members._windowPlacementManager.GetWindowPlacement(),
-            TabStatus = tabStatus,
+            TabStatus = tabState,
         };
     }
 
@@ -270,7 +270,7 @@ internal sealed partial class MainWindow : Window
         UnregisterMessageLoop();
 
         App.Instance.WindowManager.UnregisterWindow(WindowId);
-        App.Instance.WindowManager.ScheduleSaveWindowStatus();
+        App.Instance.WindowManager.ScheduleSavingWindowState();
 
         // Dereference members
         _members = null;
@@ -298,7 +298,7 @@ internal sealed partial class MainWindow : Window
 
         if (args.DidPositionChange)
         {
-            App.Instance.WindowManager.ScheduleSaveWindowStatus();
+            App.Instance.WindowManager.ScheduleSavingWindowState();
         }
 
         if (args.DidSizeChange)
@@ -308,7 +308,7 @@ internal sealed partial class MainWindow : Window
                 DispatchFullscreenChangeEvent(IsFullScreen());
             });
 
-            App.Instance.WindowManager.ScheduleSaveWindowStatus();
+            App.Instance.WindowManager.ScheduleSavingWindowState();
         }
     }
 
@@ -325,22 +325,22 @@ internal sealed partial class MainWindow : Window
         LifecycleState = WindowLifecycleState.Loaded;
 
         // Restore window placement
-        WindowStatusModel? windowStatus = Members._requestWindowStatus;
-        if (windowStatus is not null && _requestRestorePlacement)
+        WindowStateModel? windowState = Members._requestedWindowState;
+        if (windowState is not null && _requestRestorePlacement)
         {
-            if (windowStatus.WindowPlacement is not null)
+            if (windowState.WindowPlacement is not null)
             {
-                Members._windowPlacementManager.RestoreWindowPlacement(windowStatus.WindowPlacement);
+                Members._windowPlacementManager.RestoreWindowPlacement(windowState.WindowPlacement);
             }
 
-            if (windowStatus.Fullscreen)
+            if (windowState.Fullscreen)
             {
                 EnterOrExitFullscreen(true);
             }
         }
 
         // Load initial tabs
-        Members._mainPage.RestoreTabStatus(windowStatus?.TabStatus);
+        Members._mainPage.RestoreState(windowState?.TabStatus);
 
         if (sIsFirstWindow)
         {
@@ -462,7 +462,7 @@ internal sealed partial class MainWindow : Window
 
         AppWindow.SetPresenter(isFullscreen ? AppWindowPresenterKind.FullScreen : AppWindowPresenterKind.Default);
         DispatchFullscreenChangeEvent(isFullscreen);
-        App.Instance.WindowManager.ScheduleSaveWindowStatus();
+        App.Instance.WindowManager.ScheduleSavingWindowState();
     }
 
     private bool IsFullScreen()
@@ -676,11 +676,11 @@ internal sealed partial class MainWindow : Window
         public readonly WindowPlacementManager _windowPlacementManager = new(window);
         public readonly MainWindowAbility _mainWindowAbility = new(window);
         public List<Action> _pendingActions = [];
-        public WindowStatusModel? _requestWindowStatus = null;
+        public WindowStateModel? _requestedWindowState = null;
         public MainPage? _mainPage;
     }
 
-    public class WindowStatusModel
+    public class WindowStateModel
     {
         [JsonPropertyName("Fullscreen")]
         public bool Fullscreen { get; init; }
@@ -689,6 +689,6 @@ internal sealed partial class MainWindow : Window
         public WindowPlacementManager.SavedWindowState? WindowPlacement { get; init; }
 
         [JsonPropertyName("TabStatus")]
-        public MainPage.LastTabStatusJsonModel? TabStatus { get; init; }
+        public MainPage.MainPageStateJsonModel? TabStatus { get; init; }
     }
 }

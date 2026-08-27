@@ -101,7 +101,7 @@ internal static class MenuFlyoutItemsCreator
         {
             Text = StringResourceProvider.Instance.SendToWindow,
             Icon = new FontIconSource() { Glyph = "\uE78B" },
-            Items = CreateSendToWindowMenuItems(primaryComicRoute.Url, actionHandler),
+            Items = CreateSendToWindowMenuItems(actionHandler, primaryComicRoute),
         });
 
         items.Add(new SeparatorMenuFlyoutItemModel());
@@ -407,7 +407,7 @@ internal static class MenuFlyoutItemsCreator
         return items;
     }
 
-    private static List<BaseMenuFlyoutItemModel> CreateSendToWindowMenuItems(string url, ActionHandler actionHandler)
+    private static List<BaseMenuFlyoutItemModel> CreateSendToWindowMenuItems(ActionHandler actionHandler, Route route)
     {
         List<BaseMenuFlyoutItemModel> items = [];
 
@@ -439,7 +439,7 @@ internal static class MenuFlyoutItemsCreator
                 Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
-                        .AddParameter(OpenTabProvider.PARAM_URL, url)
+                        .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                         .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, windowId.ToString())
                         .Build();
                     actionHandler.HandleNoResult(actionModel);
@@ -453,7 +453,7 @@ internal static class MenuFlyoutItemsCreator
             Click = () =>
             {
                 ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
-                    .AddParameter(OpenTabProvider.PARAM_URL, url)
+                    .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
                     .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
                     .Build();
                 actionHandler.HandleNoResult(actionModel);

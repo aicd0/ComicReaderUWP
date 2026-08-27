@@ -2,13 +2,11 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Converters;
-using ComicReaderUWP.Core.Common.Utils;
-using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Plugins.UI;
 
@@ -33,7 +31,7 @@ internal sealed partial class SidebarView : BaseUserControl
 
     private readonly List<SidebarPageItem> _builtinItems;
 
-    private ISidePaneHandler? _handler = null;
+    private IHandler? _handler = null;
     private bool _isContainerReady = false;
     private string _initialPageTag = string.Empty;
 
@@ -99,27 +97,16 @@ internal sealed partial class SidebarView : BaseUserControl
         ];
 
         InitializeComponent();
+        SetPinState(false);
     }
 
     //
     // Public Methods
     //
 
-    public void Initialize(ISidePaneHandler handler)
+    public void SetHandler(IHandler handler)
     {
         _handler = handler;
-    }
-
-    public void EnsureInitialContent()
-    {
-        _isContainerReady = true;
-        UpdatePage();
-    }
-
-    public void RestoreStates()
-    {
-        bool pinned = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_PINNED, false);
-        SetPinState(pinned);
     }
 
     public void SetPage(string tag)
@@ -128,6 +115,27 @@ internal sealed partial class SidebarView : BaseUserControl
         {
             _initialPageTag = tag;
         }
+    }
+
+    public SidebarStateJsonModel GetState()
+    {
+        return new()
+        {
+            IsPinned = IsPinned,
+            SelectedItem = _currentPageTag,
+        };
+    }
+
+    public void EnsureInitialContent()
+    {
+        _isContainerReady = true;
+        UpdatePage();
+    }
+
+    public void RestoreState(SidebarStateJsonModel state)
+    {
+        _initialPageTag = state.SelectedItem ?? string.Empty;
+        SetPinState(state.IsPinned);
     }
 
     //
@@ -148,7 +156,7 @@ internal sealed partial class SidebarView : BaseUserControl
     {
         bool pinned = !IsPinned;
         SetPinState(pinned);
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_PINNED, pinned);
+        _handler?.OnStateChanged();
     }
 
     //
@@ -196,11 +204,6 @@ internal sealed partial class SidebarView : BaseUserControl
         }
 
         string initialTag = _initialPageTag;
-        if (string.IsNullOrEmpty(initialTag))
-        {
-            initialTag = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, string.Empty);
-        }
-
         if (string.IsNullOrEmpty(initialTag) || !SelectItem(initialTag))
         {
             SelectItem(_builtinItems[0].Tag);
@@ -232,7 +235,7 @@ internal sealed partial class SidebarView : BaseUserControl
 
         ContentFrame.Content = null;
         _currentPageTag = selectedTag;
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_LAST_ITEM, selectedTag);
+        _handler.OnStateChanged();
 
         if (_pageCache.TryGetValue(selectedTag, out object? pageCache))
         {
@@ -275,11 +278,11 @@ internal sealed partial class SidebarView : BaseUserControl
     // Types
     //
 
-    public interface ISidePaneHandler
+    public interface IHandler
     {
-        int GetWindowId();
-
         void TransferAbility(PageNavigationBundle bundle);
+
+        void OnStateChanged();
     }
 
     private class SidebarPageItem
@@ -288,5 +291,20 @@ internal sealed partial class SidebarView : BaseUserControl
         public required string Name { get; init; }
         public required Route PageRoute { get; init; }
         public required IconSource Icon { get; init; }
+    }
+
+    public class SidebarStateJsonModel
+    {
+        [JsonPropertyName("IsOpen")]
+        public bool IsOpen { get; set; }
+
+        [JsonPropertyName("IsPinned")]
+        public bool IsPinned { get; set; }
+
+        [JsonPropertyName("Width")]
+        public double Width { get; set; }
+
+        [JsonPropertyName("SelectedItem")]
+        public string? SelectedItem { get; set; }
     }
 }
