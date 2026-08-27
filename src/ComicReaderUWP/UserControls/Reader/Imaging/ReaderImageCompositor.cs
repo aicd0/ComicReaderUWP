@@ -253,14 +253,14 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PostDecodeTask(ImageItem item)
     {
-        if (Interlocked.Exchange(ref item.InDecodeQueue, 1) == 1)
-        {
-            return;
-        }
+        Interlocked.Increment(ref item.PendingDecodeTasks);
 
         _decodeDispatcher.SubmitAsync(async () =>
         {
-            Volatile.Write(ref item.InDecodeQueue, 0);
+            if (Interlocked.Decrement(ref item.PendingDecodeTasks) > 0)
+            {
+                return;
+            }
 
             if (!_resourceRef.TryRef(out InstanceResourceModel? res))
             {
@@ -731,7 +731,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private sealed partial class ImageItem(int index) : IDisposable
     {
-        public int InDecodeQueue = 0;
+        public int PendingDecodeTasks = 0;
 
         public int Index { get; } = index;
         public object Lock { get; } = new();
