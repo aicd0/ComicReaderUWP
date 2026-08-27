@@ -111,7 +111,7 @@ internal class ApplicationService : IApplicationService
     {
         _launching = false;
         _exiting = true;
-        App.Instance.WindowManager.LockWindowStatus();
+        App.Instance.WindowManager.LockWindowState();
     }
 
     private static string GetDeploymentPath()

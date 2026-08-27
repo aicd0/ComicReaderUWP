@@ -75,7 +75,7 @@ internal sealed partial class MainPage : BasePage
         InitializeComponent();
 
         _abilityForSidebar = new(this);
-        MainSidebarView.Initialize(new SidePaneHandler(this));
+        MainSidebarView.SetHandler(new SidebarHandler(this));
         ContentGrid.Background = AppearanceManager.Instance.GetThemeBackground();
     }
 
@@ -99,14 +99,15 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    public LastTabStatusJsonModel? GetTabStatus()
+    public MainPageStateJsonModel? GetState()
     {
         MainThreadUtils.AssertOnMainThread();
 
-        LastTabStatusJsonModel jsonModel = new()
+        MainPageStateJsonModel jsonModel = new()
         {
             SelectedIndex = RootTabView.SelectedIndex,
-            Tabs = []
+            Tabs = [],
+            SidebarState = GetSidebarState(),
         };
 
         foreach (TabInfo item in _tabs)
@@ -126,30 +127,41 @@ internal sealed partial class MainPage : BasePage
         return jsonModel;
     }
 
-    public void RestoreTabStatus(LastTabStatusJsonModel? jsonModel)
+    public void RestoreState(MainPageStateJsonModel? jsonModel)
     {
         MainThreadUtils.AssertOnMainThread();
 
-        if (jsonModel is not null)
+        // Restore sidebar state
         {
-            if (jsonModel.Tabs is not null)
-            {
-                for (int i = 0; i < jsonModel.Tabs.Count; i++)
-                {
-                    TabJsonModel? tab = jsonModel.Tabs[i];
-                    if (tab is null || string.IsNullOrEmpty(tab.Id) || string.IsNullOrEmpty(tab.Url))
-                    {
-                        continue;
-                    }
+            SidebarView.SidebarStateJsonModel? sidebarState = jsonModel?.SidebarState ?? new();
 
-                    var route = Route.Create(tab.Url);
-                    LoadTabNoLock(
-                        route,
-                        targetTabId: string.Empty,
-                        selectTab: i == jsonModel.SelectedIndex,
-                        newTabId: tab.Id,
-                        oldTabId: tab.OldTabId ?? string.Empty);
+            SidebarSplitView.OpenPaneLength = Math.Max(360, sidebarState.Width);
+            MainSidebarView.RestoreState(sidebarState);
+
+            if (sidebarState.IsPinned && sidebarState.IsOpen)
+            {
+                SetSidebarOpenState(true, force: true);
+            }
+        }
+
+        // Restore tab state
+        if (jsonModel?.Tabs is not null)
+        {
+            for (int i = 0; i < jsonModel.Tabs.Count; i++)
+            {
+                TabJsonModel? tab = jsonModel.Tabs[i];
+                if (tab is null || string.IsNullOrEmpty(tab.Id) || string.IsNullOrEmpty(tab.Url))
+                {
+                    continue;
                 }
+
+                var route = Route.Create(tab.Url);
+                LoadTabNoLock(
+                    route,
+                    targetTabId: string.Empty,
+                    selectTab: i == jsonModel.SelectedIndex,
+                    newTabId: tab.Id,
+                    oldTabId: tab.OldTabId ?? string.Empty);
             }
         }
 
@@ -188,13 +200,6 @@ internal sealed partial class MainPage : BasePage
         base.OnResume();
 
         ViewModel.UpdateMoreMenuItems();
-        SidebarSplitView.OpenPaneLength = AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<double>(KVNames.KV_KEY_APP_SIDE_PANE_WIDTH, 380);
-        MainSidebarView.RestoreStates();
-
-        if (_isSidebarPinned && AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SIDE_PANE_OPENED, false))
-        {
-            SetSidebarOpenState(true, force: true);
-        }
     }
 
     protected override void OnStop()
@@ -554,7 +559,7 @@ internal sealed partial class MainPage : BasePage
             CurrentWindow?.Close();
         }
 
-        App.Instance.WindowManager.ScheduleSaveWindowStatus();
+        App.Instance.WindowManager.ScheduleSavingWindowState();
     }
 
     private void CloseTabInternalNoLock(TabInfo tabInfo)
@@ -659,7 +664,7 @@ internal sealed partial class MainPage : BasePage
             _tabs.Add(tab);
         }
 
-        App.Instance.WindowManager.ScheduleSaveWindowStatus();
+        App.Instance.WindowManager.ScheduleSavingWindowState();
     }
 
     private void OnRootTabViewTabDragStarting(TabView sender, TabViewTabDragStartingEventArgs args)
@@ -765,7 +770,7 @@ internal sealed partial class MainPage : BasePage
             OnPageChangedInternal(tabInfo);
         }
 
-        App.Instance.WindowManager.ScheduleSaveWindowStatus();
+        App.Instance.WindowManager.ScheduleSavingWindowState();
     }
 
     private void OnPageChangedInternal(TabInfo tabInfo)
@@ -1012,7 +1017,7 @@ internal sealed partial class MainPage : BasePage
 
         _sidebarWidth = newWidth;
         DispatchRightOverlayWidthChangeEvent();
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_WIDTH, newWidth);
+        App.Instance.WindowManager.ScheduleSavingWindowState();
     }
 
     private void SetSidebarOpenState(bool isOpen, bool force)
@@ -1053,10 +1058,18 @@ internal sealed partial class MainPage : BasePage
 
         if (!initialSync)
         {
-            AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_SIDE_PANE_OPENED, isOpen);
+            App.Instance.WindowManager.ScheduleSavingWindowState();
         }
 
         DispatchRightOverlayWidthChangeEvent();
+    }
+
+    private SidebarView.SidebarStateJsonModel GetSidebarState()
+    {
+        SidebarView.SidebarStateJsonModel sidebarState = MainSidebarView.GetState();
+        sidebarState.Width = SidebarSplitView.OpenPaneLength;
+        sidebarState.IsOpen = _isSidebarOpen;
+        return sidebarState;
     }
 
     //
@@ -1336,7 +1349,7 @@ internal sealed partial class MainPage : BasePage
             }
 
             tab.CurrentBundle.SetUrl(url);
-            App.Instance.WindowManager.ScheduleSaveWindowStatus();
+            App.Instance.WindowManager.ScheduleSavingWindowState();
         }
 
         public void SetCustomNavigationBar(UIElement? element)
@@ -1464,16 +1477,16 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
-    private class SidePaneHandler(MainPage page) : SidebarView.ISidePaneHandler
+    private class SidebarHandler(MainPage page) : SidebarView.IHandler
     {
-        public int GetWindowId()
-        {
-            return page.WindowId;
-        }
-
         public void TransferAbility(PageNavigationBundle bundle)
         {
             page.TransferAbility(bundle.Communicator);
+        }
+
+        public void OnStateChanged()
+        {
+            App.Instance.WindowManager.ScheduleSavingWindowState();
         }
     }
 
@@ -1495,13 +1508,16 @@ internal sealed partial class MainPage : BasePage
         string ITabInfo.Title => Item.Header as string ?? string.Empty;
     }
 
-    public class LastTabStatusJsonModel
+    public class MainPageStateJsonModel
     {
         [JsonPropertyName("SelectedIndex")]
         public int SelectedIndex { get; set; }
 
         [JsonPropertyName("Tabs")]
         public List<TabJsonModel?>? Tabs { get; set; }
+
+        [JsonPropertyName("SidebarState")]
+        public SidebarView.SidebarStateJsonModel? SidebarState { get; set; }
     }
 
     public class TabJsonModel
