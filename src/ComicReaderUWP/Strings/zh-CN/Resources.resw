@@ -450,10 +450,10 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Favorites" xml:space="preserve">
     <value>收藏夹</value>
   </data>
-  <data name="Feedback.Text" xml:space="preserve">
+  <data name="Feedback" xml:space="preserve">
     <value>反馈</value>
   </data>
-  <data name="FeedbackIntroduction.Text" xml:space="preserve">
+  <data name="FeedbackIntroduction" xml:space="preserve">
     <value>您可以通过以下按钮在GitHub上向我们提交建议或报告问题。</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
@@ -890,7 +890,7 @@ $plugins</value>
   <data name="SelectAllAppBarButton.Label" xml:space="preserve">
     <value>全选</value>
   </data>
-  <data name="SendFeedbackButton.Content" xml:space="preserve">
+  <data name="SendFeedback" xml:space="preserve">
     <value>发送反馈</value>
   </data>
   <data name="SendToWindow" xml:space="preserve">

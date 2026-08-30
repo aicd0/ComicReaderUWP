@@ -450,10 +450,10 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="Favorites" xml:space="preserve">
     <value>Favoriten</value>
   </data>
-  <data name="Feedback.Text" xml:space="preserve">
+  <data name="Feedback" xml:space="preserve">
     <value>Rückmeldung</value>
   </data>
-  <data name="FeedbackIntroduction.Text" xml:space="preserve">
+  <data name="FeedbackIntroduction" xml:space="preserve">
     <value>Verwenden Sie die Schaltfläche unten, um uns Vorschläge zu senden oder einen Fehler auf GitHub zu melden.</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
@@ -890,7 +890,7 @@ Im abgesicherten Modus starten?</value>
   <data name="SelectAllAppBarButton.Label" xml:space="preserve">
     <value>Alles auswählen</value>
   </data>
-  <data name="SendFeedbackButton.Content" xml:space="preserve">
+  <data name="SendFeedback" xml:space="preserve">
     <value>Feedback senden</value>
   </data>
   <data name="SendToWindow" xml:space="preserve">

@@ -451,10 +451,10 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Favorites" xml:space="preserve">
     <value>Избранное</value>
   </data>
-  <data name="Feedback.Text" xml:space="preserve">
+  <data name="Feedback" xml:space="preserve">
     <value>Обратная связь</value>
   </data>
-  <data name="FeedbackIntroduction.Text" xml:space="preserve">
+  <data name="FeedbackIntroduction" xml:space="preserve">
     <value>Используйте кнопку ниже, чтобы отправить нам предложения или сообщить об ошибке на GitHub.</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
@@ -891,7 +891,7 @@ $plugins</value>
   <data name="SelectAllAppBarButton.Label" xml:space="preserve">
     <value>Выбрать все</value>
   </data>
-  <data name="SendFeedbackButton.Content" xml:space="preserve">
+  <data name="SendFeedback" xml:space="preserve">
     <value>Отправить отзыв</value>
   </data>
   <data name="SendToWindow" xml:space="preserve">
