@@ -84,25 +84,24 @@ internal static partial class ImageLoader
         sImageCache?.Clear();
     }
 
-    public static async Task<Size?> TryGetOriginalDimension(IImageSource source)
+    public static Task<ImageMeta?> GetImageMeta(IImageSource source)
     {
-        using CacheRequestContext context = new(source);
-        return await TryGetOriginalDimension(context);
+        ImageLoaderSchedulerGroup group = source.PreferredSchedulerGroup;
+
+        return ImageLoaderScheduler.Submit(async () =>
+        {
+            using CacheRequestContext context = new(source);
+            return await GetImageMeta(context);
+        }, group, priority: 0);
     }
 
-    public static async Task<ImageMeta?> GetImageMeta(IImageSource source)
-    {
-        using CacheRequestContext context = new(source);
-        return await GetImageMeta(context);
-    }
-
-    public static async Task LoadImage(IImageSource source, LoadImageOptions options)
+    public static Task LoadImage(IImageSource source, LoadImageOptions options)
     {
         options = options.Clone();
 
         ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? source.PreferredSchedulerGroup;
 
-        await ImageLoaderScheduler.Submit(async () =>
+        return ImageLoaderScheduler.Submit(async () =>
         {
             options.FrameWidth *= 1.2;
             options.FrameHeight *= 1.2;
@@ -113,17 +112,6 @@ internal static partial class ImageLoader
                 CoroutineUtils.RunInMainThread(options.Handler.OnFailure);
             }
         }, group, options.Priority);
-    }
-
-    private static async Task<Size?> TryGetOriginalDimension(CacheRequestContext context)
-    {
-        ImageMeta? meta = await GetImageMeta(context);
-        if (meta is not null)
-        {
-            return new(meta.Width, meta.Height);
-        }
-
-        return null;
     }
 
     private static async Task<ImageMeta?> GetImageMeta(CacheRequestContext context)
@@ -349,13 +337,13 @@ internal static partial class ImageLoader
             return false;
         }
 
-        Size? originalSizeNullable = await TryGetOriginalDimension(context);
-        if (!originalSizeNullable.HasValue)
+        ImageMeta? meta = await GetImageMeta(context);
+        if (meta is null)
         {
             return false;
         }
 
-        Size originalSize = originalSizeNullable.Value;
+        Size originalSize = new(meta.Width, meta.Height);
         CalculateDesiredDimension(
             options.FrameWidth,
             options.FrameHeight,
