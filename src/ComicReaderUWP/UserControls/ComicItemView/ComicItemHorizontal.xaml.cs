@@ -150,13 +150,14 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         {
             ComicCoverImageSource source = await ComicCoverImageSource.Create(item.Comic);
             LoadImageCallback callback = new(this, item);
-            ImageLoaderUtils.Token token = new(source, callback)
+            await ImageLoader.LoadImage(source, new()
             {
-                Width = imageWidth,
-                Height = imageHeight,
+                Token = _loadImageToken.Token,
+                FrameWidth = imageWidth,
+                FrameHeight = imageHeight,
                 StretchMode = StretchModeEnum.UniformToFill,
-            };
-            new ImageLoaderUtils.Transaction(_loadImageToken.Token, [token]).Commit();
+                Handler = callback,
+            });
         });
     }
 

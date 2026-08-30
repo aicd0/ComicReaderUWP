@@ -84,17 +84,6 @@ internal static partial class ImageLoader
         sImageCache?.Clear();
     }
 
-    public static Task<ImageMeta?> GetImageMeta(IImageSource source)
-    {
-        ImageLoaderSchedulerGroup group = source.PreferredSchedulerGroup;
-
-        return ImageLoaderScheduler.Submit(async () =>
-        {
-            using CacheRequestContext context = new(source);
-            return await GetImageMeta(context);
-        }, group, priority: 0);
-    }
-
     public static Task LoadImage(IImageSource source, LoadImageOptions options)
     {
         options = options.Clone();
@@ -111,6 +100,19 @@ internal static partial class ImageLoader
             {
                 CoroutineUtils.RunInMainThread(options.Handler.OnFailure);
             }
+        }, group, options.Priority);
+    }
+
+    public static Task<ImageMeta?> LoadImageMeta(IImageSource source, LoadImageMetaOptions options)
+    {
+        options = options.Clone();
+
+        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? source.PreferredSchedulerGroup;
+
+        return ImageLoaderScheduler.Submit(async () =>
+        {
+            using CacheRequestContext context = new(source);
+            return await GetImageMeta(context);
         }, group, options.Priority);
     }
 

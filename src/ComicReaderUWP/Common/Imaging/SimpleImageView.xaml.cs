@@ -76,15 +76,14 @@ internal partial class SimpleImageView : UserControl
 
         CoroutineUtils.Run(async () =>
         {
-            LoadImageOptions options = new()
+            await ImageLoader.LoadImage(viewModel.Source, new()
             {
                 Token = token,
                 FrameWidth = viewModel.Width,
                 FrameHeight = viewModel.Height,
                 StretchMode = viewModel.StretchMode,
                 Handler = handler,
-            };
-            await ImageLoader.LoadImage(viewModel.Source, options);
+            });
         });
     }
 

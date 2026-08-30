@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -360,7 +361,11 @@ internal partial class ReaderImageCompositor : IDisposable
                 return;
             }
 
-            ImageMeta? meta = await ImageLoader.GetImageMeta(source.Source);
+            ImageMeta? meta = await ImageLoader.LoadImageMeta(source.Source, new()
+            {
+                Priority = ImageLoadingPriority.READER_IMAGE,
+            });
+
             if (meta is not null && meta.FrameCount > 1)
             {
                 newBitmap = AnimatedBitmapModel.FromStream(_canvasDevice, stream);
