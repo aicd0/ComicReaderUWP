@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
@@ -797,9 +798,13 @@ internal partial class ReaderView : UserControl
                 }
 
                 IImageSource image = images[i];
+                ImageMeta? meta = await ImageLoader.LoadImageMeta(image, new()
+                {
+                    Priority = ImageLoadingPriority.READER_IMAGE,
+                });
+
                 int width = 0;
                 int height = 0;
-                ImageMeta? meta = await ImageLoader.GetImageMeta(image);
                 if (meta is not null)
                 {
                     width = meta.Width;

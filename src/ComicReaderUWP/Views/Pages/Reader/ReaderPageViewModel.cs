@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.Lifecycle;
@@ -262,7 +263,10 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             string imageName = comicConnection.GetImageName(pageIndex);
             var imageSource = new ComicImageSource(comic, comicConnection, pageIndex);
-            ImageMeta? imageMeta = await ImageLoader.GetImageMeta(imageSource);
+            ImageMeta? imageMeta = await ImageLoader.LoadImageMeta(imageSource, new()
+            {
+                Priority = ImageLoadingPriority.READER_IMAGE,
+            });
 
             if (imageMeta is null)
             {
