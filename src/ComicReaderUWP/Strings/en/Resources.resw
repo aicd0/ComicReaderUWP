@@ -452,10 +452,10 @@ The evaluation will be performed in the following order:
   <data name="Favorites" xml:space="preserve">
     <value>Favorites</value>
   </data>
-  <data name="Feedback.Text" xml:space="preserve">
+  <data name="Feedback" xml:space="preserve">
     <value>Feedback</value>
   </data>
-  <data name="FeedbackIntroduction.Text" xml:space="preserve">
+  <data name="FeedbackIntroduction" xml:space="preserve">
     <value>Use the button below to send us suggestions or issue a bug on GitHub.</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
@@ -892,7 +892,7 @@ Start in Safe Mode?</value>
   <data name="SelectAllAppBarButton.Label" xml:space="preserve">
     <value>Select all</value>
   </data>
-  <data name="SendFeedbackButton.Content" xml:space="preserve">
+  <data name="SendFeedback" xml:space="preserve">
     <value>Send feedback</value>
   </data>
   <data name="SendToWindow" xml:space="preserve">

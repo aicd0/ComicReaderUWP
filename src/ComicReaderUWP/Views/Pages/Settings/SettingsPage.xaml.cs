@@ -16,6 +16,7 @@ using ComicReaderUWP.Data.Models.Misc;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
 
@@ -114,17 +115,22 @@ internal sealed partial class SettingsPage : BasePage
         ViewModel.SetAppearance(((RadioButtons)sender).SelectedIndex);
     }
 
-    private void LicenseHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    private void LicenseHyperlink_Click(Hyperlink sender, HyperlinkClickEventArgs args)
     {
         ThirdPartyLauncher.StartTemporaryTextFile("License.txt", StaticStringResources.LICENSE);
     }
 
-    private void GithubHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    private void GithubHyperlink_Click(Hyperlink sender, HyperlinkClickEventArgs args)
     {
         CoroutineUtils.Run(async () => await Windows.System.Launcher.LaunchUriAsync(new Uri(StaticStringResources.GITHUB_REPO_URL)));
     }
 
-    private void PrivacyPolicyHyperlink_Click(Microsoft.UI.Xaml.Documents.Hyperlink sender, Microsoft.UI.Xaml.Documents.HyperlinkClickEventArgs args)
+    private void SendFeedbackEmailHyperlink_Click(Hyperlink sender, HyperlinkClickEventArgs args)
+    {
+        CoroutineUtils.Run(async () => await Windows.System.Launcher.LaunchUriAsync(new Uri($"mailto:{StaticStringResources.FEEDBACK_EMAIL}")));
+    }
+
+    private void PrivacyPolicyHyperlink_Click(Hyperlink sender, HyperlinkClickEventArgs args)
     {
         CoroutineUtils.Run(async () => await Windows.System.Launcher.LaunchUriAsync(new Uri(StaticStringResources.PRIVACY_POLICY_URL)));
     }
@@ -136,10 +142,10 @@ internal sealed partial class SettingsPage : BasePage
     private void UpdateFeedback()
     {
         string appName = StringResourceProvider.Instance.AppDisplayName;
-        string contributionBeforeLink = StringResourceProvider.Instance.ContributionRunBeforeLink;
-        contributionBeforeLink = contributionBeforeLink.Replace("$appname", appName);
-        ContributionRunBeforeLink.Text = contributionBeforeLink;
+        ContributionRunBeforeLink.Text = StringResourceProvider.Instance.ContributionRunBeforeLink
+            .Replace("$appname", appName);
         ContributionRunAfterLink.Text = StringResourceProvider.Instance.ContributionRunAfterLink;
+        FeedbackEmailRun.Text = StaticStringResources.FEEDBACK_EMAIL;
     }
 
     private void UpdateAbout()

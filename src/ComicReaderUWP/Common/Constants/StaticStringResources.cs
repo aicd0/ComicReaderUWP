@@ -11,6 +11,7 @@ internal static class StaticStringResources
     public const string GITHUB_PLUGINS_REPO_URL = @"https://github.com/aicd0/ComicReaderUWPPlugins";
     public const string SEND_FEEDBACK_URL = @"https://github.com/aicd0/ComicReaderUWP/issues/new/choose";
     public const string PRIVACY_POLICY_URL = @"https://github.com/aicd0/ComicReaderUWP/blob/develop/docs/PrivacyPolicy.md";
+    public const string FEEDBACK_EMAIL = "comic_reader_uwp@163.com";
 
     public const string LICENSE = """
 Comic Reader UWP / Comic Reader UWP SDK

@@ -96,6 +96,8 @@ public class StringResourceProvider
     public string ExpressionValid => GetResourceString("ExpressionValid");
     public string Favorite => GetResourceString("Favorite");
     public string Favorites => GetResourceString("Favorites");
+    public string Feedback => GetResourceString("Feedback");
+    public string FeedbackIntroduction => GetResourceString("FeedbackIntroduction");
     public string FilterPresets => GetResourceString("FilterPresets");
     public string FilterSettings => GetResourceString("FilterSettings");
     public string FilteredBy => GetResourceString("FilteredBy");
@@ -207,6 +209,7 @@ public class StringResourceProvider
     public string SearchResults => GetResourceString("SearchResults");
     public string SearchResultsOf => GetResourceString("SearchResultsOf");
     public string Select => GetResourceString("Select");
+    public string SendFeedback => GetResourceString("SendFeedback");
     public string SendToWindow => GetResourceString("SendToWindow");
     public string SendUsageData => GetResourceString("SendUsageData");
     public string Separate => GetResourceString("Separate");
