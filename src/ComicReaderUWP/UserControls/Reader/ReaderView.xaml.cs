@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Common.Models.F8;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
@@ -3128,7 +3129,7 @@ internal partial class ReaderView : UserControl
 
         ReaderFrameViewModel item = _frameItemsSource[frame];
 
-        if (!ThisListView.TryGetItemRect(frame, out Windows.Foundation.Rect rect))
+        if (!ThisListView.TryGetItemRect(frame, out RectF8 rect))
         {
             return null;
         }

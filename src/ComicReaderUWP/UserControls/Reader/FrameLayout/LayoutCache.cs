@@ -4,11 +4,10 @@
 using System;
 using System.Collections.Generic;
 
+using ComicReaderUWP.Common.Models.F8;
 using ComicReaderUWP.Core.Common.DebugTools;
 
 using Microsoft.UI.Xaml.Controls;
-
-using Windows.Foundation;
 
 namespace ComicReaderUWP.UserControls.Reader.FrameLayout;
 
@@ -30,7 +29,7 @@ internal class LayoutCache
         _itemLayoutCache.RemoveRange(startIndex, _itemLayoutCache.Count - startIndex);
     }
 
-    public bool TryGetItemRect(int index, out Rect rect, Orientation orientation)
+    public bool TryGetItemRect(int index, out RectF8 rect, Orientation orientation)
     {
         if (index < 0 || index >= Items.Count)
         {
@@ -47,7 +46,7 @@ internal class LayoutCache
         return true;
     }
 
-    public Size GetSize(Orientation orientation)
+    public SizeF8 GetSize(Orientation orientation)
     {
         if (Items.Count == 0)
         {
