@@ -19,26 +19,35 @@ internal static class ImageLoaderScheduler
     public static Task Submit(Func<Task> func, ImageLoaderSchedulerGroup group, int priority)
     {
         GroupState state = sGroups.GetOrAdd(group.Name, _ => new GroupState(group.MaxConcurrentTasks));
-        return state.Submit(func, priority);
+        QueuedTask item = new(func);
+        state.Enqueue(item, priority);
+        return item.Task;
+    }
+
+    public static Task<T> Submit<T>(Func<Task<T>> func, ImageLoaderSchedulerGroup group, int priority)
+    {
+        GroupState state = sGroups.GetOrAdd(group.Name, _ => new GroupState(group.MaxConcurrentTasks));
+        QueuedTask<T> item = new(func);
+        state.Enqueue(item, priority);
+        return item.Task;
     }
 
     private sealed class GroupState(int maxConcurrentTasks)
     {
         private readonly Lock _lock = new();
-        private readonly SortedDictionary<int, Queue<QueuedTask>> _queue = [];
+        private readonly SortedDictionary<int, Queue<IQueuedTask>> _queue = [];
         private readonly int _maxConcurrentTasks = maxConcurrentTasks;
         private int _activeWorkers = 0;
 
-        public Task Submit(Func<Task> func, int priority)
+        public void Enqueue(IQueuedTask item, int priority)
         {
-            QueuedTask item = new(func);
             bool shouldStartWorker;
 
             lock (_lock)
             {
-                if (!_queue.TryGetValue(priority, out Queue<QueuedTask>? bucket))
+                if (!_queue.TryGetValue(priority, out Queue<IQueuedTask>? bucket))
                 {
-                    bucket = new Queue<QueuedTask>();
+                    bucket = new Queue<IQueuedTask>();
                     _queue.Add(priority, bucket);
                 }
 
@@ -59,15 +68,13 @@ internal static class ImageLoaderScheduler
             {
                 TaskDispatcher.DefaultThreadPool.SubmitAsync(RunWorker);
             }
-
-            return item.Task;
         }
 
         private async Task RunWorker()
         {
             while (true)
             {
-                QueuedTask? next;
+                IQueuedTask? next;
                 lock (_lock)
                 {
                     if (_queue.Count == 0)
@@ -77,7 +84,7 @@ internal static class ImageLoaderScheduler
                     }
 
                     int highestPriority = _queue.Keys.Last();
-                    Queue<QueuedTask> bucket = _queue[highestPriority];
+                    Queue<IQueuedTask> bucket = _queue[highestPriority];
                     next = bucket.Dequeue();
                     if (bucket.Count == 0)
                     {
@@ -90,7 +97,12 @@ internal static class ImageLoaderScheduler
         }
     }
 
-    private sealed class QueuedTask(Func<Task> func)
+    private interface IQueuedTask
+    {
+        Task ExecuteAsync();
+    }
+
+    private sealed class QueuedTask(Func<Task> func) : IQueuedTask
     {
         private readonly Func<Task> _func = func;
         private readonly TaskCompletionSource _source = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -103,6 +115,26 @@ internal static class ImageLoaderScheduler
             {
                 await _func();
                 _source.SetResult();
+            }
+            catch (Exception ex)
+            {
+                _source.SetException(ex);
+            }
+        }
+    }
+
+    private sealed class QueuedTask<T>(Func<Task<T>> func) : IQueuedTask
+    {
+        private readonly Func<Task<T>> _func = func;
+        private readonly TaskCompletionSource<T> _source = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task<T> Task => _source.Task;
+
+        public async Task ExecuteAsync()
+        {
+            try
+            {
+                _source.SetResult(await _func());
             }
             catch (Exception ex)
             {
