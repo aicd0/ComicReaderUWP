@@ -33,12 +33,32 @@ internal partial class ReaderImageCompositor : IDisposable
     private const int MAX_CANVAS_SIZE = 32 * 1024 * 1024;
     private const int MAX_CANVAS_DIMENSION = 8 * 1024;
 
+    private static int _nextId = 0;
     private static readonly ITaskDispatcher _decodeDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private static readonly ITaskDispatcher _layoutDispatcher = TaskDispatcher.Factory.NewQueue("ReaderImageLayoutWorker");
 
     private static void Log(string tag, params object?[] values)
     {
         Logger.I(LogTag.N(TAG, tag), string.Join(',', values));
+    }
+
+    private readonly int _id = Interlocked.Increment(ref _nextId);
+    private int _postLayout = 0;
+    private int _layoutVersion = 0;
+
+    private readonly CanvasDevice _canvasDevice;
+    private readonly Compositor _compositor;
+    private readonly RefCounted<InstanceResourceModel> _resourceRef;
+    private CompositionGroupModel? _compositionGroup;
+
+    public ReaderImageCompositor(UIElement host)
+    {
+        _canvasDevice = CanvasDevice.GetSharedDevice();
+        _compositor = ElementCompositionPreview.GetElementVisual(host).Compositor;
+        CompositionGraphicsDevice graphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(_compositor, _canvasDevice);
+        ContainerVisual rootVisual = _compositor.CreateContainerVisual();
+        ElementCompositionPreview.SetElementChildVisual(host, rootVisual);
+        _resourceRef = new(new(graphicsDevice, rootVisual));
     }
 
     public string Name { get; set; } = string.Empty;
@@ -97,24 +117,6 @@ internal partial class ReaderImageCompositor : IDisposable
         }
     }
 
-    private int _postLayout = 0;
-    private int _layoutVersion = 0;
-
-    private readonly CanvasDevice _canvasDevice;
-    private readonly Compositor _compositor;
-    private readonly RefCounted<InstanceResourceModel> _resourceRef;
-    private CompositionGroupModel? _compositionGroup;
-
-    public ReaderImageCompositor(UIElement host)
-    {
-        _canvasDevice = CanvasDevice.GetSharedDevice();
-        _compositor = ElementCompositionPreview.GetElementVisual(host).Compositor;
-        CompositionGraphicsDevice graphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(_compositor, _canvasDevice);
-        ContainerVisual rootVisual = _compositor.CreateContainerVisual();
-        ElementCompositionPreview.SetElementChildVisual(host, rootVisual);
-        _resourceRef = new(new(graphicsDevice, rootVisual));
-    }
-
     public void Dispose()
     {
         if (_compositionGroup is not null)
@@ -167,22 +169,23 @@ internal partial class ReaderImageCompositor : IDisposable
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
 
+        Log("SetImage", $"I={_id},N={Name}:{index},Uri={source?.Source.Uri}");
+
+        bool clearPrevious = false;
+
         if (!_resourceRef.TryRef(out InstanceResourceModel? res))
         {
             Logger.F(TAG, "SetImage failed: Container is already disposed");
             return;
         }
 
-        Log("SetImage", $"Name={Name}-{index},Uri={source?.Source.Uri}");
         ImageItem item;
         try
         {
-            bool needDraw = false;
             lock (res._images)
             {
                 while (index >= res._images.Count)
                 {
-                    needDraw = true;
                     res._images.Add(new(res._images.Count));
                 }
 
@@ -191,12 +194,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             lock (item.Lock)
             {
-                if (item.Source != source || item.FrameSize.Width != frameWidth || item.FrameSize.Height != frameHeight)
-                {
-                    needDraw = true;
-                }
-
-                if (!needDraw)
+                if (item.Source == source && item.FrameSize.Width == frameWidth && item.FrameSize.Height == frameHeight)
                 {
                     return;
                 }
@@ -204,12 +202,19 @@ internal partial class ReaderImageCompositor : IDisposable
                 item.Source = source;
                 item.FrameSize = new(frameWidth, frameHeight);
                 item.SupportVector = false;
-                item.ClearPrevious = true;
+                clearPrevious = item.BitmapRef is not null;
+                item.BitmapRef?.Unref();
+                item.BitmapRef = null;
             }
         }
         finally
         {
             _resourceRef.Unref();
+        }
+
+        if (clearPrevious)
+        {
+            PostLayoutTask();
         }
 
         PostDecodeTask(item);
@@ -271,7 +276,9 @@ internal partial class ReaderImageCompositor : IDisposable
 
             try
             {
+                Log("Decode", $"Start: I={_id},N={Name}:{item.Index},Uri={item.Source?.Source.Uri}");
                 await PerformDecode(item);
+                Log("Decode", $"End: I={_id},N={Name}:{item.Index},Uri={item.Source?.Source.Uri}");
             }
             finally
             {
@@ -282,32 +289,12 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private async Task PerformDecode(ImageItem item)
     {
-        Log("Decode", $"Name={Name}-{item.Index},Uri={item.Source?.Source.Uri}");
         ReaderImageSource? source;
-        bool clearPrevious;
         SizeF8 frameSize;
         lock (item.Lock)
         {
             source = item.Source;
-            clearPrevious = item.ClearPrevious;
-            item.ClearPrevious = false;
             frameSize = item.FrameSize;
-        }
-
-        if (clearPrevious)
-        {
-            bool needDraw;
-            lock (item.Lock)
-            {
-                needDraw = item.BitmapRef is not null;
-                item.BitmapRef?.Unref();
-                item.BitmapRef = null;
-            }
-
-            if (needDraw)
-            {
-                PostLayoutTask();
-            }
         }
 
         if (source is null)
@@ -426,7 +413,9 @@ internal partial class ReaderImageCompositor : IDisposable
 
             try
             {
+                Log("Layout", $"Start: I={_id},N={Name},V={version}");
                 PerformLayout(res, version);
+                Log("Layout", $"End: I={_id},N={Name},V={version}");
             }
             finally
             {
@@ -437,7 +426,6 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PerformLayout(InstanceResourceModel res, int version)
     {
-        Log("Layout", $"Name={Name},V={version}");
         DrawingItem?[] items;
         SizeF8[] frameSizes;
         lock (res._images)
@@ -524,7 +512,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
                 try
                 {
-                    Log("Layout", $"Clear: Name={Name},V={version}");
+                    Log("Composite", $"Clear: I={_id},N={Name},V={version}");
                     res.DisposeCompositionComponents();
                 }
                 finally
@@ -661,6 +649,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             try
             {
+                Log("Composite", $"Start: I={_id},N={Name},V={version},Frame={mergedFrameSize},Canvas={canvasSize}");
                 PerformComposition(res, version, items, mergedFrameSize, canvasSize);
             }
             finally
@@ -672,8 +661,6 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PerformComposition(InstanceResourceModel res, int version, DrawingItem?[] items, SizeF8 frameSize, Size canvasSize)
     {
-        Log("Composite", $"Name={Name},V={version},Frame={frameSize},Canvas={canvasSize}");
-
         if (res._compositionVisual is null)
         {
             SpriteVisual visual = _compositor.CreateSpriteVisual();
@@ -716,7 +703,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (_compositionGroup is not null)
         {
-            Log("Composite", $"RemoveGroup: Name={Name},Group={_compositionGroup.Id}");
+            Log("Composite", $"RemoveGroup: I={_id},N={Name},G={_compositionGroup.Id}");
             ReaderImageUpdateScheduler.Instance.RemoveGroup(_compositionGroup);
             _compositionGroup = null;
         }
@@ -744,7 +731,7 @@ internal partial class ReaderImageCompositor : IDisposable
             Items = compositionItems
         };
 
-        Log("Composite", $"AddGroup: Name={Name},Group={_compositionGroup.Id}");
+        Log("Composite", $"AddGroup: I={_id},N={Name},G={_compositionGroup.Id}");
         ReaderImageUpdateScheduler.Instance.AddGroup(_compositionGroup);
     }
 
@@ -758,7 +745,6 @@ internal partial class ReaderImageCompositor : IDisposable
         public SizeF8 FrameSize { get; set; }
         public RectF8 HitRect { get; set; }
         public bool SupportVector { get; set; } = false;
-        public bool ClearPrevious { get; set; } = false;
 
         public RefCounted<AnimatedBitmapModel>? BitmapRef { get; set; }
 
