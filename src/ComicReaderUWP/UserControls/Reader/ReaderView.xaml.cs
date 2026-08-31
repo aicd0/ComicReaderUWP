@@ -1141,7 +1141,6 @@ internal partial class ReaderView : UserControl
             _frameItemsSource.Add(item);
             _readyPageCount = page;
             UpdateMinMaxZoomFactor(frameIndex);
-            item.RebindEntireViewModel();
         }
 
         for (int i = readyFrameCount; i < _frameItemsSource.Count; i++)

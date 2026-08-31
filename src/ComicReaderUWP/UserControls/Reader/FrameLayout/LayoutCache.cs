@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using ComicReaderUWP.Common.Models.F8;
 using ComicReaderUWP.Core.Common.DebugTools;
 
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.UserControls.Reader.FrameLayout;
@@ -40,9 +41,17 @@ internal class LayoutCache
         EnsureCache();
         ItemLayoutCache lastItem = _itemLayoutCache[^1];
         ItemLayoutCache cache = _itemLayoutCache[index];
+        double innerWidth = cache.Width - cache.Margin.Left - cache.Margin.Right;
+        double innerHeight = cache.Height - cache.Margin.Top - cache.Margin.Bottom;
         rect = orientation == Orientation.Vertical ?
-            new((lastItem.MaxWidthUntilNow - cache.Width) * 0.5, cache.TotalHeightUntilNow - cache.Height, cache.Width, cache.Height) :
-            new(cache.TotalWidthUntilNow - cache.Width, (lastItem.MaxHeightUntilNow - cache.Height) * 0.5, cache.Width, cache.Height);
+            new(
+                (lastItem.MaxWidthUntilNow - cache.Width) * 0.5 + cache.Margin.Left,
+                cache.TotalHeightUntilNow - cache.Height + cache.Margin.Top,
+                innerWidth, innerHeight) :
+            new(
+                cache.TotalWidthUntilNow - cache.Width + cache.Margin.Left,
+                (lastItem.MaxHeightUntilNow - cache.Height) * 0.5 + cache.Margin.Top,
+                innerWidth, innerHeight);
         return true;
     }
 
@@ -80,20 +89,32 @@ internal class LayoutCache
 
         for (int i = _itemLayoutCache.Count; i < Items.Count; i++)
         {
-            double itemWidth = Items[i].Width;
-            if (double.IsNaN(itemWidth) || double.IsInfinity(itemWidth) || itemWidth < 0.0)
+            double frameWidth = Items[i].Width;
+            if (!ValidateLength(frameWidth))
             {
-                itemWidth = 0.0;
-                Logger.F(TAG, $"Invalid item width {itemWidth}");
+                Logger.F(TAG, $"Invalid frame width {frameWidth}");
+                frameWidth = 0.0;
             }
 
-            double itemHeight = Items[i].Height;
-            if (double.IsNaN(itemHeight) || double.IsInfinity(itemHeight) || itemHeight < 0.0)
+            double frameHeight = Items[i].Height;
+            if (!ValidateLength(frameHeight))
             {
-                itemHeight = 0.0;
-                Logger.F(TAG, $"Invalid item height {itemHeight}");
+                Logger.F(TAG, $"Invalid frame height {frameHeight}");
+                frameHeight = 0.0;
             }
 
+            Thickness frameMargin = Items[i].Margin;
+            if (!ValidateLength(frameMargin.Left) ||
+                !ValidateLength(frameMargin.Top) ||
+                !ValidateLength(frameMargin.Right) ||
+                !ValidateLength(frameMargin.Bottom))
+            {
+                Logger.F(TAG, $"Invalid frame margin {frameMargin}");
+                frameMargin = new(0.0);
+            }
+
+            double itemWidth = frameWidth + frameMargin.Left + frameMargin.Right;
+            double itemHeight = frameHeight + frameMargin.Top + frameMargin.Bottom;
             maxWidth = Math.Max(maxWidth, itemWidth);
             maxHeight = Math.Max(maxHeight, itemHeight);
             totalWidth += itemWidth;
@@ -102,6 +123,7 @@ internal class LayoutCache
             {
                 Width = itemWidth,
                 Height = itemHeight,
+                Margin = frameMargin,
                 MaxWidthUntilNow = maxWidth,
                 MaxHeightUntilNow = maxHeight,
                 TotalWidthUntilNow = totalWidth,
@@ -111,10 +133,16 @@ internal class LayoutCache
         }
     }
 
+    private static bool ValidateLength(double length)
+    {
+        return !double.IsNaN(length) && !double.IsInfinity(length) && length >= 0.0;
+    }
+
     private readonly struct ItemLayoutCache
     {
         public required double Height { get; init; }
         public required double Width { get; init; }
+        public required Thickness Margin { get; init; }
         public required double MaxHeightUntilNow { get; init; }
         public required double MaxWidthUntilNow { get; init; }
         public required double TotalWidthUntilNow { get; init; }

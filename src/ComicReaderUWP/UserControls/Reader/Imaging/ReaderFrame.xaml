@@ -10,12 +10,9 @@
     DataContextChanged="ReaderFrame_DataContextChanged"
     mc:Ignorable="d">
 
-    <Grid>
-        <Grid
-            x:Name="ImageHost"
-            Margin="{x:Bind ViewModel.FrameMargin}"
-            Background="Transparent"
-            ContextRequested="ImageHost_ContextRequested" />
-    </Grid>
+    <Grid
+        x:Name="ImageHost"
+        Background="Transparent"
+        ContextRequested="ImageHost_ContextRequested" />
 
 </base:BaseUserControl>
