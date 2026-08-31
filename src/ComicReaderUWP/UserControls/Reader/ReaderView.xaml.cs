@@ -2233,21 +2233,6 @@ internal partial class ReaderView : UserControl
         }
     }
 
-    private double _SCCurrentPageFinal;
-    private double SCCurrentPageFinal
-    {
-        get
-        {
-            SCSyncFinalVal();
-            return _SCCurrentPageFinal;
-        }
-        set
-        {
-            SCSyncFinalVal();
-            _SCCurrentPageFinal = value;
-        }
-    }
-
     private float _SCZoomFactorFinal;
     private float SCZoomFactorFinal
     {
@@ -2320,7 +2305,6 @@ internal partial class ReaderView : UserControl
 
         _finalValueSynced = true;
         _SCCurrentFrameIndexFinal = CurrentFrameIndex;
-        _SCCurrentPageFinal = CurrentPage;
         _SCHorizontalOffsetFinal = HorizontalOffset;
         _SCVerticalOffsetFinal = VerticalOffset;
         _SCZoomFactorFinal = ZoomFactor;
@@ -2346,7 +2330,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        double currentPage = SCCurrentPageFinal;
+        double currentPage = CurrentPage;
         double currentFramePage = _frameItemsSource[currentFrame].Page;
         double pageDiff = currentPage - currentFramePage;
 
@@ -2410,26 +2394,40 @@ internal partial class ReaderView : UserControl
     {
         double? horizontalOffset = null;
         double? verticalOffset = null;
+        int? frameIndex = null;
 
         if (page.HasValue)
         {
-            Tuple<double, double>? offsets = PageOffset(page.Value);
+            double targetPage = page.Value;
+
+            Tuple<double, double>? offsets = PageOffset(targetPage);
             if (offsets is null)
             {
-                Log("Jump", $"Failed (offsets is null, p={page.Value})");
+                Log("Jump", $"NullOffset: P={targetPage}");
                 return ScrollResult.UnknownFailure;
             }
 
             double parallelOffset = offsets.Item1;
             double perpendicularOffset = offsets.Item2;
             ConvertOffset(ref horizontalOffset, ref verticalOffset, applyParallelOffset ? parallelOffset : null, perpendicularOffset);
+
+            if (applyParallelOffset)
+            {
+                if (!TryConvertPageToFrameIndex(ToDiscretePage(targetPage), out int targetFrameIndex))
+                {
+                    Log("Jump", $"FrameConversionFailed: P={targetPage}");
+                    return ScrollResult.UnknownFailure;
+                }
+
+                frameIndex = targetFrameIndex;
+            }
         }
 
         return SetScrollViewerInternal(new ScrollRequest(source)
         {
             Zoom = zoom,
             ZoomType = zoomType,
-            Page = page,
+            FrameIndex = frameIndex,
             HorizontalOffset = horizontalOffset,
             VerticalOffset = verticalOffset,
             DisableAnimation = disableAnimation,
@@ -2462,7 +2460,7 @@ internal partial class ReaderView : UserControl
         Log("Jump", "Request:"
             + $" Reason={reason}"
             + $",Src={(int)request.Source}"
-            + $",P={request.Page}"
+            + $",F={request.FrameIndex}"
             + $",Z={request.Zoom}"
             + $",H={request.HorizontalOffset}"
             + $",V={request.VerticalOffset}"
@@ -2582,17 +2580,9 @@ internal partial class ReaderView : UserControl
             + $",V={context.VerticalOffset}"
             + $",D={context.DisableAnimation}");
 
-        if (request.Page.HasValue)
+        if (request.FrameIndex.HasValue)
         {
-            double targetPage = request.Page.Value;
-            if (!TryConvertPageToFrameIndex(ToDiscretePage(targetPage), out int targetFrameIndex))
-            {
-                context.Result = ScrollResult.UnknownFailure;
-                return;
-            }
-
-            SCCurrentFrameIndexFinal = targetFrameIndex;
-            SCCurrentPageFinal = targetPage;
+            SCCurrentFrameIndexFinal = request.FrameIndex.Value;
         }
 
         if (context.Zoom.HasValue)
@@ -2627,45 +2617,22 @@ internal partial class ReaderView : UserControl
     private void SetScrollViewerZoom(ScrollRequest request, ScrollContext context)
     {
         // Calculate zoom coefficient for new frame
-        int newFrameIndex;
-        ReaderFrameViewModel? newFrame = null;
-        ZoomCoefficient? zoomCoefficientNew = null;
+        int newFrameIndex = request.FrameIndex ?? SCCurrentFrameIndexFinal;
+        if (newFrameIndex < 0 || newFrameIndex >= _frameItemsSource.Count)
         {
-            int pageNew = (int)Math.Round(request.Page ?? SCCurrentPageFinal);
-            pageNew = Math.Max(1, Math.Min(pageNew, PageCount));
-
-            if (pageNew > PageCount)
-            {
-                context.Result = ScrollResult.UnknownFailure;
-                return;
-            }
-
-            if (!TryConvertPageToFrameIndex(pageNew, out newFrameIndex))
-            {
-                context.Result = ScrollResult.UnknownFailure;
-                return;
-            }
-
-            if (newFrameIndex < 0 || newFrameIndex >= _frameItemsSource.Count)
-            {
-                newFrameIndex = 0;
-            }
-
-            if (newFrameIndex < _frameItemsSource.Count)
-            {
-                newFrame = _frameItemsSource[newFrameIndex];
-                zoomCoefficientNew = CalculateZoomCoefficient(newFrame);
-                Log("Jump", "Zoom#1:"
-                    + $" PN={pageNew}"
-                    + $",FN={newFrameIndex}"
-                    + $",ZCN={zoomCoefficientNew}");
-            }
+            context.Result = ScrollResult.UnknownFailure;
+            return;
         }
 
-        if (newFrame is null || zoomCoefficientNew == null)
+        ReaderFrameViewModel newFrame = _frameItemsSource[newFrameIndex];
+        ZoomCoefficient? zoomCoefficientNew = CalculateZoomCoefficient(newFrame);
+        Log("Jump", "Zoom#1:"
+            + $",FN={newFrameIndex}"
+            + $",ZCN={zoomCoefficientNew}");
+
+        if (zoomCoefficientNew == null)
         {
-            context.Zoom = _zoom;
-            context.ZoomFactor = null;
+            context.Result = ScrollResult.UnknownFailure;
             return;
         }
 
@@ -3457,7 +3424,7 @@ internal partial class ReaderView : UserControl
         // Zoom
         public float? Zoom = null;
         public ZoomType ZoomType = ZoomType.CenterInside;
-        public double? Page = null;
+        public int? FrameIndex = null;
 
         // Offset
         public double? HorizontalOffset = null;
