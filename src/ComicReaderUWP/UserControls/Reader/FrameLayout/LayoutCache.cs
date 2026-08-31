@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Generic;
 
+using ComicReaderUWP.Common.Models.F8;
 using ComicReaderUWP.Core.Common.DebugTools;
 
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
-using Windows.Foundation;
 
 namespace ComicReaderUWP.UserControls.Reader.FrameLayout;
 
@@ -30,7 +30,7 @@ internal class LayoutCache
         _itemLayoutCache.RemoveRange(startIndex, _itemLayoutCache.Count - startIndex);
     }
 
-    public bool TryGetItemRect(int index, out Rect rect, Orientation orientation)
+    public bool TryGetItemRect(int index, out RectF8 rect, Orientation orientation)
     {
         if (index < 0 || index >= Items.Count)
         {
@@ -42,12 +42,18 @@ internal class LayoutCache
         ItemLayoutCache lastItem = _itemLayoutCache[^1];
         ItemLayoutCache cache = _itemLayoutCache[index];
         rect = orientation == Orientation.Vertical ?
-            new((lastItem.MaxWidthUntilNow - cache.Width) * 0.5, cache.TotalHeightUntilNow - cache.Height, cache.Width, cache.Height) :
-            new(cache.TotalWidthUntilNow - cache.Width, (lastItem.MaxHeightUntilNow - cache.Height) * 0.5, cache.Width, cache.Height);
+            new(
+                (lastItem.MaxWidthUntilNow - cache.Width) * 0.5,
+                cache.TotalHeightUntilNow - cache.Height - cache.Margin.Bottom,
+                cache.Width, cache.Height) :
+            new(
+                cache.TotalWidthUntilNow - cache.Width - cache.Margin.Right,
+                (lastItem.MaxHeightUntilNow - cache.Height) * 0.5,
+                cache.Width, cache.Height);
         return true;
     }
 
-    public Size GetSize(Orientation orientation)
+    public SizeF8 GetSize(Orientation orientation)
     {
         if (Items.Count == 0)
         {
@@ -81,28 +87,41 @@ internal class LayoutCache
 
         for (int i = _itemLayoutCache.Count; i < Items.Count; i++)
         {
-            double itemWidth = Items[i].Width;
-            if (double.IsNaN(itemWidth) || double.IsInfinity(itemWidth) || itemWidth < 0.0)
+            double frameWidth = Items[i].Width;
+            if (!ValidateLength(frameWidth))
             {
-                itemWidth = 0.0;
-                Logger.F(TAG, $"Invalid item width {itemWidth}");
+                Logger.F(TAG, $"Invalid frame width {frameWidth}");
+                frameWidth = 0.0;
             }
 
-            double itemHeight = Items[i].Height;
-            if (double.IsNaN(itemHeight) || double.IsInfinity(itemHeight) || itemHeight < 0.0)
+            double frameHeight = Items[i].Height;
+            if (!ValidateLength(frameHeight))
             {
-                itemHeight = 0.0;
-                Logger.F(TAG, $"Invalid item height {itemHeight}");
+                Logger.F(TAG, $"Invalid frame height {frameHeight}");
+                frameHeight = 0.0;
             }
 
+            Thickness frameMargin = Items[i].Margin;
+            if (!ValidateOffset(frameMargin.Left) ||
+                !ValidateOffset(frameMargin.Top) ||
+                !ValidateOffset(frameMargin.Right) ||
+                !ValidateOffset(frameMargin.Bottom))
+            {
+                Logger.F(TAG, $"Invalid frame margin {frameMargin}");
+                frameMargin = new(0.0);
+            }
+
+            double itemWidth = frameWidth + frameMargin.Left + frameMargin.Right;
+            double itemHeight = frameHeight + frameMargin.Top + frameMargin.Bottom;
             maxWidth = Math.Max(maxWidth, itemWidth);
             maxHeight = Math.Max(maxHeight, itemHeight);
             totalWidth += itemWidth;
             totalHeight += itemHeight;
             ItemLayoutCache cache = new()
             {
-                Width = itemWidth,
-                Height = itemHeight,
+                Width = frameWidth,
+                Height = frameHeight,
+                Margin = frameMargin,
                 MaxWidthUntilNow = maxWidth,
                 MaxHeightUntilNow = maxHeight,
                 TotalWidthUntilNow = totalWidth,
@@ -112,10 +131,21 @@ internal class LayoutCache
         }
     }
 
+    private static bool ValidateLength(double value)
+    {
+        return !double.IsNaN(value) && !double.IsInfinity(value) && value >= 0.0;
+    }
+
+    private static bool ValidateOffset(double value)
+    {
+        return !double.IsNaN(value) && !double.IsInfinity(value);
+    }
+
     private readonly struct ItemLayoutCache
     {
         public required double Height { get; init; }
         public required double Width { get; init; }
+        public required Thickness Margin { get; init; }
         public required double MaxHeightUntilNow { get; init; }
         public required double MaxWidthUntilNow { get; init; }
         public required double TotalWidthUntilNow { get; init; }

@@ -3,6 +3,8 @@
 
 using System;
 
+using ComicReaderUWP.Common.Models.F8;
+
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -12,6 +14,11 @@ namespace ComicReaderUWP.UserControls.Reader.FrameLayout;
 
 internal sealed partial class ReaderListViewPanel : Panel
 {
+    public ReaderListViewPanel()
+    {
+        UseLayoutRounding = false;
+    }
+
     public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register(
         nameof(Orientation), typeof(Orientation), typeof(ReaderListViewPanel), new PropertyMetadata(Orientation.Vertical, OnOrientationChanged));
 
@@ -21,8 +28,8 @@ internal sealed partial class ReaderListViewPanel : Panel
         set => SetValue(OrientationProperty, value);
     }
 
-    public Func<int, Rect?> RequestItemRect = index => null;
-    public Func<Size> RequestSize = () => new Size(0, 0);
+    public Func<int, RectF8?> RequestItemRect = index => null;
+    public Func<SizeF8> RequestSize = () => new(0, 0);
 
     private static void OnOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -38,11 +45,11 @@ internal sealed partial class ReaderListViewPanel : Panel
         for (int i = 0; i < Children.Count; i++)
         {
             UIElement child = Children[i];
-            Rect? rectNullable = RequestItemRect(i);
+            RectF8? rectNullable = RequestItemRect(i);
 
             if (rectNullable.HasValue)
             {
-                Rect rect = rectNullable.Value;
+                RectF8 rect = rectNullable.Value;
                 double w = double.IsInfinity(rect.Width) || rect.Width < 0 ? 0 : rect.Width;
                 double h = double.IsInfinity(rect.Height) || rect.Height < 0 ? 0 : rect.Height;
                 child.Measure(new Size(w, h));
@@ -53,7 +60,8 @@ internal sealed partial class ReaderListViewPanel : Panel
             }
         }
 
-        return RequestSize();
+        SizeF8 finalSize = RequestSize();
+        return new(finalSize.Width, finalSize.Height);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
@@ -61,16 +69,16 @@ internal sealed partial class ReaderListViewPanel : Panel
         for (int i = 0; i < Children.Count; i++)
         {
             UIElement child = Children[i];
-            Rect? rectNullable = RequestItemRect(i);
+            RectF8? rectNullable = RequestItemRect(i);
 
             if (rectNullable.HasValue)
             {
-                Rect rect = rectNullable.Value;
-                child.Arrange(rect);
+                RectF8 rect = rectNullable.Value;
+                child.Arrange(new(rect.X, rect.Y, rect.Width, rect.Height));
             }
             else
             {
-                child.Arrange(new Rect(0, 0, Math.Max(0, finalSize.Width), Math.Max(0, finalSize.Height)));
+                child.Arrange(new(0, 0, Math.Max(0, finalSize.Width), Math.Max(0, finalSize.Height)));
             }
         }
 

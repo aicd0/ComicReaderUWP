@@ -4,7 +4,6 @@
 using System.Collections.Concurrent;
 using System.Text;
 
-using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Threading;
 
@@ -439,11 +438,6 @@ public static class Logger
         if (DebugUtils.DebugMode)
         {
             CrashHandler.OnCrash(exception);
-
-            if (!EnvironmentProvider.IsSafeMode())
-            {
-                Environment.FailFast("The application hit an assertion failure.", exception);
-            }
         }
     }
 

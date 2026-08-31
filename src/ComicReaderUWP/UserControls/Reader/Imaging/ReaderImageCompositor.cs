@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Imaging;
+using ComicReaderUWP.Common.Models.F8;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
@@ -28,8 +29,9 @@ namespace ComicReaderUWP.UserControls.Reader.Imaging;
 internal partial class ReaderImageCompositor : IDisposable
 {
     private const string TAG = nameof(ReaderImageCompositor);
-    private const int MAX_BITMAP_SIZE = 16 * 1024 * 1024;
-    private const int MAX_CANVAS_DIMENSION = 8192;
+    private const int MAX_BITMAP_SIZE = 32 * 1024 * 1024;
+    private const int MAX_CANVAS_SIZE = 32 * 1024 * 1024;
+    private const int MAX_CANVAS_DIMENSION = 8 * 1024;
 
     private static readonly ITaskDispatcher _decodeDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private static readonly ITaskDispatcher _layoutDispatcher = TaskDispatcher.Factory.NewQueue("ReaderImageLayoutWorker");
@@ -129,7 +131,7 @@ internal partial class ReaderImageCompositor : IDisposable
         PostLayoutTask();
     }
 
-    public int HitTest(Windows.Foundation.Point point)
+    public int HitTest(PointF8 point)
     {
         if (!_resourceRef.TryRef(out InstanceResourceModel? res))
         {
@@ -138,7 +140,6 @@ internal partial class ReaderImageCompositor : IDisposable
 
         try
         {
-            PointF pointF = new((float)point.X, (float)point.Y);
             lock (res._images)
             {
                 for (int i = 0; i < res._images.Count; i++)
@@ -146,7 +147,7 @@ internal partial class ReaderImageCompositor : IDisposable
                     ImageItem item = res._images[i];
                     lock (item.Lock)
                     {
-                        if (item.HitRect.Contains(pointF))
+                        if (item.HitRect.Contains(point))
                         {
                             return i;
                         }
@@ -172,7 +173,7 @@ internal partial class ReaderImageCompositor : IDisposable
             return;
         }
 
-        Log("SetImage", $"name={Name}-{index}, uri={source?.Source.Uri}");
+        Log("SetImage", $"Name={Name}-{index},Uri={source?.Source.Uri}");
         ImageItem item;
         try
         {
@@ -281,10 +282,10 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private async Task PerformDecode(ImageItem item)
     {
-        Log("Decode", $"name={Name}-{item.Index}, uri={item.Source?.Source.Uri}");
+        Log("Decode", $"Name={Name}-{item.Index},Uri={item.Source?.Source.Uri}");
         ReaderImageSource? source;
         bool clearPrevious;
-        SizeF frameSize;
+        SizeF8 frameSize;
         lock (item.Lock)
         {
             source = item.Source;
@@ -436,13 +437,13 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PerformLayout(InstanceResourceModel res, int version)
     {
-        Log("Layout", $"name={Name}, v={version}");
+        Log("Layout", $"Name={Name},V={version}");
         DrawingItem?[] items;
-        SizeF[] frameSizes;
+        SizeF8[] frameSizes;
         lock (res._images)
         {
             items = new DrawingItem[res._images.Count];
-            frameSizes = new SizeF[res._images.Count];
+            frameSizes = new SizeF8[res._images.Count];
             for (int i = 0; i < res._images.Count; i++)
             {
                 ImageItem item = res._images[i];
@@ -468,12 +469,12 @@ internal partial class ReaderImageCompositor : IDisposable
             }
         }
 
-        SizeF mergedFrameSize = new();
-        float pixelRatio = 0;
+        SizeF8 mergedFrameSize = new();
+        double pixelRatio = 0;
         for (int i = 0; i < items.Length; i++)
         {
             DrawingItem? item = items[i];
-            SizeF frameSize = frameSizes[i];
+            SizeF8 frameSize = frameSizes[i];
 
             if (item is not null || _placeholderMode)
             {
@@ -501,7 +502,7 @@ internal partial class ReaderImageCompositor : IDisposable
                 continue;
             }
 
-            float currentPixelRatio = Math.Max(
+            double currentPixelRatio = Math.Max(
                 item.ImageWidth / frameSize.Width,
                 item.ImageHeight / frameSize.Height);
             pixelRatio = Math.Max(pixelRatio, currentPixelRatio);
@@ -523,7 +524,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
                 try
                 {
-                    Log("Layout", $"Clear (name={Name}, v={version})");
+                    Log("Layout", $"Clear: Name={Name},V={version}");
                     res.DisposeCompositionComponents();
                 }
                 finally
@@ -537,10 +538,10 @@ internal partial class ReaderImageCompositor : IDisposable
 
         pixelRatio = Math.Min(_scale, pixelRatio);
 
-        SizeF canvasSize;
+        Size canvasSize;
         {
-            float accParallelLength = 0;
-            float maxPerpendicularLength = 0;
+            double accParallelLength = 0;
+            double maxPerpendicularLength = 0;
             for (int i = 0; i < items.Length; i++)
             {
                 DrawingItem? item = items[i];
@@ -549,27 +550,37 @@ internal partial class ReaderImageCompositor : IDisposable
                     continue;
                 }
 
-                SizeF frameSize = frameSizes[i];
-                float frameParallelLength = _isHorizontal ? frameSize.Width : frameSize.Height;
-                float rectParallelLength = frameParallelLength * pixelRatio;
+                SizeF8 frameSize = frameSizes[i];
+                double frameParallelLength = _isHorizontal ? frameSize.Width : frameSize.Height;
+                double rectParallelLength = frameParallelLength * pixelRatio;
                 accParallelLength += rectParallelLength;
 
                 if (item is not null)
                 {
-                    float imageParallelLength = _isHorizontal ? item.ImageWidth : item.ImageHeight;
-                    float imagePerpendicularLength = _isHorizontal ? item.ImageHeight : item.ImageWidth;
-                    float rectPerpendicularLength = rectParallelLength * imagePerpendicularLength / imageParallelLength;
+                    double imageParallelLength = _isHorizontal ? item.ImageWidth : item.ImageHeight;
+                    double imagePerpendicularLength = _isHorizontal ? item.ImageHeight : item.ImageWidth;
+                    double rectPerpendicularLength = rectParallelLength * imagePerpendicularLength / imageParallelLength;
                     maxPerpendicularLength = Math.Max(maxPerpendicularLength, rectPerpendicularLength);
                 }
             }
 
-            int maxDimension = MAX_CANVAS_DIMENSION;
-            float scaleRatio = Math.Min(1, maxDimension / Math.Max(accParallelLength, maxPerpendicularLength));
-            accParallelLength *= scaleRatio;
-            maxPerpendicularLength *= scaleRatio;
+            double scaleRatio = 1.0;
+            {
+                double resolution = accParallelLength * maxPerpendicularLength;
+                const double maxResolution = MAX_CANVAS_SIZE;
+                if (resolution > maxResolution)
+                {
+                    scaleRatio = Math.Min(scaleRatio, Math.Sqrt(maxResolution / resolution));
+                }
+
+                scaleRatio = Math.Min(scaleRatio, MAX_CANVAS_DIMENSION / Math.Max(accParallelLength, maxPerpendicularLength));
+            }
+
+            accParallelLength = Math.Floor(accParallelLength * scaleRatio);
+            maxPerpendicularLength = Math.Floor(maxPerpendicularLength * scaleRatio);
 
             accParallelLength = 0;
-            float roundedAccParallelLength = 0;
+            double roundedAccParallelLength = 0;
             for (int i = 0; i < items.Length; i++)
             {
                 DrawingItem? item = items[i];
@@ -578,51 +589,53 @@ internal partial class ReaderImageCompositor : IDisposable
                     continue;
                 }
 
-                SizeF frameSize = frameSizes[i];
-                float frameParallelLength = _isHorizontal ? frameSize.Width : frameSize.Height;
-                float rectParallelLength = frameParallelLength * pixelRatio * scaleRatio;
+                SizeF8 frameSize = frameSizes[i];
+                double frameParallelLength = _isHorizontal ? frameSize.Width : frameSize.Height;
+                double rectParallelLength = frameParallelLength * pixelRatio * scaleRatio;
 
-                // Round left and right sides to the nearest pixel to prevent gaps
-                RectangleF canvasRect = new()
+                // Round to the nearest pixel in parallel axis to prevent gaps
+                RectF8 canvasRect = new()
                 {
                     X = roundedAccParallelLength
                 };
                 accParallelLength += rectParallelLength;
-                float newRoundedAccParallelLength = (float)Math.Round(accParallelLength);
-                canvasRect.Width = Math.Max(1.0F, newRoundedAccParallelLength - roundedAccParallelLength);
-                roundedAccParallelLength = newRoundedAccParallelLength;
+                float nextRoundedAccParallelLength = (float)Math.Round(accParallelLength);
+                canvasRect.Width = Math.Max(1.0, nextRoundedAccParallelLength - roundedAccParallelLength);
+                roundedAccParallelLength = nextRoundedAccParallelLength;
 
                 if (item is not null)
                 {
-                    float rectPerpendicularLength = rectParallelLength * item.ImageHeight / item.ImageWidth;
-                    canvasRect.Y = (maxPerpendicularLength - rectPerpendicularLength) * 0.5F;
-                    canvasRect.Height = rectPerpendicularLength;
-                    item.CanvasRect = _isHorizontal ? canvasRect : new(canvasRect.Y, canvasRect.X, canvasRect.Height, canvasRect.Width);
+                    // Stretch to nearest pixel in perpendicular axis to prevent gaps
+                    double rectPerpendicularLength = Math.Min(rectParallelLength * item.ImageHeight / item.ImageWidth, maxPerpendicularLength);
+                    double verticalPadding = (maxPerpendicularLength - rectPerpendicularLength) * 0.5;
+                    canvasRect.Y = Math.Floor(verticalPadding);
+                    canvasRect.Height = Math.Ceiling(maxPerpendicularLength - verticalPadding) - canvasRect.Y;
+                    item.CanvasRect = _isHorizontal ?
+                        new((int)canvasRect.X, (int)canvasRect.Y, (int)canvasRect.Width, (int)canvasRect.Height) :
+                        new((int)canvasRect.Y, (int)canvasRect.X, (int)canvasRect.Height, (int)canvasRect.Width);
                 }
             }
 
-            roundedAccParallelLength = Math.Max(1F, roundedAccParallelLength);
-            maxPerpendicularLength = Math.Max(1F, maxPerpendicularLength);
-            SizeF contentSize = _isHorizontal ?
+            roundedAccParallelLength = Math.Max(1.0, roundedAccParallelLength);
+            maxPerpendicularLength = Math.Max(1.0, maxPerpendicularLength);
+            SizeF8 contentSize = _isHorizontal ?
                 new(roundedAccParallelLength, maxPerpendicularLength) :
                 new(maxPerpendicularLength, roundedAccParallelLength);
-            float canvasWidthRatio = contentSize.Width / mergedFrameSize.Width;
-            float canvasHeightRatio = contentSize.Height / mergedFrameSize.Height;
-            canvasSize = canvasWidthRatio < canvasHeightRatio ?
-                new(mergedFrameSize.Width * canvasHeightRatio, contentSize.Height) :
-                new(contentSize.Width, mergedFrameSize.Height * canvasWidthRatio);
+            canvasSize = new((int)contentSize.Width, (int)contentSize.Height);
 
+            double canvasWidthRatio = contentSize.Width / mergedFrameSize.Width;
+            double canvasHeightRatio = contentSize.Height / mergedFrameSize.Height;
             lock (res._images)
             {
                 for (int i = 0; i < items.Length; i++)
                 {
-                    RectangleF hitRect = new(0, 0, 0, 0);
+                    RectF8 hitRect = new(0, 0, 0, 0);
 
                     DrawingItem? item = items[i];
                     if (item is not null)
                     {
-                        RectangleF canvasRect = item.CanvasRect;
-                        hitRect = new RectangleF(
+                        Rectangle canvasRect = item.CanvasRect;
+                        hitRect = new RectF8(
                             canvasRect.X / canvasWidthRatio,
                             canvasRect.Y / canvasHeightRatio,
                             canvasRect.Width / canvasWidthRatio,
@@ -648,8 +661,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             try
             {
-                Log("Composite", $"name={Name}, v={version}");
-                PerformComposition(res, items, mergedFrameSize, canvasSize);
+                PerformComposition(res, version, items, mergedFrameSize, canvasSize);
             }
             finally
             {
@@ -658,8 +670,10 @@ internal partial class ReaderImageCompositor : IDisposable
         });
     }
 
-    private void PerformComposition(InstanceResourceModel res, DrawingItem?[] items, SizeF frameSize, SizeF canvasSize)
+    private void PerformComposition(InstanceResourceModel res, int version, DrawingItem?[] items, SizeF8 frameSize, Size canvasSize)
     {
+        Log("Composite", $"Name={Name},V={version},Frame={frameSize},Canvas={canvasSize}");
+
         if (res._compositionVisual is null)
         {
             SpriteVisual visual = _compositor.CreateSpriteVisual();
@@ -667,9 +681,9 @@ internal partial class ReaderImageCompositor : IDisposable
             res._rootVisual.Children.InsertAtTop(visual);
         }
 
-        res._compositionVisual.Size = new Vector2(frameSize.Width, frameSize.Height);
+        res._compositionVisual.Size = (Vector2)frameSize;
 
-        Windows.Foundation.Size surfaceSize = new((int)Math.Ceiling(canvasSize.Width), (int)Math.Ceiling(canvasSize.Height));
+        Windows.Foundation.Size surfaceSize = new(canvasSize.Width, canvasSize.Height);
         if (res._groupRenderResource is not null && res._groupRenderResource.Value.Surface.Size != surfaceSize)
         {
             res._groupRenderResource?.Unref();
@@ -702,7 +716,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (_compositionGroup is not null)
         {
-            Log("Composite", $"Remove group (name={Name}, group={_compositionGroup.Id})");
+            Log("Composite", $"RemoveGroup: Name={Name},Group={_compositionGroup.Id}");
             ReaderImageUpdateScheduler.Instance.RemoveGroup(_compositionGroup);
             _compositionGroup = null;
         }
@@ -720,7 +734,7 @@ internal partial class ReaderImageCompositor : IDisposable
             {
                 BitmapRef = item.BitmapRef,
                 Source = item.Source,
-                CanvasRect = item.CanvasRect,
+                CanvasRect = (RectangleF)item.CanvasRect,
             });
         }
 
@@ -730,7 +744,7 @@ internal partial class ReaderImageCompositor : IDisposable
             Items = compositionItems
         };
 
-        Log("Composite", $"Add group (name={Name},group={_compositionGroup.Id})");
+        Log("Composite", $"AddGroup: Name={Name},Group={_compositionGroup.Id}");
         ReaderImageUpdateScheduler.Instance.AddGroup(_compositionGroup);
     }
 
@@ -741,8 +755,8 @@ internal partial class ReaderImageCompositor : IDisposable
         public int Index { get; } = index;
         public object Lock { get; } = new();
         public ReaderImageSource? Source { get; set; }
-        public SizeF FrameSize { get; set; }
-        public RectangleF HitRect { get; set; }
+        public SizeF8 FrameSize { get; set; }
+        public RectF8 HitRect { get; set; }
         public bool SupportVector { get; set; } = false;
         public bool ClearPrevious { get; set; } = false;
 
@@ -762,7 +776,7 @@ internal partial class ReaderImageCompositor : IDisposable
         public required ReaderImageSource Source { get; init; }
         public required RefCounted<AnimatedBitmapModel> BitmapRef { get; init; }
         public required Size ImageSize { get; init; }
-        public RectangleF CanvasRect { get; set; }
+        public Rectangle CanvasRect { get; set; }
 
         public int ImageWidth => Source.Settings.Rotation switch
         {

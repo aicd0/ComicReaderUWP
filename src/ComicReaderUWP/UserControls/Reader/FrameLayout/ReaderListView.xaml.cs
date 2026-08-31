@@ -7,12 +7,11 @@ using System.Collections.Specialized;
 using System.Linq;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.Models.F8;
 using ComicReaderUWP.Core.Common.DebugTools;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
-using Windows.Foundation;
 
 namespace ComicReaderUWP.UserControls.Reader.FrameLayout;
 
@@ -128,7 +127,7 @@ internal sealed partial class ReaderListView : BaseUserControl
             }
 
             int itemIndex = _containerToItemIndexMapper[index];
-            if (_layoutCache.TryGetItemRect(itemIndex, out Rect rect, Orientation))
+            if (_layoutCache.TryGetItemRect(itemIndex, out RectF8 rect, Orientation))
             {
                 return rect;
             }
@@ -142,7 +141,7 @@ internal sealed partial class ReaderListView : BaseUserControl
         };
     }
 
-    public bool TryGetItemRect(int index, out Rect rect)
+    public bool TryGetItemRect(int index, out RectF8 rect)
     {
         return _layoutCache.TryGetItemRect(index, out rect, Orientation);
     }

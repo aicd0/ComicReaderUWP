@@ -23,18 +23,12 @@ internal sealed partial class ReaderFrame : BaseUserControl
 
     private ReaderImageCompositor? _imageCompositor;
 
-    private readonly IValueObserver<bool> _rebindObserver;
     private readonly IValueObserver<bool> _redrawImageObserver;
     private readonly IValueObserver<double> _scaleObserver;
 
     public ReaderFrame()
     {
         InitializeComponent();
-
-        _rebindObserver = ObserverUtils.Create<bool>(_ =>
-        {
-            Bindings.Update();
-        });
 
         _redrawImageObserver = ObserverUtils.Create<bool>(_ =>
         {
@@ -118,7 +112,7 @@ internal sealed partial class ReaderFrame : BaseUserControl
             return;
         }
 
-        int imageIndex = compositor.HitTest(point);
+        int imageIndex = compositor.HitTest(new(point.X, point.Y));
         if (imageIndex < 0)
         {
             return;
@@ -163,7 +157,6 @@ internal sealed partial class ReaderFrame : BaseUserControl
             return;
         }
 
-        vm.RebindLiveData.ObserveSticky(this, _rebindObserver);
         vm.RedrawImageLiveDate.Observe(this, _redrawImageObserver);
         vm.ScaleLiveData.ObserveSticky(this, _scaleObserver);
 
@@ -185,7 +178,6 @@ internal sealed partial class ReaderFrame : BaseUserControl
             return;
         }
 
-        vm.RebindLiveData.RemoveObserver(_rebindObserver);
         vm.RedrawImageLiveDate.RemoveObserver(_redrawImageObserver);
         vm.ScaleLiveData.RemoveObserver(_scaleObserver);
 

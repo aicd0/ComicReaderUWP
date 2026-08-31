@@ -17,7 +17,6 @@ internal class ReaderFrameViewModel : IReaderListViewItemViewModel
 {
     public const int NO_PAGE = -1;
 
-    public readonly MutableLiveData<bool> RebindLiveData = new();
     public readonly MutableLiveData<bool> RedrawImageLiveDate = new();
     public readonly MutableLiveData<double> ScaleLiveData = new();
 
@@ -41,14 +40,11 @@ internal class ReaderFrameViewModel : IReaderListViewItemViewModel
     public int MinPage => PageL == NO_PAGE ? PageR : (PageR == NO_PAGE ? PageL : Math.Min(PageL, PageR));
     public int PageCount => (PageL != NO_PAGE ? 1 : 0) + (PageR != NO_PAGE ? 1 : 0);
 
-    double IReaderListViewItemViewModel.Width => FrameWidth + FrameMargin.Left + FrameMargin.Right;
+    double IReaderListViewItemViewModel.Width => FrameWidth;
 
-    double IReaderListViewItemViewModel.Height => FrameHeight + FrameMargin.Top + FrameMargin.Bottom;
+    double IReaderListViewItemViewModel.Height => FrameHeight;
 
-    public void RebindEntireViewModel()
-    {
-        RebindLiveData.Emit(true);
-    }
+    Thickness IReaderListViewItemViewModel.Margin => FrameMargin;
 
     public void RedrawImage()
     {
