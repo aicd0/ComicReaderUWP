@@ -979,6 +979,16 @@ internal sealed partial class MainPage : BasePage
         }
     }
 
+    private void SetCustomCenteredNavigationBar(UIElement? element)
+    {
+        CustomCenteredNavigationBarGrid.Children.Clear();
+
+        if (element is not null)
+        {
+            CustomCenteredNavigationBarGrid.Children.Add(element);
+        }
+    }
+
     //
     // Sidebar
     //
@@ -1216,6 +1226,7 @@ internal sealed partial class MainPage : BasePage
         private readonly EventBus _eventBus = new();
         private bool _isRefreshButtonEnabled = false;
         private WeakReference<UIElement>? _customNavigationBar;
+        private WeakReference<UIElement>? _customCenteredNavigationBar;
         private bool _isHiddenOverlayHitTestVisible = true;
 
         public string TabId => _tabId;
@@ -1246,6 +1257,7 @@ internal sealed partial class MainPage : BasePage
 
             _isRefreshButtonEnabled = false;
             _customNavigationBar = null;
+            _customCenteredNavigationBar = null;
             _isHiddenOverlayHitTestVisible = true;
         }
 
@@ -1258,6 +1270,7 @@ internal sealed partial class MainPage : BasePage
 
             SetRefreshButtonAvailabilityInternal(parent);
             SetCustomNavigationBarInternal(parent);
+            SetCustomCenteredNavigationBarInternal(parent);
             SetHiddenOverlayHitTestVisibilityInternal(parent);
         }
 
@@ -1373,6 +1386,30 @@ internal sealed partial class MainPage : BasePage
             {
                 _customNavigationBar = null;
                 page.SetCustomNavigationBar(null);
+            }
+        }
+
+        public void SetCustomCenteredNavigationBar(UIElement? element)
+        {
+            if (!_parent.TryGetTarget(out MainPage? parent))
+            {
+                return;
+            }
+
+            _customCenteredNavigationBar = element is null ? null : new WeakReference<UIElement>(element);
+            SetCustomCenteredNavigationBarInternal(parent);
+        }
+
+        private void SetCustomCenteredNavigationBarInternal(MainPage page)
+        {
+            if (_customCenteredNavigationBar is not null && _customCenteredNavigationBar.TryGetTarget(out UIElement? element))
+            {
+                page.SetCustomCenteredNavigationBar(element);
+            }
+            else
+            {
+                _customCenteredNavigationBar = null;
+                page.SetCustomCenteredNavigationBar(null);
             }
         }
 

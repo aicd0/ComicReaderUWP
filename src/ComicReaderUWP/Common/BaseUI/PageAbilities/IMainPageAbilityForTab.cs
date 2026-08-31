@@ -26,5 +26,7 @@ internal interface IMainPageAbilityForTab : IMainPageAbility
 
     void SetCustomNavigationBar(UIElement? element);
 
+    void SetCustomCenteredNavigationBar(UIElement? element);
+
     void SetHiddenOverlayHitTestVisibility(bool visible);
 }
