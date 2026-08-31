@@ -5,8 +5,6 @@
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    HorizontalAlignment="Center"
-    VerticalAlignment="Center"
     d:DesignHeight="300"
     d:DesignWidth="400"
     DataContextChanged="ReaderFrame_DataContextChanged"
@@ -15,10 +13,7 @@
     <Grid>
         <Grid
             x:Name="ImageHost"
-            Width="{x:Bind ViewModel.FrameWidth}"
-            Height="{x:Bind ViewModel.FrameHeight}"
             Margin="{x:Bind ViewModel.FrameMargin}"
-            VerticalAlignment="Center"
             Background="Transparent"
             ContextRequested="ImageHost_ContextRequested" />
     </Grid>

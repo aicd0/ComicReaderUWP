@@ -28,8 +28,9 @@ namespace ComicReaderUWP.UserControls.Reader.Imaging;
 internal partial class ReaderImageCompositor : IDisposable
 {
     private const string TAG = nameof(ReaderImageCompositor);
-    private const int MAX_BITMAP_SIZE = 16 * 1024 * 1024;
-    private const int MAX_CANVAS_DIMENSION = 8192;
+    private const int MAX_BITMAP_SIZE = 32 * 1024 * 1024;
+    private const int MAX_CANVAS_SIZE = 32 * 1024 * 1024;
+    private const int MAX_CANVAS_DIMENSION = 8 * 1024;
 
     private static readonly ITaskDispatcher _decodeDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private static readonly ITaskDispatcher _layoutDispatcher = TaskDispatcher.Factory.NewQueue("ReaderImageLayoutWorker");
@@ -172,7 +173,7 @@ internal partial class ReaderImageCompositor : IDisposable
             return;
         }
 
-        Log("SetImage", $"name={Name}-{index}, uri={source?.Source.Uri}");
+        Log("SetImage", $"Name={Name}-{index},Uri={source?.Source.Uri}");
         ImageItem item;
         try
         {
@@ -281,7 +282,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private async Task PerformDecode(ImageItem item)
     {
-        Log("Decode", $"name={Name}-{item.Index}, uri={item.Source?.Source.Uri}");
+        Log("Decode", $"Name={Name}-{item.Index},Uri={item.Source?.Source.Uri}");
         ReaderImageSource? source;
         bool clearPrevious;
         SizeF frameSize;
@@ -436,7 +437,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private void PerformLayout(InstanceResourceModel res, int version)
     {
-        Log("Layout", $"name={Name}, v={version}");
+        Log("Layout", $"Name={Name},V={version}");
         DrawingItem?[] items;
         SizeF[] frameSizes;
         lock (res._images)
@@ -523,7 +524,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
                 try
                 {
-                    Log("Layout", $"Clear (name={Name}, v={version})");
+                    Log("Layout", $"Clear: Name={Name},V={version}");
                     res.DisposeCompositionComponents();
                 }
                 finally
@@ -563,8 +564,18 @@ internal partial class ReaderImageCompositor : IDisposable
                 }
             }
 
-            int maxDimension = MAX_CANVAS_DIMENSION;
-            float scaleRatio = Math.Min(1, maxDimension / Math.Max(accParallelLength, maxPerpendicularLength));
+            float scaleRatio = 1F;
+            {
+                float resolution = accParallelLength * maxPerpendicularLength;
+                const float maxResolution = MAX_CANVAS_SIZE;
+                if (resolution > maxResolution)
+                {
+                    scaleRatio = Math.Min(scaleRatio, (float)Math.Sqrt(maxResolution / resolution));
+                }
+
+                scaleRatio = Math.Min(scaleRatio, MAX_CANVAS_DIMENSION / Math.Max(accParallelLength, maxPerpendicularLength));
+            }
+
             accParallelLength *= scaleRatio;
             maxPerpendicularLength *= scaleRatio;
 
@@ -648,8 +659,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
             try
             {
-                Log("Composite", $"name={Name}, v={version}");
-                PerformComposition(res, items, mergedFrameSize, canvasSize);
+                PerformComposition(res, version, items, mergedFrameSize, canvasSize);
             }
             finally
             {
@@ -658,8 +668,10 @@ internal partial class ReaderImageCompositor : IDisposable
         });
     }
 
-    private void PerformComposition(InstanceResourceModel res, DrawingItem?[] items, SizeF frameSize, SizeF canvasSize)
+    private void PerformComposition(InstanceResourceModel res, int version, DrawingItem?[] items, SizeF frameSize, SizeF canvasSize)
     {
+        Log("Composite", $"Name={Name},V={version},Frame={frameSize},Canvas={canvasSize}");
+
         if (res._compositionVisual is null)
         {
             SpriteVisual visual = _compositor.CreateSpriteVisual();
@@ -702,7 +714,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (_compositionGroup is not null)
         {
-            Log("Composite", $"Remove group (name={Name}, group={_compositionGroup.Id})");
+            Log("Composite", $"RemoveGroup: Name={Name},Group={_compositionGroup.Id}");
             ReaderImageUpdateScheduler.Instance.RemoveGroup(_compositionGroup);
             _compositionGroup = null;
         }
@@ -730,7 +742,7 @@ internal partial class ReaderImageCompositor : IDisposable
             Items = compositionItems
         };
 
-        Log("Composite", $"Add group (name={Name},group={_compositionGroup.Id})");
+        Log("Composite", $"AddGroup: Name={Name},Group={_compositionGroup.Id}");
         ReaderImageUpdateScheduler.Instance.AddGroup(_compositionGroup);
     }
 
