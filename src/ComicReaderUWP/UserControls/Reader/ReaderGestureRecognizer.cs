@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -97,11 +98,15 @@ internal class ReaderGestureRecognizer
         }
         catch (ArgumentException ex)
         {
-            Logger.E(TAG, "ProcessMoveEvents", ex);
+            Logger.E(TAG, nameof(ProcessMoveEvents), ex);
+        }
+        catch (COMException ex)
+        {
+            Logger.E(TAG, nameof(ProcessMoveEvents), ex);
         }
         catch (Exception ex)
         {
-            Logger.F(TAG, "ProcessMoveEvents", ex);
+            Logger.F(TAG, nameof(ProcessMoveEvents), ex);
         }
     }
 

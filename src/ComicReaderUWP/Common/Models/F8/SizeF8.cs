@@ -2,16 +2,26 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Numerics;
 
 namespace ComicReaderUWP.Common.Models.F8;
 
-internal struct SizeF8
+internal struct SizeF8 : IEquatable<SizeF8>
 {
-    public double _width;
+    public static readonly SizeF8 Empty = new();
 
-    public double _height;
+    private double _width;
+    private double _height;
 
-    private static readonly SizeF8 s_empty = CreateEmptySizeF8();
+    public SizeF8(double width, double height)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(width, 0.0);
+        ArgumentOutOfRangeException.ThrowIfLessThan(height, 0.0);
+        _width = width;
+        _height = height;
+    }
+
+    public readonly bool IsEmpty => _width == 0.0 && _height == 0.0;
 
     public double Width
     {
@@ -39,89 +49,17 @@ internal struct SizeF8
         }
     }
 
-    public static SizeF8 Empty => s_empty;
+    public static bool operator ==(SizeF8 left, SizeF8 right) => left.Width == right.Width && left.Height == right.Height;
 
-    public readonly bool IsEmpty => Width < 0.0;
+    public static bool operator !=(SizeF8 left, SizeF8 right) => !(left == right);
 
-    public SizeF8(double width, double height)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(width, 0.0);
-        ArgumentOutOfRangeException.ThrowIfLessThan(height, 0.0);
-        _width = width;
-        _height = height;
-    }
+    public override readonly bool Equals(object? obj) => obj is SizeF8 sz && Equals(sz);
 
-    private static SizeF8 CreateEmptySizeF8()
-    {
-        return new SizeF8
-        {
-            _width = double.NegativeInfinity,
-            _height = double.NegativeInfinity
-        };
-    }
+    public readonly bool Equals(SizeF8 sz) => this == sz;
 
-    public static bool operator ==(SizeF8 size1, SizeF8 size2)
-    {
-        if (size1._width == size2._width)
-        {
-            return size1._height == size2._height;
-        }
+    public override readonly int GetHashCode() => HashCode.Combine(Width.GetHashCode(), Height.GetHashCode());
 
-        return false;
-    }
+    public override readonly string ToString() => $"{{W={_width}, H={_height}}}";
 
-    public static bool operator !=(SizeF8 size1, SizeF8 size2)
-    {
-        return !(size1 == size2);
-    }
-
-    public override readonly bool Equals(object? o)
-    {
-        if (o is SizeF8 size)
-        {
-            return Equals(this, size);
-        }
-
-        return false;
-    }
-
-    public readonly bool Equals(SizeF8 value)
-    {
-        return Equals(this, value);
-    }
-
-    public override readonly int GetHashCode()
-    {
-        if (IsEmpty)
-        {
-            return 0;
-        }
-
-        return Width.GetHashCode() ^ Height.GetHashCode();
-    }
-
-    private static bool Equals(SizeF8 size1, SizeF8 size2)
-    {
-        if (size1.IsEmpty)
-        {
-            return size2.IsEmpty;
-        }
-
-        if (size1._width.Equals(size2._width))
-        {
-            return size1._height.Equals(size2._height);
-        }
-
-        return false;
-    }
-
-    public override readonly string ToString()
-    {
-        if (IsEmpty)
-        {
-            return "Empty";
-        }
-
-        return $"{_width},{_height}";
-    }
+    public static explicit operator Vector2(SizeF8 sz) => new((float)sz.Width, (float)sz.Height);
 }

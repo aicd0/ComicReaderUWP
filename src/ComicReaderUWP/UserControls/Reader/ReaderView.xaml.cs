@@ -36,6 +36,7 @@ internal partial class ReaderView : UserControl
     private const float MAX_ZOOM = 2.5F;
     private const float MIN_ZOOM_CENTER_INSIDE = 0.5F;
     private const float MIN_ZOOM_CENTER_CROP = 0.2F;
+    private const double DEFAULT_IMAGE_SIDE_LENGTH = 500.0;
     private const double DEFAULT_VERTICAL_PAGE_SPACING = 10.0;
     private const double DEFAULT_HORIZONTAL_PAGE_SPACING = 100.0;
     private const double DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER = 2.0;
@@ -59,7 +60,7 @@ internal partial class ReaderView : UserControl
     private bool _isContinuous = true;
     private bool _isLeftToRight = true;
     private bool _useOriginalSize = false;
-    private int _pageGap = 100;
+    private int _pageSpacing = 100;
     private readonly ReaderImageSettings _imageSettings = new();
     private bool _uiStateUpdatedOrientation = true;
     private bool _uiStateUpdatedContinuous = true;
@@ -273,14 +274,14 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
-    public void SetPageGap(int pageGap)
+    public void SetPageSpacing(int pageSpacing)
     {
-        if (pageGap == _pageGap)
+        if (pageSpacing == _pageSpacing)
         {
             return;
         }
 
-        _pageGap = pageGap;
+        _pageSpacing = pageSpacing;
         _uiStateUpdatedNeedReload = true;
         UpdateUI();
     }
@@ -948,8 +949,8 @@ internal partial class ReaderView : UserControl
             double horizontalPadding = DEFAULT_HORIZONTAL_PAGE_SPACING;
             verticalPadding = _isVertical ? verticalPadding : 0;
             horizontalPadding = _isVertical ? 0 : horizontalPadding;
-            verticalPadding *= _pageGap / 100.0;
-            horizontalPadding *= _pageGap / 100.0;
+            verticalPadding *= _pageSpacing / 100.0;
+            horizontalPadding *= _pageSpacing / 100.0;
 
             double thisImageWidth = 0;
             double thisImageHeight = 0;
@@ -996,8 +997,8 @@ internal partial class ReaderView : UserControl
                 }
                 else
                 {
-                    double defaultWidth = 500.0;
-                    double defaultHeight = 300.0;
+                    double defaultWidth = DEFAULT_IMAGE_SIDE_LENGTH;
+                    double defaultHeight = DEFAULT_IMAGE_SIDE_LENGTH;
                     if (isDoubleWidth)
                     {
                         defaultWidth *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
@@ -1027,9 +1028,7 @@ internal partial class ReaderView : UserControl
             double startPadding = !_isVertical && isFirstFrame ? 10000 : horizontalPadding;
             double endPadding = !_isVertical && isLastFrame ? 10000 : horizontalPadding;
 
-            Thickness frameMargin = _isLeftToRight ?
-                new Thickness(startPadding, topPadding, endPadding, bottomPadding) :
-                new Thickness(endPadding, topPadding, startPadding, bottomPadding);
+            Thickness frameMargin = new(startPadding, topPadding, endPadding, bottomPadding);
 
             double leftImageWidth;
             double leftImageHeight;
@@ -2891,8 +2890,7 @@ internal partial class ReaderView : UserControl
         if (_isFirstFrameLoaded)
         {
             Thickness firstFrameMargin = _frameItemsSource[0].FrameMargin;
-            double frameMarginStart = _isVertical ? firstFrameMargin.Top :
-                (_isLeftToRight ? firstFrameMargin.Left : firstFrameMargin.Right);
+            double frameMarginStart = _isVertical ? firstFrameMargin.Top : firstFrameMargin.Left;
             double imageStartOffset = frameMarginStart * zoom;
             movementForward = imageStartOffset - screenCenterOffset;
         }
@@ -3121,13 +3119,6 @@ internal partial class ReaderView : UserControl
 
     private FrameOffsetData? FrameOffset(int frame)
     {
-        if (frame < 0 || frame >= _frameItemsSource.Count)
-        {
-            return null;
-        }
-
-        ReaderFrameViewModel item = _frameItemsSource[frame];
-
         if (!ThisListView.TryGetItemRect(frame, out RectF8 rect))
         {
             return null;
@@ -3135,15 +3126,13 @@ internal partial class ReaderView : UserControl
 
         double parallelOffset = _isVertical ? rect.Y : rect.X;
         double perpendicularOffset = _isVertical ? rect.X : rect.Y;
+        double frameParallelLength = _isVertical ? rect.Height : rect.Width;
+        double framePerpendicularLength = _isVertical ? rect.Width : rect.Height;
 
-        double marginStart = _isVertical ? item.FrameMargin.Top :
-            (_isLeftToRight ? item.FrameMargin.Left : item.FrameMargin.Right);
-        double frameParallelLength = _isVertical ? item.FrameHeight : item.FrameWidth;
-        double framePerpendicularLength = _isVertical ? item.FrameWidth : item.FrameHeight;
         var result = new FrameOffsetData
         {
-            ParallelStart = parallelOffset + marginStart,
-            ParallelEnd = parallelOffset + marginStart + frameParallelLength,
+            ParallelStart = parallelOffset,
+            ParallelEnd = parallelOffset + frameParallelLength,
             PerpendicularCenter = perpendicularOffset + framePerpendicularLength * 0.5,
         };
 

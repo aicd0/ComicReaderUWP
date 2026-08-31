@@ -2,30 +2,53 @@
 // Licensed under the MIT License.
 
 using System;
-
-using Windows.Foundation;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 
 namespace ComicReaderUWP.Common.Models.F8;
 
-internal struct RectF8 : IFormattable
+internal struct RectF8 : IEquatable<RectF8>
 {
-    public double _x;
+    public static readonly RectF8 Empty = new();
 
-    public double _y;
+    private double _x;
+    private double _y;
+    private double _width;
+    private double _height;
 
-    public double _width;
+    public RectF8(double x, double y, double width, double height)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(width, 0.0);
+        ArgumentOutOfRangeException.ThrowIfLessThan(height, 0.0);
+        _x = x;
+        _y = y;
+        _width = width;
+        _height = height;
+    }
 
-    public double _height;
+    public RectF8(PointF8 point1, PointF8 point2)
+    {
+        _x = Math.Min(point1.X, point2.X);
+        _y = Math.Min(point1.Y, point2.Y);
+        _width = Math.Max(Math.Max(point1.X, point2.X) - _x, 0);
+        _height = Math.Max(Math.Max(point1.Y, point2.Y) - _y, 0);
+    }
 
-    private const double EmptyX = double.PositiveInfinity;
+    public RectF8(PointF8 location, SizeF8 size)
+    {
+        if (size.IsEmpty)
+        {
+            this = Empty;
+            return;
+        }
 
-    private const double EmptyY = double.PositiveInfinity;
+        _x = location.X;
+        _y = location.Y;
+        _width = size.Width;
+        _height = size.Height;
+    }
 
-    private const double EmptyWidth = double.NegativeInfinity;
-
-    private const double EmptyHeight = double.NegativeInfinity;
-
-    private static readonly RectF8 s_empty = CreateEmptyRect();
+    public readonly bool IsEmpty => _x == 0.0 && _y == 0.0 && _width == 0.0 && _height == 0.0;
 
     public double X
     {
@@ -81,78 +104,20 @@ internal struct RectF8 : IFormattable
 
     public readonly double Top => _y;
 
-    public readonly double Right
+    public readonly double Right => _x + _width;
+
+    public readonly double Bottom => _y + _height;
+
+    public readonly bool Contains(PointF8 point)
     {
-        get
-        {
-            if (IsEmpty)
-            {
-                return double.NegativeInfinity;
-            }
-
-            return _x + _width;
-        }
-    }
-
-    public readonly double Bottom
-    {
-        get
-        {
-            if (IsEmpty)
-            {
-                return double.NegativeInfinity;
-            }
-
-            return _y + _height;
-        }
-    }
-
-    public static RectF8 Empty => s_empty;
-
-    public readonly bool IsEmpty => _width < 0.0;
-
-    public RectF8(double x, double y, double width, double height)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(width, 0f);
-        ArgumentOutOfRangeException.ThrowIfLessThan(height, 0f);
-        _x = x;
-        _y = y;
-        _width = width;
-        _height = height;
-    }
-
-    public RectF8(Point point1, Point point2)
-    {
-        _x = Math.Min(point1._x, point2._x);
-        _y = Math.Min(point1._y, point2._y);
-        _width = Math.Max(Math.Max(point1._x, point2._x) - _x, 0f);
-        _height = Math.Max(Math.Max(point1._y, point2._y) - _y, 0f);
-    }
-
-    public RectF8(Point location, Size size)
-    {
-        if (size.IsEmpty)
-        {
-            this = s_empty;
-            return;
-        }
-
-        _x = location._x;
-        _y = location._y;
-        _width = size._width;
-        _height = size._height;
-    }
-
-    public readonly bool Contains(Point point)
-    {
-        return ContainsInternal(point._x, point._y);
+        return ContainsInternal(point.X, point.Y);
     }
 
     public void Intersect(RectF8 rect)
     {
         if (!IntersectsWith(rect))
         {
-            this = s_empty;
+            this = Empty;
             return;
         }
 
@@ -199,7 +164,7 @@ internal struct RectF8 : IFormattable
         }
     }
 
-    public void Union(Point point)
+    public void Union(PointF8 point)
     {
         Union(new RectF8(point, point));
     }
@@ -229,75 +194,25 @@ internal struct RectF8 : IFormattable
         return false;
     }
 
-    private static RectF8 CreateEmptyRect()
+    public static bool operator ==(RectF8 left, RectF8 right)
     {
-        return new RectF8
+        if (left._x == right._x && left._y == right._y && left._width == right._width)
         {
-            _x = double.PositiveInfinity,
-            _y = double.PositiveInfinity,
-            _width = double.NegativeInfinity,
-            _height = double.NegativeInfinity
-        };
-    }
-
-    public override readonly string ToString()
-    {
-        return ConvertToString(null, null);
-    }
-
-    public readonly string ToString(IFormatProvider provider)
-    {
-        return ConvertToString(null, provider);
-    }
-
-    readonly string IFormattable.ToString(string? format, IFormatProvider? provider)
-    {
-        return ConvertToString(format, provider);
-    }
-
-    internal readonly string ConvertToString(string? format, IFormatProvider? provider)
-    {
-        if (IsEmpty)
-        {
-            return "Empty.";
-        }
-
-        char numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
-        return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}", numericListSeparator, _x, _y, _width, _height);
-    }
-
-    public readonly bool Equals(RectF8 value)
-    {
-        return this == value;
-    }
-
-    public static bool operator ==(RectF8 rect1, RectF8 rect2)
-    {
-        if (rect1._x == rect2._x && rect1._y == rect2._y && rect1._width == rect2._width)
-        {
-            return rect1._height == rect2._height;
+            return left._height == right._height;
         }
 
         return false;
     }
 
-    public static bool operator !=(RectF8 rect1, RectF8 rect2)
-    {
-        return !(rect1 == rect2);
-    }
+    public static bool operator !=(RectF8 left, RectF8 right) => !(left == right);
 
-    public override readonly bool Equals(object? o)
-    {
-        if (o is RectF8 rect)
-        {
-            return this == rect;
-        }
+    public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is RectF8 rect && Equals(rect);
 
-        return false;
-    }
+    public readonly bool Equals(RectF8 other) => this == other;
 
-    public override readonly int GetHashCode()
-    {
-        return X.GetHashCode() ^ Y.GetHashCode() ^ Width.GetHashCode() ^ Height.GetHashCode();
-    }
+    public override readonly int GetHashCode() => HashCode.Combine(X.GetHashCode(), Y.GetHashCode(), Width.GetHashCode(), Height.GetHashCode());
+
+    public override readonly string ToString() => $"{{X={_x}, Y={_y}, Width={_width}, Height={_height}}}";
+
+    public static explicit operator RectangleF(RectF8 rect) => new((float)rect.Left, (float)rect.Top, (float)rect.Width, (float)rect.Height);
 }

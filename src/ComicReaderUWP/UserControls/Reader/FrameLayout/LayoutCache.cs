@@ -41,17 +41,15 @@ internal class LayoutCache
         EnsureCache();
         ItemLayoutCache lastItem = _itemLayoutCache[^1];
         ItemLayoutCache cache = _itemLayoutCache[index];
-        double innerWidth = cache.Width - cache.Margin.Left - cache.Margin.Right;
-        double innerHeight = cache.Height - cache.Margin.Top - cache.Margin.Bottom;
         rect = orientation == Orientation.Vertical ?
             new(
-                (lastItem.MaxWidthUntilNow - cache.Width) * 0.5 + cache.Margin.Left,
-                cache.TotalHeightUntilNow - cache.Height + cache.Margin.Top,
-                innerWidth, innerHeight) :
+                (lastItem.MaxWidthUntilNow - cache.Width) * 0.5,
+                cache.TotalHeightUntilNow - cache.Height - cache.Margin.Bottom,
+                cache.Width, cache.Height) :
             new(
-                cache.TotalWidthUntilNow - cache.Width + cache.Margin.Left,
-                (lastItem.MaxHeightUntilNow - cache.Height) * 0.5 + cache.Margin.Top,
-                innerWidth, innerHeight);
+                cache.TotalWidthUntilNow - cache.Width - cache.Margin.Right,
+                (lastItem.MaxHeightUntilNow - cache.Height) * 0.5,
+                cache.Width, cache.Height);
         return true;
     }
 
@@ -104,10 +102,10 @@ internal class LayoutCache
             }
 
             Thickness frameMargin = Items[i].Margin;
-            if (!ValidateLength(frameMargin.Left) ||
-                !ValidateLength(frameMargin.Top) ||
-                !ValidateLength(frameMargin.Right) ||
-                !ValidateLength(frameMargin.Bottom))
+            if (!ValidateOffset(frameMargin.Left) ||
+                !ValidateOffset(frameMargin.Top) ||
+                !ValidateOffset(frameMargin.Right) ||
+                !ValidateOffset(frameMargin.Bottom))
             {
                 Logger.F(TAG, $"Invalid frame margin {frameMargin}");
                 frameMargin = new(0.0);
@@ -121,8 +119,8 @@ internal class LayoutCache
             totalHeight += itemHeight;
             ItemLayoutCache cache = new()
             {
-                Width = itemWidth,
-                Height = itemHeight,
+                Width = frameWidth,
+                Height = frameHeight,
                 Margin = frameMargin,
                 MaxWidthUntilNow = maxWidth,
                 MaxHeightUntilNow = maxHeight,
@@ -133,9 +131,14 @@ internal class LayoutCache
         }
     }
 
-    private static bool ValidateLength(double length)
+    private static bool ValidateLength(double value)
     {
-        return !double.IsNaN(length) && !double.IsInfinity(length) && length >= 0.0;
+        return !double.IsNaN(value) && !double.IsInfinity(value) && value >= 0.0;
+    }
+
+    private static bool ValidateOffset(double value)
+    {
+        return !double.IsNaN(value) && !double.IsInfinity(value);
     }
 
     private readonly struct ItemLayoutCache

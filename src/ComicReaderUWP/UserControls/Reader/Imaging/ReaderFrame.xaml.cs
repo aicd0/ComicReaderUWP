@@ -112,7 +112,7 @@ internal sealed partial class ReaderFrame : BaseUserControl
             return;
         }
 
-        int imageIndex = compositor.HitTest(point);
+        int imageIndex = compositor.HitTest(new(point.X, point.Y));
         if (imageIndex < 0)
         {
             return;
