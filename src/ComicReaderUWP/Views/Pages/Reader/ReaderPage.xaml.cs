@@ -104,7 +104,7 @@ internal sealed partial class ReaderPage : BasePage
         base.OnStart(bundle);
         AddToActiveTabs();
         GetMainPageAbility().SetIcon(new SymbolIconSource { Symbol = Symbol.Pictures });
-        GetMainPageAbility().SetCustomNavigationBar(_readerNavigationBar);
+        GetMainPageAbility().SetCustomCenteredNavigationBar(_readerNavigationBar);
 
         // Initialize views
         MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;

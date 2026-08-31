@@ -263,6 +263,11 @@
                     </StackPanel>
 
                     <Grid x:Name="CustomNavigationBarGrid" Grid.Column="1" />
+                    <Grid
+                        x:Name="CustomCenteredNavigationBarGrid"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="3"
+                        HorizontalAlignment="Center" />
 
                     <!--  Right buttons  -->
                     <StackPanel
