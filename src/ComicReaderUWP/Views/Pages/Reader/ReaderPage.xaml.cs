@@ -716,8 +716,11 @@ internal sealed partial class ReaderPage : BasePage
             SpreadDetection = readerSettingModel.PageLayout.SpreadDetection,
         });
 
-        ViewModel.PreferredFlowDirection = readerSettingModel.IsLeftToRight ?
+        FlowDirection preferredFlowDirection = readerSettingModel.IsLeftToRight ?
             FlowDirection.LeftToRight : FlowDirection.RightToLeft;
+        ViewModel.PreferredFlowDirection = preferredFlowDirection;
+        PreviewGridView.ItemsPanelRoot.FlowDirection = preferredFlowDirection;
+
         ViewModel.IsAutoPlayEnabled = readerSettingModel.AutoScrollSpeed > 0;
     }
 
