@@ -210,7 +210,6 @@
             Padding="10"
             VerticalAlignment="Center"
             ContainerContentChanging="OnGridViewContainerContentChanging"
-            FlowDirection="{x:Bind ViewModel.PreferredFlowDirection, Mode=OneWay}"
             IsItemClickEnabled="True"
             ItemClick="OnGridViewItemClicked"
             ItemsSource="{x:Bind ViewModel.PreviewDataSource}"
