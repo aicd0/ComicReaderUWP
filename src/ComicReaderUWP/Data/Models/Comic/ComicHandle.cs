@@ -840,6 +840,24 @@ internal abstract partial class ComicHandle
         });
     }
 
+    public async Task SetProgress(int progress, double lastPosition)
+    {
+        Progress = Math.Clamp(progress, -1, 100);
+        LastPosition = lastPosition;
+
+        await Enqueue(() =>
+        {
+            SaveNoLock(() =>
+            {
+                UpdateCommand.Create(ComicTable.Instance)
+                    .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
+                    .AppendColumn(ComicTable.ColumnLastPosition, GetColumnValue(ComicTable.ColumnLastPosition))
+                    .AppendCondition(ComicTable.ColumnId, Id)
+                    .Execute();
+            });
+        });
+    }
+
     public void MarkAsExternal()
     {
         Id = -1;
@@ -1022,24 +1040,6 @@ internal abstract partial class ComicHandle
             {
                 UpdateCommand.Create(ComicTable.Instance)
                     .AppendColumn(ComicTable.ColumnCompletionStatus, GetColumnValue(ComicTable.ColumnCompletionStatus))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
-        });
-    }
-
-    public async Task SaveProgressAsync(int progress, double last_position)
-    {
-        Progress = Math.Clamp(progress, -1, 100);
-        LastPosition = last_position;
-
-        await Enqueue(() =>
-        {
-            SaveNoLock(() =>
-            {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
-                    .AppendColumn(ComicTable.ColumnLastPosition, GetColumnValue(ComicTable.ColumnLastPosition))
                     .AppendCondition(ComicTable.ColumnId, Id)
                     .Execute();
             });
