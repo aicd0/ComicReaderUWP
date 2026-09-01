@@ -1232,6 +1232,7 @@ internal sealed partial class ReaderPage : BasePage
             });
         }
 
+        if (!comic.IsExternal)
         {
             string? coverIndexString = comic.GetExt(ComicExt.COVER_INDEX);
             if (string.IsNullOrEmpty(coverIndexString) || !int.TryParse(coverIndexString, out int coverIndex))

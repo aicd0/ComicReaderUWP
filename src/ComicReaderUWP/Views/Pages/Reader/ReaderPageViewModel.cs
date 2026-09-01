@@ -524,7 +524,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 break;
             default:
                 {
-                    bool restorePosition = !comic.IsExternal && AppSettingsModel.Instance.RestoreLastReadingPosition &&
+                    bool restorePosition = AppSettingsModel.Instance.RestoreLastReadingPosition &&
                         !(AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics && oldCompletionStatus != CompletionStatusEnum.Reading);
                     if (restorePosition)
                     {

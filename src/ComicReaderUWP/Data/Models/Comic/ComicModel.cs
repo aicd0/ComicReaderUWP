@@ -202,7 +202,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     {
         // This method is expected to be called frequently,
         // so we don't dispatch events to save CPU resources
-        await _internalModel.SaveProgressAsync(progress, lastPosition);
+        await _internalModel.SetProgress(progress, lastPosition);
     }
 
     public async Task SetHidden(bool hidden)
