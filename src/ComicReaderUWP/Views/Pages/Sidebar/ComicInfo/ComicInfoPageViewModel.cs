@@ -17,6 +17,7 @@ using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;

@@ -13,23 +13,19 @@ using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 
-using Windows.Storage;
-
 namespace ComicReaderUWP.Data.Models.Comic;
 
 internal partial class ArchiveComicHandle : ComicHandle
 {
     private const string TAG = nameof(ArchiveComicHandle);
 
-    public static ComicHandle FromExternal(StorageFile archive)
+    public static ComicHandle FromExternal(string path)
     {
-        var comic = new ArchiveComicHandle()
+        return new ArchiveComicHandle()
         {
-            Location = archive.Path,
-            Title1 = archive.DisplayName,
+            Location = path,
+            Title1 = Path.GetFileNameWithoutExtension(path),
         };
-
-        return comic;
     }
 
     public override bool IsEditable => !IsExternal;

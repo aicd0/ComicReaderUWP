@@ -5,7 +5,7 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Common.Utils;
-using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Data.Models.Playback;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

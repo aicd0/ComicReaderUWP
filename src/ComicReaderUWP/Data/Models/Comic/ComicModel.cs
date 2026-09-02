@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.ErrorHandling;
-using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
@@ -20,8 +19,6 @@ using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Data.Tables;
-
-using Windows.Storage;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
@@ -426,31 +423,32 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         return null;
     }
 
-    public static async Task<ComicModel?> FromFile(StorageFile file)
+    public static async Task<ComicModel?> FromFile(string path)
     {
         ComicHandle? comic = null;
-        if (AppInfoProvider.IsSupportedDocumentExtension(file.FileType))
+        string extension = Path.GetExtension(path).ToLower();
+        if (AppInfoProvider.IsSupportedDocumentExtension(extension))
         {
-            comic = await ComicHandle.FromLocation(file.Path);
-            if (comic == null)
+            comic = await ComicHandle.FromLocation(path);
+            if (comic is null)
             {
-                switch (file.FileType.ToLower())
+                switch (extension)
                 {
                     case ".pdf":
-                        comic = PdfComicHandle.FromExternal(file);
+                        comic = PdfComicHandle.FromExternal(path);
                         break;
                     default:
                         break;
                 }
             }
         }
-        else if (AppInfoProvider.IsSupportedArchiveExtension(file.FileType))
+        else if (AppInfoProvider.IsSupportedArchiveExtension(extension))
         {
-            comic = await ComicHandle.FromLocation(file.Path);
-            comic ??= ArchiveComicHandle.FromExternal(file);
+            comic = await ComicHandle.FromLocation(path);
+            comic ??= ArchiveComicHandle.FromExternal(path);
         }
 
-        if (comic == null)
+        if (comic is null)
         {
             return null;
         }
@@ -475,14 +473,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
                 return null;
             }
 
-            StorageFile? file = await Storage.TryGetFile(location);
-            if (file is null)
-            {
-                Logger.E(TAG, $"File not found: {location}");
-                return null;
-            }
-
-            ComicModel? comic = await FromFile(file);
+            ComicModel? comic = await FromFile(location);
             if (comic is null)
             {
                 Logger.E(TAG, $"Failed to create comic from file: {location}");
@@ -511,7 +502,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
                 return null;
             }
 
-            List<StorageFile> files = [];
+            List<string> files = [];
             foreach (string path in filePaths)
             {
                 string extension = Path.GetExtension(path);
@@ -520,14 +511,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
                     continue;
                 }
 
-                StorageFile? file = await Storage.TryGetFile(path);
-                if (file is null)
-                {
-                    Logger.E(TAG, $"File not found: {path}");
-                    continue;
-                }
-
-                files.Add(file);
+                files.Add(path);
             }
 
             if (files.Count == 0)

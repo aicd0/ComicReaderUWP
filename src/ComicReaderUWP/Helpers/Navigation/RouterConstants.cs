@@ -24,6 +24,7 @@ internal static class RouterConstants
 
     public const string ARG_FILTER_JSON = "filter_json";
     public const string ARG_KEYWORD = "keyword";
+    public const string ARG_PAGE = "page";
     public const string ARG_PLAYBACK = "playback";
     public const string ARG_PLAYLIST_ID = "playlist_id";
 }

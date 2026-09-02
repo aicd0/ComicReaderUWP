@@ -19,6 +19,7 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Navigation;

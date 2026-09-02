@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
@@ -11,6 +12,7 @@ using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Views.Pages.Reader;
 
@@ -22,6 +24,7 @@ internal static class OpenComicHelper
 
     public static Route GetComicRoute(
         ComicModel comic,
+        double page = -1.0,
         PlaylistModel.Builder? playlist = null,
         PlaybackModel.Builder? playback = null)
     {
@@ -34,9 +37,16 @@ internal static class OpenComicHelper
         string playlistId = Guid.NewGuid().ToString();
         AppDB.MainRegistry.CreateKey(RegistryNames.PLAYLISTS).Set(playlistId, playlist.ToSerializedString());
 
-        return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
+        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_READER)
             .WithParam(RouterConstants.ARG_PLAYLIST_ID, playlistId)
             .WithParam(RouterConstants.ARG_PLAYBACK, playback.ToSerializedString());
+
+        if (double.IsFinite(page) && page >= 0.0)
+        {
+            route = route.WithParam(RouterConstants.ARG_PAGE, page.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return route;
     }
 
     public static void OpenComic(ActionHandler actionHandler, Route route)

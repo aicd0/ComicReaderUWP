@@ -12,6 +12,7 @@ using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
 namespace ComicReaderUWP.Views.Pages.Sidebar.Playlist;
@@ -61,18 +62,18 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
     public void Destory()
     {
         _playback.PlaylistChanged -= Playback_PlaylistChanged;
-        _playback.PlaybackStatusChanged -= Playback_PlaybackStatusChanged;
+        _playback.PlaybackStateChanged -= Playback_PlaybackStateChanged;
     }
 
     public void SetPlayback(PlaybackModel playback)
     {
         _playback.PlaylistChanged -= Playback_PlaylistChanged;
-        _playback.PlaybackStatusChanged -= Playback_PlaybackStatusChanged;
+        _playback.PlaybackStateChanged -= Playback_PlaybackStateChanged;
         _playback = playback;
         _playback.PlaylistChanged += Playback_PlaylistChanged;
-        _playback.PlaybackStatusChanged += Playback_PlaybackStatusChanged;
+        _playback.PlaybackStateChanged += Playback_PlaybackStateChanged;
         UpdatePlaylist();
-        UpdatePlaybackStatus();
+        UpdatePlaybackState();
     }
 
     public void SetSelectedIndex(int index)
@@ -96,9 +97,9 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
         UpdatePlaylist();
     }
 
-    private void Playback_PlaybackStatusChanged(PlaybackModel.StatusChangeReason reason)
+    private void Playback_PlaybackStateChanged(PlaybackStateChangedEventArgs args)
     {
-        UpdatePlaybackStatus();
+        UpdatePlaybackState();
     }
 
     private void UpdatePlaylist()
@@ -135,7 +136,7 @@ internal partial class PlaylistPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private void UpdatePlaybackStatus()
+    private void UpdatePlaybackState()
     {
         CoroutineUtils.RunInMainThread(() =>
         {

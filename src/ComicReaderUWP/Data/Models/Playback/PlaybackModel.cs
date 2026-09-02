@@ -10,15 +10,16 @@ using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Models.Misc;
 
-namespace ComicReaderUWP.Data.Models.Misc;
+namespace ComicReaderUWP.Data.Models.Playback;
 
 internal class PlaybackModel
 {
     private const string TAG = nameof(PlaybackModel);
 
-    public delegate void PlaybackStatusChangedEventHandler(StatusChangeReason reason);
-    public event PlaybackStatusChangedEventHandler? PlaybackStatusChanged;
+    public delegate void PlaybackStateChangedEventHandler(PlaybackStateChangedEventArgs args);
+    public event PlaybackStateChangedEventHandler? PlaybackStateChanged;
 
     public delegate void PlaylistChangedEventHandler();
     public event PlaylistChangedEventHandler? PlaylistChanged;
@@ -28,6 +29,7 @@ internal class PlaybackModel
     private int _cursor = 0;
     private int _randomSeed = Random.Shared.Next();
     private string? _firstId;
+    private double _initialPage = -1.0;
 
     public IReadOnlyList<PlaylistModel.PlaylistItem> Items => _items;
     public bool CanGoNext => _isRepeat || _cursor < _items.Count - 1;
@@ -43,7 +45,7 @@ internal class PlaybackModel
             {
                 _isRepeat = value;
                 AppSettingsModel.Instance.PlaybackDefaultRepeat = value;
-                DispatchPlaybackStatusChange(StatusChangeReason.Other);
+                DispatchPlaybackStatusChange(PlaybackStateChangeReason.Other);
             }
         }
     }
@@ -83,7 +85,7 @@ internal class PlaybackModel
 
             _cursor = value;
             ClampCursor();
-            DispatchPlaybackStatusChange(StatusChangeReason.Other);
+            DispatchPlaybackStatusChange(PlaybackStateChangeReason.Other);
         }
     }
 
@@ -112,9 +114,10 @@ internal class PlaybackModel
         };
     }
 
-    public void LoadState(PlaylistModel playlist, string? serializedPlayback)
+    public void LoadState(PlaylistModel playlist, string? serializedPlayback, double initialPage)
     {
         _playlist = playlist;
+        _initialPage = initialPage;
 
         if (!string.IsNullOrEmpty(serializedPlayback) && FromSerializedString(serializedPlayback))
         {
@@ -128,7 +131,7 @@ internal class PlaybackModel
 
     public void Refresh()
     {
-        DispatchPlaybackStatusChange(StatusChangeReason.Refresh);
+        DispatchPlaybackStatusChange(PlaybackStateChangeReason.Refresh);
     }
 
     public void Next()
@@ -150,7 +153,7 @@ internal class PlaybackModel
         }
 
         ClampCursor();
-        DispatchPlaybackStatusChange(StatusChangeReason.Next);
+        DispatchPlaybackStatusChange(PlaybackStateChangeReason.Next);
     }
 
     public void Previous(bool fromOverScroll)
@@ -172,7 +175,7 @@ internal class PlaybackModel
         }
 
         ClampCursor();
-        DispatchPlaybackStatusChange(fromOverScroll ? StatusChangeReason.PreviousByOverScroll : StatusChangeReason.Previous);
+        DispatchPlaybackStatusChange(fromOverScroll ? PlaybackStateChangeReason.PreviousByOverScroll : PlaybackStateChangeReason.Previous);
     }
 
     public string ToSerializedString()
@@ -193,7 +196,7 @@ internal class PlaybackModel
         PopulateItems();
         SetCursorById(currentId);
         DispatchPlaylistChange();
-        DispatchPlaybackStatusChange(StatusChangeReason.Other);
+        DispatchPlaybackStatusChange(PlaybackStateChangeReason.Other);
     }
 
     private bool FromSerializedString(string serialized)
@@ -273,23 +276,21 @@ internal class PlaybackModel
         _cursor = Math.Max(Math.Min(_cursor, _items.Count - 1), 0);
     }
 
-    private void DispatchPlaybackStatusChange(StatusChangeReason reason)
+    private void DispatchPlaybackStatusChange(PlaybackStateChangeReason reason)
     {
-        PlaybackStatusChanged?.Invoke(reason);
+        double initialPage = _initialPage;
+        _initialPage = -1.0;
+
+        PlaybackStateChanged?.Invoke(new()
+        {
+            Reason = reason,
+            InitialPage = initialPage,
+        });
     }
 
     private void DispatchPlaylistChange()
     {
         PlaylistChanged?.Invoke();
-    }
-
-    public enum StatusChangeReason
-    {
-        Other,
-        Refresh,
-        Next,
-        Previous,
-        PreviousByOverScroll,
     }
 
     private class PlaybackJsonModel
