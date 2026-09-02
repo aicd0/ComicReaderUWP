@@ -14,6 +14,7 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Views.Dialogs.EditComicInfo;
 using ComicReaderUWP.Views.Dialogs.EditTag;

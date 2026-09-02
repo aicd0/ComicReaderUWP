@@ -15,6 +15,7 @@ using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.Imaging;
 using ComicReaderUWP.ViewModels;
 
@@ -31,7 +32,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     // Comic Status
     private ComicModel? _comic;
-    private LoadingComicInfo? _pendingComic;
+    private LoadComicArgs? _pendingComic;
     private bool _isLoading = false;
     private ComicConnection? _comicConnection;
     private int _pageIndex = -1;
@@ -224,19 +225,19 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     {
         _previewImageWidth = previewImageWidth;
         _previewImageHeight = previewImageHeight;
-        Playback.PlaybackStatusChanged += Playback_PlaybackStatusChanged;
+        Playback.PlaybackStateChanged += Playback_PlaybackStateChanged;
     }
 
     public void Destory()
     {
-        Playback.PlaybackStatusChanged -= Playback_PlaybackStatusChanged;
+        Playback.PlaybackStateChanged -= Playback_PlaybackStateChanged;
         CloseComicConnection();
     }
 
-    public void LoadPlaylist(PlaylistModel playlist, string? serializedPlayback)
+    public void LoadPlaylist(PlaylistModel playlist, string? serializedPlayback, double initialPage)
     {
         Playlist = playlist;
-        Playback.LoadState(playlist, serializedPlayback);
+        Playback.LoadState(playlist, serializedPlayback, initialPage);
     }
 
     public async Task<IReadOnlyList<string>> GetImageDescriptions(IEnumerable<int> pageIndices)
@@ -394,7 +395,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private void Playback_PlaybackStatusChanged(PlaybackModel.StatusChangeReason reason)
+    private void Playback_PlaybackStateChanged(PlaybackStateChangedEventArgs args)
     {
         IsPlaybackNextEnabled = Playback.CanGoNext;
         IsPlaybackPreviousEnabled = Playback.CanGoPrevious;
@@ -405,14 +406,14 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             TitleLiveData.Emit(StringResourceProvider.Instance.Error);
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
         }
-        else if (playlistItem.Comic != _comic || reason == PlaybackModel.StatusChangeReason.Refresh)
+        else if (playlistItem.Comic != _comic || args.Reason == PlaybackStateChangeReason.Refresh)
         {
             TitleLiveData.Emit(playlistItem.Comic.Title);
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
             LoadComic(new()
             {
                 Comic = playlistItem.Comic,
-                LoadReason = reason,
+                PlaybackArgs = args,
             });
         }
 
@@ -425,20 +426,20 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         _comicConnection = null;
     }
 
-    private void LoadComic(LoadingComicInfo comic)
+    private void LoadComic(LoadComicArgs args)
     {
         CoroutineUtils.Run(async () =>
         {
             if (_isLoading)
             {
-                _pendingComic = comic;
+                _pendingComic = args;
                 return;
             }
 
             _isLoading = true;
             try
             {
-                LoadingComicInfo? loadingComic = comic;
+                LoadComicArgs? loadingComic = args;
                 while (loadingComic != null)
                 {
                     await LoadComicInternal(loadingComic);
@@ -455,9 +456,9 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private async Task LoadComicInternal(LoadingComicInfo info)
+    private async Task LoadComicInternal(LoadComicArgs args)
     {
-        ComicModel? comic = info.Comic;
+        ComicModel? comic = args.Comic;
 
         // Close previous comic
         CloseComicConnection();
@@ -471,6 +472,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
 
         _comic = comic;
+        CompletionStatusEnum completionStatus = comic.CompletionStatus;
 
         // Save history
         if (!comic.IsExternal)
@@ -508,35 +510,46 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        CompletionStatusEnum oldCompletionStatus = comic.CompletionStatus;
+        double overrideInitialPage = args.PlaybackArgs.InitialPage;
         bool useScrollingAreaStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
         double startPage = useScrollingAreaStartEnd ? 0.5 : 1.0;
-        double endPage = useScrollingAreaStartEnd ? comic.PageCount + 0.5 : images.Count;
+        double endPage = useScrollingAreaStartEnd ? images.Count + 0.5 : images.Count;
+
         double initialPage;
-        switch (info.LoadReason)
+        if (double.IsFinite(overrideInitialPage) && overrideInitialPage >= 0.0)
         {
-            case PlaybackModel.StatusChangeReason.Next:
-            case PlaybackModel.StatusChangeReason.Previous:
-                initialPage = startPage;
-                break;
-            case PlaybackModel.StatusChangeReason.PreviousByOverScroll:
-                initialPage = endPage;
-                break;
-            default:
-                {
-                    bool restorePosition = AppSettingsModel.Instance.RestoreLastReadingPosition &&
-                        !(AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics && oldCompletionStatus != CompletionStatusEnum.Reading);
-                    if (restorePosition)
+            initialPage = Math.Clamp(overrideInitialPage, startPage, endPage);
+        }
+        else
+        {
+            switch (args.PlaybackArgs.Reason)
+            {
+                case PlaybackStateChangeReason.Next:
+                case PlaybackStateChangeReason.Previous:
+                    initialPage = startPage;
+                    break;
+
+                case PlaybackStateChangeReason.PreviousByOverScroll:
+                    initialPage = endPage;
+                    break;
+
+                default:
                     {
-                        double lastPosition = comic.LastPosition;
-                        initialPage = lastPosition > 0 ? lastPosition : startPage;
+                        bool restorePosition =
+                            AppSettingsModel.Instance.RestoreLastReadingPosition &&
+                            !(AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics && completionStatus != CompletionStatusEnum.Reading);
+                        if (restorePosition)
+                        {
+                            double lastPosition = comic.LastPosition;
+                            initialPage = lastPosition > 0 ? lastPosition : startPage;
+                        }
+                        else
+                        {
+                            initialPage = startPage;
+                        }
                     }
-                    else
-                    {
-                        initialPage = startPage;
-                    }
-                }
-                break;
+                    break;
+            }
         }
 
         ReaderLoadingInfoLiveData.Emit(new(images, initialPage));
@@ -599,9 +612,9 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         public readonly double InitialPage = initialPage;
     }
 
-    private class LoadingComicInfo
+    private class LoadComicArgs
     {
         public required ComicModel? Comic { get; init; }
-        public required PlaybackModel.StatusChangeReason LoadReason { get; init; }
+        public required PlaybackStateChangedEventArgs PlaybackArgs { get; init; }
     }
 }

@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.InitTask;
-using ComicReaderUWP.Common.Legacy;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.AppEnvironment;
@@ -21,7 +20,6 @@ using ComicReaderUWP.Views.AppWindows.Main;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 
-using Windows.Storage;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
@@ -304,41 +302,65 @@ public partial class App : Application
         string targetFilePath = args[0];
         if (!File.Exists(targetFilePath))
         {
-            Logger.W("GetFileActivatedComicRoute", "Target file does not exist: " + targetFilePath);
+            Logger.W(nameof(GetFileActivatedRoute), $"Target file does not exist: {targetFilePath}");
             return null;
         }
 
+        if (!PathUtils.TryNormalizePath(targetFilePath, out string? normalizedPath))
+        {
+            Logger.W(nameof(GetFileActivatedRoute), $"Failed to normalize file path: {targetFilePath}");
+            return null;
+        }
+
+        targetFilePath = normalizedPath;
         string targetFileExtension = Path.GetExtension(targetFilePath);
         if (!AppInfoProvider.IsSupportedExternalFileExtension(targetFileExtension))
         {
+            Logger.W(nameof(GetFileActivatedRoute), $"Unsupported file extension: {targetFileExtension}");
             return null;
         }
 
-        StorageFile? targetFile = await Storage.TryGetFile(targetFilePath);
-        if (targetFile is null)
-        {
-            Logger.W("GetFileActivatedComicRoute", "Failed to get target file: " + targetFilePath);
-            return null;
-        }
-
-        ComicModel? comic = await ComicModel.FromFile(targetFile);
+        ComicModel? comic = await ComicModel.FromFile(targetFilePath);
         if (comic is not null)
         {
             return OpenComicHelper.GetComicRoute(comic);
         }
 
-        if (AppInfoProvider.IsSupportedImageExtension(targetFile.FileType))
+        if (AppInfoProvider.IsSupportedImageExtension(targetFileExtension))
         {
-            string parentPath = targetFile.Path;
-            parentPath = StringUtils.ParentLocationFromLocation(parentPath);
+            string? parentPath = Path.GetDirectoryName(targetFilePath);
+            if (string.IsNullOrEmpty(parentPath))
+            {
+                Logger.W(nameof(GetFileActivatedRoute), $"Failed to get parent directory of the image file: {targetFilePath}");
+                return null;
+            }
+
             comic = await ComicModel.FromLocation(parentPath) ??
                 await ComicModel.FromExternalLocation(parentPath);
+
             if (comic is not null)
             {
-                return OpenComicHelper.GetComicRoute(comic);
+                double page = -1.0;
+                using ComicConnection? comicConnection = await comic.OpenComic();
+                if (comicConnection is not null)
+                {
+                    int imageCount = comicConnection.ImageCount;
+                    for (int i = 0; i < imageCount; i++)
+                    {
+                        string imagePath = comicConnection.GetImagePath(i);
+                        if (PathUtils.IsPathEquivalent(imagePath, targetFilePath))
+                        {
+                            page = i + 1;
+                            break;
+                        }
+                    }
+                }
+
+                return OpenComicHelper.GetComicRoute(comic, page: page);
             }
         }
 
+        Logger.W(nameof(GetFileActivatedRoute), $"Failed to create a comic model from the file: {targetFilePath}");
         return null;
     }
 }

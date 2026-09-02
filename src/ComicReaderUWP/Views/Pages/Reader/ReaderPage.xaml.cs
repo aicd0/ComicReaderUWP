@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Models;
@@ -130,11 +132,21 @@ internal sealed partial class ReaderPage : BasePage
         double previewImageWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"] * scale;
         double previewImageHeight = (double)Application.Current.Resources["ReaderPreviewImageHeight"] * scale;
         ViewModel.Initialize(previewImageWidth, previewImageHeight);
+
         CoroutineUtils.Run(async () =>
         {
             PlaylistModel playlist = await GetPlaylist(bundle);
             string? serializedPlayback = bundle.GetString(RouterConstants.ARG_PLAYBACK);
-            ViewModel.LoadPlaylist(playlist, serializedPlayback);
+
+            string? pageArg = bundle.GetString(RouterConstants.ARG_PAGE);
+            if (string.IsNullOrEmpty(pageArg) ||
+                !double.TryParse(pageArg, CultureInfo.InvariantCulture, out double page) ||
+                !double.IsFinite(page) || page < 0.0)
+            {
+                page = -1.0;
+            }
+
+            ViewModel.LoadPlaylist(playlist, serializedPlayback, page);
         });
 
         ObserveData();

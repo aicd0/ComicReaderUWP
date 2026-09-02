@@ -17,23 +17,19 @@ using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.Graphics.Canvas;
 
-using Windows.Storage;
-
 namespace ComicReaderUWP.Data.Models.Comic;
 
 internal partial class PdfComicHandle : ComicHandle
 {
     private const string TAG = nameof(PdfComicHandle);
 
-    public static ComicHandle FromExternal(StorageFile file)
+    public static ComicHandle FromExternal(string path)
     {
-        var comic = new PdfComicHandle()
+        return new PdfComicHandle()
         {
-            Location = file.Path,
-            Title1 = file.DisplayName,
+            Location = path,
+            Title1 = Path.GetFileNameWithoutExtension(path),
         };
-
-        return comic;
     }
 
     public override bool IsEditable => !IsExternal;
