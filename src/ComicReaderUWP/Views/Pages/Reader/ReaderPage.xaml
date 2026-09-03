@@ -13,7 +13,6 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:reader="using:ComicReaderUWP.Views.Pages.Reader"
     xmlns:readercontrol="using:ComicReaderUWP.UserControls.Reader"
-    xmlns:vm="using:ComicReaderUWP.ViewModels"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -209,7 +208,6 @@
             Grid.Row="1"
             Padding="10"
             VerticalAlignment="Center"
-            ContainerContentChanging="OnGridViewContainerContentChanging"
             IsItemClickEnabled="True"
             ItemClick="OnGridViewItemClicked"
             ItemsSource="{x:Bind ViewModel.PreviewDataSource}"
@@ -221,8 +219,8 @@
                 </Style>
             </GridView.ItemContainerStyle>
             <GridView.ItemTemplate>
-                <DataTemplate x:DataType="vm:ReaderImagePreviewViewModel">
-                    <reader:ReaderPreviewImage DataContext="{x:Bind}" />
+                <DataTemplate x:DataType="reader:ReaderPreviewImageViewModel">
+                    <reader:ReaderPreviewImage DataContext="{x:Bind}" FlowDirection="LeftToRight" />
                 </DataTemplate>
             </GridView.ItemTemplate>
             <GridView.ItemsPanel>

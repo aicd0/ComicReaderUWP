@@ -5,28 +5,58 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.Imaging;
-using ComicReaderUWP.ViewModels;
+using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Reader;
 
 internal partial class ReaderPageViewModel : INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
+    private static string FormatDpi(double dpiX, double dpiY)
+    {
+        if (dpiX == dpiY)
+        {
+            return $"{dpiX:0.##} dpi";
+        }
+        else
+        {
+            return $"{dpiX:0.##} x {dpiY:0.##} dpi";
+        }
+    }
 
+    private static string FormatBytes(long byteCount)
+    {
+        string[] units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"];
+        if (byteCount < 1024)
+        {
+            return $"{byteCount} B";
+        }
+
+        int unitIndex = (int)Math.Floor(Math.Log(byteCount, 1024));
+        double adjustedSize = byteCount / Math.Pow(1024, unitIndex);
+        return $"{adjustedSize:0.#} {units[unitIndex]}";
+    }
+
+    private ActionHandler _actionHandler = ActionHandler.Dummy;
     private double _previewImageHeight;
     private double _previewImageWidth;
 
@@ -37,6 +67,10 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     private ComicConnection? _comicConnection;
     private int _pageIndex = -1;
     private bool? _isFavorite = null;
+
+    public ReaderPageViewModel() { }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public readonly MutableLiveData<string> TitleLiveData = new();
     public readonly MutableLiveData<bool> PlaybackChangeLiveData = new();
@@ -216,13 +250,12 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public PlaybackModel Playback { get; } = new();
     public ReaderPage.ReaderStatusEnum ReaderStatus => ReaderStatusLiveData.Value.Status;
     public ComicModel? Comic => _comic;
-    public ObservableCollection<ReaderImagePreviewViewModel> PreviewDataSource { get; set; } = [];
-    public ReaderImagePreviewViewModel? SelectedPreview => (_pageIndex >= 0 && _pageIndex < PreviewDataSource.Count) ? PreviewDataSource[_pageIndex] : null;
+    public ObservableCollection<ReaderPreviewImageViewModel> PreviewDataSource { get; set; } = [];
+    public ReaderPreviewImageViewModel? SelectedPreview => (_pageIndex >= 0 && _pageIndex < PreviewDataSource.Count) ? PreviewDataSource[_pageIndex] : null;
 
-    public ReaderPageViewModel() { }
-
-    public void Initialize(double previewImageWidth, double previewImageHeight)
+    public void Initialize(ActionHandler actionHandler, double previewImageWidth, double previewImageHeight)
     {
+        _actionHandler = actionHandler;
         _previewImageWidth = previewImageWidth;
         _previewImageHeight = previewImageHeight;
         Playback.PlaybackStateChanged += Playback_PlaybackStateChanged;
@@ -395,6 +428,119 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    public async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateImageContextMenuItems(int index, IImageSource imageSource)
+    {
+        ComicModel? comic = Comic;
+        if (comic is null)
+        {
+            return [];
+        }
+
+        using IImageConnection? imageConnection = await imageSource.Open();
+        if (imageConnection is null)
+        {
+            return [];
+        }
+
+        List<BaseMenuFlyoutItemModel> items = [];
+
+        items.Add(new SimpleMenuFlyoutItemModel()
+        {
+            Text = StringResourceProvider.Instance.Copy,
+            Icon = new FontIconSource() { Glyph = "\uE8C8" },
+            Click = () =>
+            {
+                CoroutineUtils.Run(async () =>
+                {
+                    ErrorResult<bool> err = await ErrorLogger<bool>.Run($"{nameof(CreateImageContextMenuItems)}#Copy", async err =>
+                    {
+                        using IImageConnection? connection = await imageSource.Open();
+                        if (connection is null)
+                        {
+                            return err.SetError("Failed to open image connection.");
+                        }
+
+                        using Stream? stream = await connection.OpenImageStream();
+                        if (stream is null)
+                        {
+                            return err.SetError("Failed to open image stream.");
+                        }
+
+                        ErrorResult<bool> innerErr = await ClipboardUtils.SetImage(stream);
+                        if (!innerErr.IsSuccessful)
+                        {
+                            return err.SetError(innerErr);
+                        }
+
+                        return err.SetResult(default);
+                    });
+
+                    err.DisplayErrorMessage(_actionHandler);
+                });
+            },
+        });
+
+        {
+            string imagePath = imageConnection.Path;
+            items.Add(new SimpleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.ShowInFileExplorer,
+                Icon = new FontIconSource() { Glyph = "\uE838" },
+                IsEnabled = !string.IsNullOrEmpty(imagePath),
+                Click = () =>
+                {
+                    CoroutineUtils.Run(async () =>
+                    {
+                        ErrorResult<bool> err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
+                        err.DisplayErrorMessage(_actionHandler);
+                    });
+                }
+            });
+        }
+
+        if (!comic.IsExternal)
+        {
+            string? coverIndexString = comic.GetExt(ComicExt.COVER_INDEX);
+            if (string.IsNullOrEmpty(coverIndexString) || !int.TryParse(coverIndexString, out int coverIndex))
+            {
+                coverIndex = 0;
+            }
+
+            items.Add(new SimpleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.SetAsCover,
+                Icon = new FontIconSource() { Glyph = "\uE82D" },
+                IsEnabled = coverIndex != index,
+                Click = () =>
+                {
+                    CoroutineUtils.Run(async () =>
+                    {
+                        comic.SetExt(ComicExt.COVER_INDEX, index.ToString(CultureInfo.InvariantCulture));
+                        comic.SetExt(ComicExt.COVER_CACHE_KEY, null);
+                        await comic.FlushExt();
+                    });
+                },
+            });
+        }
+
+        return items;
+    }
+
+    public async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateComicContextMenuItems()
+    {
+        ComicModel? comic = Comic;
+        if (comic is null)
+        {
+            return [];
+        }
+
+        return await MenuFlyoutItemsCreator.CreateComicMenuItems(
+            _actionHandler,
+            comic,
+            playlist: Playlist.ToBuilder(),
+            playback: Playback.ToBuilder());
+    }
+
     private void Playback_PlaybackStateChanged(PlaybackStateChangedEventArgs args)
     {
         IsPlaybackNextEnabled = Playback.CanGoNext;
@@ -557,16 +703,19 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         // Load preview images
         for (int i = 0; i < connection.ImageCount; ++i)
         {
-            PreviewDataSource.Add(new ReaderImagePreviewViewModel
+            int index = i;
+            ComicImageSource imageSource = new(comic, connection, i);
+            PreviewDataSource.Add(new()
             {
                 Image = new SimpleImageView.Model
                 {
-                    Source = new ComicImageSource(comic, connection, i),
+                    Source = imageSource,
                     Width = _previewImageWidth,
                     Height = _previewImageHeight,
                     DebugDescription = i.ToString(),
                 },
                 Page = i + 1,
+                RequestContextMenu = async () => await CreateImageContextMenuItems(index, imageSource),
             });
         }
     }
@@ -575,31 +724,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     {
         bool isFavorite = !comic.IsExternal && FavoriteModel.Instance.FromId(comic.Id) != null;
         SetIsFavorite(isFavorite, false);
-    }
-
-    private static string FormatDpi(double dpiX, double dpiY)
-    {
-        if (dpiX == dpiY)
-        {
-            return $"{dpiX:0.##} dpi";
-        }
-        else
-        {
-            return $"{dpiX:0.##} x {dpiY:0.##} dpi";
-        }
-    }
-
-    private static string FormatBytes(long byteCount)
-    {
-        string[] units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"];
-        if (byteCount < 1024)
-        {
-            return $"{byteCount} B";
-        }
-
-        int unitIndex = (int)Math.Floor(Math.Log(byteCount, 1024));
-        double adjustedSize = byteCount / Math.Pow(1024, unitIndex);
-        return $"{adjustedSize:0.#} {units[unitIndex]}";
     }
 
     //
