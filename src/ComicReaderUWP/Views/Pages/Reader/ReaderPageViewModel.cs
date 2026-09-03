@@ -65,7 +65,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     private LoadComicArgs? _pendingComic;
     private bool _isLoading = false;
     private ComicConnection? _comicConnection;
-    private int _pageIndex = -1;
+    private readonly List<ReaderPreviewImageViewModel> _selectedPreviewImages = [];
     private bool? _isFavorite = null;
 
     public ReaderPageViewModel() { }
@@ -251,7 +251,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public ReaderPage.ReaderStatusEnum ReaderStatus => ReaderStatusLiveData.Value.Status;
     public ComicModel? Comic => _comic;
     public ObservableCollection<ReaderPreviewImageViewModel> PreviewDataSource { get; set; } = [];
-    public ReaderPreviewImageViewModel? SelectedPreview => (_pageIndex >= 0 && _pageIndex < PreviewDataSource.Count) ? PreviewDataSource[_pageIndex] : null;
+    public IEnumerable<ReaderPreviewImageViewModel> SelectedPreviews => _selectedPreviewImages;
 
     public void Initialize(ActionHandler actionHandler, double previewImageWidth, double previewImageHeight)
     {
@@ -359,28 +359,39 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public void SetPageIndex(int pageIndex)
+    public void SetPageIndices(IReadOnlySet<int> pageIndices)
     {
-        if (pageIndex < 0)
+        for (int i = _selectedPreviewImages.Count - 1; i >= 0; --i)
         {
-            pageIndex = -1;
+            ReaderPreviewImageViewModel previewImage = _selectedPreviewImages[i];
+            if (!pageIndices.Contains(previewImage.Page - 1))
+            {
+                previewImage.Selected = false;
+                _selectedPreviewImages.RemoveAt(i);
+            }
         }
 
-        if (pageIndex == _pageIndex)
+        foreach (int index in pageIndices)
         {
-            return;
-        }
+            if (index < 0 || index >= PreviewDataSource.Count)
+            {
+                continue;
+            }
 
-        if (_pageIndex >= 0 && _pageIndex < PreviewDataSource.Count)
-        {
-            PreviewDataSource[_pageIndex].Selected = false;
-        }
+            ReaderPreviewImageViewModel previewImage = PreviewDataSource[index];
+            if (_selectedPreviewImages.Contains(previewImage))
+            {
+                continue;
+            }
 
-        _pageIndex = pageIndex;
+            int position = _selectedPreviewImages.Count;
+            while (position > 0 && _selectedPreviewImages[position - 1].Page > previewImage.Page)
+            {
+                --position;
+            }
 
-        if (pageIndex < PreviewDataSource.Count)
-        {
-            PreviewDataSource[pageIndex].Selected = true;
+            _selectedPreviewImages.Insert(position, previewImage);
+            previewImage.Selected = true;
         }
     }
 
@@ -606,11 +617,20 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     {
         ComicModel? comic = args.Comic;
 
-        // Close previous comic
+        // Close and clear previous comic
         CloseComicConnection();
         _comic = null;
+
+        // Clear preview images
+        foreach (ReaderPreviewImageViewModel previewImage in _selectedPreviewImages)
+        {
+            previewImage.Selected = false;
+        }
+
+        _selectedPreviewImages.Clear();
         PreviewDataSource.Clear();
 
+        // Load new comic
         if (comic is null)
         {
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
@@ -620,7 +640,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         _comic = comic;
         CompletionStatusEnum completionStatus = comic.CompletionStatus;
 
-        // Save history
+        // Save to history
         if (!comic.IsExternal)
         {
             await comic.SetAsVisited();
@@ -633,7 +653,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         IsExternalComicLiveData.Emit(comic.IsExternal);
         UpdateFavoriteStatusInternal(comic);
 
-        // Load reader images
+        // Open new comic
         ComicConnection? connection = await comic.OpenComic();
         if (connection is null)
         {
@@ -644,18 +664,39 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         _comicConnection = connection;
         ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
 
-        var images = new List<IImageSource>();
-        for (int i = 0; i < connection.ImageCount; ++i)
-        {
-            images.Add(new ComicImageSource(comic, connection, i));
-        }
-
-        if (images.Count == 0)
+        int imageCount = connection.ImageCount;
+        if (imageCount == 0)
         {
             ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
             return;
         }
 
+        List<IImageSource> images = new(imageCount);
+        for (int i = 0; i < imageCount; ++i)
+        {
+            images.Add(new ComicImageSource(comic, connection, i));
+        }
+
+        // Load preview images
+        for (int i = 0; i < images.Count; ++i)
+        {
+            int index = i;
+            IImageSource imageSource = images[i];
+            PreviewDataSource.Add(new()
+            {
+                Image = new SimpleImageView.Model
+                {
+                    Source = imageSource,
+                    Width = _previewImageWidth,
+                    Height = _previewImageHeight,
+                    DebugDescription = i.ToString(),
+                },
+                Page = i + 1,
+                RequestContextMenu = async () => await CreateImageContextMenuItems(index, imageSource),
+            });
+        }
+
+        // Load reader images
         double overrideInitialPage = args.PlaybackArgs.InitialPage;
         bool useScrollingAreaStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
         double startPage = useScrollingAreaStartEnd ? 0.5 : 1.0;
@@ -699,25 +740,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
 
         ReaderLoadingInfoLiveData.Emit(new(images, initialPage));
-
-        // Load preview images
-        for (int i = 0; i < connection.ImageCount; ++i)
-        {
-            int index = i;
-            ComicImageSource imageSource = new(comic, connection, i);
-            PreviewDataSource.Add(new()
-            {
-                Image = new SimpleImageView.Model
-                {
-                    Source = imageSource,
-                    Width = _previewImageWidth,
-                    Height = _previewImageHeight,
-                    DebugDescription = i.ToString(),
-                },
-                Page = i + 1,
-                RequestContextMenu = async () => await CreateImageContextMenuItems(index, imageSource),
-            });
-        }
     }
 
     private void UpdateFavoriteStatusInternal(ComicModel comic)
