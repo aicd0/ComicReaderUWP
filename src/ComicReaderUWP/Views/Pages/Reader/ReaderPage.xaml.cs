@@ -60,10 +60,9 @@ internal sealed partial class ReaderPage : BasePage
 
             if (value)
             {
-                ReaderPreviewImageViewModel? selectedItem = ViewModel.SelectedPreview;
-                if (selectedItem is not null)
+                foreach (ReaderPreviewImageViewModel item in ViewModel.SelectedPreviews)
                 {
-                    PreviewGridView.ScrollIntoView(selectedItem);
+                    PreviewGridView.ScrollIntoView(item);
                 }
             }
             else
@@ -343,8 +342,8 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventPageChanged += (sender, isIntermediate) =>
         {
-            int pageIndex = Math.Clamp((int)Math.Round(sender.CurrentPage), 1, sender.PageCount) - 1;
-            ViewModel.SetPageIndex(pageIndex);
+            HashSet<int> pageIndices = GetCurrentPageIndices();
+            ViewModel.SetPageIndices(pageIndices);
             UpdatePage();
 
             if (!MainReaderView.IsAutoScrolling)
@@ -1141,7 +1140,7 @@ internal sealed partial class ReaderPage : BasePage
             _readerNavigationBar.SetReaderSettings(comic);
         }
 
-        HashSet<int> pageIndices = GetPageIndicesFromPage(MainReaderView.CurrentPage, MainReaderView.PageCount);
+        HashSet<int> pageIndices = GetCurrentPageIndices();
         CoroutineUtils.Run(async () =>
         {
             ComicChangedEventArgs args = new()
@@ -1213,8 +1212,11 @@ internal sealed partial class ReaderPage : BasePage
         ActiveTabs = copy;
     }
 
-    private static HashSet<int> GetPageIndicesFromPage(double page, int pageCount)
+    private HashSet<int> GetCurrentPageIndices()
     {
+        double page = MainReaderView.CurrentPage;
+        int pageCount = MainReaderView.PageCount;
+
         HashSet<int> indices = [];
         int floor = (int)Math.Floor(page);
         int ceiling = (int)Math.Ceiling(page);
