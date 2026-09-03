@@ -7,9 +7,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="300"
     d:DesignWidth="400"
+    DataContextChanged="ReaderPreviewImage_DataContextChanged"
     mc:Ignorable="d">
 
-    <Grid Width="{StaticResource ReaderPreviewImageWidth}" Height="{StaticResource ReaderPreviewImageHeight}">
+    <Grid
+        Width="{StaticResource ReaderPreviewImageWidth}"
+        Height="{StaticResource ReaderPreviewImageHeight}"
+        ContextRequested="ReaderPreviewImage_ContextRequested">
         <image:SimpleImageView x:Name="ImageHolder" />
         <Grid
             Margin="0,0,8,8"
@@ -22,13 +26,13 @@
             <TextBlock
                 FontWeight="Bold"
                 Foreground="Black"
-                Text="{x:Bind Model.Page}" />
+                Text="{x:Bind ViewModel.Page}" />
         </Grid>
         <Border
             Margin="-4"
             Background="Transparent"
             BorderBrush="{ThemeResource SystemAccentColor}"
             BorderThickness="4"
-            Visibility="{x:Bind Model.Selected, Mode=OneWay}" />
+            Visibility="{x:Bind ViewModel.Selected, Mode=OneWay}" />
     </Grid>
 </UserControl>

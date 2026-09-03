@@ -5,18 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.ErrorHandling;
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
-using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
@@ -29,7 +25,6 @@ using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.UserControls.Reader;
 using ComicReaderUWP.UserControls.Reader.PageLayout;
-using ComicReaderUWP.ViewModels;
 using ComicReaderUWP.Views.Pages.Main.Sidebar;
 using ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 
@@ -65,7 +60,7 @@ internal sealed partial class ReaderPage : BasePage
 
             if (value)
             {
-                ReaderImagePreviewViewModel? selectedItem = ViewModel.SelectedPreview;
+                ReaderPreviewImageViewModel? selectedItem = ViewModel.SelectedPreview;
                 if (selectedItem is not null)
                 {
                     PreviewGridView.ScrollIntoView(selectedItem);
@@ -131,7 +126,7 @@ internal sealed partial class ReaderPage : BasePage
         double scale = GetMainWindowAbility().GetRasterizationScale();
         double previewImageWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"] * scale;
         double previewImageHeight = (double)Application.Current.Resources["ReaderPreviewImageHeight"] * scale;
-        ViewModel.Initialize(previewImageWidth, previewImageHeight);
+        ViewModel.Initialize(PageActionHandler, previewImageWidth, previewImageHeight);
 
         CoroutineUtils.Run(async () =>
         {
@@ -418,8 +413,8 @@ internal sealed partial class ReaderPage : BasePage
                 return [];
             }
 
-            IReadOnlyList<BaseMenuFlyoutItemModel> imageItems = await CreateImageContextMenuItems(comic, args);
-            IReadOnlyList<BaseMenuFlyoutItemModel> comicItems = await CreateComicContextMenuItems(comic);
+            IReadOnlyList<BaseMenuFlyoutItemModel> imageItems = await ViewModel.CreateImageContextMenuItems(args.ImageIndex, args.Image);
+            IReadOnlyList<BaseMenuFlyoutItemModel> comicItems = await ViewModel.CreateComicContextMenuItems();
 
             if (imageItems.Count == 0)
             {
@@ -520,17 +515,11 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        ComicModel? comic = ViewModel.Comic;
-        if (comic is null)
-        {
-            return;
-        }
-
         args.Handled = true;
 
         CoroutineUtils.Run(async () =>
         {
-            IReadOnlyList<BaseMenuFlyoutItemModel> menuItems = await CreateComicContextMenuItems(comic);
+            IReadOnlyList<BaseMenuFlyoutItemModel> menuItems = await ViewModel.CreateComicContextMenuItems();
 
             var flyout = new MenuFlyout();
             foreach (BaseMenuFlyoutItemModel item in menuItems)
@@ -1114,7 +1103,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void OnGridViewItemClicked(object sender, ItemClickEventArgs e)
     {
-        var ctx = (ReaderImagePreviewViewModel)e.ClickedItem;
+        var ctx = (ReaderPreviewImageViewModel)e.ClickedItem;
         GridViewModeEnabled = false;
 
         ReaderView reader = MainReaderView;
@@ -1127,13 +1116,6 @@ internal sealed partial class ReaderPage : BasePage
         {
             Logger.F(TAG, $"Failed to map page {ctx.Page} to frame index");
         }
-    }
-
-    private void OnGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
-    {
-        var item = args.Item as ReaderImagePreviewViewModel;
-        var viewHolder = args.ItemContainer.ContentTemplateRoot as ReaderPreviewImage;
-        viewHolder?.SetModel(item, args.InRecycleQueue);
     }
 
     //
@@ -1178,107 +1160,6 @@ internal sealed partial class ReaderPage : BasePage
                 plugin.SetReadingComic(GetMainWindowAbility().PluginWindowContext, comic);
             }
         }
-    }
-
-    private async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateImageContextMenuItems(ComicModel comic, ImageContextRequestedCallbackArgs args)
-    {
-        using IImageConnection? imageConnection = await args.Image.Open();
-        if (imageConnection is null)
-        {
-            return [];
-        }
-
-        List<BaseMenuFlyoutItemModel> items = [];
-
-        items.Add(new SimpleMenuFlyoutItemModel()
-        {
-            Text = StringResourceProvider.Instance.Copy,
-            Icon = new FontIconSource() { Glyph = "\uE8C8" },
-            Click = () =>
-            {
-                CoroutineUtils.Run(async () =>
-                {
-                    ErrorResult<bool> err = await ErrorLogger<bool>.Run($"{nameof(CreateImageContextMenuItems)}#Copy", async err =>
-                    {
-                        using IImageConnection? connection = await args.Image.Open();
-                        if (connection is null)
-                        {
-                            return err.SetError("Failed to open image connection.");
-                        }
-
-                        using Stream? stream = await connection.OpenImageStream();
-                        if (stream is null)
-                        {
-                            return err.SetError("Failed to open image stream.");
-                        }
-
-                        ErrorResult<bool> innerErr = await ClipboardUtils.SetImage(stream);
-                        if (!innerErr.IsSuccessful)
-                        {
-                            return err.SetError(innerErr);
-                        }
-
-                        return err.SetResult(default);
-                    });
-
-                    err.DisplayErrorMessage(PageActionHandler);
-                });
-            },
-        });
-
-        {
-            string imagePath = imageConnection.Path;
-            items.Add(new SimpleMenuFlyoutItemModel()
-            {
-                Text = StringResourceProvider.Instance.ShowInFileExplorer,
-                Icon = new FontIconSource() { Glyph = "\uE838" },
-                IsEnabled = !string.IsNullOrEmpty(imagePath),
-                Click = () =>
-                {
-                    CoroutineUtils.Run(async () =>
-                    {
-                        ErrorResult<bool> err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
-                        err.DisplayErrorMessage(PageActionHandler);
-                    });
-                }
-            });
-        }
-
-        if (!comic.IsExternal)
-        {
-            string? coverIndexString = comic.GetExt(ComicExt.COVER_INDEX);
-            if (string.IsNullOrEmpty(coverIndexString) || !int.TryParse(coverIndexString, out int coverIndex))
-            {
-                coverIndex = 0;
-            }
-
-            items.Add(new SimpleMenuFlyoutItemModel()
-            {
-                Text = StringResourceProvider.Instance.SetAsCover,
-                Icon = new FontIconSource() { Glyph = "\uE82D" },
-                IsEnabled = coverIndex != args.ImageIndex,
-                Click = () =>
-                {
-                    CoroutineUtils.Run(async () =>
-                    {
-                        comic.SetExt(ComicExt.COVER_INDEX, args.ImageIndex.ToString());
-                        comic.SetExt(ComicExt.COVER_CACHE_KEY, null);
-                        await comic.FlushExt();
-                    });
-                },
-            });
-        }
-
-        return items;
-    }
-
-    private async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateComicContextMenuItems(ComicModel comic)
-    {
-        return await MenuFlyoutItemsCreator.CreateComicMenuItems(
-            PageActionHandler,
-            comic,
-            playlist: ViewModel.Playlist.ToBuilder(),
-            playback: ViewModel.Playback.ToBuilder());
     }
 
     private void AddToActiveTabs()

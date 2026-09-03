@@ -1,20 +1,24 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Imaging;
+using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
-namespace ComicReaderUWP.ViewModels;
+namespace ComicReaderUWP.Views.Pages.Reader;
 
-internal partial class ReaderImagePreviewViewModel : INotifyPropertyChanged
+internal partial class ReaderPreviewImageViewModel : INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    private SimpleImageView.Model _image;
-    public SimpleImageView.Model Image
+    public Func<Task<IReadOnlyList<BaseMenuFlyoutItemModel>>>? RequestContextMenu { get; init; }
+
+    private SimpleImageView.Model? _image;
+    public SimpleImageView.Model? Image
     {
         get => _image;
         set
