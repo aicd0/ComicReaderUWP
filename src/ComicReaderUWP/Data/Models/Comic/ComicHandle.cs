@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Archive;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
@@ -524,7 +525,7 @@ internal abstract partial class ComicHandle
                 if (AppInfoProvider.IsSupportedImageExtension(extension))
                 {
                     string location = StringUtils.ParentLocationFromLocation(itemInfo.Path);
-                    ComicType type = ArchiveAccess.IsArchivePath(itemInfo.Path) ? ComicType.Archive : ComicType.Folder;
+                    ComicType type = ArchiveManager.IsArchivePath(itemInfo.Path) ? ComicType.Archive : ComicType.Folder;
                     pendingLocations[location] = type;
                 }
                 else
@@ -1066,7 +1067,7 @@ internal abstract partial class ComicHandle
 
     public void SetAsDefaultInfo()
     {
-        List<string> subPaths = [.. Location.Split(ArchiveAccess.FileSeperator)];
+        List<string> subPaths = [.. Location.Split(ArchiveManager.ARCHIVE_SEP)];
         var tags = new List<string>();
         foreach (string path in subPaths)
         {

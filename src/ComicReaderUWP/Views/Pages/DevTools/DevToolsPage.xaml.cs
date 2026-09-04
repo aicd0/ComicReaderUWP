@@ -7,13 +7,13 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Archive;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
-using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.SDK.Models;
 
 using Microsoft.UI.Xaml.Controls;
@@ -183,7 +183,7 @@ internal sealed partial class DevToolsPage : BasePage
             int totalEntries = 0;
 
             // Pre-scan to collect all entries.
-            using (Stream? scanStream = ArchiveAccess.TryGetFileStream(path))
+            using (Stream? scanStream = ArchiveManager.OpenEntry(path))
             {
                 if (scanStream is null)
                 {
@@ -191,14 +191,14 @@ internal sealed partial class DevToolsPage : BasePage
                     continue;
                 }
 
-                ArchiveAccess.TryReadEntries(scanStream, extension, entry =>
+                ArchiveManager.VisitEntries(scanStream, extension, entry =>
                 {
                     ++totalEntries;
                     if (!entry.IsDirectory)
                     {
                         fileEntries.Add(entry.FullName.Replace('/', '\\'));
                     }
-                    return ArchiveAccess.ICallbackResult.Continue;
+                    return ArchiveManager.ICallbackResult.Continue;
                 });
             }
 
@@ -210,17 +210,17 @@ internal sealed partial class DevToolsPage : BasePage
             for (int i = 0; i < archiveBenchmarkIterationCount; ++i)
             {
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                using (Stream? stream = ArchiveAccess.TryGetFileStream(path))
+                using (Stream? stream = ArchiveManager.OpenEntry(path))
                 {
                     if (stream is null)
                     {
                         break;
                     }
 
-                    ArchiveAccess.TryReadEntries(stream, extension, entry =>
+                    ArchiveManager.VisitEntries(stream, extension, entry =>
                     {
                         using Stream stream = entry.Open();
-                        return ArchiveAccess.ICallbackResult.Continue;
+                        return ArchiveManager.ICallbackResult.Continue;
                     });
                 }
                 stopwatch.Stop();
@@ -236,7 +236,7 @@ internal sealed partial class DevToolsPage : BasePage
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 foreach (string entryName in fileEntries)
                 {
-                    using Stream? entryStream = ArchiveAccess.TryGetFileStream(path, entryName);
+                    using Stream? entryStream = ArchiveManager.OpenEntry(path, entryName);
                     if (entryStream is null)
                     {
                         ++openFailures;

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
+using ComicReaderUWP.Common.Archive;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -217,7 +218,7 @@ internal static class ComicScanner
 
         public IEnumerable<ItemInfo> Search()
         {
-            using Stream? stream = ArchiveAccess.TryGetFileStream(_path);
+            using Stream? stream = ArchiveManager.OpenEntry(_path);
             if (stream is null)
             {
                 Logger.E(TAG, $"Unable to open archive stream: {_path}");
@@ -231,7 +232,7 @@ internal static class ComicScanner
 
             List<string> files = [];
             HashSet<string> folders = [];
-            ArchiveAccess.TryReadEntries(stream, _extension, entry =>
+            ArchiveManager.VisitEntries(stream, _extension, entry =>
             {
                 string path = entry.FullName.Replace('/', '\\');
                 if (entry.IsDirectory)
@@ -247,7 +248,7 @@ internal static class ComicScanner
                     }
                 }
 
-                return ArchiveAccess.ICallbackResult.Continue;
+                return ArchiveManager.ICallbackResult.Continue;
             });
 
             foreach (string file in files)
@@ -255,7 +256,7 @@ internal static class ComicScanner
                 yield return new ItemInfo
                 {
                     Type = ItemType.File,
-                    Path = _path + ArchiveAccess.FileSeperator + file,
+                    Path = _path + ArchiveManager.ARCHIVE_SEP + file,
                 };
             }
 
@@ -264,7 +265,7 @@ internal static class ComicScanner
                 yield return new ItemInfo
                 {
                     Type = ItemType.Folder,
-                    Path = _path + ArchiveAccess.FileSeperator + folder,
+                    Path = _path + ArchiveManager.ARCHIVE_SEP + folder,
                 };
             }
         }
