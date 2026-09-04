@@ -123,6 +123,44 @@ internal abstract partial class ComicHandle
         AlterLibrary(() => Task.CompletedTask); // Start a worker if not
     }
 
+    public static async Task RemoveComicsUnsafe(IEnumerable<long> comicIds)
+    {
+        List<long> ids = [.. comicIds];
+        if (ids.Count == 0)
+        {
+            return;
+        }
+
+        await Enqueue(() =>
+        {
+            SqliteDB.MainDatabase.WithTransaction(() =>
+            {
+                foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
+                {
+                    DeleteCommand.Create(TagTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnComicId), idChunk))
+                        .Execute();
+                    DeleteCommand.Create(TagCategoryTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), idChunk))
+                        .Execute();
+                    DeleteCommand.Create(ComicTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), idChunk))
+                        .Execute();
+                }
+            });
+        });
+
+        await SqliteDB.MiscDatabaseDispatcher.Submit(() =>
+        {
+            foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
+            {
+                DeleteCommand.Create(ComicHistoryTable.Instance)
+                    .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicHistoryTable.ColumnComicId), idChunk))
+                    .Execute();
+            }
+        });
+    }
+
     private static Task TransactionBlock(Action action)
     {
         return Enqueue(() =>
@@ -358,17 +396,6 @@ internal abstract partial class ComicHandle
         return CompletionStatusEnum.Unread;
     }
 
-    private static void RemoveWithLocationNoLock(string location)
-    {
-        int count = DeleteCommand.Create(ComicTable.Instance)
-            .AppendCondition(ComicTable.ColumnLocation, location)
-            .Execute();
-        if (count != 1)
-        {
-            Logger.F(TAG, $"RemoveWithLocationNoLock: Deleted {count} rows for location '{location}'");
-        }
-    }
-
     private static async Task AlterLibraryWorker()
     {
         while (true)
@@ -438,7 +465,11 @@ internal abstract partial class ComicHandle
             {
                 string location = pair.Key;
                 ComicType type = pair.Value;
-                newLocations.Add(location);
+
+                if (!newLocations.Add(location))
+                {
+                    continue;
+                }
 
                 if (oldLocations.Contains(location))
                 {
@@ -596,14 +627,39 @@ internal abstract partial class ComicHandle
                 if (proceed)
                 {
                     comicUpdatedSinceLastBroadcast = true;
-                    await TransactionBlock(() =>
+
+                    List<long> removedComicIds = [];
+                    await Enqueue(() =>
                     {
                         foreach (string location in locationRemoved)
                         {
+                            List<long> comicIds = [];
+                            SelectCommand command = SelectCommand.Create(ComicTable.Instance)
+                                .AppendCondition(ComicTable.ColumnLocation, location);
+                            IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
+                            using SelectCommand.IReader reader = command.Execute();
+                            while (reader.Read())
+                            {
+                                comicIds.Add(idToken.GetValue());
+                            }
+
+                            if (comicIds.Count == 0)
+                            {
+                                Logger.F(TAG, $"Removing: No rows found for location '{location}'");
+                                continue;
+                            }
+
+                            if (comicIds.Count != 1)
+                            {
+                                Logger.F(TAG, $"Removing: Found {comicIds.Count} rows for location '{location}'");
+                            }
+
                             Logger.I(TAG, $"Removing: {location}");
-                            RemoveWithLocationNoLock(location);
+                            removedComicIds.AddRange(comicIds);
                         }
                     });
+
+                    await RemoveComicsUnsafe(removedComicIds);
                 }
             }
         }

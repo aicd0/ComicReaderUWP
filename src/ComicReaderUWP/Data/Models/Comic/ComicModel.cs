@@ -15,7 +15,6 @@ using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Database.SqlHelpers;
-using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Data.Tables;
@@ -595,37 +594,8 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
         return ComicHandle.AlterLibrary(async () =>
         {
-            await ComicHandle.Enqueue(() =>
-            {
-                SqliteDB.MainDatabase.WithTransaction(() =>
-                {
-                    foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
-                    {
-                        DeleteCommand.Create(TagTable.Instance)
-                            .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnComicId), idChunk))
-                            .Execute();
-                        DeleteCommand.Create(TagCategoryTable.Instance)
-                            .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), idChunk))
-                            .Execute();
-                        DeleteCommand.Create(ComicTable.Instance)
-                            .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), idChunk))
-                            .Execute();
-                    }
-                });
-            });
-
-            await SqliteDB.MiscDatabaseDispatcher.Submit(() =>
-            {
-                foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
-                {
-                    DeleteCommand.Create(ComicHistoryTable.Instance)
-                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicHistoryTable.ColumnComicId), idChunk))
-                        .Execute();
-                }
-            });
-
+            await ComicHandle.RemoveComicsUnsafe(ids);
             FavoriteModel.Instance.BatchRemoveWithId([.. ids]);
-
             DispatchUpdateEvent();
         });
     }
