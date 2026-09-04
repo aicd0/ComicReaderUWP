@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 
+using ComicReaderUWP.Common.Archive;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -145,6 +146,7 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
     private static void ClearCacheInternal()
     {
         ImageLoader.Clear();
+        ArchiveCacheManager.Clear();
         ClearCacheDirectory(StorageLocation.LocalCacheFolderPath);
         ClearCacheDirectory(StorageLocation.TemporaryFolderPath);
     }
