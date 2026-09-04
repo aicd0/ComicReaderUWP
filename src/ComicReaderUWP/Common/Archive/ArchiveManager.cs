@@ -64,7 +64,7 @@ internal static class ArchiveManager
 
                 memStream.Position = 0;
                 successful = true;
-            });
+            }, allowCacheCreate: true);
         }
         finally
         {
@@ -146,7 +146,7 @@ internal static class ArchiveManager
         });
     }
 
-    private static void OpenEntry(string basePath, string subPath, Action<EntryContext> callback)
+    private static void OpenEntry(string basePath, string subPath, Action<EntryContext> callback, bool allowCacheCreate = false)
     {
         using Stream? stream = OpenFile(basePath) ?? throw new ArchiveIOException();
 
@@ -156,6 +156,7 @@ internal static class ArchiveManager
             Extension = Path.GetExtension(basePath).ToLower(),
             SubPath = string.Empty,
             BasePath = basePath,
+            AllowCacheCreate = allowCacheCreate,
         };
         OpenEntry(context, subPath, callback);
     }
@@ -209,6 +210,7 @@ internal static class ArchiveManager
                     Extension = subExtension,
                     SubPath = CombinePaths(context.SubPath, baseEntryName),
                     BasePath = context.BasePath,
+                    AllowCacheCreate = context.AllowCacheCreate,
                 };
                 OpenEntry(subContext, subEntryName, callback);
             }
@@ -240,7 +242,19 @@ internal static class ArchiveManager
             return;
         }
 
-        SharpCompress.Readers.ReaderOptions opts = CreateReaderOptions(context.Extension);
+        if (!context.IsCache)
+        {
+            using Stream? cachedStream = ArchiveCacheManager.Get(context.BasePath, context.SubPath);
+            if (cachedStream is not null)
+            {
+                VisitEntriesFromCache(cachedStream, context, callback);
+                return;
+            }
+        }
+
+        SharpCompress.Readers.ReaderOptions opts = context.IsCache
+            ? ArchiveCacheManager.CreateCachedArchiveReaderOptions()
+            : CreateReaderOptions(context.Extension);
 
         Stream? tempStream = null;
         SharpCompress.Archives.IArchive? archive = null;
@@ -324,6 +338,16 @@ internal static class ArchiveManager
                 {
                     if (archive.IsSolid)
                     {
+                        if (context.AllowCacheCreate)
+                        {
+                            using Stream? cachedStream = ArchiveCacheManager.GetOrCreate(context.BasePath, context.SubPath, archive);
+                            if (cachedStream is not null)
+                            {
+                                VisitEntriesFromCache(cachedStream, context, callback);
+                                return;
+                            }
+                        }
+
                         reader = archive.ExtractAllEntries();
                     }
                 }
@@ -430,6 +454,20 @@ internal static class ArchiveManager
             archive?.Dispose();
             tempStream?.Dispose();
         }
+    }
+
+    private static void VisitEntriesFromCache(Stream cachedStream, EntryContext context, Func<IArchiveEntry, ICallbackResult> callback)
+    {
+        EntryContext cachedContext = new()
+        {
+            Stream = cachedStream,
+            Extension = ".zip",
+            SubPath = context.SubPath,
+            BasePath = context.BasePath,
+            IsCache = true,
+            AllowCacheCreate = context.AllowCacheCreate,
+        };
+        VisitEntriesInternal(cachedContext, callback);
     }
 
     private static SharpCompress.Readers.ReaderOptions CreateReaderOptions(string extensionHint)
@@ -556,6 +594,11 @@ internal static class ArchiveManager
         public required string Extension;
         public required string SubPath;
         public required string BasePath;
+
+        public bool IsCache = false;
+        public bool AllowCacheCreate = false;
+
+        public EntryContext() { }
     }
 
     private class ReaderArchiveEntry(SharpCompress.Readers.IReader reader) : IArchiveEntry
