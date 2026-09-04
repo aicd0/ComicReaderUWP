@@ -23,26 +23,15 @@ internal static class ArchiveManager
         return FindArchiveSeperator(path, false) > -1;
     }
 
-    public static string GetBasePath(string path, bool preferNested)
+    public static (string, string) SplitPath(string path, bool preferNested = false)
     {
         int i = FindArchiveSeperator(path, preferNested);
         if (i <= -1)
         {
-            return path;
+            return (path, string.Empty);
         }
 
-        return path[..i];
-    }
-
-    public static string GetSubPath(string path, bool preferNested)
-    {
-        int i = FindArchiveSeperator(path, preferNested);
-        if (i <= -1)
-        {
-            return string.Empty;
-        }
-
-        return path[(i + ARCHIVE_SEP.Length)..];
+        return (path[..i], path[(i + ARCHIVE_SEP.Length)..]);
     }
 
     public static Stream OpenEntry(string basePath, string subPath)
@@ -96,21 +85,20 @@ internal static class ArchiveManager
 
     public static IEnumerable<string> ListFileEntries(string basePath, string subPath)
     {
-        string subBasePath = GetBasePath(subPath, preferNested: true);
-        string entryPath = GetSubPath(subPath, preferNested: true);
+        (string subBasePath, string subSubPath) = SplitPath(subPath, preferNested: true);
         string extension = Path.GetExtension(subBasePath);
 
-        if (entryPath.Length == 0)
+        if (subSubPath.Length == 0)
         {
-            entryPath = subBasePath;
+            subSubPath = subBasePath;
             subBasePath = string.Empty;
             extension = Path.GetExtension(basePath);
         }
 
-        entryPath = entryPath.Replace('/', '\\');
-        if (entryPath.Length > 0 && entryPath[^1] != '\\')
+        subSubPath = subSubPath.Replace('/', '\\');
+        if (subSubPath.Length > 0 && subSubPath[^1] != '\\')
         {
-            entryPath += '\\';
+            subSubPath += '\\';
         }
 
         List<string> result = [];
@@ -127,12 +115,12 @@ internal static class ArchiveManager
                     }
 
                     string entryName = entry.FullName.Replace('/', '\\');
-                    if (!StringUtils.IsBeginWith(entryName, entryPath))
+                    if (!StringUtils.IsBeginWith(entryName, subSubPath))
                     {
                         break;
                     }
 
-                    string subpath = entryName[entryPath.Length..];
+                    string subpath = entryName[subSubPath.Length..];
                     if (subpath.Length == 0)
                     {
                         break;
@@ -150,8 +138,8 @@ internal static class ArchiveManager
 
     public static void VisitEntries(string path, Func<IArchiveEntry, ICallbackResult> callback)
     {
-        string basePath = GetBasePath(path, false);
-        string subPath = GetSubPath(path, false);
+        (string basePath, string subPath) = SplitPath(path);
+
         OpenEntry(basePath, subPath, context =>
         {
             VisitEntriesInternal(context, callback);
@@ -166,6 +154,8 @@ internal static class ArchiveManager
         {
             Stream = stream,
             Extension = Path.GetExtension(basePath).ToLower(),
+            SubPath = string.Empty,
+            BasePath = basePath,
         };
         OpenEntry(context, subPath, callback);
     }
@@ -178,10 +168,10 @@ internal static class ArchiveManager
             return;
         }
 
-        string mainEntryName = GetBasePath(subPath, false).Replace('/', '\\');
-        string subEntryName = GetSubPath(subPath, false);
-        string filename = StringUtils.ItemNameFromPath(mainEntryName);
+        (string baseEntryName, string subEntryName) = SplitPath(subPath);
+        string filename = StringUtils.ItemNameFromPath(baseEntryName);
         string subExtension = StringUtils.ExtensionFromFilename(filename);
+
         VisitEntriesInternal(context, entry =>
         {
             if (entry.IsDirectory)
@@ -190,7 +180,7 @@ internal static class ArchiveManager
             }
 
             string entryName = entry.FullName.Replace('/', '\\');
-            if (!entryName.Equals(mainEntryName))
+            if (!entryName.Equals(baseEntryName))
             {
                 return ICallbackResult.Continue;
             }
@@ -217,6 +207,8 @@ internal static class ArchiveManager
                 {
                     Stream = subStream,
                     Extension = subExtension,
+                    SubPath = CombinePaths(context.SubPath, baseEntryName),
+                    BasePath = context.BasePath,
                 };
                 OpenEntry(subContext, subEntryName, callback);
             }
@@ -502,6 +494,21 @@ internal static class ArchiveManager
         }
     }
 
+    private static string CombinePaths(string basePath, string subPath)
+    {
+        if (basePath.Length == 0)
+        {
+            return subPath;
+        }
+
+        if (subPath.Length == 0)
+        {
+            return basePath;
+        }
+
+        return basePath + ARCHIVE_SEP + subPath;
+    }
+
     private static int FindArchiveSeperator(string path, bool preferNested)
     {
         int i;
@@ -547,6 +554,8 @@ internal static class ArchiveManager
     {
         public required Stream Stream;
         public required string Extension;
+        public required string SubPath;
+        public required string BasePath;
     }
 
     private class ReaderArchiveEntry(SharpCompress.Readers.IReader reader) : IArchiveEntry

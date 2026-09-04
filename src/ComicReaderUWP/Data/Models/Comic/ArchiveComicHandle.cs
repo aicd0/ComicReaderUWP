@@ -30,7 +30,7 @@ internal partial class ArchiveComicHandle : ComicHandle
     }
 
     public override bool IsEditable => !IsExternal;
-    public override string FileSystemPath => ArchiveManager.GetBasePath(Location, false);
+    public override string FileSystemPath => ArchiveManager.SplitPath(Location).Item1;
 
     protected override ComicType Type => ComicType.Archive;
 
@@ -53,7 +53,7 @@ internal partial class ArchiveComicHandle : ComicHandle
             return null;
         }
 
-        string archivePath = ArchiveManager.GetBasePath(Location, false);
+        string archivePath = ArchiveManager.SplitPath(Location).Item1;
         return new ArchiveComicConnection(archivePath, entries);
     }
 
@@ -63,7 +63,7 @@ internal partial class ArchiveComicHandle : ComicHandle
 
         if (IsExternal)
         {
-            string basePath = ArchiveManager.GetBasePath(Location, false) + ArchiveManager.ARCHIVE_SEP;
+            string basePath = ArchiveManager.SplitPath(Location).Item1 + ArchiveManager.ARCHIVE_SEP;
             await TaskDispatcher.DefaultThreadPool.Submit(() =>
             {
                 foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(Location, ComicScanner.PathType.Archive))
@@ -90,8 +90,7 @@ internal partial class ArchiveComicHandle : ComicHandle
         }
         else
         {
-            string archivePath = ArchiveManager.GetBasePath(Location, false);
-            string subPath = ArchiveManager.GetSubPath(Location, false);
+            (string archivePath, string subPath) = ArchiveManager.SplitPath(Location);
             IEnumerable<string> subFiles = [];
 
             await TaskDispatcher.DefaultThreadPool.Submit(() =>
