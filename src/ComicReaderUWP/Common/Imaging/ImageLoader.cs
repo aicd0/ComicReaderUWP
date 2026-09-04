@@ -31,7 +31,7 @@ internal static partial class ImageLoader
     private const string TAG = nameof(ImageLoader);
     private const int VERSION = 1;
     private const int IMAGE_META_VERSION = 2;
-    private const string IMAGES_FOLDER_NAME = "images";
+    private const string IMAGES_FOLDER_NAME = "Images";
     private const string MAIN_DATABASE_FILE_NAME = "db_main.db";
     private const long MIN_CACHE_CAPACITY = 1024 * 1024 * 1024;
 
