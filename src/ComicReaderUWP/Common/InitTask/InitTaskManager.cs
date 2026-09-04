@@ -144,7 +144,7 @@ internal class InitTaskManager
     {
         string lockFileDirPath = StorageLocation.TemporaryFolderPath;
         Directory.CreateDirectory(lockFileDirPath);
-        string lockFilePath = Path.Combine(lockFileDirPath, "app.lock");
+        string lockFilePath = Path.Combine(lockFileDirPath, "App.lock");
         bool lockFileExists = File.Exists(lockFilePath);
 
         try

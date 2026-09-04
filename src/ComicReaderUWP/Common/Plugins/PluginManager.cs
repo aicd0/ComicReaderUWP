@@ -263,7 +263,7 @@ internal partial class PluginManager
     private static PluginFileLoadContext? LoadZipPlugin(string pluginFile)
     {
         string pluginFileName = Path.GetFileNameWithoutExtension(pluginFile);
-        string extractDir = Path.Combine(StorageLocation.LocalCacheFolderPath, "plugins", pluginFileName);
+        string extractDir = Path.Combine(StorageLocation.LocalCacheFolderPath, "Plugins", pluginFileName);
 
         string sourceVersion = FileUtils.GetFileSignature(pluginFile);
         if (string.IsNullOrEmpty(sourceVersion))
