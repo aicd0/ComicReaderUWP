@@ -96,7 +96,13 @@ internal partial class ArchiveComicHandle : ComicHandle
 
             await TaskDispatcher.DefaultThreadPool.Submit(() =>
             {
-                subFiles = ArchiveManager.ListFileEntries(archivePath, subPath);
+                try
+                {
+                    subFiles = ArchiveManager.ListFileEntries(archivePath, subPath);
+                }
+                catch (ArchiveIOException)
+                {
+                }
             });
 
             foreach (string subFile in subFiles)
@@ -180,14 +186,15 @@ internal partial class ArchiveComicHandle : ComicHandle
 
             string path = _entries[index];
 
-            Stream? stream = ArchiveManager.OpenEntry(_archivePath, path);
-            if (stream is null)
+            try
+            {
+                return ArchiveManager.OpenEntry(_archivePath, path);
+            }
+            catch (ArchiveIOException)
             {
                 Logger.I(TAG, $"Failed to access entry :{path}");
                 return null;
             }
-
-            return stream;
         }
     }
 }

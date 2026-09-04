@@ -214,14 +214,42 @@ internal static class ComicScanner
         private const string TAG = nameof(ArchiveSearchContext);
 
         private readonly string _path = path;
-        private readonly string _extension = StringUtils.ExtensionFromFilename(path);
 
         public IEnumerable<ItemInfo> Search()
         {
-            using Stream? stream = ArchiveManager.OpenEntry(_path);
-            if (stream is null)
+            List<string> files = [];
+            HashSet<string> folders = [];
+
+            bool success = false;
+            try
+            {
+                ArchiveManager.VisitEntries(_path, entry =>
+                {
+                    string path = entry.FullName.Replace('/', '\\');
+                    if (entry.IsDirectory)
+                    {
+                        folders.Add(path[..^1]);
+                    }
+                    else
+                    {
+                        files.Add(path);
+                        for (int i = 0; (i = path.IndexOf('\\', i)) >= 0; ++i)
+                        {
+                            folders.Add(path[..i]);
+                        }
+                    }
+
+                    return ArchiveManager.ICallbackResult.Continue;
+                });
+                success = true;
+            }
+            catch (ArchiveIOException)
             {
                 Logger.E(TAG, $"Unable to open archive stream: {_path}");
+            }
+
+            if (!success)
+            {
                 yield return new ItemInfo
                 {
                     Type = ItemType.NoAccessLocation,
@@ -229,27 +257,6 @@ internal static class ComicScanner
                 };
                 yield break;
             }
-
-            List<string> files = [];
-            HashSet<string> folders = [];
-            ArchiveManager.VisitEntries(stream, _extension, entry =>
-            {
-                string path = entry.FullName.Replace('/', '\\');
-                if (entry.IsDirectory)
-                {
-                    folders.Add(path[..^1]);
-                }
-                else
-                {
-                    files.Add(path);
-                    for (int i = 0; (i = path.IndexOf('\\', i)) >= 0; ++i)
-                    {
-                        folders.Add(path[..i]);
-                    }
-                }
-
-                return ArchiveManager.ICallbackResult.Continue;
-            });
 
             foreach (string file in files)
             {

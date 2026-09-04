@@ -45,29 +45,22 @@ internal static class ArchiveManager
         return path[(i + ARCHIVE_SEP.Length)..];
     }
 
-    public static Stream? OpenEntry(string path)
-    {
-        string basePath = GetBasePath(path, false);
-        string subPath = GetSubPath(path, false);
-        return OpenEntry(basePath, subPath);
-    }
-
-    public static Stream? OpenEntry(string basePath, string subPath)
+    public static Stream OpenEntry(string basePath, string subPath)
     {
         if (subPath.Length == 0)
         {
-            return OpenFile(basePath);
+            return OpenFile(basePath) ?? throw new ArchiveIOException();
         }
 
         var memStream = new MemoryStream();
         bool successful = false;
         try
         {
-            OpenArchive(basePath, subPath, stream =>
+            OpenEntry(basePath, subPath, context =>
             {
                 try
                 {
-                    stream.CopyTo(memStream);
+                    context.Stream.CopyTo(memStream);
                 }
                 catch (SharpCompress.Compressors.Deflate.ZlibException ex)
                 {
@@ -93,54 +86,95 @@ internal static class ArchiveManager
             }
         }
 
+        if (memStream is null)
+        {
+            throw new ArchiveIOException();
+        }
+
         return memStream;
     }
 
     public static IEnumerable<string> ListFileEntries(string basePath, string subPath)
     {
         string subBasePath = GetBasePath(subPath, preferNested: true);
-        string entry = GetSubPath(subPath, preferNested: true);
+        string entryPath = GetSubPath(subPath, preferNested: true);
         string extension = Path.GetExtension(subBasePath);
 
-        if (entry.Length == 0)
+        if (entryPath.Length == 0)
         {
-            entry = subBasePath;
+            entryPath = subBasePath;
             subBasePath = string.Empty;
             extension = Path.GetExtension(basePath);
         }
 
-        IEnumerable<string>? output = null;
-
-        OpenArchive(basePath, subBasePath, stream =>
+        entryPath = entryPath.Replace('/', '\\');
+        if (entryPath.Length > 0 && entryPath[^1] != '\\')
         {
-            output = ListFileEntries(stream, extension, entry);
-        });
-
-        return output ?? [];
-    }
-
-    public static void VisitEntries(Stream stream, string extension, Func<IArchiveEntry, ICallbackResult> callback)
-    {
-        VisitEntriesInternal(stream, extension, callback);
-    }
-
-    private static void OpenArchive(string basePath, string subPath, Action<Stream> callback)
-    {
-        using Stream? stream = OpenFile(basePath);
-        if (stream is null)
-        {
-            return;
+            entryPath += '\\';
         }
 
-        string extension = Path.GetExtension(basePath).ToLower();
-        OpenArchive(stream, extension, subPath, callback);
+        List<string> result = [];
+
+        OpenEntry(basePath, subBasePath, context =>
+        {
+            VisitEntriesInternal(context, entry =>
+            {
+                do
+                {
+                    if (entry.IsDirectory)
+                    {
+                        break;
+                    }
+
+                    string entryName = entry.FullName.Replace('/', '\\');
+                    if (!StringUtils.IsBeginWith(entryName, entryPath))
+                    {
+                        break;
+                    }
+
+                    string subpath = entryName[entryPath.Length..];
+                    if (subpath.Length == 0)
+                    {
+                        break;
+                    }
+
+                    result.Add(subpath);
+                } while (false);
+
+                return ICallbackResult.Continue;
+            });
+        });
+
+        return result;
     }
 
-    private static void OpenArchive(Stream stream, string extension, string subPath, Action<Stream> callback)
+    public static void VisitEntries(string path, Func<IArchiveEntry, ICallbackResult> callback)
+    {
+        string basePath = GetBasePath(path, false);
+        string subPath = GetSubPath(path, false);
+        OpenEntry(basePath, subPath, context =>
+        {
+            VisitEntriesInternal(context, callback);
+        });
+    }
+
+    private static void OpenEntry(string basePath, string subPath, Action<EntryContext> callback)
+    {
+        using Stream? stream = OpenFile(basePath) ?? throw new ArchiveIOException();
+
+        EntryContext context = new()
+        {
+            Stream = stream,
+            Extension = Path.GetExtension(basePath).ToLower(),
+        };
+        OpenEntry(context, subPath, callback);
+    }
+
+    private static void OpenEntry(EntryContext context, string subPath, Action<EntryContext> callback)
     {
         if (subPath.Length == 0)
         {
-            callback(stream);
+            callback(context);
             return;
         }
 
@@ -148,7 +182,7 @@ internal static class ArchiveManager
         string subEntryName = GetSubPath(subPath, false);
         string filename = StringUtils.ItemNameFromPath(mainEntryName);
         string subExtension = StringUtils.ExtensionFromFilename(filename);
-        VisitEntriesInternal(stream, extension, entry =>
+        VisitEntriesInternal(context, entry =>
         {
             if (entry.IsDirectory)
             {
@@ -179,7 +213,12 @@ internal static class ArchiveManager
 
             try
             {
-                OpenArchive(subStream, subExtension, subEntryName, callback);
+                EntryContext subContext = new()
+                {
+                    Stream = subStream,
+                    Extension = subExtension,
+                };
+                OpenEntry(subContext, subEntryName, callback);
             }
             finally
             {
@@ -201,55 +240,15 @@ internal static class ArchiveManager
         });
     }
 
-    private static List<string> ListFileEntries(Stream stream, string extension, string baseEntryName)
+    private static void VisitEntriesInternal(EntryContext context, Func<IArchiveEntry, ICallbackResult> callback)
     {
-        List<string> output = [];
-
-        baseEntryName = baseEntryName.Replace('/', '\\');
-        if (baseEntryName.Length > 0 && baseEntryName[^1] != '\\')
-        {
-            baseEntryName += '\\';
-        }
-
-        VisitEntriesInternal(stream, extension, entry =>
-        {
-            do
-            {
-                if (entry.IsDirectory)
-                {
-                    break;
-                }
-
-                string entryName = entry.FullName.Replace('/', '\\');
-                if (!StringUtils.IsBeginWith(entryName, baseEntryName))
-                {
-                    break;
-                }
-
-                string subpath = entryName[baseEntryName.Length..];
-                if (subpath.Length == 0)
-                {
-                    break;
-                }
-
-                output.Add(subpath);
-            } while (false);
-
-            return ICallbackResult.Continue;
-        });
-
-        return output;
-    }
-
-    private static void VisitEntriesInternal(Stream stream, string extension, Func<IArchiveEntry, ICallbackResult> callback)
-    {
-        if (!stream.CanRead)
+        if (!context.Stream.CanRead)
         {
             Logger.F(TAG, "Stream is not readable");
             return;
         }
 
-        SharpCompress.Readers.ReaderOptions opts = CreateReaderOptions(extension);
+        SharpCompress.Readers.ReaderOptions opts = CreateReaderOptions(context.Extension);
 
         Stream? tempStream = null;
         SharpCompress.Archives.IArchive? archive = null;
@@ -261,7 +260,7 @@ internal static class ArchiveManager
                 MemoryStream seekable = new();
                 try
                 {
-                    stream.CopyTo(seekable);
+                    context.Stream.CopyTo(seekable);
                     seekable.Position = 0;
                     tempStream = seekable;
                 }
@@ -274,10 +273,10 @@ internal static class ArchiveManager
                 return tempStream;
             }
 
-            Stream? seekableStream = stream.CanSeek ? stream : null;
+            Stream? seekableStream = context.Stream.CanSeek ? context.Stream : null;
 
             // Open archive if possible
-            switch (extension.ToLower())
+            switch (context.Extension.ToLower())
             {
                 case ".7z":
                 case ".cb7":
@@ -352,7 +351,7 @@ internal static class ArchiveManager
             {
                 try
                 {
-                    reader = SharpCompress.Readers.ReaderFactory.OpenReader(stream, opts);
+                    reader = SharpCompress.Readers.ReaderFactory.OpenReader(context.Stream, opts);
                 }
                 catch (SharpCompress.Common.InvalidFormatException ex)
                 {
@@ -542,6 +541,12 @@ internal static class ArchiveManager
     {
         Continue,
         StopIteration,
+    }
+
+    private struct EntryContext
+    {
+        public required Stream Stream;
+        public required string Extension;
     }
 
     private class ReaderArchiveEntry(SharpCompress.Readers.IReader reader) : IArchiveEntry
