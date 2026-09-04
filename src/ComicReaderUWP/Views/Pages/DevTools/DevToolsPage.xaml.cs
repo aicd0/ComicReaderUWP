@@ -178,29 +178,19 @@ internal sealed partial class DevToolsPage : BasePage
                 continue;
             }
 
-            string extension = Path.GetExtension(path);
             List<string> fileEntries = [];
             int totalEntries = 0;
 
             // Pre-scan to collect all entries.
-            using (Stream? scanStream = ArchiveManager.OpenEntry(path))
+            ArchiveManager.VisitEntries(path, entry =>
             {
-                if (scanStream is null)
+                ++totalEntries;
+                if (!entry.IsDirectory)
                 {
-                    report.AppendLine("  [Skip] Unable to open the archive");
-                    continue;
+                    fileEntries.Add(entry.FullName.Replace('/', '\\'));
                 }
-
-                ArchiveManager.VisitEntries(scanStream, extension, entry =>
-                {
-                    ++totalEntries;
-                    if (!entry.IsDirectory)
-                    {
-                        fileEntries.Add(entry.FullName.Replace('/', '\\'));
-                    }
-                    return ArchiveManager.ICallbackResult.Continue;
-                });
-            }
+                return ArchiveManager.ICallbackResult.Continue;
+            });
 
             report.Append("  Entries: ").Append(totalEntries)
                   .Append(", files: ").Append(fileEntries.Count).AppendLine();
@@ -210,19 +200,11 @@ internal sealed partial class DevToolsPage : BasePage
             for (int i = 0; i < archiveBenchmarkIterationCount; ++i)
             {
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                using (Stream? stream = ArchiveManager.OpenEntry(path))
+                ArchiveManager.VisitEntries(path, entry =>
                 {
-                    if (stream is null)
-                    {
-                        break;
-                    }
-
-                    ArchiveManager.VisitEntries(stream, extension, entry =>
-                    {
-                        using Stream stream = entry.Open();
-                        return ArchiveManager.ICallbackResult.Continue;
-                    });
-                }
+                    using Stream stream = entry.Open();
+                    return ArchiveManager.ICallbackResult.Continue;
+                });
                 stopwatch.Stop();
                 iterateTimes.Add(stopwatch.Elapsed.TotalMilliseconds);
             }
