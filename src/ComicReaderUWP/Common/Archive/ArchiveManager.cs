@@ -10,59 +10,60 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Data.Models.Misc;
 
-namespace ComicReaderUWP.Data.Models.Comic;
+namespace ComicReaderUWP.Common.Archive;
 
-public class ArchiveAccess
+internal static class ArchiveManager
 {
-    private const string TAG = nameof(ArchiveAccess);
-    public const string FileSeperator = "\\\\";
+    public const string ARCHIVE_SEP = "\\\\";
+
+    private const string TAG = nameof(ArchiveManager);
 
     public static bool IsArchivePath(string path)
     {
-        return GetFileSeperatorIndex(path, false) > -1;
+        return FindArchiveSeperator(path, false) > -1;
     }
 
-    public static string GetBasePath(string location, bool reverse)
+    public static string GetBasePath(string path, bool preferNested)
     {
-        int i = GetFileSeperatorIndex(location, reverse);
+        int i = FindArchiveSeperator(path, preferNested);
         if (i <= -1)
         {
-            return location;
+            return path;
         }
 
-        return location[..i];
+        return path[..i];
     }
 
-    public static string GetSubPath(string location, bool reverse)
+    public static string GetSubPath(string path, bool preferNested)
     {
-        int i = GetFileSeperatorIndex(location, reverse);
+        int i = FindArchiveSeperator(path, preferNested);
         if (i <= -1)
         {
             return string.Empty;
         }
 
-        return location[(i + FileSeperator.Length)..];
+        return path[(i + ARCHIVE_SEP.Length)..];
     }
 
-    public static Stream? TryGetFileStream(string location)
+    public static Stream? OpenEntry(string path)
     {
-        string basePath = GetBasePath(location, false);
-        string subPath = GetSubPath(location, false);
-        return TryGetFileStream(basePath, subPath);
+        string basePath = GetBasePath(path, false);
+        string subPath = GetSubPath(path, false);
+        return OpenEntry(basePath, subPath);
     }
 
-    public static Stream? TryGetFileStream(string basePath, string subPath)
+    public static Stream? OpenEntry(string basePath, string subPath)
     {
         if (subPath.Length == 0)
         {
-            return TryReadFile(basePath);
+            return OpenFile(basePath);
         }
 
         var memStream = new MemoryStream();
         bool successful = false;
         try
         {
-            TryAccessArchiveStream(basePath, subPath, stream =>
+            OpenArchive(basePath, subPath, stream =>
             {
                 try
                 {
@@ -95,90 +96,10 @@ public class ArchiveAccess
         return memStream;
     }
 
-    public static void TryAccessArchiveStream(string basePath, string subPath, Action<Stream> callback)
+    public static IEnumerable<string> ListFileEntries(string basePath, string subPath)
     {
-        using Stream? stream = TryReadFile(basePath);
-        if (stream is null)
-        {
-            return;
-        }
-
-        string extension = Path.GetExtension(basePath).ToLower();
-        TryAccessArchiveStreamInternal(stream, extension, subPath, callback);
-    }
-
-    public static void TryGetSubFiles(string basePath, string subPath, List<string> output)
-    {
-        TryAccessDeepestArchive(basePath, subPath, (stream, ctx) =>
-        {
-            TryGetFileEntries(stream, ctx.Extension, ctx.Entry, output);
-        });
-    }
-
-    private static int GetFileSeperatorIndex(string path, bool reverse)
-    {
-        int i;
-        if (path.StartsWith("\\\\"))
-        {
-            // Network location
-            if (reverse)
-            {
-                i = path.LastIndexOf(FileSeperator);
-                if (i <= 1)
-                {
-                    i = -1;
-                }
-            }
-            else
-            {
-                i = path.IndexOf(FileSeperator, 2);
-            }
-        }
-        else
-        {
-            i = reverse ? path.LastIndexOf(FileSeperator) : path.IndexOf(FileSeperator);
-        }
-
-        return i;
-    }
-
-    private static FileStream? TryReadFile(string path)
-    {
-        string ErrorMessage()
-        {
-            return $"Unable to read file: {path}";
-        }
-
-        try
-        {
-            return File.OpenRead(path);
-        }
-        catch (FileNotFoundException ex)
-        {
-            Logger.E(TAG, ErrorMessage(), ex);
-            return null;
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            Logger.E(TAG, ErrorMessage(), ex);
-            return null;
-        }
-        catch (IOException ex)
-        {
-            Logger.E(TAG, ErrorMessage(), ex);
-            return null;
-        }
-        catch (Exception ex)
-        {
-            Logger.F(TAG, ErrorMessage(), ex);
-            return null;
-        }
-    }
-
-    private static void TryAccessDeepestArchive(string basePath, string subPath, Action<Stream, ArchiveAccessContext> callback)
-    {
-        string subBasePath = GetBasePath(subPath, reverse: true);
-        string entry = GetSubPath(subPath, reverse: true);
+        string subBasePath = GetBasePath(subPath, preferNested: true);
+        string entry = GetSubPath(subPath, preferNested: true);
         string extension = Path.GetExtension(subBasePath);
 
         if (entry.Length == 0)
@@ -188,16 +109,17 @@ public class ArchiveAccess
             extension = Path.GetExtension(basePath);
         }
 
-        var ctx = new ArchiveAccessContext
-        {
-            Entry = entry,
-            Extension = extension,
-        };
+        IEnumerable<string>? output = null;
 
-        TryAccessArchiveStream(basePath, subBasePath, stream => callback(stream, ctx));
+        OpenArchive(basePath, subBasePath, stream =>
+        {
+            output = ListFileEntries(stream, extension, entry);
+        });
+
+        return output ?? [];
     }
 
-    public static void TryReadEntries(Stream stream, string extension, Func<IArchiveEntry, ICallbackResult> callback)
+    public static void VisitEntries(Stream stream, string extension, Func<IArchiveEntry, ICallbackResult> callback)
     {
         if (!stream.CanRead)
         {
@@ -205,34 +127,7 @@ public class ArchiveAccess
             return;
         }
 
-        SharpCompress.Readers.ReaderOptions opts;
-        {
-            SharpCompress.Common.IArchiveEncoding? archiveEncoding = null;
-            int defaultCodePage = AppSettingsModel.Instance.DefaultArchiveCodePage;
-            if (defaultCodePage > 0)
-            {
-                try
-                {
-                    EncoderFallback encoderFallback = Encoding.Default.GetEncoder().Fallback ?? EncoderFallback.ReplacementFallback;
-                    DecoderFallback decoderFallback = Encoding.Default.GetDecoder().Fallback ?? DecoderFallback.ReplacementFallback;
-                    var encoding = Encoding.GetEncoding(defaultCodePage, encoderFallback, decoderFallback);
-                    archiveEncoding = new SharpCompress.Common.ArchiveEncoding()
-                    {
-                        CustomDecoder = (data, x, y, type) => encoding.GetString(data)
-                    };
-                }
-                catch (Exception ex)
-                {
-                    Logger.F(TAG, "Failed to set up a decoder", ex);
-                }
-            }
-
-            opts = new()
-            {
-                ArchiveEncoding = archiveEncoding ?? new SharpCompress.Common.ArchiveEncoding(),
-                ExtensionHint = extension,
-            };
-        }
+        SharpCompress.Readers.ReaderOptions opts = CreateReaderOptions(extension);
 
         switch (extension.ToLower())
         {
@@ -291,15 +186,7 @@ public class ArchiveAccess
                 }
                 break;
 
-            case ".bz2":
-            case ".cbr":
-            case ".cbt":
-            case ".cbz":
-            case ".gz":
-            case ".rar":
-            case ".tar":
-            case ".xz":
-            case ".zip":
+            default:
                 {
                     SharpCompress.Readers.IReader reader;
                     try
@@ -387,14 +274,22 @@ public class ArchiveAccess
                     }
                 }
                 break;
-
-            default:
-                Logger.F(TAG, "Unsupported archive format: " + extension);
-                return;
         }
     }
 
-    private static void TryAccessArchiveStreamInternal(Stream stream, string extension, string subPath, Action<Stream> callback)
+    private static void OpenArchive(string basePath, string subPath, Action<Stream> callback)
+    {
+        using Stream? stream = OpenFile(basePath);
+        if (stream is null)
+        {
+            return;
+        }
+
+        string extension = Path.GetExtension(basePath).ToLower();
+        OpenArchive(stream, extension, subPath, callback);
+    }
+
+    private static void OpenArchive(Stream stream, string extension, string subPath, Action<Stream> callback)
     {
         if (subPath.Length == 0)
         {
@@ -406,7 +301,7 @@ public class ArchiveAccess
         string subEntryName = GetSubPath(subPath, false);
         string filename = StringUtils.ItemNameFromPath(mainEntryName);
         string subExtension = StringUtils.ExtensionFromFilename(filename);
-        TryReadEntries(stream, extension, entry =>
+        VisitEntries(stream, extension, entry =>
         {
             if (entry.IsDirectory)
             {
@@ -437,7 +332,7 @@ public class ArchiveAccess
 
             try
             {
-                TryAccessArchiveStreamInternal(subStream, subExtension, subEntryName, callback);
+                OpenArchive(subStream, subExtension, subEntryName, callback);
             }
             finally
             {
@@ -459,15 +354,17 @@ public class ArchiveAccess
         });
     }
 
-    private static void TryGetFileEntries(Stream stream, string extension, string baseEntryName, List<string> output)
+    private static List<string> ListFileEntries(Stream stream, string extension, string baseEntryName)
     {
+        List<string> output = [];
+
         baseEntryName = baseEntryName.Replace('/', '\\');
         if (baseEntryName.Length > 0 && baseEntryName[^1] != '\\')
         {
             baseEntryName += '\\';
         }
 
-        TryReadEntries(stream, extension, entry =>
+        VisitEntries(stream, extension, entry =>
         {
             do
             {
@@ -493,12 +390,97 @@ public class ArchiveAccess
 
             return ICallbackResult.Continue;
         });
+
+        return output;
     }
 
-    private class ArchiveAccessContext
+    private static SharpCompress.Readers.ReaderOptions CreateReaderOptions(string extensionHint)
     {
-        public required string Entry;
-        public required string Extension;
+        SharpCompress.Common.IArchiveEncoding? archiveEncoding = null;
+        int defaultCodePage = AppSettingsModel.Instance.DefaultArchiveCodePage;
+        if (defaultCodePage > 0)
+        {
+            try
+            {
+                EncoderFallback encoderFallback = Encoding.Default.GetEncoder().Fallback ?? EncoderFallback.ReplacementFallback;
+                DecoderFallback decoderFallback = Encoding.Default.GetDecoder().Fallback ?? DecoderFallback.ReplacementFallback;
+                var encoding = Encoding.GetEncoding(defaultCodePage, encoderFallback, decoderFallback);
+                archiveEncoding = new SharpCompress.Common.ArchiveEncoding()
+                {
+                    CustomDecoder = (data, x, y, type) => encoding.GetString(data)
+                };
+            }
+            catch (Exception ex)
+            {
+                Logger.F(TAG, "Failed to set up a decoder", ex);
+            }
+        }
+
+        return new()
+        {
+            ArchiveEncoding = archiveEncoding ?? new SharpCompress.Common.ArchiveEncoding(),
+            ExtensionHint = extensionHint,
+        };
+    }
+
+    private static FileStream? OpenFile(string path)
+    {
+        string ErrorMessage()
+        {
+            return $"Unable to read file: {path}";
+        }
+
+        try
+        {
+            return File.OpenRead(path);
+        }
+        catch (FileNotFoundException ex)
+        {
+            Logger.E(TAG, ErrorMessage(), ex);
+            return null;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Logger.E(TAG, ErrorMessage(), ex);
+            return null;
+        }
+        catch (IOException ex)
+        {
+            Logger.E(TAG, ErrorMessage(), ex);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Logger.F(TAG, ErrorMessage(), ex);
+            return null;
+        }
+    }
+
+    private static int FindArchiveSeperator(string path, bool preferNested)
+    {
+        int i;
+        if (path.StartsWith("\\\\"))
+        {
+            // Network location
+            if (preferNested)
+            {
+                i = path.LastIndexOf(ARCHIVE_SEP);
+                if (i <= 1)
+                {
+                    i = -1;
+                }
+            }
+            else
+            {
+                i = path.IndexOf(ARCHIVE_SEP, 2);
+            }
+        }
+        else
+        {
+            i = preferNested ? path.LastIndexOf(ARCHIVE_SEP) : path.IndexOf(ARCHIVE_SEP);
+        }
+
+        return i;
     }
 
     public interface IArchiveEntry
@@ -507,6 +489,12 @@ public class ArchiveAccess
         bool IsDirectory { get; }
 
         Stream Open();
+    }
+
+    public enum ICallbackResult
+    {
+        Continue,
+        StopIteration,
     }
 
     private class ReaderArchiveEntry(SharpCompress.Readers.IReader reader) : IArchiveEntry
@@ -533,11 +521,5 @@ public class ArchiveAccess
         {
             return _entry.OpenEntryStream();
         }
-    }
-
-    public enum ICallbackResult
-    {
-        Continue,
-        StopIteration,
     }
 }

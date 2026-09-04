@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Archive;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -29,7 +30,7 @@ internal partial class ArchiveComicHandle : ComicHandle
     }
 
     public override bool IsEditable => !IsExternal;
-    public override string FileSystemPath => ArchiveAccess.GetBasePath(Location, false);
+    public override string FileSystemPath => ArchiveManager.GetBasePath(Location, false);
 
     protected override ComicType Type => ComicType.Archive;
 
@@ -52,7 +53,7 @@ internal partial class ArchiveComicHandle : ComicHandle
             return null;
         }
 
-        string archivePath = ArchiveAccess.GetBasePath(Location, false);
+        string archivePath = ArchiveManager.GetBasePath(Location, false);
         return new ArchiveComicConnection(archivePath, entries);
     }
 
@@ -62,7 +63,7 @@ internal partial class ArchiveComicHandle : ComicHandle
 
         if (IsExternal)
         {
-            string basePath = ArchiveAccess.GetBasePath(Location, false) + ArchiveAccess.FileSeperator;
+            string basePath = ArchiveManager.GetBasePath(Location, false) + ArchiveManager.ARCHIVE_SEP;
             await TaskDispatcher.DefaultThreadPool.Submit(() =>
             {
                 foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(Location, ComicScanner.PathType.Archive))
@@ -89,18 +90,18 @@ internal partial class ArchiveComicHandle : ComicHandle
         }
         else
         {
-            string archivePath = ArchiveAccess.GetBasePath(Location, false);
-            string subPath = ArchiveAccess.GetSubPath(Location, false);
-            var subfiles = new List<string>();
+            string archivePath = ArchiveManager.GetBasePath(Location, false);
+            string subPath = ArchiveManager.GetSubPath(Location, false);
+            IEnumerable<string> subFiles = [];
 
             await TaskDispatcher.DefaultThreadPool.Submit(() =>
             {
-                ArchiveAccess.TryGetSubFiles(archivePath, subPath, subfiles);
+                subFiles = ArchiveManager.ListFileEntries(archivePath, subPath);
             });
 
-            foreach (string subfile in subfiles)
+            foreach (string subFile in subFiles)
             {
-                string extension = StringUtils.ExtensionFromFilename(subfile);
+                string extension = StringUtils.ExtensionFromFilename(subFile);
                 if (!AppInfoProvider.IsSupportedImageExtension(extension))
                 {
                     continue;
@@ -108,11 +109,11 @@ internal partial class ArchiveComicHandle : ComicHandle
 
                 if (subPath.Length == 0)
                 {
-                    entries.Add(subfile);
+                    entries.Add(subFile);
                 }
                 else
                 {
-                    entries.Add(subPath + "\\" + subfile);
+                    entries.Add(subPath + "\\" + subFile);
                 }
             }
         }
@@ -161,7 +162,7 @@ internal partial class ArchiveComicHandle : ComicHandle
             }
 
             string subPath = _entries[index];
-            return _archivePath + ArchiveAccess.FileSeperator + subPath;
+            return _archivePath + ArchiveManager.ARCHIVE_SEP + subPath;
         }
 
         public override string GetImageSignature(int index)
@@ -179,7 +180,7 @@ internal partial class ArchiveComicHandle : ComicHandle
 
             string path = _entries[index];
 
-            Stream? stream = ArchiveAccess.TryGetFileStream(_archivePath, path);
+            Stream? stream = ArchiveManager.OpenEntry(_archivePath, path);
             if (stream is null)
             {
                 Logger.I(TAG, $"Failed to access entry :{path}");
