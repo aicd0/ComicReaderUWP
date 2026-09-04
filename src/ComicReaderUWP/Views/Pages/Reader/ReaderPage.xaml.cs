@@ -394,6 +394,11 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventOverScroll += (sender, forward) =>
         {
+            if (ViewModel.ReaderStatus != ReaderStatusEnum.Working)
+            {
+                return;
+            }
+
             if (forward)
             {
                 ViewModel.Playback.Next();
