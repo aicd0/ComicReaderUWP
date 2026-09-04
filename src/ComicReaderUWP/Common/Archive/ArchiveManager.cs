@@ -121,160 +121,7 @@ internal static class ArchiveManager
 
     public static void VisitEntries(Stream stream, string extension, Func<IArchiveEntry, ICallbackResult> callback)
     {
-        if (!stream.CanRead)
-        {
-            Logger.F(TAG, "Stream is not readable");
-            return;
-        }
-
-        SharpCompress.Readers.ReaderOptions opts = CreateReaderOptions(extension);
-
-        switch (extension.ToLower())
-        {
-            case ".7z":
-            case ".cb7":
-                {
-                    SharpCompress.Archives.IArchive archive;
-                    try
-                    {
-                        archive = SharpCompress.Archives.SevenZip.SevenZipArchive.OpenArchive(stream, opts);
-                    }
-                    catch (SharpCompress.Common.CryptographicException ex)
-                    {
-                        Logger.E(TAG, ex);
-                        return;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.F(TAG, ex);
-                        return;
-                    }
-
-                    using (archive)
-                    {
-                        IEnumerable<SharpCompress.Archives.IArchiveEntry> entries = archive.Entries;
-                        using IEnumerator<SharpCompress.Archives.IArchiveEntry> entryEnumerator = entries.GetEnumerator();
-                        while (true)
-                        {
-                            try
-                            {
-                                if (!entryEnumerator.MoveNext())
-                                {
-                                    break;
-                                }
-                            }
-                            catch (SharpCompress.Common.CryptographicException ex)
-                            {
-                                Logger.E(TAG, ex);
-                                return;
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.F(TAG, ex);
-                                return;
-                            }
-
-                            SharpCompress.Archives.IArchiveEntry rawEntry = entryEnumerator.Current;
-                            var entry = new SevenZipArchiveEntry(rawEntry);
-                            ICallbackResult result = callback(entry);
-                            if (result == ICallbackResult.StopIteration)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                break;
-
-            default:
-                {
-                    SharpCompress.Readers.IReader reader;
-                    try
-                    {
-                        reader = SharpCompress.Readers.ReaderFactory.OpenReader(stream, opts);
-                    }
-                    catch (SharpCompress.Common.InvalidFormatException ex)
-                    {
-                        Logger.E(TAG, ex);
-                        return;
-                    }
-                    catch (EndOfStreamException ex)
-                    {
-                        Logger.E(TAG, ex);
-                        return;
-                    }
-                    catch (InvalidDataException ex)
-                    {
-                        Logger.E(TAG, ex);
-                        return;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.F(TAG, ex);
-                        return;
-                    }
-
-                    using (reader)
-                    {
-                        while (true)
-                        {
-                            bool hasNext;
-                            try
-                            {
-                                hasNext = reader.MoveToNextEntry();
-                            }
-                            catch (SharpCompress.Compressors.Deflate.ZlibException ex)
-                            {
-                                Logger.E(TAG, ex);
-                                break;
-                            }
-                            catch (SharpCompress.Common.CryptographicException ex)
-                            {
-                                Logger.E(TAG, ex);
-                                break;
-                            }
-                            catch (SharpCompress.Common.IncompleteArchiveException ex)
-                            {
-                                Logger.E(TAG, ex);
-                                break;
-                            }
-                            catch (SharpCompress.Common.InvalidFormatException ex)
-                            {
-                                Logger.E(TAG, ex);
-                                break;
-                            }
-                            catch (SharpCompress.Common.MultiVolumeExtractionException ex)
-                            {
-                                Logger.E(TAG, ex);
-                                break;
-                            }
-                            catch (EndOfStreamException ex)
-                            {
-                                Logger.E(TAG, ex);
-                                break;
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.F(TAG, ex);
-                                break;
-                            }
-
-                            if (!hasNext)
-                            {
-                                break;
-                            }
-
-                            var entry = new ReaderArchiveEntry(reader);
-                            ICallbackResult result = callback(entry);
-                            if (result == ICallbackResult.StopIteration)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                break;
-        }
+        VisitEntriesInternal(stream, extension, callback);
     }
 
     private static void OpenArchive(string basePath, string subPath, Action<Stream> callback)
@@ -301,7 +148,7 @@ internal static class ArchiveManager
         string subEntryName = GetSubPath(subPath, false);
         string filename = StringUtils.ItemNameFromPath(mainEntryName);
         string subExtension = StringUtils.ExtensionFromFilename(filename);
-        VisitEntries(stream, extension, entry =>
+        VisitEntriesInternal(stream, extension, entry =>
         {
             if (entry.IsDirectory)
             {
@@ -364,7 +211,7 @@ internal static class ArchiveManager
             baseEntryName += '\\';
         }
 
-        VisitEntries(stream, extension, entry =>
+        VisitEntriesInternal(stream, extension, entry =>
         {
             do
             {
@@ -392,6 +239,206 @@ internal static class ArchiveManager
         });
 
         return output;
+    }
+
+    private static void VisitEntriesInternal(Stream stream, string extension, Func<IArchiveEntry, ICallbackResult> callback)
+    {
+        if (!stream.CanRead)
+        {
+            Logger.F(TAG, "Stream is not readable");
+            return;
+        }
+
+        SharpCompress.Readers.ReaderOptions opts = CreateReaderOptions(extension);
+
+        Stream? tempStream = null;
+        SharpCompress.Archives.IArchive? archive = null;
+        SharpCompress.Readers.IReader? reader = null;
+        try
+        {
+            Stream? CreateSeekableStream()
+            {
+                MemoryStream seekable = new();
+                try
+                {
+                    stream.CopyTo(seekable);
+                    seekable.Position = 0;
+                    tempStream = seekable;
+                }
+                catch (Exception ex)
+                {
+                    Logger.F(TAG, ex);
+                    seekable.Dispose();
+                }
+
+                return tempStream;
+            }
+
+            Stream? seekableStream = stream.CanSeek ? stream : null;
+
+            // Open archive if possible
+            switch (extension.ToLower())
+            {
+                case ".7z":
+                case ".cb7":
+                    {
+                        seekableStream ??= CreateSeekableStream();
+                        if (seekableStream is null)
+                        {
+                            return;
+                        }
+
+                        try
+                        {
+                            archive = SharpCompress.Archives.SevenZip.SevenZipArchive.OpenArchive(seekableStream, opts);
+                        }
+                        catch (SharpCompress.Common.CryptographicException ex)
+                        {
+                            Logger.E(TAG, ex);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.F(TAG, ex);
+                            break;
+                        }
+                    }
+
+                    break;
+            }
+
+            if (archive is null && seekableStream is not null)
+            {
+                try
+                {
+                    seekableStream.Position = 0;
+                    archive = SharpCompress.Archives.ArchiveFactory.OpenArchive(seekableStream, opts);
+                }
+                catch (SharpCompress.Common.ArchiveOperationException ex)
+                {
+                    Logger.E(TAG, ex);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Logger.F(TAG, ex);
+                    return;
+                }
+            }
+
+            // Open reader
+            if (archive is not null)
+            {
+                try
+                {
+                    if (archive.IsSolid)
+                    {
+                        reader = archive.ExtractAllEntries();
+                    }
+                }
+                catch (SharpCompress.Common.CryptographicException ex)
+                {
+                    Logger.E(TAG, ex);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Logger.F(TAG, ex);
+                    return;
+                }
+            }
+
+            if (reader is null)
+            {
+                try
+                {
+                    reader = SharpCompress.Readers.ReaderFactory.OpenReader(stream, opts);
+                }
+                catch (SharpCompress.Common.InvalidFormatException ex)
+                {
+                    Logger.E(TAG, ex);
+                    return;
+                }
+                catch (EndOfStreamException ex)
+                {
+                    Logger.E(TAG, ex);
+                    return;
+                }
+                catch (InvalidDataException ex)
+                {
+                    Logger.E(TAG, ex);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Logger.F(TAG, ex);
+                    return;
+                }
+            }
+
+            // Enumerate entries
+            while (true)
+            {
+                bool hasNext;
+                try
+                {
+                    hasNext = reader.MoveToNextEntry();
+                }
+                catch (SharpCompress.Compressors.Deflate.ZlibException ex)
+                {
+                    Logger.E(TAG, ex);
+                    break;
+                }
+                catch (SharpCompress.Common.CryptographicException ex)
+                {
+                    Logger.E(TAG, ex);
+                    break;
+                }
+                catch (SharpCompress.Common.IncompleteArchiveException ex)
+                {
+                    Logger.E(TAG, ex);
+                    break;
+                }
+                catch (SharpCompress.Common.InvalidFormatException ex)
+                {
+                    Logger.E(TAG, ex);
+                    break;
+                }
+                catch (SharpCompress.Common.MultiVolumeExtractionException ex)
+                {
+                    Logger.E(TAG, ex);
+                    break;
+                }
+                catch (EndOfStreamException ex)
+                {
+                    Logger.E(TAG, ex);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Logger.F(TAG, ex);
+                    break;
+                }
+
+                if (!hasNext)
+                {
+                    break;
+                }
+
+                var entry = new ReaderArchiveEntry(reader);
+                ICallbackResult result = callback(entry);
+                if (result == ICallbackResult.StopIteration)
+                {
+                    break;
+                }
+            }
+        }
+        finally
+        {
+            reader?.Dispose();
+            archive?.Dispose();
+            tempStream?.Dispose();
+        }
     }
 
     private static SharpCompress.Readers.ReaderOptions CreateReaderOptions(string extensionHint)
