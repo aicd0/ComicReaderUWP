@@ -608,7 +608,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        Log("LoadImage", $"Reason={reason},F={frame}");
+        Log("LoadImage", $"Reason={reason}", $"F={frame}");
 
         List<int> frameIndices = [];
         int maxPreloadPagesAfter = AppSettingsModel.Instance.PreloadPagesAfter;
@@ -695,7 +695,7 @@ internal partial class ReaderView : UserControl
         _maxZoomFactor = double.MinValue;
         _isPreciseScrolling = false;
         SCClearFinalVal("Reload");
-        Log("Reload", $"IP={InitialPage},LP={PageCount}");
+        Log("Reload", $"IP={InitialPage}", $"LP={PageCount}");
 
         // Reset loader
         Log("Load", "Reset");
@@ -1155,7 +1155,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        Log("Load", reason);
+        Log("Load", "Start", $"Reason={reason}");
 
         bool needDispatchReadyState = false;
 
@@ -1172,7 +1172,7 @@ internal partial class ReaderView : UserControl
                 zoom: zoom,
                 zoomType: zoomType,
                 page: InitialPage);
-            Log("Load", $"InitialFrameScroll (result={scrollResult})");
+            Log("Load", "InitialFrameScroll", $"Result={scrollResult}");
 
             if (scrollResult == ScrollResult.Unchanged)
             {
@@ -1223,7 +1223,7 @@ internal partial class ReaderView : UserControl
                 ScrollResult scrollResult = SetScrollViewer3(
                     $"JumpToInitialPageRetry{i}",
                     ScrollSource.Programmatic);
-                Log("Load", $"InitialFrameScrollRetry{i} (result={scrollResult})");
+                Log("Load", $"InitialFrameScrollRetry{i}", $"Result={scrollResult}");
 
                 if (scrollResult == ScrollResult.Unchanged)
                 {
@@ -1344,7 +1344,7 @@ internal partial class ReaderView : UserControl
             float zoomDiff = ZoomFactor / SCZoomFactorFinal - 1F;
             if (Math.Abs(parallelDiff) < 10 && Math.Abs(zoomDiff) < 0.05)
             {
-                Log("ViewChanged", $"InitialFrameJumped (PD={parallelDiff},ZD={zoomDiff})");
+                Log("ViewChanged", $"InitialFrameJumped", $"PD={parallelDiff}", $"ZD={zoomDiff}");
                 _isInitialFrameJumped = true;
             }
             else
@@ -1949,7 +1949,7 @@ internal partial class ReaderView : UserControl
         }
 
         _isAutoScrolling = true;
-        Log("AutoScroll", $"Start velocity=({parallelVelocity},{perpendicularVelocity})");
+        Log("AutoScroll", $"StartVelocity=({parallelVelocity},{perpendicularVelocity})");
         UpdateReaderStatusText();
         ReaderEventAutoScrollingChanged?.Invoke(this, true);
 
@@ -1970,7 +1970,7 @@ internal partial class ReaderView : UserControl
                 timer.Stop();
                 _isAutoScrolling = false;
                 StopMiddleButtonAutoScrolling();
-                Log("AutoScroll", $"Stop");
+                Log("AutoScroll", "Stop");
                 UpdateReaderStatusText();
                 ReaderEventAutoScrollingChanged?.Invoke(this, false);
                 return;
@@ -2403,7 +2403,7 @@ internal partial class ReaderView : UserControl
             Tuple<double, double>? offsets = PageOffset(targetPage);
             if (offsets is null)
             {
-                Log("Jump", $"NullOffset: P={targetPage}");
+                Log("Jump", "NullOffset", $"P={targetPage}");
                 return ScrollResult.UnknownFailure;
             }
 
@@ -2415,7 +2415,7 @@ internal partial class ReaderView : UserControl
             {
                 if (!TryConvertPageToFrameIndex(ToDiscretePage(targetPage), out int targetFrameIndex))
                 {
-                    Log("Jump", $"FrameConversionFailed: P={targetPage}");
+                    Log("Jump", "FrameConversionFailed", $"P={targetPage}");
                     return ScrollResult.UnknownFailure;
                 }
 
@@ -2457,14 +2457,14 @@ internal partial class ReaderView : UserControl
 
     private ScrollResult SetScrollViewerInternal(ScrollRequest request, string reason)
     {
-        Log("Jump", "Request:"
-            + $" Reason={reason}"
-            + $",Src={(int)request.Source}"
-            + $",F={request.FrameIndex}"
-            + $",Z={request.Zoom}"
-            + $",H={request.HorizontalOffset}"
-            + $",V={request.VerticalOffset}"
-            + $",D={request.DisableAnimation}");
+        Log("Jump", "Request",
+            $"Reason={reason}",
+            $"Src={(int)request.Source}",
+            $"F={request.FrameIndex}",
+            $"Z={request.Zoom}",
+            $"H={request.HorizontalOffset}",
+            $"V={request.VerticalOffset}",
+            $"D={request.DisableAnimation}");
 
         var context = new ScrollContext
         {
@@ -2509,14 +2509,14 @@ internal partial class ReaderView : UserControl
     {
         if (!_isInitialFrameActionPerformed)
         {
-            Log("Jump", "Failed (not loaded)");
+            Log("Jump", "Failed", "Reason=NotLoaded");
             context.Result = ScrollResult.UnknownFailure;
             return;
         }
 
         if (_isCommitting)
         {
-            Log("Jump", "Failed (is committing)");
+            Log("Jump", "Failed", "Reason=IsCommitting");
             context.Result = ScrollResult.UnknownFailure;
             return;
         }
@@ -2557,12 +2557,12 @@ internal partial class ReaderView : UserControl
             context.VerticalOffset = Math.Max(0, context.VerticalOffset.Value);
         }
 
-        Log("Jump", "ParamAfterZoom:"
-            + $" Z={context.Zoom}"
-            + $",ZF={context.ZoomFactor}"
-            + $",H={context.HorizontalOffset}"
-            + $",V={context.VerticalOffset}"
-            + $",D={context.DisableAnimation}");
+        Log("Jump", "ParamAfterZoom",
+            $"Z={context.Zoom}",
+            $"ZF={context.ZoomFactor}",
+            $"H={context.HorizontalOffset}",
+            $"V={context.VerticalOffset}",
+            $"D={context.DisableAnimation}");
 
         AdjustParallelOffset(context);
 
@@ -2573,12 +2573,12 @@ internal partial class ReaderView : UserControl
         Logger.Assert(double.IsFinite(context.HorizontalOffset ?? 0), "A1FF6DDBAD093F79");
         Logger.Assert(double.IsFinite(context.VerticalOffset ?? 0), "C8D35D8BDDF468F8");
 
-        Log("Jump", "ParamAfterFix:"
-            + $" Z={context.Zoom}"
-            + $",ZF={context.ZoomFactor}"
-            + $",H={context.HorizontalOffset}"
-            + $",V={context.VerticalOffset}"
-            + $",D={context.DisableAnimation}");
+        Log("Jump", "ParamAfterFix",
+            $"Z={context.Zoom}",
+            $"ZF={context.ZoomFactor}",
+            $"H={context.HorizontalOffset}",
+            $"V={context.VerticalOffset}",
+            $"D={context.DisableAnimation}");
 
         if (request.FrameIndex.HasValue)
         {
@@ -2605,7 +2605,7 @@ internal partial class ReaderView : UserControl
             {
                 // Ignore the request if target offset is really close to the current offset,
                 // otherwise we might trigger a dead loop
-                Log("Jump", "Cancelled (TooClose)");
+                Log("Jump", "Cancelled", "Reason=TooClose");
                 context.Result = ScrollResult.TooClose;
                 return;
             }
@@ -2626,9 +2626,9 @@ internal partial class ReaderView : UserControl
 
         ReaderFrameViewModel newFrame = _frameItemsSource[newFrameIndex];
         ZoomCoefficient? zoomCoefficientNew = CalculateZoomCoefficient(newFrame);
-        Log("Jump", "Zoom#1:"
-            + $",FN={newFrameIndex}"
-            + $",ZCN={zoomCoefficientNew}");
+        Log("Jump", "Zoom#1",
+            $"FN={newFrameIndex}",
+            $"ZCN={zoomCoefficientNew}");
 
         if (zoomCoefficientNew == null)
         {
@@ -2706,7 +2706,7 @@ internal partial class ReaderView : UserControl
         context.HorizontalOffset ??= SCHorizontalOffsetFinal;
         context.VerticalOffset ??= SCVerticalOffsetFinal;
 
-        Log("Jump", "Zoom#2: ",
+        Log("Jump", "Zoom#2",
             $"ZF1={zoomFactorBefore}",
             $"ZF2={zoomFactorAfter}",
             $"Ratio={zoomChangeRatio}",
@@ -2801,12 +2801,14 @@ internal partial class ReaderView : UserControl
             _isCommitting = false;
         }
 
-        Log("Jump", "Commit:"
-        + $" Changed={changed}"
-        + $",Z={commitZoomFactor}"
-        + $",H={commitHorizontalOffset}"
-        + $",V={commitVerticalOffset}"
-        + $",D={commitDisableAnimation}");
+        Log("Jump", "Commit",
+            $"Changed={changed}",
+            $"Z={commitZoomFactor}",
+            $"H={commitHorizontalOffset}",
+            $"V={commitVerticalOffset}",
+            $"D={commitDisableAnimation}",
+            $"LW={ThisListView.ActualWidth}",
+            $"LH={ThisListView.ActualHeight}");
 
         if (!changed)
         {
