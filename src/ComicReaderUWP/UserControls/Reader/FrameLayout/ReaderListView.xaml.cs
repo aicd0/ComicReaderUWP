@@ -363,6 +363,8 @@ internal sealed partial class ReaderListView : BaseUserControl
         {
             _isChanging = false;
         }
+
+        ContentPanel?.InvalidateMeasure();
     }
 
     private void HandleItemDiff(List<int> oldItemIndices)
