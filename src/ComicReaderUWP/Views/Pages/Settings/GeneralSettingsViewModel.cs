@@ -3,8 +3,10 @@
 
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
@@ -70,6 +72,28 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isClearHistoryEnabled = false;
+    public bool IsClearHistoryEnabled
+    {
+        get => _isClearHistoryEnabled;
+        set
+        {
+            _isClearHistoryEnabled = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsClearHistoryEnabled)));
+        }
+    }
+
+    private bool _saveBrowsingHistory = false;
+    public bool SaveBrowsingHistory
+    {
+        get => _saveBrowsingHistory;
+        set
+        {
+            _saveBrowsingHistory = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveBrowsingHistory)));
+        }
+    }
+
     public void Initialize(SettingsSharedViewModel shared)
     {
         Shared = shared;
@@ -100,6 +124,7 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
     private void Update()
     {
+        CoroutineUtils.Run(UpdateHistory);
         UpdateCloseLastTabBehavior();
         UpdateHomePageTapComicBehavior();
     }
@@ -155,6 +180,15 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
         OpenComicDefaultBaheviors = entries;
         OpenComicDefaultBaheviorIndex = selectedIndex;
+    }
+
+    private async Task UpdateHistory()
+    {
+        bool hasHistory = !await ComicHistoryItemModel.IsEmptyAsync();
+        bool saveBrowsingHistory = AppSettingsModel.Instance.SaveBrowsingHistory;
+
+        IsClearHistoryEnabled = hasHistory;
+        SaveBrowsingHistory = saveBrowsingHistory;
     }
 
     //

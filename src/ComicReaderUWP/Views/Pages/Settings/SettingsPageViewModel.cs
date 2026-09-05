@@ -70,30 +70,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _isClearHistoryEnabled = false;
-    public bool IsClearHistoryEnabled
-    {
-        get => _isClearHistoryEnabled;
-        set
-        {
-            _isClearHistoryEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsClearHistoryEnabled)));
-        }
-    }
-
-    private bool _historySaveBrowsingHistory = false;
-    public bool HistorySaveBrowsingHistory
-    {
-        get => _historySaveBrowsingHistory;
-        set
-        {
-            _historySaveBrowsingHistory = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HistorySaveBrowsingHistory)));
-
-            AppSettingsModel.Instance.SaveBrowsingHistory = value;
-        }
-    }
-
     private int _appearanceIndex;
     public int AppearanceIndex
     {
@@ -219,28 +195,14 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void Update()
     {
-        CoroutineUtils.Run(async () =>
-        {
-            await UpdateHistory();
-            UpdateAppearance();
-            UpdateBackground();
-            UpdateLanguage();
-            await UpdateStatisticsInternal();
-            UpdateSharedSettings();
+        UpdateAppearance();
+        UpdateBackground();
+        UpdateLanguage();
+        CoroutineUtils.Run(UpdateStatisticsInternal);
+        UpdateSharedSettings();
 
-            AppearanceChanged = false;
-            LanguageChanged = false;
-        });
-    }
-
-    private async Task UpdateHistory()
-    {
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
-        bool hasHistory = !await ComicHistoryItemModel.IsEmptyAsync();
-        bool saveBrowsingHistory = AppSettingsModel.Instance.SaveBrowsingHistory;
-
-        IsClearHistoryEnabled = hasHistory;
-        HistorySaveBrowsingHistory = saveBrowsingHistory;
+        AppearanceChanged = false;
+        LanguageChanged = false;
     }
 
     private void UpdateBackground()

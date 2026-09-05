@@ -219,7 +219,7 @@
   <data name="ChooseLocationDialog.Title" xml:space="preserve">
     <value>從以下位置掃描圖片</value>
   </data>
-  <data name="ClearAllHistoryButton.Content" xml:space="preserve">
+  <data name="ClearAllHistory" xml:space="preserve">
     <value>清除所有記錄</value>
   </data>
   <data name="ClearCache" xml:space="preserve">
@@ -518,9 +518,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="History" xml:space="preserve">
     <value>歷史記錄</value>
-  </data>
-  <data name="HistoryExpander.Detail" xml:space="preserve">
-    <value>清除歷史記錄、啟用或停用歷史記錄</value>
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>主頁</value>
@@ -863,7 +860,7 @@ $plugins</value>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>儲存為預設配置</value>
   </data>
-  <data name="SaveHistory.Text" xml:space="preserve">
+  <data name="SaveBrowsingHistory" xml:space="preserve">
     <value>記錄您的瀏覽紀錄</value>
   </data>
   <data name="SaveSortingAndGroupingSettings" xml:space="preserve">

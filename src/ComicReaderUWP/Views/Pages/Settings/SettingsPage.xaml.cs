@@ -12,7 +12,6 @@ using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.Utils;
-using ComicReaderUWP.Data.Models.Misc;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -84,12 +83,6 @@ internal sealed partial class SettingsPage : BasePage
     //
     // Events
     //
-
-    private void OnHistoryClearAllClicked(object sender, RoutedEventArgs e)
-    {
-        CoroutineUtils.Run(() => ComicHistoryItemModel.ClearAsync());
-        ViewModel.IsClearHistoryEnabled = false;
-    }
 
     private void OnSendFeedbackButtonClicked(object sender, RoutedEventArgs e)
     {

@@ -39,6 +39,7 @@ public class StringResourceProvider
     public string Cancel => GetResourceString("Cancel");
     public string Category => GetResourceString("Category");
     public string CheckForUpdates => GetResourceString("CheckForUpdates");
+    public string ClearAllHistory => GetResourceString("ClearAllHistory");
     public string ClearCache => GetResourceString("ClearCache");
     public string ClearReaderSettings => GetResourceString("ClearReaderSettings");
     public string CloseLastTabBehavior => GetResourceString("CloseLastTabBehavior");
@@ -202,6 +203,7 @@ public class StringResourceProvider
     public string SafeModeMessage => GetResourceString("SafeModeMessage");
     public string Save => GetResourceString("Save");
     public string SaveAsDefaultConfig => GetResourceString("SaveAsDefaultConfig");
+    public string SaveBrowsingHistory => GetResourceString("SaveBrowsingHistory");
     public string SaveSortingAndGroupingSettings => GetResourceString("SaveSortingAndGroupingSettings");
     public string SaveViewSettings => GetResourceString("SaveViewSettings");
     public string ScanOnLaunch => GetResourceString("ScanOnLaunch");

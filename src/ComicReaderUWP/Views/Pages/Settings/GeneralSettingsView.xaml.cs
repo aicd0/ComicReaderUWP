@@ -2,7 +2,10 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Models.Misc;
 
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
@@ -29,5 +32,20 @@ internal sealed partial class GeneralSettingsView : BaseUserControl
     private void OpenComicDefaultBehaviorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         ViewModel.SetOpenComicDefaultBehavior(((ComboBox)sender).SelectedIndex);
+    }
+
+    private void ClearAllHistoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        CoroutineUtils.Run(() => ComicHistoryItemModel.ClearAsync());
+        ViewModel.IsClearHistoryEnabled = false;
+    }
+
+    private void SaveBrowsingHistoryCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        bool? isChecked = ((CheckBox)sender).IsChecked;
+        if (isChecked.HasValue)
+        {
+            AppSettingsModel.Instance.SaveBrowsingHistory = isChecked.Value;
+        }
     }
 }
