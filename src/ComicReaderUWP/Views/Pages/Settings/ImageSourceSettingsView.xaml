@@ -29,6 +29,16 @@
             Margin="0,8,0,0"
             Click="EditImportExclusionListButton_Click"
             Content="{x:Bind StringResource.EditImportExclusionList}" />
+        <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+            <Button
+                x:Uid="RescanFilesButton"
+                Click="OnRescanFilesClicked"
+                IsEnabled="{x:Bind ViewModel.IsRescanning, Converter={StaticResource BooleanNegationConverter}, Mode=OneWay}" />
+            <ProgressRing
+                Margin="20,0,0,0"
+                VerticalAlignment="Center"
+                IsActive="{x:Bind ViewModel.IsRescanning, Mode=OneWay}" />
+        </StackPanel>
         <CheckBox
             Margin="0,16,0,0"
             Click="ScanOnLaunchCheckBox_Click"
@@ -42,20 +52,6 @@
             Click="PromptBeforeRemovingComicsCheckBox_Click"
             Content="{x:Bind StringResource.PromptBeforeRemovingComics}"
             IsChecked="{x:Bind ViewModel.PromptBeforeRemovingComics, Mode=OneWay}" />
-        <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
-            <Button
-                x:Uid="RescanFilesButton"
-                Click="OnRescanFilesClicked"
-                IsEnabled="{x:Bind ViewModel.IsRescanning, Converter={StaticResource BooleanNegationConverter}, Mode=OneWay}" />
-            <ProgressRing
-                Margin="20,0,0,0"
-                VerticalAlignment="Center"
-                IsActive="{x:Bind ViewModel.IsRescanning, Mode=OneWay}" />
-        </StackPanel>
-        <Button
-            x:Uid="ShowHiddenComicButton"
-            Margin="0,8,0,0"
-            Click="ShowHiddenComicButton_Click" />
         <Grid Margin="0,16,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -79,6 +75,10 @@
                 SelectedIndex="{x:Bind ViewModel.DefaultArchiveCodePageIndex, Mode=OneWay}"
                 SelectionChanged="DefaultArchiveCodePageComboBox_SelectionChanged" />
         </Grid>
+        <Button
+            x:Uid="ShowHiddenComicButton"
+            Margin="0,32,0,0"
+            Click="ShowHiddenComicButton_Click" />
     </StackPanel>
 
 </base:BaseUserControl>

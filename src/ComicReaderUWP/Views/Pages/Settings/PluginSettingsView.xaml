@@ -57,12 +57,12 @@
             </RichTextBlock>
         </Grid>
         <TextBlock
-            Margin="0,12,0,0"
+            Margin="0,16,0,0"
             Text="{x:Bind StringResource.NoPluginsInstalled}"
             TextWrapping="Wrap"
             Visibility="{x:Bind ViewModel.NoPlugins, Mode=OneWay}" />
         <ListView
-            Margin="0,12,0,0"
+            Margin="0,16,0,0"
             Padding="2,3,0,5"
             Background="{ThemeResource SettingsListViewBackground}"
             CornerRadius="4"

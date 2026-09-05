@@ -79,27 +79,6 @@
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>
 
-                    <!--  History  -->
-                    <settings:SettingExpander
-                        x:Uid="HistoryExpander"
-                        Glyph="&#xE81C;"
-                        Header="{x:Bind StringResource.History}"
-                        IsExpanded="False">
-                        <settings:SettingExpander.InnerContent>
-                            <StackPanel Orientation="Vertical">
-                                <Button
-                                    x:Uid="ClearAllHistoryButton"
-                                    Click="OnHistoryClearAllClicked"
-                                    IsEnabled="{x:Bind ViewModel.IsClearHistoryEnabled, Mode=OneWay}" />
-                                <TextBlock
-                                    x:Uid="SaveHistory"
-                                    Margin="0,16,0,0"
-                                    TextWrapping="Wrap" />
-                                <ToggleSwitch IsOn="{x:Bind ViewModel.HistorySaveBrowsingHistory, Mode=TwoWay}" />
-                            </StackPanel>
-                        </settings:SettingExpander.InnerContent>
-                    </settings:SettingExpander>
-
                     <!--  Appearance  -->
                     <settings:SettingExpander
                         x:Uid="AppearanceExpander"

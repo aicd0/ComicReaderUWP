@@ -54,7 +54,7 @@
             TextWrapping="Wrap" />
         <ToggleSwitch IsOn="{x:Bind ViewModel.SendUsageData, Mode=TwoWay}" Toggled="SendUsageDataToggleSwitch_Toggled" />
         <Button
-            Margin="0,16,0,0"
+            Margin="0,32,0,0"
             Click="ResetAllSettingsButton_Click"
             Content="{x:Bind StringResource.ResetAllSettings}" />
     </StackPanel>
