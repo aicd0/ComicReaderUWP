@@ -220,7 +220,7 @@
     <value>Создавайте свои коллекции из локальных файлов</value>
   </data>
   <data name="ClearAllHistory" xml:space="preserve">
-    <value>Очистить всю историю</value>
+    <value>Очистить историю</value>
   </data>
   <data name="ClearCache" xml:space="preserve">
     <value>Очистить кэш</value>

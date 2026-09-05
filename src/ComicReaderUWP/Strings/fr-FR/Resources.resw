@@ -220,7 +220,7 @@
     <value>Créez vos collections à partir de vos fichiers locaux</value>
   </data>
   <data name="ClearAllHistory" xml:space="preserve">
-    <value>Effacer tout l'historique</value>
+    <value>Effacer l’historique</value>
   </data>
   <data name="ClearCache" xml:space="preserve">
     <value>Vider le cache</value>

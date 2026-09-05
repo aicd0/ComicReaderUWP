@@ -220,7 +220,7 @@
     <value>ローカルファイルからコレクションを構築する</value>
   </data>
   <data name="ClearAllHistory" xml:space="preserve">
-    <value>すべての履歴を消去</value>
+    <value>履歴をすべて消去</value>
   </data>
   <data name="ClearCache" xml:space="preserve">
     <value>キャッシュをクリアする</value>

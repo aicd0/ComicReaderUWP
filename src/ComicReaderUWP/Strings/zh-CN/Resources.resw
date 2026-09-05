@@ -220,7 +220,7 @@
     <value>从以下位置扫描图片</value>
   </data>
   <data name="ClearAllHistory" xml:space="preserve">
-    <value>清除所有记录</value>
+    <value>清除全部历史</value>
   </data>
   <data name="ClearCache" xml:space="preserve">
     <value>清空缓存</value>
