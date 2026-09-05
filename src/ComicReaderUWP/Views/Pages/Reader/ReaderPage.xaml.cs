@@ -13,7 +13,6 @@ using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
-using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
@@ -38,7 +37,6 @@ namespace ComicReaderUWP.Views.Pages.Reader;
 
 internal sealed partial class ReaderPage : BasePage
 {
-    private const string TAG = nameof(ReaderPage);
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
     // Can only be accessed by UI thread
@@ -312,9 +310,8 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.ReaderLoadingInfoLiveData.ObserveSticky(this, info =>
         {
             MainReaderView.SetConfigurationDatabase(new ReaderConfigDatabase());
-            MainReaderView.SetInitialPage(info.InitialPage);
+            MainReaderView.SetPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
-            FocusReader();
         });
 
         _readerNavigationBar.GridViewModeChanged += enabled =>
@@ -366,6 +363,7 @@ internal sealed partial class ReaderPage : BasePage
                 case ReaderView.ReaderState.Ready:
                     ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Working, description));
                     UpdatePage();
+                    FocusReader();
                     break;
                 case ReaderView.ReaderState.Loading:
                     ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Loading, description));
@@ -637,17 +635,6 @@ internal sealed partial class ReaderPage : BasePage
     {
         int CalculatePercentage(ReaderView reader)
         {
-            int frameIndex = reader.CurrentFrameIndex;
-            if (frameIndex >= reader.FrameCount - 1)
-            {
-                return 100;
-            }
-
-            if (frameIndex <= 0)
-            {
-                return 0;
-            }
-
             double minimumPage = 0.5;
             double maximumPage = reader.PageCount;
             double page = Math.Clamp(reader.CurrentPage, minimumPage, maximumPage);
@@ -731,8 +718,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void UpdateReaderUI()
     {
-        bool isWorking = ViewModel.ReaderStatus == ReaderStatusEnum.Working;
-        bool previewVisible = isWorking && _gridViewModeEnabled;
+        bool previewVisible = _gridViewModeEnabled;
 
         // Setting Visibility.Collapsed here prevents GridView from loading eagerly
         PreviewGridView.Opacity = previewVisible ? 1.0 : 0.0;
@@ -1118,7 +1104,7 @@ internal sealed partial class ReaderPage : BasePage
         }
         else
         {
-            Logger.F(TAG, $"Failed to map page {ctx.Page} to frame index");
+            MainReaderView.SetPage(ctx.Page);
         }
     }
 
