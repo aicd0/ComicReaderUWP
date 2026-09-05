@@ -86,6 +86,7 @@ internal partial class ReaderView : UserControl
     private double _initialPage = 1.0;
 
     private readonly CancellationSession _reloadSession;
+    private readonly CancellationSession _initialJumpSession;
     private readonly ObservableCollection<ReaderFrameViewModel> _frameItemsSource = [];
     private Action<int>? _frameReadyHandler;
     private IPageLayoutManager? _pendingPageLayoutManager = null;
@@ -113,6 +114,7 @@ internal partial class ReaderView : UserControl
         _gestureRecognizer.SetHandler(_gestureHandler);
 
         _reloadSession = new();
+        _initialJumpSession = new(_reloadSession);
     }
 
     #endregion
@@ -371,19 +373,10 @@ internal partial class ReaderView : UserControl
         UpdateUI();
     }
 
-    public void SetInitialPage(double page)
-    {
-        _initialPage = Math.Max(0.5, page);
-    }
-
     public void SetPage(double page)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(page);
-
-        if (ComicLoaded)
-        {
-            SetScrollViewer2("SetPage", ScrollSource.UserPrecise, page: page);
-        }
+        SetPage(page, "SetPage", ScrollSource.UserPrecise);
     }
 
     public void SetFrameIndex(int frameIndex)
@@ -391,11 +384,12 @@ internal partial class ReaderView : UserControl
         ArgumentOutOfRangeException.ThrowIfNegative(frameIndex);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(frameIndex, _frameItemsSource.Count);
 
-        if (ComicLoaded)
+        if (!IsComicLoaded)
         {
-            double page = _frameItemsSource[frameIndex].Page;
-            SetScrollViewer2("SetFrameIndex", ScrollSource.UserPrecise, page: page);
+            return;
         }
+
+        SetPage(_frameItemsSource[frameIndex].Page, "SetFrameIndex", ScrollSource.UserPrecise);
     }
 
     public void SetAutoScrollSpeed(int speed)
@@ -597,7 +591,7 @@ internal partial class ReaderView : UserControl
 
     private void UpdateImages(string reason, bool redraw = false)
     {
-        if (!ComicLoaded)
+        if (!IsComicLoaded)
         {
             return;
         }
@@ -669,7 +663,8 @@ internal partial class ReaderView : UserControl
     #region Loader
 
     private double InitialPage => Math.Min(_initialPage, PageCount + 0.5);
-    private bool ComicLoaded => _isLoaded && PageCount > 0;
+    private int InitialPageInteger => PageCount > 0 ? Math.Clamp((int)Math.Ceiling(InitialPage), 1, PageCount) : 1;
+    private bool IsComicLoaded => _isLoaded && PageCount > 0;
 
     private void Reload(IReadOnlyList<IImageSource> images)
     {
@@ -678,9 +673,8 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        // Refresh token
-        _reloadSession.Next();
-        CancellationSession.IToken token = _reloadSession.Token;
+        // Refresh tokens
+        CancellationSession.IToken token = _reloadSession.Next();
 
         // Reset visible frames
         ThisListView.SetVisibleItemIndices([]);
@@ -715,9 +709,6 @@ internal partial class ReaderView : UserControl
 
         _pageLayoutManager.Reset(PageCount);
 
-        // Use upper bound of initial page to ensure the frame info for initial jump is loaded
-        int initialPageUpperBound = Math.Clamp((int)Math.Ceiling(InitialPage), 1, PageCount);
-
         _frameReadyHandler = (index) =>
         {
             if (token.IsCancellationRequested)
@@ -738,7 +729,9 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            if (!_isInitialFrameLoaded && (frame.PageL == initialPageUpperBound || frame.PageR == initialPageUpperBound))
+            int initialPage = InitialPageInteger;
+
+            if (!_isInitialFrameLoaded && (frame.PageL == initialPage || frame.PageR == initialPage))
             {
                 _isInitialFrameLoaded = true;
             }
@@ -755,7 +748,7 @@ internal partial class ReaderView : UserControl
 
             UpdateLoader($"FrameReady,i={index}");
 
-            int progress = Math.Min(99, (int)(frame.MaxPage * 100.0 / PageCount));
+            int progress = Math.Min(99, (int)(frame.MaxPage * 100.0 / initialPage));
             DispatchReaderStateChangeEvent(_state, $"{StringResourceProvider.Instance.ReaderStatusLoading} ({progress}%)");
         };
 
@@ -1203,7 +1196,7 @@ internal partial class ReaderView : UserControl
         // We check the flag periodically to ensure offset has actually changed.
         // If not, try set the offset again.
 
-        CancellationSession.IToken token = _reloadSession.Token;
+        CancellationSession.IToken token = _initialJumpSession.Token;
         CoroutineUtils.Run(async () =>
         {
             for (int i = 0; i < 10; i++)
@@ -1284,7 +1277,7 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderScrollViewerSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (!ComicLoaded)
+        if (!IsComicLoaded)
         {
             return;
         }
@@ -1797,11 +1790,11 @@ internal partial class ReaderView : UserControl
                 break;
 
             case Windows.System.VirtualKey.Home:
-                SetScrollViewer2("JumpToFirstPageUsingHomeKey", ScrollSource.User, page: 1);
+                SetPage(1, "JumpToFirstPageUsingHomeKey", ScrollSource.User);
                 break;
 
             case Windows.System.VirtualKey.End:
-                SetScrollViewer2("JumpToLastPageUsingEndKey", ScrollSource.User, page: PageCount);
+                SetPage(PageCount, "JumpToLastPageUsingEndKey", ScrollSource.User);
                 break;
 
             case Windows.System.VirtualKey.Space:
@@ -1821,7 +1814,7 @@ internal partial class ReaderView : UserControl
             case Windows.System.VirtualKey.R:
                 {
                     int page = Random.Shared.Next(Math.Max(1, PageCount)) + 1;
-                    SetScrollViewer2("JumpToRandomPageUsingRKey", ScrollSource.User, page: page);
+                    SetPage(page, "JumpToRandomPageUsingRKey", ScrollSource.User);
                 }
                 break;
 
@@ -2081,6 +2074,11 @@ internal partial class ReaderView : UserControl
             return;
         }
 
+        if (!_isLastFrameLoaded)
+        {
+            _overScrollAmount = Math.Min(0.0, _overScrollAmount);
+        }
+
         double ratio = Math.Abs(_overScrollAmount) / maxOverScrollAmount;
         if (ratio > 1.0)
         {
@@ -2317,6 +2315,37 @@ internal partial class ReaderView : UserControl
         _finalValueSynced = false;
     }
 
+    private void SetPage(double page, string reason, ScrollSource source)
+    {
+        _initialPage = Math.Max(0.5, page);
+
+        if (!IsComicLoaded)
+        {
+            return;
+        }
+
+        _initialJumpSession.Next();
+
+        bool targetFrameLoaded = GetFrameIndexByPage(InitialPageInteger) >= 0;
+        if (!targetFrameLoaded)
+        {
+            _isInitialFrameLoaded = false;
+            _isInitialFrameJumped = false;
+            _isInitialFrameActionPerformed = false;
+            DispatchReaderStateChangeEvent(ReaderState.Loading, StringResourceProvider.Instance.ReaderStatusLoading);
+            return;
+        }
+
+        if (!_isInitialFrameActionPerformed)
+        {
+            _isInitialFrameLoaded = true;
+            UpdateLoader($"RetargetReachedP{page}");
+            return;
+        }
+
+        SetScrollViewer2(reason, source, page: page);
+    }
+
     private void MoveFrameByUser(string reason, int increment)
     {
         MoveFrameInternal(reason, ScrollSource.User, increment);
@@ -2347,7 +2376,11 @@ internal partial class ReaderView : UserControl
 
         if (targetFrame >= _frameItemsSource.Count)
         {
-            DispatchOverScrollEvent(true);
+            if (_isLastFrameLoaded)
+            {
+                DispatchOverScrollEvent(true);
+            }
+
             return;
         }
 
@@ -2481,7 +2514,7 @@ internal partial class ReaderView : UserControl
             case ScrollResult.None:
                 Logger.F(TAG, "Scroll result not set");
                 break;
-            case ScrollResult.Success:
+            default:
                 if (request.Source != ScrollSource.Programmatic)
                 {
                     if (Math.Abs(context.ScrollAmount) > 1E-2 || _isInInertiaTranslation)
@@ -2490,15 +2523,9 @@ internal partial class ReaderView : UserControl
                     }
                     else
                     {
-                        // Positive over scroll can only occur when last frame is loaded
-                        if (double.IsNegative(context.OverScrollAmount) || _isLastFrameLoaded)
-                        {
-                            UpdateOverScrollAmount(context.OverScrollAmount);
-                        }
+                        UpdateOverScrollAmount(context.OverScrollAmount);
                     }
                 }
-                break;
-            default:
                 break;
         }
 

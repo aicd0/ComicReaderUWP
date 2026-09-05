@@ -1,18 +1,15 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace ComicReaderUWP.Common.Utils;
 
 internal sealed class CancellationSession
 {
-    public static IToken GlobalToken = new CancellableToken();
-
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private readonly List<WeakReference<CancellationSession>> _subSessions = [];
     private CancellableToken _token = new();
 
@@ -20,7 +17,7 @@ internal sealed class CancellationSession
 
     public CancellationSession() : this(null) { }
 
-    public CancellationSession(CancellationSession baseSession)
+    public CancellationSession(CancellationSession? baseSession)
     {
         if (baseSession != null)
         {
@@ -37,16 +34,19 @@ internal sealed class CancellationSession
         {
             _token.Cancel();
             _token = new CancellableToken();
+
             for (int i = _subSessions.Count - 1; i >= 0; --i)
             {
                 WeakReference<CancellationSession> subSessionRef = _subSessions[i];
-                if (!subSessionRef.TryGetTarget(out CancellationSession subSession))
+                if (!subSessionRef.TryGetTarget(out CancellationSession? subSession))
                 {
                     _subSessions.RemoveAt(i);
                     continue;
                 }
+
                 subSession.Next();
             }
+
             return _token;
         }
     }
@@ -60,11 +60,11 @@ internal sealed class CancellationSession
     {
         private bool _cancelled = false;
 
-        public bool IsCancellationRequested => _cancelled;
+        public bool IsCancellationRequested => Volatile.Read(ref _cancelled);
 
         public void Cancel()
         {
-            _cancelled = true;
+            Volatile.Write(ref _cancelled, true);
         }
     }
 }
