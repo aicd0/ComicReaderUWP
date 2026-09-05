@@ -350,6 +350,9 @@ $comics</value>
   <data name="Enable" xml:space="preserve">
     <value>启用</value>
   </data>
+  <data name="EnableCompressedFileCache" xml:space="preserve">
+    <value>启用压缩文件缓存</value>
+  </data>
   <data name="Enabled" xml:space="preserve">
     <value>已启用</value>
   </data>

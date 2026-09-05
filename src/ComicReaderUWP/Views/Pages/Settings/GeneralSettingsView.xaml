@@ -63,12 +63,16 @@
                 SelectionChanged="OpenComicDefaultBehaviorComboBox_SelectionChanged" />
         </Grid>
         <CheckBox
-            Margin="0,32,0,0"
+            Margin="0,16,0,0"
+            Click="EnableCompressedFileCacheCheckBox_Click"
+            Content="{x:Bind StringResource.EnableCompressedFileCache}"
+            IsChecked="{x:Bind ViewModel.EnableCompressedFileCache, Mode=TwoWay}" />
+        <CheckBox
             Click="SaveBrowsingHistoryCheckBox_Click"
             Content="{x:Bind StringResource.SaveBrowsingHistory}"
             IsChecked="{x:Bind ViewModel.SaveBrowsingHistory, Mode=TwoWay}" />
         <Button
-            Margin="0,16,0,0"
+            Margin="0,32,0,0"
             Click="ClearAllHistoryButton_Click"
             Content="{x:Bind StringResource.ClearAllHistory}"
             IsEnabled="{x:Bind ViewModel.IsClearHistoryEnabled, Mode=OneWay}" />

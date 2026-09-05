@@ -79,6 +79,7 @@ public class StringResourceProvider
     public string EditImportExclusionList => GetResourceString("EditImportExclusionList");
     public string EditPreset => GetResourceString("EditPreset");
     public string Enable => GetResourceString("Enable");
+    public string EnableCompressedFileCache => GetResourceString("EnableCompressedFileCache");
     public string Enabled => GetResourceString("Enabled");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
     public string EnterNewTags => GetResourceString("EnterNewTags");
