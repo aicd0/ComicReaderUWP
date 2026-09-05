@@ -220,7 +220,7 @@
     <value>Erstellen Sie Ihre Sammlungen aus Ihren lokalen Dateien</value>
   </data>
   <data name="ClearAllHistory" xml:space="preserve">
-    <value>Gesamten Verlauf löschen</value>
+    <value>Verlauf löschen</value>
   </data>
   <data name="ClearCache" xml:space="preserve">
     <value>Cache leeren</value>
