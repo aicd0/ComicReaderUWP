@@ -284,6 +284,19 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
     }
 
+    public bool EnableCompressedFileCache
+    {
+        get
+        {
+            return Read(model => model.EnableCompressedFileCache ?? true);
+        }
+        set
+        {
+            Write(model => model.EnableCompressedFileCache = value);
+            Save();
+        }
+    }
+
     public bool TransitionAnimation
     {
         get
@@ -650,6 +663,9 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         [JsonPropertyName("DefaultReaderSettingPresetKey")]
         public string? DefaultReaderSettingPresetKey { get; set; }
+
+        [JsonPropertyName("EnableCompressedFileCache")]
+        public bool? EnableCompressedFileCache { get; set; }
 
         [JsonPropertyName("KeepScreenOnBehavior")]
         public string? KeepScreenOnBehavior { get; set; }

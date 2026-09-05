@@ -350,6 +350,9 @@ $comics</value>
   <data name="Enable" xml:space="preserve">
     <value>Aktivieren</value>
   </data>
+  <data name="EnableCompressedFileCache" xml:space="preserve">
+    <value>Komprimierten Dateicache aktivieren</value>
+  </data>
   <data name="Enabled" xml:space="preserve">
     <value>Aktiviert</value>
   </data>

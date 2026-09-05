@@ -12,6 +12,7 @@ using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Models.Misc;
 
 namespace ComicReaderUWP.Common.Archive;
 
@@ -27,9 +28,15 @@ internal static class ArchiveCacheManager
     private static readonly ConcurrentDictionary<string, bool> sFailedKeys = new();
 
     private static string CacheDirectoryPath => Path.Combine(StorageLocation.LocalCacheFolderPath, CACHE_FOLDER_NAME);
+    private static bool IsEnabled => AppSettingsModel.Instance.EnableCompressedFileCache;
 
     public static Stream? GetOrCreate(string basePath, string subPath, SharpCompress.Archives.IArchive archive)
     {
+        if (!IsEnabled)
+        {
+            return null;
+        }
+
         string? key = ComputeKey(basePath, subPath);
         if (key is null || sFailedKeys.ContainsKey(key))
         {
@@ -98,6 +105,11 @@ internal static class ArchiveCacheManager
 
     public static Stream? Get(string basePath, string subPath)
     {
+        if (!IsEnabled)
+        {
+            return null;
+        }
+
         string? key = ComputeKey(basePath, subPath);
         if (key is null || sFailedKeys.ContainsKey(key))
         {
