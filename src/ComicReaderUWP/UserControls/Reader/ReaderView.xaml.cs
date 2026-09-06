@@ -55,7 +55,7 @@ internal partial class ReaderView : UserControl
 
     private bool _isLoaded = false;
     private bool _isDestoryed = false;
-    private ReaderState _state = ReaderState.Idle;
+    private ReaderStatus _state = ReaderStatus.Idle;
     private bool _isVertical = true;
     private bool _isContinuous = true;
     private bool _isLeftToRight = true;
@@ -127,7 +127,7 @@ internal partial class ReaderView : UserControl
     public delegate void ReaderEventPageChangedEventHandler(ReaderView sender, bool isIntermediate);
     public event ReaderEventPageChangedEventHandler? ReaderEventPageChanged;
 
-    public delegate void ReaderEventReaderStateChangeHandler(ReaderView sender, ReaderState state, string description);
+    public delegate void ReaderEventReaderStateChangeHandler(ReaderView sender, ReaderStatus state, int progress);
     public event ReaderEventReaderStateChangeHandler? ReaderEventReaderStateChanged;
 
     public delegate void ReaderEventZoomingChangedEventHandler(ReaderView sender, double zooming);
@@ -749,11 +749,11 @@ internal partial class ReaderView : UserControl
             UpdateLoader($"FrameReady,i={index}");
 
             int progress = Math.Min(99, (int)(frame.MaxPage * 100.0 / initialPage));
-            DispatchReaderStateChangeEvent(_state, $"{StringResourceProvider.Instance.ReaderStatusLoading} ({progress}%)");
+            DispatchReaderStateChangeEvent(_state, progress);
         };
 
         // Start loading frames
-        DispatchReaderStateChangeEvent(ReaderState.Loading, StringResourceProvider.Instance.ReaderStatusLoading);
+        DispatchReaderStateChangeEvent(ReaderStatus.Loading);
 
         _frameItemsSource.Clear();
 
@@ -1183,7 +1183,7 @@ internal partial class ReaderView : UserControl
 
         if (needDispatchReadyState)
         {
-            DispatchReaderStateChangeEvent(ReaderState.Ready);
+            DispatchReaderStateChangeEvent(ReaderStatus.Ready);
         }
     }
 
@@ -2332,7 +2332,7 @@ internal partial class ReaderView : UserControl
             _isInitialFrameLoaded = false;
             _isInitialFrameJumped = false;
             _isInitialFrameActionPerformed = false;
-            DispatchReaderStateChangeEvent(ReaderState.Loading, StringResourceProvider.Instance.ReaderStatusLoading);
+            DispatchReaderStateChangeEvent(ReaderStatus.Loading);
             return;
         }
 
@@ -3252,22 +3252,17 @@ internal partial class ReaderView : UserControl
 
     #region Utilities
 
-    private void DispatchReaderStateChangeEvent(ReaderState state, string stateDescription = "")
+    private void DispatchReaderStateChangeEvent(ReaderStatus status, int progress = -1)
     {
-        if (state == _state && state == ReaderState.Ready)
+        if (status == _state && status == ReaderStatus.Ready)
         {
             return;
         }
 
-        if (state == ReaderState.Ready)
-        {
-            stateDescription = string.Empty;
-        }
+        _state = status;
+        ContentScrollViewer.Opacity = status == ReaderStatus.Ready ? 1 : 0;
 
-        _state = state;
-        ContentScrollViewer.Opacity = state == ReaderState.Ready ? 1 : 0;
-
-        ReaderEventReaderStateChanged?.Invoke(this, state, stateDescription);
+        ReaderEventReaderStateChanged?.Invoke(this, status, progress);
     }
 
     private int ToDiscretePage(double pageContinuous)
@@ -3351,12 +3346,11 @@ internal partial class ReaderView : UserControl
 
     #region Types
 
-    public enum ReaderState
+    public enum ReaderStatus
     {
         Idle,
         Ready,
         Loading,
-        Error,
     }
 
     public interface IConfigurationDatabase

@@ -48,7 +48,8 @@
                 x:Name="TbReaderStatus"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Foreground="{ThemeResource ForegroundGrey2}" />
+                Foreground="{ThemeResource ForegroundGrey2}"
+                HorizontalTextAlignment="Center" />
             <!--  Reader  -->
             <Grid
                 ContextRequested="Reader_ContextRequested"

@@ -83,7 +83,7 @@ internal sealed partial class ImageSourceSettingsView : BaseUserControl
     {
         CoroutineUtils.Run(async () =>
         {
-            ErrorResult<bool> err = await ComicImportExclusionModel.Instance.EditWithNotepad();
+            ErrorResult err = await ComicImportExclusionModel.Instance.EditWithNotepad();
             err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
         });
 

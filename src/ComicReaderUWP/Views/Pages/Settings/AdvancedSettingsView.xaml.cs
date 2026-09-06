@@ -81,7 +81,7 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
 
     private async void OnOpenUserDataFolderClick(object sender, RoutedEventArgs e)
     {
-        ErrorResult<bool> err = await ErrorLogger<bool>.Run(nameof(OnOpenUserDataFolderClick), async err =>
+        ErrorResult err = await ErrorLogger.Run(nameof(OnOpenUserDataFolderClick), async err =>
         {
             string path = StorageLocation.LocalFolderPath;
             try
@@ -91,10 +91,10 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
             }
             catch (Exception ex)
             {
-                return err.SetError(ex);
+                return err.Error(ex);
             }
 
-            return err.SetResult(default);
+            return err.Success();
         });
 
         err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);

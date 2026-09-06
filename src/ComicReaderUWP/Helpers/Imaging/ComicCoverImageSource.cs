@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Data.Models.Comic;
 
@@ -15,10 +16,14 @@ internal sealed class ComicCoverImageSource : IImageSource
         string? coverCacheKey = comic.GetExt(ComicExt.COVER_CACHE_KEY);
         if (string.IsNullOrEmpty(coverCacheKey))
         {
-            using ComicConnection? connection = await comic.OpenComic();
-            coverCacheKey = comic.GetExt(ComicExt.COVER_CACHE_KEY) ?? string.Empty;
+            ErrorResult<ComicConnection> connectionErr = await comic.OpenComic();
+            if (connectionErr.IsSuccessful)
+            {
+                coverCacheKey = comic.GetExt(ComicExt.COVER_CACHE_KEY);
+            }
         }
 
+        coverCacheKey ??= string.Empty;
         var preferredSchedulerGroup = ImageLoaderSchedulerGroup.FromPath(comic.Location);
         return new ComicCoverImageSource(comic, coverCacheKey, preferredSchedulerGroup);
     }
@@ -42,12 +47,13 @@ internal sealed class ComicCoverImageSource : IImageSource
 
     public async Task<IImageConnection?> Open()
     {
-        ComicConnection? connection = await _comic.OpenComic();
-        if (connection is null)
+        ErrorResult<ComicConnection> connectionErr = await _comic.OpenComic();
+        if (!connectionErr.IsSuccessful)
         {
             return null;
         }
 
+        ComicConnection connection = connectionErr.Result;
         string? coverIndexString = _comic.GetExt(ComicExt.COVER_INDEX);
         if (string.IsNullOrEmpty(coverIndexString) || !int.TryParse(coverIndexString, out int coverIndex))
         {

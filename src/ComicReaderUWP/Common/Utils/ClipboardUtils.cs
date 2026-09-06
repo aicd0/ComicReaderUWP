@@ -32,9 +32,9 @@ internal static class ClipboardUtils
         }
     }
 
-    public static async Task<ErrorResult<bool>> SetImage(Stream stream)
+    public static async Task<ErrorResult> SetImage(Stream stream)
     {
-        var err = ErrorLogger<bool>.Create(nameof(SetImage));
+        var err = ErrorLogger.Create(nameof(SetImage));
 
         try
         {
@@ -61,9 +61,9 @@ internal static class ClipboardUtils
         }
         catch (Exception ex)
         {
-            return err.SetError(ex);
+            return err.Error(ex);
         }
 
-        return err.SetResult(default);
+        return err.Success();
     }
 }

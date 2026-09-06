@@ -216,12 +216,12 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Utilities
     //
 
-    public Task<ComicConnection?> OpenComic()
+    public Task<ErrorResult<ComicConnection>> OpenComic()
     {
         return _internalModel.OpenComic();
     }
 
-    public Task<ErrorResult<bool>> ShowInFileExplorer()
+    public Task<ErrorResult> ShowInFileExplorer()
     {
         return ThirdPartyLauncher.ShowInFileExplorer(_internalModel.FileSystemPath);
     }
@@ -333,13 +333,13 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     async Task<SDK.Plugins.Comic.IComicConnection?> SDK.Plugins.Comic.IComicModel.Open()
     {
-        ComicConnection? connection = await OpenComic();
-        if (connection is null)
+        ErrorResult<ComicConnection> connectionErr = await OpenComic();
+        if (!connectionErr.IsSuccessful)
         {
             return null;
         }
 
-        return new PluginComicConnection(connection);
+        return new PluginComicConnection(connectionErr.Result);
     }
 
     async Task<bool> SDK.Plugins.Comic.IComicModel.MoveToLocation(string location)

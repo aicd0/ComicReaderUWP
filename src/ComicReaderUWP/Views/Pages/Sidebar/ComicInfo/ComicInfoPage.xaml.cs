@@ -172,21 +172,21 @@ internal sealed partial class ComicInfoPage : BasePage
     {
         CoroutineUtils.Run(async () =>
         {
-            ErrorResult<bool> err = await ErrorLogger<bool>.Run(nameof(OnDirectoryTapped), async err =>
+            ErrorResult err = await ErrorLogger.Run(nameof(OnDirectoryTapped), async err =>
             {
                 ComicModel? comic = ViewModel.Comic;
                 if (comic is null)
                 {
-                    return err.SetError("Comic is null.");
+                    return err.Error("Comic is null.");
                 }
 
-                ErrorResult<bool> innerErr = await comic.ShowInFileExplorer();
+                ErrorResult innerErr = await comic.ShowInFileExplorer();
                 if (!innerErr.IsSuccessful)
                 {
-                    return err.SetError(innerErr);
+                    return err.Error(innerErr);
                 }
 
-                return err.SetResult(default);
+                return err.Success();
             });
 
             err.DisplayErrorMessage(PageActionHandler);

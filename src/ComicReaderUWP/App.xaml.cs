@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.InitTask;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
@@ -341,13 +342,14 @@ public partial class App : Application
             if (comic is not null)
             {
                 double page = -1.0;
-                using ComicConnection? comicConnection = await comic.OpenComic();
-                if (comicConnection is not null)
+                ErrorResult<ComicConnection> connectionErr = await comic.OpenComic();
+                if (connectionErr.IsSuccessful)
                 {
-                    int imageCount = comicConnection.ImageCount;
+                    using ComicConnection? connection = connectionErr.Result;
+                    int imageCount = connection.ImageCount;
                     for (int i = 0; i < imageCount; i++)
                     {
-                        string imagePath = comicConnection.GetImagePath(i);
+                        string imagePath = connection.GetImagePath(i);
                         if (PathUtils.IsPathEquivalent(imagePath, targetFilePath))
                         {
                             page = i + 1;

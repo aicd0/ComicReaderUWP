@@ -115,7 +115,7 @@ internal static class MenuFlyoutItemsCreator
             {
                 CoroutineUtils.Run(async () =>
                 {
-                    ErrorResult<bool> err = await primaryComic.ShowInFileExplorer();
+                    ErrorResult err = await primaryComic.ShowInFileExplorer();
                     err.DisplayErrorMessage(actionHandler);
                 });
             },
