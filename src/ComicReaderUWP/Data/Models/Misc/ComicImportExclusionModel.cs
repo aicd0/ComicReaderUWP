@@ -69,18 +69,18 @@ internal class ComicImportExclusionModel
         }
     }
 
-    public async Task<ErrorResult<bool>> EditWithNotepad()
+    public async Task<ErrorResult> EditWithNotepad()
     {
         EnsureInitialized();
 
-        var err = ErrorLogger<bool>.Create(TAG);
+        var err = ErrorLogger.Create(TAG);
 
         string[] lines = [.. _excluded.Keys.OrderBy(location => location, StringComparer.Ordinal)];
 
         ErrorResult<string> editErr = await ThirdPartyLauncher.EditTemporaryTextFileAsync("ComicImportExclusions.txt", lines);
         if (!editErr.IsSuccessful)
         {
-            return err.SetError(editErr);
+            return err.Error(editErr);
         }
 
         string filePath = editErr.Result;
@@ -101,12 +101,12 @@ internal class ComicImportExclusionModel
         }
         catch (Exception ex)
         {
-            return err.SetError(ex);
+            return err.Error(ex);
         }
 
         Refresh(locations);
 
-        return err.SetResult(default);
+        return err.Success();
     }
 
     private void Refresh(IEnumerable<string> locations)

@@ -10,7 +10,7 @@ using ComicReaderUWP.Core.Common.DebugTools;
 
 namespace ComicReaderUWP.Common.ErrorHandling;
 
-internal partial class ErrorLogger<T> where T : notnull
+internal sealed partial class ErrorLogger<T> : BaseErrorLogger
 {
     public static ErrorLogger<T> Create(string tag)
     {
@@ -41,7 +41,7 @@ internal partial class ErrorLogger<T> where T : notnull
         ImmutableInterlocked.Update(ref _children, list => list.Add(err));
     }
 
-    public ErrorResult<T> SetResult(T result)
+    public ErrorResult<T> Success(T result)
     {
         if (Interlocked.Exchange(ref _isResultSet, 1) == 1)
         {
@@ -50,7 +50,6 @@ internal partial class ErrorLogger<T> where T : notnull
 
         return new ErrorResult<T>(result)
         {
-            IsSuccessful = true,
             Message = string.Empty,
             Exception = null,
             IsFatal = false,
@@ -58,7 +57,7 @@ internal partial class ErrorLogger<T> where T : notnull
         };
     }
 
-    public ErrorResult<T> SetError(IErrorLogger err)
+    public ErrorResult<T> Error(IErrorLogger err)
     {
         if (err.IsSuccessful)
         {
@@ -66,15 +65,15 @@ internal partial class ErrorLogger<T> where T : notnull
         }
 
         ImmutableInterlocked.Update(ref _children, list => [.. err.Children]);
-        return SetError(err.Message, err.Exception, err.IsFatal);
+        return Error(err.Message, err.Exception, err.IsFatal);
     }
 
-    public ErrorResult<T> SetError(Exception exception, bool isFatal = false)
+    public ErrorResult<T> Error(Exception exception, bool isFatal = false)
     {
-        return SetError(exception.Message, exception, isFatal);
+        return Error(exception.Message, exception, isFatal);
     }
 
-    public ErrorResult<T> SetError(string message, Exception? exception = null, bool isFatal = false)
+    public ErrorResult<T> Error(string message, Exception? exception = null, bool isFatal = false)
     {
         if (Interlocked.Exchange(ref _isResultSet, 1) == 1)
         {
@@ -90,9 +89,97 @@ internal partial class ErrorLogger<T> where T : notnull
             Logger.E(_tag, message, exception);
         }
 
-        return new ErrorResult<T>(default)
+        return new ErrorResult<T>()
         {
-            IsSuccessful = false,
+            Message = message,
+            Exception = exception,
+            IsFatal = isFatal,
+            Children = Volatile.Read(ref _children),
+        };
+    }
+}
+
+internal sealed partial class ErrorLogger : BaseErrorLogger
+{
+    public static ErrorLogger Create(string tag)
+    {
+        return new(tag);
+    }
+
+    public static ErrorResult Run(string tag, Func<ErrorLogger, ErrorResult> func)
+    {
+        return func(Create(tag));
+    }
+
+    public static Task<ErrorResult> Run(string tag, Func<ErrorLogger, Task<ErrorResult>> func)
+    {
+        return func(Create(tag));
+    }
+
+    private int _isResultSet = 0;
+    private readonly string _tag;
+    private ImmutableList<IErrorLogger> _children = [];
+
+    private ErrorLogger(string tag)
+    {
+        _tag = tag;
+    }
+
+    public void Attach(IErrorLogger err)
+    {
+        ImmutableInterlocked.Update(ref _children, list => list.Add(err));
+    }
+
+    public ErrorResult Success()
+    {
+        if (Interlocked.Exchange(ref _isResultSet, 1) == 1)
+        {
+            throw new InvalidOperationException("The result is already set.");
+        }
+
+        return new ErrorResult(true)
+        {
+            Message = string.Empty,
+            Exception = null,
+            IsFatal = false,
+            Children = Volatile.Read(ref _children),
+        };
+    }
+
+    public ErrorResult Error(IErrorLogger err)
+    {
+        if (err.IsSuccessful)
+        {
+            throw new InvalidOperationException("Cannot set a successful result as error.");
+        }
+
+        ImmutableInterlocked.Update(ref _children, list => [.. err.Children]);
+        return Error(err.Message, err.Exception, err.IsFatal);
+    }
+
+    public ErrorResult Error(Exception exception, bool isFatal = false)
+    {
+        return Error(exception.Message, exception, isFatal);
+    }
+
+    public ErrorResult Error(string message, Exception? exception = null, bool isFatal = false)
+    {
+        if (Interlocked.Exchange(ref _isResultSet, 1) == 1)
+        {
+            throw new InvalidOperationException("The result is already set.");
+        }
+
+        if (isFatal)
+        {
+            Logger.F(_tag, message, exception);
+        }
+        else
+        {
+            Logger.E(_tag, message, exception);
+        }
+
+        return new ErrorResult(false)
+        {
             Message = message,
             Exception = exception,
             IsFatal = isFatal,

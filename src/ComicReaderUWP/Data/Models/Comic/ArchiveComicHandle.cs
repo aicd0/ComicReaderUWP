@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Archive;
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -45,16 +46,18 @@ internal partial class ArchiveComicHandle : ComicHandle
         return pieces[..^1];
     }
 
-    protected override async Task<BaseComicConnection?> OpenComicConnection()
+    protected override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
     {
+        var err = ErrorLogger<BaseComicConnection>.Create(TAG);
+
         IReadOnlyList<string> entries = await ReloadImages();
         if (entries.Count == 0)
         {
-            return null;
+            return err.Error($"No images found at '{Location}'.");
         }
 
         string archivePath = ArchiveManager.SplitPath(Location).Item1;
-        return new ArchiveComicConnection(archivePath, entries);
+        return err.Success(new ArchiveComicConnection(archivePath, entries));
     }
 
     private async Task<IReadOnlyList<string>> ReloadImages()

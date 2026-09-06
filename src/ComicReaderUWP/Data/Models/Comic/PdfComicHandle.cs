@@ -10,6 +10,7 @@ using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Pdf;
@@ -47,21 +48,23 @@ internal partial class PdfComicHandle : ComicHandle
         return dirName.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
     }
 
-    protected override async Task<BaseComicConnection?> OpenComicConnection()
+    protected override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
     {
+        var err = ErrorLogger<BaseComicConnection>.Create(TAG);
+
         PdfManager.IPdfConnection? connection = await PdfManager.OpenPdf(Location, null);
         if (connection is null)
         {
-            return null;
+            return err.Error($"Cannot open PDF '{Location}'.");
         }
 
         if (connection.GetPageCount() == 0)
         {
             connection.Dispose();
-            return null;
+            return err.Error($"The PDF '{Location}' is empty.");
         }
 
-        return new PdfComicConnection(Location, connection);
+        return err.Success(new PdfComicConnection(Location, connection));
     }
 
     private static MemoryStream CreateStreamFromBuffer(nint buffer, int width, int height, int stride)

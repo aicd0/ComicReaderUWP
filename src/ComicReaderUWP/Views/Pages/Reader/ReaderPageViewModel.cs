@@ -74,7 +74,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
     public readonly MutableLiveData<string> TitleLiveData = new();
     public readonly MutableLiveData<bool> PlaybackChangeLiveData = new();
-    public readonly MutableLiveData<ReaderPage.ReaderStatusInfo> ReaderStatusLiveData = new(new(ReaderPage.ReaderStatusEnum.Loading));
+    public readonly MutableLiveData<ReaderPage.ReaderStatusInfo> ReaderStatusLiveData = new(new() { Status = ReaderPage.ReaderStatusEnum.Loading });
     public readonly MutableLiveData<bool> ComicChangedLiveData = new();
     public readonly MutableLiveData<bool> IsExternalComicLiveData = new(true);
     public readonly MutableLiveData<bool> IsFavoriteLiveData = new();
@@ -463,27 +463,27 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             {
                 CoroutineUtils.Run(async () =>
                 {
-                    ErrorResult<bool> err = await ErrorLogger<bool>.Run($"{nameof(CreateImageContextMenuItems)}#Copy", async err =>
+                    ErrorResult err = await ErrorLogger.Run($"{nameof(CreateImageContextMenuItems)}#Copy", async err =>
                     {
                         using IImageConnection? connection = await imageSource.Open();
                         if (connection is null)
                         {
-                            return err.SetError("Failed to open image connection.");
+                            return err.Error("Failed to open image connection.");
                         }
 
                         using Stream? stream = await connection.OpenImageStream();
                         if (stream is null)
                         {
-                            return err.SetError("Failed to open image stream.");
+                            return err.Error("Failed to open image stream.");
                         }
 
-                        ErrorResult<bool> innerErr = await ClipboardUtils.SetImage(stream);
+                        ErrorResult innerErr = await ClipboardUtils.SetImage(stream);
                         if (!innerErr.IsSuccessful)
                         {
-                            return err.SetError(innerErr);
+                            return err.Error(innerErr);
                         }
 
-                        return err.SetResult(default);
+                        return err.Success();
                     });
 
                     err.DisplayErrorMessage(_actionHandler);
@@ -502,7 +502,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 {
                     CoroutineUtils.Run(async () =>
                     {
-                        ErrorResult<bool> err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
+                        ErrorResult err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
                         err.DisplayErrorMessage(_actionHandler);
                     });
                 }
@@ -561,12 +561,16 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         if (playlistItem is null)
         {
             TitleLiveData.Emit(StringResourceProvider.Instance.Error);
-            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
+            ReaderStatusLiveData.Emit(new()
+            {
+                Status = ReaderPage.ReaderStatusEnum.Error,
+                Description = "The reading list is empty.",
+            });
         }
         else if (playlistItem.Comic != _comic || args.Reason == PlaybackStateChangeReason.Refresh)
         {
             TitleLiveData.Emit(playlistItem.Comic.Title);
-            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
+            ReaderStatusLiveData.Emit(new() { Status = ReaderPage.ReaderStatusEnum.Loading });
             LoadComic(new()
             {
                 Comic = playlistItem.Comic,
@@ -633,7 +637,11 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         // Load new comic
         if (comic is null)
         {
-            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
+            ReaderStatusLiveData.Emit(new()
+            {
+                Status = ReaderPage.ReaderStatusEnum.Error,
+                Description = "No comic is selected.",
+            });
             return;
         }
 
@@ -654,20 +662,29 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         UpdateFavoriteStatusInternal(comic);
 
         // Open new comic
-        ComicConnection? connection = await comic.OpenComic();
-        if (connection is null)
+        ErrorResult<ComicConnection> connectionErr = await comic.OpenComic();
+        if (!connectionErr.IsSuccessful)
         {
-            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
+            ReaderStatusLiveData.Emit(new()
+            {
+                Status = ReaderPage.ReaderStatusEnum.Error,
+                Description = connectionErr.DetailedErrorMessage,
+            });
             return;
         }
 
+        ComicConnection connection = connectionErr.Result;
         _comicConnection = connection;
-        ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Loading));
+        ReaderStatusLiveData.Emit(new() { Status = ReaderPage.ReaderStatusEnum.Loading });
 
         int imageCount = connection.ImageCount;
         if (imageCount == 0)
         {
-            ReaderStatusLiveData.Emit(new(ReaderPage.ReaderStatusEnum.Error));
+            ReaderStatusLiveData.Emit(new()
+            {
+                Status = ReaderPage.ReaderStatusEnum.Error,
+                Description = "No images found.",
+            });
             return;
         }
 

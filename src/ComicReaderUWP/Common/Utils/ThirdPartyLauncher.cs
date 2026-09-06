@@ -21,13 +21,13 @@ internal static class ThirdPartyLauncher
 {
     private const string TAG = nameof(ThirdPartyLauncher);
 
-    public static async Task<ErrorResult<bool>> ShowInFileExplorer(string path)
+    public static async Task<ErrorResult> ShowInFileExplorer(string path)
     {
-        var err = ErrorLogger<bool>.Create(TAG);
+        var err = ErrorLogger.Create(TAG);
 
         if (string.IsNullOrEmpty(path))
         {
-            return err.SetError("Path is empty.", isFatal: true);
+            return err.Error("Path is empty.", isFatal: true);
         }
 
         try
@@ -47,15 +47,15 @@ internal static class ThirdPartyLauncher
             }
             else
             {
-                return err.SetError($"Path does not exist: {path}");
+                return err.Error($"Path does not exist: {path}");
             }
         }
         catch (Exception ex)
         {
-            return err.SetError(ex);
+            return err.Error(ex);
         }
 
-        return err.SetResult(default);
+        return err.Success();
     }
 
     public static void StartTemporaryTextFile(string filename, string text)
@@ -89,7 +89,7 @@ internal static class ThirdPartyLauncher
         ErrorResult<string> writeErr = WriteTemporaryTextFile(filename, text);
         if (!writeErr.IsSuccessful)
         {
-            return err.SetError(writeErr);
+            return err.Error(writeErr);
         }
 
         string filePath = writeErr.Result;
@@ -104,17 +104,17 @@ internal static class ThirdPartyLauncher
             using var process = Process.Start(psi);
             if (process is null)
             {
-                return err.SetError("Failed to launch notepad.");
+                return err.Error("Failed to launch notepad.");
             }
 
             await process.WaitForExitAsync();
         }
         catch (Exception ex)
         {
-            return err.SetError(ex);
+            return err.Error(ex);
         }
 
-        return err.SetResult(filePath);
+        return err.Success(filePath);
     }
 
     private static ErrorResult<string> WriteTemporaryTextFile(string filename, string text)
@@ -128,7 +128,7 @@ internal static class ThirdPartyLauncher
         }
         catch (Exception ex)
         {
-            return err.SetError(ex);
+            return err.Error(ex);
         }
 
         string filePath = Path.Combine(directoryPath, filename);
@@ -139,9 +139,9 @@ internal static class ThirdPartyLauncher
         }
         catch (Exception ex)
         {
-            return err.SetError(ex);
+            return err.Error(ex);
         }
 
-        return err.SetResult(filePath);
+        return err.Success(filePath);
     }
 }

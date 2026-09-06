@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Archive;
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
@@ -924,44 +925,39 @@ internal abstract partial class ComicHandle
     // Comic Connection
     //
 
-    public async Task<ComicConnection?> OpenComic()
+    public async Task<ErrorResult<ComicConnection>> OpenComic()
     {
-        BaseComicConnection? connection = await OpenComicConnection();
-        if (connection is null)
+        var err = ErrorLogger<ComicConnection>.Create(TAG);
+
+        ErrorResult<BaseComicConnection> connectionErr = await OpenComicConnection();
+        if (!connectionErr.IsSuccessful)
         {
-            return null;
+            return err.Error(connectionErr);
         }
 
-        bool connectionValid;
-        try
-        {
-            connectionValid = await InitializeConnection(connection);
-        }
-        catch
+        BaseComicConnection connection = connectionErr.Result;
+
+        ErrorResult innerErr = await InitializeConnection(connection);
+        if (!innerErr.IsSuccessful)
         {
             connection.Dispose();
-            throw;
+            return err.Error(innerErr);
         }
 
-        if (!connectionValid)
-        {
-            connection.Dispose();
-            return null;
-        }
-
-        return new ComicConnection(connection);
+        return err.Success(new ComicConnection(connection));
     }
 
-    private async Task<bool> InitializeConnection(IComicConnection connection)
+    private async Task<ErrorResult> InitializeConnection(BaseComicConnection connection)
     {
+        var err = ErrorLogger.Create(TAG);
+
         bool needFlushExt = false;
 
         // Refresh page count
         int pageCount = connection.ImageCount;
         if (pageCount <= 0)
         {
-            Logger.F(TAG, "Comic connection has no images: " + Location);
-            return false;
+            return err.Error($"No images found at '{Location}'.", isFatal: true);
         }
 
         await SetPageCount(pageCount);
@@ -989,7 +985,7 @@ internal abstract partial class ComicHandle
             await FlushExt();
         }
 
-        return true;
+        return err.Success();
     }
 
     //
@@ -1016,7 +1012,7 @@ internal abstract partial class ComicHandle
 
     public abstract IReadOnlyList<string> GetFolderViewPath();
 
-    protected abstract Task<BaseComicConnection?> OpenComicConnection();
+    protected abstract Task<ErrorResult<BaseComicConnection>> OpenComicConnection();
 
     //
     // DB Helpers

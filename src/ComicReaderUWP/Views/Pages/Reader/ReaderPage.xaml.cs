@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.Text;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.BaseUI;
@@ -279,17 +280,40 @@ internal sealed partial class ReaderPage : BasePage
 
         ViewModel.ReaderStatusLiveData.ObserveSticky(this, info =>
         {
-            string readerStatusText = info.Description;
-            if (string.IsNullOrEmpty(readerStatusText))
+            StringBuilder textSb = new();
+            switch (info.Status)
             {
-                readerStatusText = info.Status switch
-                {
-                    ReaderStatusEnum.Loading => StringResourceProvider.Instance.ReaderStatusLoading,
-                    ReaderStatusEnum.Error => StringResourceProvider.Instance.ReaderStatusError,
-                    _ => string.Empty,
-                };
+                case ReaderStatusEnum.Loading:
+                    textSb.Append(StringResourceProvider.Instance.ReaderStatusLoading);
+
+                    if (info.Progress >= 0)
+                    {
+                        int progress = Math.Clamp(info.Progress, 0, 100);
+                        textSb.Append($" ({progress}%)");
+                    }
+
+                    if (!string.IsNullOrEmpty(info.Description))
+                    {
+                        textSb.AppendLine().Append(info.Description);
+                    }
+
+                    break;
+                case ReaderStatusEnum.Error:
+                    textSb.Append(StringResourceProvider.Instance.ReaderStatusError);
+
+                    if (!string.IsNullOrEmpty(info.Description))
+                    {
+                        textSb.AppendLine().Append(info.Description);
+                    }
+
+                    break;
+                case ReaderStatusEnum.Working:
+                    break;
+                default:
+                    break;
             }
 
+            string readerStatusText = textSb.ToString();
             TbReaderStatus.Text = readerStatusText;
             TbReaderStatus.Visibility = readerStatusText.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateReaderUI();
@@ -356,20 +380,25 @@ internal sealed partial class ReaderPage : BasePage
             }
         };
 
-        MainReaderView.ReaderEventReaderStateChanged += (sender, state, description) =>
+        MainReaderView.ReaderEventReaderStateChanged += (sender, state, progress) =>
         {
             switch (state)
             {
-                case ReaderView.ReaderState.Ready:
-                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Working, description));
+                case ReaderView.ReaderStatus.Ready:
+                    ViewModel.ReaderStatusLiveData.Emit(new()
+                    {
+                        Status = ReaderStatusEnum.Working,
+                        Progress = progress,
+                    });
                     UpdatePage();
                     FocusReader();
                     break;
-                case ReaderView.ReaderState.Loading:
-                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Loading, description));
-                    break;
-                case ReaderView.ReaderState.Error:
-                    ViewModel.ReaderStatusLiveData.Emit(new(ReaderStatusEnum.Error, description));
+                case ReaderView.ReaderStatus.Loading:
+                    ViewModel.ReaderStatusLiveData.Emit(new()
+                    {
+                        Status = ReaderStatusEnum.Loading,
+                        Progress = progress,
+                    });
                     break;
             }
         };
@@ -1241,10 +1270,11 @@ internal sealed partial class ReaderPage : BasePage
         Working,
     }
 
-    public class ReaderStatusInfo(ReaderStatusEnum status, string description = "")
+    public class ReaderStatusInfo
     {
-        public ReaderStatusEnum Status { get; } = status;
-        public string Description { get; } = description;
+        public required ReaderStatusEnum Status { get; init; }
+        public string Description { get; init; } = string.Empty;
+        public int Progress { get; init; } = -1;
     }
 
     private class ReaderConfigDatabase : ReaderView.IConfigurationDatabase

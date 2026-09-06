@@ -67,7 +67,7 @@ internal sealed partial class PluginSettingsView : BaseUserControl
     {
         CoroutineUtils.Run(async () =>
         {
-            ErrorResult<bool> err = await ErrorLogger<bool>.Run(nameof(OpenPluginsFolderButton_Click), async err =>
+            ErrorResult err = await ErrorLogger.Run(nameof(OpenPluginsFolderButton_Click), async err =>
             {
                 string path = PluginManager.PluginsFolderPath;
                 try
@@ -77,10 +77,10 @@ internal sealed partial class PluginSettingsView : BaseUserControl
                 }
                 catch (Exception ex)
                 {
-                    return err.SetError(ex);
+                    return err.Error(ex);
                 }
 
-                return err.SetResult(default);
+                return err.Success();
             });
 
             err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
@@ -117,7 +117,7 @@ internal sealed partial class PluginSettingsView : BaseUserControl
             string pluginsFolderPath = PluginManager.PluginsFolderPath;
             string dstFilePath = Path.Combine(pluginsFolderPath, file.Name);
 
-            ErrorResult<bool> err = ErrorLogger<bool>.Run(nameof(InstallPluginButton_Click), err =>
+            ErrorResult err = ErrorLogger.Run(nameof(InstallPluginButton_Click), err =>
             {
                 try
                 {
@@ -125,10 +125,10 @@ internal sealed partial class PluginSettingsView : BaseUserControl
                 }
                 catch (Exception ex)
                 {
-                    return err.SetError(ex);
+                    return err.Error(ex);
                 }
 
-                return err.SetResult(default);
+                return err.Success();
             });
 
             if (err.IsSuccessful)
