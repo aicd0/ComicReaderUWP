@@ -17,14 +17,6 @@ public static class DebugCommand
     private const string TAG = nameof(DebugCommand);
     private const string KEY_DEVELOPER_MODE_TOKEN = "DeveloperModeToken";
     private const int SIGNATURE_LENGTH = 256;
-    private const string PUBLIC_KEY_PEM = @"-----BEGIN RSA PUBLIC KEY-----
-MIIBCgKCAQEAot89oOONQcVUgUft6YLU15yntMd+Ve1pM7kU5Lr61T8hFnfFxL7x
-tLmodYK+o+FTPKtcoWglxA1fp9cHjRaRI7SUYqPyixXxepGeMMf0NUndduScthTk
-ZNuH9P/la/gFTq+yb9bWhjH1HNLAMD/XaUjF+6eVlE0CVcslVEde6foHlYqjMQlp
-Mv5FKy9jFQCHhFcfvXaP4yd8bCE3pL2x43qEbGQw9iOufGCgFplckblXy9OFmbgB
-xpRSqAgubJDMUR3a8NNWEmKaKfKTbY85OV0Qe1mYo4DWPJRYywjglHmUY+IHxoPV
-TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
------END RSA PUBLIC KEY-----";
 
     private static bool? _unlockedDeveloperMode = null;
     internal static bool UnlockedDeveloperMode
@@ -76,7 +68,14 @@ TKf0Mms0jR50tiagNV2oHZlD9pKTTBnzsQIDAQAB
 
         string developerId = EnvironmentProvider.Instance.GetDeviceId();
         byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes($"{developerId}+{command}");
-        if (!VerifySignature(payloadBytes, signatureBytes, PUBLIC_KEY_PEM))
+
+        string? publicKeyPem = ServiceManager.GetServiceNullable<IDebugService>()?.DebugCommandPublicKeyPem;
+        if (string.IsNullOrEmpty(publicKeyPem))
+        {
+            return null;
+        }
+
+        if (!VerifySignature(payloadBytes, signatureBytes, publicKeyPem))
         {
             return null;
         }

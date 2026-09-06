@@ -14,6 +14,8 @@ namespace ComicReaderUWP.Common.Services;
 
 internal class DebugService : IDebugService
 {
+    public string DebugCommandPublicKeyPem => Secret.DebugCommandPublicKeyPem;
+
     public bool SentryEnabled => AppSettingsModel.Instance.SendUsageData;
 
     public void OnCrashReport(string info)
