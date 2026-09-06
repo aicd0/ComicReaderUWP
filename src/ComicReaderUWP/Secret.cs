@@ -5,6 +5,7 @@ namespace ComicReaderUWP;
 
 internal static class Secret
 {
+    public static string DebugCommandPublicKeyPem => "";
     public static string ExtraDebugFields => "";
     public static string SentryDsn => "";
 }
