@@ -308,6 +308,11 @@ $comics</value>
   <data name="Delete" xml:space="preserve">
     <value>삭제</value>
   </data>
+  <data name="DeleteFilesPrompt" xml:space="preserve">
+    <value>다음 파일 및 폴더가 영구적으로 삭제됩니다:
+
+$files</value>
+  </data>
   <data name="Descending" xml:space="preserve">
     <value>하강</value>
   </data>
@@ -459,6 +464,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="FeedbackIntroduction" xml:space="preserve">
     <value>아래 버튼을 사용하여 GitHub에 제안을 보내거나 버그를 발행하세요.</value>
+  </data>
+  <data name="FileOperations" xml:space="preserve">
+    <value>파일 작업</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
     <value>필터 프리셋</value>
@@ -634,6 +642,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>이름으로 정렬</value>
+  </data>
+  <data name="MergeSingleItemGroups" xml:space="preserve">
+    <value>단일 항목 그룹 병합</value>
   </data>
   <data name="More" xml:space="preserve">
     <value>더</value>

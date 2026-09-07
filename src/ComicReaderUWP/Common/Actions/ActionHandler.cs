@@ -57,7 +57,7 @@ internal class ActionHandler
         }
     }
 
-    public bool TryGetComponent<T>([MaybeNullWhen(false)] out T component) where T : IActionComponent
+    public bool TryGetComponent<T>([NotNullWhen(true)] out T? component) where T : IActionComponent
     {
         if (!_components.TryGetValue(typeof(T), out IActionComponent? com))
         {

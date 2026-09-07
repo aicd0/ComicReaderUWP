@@ -308,6 +308,11 @@ $comics</value>
   <data name="Delete" xml:space="preserve">
     <value>Supprimer</value>
   </data>
+  <data name="DeleteFilesPrompt" xml:space="preserve">
+    <value>Les fichiers et dossiers suivants seront définitivement supprimés :
+
+$files</value>
+  </data>
   <data name="Descending" xml:space="preserve">
     <value>Descendant</value>
   </data>
@@ -458,6 +463,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="FeedbackIntroduction" xml:space="preserve">
     <value>Utilisez le bouton ci-dessous pour nous envoyer des suggestions ou signaler un bug sur GitHub.</value>
+  </data>
+  <data name="FileOperations" xml:space="preserve">
+    <value>Opérations sur les fichiers</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
     <value>Préréglages de filtre</value>
@@ -633,6 +641,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   </data>
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>Trier par nom</value>
+  </data>
+  <data name="MergeSingleItemGroups" xml:space="preserve">
+    <value>Fusionner les groupes seuls</value>
   </data>
   <data name="More" xml:space="preserve">
     <value>Plus</value>

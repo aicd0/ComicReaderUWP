@@ -308,6 +308,11 @@ $comics</value>
   <data name="Delete" xml:space="preserve">
     <value>消去</value>
   </data>
+  <data name="DeleteFilesPrompt" xml:space="preserve">
+    <value>次のファイルとフォルダーは完全に削除されます：
+
+$files</value>
+  </data>
   <data name="Descending" xml:space="preserve">
     <value>降順</value>
   </data>
@@ -458,6 +463,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="FeedbackIntroduction" xml:space="preserve">
     <value>以下のボタンを使用して、GitHub で提案を送信したり、問題を報告したりすることができます。</value>
+  </data>
+  <data name="FileOperations" xml:space="preserve">
+    <value>ファイル操作</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
     <value>フィルターのプリセット</value>
@@ -633,6 +641,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>名前で並べ替え</value>
+  </data>
+  <data name="MergeSingleItemGroups" xml:space="preserve">
+    <value>1件グループを結合</value>
   </data>
   <data name="More" xml:space="preserve">
     <value>もっと</value>

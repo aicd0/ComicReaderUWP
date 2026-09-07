@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions;
+using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Imaging;
@@ -23,6 +24,7 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.Imaging;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
+using ComicReaderUWP.SDK.Models;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -453,6 +455,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             return [];
         }
 
+        string imagePath = imageConnection.Path;
+
         List<BaseMenuFlyoutItemModel> items = [];
 
         items.Add(new SimpleMenuFlyoutItemModel()
@@ -491,23 +495,20 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             },
         });
 
+        items.Add(new SimpleMenuFlyoutItemModel()
         {
-            string imagePath = imageConnection.Path;
-            items.Add(new SimpleMenuFlyoutItemModel()
+            Text = StringResourceProvider.Instance.ShowInFileExplorer,
+            Icon = new FontIconSource() { Glyph = "\uE838" },
+            IsEnabled = !string.IsNullOrEmpty(imagePath),
+            Click = () =>
             {
-                Text = StringResourceProvider.Instance.ShowInFileExplorer,
-                Icon = new FontIconSource() { Glyph = "\uE838" },
-                IsEnabled = !string.IsNullOrEmpty(imagePath),
-                Click = () =>
+                CoroutineUtils.Run(async () =>
                 {
-                    CoroutineUtils.Run(async () =>
-                    {
-                        ErrorResult err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
-                        err.DisplayErrorMessage(_actionHandler);
-                    });
-                }
-            });
-        }
+                    ErrorResult err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
+                    err.DisplayErrorMessage(_actionHandler);
+                });
+            }
+        });
 
         if (!comic.IsExternal)
         {
@@ -531,6 +532,129 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                         await comic.FlushExt();
                     });
                 },
+            });
+        }
+
+        {
+            List<BaseMenuFlyoutItemModel> fileOperationItems = [];
+
+            fileOperationItems.Add(new SimpleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.Copy,
+                Click = () =>
+                {
+                    CoroutineUtils.Run(async () =>
+                    {
+                        ErrorResult err = await ErrorLogger.Run($"{nameof(CreateImageContextMenuItems)}#CopyFile", async err =>
+                        {
+                            if (!string.IsNullOrEmpty(imagePath))
+                            {
+                                ErrorResult innerErr = await ClipboardUtils.SetFile(imagePath);
+                                if (!innerErr.IsSuccessful)
+                                {
+                                    return err.Error(innerErr);
+                                }
+
+                                return err.Success();
+                            }
+
+                            ImageMeta? meta = await ImageLoader.LoadImageMeta(imageSource, new());
+                            string extension = meta?.Format.ToLowerInvariant() switch
+                            {
+                                "jpeg" or "jpg" => ".jpg",
+                                "png" => ".png",
+                                "bmp" => ".bmp",
+                                "gif" => ".gif",
+                                "tiff" => ".tiff",
+                                "heif" or "heic" => ".heic",
+                                "webp" => ".webp",
+                                _ => string.Empty,
+                            };
+
+                            using IImageConnection? connection = await imageSource.Open();
+                            if (connection is null)
+                            {
+                                return err.Error("Failed to open image connection.");
+                            }
+
+                            using Stream? stream = await connection.OpenImageStream();
+                            if (stream is null)
+                            {
+                                return err.Error("Failed to open image stream.");
+                            }
+
+                            ErrorResult streamErr = await ClipboardUtils.SetFile(stream, $"{index + 1}{extension}");
+                            if (!streamErr.IsSuccessful)
+                            {
+                                return err.Error(streamErr);
+                            }
+
+                            return err.Success();
+                        });
+
+                        err.DisplayErrorMessage(_actionHandler);
+                    });
+                },
+            });
+
+            fileOperationItems.Add(new SimpleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.Delete,
+                IsEnabled = !string.IsNullOrEmpty(imagePath),
+                Click = () =>
+                {
+                    CoroutineUtils.Run(async () =>
+                    {
+                        string promptContent = StringResourceProvider.Instance.DeleteFilesPrompt
+                            .Replace("$files", imagePath);
+                        DialogOptions options = new DialogOptions.Builder()
+                            .SetTitle(StringResourceProvider.Instance.Warning)
+                            .SetContent(promptContent)
+                            .SetPrimaryButtonText(StringResourceProvider.Instance.Delete)
+                            .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
+                            .Build();
+
+                        int windowId = -1;
+                        if (_actionHandler.TryGetComponent(out IMainWindowComponent? mainWindowCom))
+                        {
+                            windowId = mainWindowCom.WindowId;
+                        }
+
+                        DialogResult result = await DialogUtils.EnqueueDialogAsync(windowId, options);
+                        if (result != DialogResult.Primary)
+                        {
+                            return;
+                        }
+
+                        ErrorResult err = ErrorLogger.Run($"{nameof(CreateImageContextMenuItems)}#DeleteFile", err =>
+                        {
+                            try
+                            {
+                                File.Delete(imagePath);
+                            }
+                            catch (Exception ex)
+                            {
+                                return err.Error(ex);
+                            }
+
+                            return err.Success();
+                        });
+
+                        err.DisplayErrorMessage(_actionHandler);
+
+                        if (err.IsSuccessful)
+                        {
+                            Playback.Refresh();
+                        }
+                    });
+                },
+            });
+
+            items.Add(new SubItemMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.FileOperations,
+                Icon = new FontIconSource() { Glyph = "\uE91B" },
+                Items = fileOperationItems,
             });
         }
 

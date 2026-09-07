@@ -66,6 +66,7 @@ public class StringResourceProvider
     public string Default => GetResourceString("Default");
     public string DefaultTags => GetResourceString("DefaultTags");
     public string Delete => GetResourceString("Delete");
+    public string DeleteFilesPrompt => GetResourceString("DeleteFilesPrompt");
     public string Descending => GetResourceString("Descending");
     public string Description => GetResourceString("Description");
     public string DevAppDisplayName => GetResourceString("DevAppDisplayName");
@@ -100,6 +101,7 @@ public class StringResourceProvider
     public string Favorites => GetResourceString("Favorites");
     public string Feedback => GetResourceString("Feedback");
     public string FeedbackIntroduction => GetResourceString("FeedbackIntroduction");
+    public string FileOperations => GetResourceString("FileOperations");
     public string FilterPresets => GetResourceString("FilterPresets");
     public string FilterSettings => GetResourceString("FilterSettings");
     public string FilteredBy => GetResourceString("FilteredBy");
@@ -138,6 +140,7 @@ public class StringResourceProvider
     public string LinkErrorTitle => GetResourceString("LinkErrorTitle");
     public string Links => GetResourceString("Links");
     public string MaintainRelativeSize => GetResourceString("MaintainRelativeSize");
+    public string MergeSingleItemGroups => GetResourceString("MergeSingleItemGroups");
     public string More => GetResourceString("More");
     public string Name => GetResourceString("Name");
     public string Never => GetResourceString("Never");

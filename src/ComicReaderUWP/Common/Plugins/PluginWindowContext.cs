@@ -30,7 +30,7 @@ internal sealed class PluginWindowContext(int windowId) : IWindowContext
 
     public static PluginWindowContext From(ActionHandler actionHandler)
     {
-        if (!actionHandler.TryGetComponent<IMainWindowComponent>(out IMainWindowComponent? component))
+        if (!actionHandler.TryGetComponent(out IMainWindowComponent? component))
         {
             throw new ArgumentException("IMainWindowComponent not found.");
         }

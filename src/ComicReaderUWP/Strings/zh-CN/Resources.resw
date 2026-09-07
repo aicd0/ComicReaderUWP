@@ -308,6 +308,11 @@ $comics</value>
   <data name="Delete" xml:space="preserve">
     <value>删除</value>
   </data>
+  <data name="DeleteFilesPrompt" xml:space="preserve">
+    <value>以下文件和文件夹将被永久删除：
+
+$files</value>
+  </data>
   <data name="Descending" xml:space="preserve">
     <value>降序</value>
   </data>
@@ -458,6 +463,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="FeedbackIntroduction" xml:space="preserve">
     <value>您可以通过以下按钮在GitHub上向我们提交建议或报告问题。</value>
+  </data>
+  <data name="FileOperations" xml:space="preserve">
+    <value>文件操作</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
     <value>过滤器预设</value>
@@ -633,6 +641,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>按名称排序</value>
+  </data>
+  <data name="MergeSingleItemGroups" xml:space="preserve">
+    <value>合并单项分组</value>
   </data>
   <data name="More" xml:space="preserve">
     <value>更多</value>
