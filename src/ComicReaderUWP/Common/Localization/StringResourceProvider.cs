@@ -141,6 +141,7 @@ public class StringResourceProvider
     public string Links => GetResourceString("Links");
     public string MaintainRelativeSize => GetResourceString("MaintainRelativeSize");
     public string MergeSingleItemGroups => GetResourceString("MergeSingleItemGroups");
+    public string Miscellaneous => GetResourceString("Miscellaneous");
     public string More => GetResourceString("More");
     public string Name => GetResourceString("Name");
     public string Never => GetResourceString("Never");

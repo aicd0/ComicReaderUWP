@@ -645,6 +645,9 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   <data name="MergeSingleItemGroups" xml:space="preserve">
     <value>Combinar grupos individuales</value>
   </data>
+  <data name="Miscellaneous" xml:space="preserve">
+    <value>Otros</value>
+  </data>
   <data name="More" xml:space="preserve">
     <value>Más</value>
   </data>

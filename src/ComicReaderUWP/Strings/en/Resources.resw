@@ -647,6 +647,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="MergeSingleItemGroups" xml:space="preserve">
     <value>Merge single-item groups</value>
   </data>
+  <data name="Miscellaneous" xml:space="preserve">
+    <value>Miscellaneous</value>
+  </data>
   <data name="More" xml:space="preserve">
     <value>More</value>
   </data>

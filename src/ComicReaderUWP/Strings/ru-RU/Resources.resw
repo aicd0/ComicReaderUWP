@@ -646,6 +646,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="MergeSingleItemGroups" xml:space="preserve">
     <value>Объединить группы с 1 элементом</value>
   </data>
+  <data name="Miscellaneous" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
   <data name="More" xml:space="preserve">
     <value>Более</value>
   </data>

@@ -249,7 +249,10 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
             if (groupBy != null)
             {
                 List<ComicPropertyModel.GroupItem<ComicModel>> groupItems = groupBy.GroupComics(items, x => x,
-                    filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty);
+                    filter.GroupOrderMethod,
+                    filter.GroupSortingFunction,
+                    filter.GroupSortingProperty,
+                    filter.MergeSingleItemGroups);
                 foreach (ComicPropertyModel.GroupItem<ComicModel> item in groupItems)
                 {
                     SimpleTreeViewNodeModel groupNode = new()

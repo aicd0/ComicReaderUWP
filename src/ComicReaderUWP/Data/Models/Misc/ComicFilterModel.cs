@@ -104,6 +104,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         public bool IncludeHiddenComics { get; set; } = false;
         public bool SaveViewSettings { get; set; } = false;
         public bool SaveSortingAndGroupingSettings { get; set; } = true;
+        public bool MergeSingleItemGroups { get; set; } = false;
         public string Expression { get; set; } = string.Empty;
 
         private ExternalFilterModel() { }
@@ -130,6 +131,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 IncludeHiddenComics = IncludeHiddenComics,
                 SaveViewSettings = SaveViewSettings,
                 SaveSortingAndGroupingSettings = SaveSortingAndGroupingSettings,
+                MergeSingleItemGroups = MergeSingleItemGroups,
                 Expression = Expression,
             };
         }
@@ -158,6 +160,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 IncludeHiddenComics = model.IncludeHiddenComics ?? defaultModel.IncludeHiddenComics,
                 SaveViewSettings = model.SaveViewSettings ?? defaultModel.SaveViewSettings,
                 SaveSortingAndGroupingSettings = model.SaveSortingAndGroupingSettings ?? defaultModel.SaveSortingAndGroupingSettings,
+                MergeSingleItemGroups = model.MergeSingleItemGroups ?? defaultModel.MergeSingleItemGroups,
                 Expression = model.Expression ?? defaultModel.Expression,
             };
         }
@@ -302,6 +305,9 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
         [JsonPropertyName("IncludeHiddenComics")]
         public bool? IncludeHiddenComics { get; set; }
+
+        [JsonPropertyName("MergeSingleItemGroups")]
+        public bool? MergeSingleItemGroups { get; set; }
 
         [JsonPropertyName("Modified")]
         public bool? Modified { get; set; }

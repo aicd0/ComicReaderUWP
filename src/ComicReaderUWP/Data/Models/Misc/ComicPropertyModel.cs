@@ -145,15 +145,19 @@ internal class ComicPropertyModel
         return sorter.Sort(preSorted, selector);
     }
 
-    public List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector,
-        ComicFilterModel.OrderMethodEnum orderMethod, ComicFilterModel.FunctionTypeEnum sortingFunction,
-        ComicPropertyModel? sortingProperty)
+    public List<GroupItem<T>> GroupComics<T>(
+        IEnumerable<T> items,
+        Func<T, ComicModel> selector,
+        ComicFilterModel.OrderMethodEnum orderMethod,
+        ComicFilterModel.FunctionTypeEnum sortingFunction,
+        ComicPropertyModel? sortingProperty,
+        bool mergeSingleItemGroups)
     {
         IEnumerable<T> preSorted = items.OrderBy(x => StringUtils.SmartFileNameKeySelector(selector(x).Title ?? StringResourceProvider.Instance.Untitled), StringUtils.SmartFileNameComparer);
         IVirtualPropertySorter<IComicModel>? pluginSorter = PluginProperty?.CreateSorter(preSorted.Select(selector));
         IVirtualPropertySorter<IComicModel>? sortingPropertyPluginSorter = sortingProperty?.PluginProperty?.CreateSorter(preSorted.Select(selector));
         ComicGrouper grouper = GetComicGrouper(orderMethod, pluginSorter, sortingFunction, sortingProperty, sortingPropertyPluginSorter);
-        return grouper.GroupComics(preSorted, selector);
+        return grouper.GroupComics(preSorted, selector, mergeSingleItemGroups);
     }
 
     private IItemSorter<ComicModel> GetComicItemSorter(ComicFilterModel.OrderMethodEnum orderMethod, IVirtualPropertySorter<IComicModel>? pluginSorter)
@@ -621,7 +625,7 @@ internal class ComicPropertyModel
         private readonly IGroupSorter<ComicGroup, string> _groupSorter = groupSorter;
         private readonly Func<ComicModel, IEnumerable<string>> _groupNameSelector = groupNameSelector;
 
-        public List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector)
+        public List<GroupItem<T>> GroupComics<T>(IEnumerable<T> items, Func<T, ComicModel> selector, bool mergeSingleItemGroups)
         {
             Dictionary<string, List<T>> groupMap = [];
             foreach (T item in items)
@@ -643,6 +647,17 @@ internal class ComicPropertyModel
             foreach (KeyValuePair<string, List<T>> p in groupMap)
             {
                 comicGroups.Add(new(p.Value, p.Key));
+            }
+
+            if (mergeSingleItemGroups)
+            {
+                var singleItemGroups = comicGroups.Where(x => x.Items.Count == 1).ToList();
+                if (singleItemGroups.Count >= 2)
+                {
+                    var mergedGroup = singleItemGroups.SelectMany(x => x.Items).ToList();
+                    comicGroups.RemoveAll(x => x.Items.Count == 1);
+                    comicGroups.Add(new GroupItem<T>(mergedGroup, StringResourceProvider.Instance.Miscellaneous));
+                }
             }
 
             List<GroupItem<T>> sorted = _groupSorter.Sort(comicGroups, x => new(x.Name, x.Items.ConvertAll(y => selector(y))), (m, t) =>
