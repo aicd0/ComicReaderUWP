@@ -68,7 +68,10 @@
                 <FontIcon Glyph="&#xE713;" />
             </AppBarButton.Content>
             <AppBarButton.Flyout>
-                <Flyout Closing="ReaderSettingFlyout_Closing">
+                <Flyout
+                    Closed="ReaderSettingFlyout_Closed"
+                    Closing="ReaderSettingFlyout_Closing"
+                    Opened="ReaderSettingFlyout_Opened">
                     <Flyout.FlyoutPresenterStyle>
                         <Style TargetType="FlyoutPresenter">
                             <Setter Property="CornerRadius" Value="8" />

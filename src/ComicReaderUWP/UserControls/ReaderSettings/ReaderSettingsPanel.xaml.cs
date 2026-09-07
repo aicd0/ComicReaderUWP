@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
@@ -30,7 +31,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
     public ReaderSettingsPanelViewModel ViewModel { get; } = new();
     public bool ActionInProgress { get; private set; } = false;
 
-    private int _windowId = -1;
+    private IMainWindowAbility? _windowAbility;
     private ComicModel? _comic;
     private ReaderSettingsModel _comicSettings = ReaderSettingsModel.FromDefault();
     private ReaderSettingsModel? _presetSettings;
@@ -48,9 +49,9 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         };
     }
 
-    public void SetWindowId(int windowId)
+    public void Initialize(IMainWindowAbility windowAbility)
     {
-        _windowId = windowId;
+        _windowAbility = windowAbility;
     }
 
     public void SetComic(ComicModel comic)
@@ -209,7 +210,8 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
 
     private async void EditPresetButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_comic is null || _windowId < 0)
+        IMainWindowAbility? windowAbility = _windowAbility;
+        if (_comic is null || windowAbility is null)
         {
             return;
         }
@@ -218,7 +220,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         try
         {
             var dialog = new EditReaderSettingPresetDialog(_comic);
-            await dialog.ShowAsync(_windowId);
+            await dialog.ShowAsync(windowAbility.WindowId);
         }
         finally
         {

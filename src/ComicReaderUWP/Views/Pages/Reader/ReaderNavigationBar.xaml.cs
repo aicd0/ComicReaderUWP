@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
@@ -26,16 +27,19 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl
     public delegate void InfoPaneExpandedEventHandler();
     public event InfoPaneExpandedEventHandler? InfoPaneExpanded;
 
+    private IMainWindowAbility? _windowAbility;
     private bool _isFavorite = false;
+    private bool _isReaderSettingFlyoutActive = false;
 
     public ReaderNavigationBar()
     {
         InitializeComponent();
     }
 
-    public void SetWindowId(int windowId)
+    public void Initialize(IMainWindowAbility windowAbility)
     {
-        MainReaderSettingPanel.SetWindowId(windowId);
+        _windowAbility = windowAbility;
+        MainReaderSettingPanel.Initialize(windowAbility);
     }
 
     public void SetFavorite(bool isFavorite)
@@ -87,6 +91,36 @@ internal sealed partial class ReaderNavigationBar : BaseUserControl
     private void ReaderSettingFlyout_Closing(FlyoutBase sender, FlyoutBaseClosingEventArgs args)
     {
         args.Cancel = MainReaderSettingPanel.ActionInProgress;
+    }
+
+    private void ReaderSettingFlyout_Opened(object sender, object e)
+    {
+        IMainWindowAbility? windowAbility = _windowAbility;
+        if (windowAbility is null)
+        {
+            return;
+        }
+
+        if (!_isReaderSettingFlyoutActive)
+        {
+            windowAbility.RequestFocusLock();
+            _isReaderSettingFlyoutActive = true;
+        }
+    }
+
+    private void ReaderSettingFlyout_Closed(object sender, object e)
+    {
+        IMainWindowAbility? windowAbility = _windowAbility;
+        if (windowAbility is null)
+        {
+            return;
+        }
+
+        if (_isReaderSettingFlyoutActive)
+        {
+            windowAbility.ReleaseFocusLock();
+            _isReaderSettingFlyoutActive = false;
+        }
     }
 
     private void MainReaderSettingPanel_DataChanged(ReaderSettingsModel model)
