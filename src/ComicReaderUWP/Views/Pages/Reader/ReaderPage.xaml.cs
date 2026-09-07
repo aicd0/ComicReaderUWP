@@ -103,7 +103,7 @@ internal sealed partial class ReaderPage : BasePage
 
         // Initialize views
         MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
-        _readerNavigationBar.SetWindowId(WindowId);
+        _readerNavigationBar.Initialize(GetMainWindowAbility());
         ViewModel.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
 
         {
@@ -760,6 +760,12 @@ internal sealed partial class ReaderPage : BasePage
 
     private void FocusReader()
     {
+        IMainWindowAbility windowAbility = GetMainWindowAbility();
+        if (windowAbility.IsFocusLocked)
+        {
+            return;
+        }
+
         GetMainPageAbility().SetSidePaneOpenState(false, force: false); // Remove focus on sidebar
 
         UIElement element = MainReaderView;
@@ -768,7 +774,7 @@ internal sealed partial class ReaderPage : BasePage
             CoroutineUtils.PostInMainThreadAsync(async () =>
             {
                 await Task.Delay(1);
-                if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible || !GetMainWindowAbility().IsActive)
+                if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible || !windowAbility.IsActive)
                 {
                     return;
                 }

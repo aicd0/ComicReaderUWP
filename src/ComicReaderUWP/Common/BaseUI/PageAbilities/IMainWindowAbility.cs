@@ -28,6 +28,8 @@ internal interface IMainWindowAbility : IPageAbility
 
     SizeF WindowSize { get; }
 
+    bool IsFocusLocked { get; }
+
     void EnterFullscreen();
 
     void ExitFullscreen();
@@ -41,5 +43,9 @@ internal interface IMainWindowAbility : IPageAbility
     void RegisterMinimizeChangedHandler(ILifecycleOwner owner, MinimizeChangedEventHandler handler);
 
     void RegisterPointerInsideRootElementChangedHandler(ILifecycleOwner owner, PointerInsideChangedEventHandler handler);
+
+    void RequestFocusLock();
+
+    void ReleaseFocusLock();
 
 }

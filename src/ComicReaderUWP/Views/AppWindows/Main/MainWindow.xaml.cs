@@ -541,6 +541,7 @@ internal sealed partial class MainWindow : Window
         private readonly MutableLiveData<bool> _minimizeLiveData = new(window._isMinimized);
         private readonly MutableLiveData<bool> _fullscreenLiveData = new(window._isFullscreen);
         private readonly MutableLiveData<bool> _pointerInsideLiveData = new(true);
+        private int _activeFlyoutCount = 0;
 
         public bool IsActive => GetWindow()?.IsActive ?? false;
 
@@ -565,6 +566,8 @@ internal sealed partial class MainWindow : Window
                 return new SizeF((float)root.ActualWidth, (float)root.ActualHeight);
             }
         }
+
+        public bool IsFocusLocked => _activeFlyoutCount > 0;
 
         public PointF GetPointerPosition()
         {
@@ -647,6 +650,22 @@ internal sealed partial class MainWindow : Window
         public void ExitFullscreen()
         {
             GetWindow()?.EnterOrExitFullscreen(false);
+        }
+
+        public void RequestFocusLock()
+        {
+            _activeFlyoutCount++;
+        }
+
+        public void ReleaseFocusLock()
+        {
+            if (_activeFlyoutCount <= 0)
+            {
+                Logger.F(TAG, "ReleaseFocusLock called when no active flyouts");
+                return;
+            }
+
+            _activeFlyoutCount--;
         }
 
         public LifecycleAwareAbility GetLifecycleAbility()
