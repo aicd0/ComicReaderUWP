@@ -413,7 +413,7 @@ internal static class MenuFlyoutItemsCreator
         List<BaseMenuFlyoutItemModel> items = [];
 
         int currentWindowId = -1;
-        if (actionHandler.TryGetComponent<IMainWindowComponent>(out IMainWindowComponent? mainWindowCom))
+        if (actionHandler.TryGetComponent(out IMainWindowComponent? mainWindowCom))
         {
             currentWindowId = mainWindowCom.WindowId;
         }

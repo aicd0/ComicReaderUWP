@@ -308,6 +308,11 @@ $comics</value>
   <data name="Delete" xml:space="preserve">
     <value>Löschen</value>
   </data>
+  <data name="DeleteFilesPrompt" xml:space="preserve">
+    <value>Die folgenden Dateien und Ordner werden dauerhaft gelöscht:
+
+$files</value>
+  </data>
   <data name="Descending" xml:space="preserve">
     <value>Absteigend</value>
   </data>
@@ -458,6 +463,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="FeedbackIntroduction" xml:space="preserve">
     <value>Verwenden Sie die Schaltfläche unten, um uns Vorschläge zu senden oder einen Fehler auf GitHub zu melden.</value>
+  </data>
+  <data name="FileOperations" xml:space="preserve">
+    <value>Dateioperationen</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
     <value>Filter-Voreinstellungen</value>
@@ -633,6 +641,9 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   </data>
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>Nach Namen sortieren</value>
+  </data>
+  <data name="MergeSingleItemGroups" xml:space="preserve">
+    <value>Einzelgruppen zusammenführen</value>
   </data>
   <data name="More" xml:space="preserve">
     <value>Mehr</value>

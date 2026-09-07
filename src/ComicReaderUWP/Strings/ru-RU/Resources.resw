@@ -308,6 +308,11 @@ $comics</value>
   <data name="Delete" xml:space="preserve">
     <value>Удалить</value>
   </data>
+  <data name="DeleteFilesPrompt" xml:space="preserve">
+    <value>Следующие файлы и папки будут удалены навсегда:
+
+$files</value>
+  </data>
   <data name="Descending" xml:space="preserve">
     <value>По убыванию</value>
   </data>
@@ -459,6 +464,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="FeedbackIntroduction" xml:space="preserve">
     <value>Используйте кнопку ниже, чтобы отправить нам предложения или сообщить об ошибке на GitHub.</value>
+  </data>
+  <data name="FileOperations" xml:space="preserve">
+    <value>Операции с файлами</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
     <value>Предустановки фильтров</value>
@@ -634,6 +642,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="MenuFlyoutSortByName.Text" xml:space="preserve">
     <value>Сортировать по имени</value>
+  </data>
+  <data name="MergeSingleItemGroups" xml:space="preserve">
+    <value>Объединить группы с 1 элементом</value>
   </data>
   <data name="More" xml:space="preserve">
     <value>Более</value>
