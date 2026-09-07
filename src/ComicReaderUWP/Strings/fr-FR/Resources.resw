@@ -645,6 +645,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   <data name="MergeSingleItemGroups" xml:space="preserve">
     <value>Fusionner les groupes seuls</value>
   </data>
+  <data name="Miscellaneous" xml:space="preserve">
+    <value>Divers</value>
+  </data>
   <data name="More" xml:space="preserve">
     <value>Plus</value>
   </data>

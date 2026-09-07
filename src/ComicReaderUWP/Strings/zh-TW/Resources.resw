@@ -643,6 +643,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="MergeSingleItemGroups" xml:space="preserve">
     <value>合併單項群組</value>
   </data>
+  <data name="Miscellaneous" xml:space="preserve">
+    <value>其他</value>
+  </data>
   <data name="More" xml:space="preserve">
     <value>更多</value>
   </data>

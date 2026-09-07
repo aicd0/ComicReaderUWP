@@ -645,6 +645,9 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   <data name="MergeSingleItemGroups" xml:space="preserve">
     <value>Einzelgruppen zusammenführen</value>
   </data>
+  <data name="Miscellaneous" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
   <data name="More" xml:space="preserve">
     <value>Mehr</value>
   </data>

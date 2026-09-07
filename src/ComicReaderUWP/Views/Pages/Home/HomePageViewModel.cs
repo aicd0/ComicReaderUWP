@@ -469,6 +469,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 filter.GroupSortingFunction = lastFilter.GroupSortingFunction;
                 filter.GroupSortingProperty = lastFilter.GroupSortingProperty;
                 filter.CollapsedGroups = lastFilter.CollapsedGroups;
+                filter.MergeSingleItemGroups = lastFilter.MergeSingleItemGroups;
             }
         }
 
@@ -674,7 +675,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             var groupByDropDown = new SubItemMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.Group,
-                Items = CreateGroupByMenuItems(properties, filter.GroupBy, filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty),
+                Items = CreateGroupByMenuItems(properties, filter),
             };
             var sortAndGroupDropDown = new DropDownButtonModel
             {
@@ -772,7 +773,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             if (groupBy is not null)
             {
                 List<ComicPropertyModel.GroupItem<ComicModel>> groups = groupBy.GroupComics(comics, x => x,
-                    filter.GroupOrderMethod, filter.GroupSortingFunction, filter.GroupSortingProperty);
+                    filter.GroupOrderMethod,
+                    filter.GroupSortingFunction,
+                    filter.GroupSortingProperty,
+                    filter.MergeSingleItemGroups);
                 var playlist = new PlaylistModel.Builder();
                 comicsGrouped = [];
                 foreach (ComicPropertyModel.GroupItem<ComicModel> group in groups)
@@ -896,10 +900,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return items;
     }
 
-    private List<BaseMenuFlyoutItemModel> CreateGroupByMenuItems(List<ComicPropertyModel> properties,
-        ComicPropertyModel? selectedProperty, ComicFilterModel.OrderMethodEnum selectedOrderMethod,
-        ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty)
+    private List<BaseMenuFlyoutItemModel> CreateGroupByMenuItems(List<ComicPropertyModel> properties, ComicFilterModel.ExternalFilterModel filter)
     {
+        ComicPropertyModel? selectedProperty = filter.GroupBy;
+
         List<BaseMenuFlyoutItemModel> items = [];
 
         items.Add(new ToggleMenuFlyoutItemModel()
@@ -939,7 +943,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             items.Add(new SeparatorMenuFlyoutItemModel());
 
-            items.AddRange(CreateOrderMethodMenuItems(selectedOrderMethod, orderMethod =>
+            items.AddRange(CreateOrderMethodMenuItems(filter.GroupOrderMethod, orderMethod =>
             {
                 SelectSortOrGroup(filter =>
                 {
@@ -956,7 +960,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             items.Add(new SubItemMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.SortingFunction,
-                Items = CreateSortingFunctionMenuItems(properties, sortingFunction, sortingProperty, (f, p) =>
+                Items = CreateSortingFunctionMenuItems(properties, filter.GroupSortingFunction, filter.GroupSortingProperty, (f, p) =>
                 {
                     SelectSortOrGroup(filter =>
                     {
@@ -977,6 +981,22 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                         return modified;
                     });
                 }),
+            });
+
+            items.Add(new SeparatorMenuFlyoutItemModel());
+
+            items.Add(new ToggleMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.MergeSingleItemGroups,
+                IsChecked = filter.MergeSingleItemGroups,
+                Click = () =>
+                {
+                    SelectSortOrGroup(filter =>
+                    {
+                        filter.MergeSingleItemGroups = !filter.MergeSingleItemGroups;
+                        return true;
+                    });
+                },
             });
         }
 
