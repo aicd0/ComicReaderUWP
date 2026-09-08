@@ -197,7 +197,6 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
                     item.Children.Add(node);
                 }
 
-                item.IsExpanded = item.Children.Count == 1;
                 nodes.Add(item);
             }
 
@@ -207,6 +206,11 @@ internal partial class FoldersPageViewModel : INotifyPropertyChanged
             foreach (ComicModel comic in sortedComics)
             {
                 nodes.Add(ComicToNode(comic, playlist));
+            }
+
+            if (nodes.Count == 1 && nodes[0].CanExpand)
+            {
+                nodes[0].IsExpanded = true;
             }
 
             return nodes;
