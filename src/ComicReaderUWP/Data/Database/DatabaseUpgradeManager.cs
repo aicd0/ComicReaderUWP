@@ -2,117 +2,50 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Storage;
-using ComicReaderUWP.Data.Models.Misc;
 
 namespace ComicReaderUWP.Data.Database;
 
 internal static class DatabaseUpgradeManager
 {
     private const string TAG = nameof(DatabaseUpgradeManager);
-    private const int VERSION = 3;
-
-    private static string VersionFilePath => Path.Combine(StorageLocation.LocalFolderPath, "version.txt");
 
     public static void UpgradeDatabaseBeforeInitialization()
     {
-        string versionFile = VersionFilePath;
-        FileStream stream;
-        try
+        string legacyVersionFilePath = Path.Combine(StorageLocation.LocalFolderPath, "version.txt");
+        int version = -1;
+        if (File.Exists(legacyVersionFilePath))
         {
-            stream = new FileStream(versionFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-        }
-        catch (Exception ex)
-        {
-            throw new IOException($"Failed to open or create version file exclusively: {versionFile}", ex);
-        }
-
-        using (stream)
-        {
-            int version = -1;
             try
             {
-                if (stream.Length > 0)
-                {
-                    stream.Seek(0, SeekOrigin.Begin);
-                    using var sr = new StreamReader(stream, leaveOpen: true);
-                    string content = sr.ReadToEnd();
-                    if (!int.TryParse(content, out version))
-                    {
-                        version = -1;
-                    }
-                }
-                else
+                string versionText = File.ReadAllText(legacyVersionFilePath);
+                if (!int.TryParse(versionText, out version))
                 {
                     version = -1;
                 }
             }
             catch (Exception ex)
             {
-                Logger.E(TAG, ex);
-                version = -1;
-            }
-
-            if (version < 0)
-            {
-                // New app
-                stream.SetLength(0);
-                stream.Seek(0, SeekOrigin.Begin);
-                using (var sw = new StreamWriter(stream, leaveOpen: true))
-                {
-                    sw.Write(VERSION.ToString());
-                    sw.Flush();
-                }
-
-                version = VERSION;
-            }
-
-            if (version == VERSION)
-            {
-                return;
-            }
-
-            UpgradeDatabaseBeforeInitializationInternal(version);
-
-            stream.SetLength(0);
-            stream.Seek(0, SeekOrigin.Begin);
-            using (var sw = new StreamWriter(stream, leaveOpen: true))
-            {
-                sw.Write(VERSION.ToString());
-                sw.Flush();
+                Logger.F(TAG, ex);
             }
         }
-    }
 
-    public static void UpgradeDatabaseAfterInitialization()
-    {
-        DatabaseVersionModel.ExternalModel databaseVersions = DatabaseVersionModel.Instance.GetModel();
-        List<Func<DatabaseVersionModel.ExternalModel, bool>> tasks = [
-            UpgradeVersionModel,
-            UpgradeKVStore,
-            UpgradeSqliteDatabase,
-            UpgradeFavorites,
-            UpgradeHistory,
-            UpgradeAppSettings,
-        ];
-
-        foreach (Func<DatabaseVersionModel.ExternalModel, bool> task in tasks)
+        if (version < 0)
         {
-            if (task(databaseVersions))
-            {
-                DatabaseVersionModel.Instance.UpdateModel(databaseVersions);
-            }
+            // New app
+            version = DatabaseVersionModel.MainVersion;
         }
-    }
 
-    private static void UpgradeDatabaseBeforeInitializationInternal(int version)
-    {
+        if (version == DatabaseVersionModel.MAIN_VERSION)
+        {
+            return;
+        }
+
         switch (version)
         {
             case 0:
@@ -135,31 +68,63 @@ internal static class DatabaseUpgradeManager
                         StorageLocation.LocalCacheFolderPath);
                 }
 
+                goto case 3;
+            case 3: // 3.4.0
+                {
+                    string oldConfigPath = Path.Combine(StorageLocation.LocalFolderPath, "configs", "1.database_version.json");
+                    if (File.Exists(oldConfigPath))
+                    {
+                        File.Move(
+                            oldConfigPath,
+                            Path.Join(StorageLocation.LocalFolderPath, "Versions.json"),
+                            overwrite: true);
+                    }
+
+                    if (File.Exists(legacyVersionFilePath))
+                    {
+                        File.Delete(legacyVersionFilePath);
+                    }
+
+                    MergeToDirectory(
+                        Path.Combine(StorageLocation.LocalCacheFolderPath, "image_cache"),
+                        Path.Combine(StorageLocation.LocalCacheFolderPath, "ImageCache"));
+                }
                 break;
             default:
                 break;
         }
+
+        DatabaseVersionModel.MainVersion = DatabaseVersionModel.MAIN_VERSION;
     }
 
-    private static bool UpgradeVersionModel(DatabaseVersionModel.ExternalModel versions)
+    public static void UpgradeDatabaseAfterInitialization()
     {
-        if (versions.Version >= DatabaseVersionModel.VERSION)
-        {
-            return false;
-        }
-
-        versions.Version = DatabaseVersionModel.VERSION;
-        return true;
+        UpgradeVersionModel();
+        UpgradeKVStore();
+        UpgradeSqliteDatabase();
+        UpgradeFavorites();
+        UpgradeHistory();
+        UpgradeAppSettings();
     }
 
-    private static bool UpgradeKVStore(DatabaseVersionModel.ExternalModel versions)
+    private static void UpgradeVersionModel()
     {
-        if (versions.KVStoreVersion >= DatabaseVersionModel.KV_STORE_VERSION)
+        if (DatabaseVersionModel.Version >= DatabaseVersionModel.VERSION)
         {
-            return false;
+            return;
         }
 
-        switch (versions.KVStoreVersion)
+        DatabaseVersionModel.Version = DatabaseVersionModel.VERSION;
+    }
+
+    private static void UpgradeKVStore()
+    {
+        if (DatabaseVersionModel.KVStoreVersion >= DatabaseVersionModel.KV_STORE_VERSION)
+        {
+            return;
+        }
+
+        switch (DatabaseVersionModel.KVStoreVersion)
         {
             case 0: // 2.8.1
                 AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).Set(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, false);
@@ -168,53 +133,48 @@ internal static class DatabaseUpgradeManager
                 break;
         }
 
-        versions.KVStoreVersion = DatabaseVersionModel.KV_STORE_VERSION;
-        return true;
+        DatabaseVersionModel.KVStoreVersion = DatabaseVersionModel.KV_STORE_VERSION;
     }
 
-    private static bool UpgradeSqliteDatabase(DatabaseVersionModel.ExternalModel versions)
+    private static void UpgradeSqliteDatabase()
     {
-        if (versions.SqliteDatabaseVersion >= DatabaseVersionModel.SQLITE_DATABASE_VERSION)
+        if (DatabaseVersionModel.SqliteDatabaseVersion >= DatabaseVersionModel.SQLITE_DATABASE_VERSION)
         {
-            return false;
+            return;
         }
 
-        SqliteDB.UpdateDatabase(versions.SqliteDatabaseVersion);
-        versions.SqliteDatabaseVersion = DatabaseVersionModel.SQLITE_DATABASE_VERSION;
-        return true;
+        SqliteDB.UpdateDatabase(DatabaseVersionModel.SqliteDatabaseVersion);
+        DatabaseVersionModel.SqliteDatabaseVersion = DatabaseVersionModel.SQLITE_DATABASE_VERSION;
     }
 
-    private static bool UpgradeFavorites(DatabaseVersionModel.ExternalModel versions)
+    private static void UpgradeFavorites()
     {
-        if (versions.FavoritesVersion >= DatabaseVersionModel.FAVORITES_VERSION)
+        if (DatabaseVersionModel.FavoritesVersion >= DatabaseVersionModel.FAVORITES_VERSION)
         {
-            return false;
+            return;
         }
 
-        versions.FavoritesVersion = DatabaseVersionModel.FAVORITES_VERSION;
-        return true;
+        DatabaseVersionModel.FavoritesVersion = DatabaseVersionModel.FAVORITES_VERSION;
     }
 
-    private static bool UpgradeHistory(DatabaseVersionModel.ExternalModel versions)
+    private static void UpgradeHistory()
     {
-        if (versions.HistoryVersion >= DatabaseVersionModel.HISTORY_VERSION)
+        if (DatabaseVersionModel.HistoryVersion >= DatabaseVersionModel.HISTORY_VERSION)
         {
-            return false;
+            return;
         }
 
-        versions.HistoryVersion = DatabaseVersionModel.HISTORY_VERSION;
-        return true;
+        DatabaseVersionModel.HistoryVersion = DatabaseVersionModel.HISTORY_VERSION;
     }
 
-    private static bool UpgradeAppSettings(DatabaseVersionModel.ExternalModel versions)
+    private static void UpgradeAppSettings()
     {
-        if (versions.AppSettingsVersion >= DatabaseVersionModel.APP_SETTING_VERSION)
+        if (DatabaseVersionModel.AppSettingsVersion >= DatabaseVersionModel.APP_SETTING_VERSION)
         {
-            return false;
+            return;
         }
 
-        versions.AppSettingsVersion = DatabaseVersionModel.APP_SETTING_VERSION;
-        return true;
+        DatabaseVersionModel.AppSettingsVersion = DatabaseVersionModel.APP_SETTING_VERSION;
     }
 
     private static void MergeToDirectory(string sourceDir, string destinationDir)

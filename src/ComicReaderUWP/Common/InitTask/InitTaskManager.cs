@@ -135,7 +135,7 @@ internal class InitTaskManager
     public void InitOnAppLaunch()
     {
         Logger.Initialize();
-        ImageLoader.Initialize(Path.Combine(StorageLocation.LocalCacheFolderPath, "image_cache"), clear: false);
+        ImageLoader.Initialize(Path.Combine(StorageLocation.LocalCacheFolderPath, "ImageCache"), clear: false);
         FocusTracker.Initialize();
         PluginManager.Instance.LoadPlugins();
     }
