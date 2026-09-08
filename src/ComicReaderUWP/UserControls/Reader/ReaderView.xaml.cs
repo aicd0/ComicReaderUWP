@@ -41,13 +41,12 @@ internal partial class ReaderView : UserControl
     private const double DEFAULT_HORIZONTAL_PAGE_SPACING = 100.0;
     private const double DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER = 2.0;
     private const float FORCE_CONTINUOUS_ZOOM_THRESHOLD = 1.05F;
-    private const double AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_CONTINUOUS = 0.001;
-    private const double AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_SEPERATE = 0.0005;
-    private const int AUTO_SCROLL_COMMON_SPEED = 20;
-    private const int AUTO_SCROLL_COMMON_INTERVAL = 10000;
+    private const int AUTO_SCROLL_REF_SPEED = 20;
+    private const double AUTO_SCROLL_REF_VELOCITY = 0.08;
+    private const int AUTO_SCROLL_REF_INTERVAL = 10000;
+    private const double AUTO_SCROLL_REF_DRAG_THRESHOLD = 0.1;
+    private const double AUTO_SCROLL_PANNING_FACTOR = 0.001;
     private const double AUTO_SCROLL_DUAL_FRAME_MULTIPLIER = 1.8;
-    private const double AUTO_SCROLL_COMMON_START_THRESHOLD = 0.1;
-    private const double AUTO_SCROLL_COMMON_DEFAULT_VELOCITY = 0.05;
 
     #endregion
 
@@ -376,7 +375,13 @@ internal partial class ReaderView : UserControl
     public void SetPage(double page)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(page);
-        SetPage(page, "SetPage", ScrollSource.UserPrecise);
+        SetPage(page, "SetPage", ScrollSource.User, isPrecise: true);
+    }
+
+    public void SetInitialPage(double page)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(page);
+        SetPage(page, "SetInitialPage", ScrollSource.Programmatic, isPrecise: true);
     }
 
     public void SetFrameIndex(int frameIndex)
@@ -389,7 +394,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        SetPage(_frameItemsSource[frameIndex].Page, "SetFrameIndex", ScrollSource.UserPrecise);
+        SetPage(_frameItemsSource[frameIndex].Page, "SetFrameIndex", ScrollSource.User, isPrecise: true);
     }
 
     public void SetAutoScrollSpeed(int speed)
@@ -1599,7 +1604,7 @@ internal partial class ReaderView : UserControl
         bool forwardDirection = (_isVertical || _isLeftToRight) ? double.IsNegative(v) : double.IsPositive(v);
         if (IsAutoScrollEnabled && _isContinuous && inertia && forwardDirection)
         {
-            double threshold = _maxLinearVelocity * AUTO_SCROLL_COMMON_START_THRESHOLD * _autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
+            double threshold = _maxLinearVelocity * AUTO_SCROLL_REF_DRAG_THRESHOLD * _autoScrollSpeed / AUTO_SCROLL_REF_SPEED;
             if (Math.Abs(v) < threshold)
             {
                 _gestureRecognizer.CompleteGesture();
@@ -1892,18 +1897,9 @@ internal partial class ReaderView : UserControl
         double velocityY = point.Y - _middleButtonAutoScrollOrigin.Y;
         double parallelVelocity = _isVertical ? velocityY : (_isLeftToRight ? velocityX : -velocityX);
         double perpendicularVelocity = _isVertical ? velocityX : velocityY;
-        parallelVelocity *= (double)_autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
-        if (_isContinuous)
-        {
-            parallelVelocity *= AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_CONTINUOUS;
-            perpendicularVelocity *= AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_CONTINUOUS;
-        }
-        else
-        {
-            parallelVelocity *= AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_SEPERATE;
-            perpendicularVelocity *= AUTO_SCROLL_PANNING_VELOCITY_MULTIPLIER_SEPERATE;
-        }
-
+        parallelVelocity *= (double)_autoScrollSpeed / AUTO_SCROLL_REF_SPEED;
+        parallelVelocity *= AUTO_SCROLL_PANNING_FACTOR;
+        perpendicularVelocity *= AUTO_SCROLL_PANNING_FACTOR;
         StartAutoScrollingInternal(parallelVelocity, perpendicularVelocity);
     }
 
@@ -1926,27 +1922,14 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        double velocityValue;
-        if (_isContinuous)
-        {
-            velocity ??= _internalDB?.AutoScrollVelocity;
-            if (velocity.HasValue)
-            {
-                velocityValue = velocity.Value;
-            }
-            else
-            {
-                velocityValue = AUTO_SCROLL_COMMON_DEFAULT_VELOCITY * _autoScrollSpeed / AUTO_SCROLL_COMMON_SPEED;
-            }
+        double finalVelocity = AUTO_SCROLL_REF_VELOCITY * _autoScrollSpeed / AUTO_SCROLL_REF_SPEED;
 
-            _internalDB?.AutoScrollVelocity = velocityValue;
-        }
-        else
+        if (velocity.HasValue)
         {
-            velocityValue = 1000.0 * _autoScrollSpeed / ((double)AUTO_SCROLL_COMMON_INTERVAL * AUTO_SCROLL_COMMON_SPEED);
+            finalVelocity = velocity.Value;
         }
 
-        StartAutoScrollingInternal(velocityValue, 0);
+        StartAutoScrollingInternal(finalVelocity, 0);
     }
 
     private void StopAutoScrolling()
@@ -1982,7 +1965,7 @@ internal partial class ReaderView : UserControl
                 return;
             }
 
-            if (_stopAutoScrollingRequested || !IsAutoScrollEnabled || !_isLoaded || isContinuous != _isContinuous)
+            if (_stopAutoScrollingRequested || !IsAutoScrollEnabled || !_isLoaded)
             {
                 timer.Stop();
                 _isAutoScrolling = false;
@@ -1991,6 +1974,13 @@ internal partial class ReaderView : UserControl
                 UpdateReaderStatusText();
                 ReaderEventAutoScrollingChanged?.Invoke(this, false);
                 return;
+            }
+
+            if (isContinuous != _isContinuous)
+            {
+                isContinuous = _isContinuous;
+                lastTick = 0;
+                UpdateReaderStatusText();
             }
 
             long currentTime = GetTicks();
@@ -2012,7 +2002,7 @@ internal partial class ReaderView : UserControl
             }
             else
             {
-                double targetDelay = 1000.0 / Math.Abs(_autoScrollParallelVelocity); // (0, PositiveInfinite)
+                double targetDelay = AUTO_SCROLL_REF_VELOCITY * AUTO_SCROLL_REF_INTERVAL / Math.Abs(_autoScrollParallelVelocity); // (0, PositiveInfinite)
 
                 int frameIndex = SCCurrentFrameIndexFinal;
                 if (frameIndex >= 0 && frameIndex < _frameItemsSource.Count)
@@ -2339,7 +2329,7 @@ internal partial class ReaderView : UserControl
         _finalValueSynced = false;
     }
 
-    private void SetPage(double page, string reason, ScrollSource source)
+    private void SetPage(double page, string reason, ScrollSource source, bool isPrecise = false)
     {
         _initialPage = Math.Max(0.5, page);
 
@@ -2367,7 +2357,7 @@ internal partial class ReaderView : UserControl
             return;
         }
 
-        SetScrollViewer2(reason, source, page: page);
+        SetScrollViewer2(reason, source, page: page, isPrecise: isPrecise);
     }
 
     private void MoveFrameByUser(string reason, int increment)
@@ -2402,6 +2392,11 @@ internal partial class ReaderView : UserControl
         {
             if (_isLastFrameLoaded)
             {
+                if (source == ScrollSource.User)
+                {
+                    OnUserScroll();
+                }
+
                 DispatchOverScrollEvent(true);
             }
 
@@ -2410,6 +2405,11 @@ internal partial class ReaderView : UserControl
 
         if (targetFrame < 0)
         {
+            if (source == ScrollSource.User)
+            {
+                OnUserScroll();
+            }
+
             DispatchOverScrollEvent(false);
             return;
         }
@@ -2447,7 +2447,8 @@ internal partial class ReaderView : UserControl
         ZoomType zoomType = ZoomType.CenterInside,
         double? page = null,
         bool applyParallelOffset = true,
-        bool disableAnimation = true)
+        bool disableAnimation = true,
+        bool isPrecise = false)
     {
         double? horizontalOffset = null;
         double? verticalOffset = null;
@@ -2489,6 +2490,7 @@ internal partial class ReaderView : UserControl
             VerticalOffset = verticalOffset,
             DisableAnimation = disableAnimation,
             IgnoreTooClose = _isViewChanging,
+            IsPrecise = isPrecise,
         }, reason);
     }
 
@@ -2577,12 +2579,11 @@ internal partial class ReaderView : UserControl
         Logger.Assert(double.IsFinite(request.HorizontalOffset ?? 0), "4FD89F79946B8D03");
         Logger.Assert(double.IsFinite(request.VerticalOffset ?? 0), "6678A0ED7D2FEB43");
 
-        if (request.Source == ScrollSource.User || request.Source == ScrollSource.UserPrecise)
-        {
-            _isPreciseScrolling = request.Source == ScrollSource.UserPrecise;
+        _isPreciseScrolling = request.IsPrecise;
 
-            // User interaction cancels auto scrolling
-            StopAutoScrolling();
+        if (request.Source == ScrollSource.User)
+        {
+            OnUserScroll();
         }
 
         SetScrollViewerZoom(request, context);
@@ -2996,6 +2997,12 @@ internal partial class ReaderView : UserControl
         return Math.Max(padding, 0);
     }
 
+    private void OnUserScroll()
+    {
+        // User interaction cancels auto scrolling
+        StopAutoScrolling();
+    }
+
     #endregion
 
     #region Offset Calculator
@@ -3175,7 +3182,7 @@ internal partial class ReaderView : UserControl
             text = StringResourceProvider.Instance.Auto;
             if (!_isContinuous)
             {
-                double targetDelay = 1.0 / Math.Abs(_autoScrollParallelVelocity);
+                double targetDelay = AUTO_SCROLL_REF_VELOCITY * AUTO_SCROLL_REF_INTERVAL * 0.001 / Math.Abs(_autoScrollParallelVelocity);
                 targetDelay = Math.Round(targetDelay, 1, MidpointRounding.AwayFromZero);
                 text += $" ({targetDelay:0.#}s)";
             }
@@ -3434,7 +3441,6 @@ internal partial class ReaderView : UserControl
     private enum ScrollSource
     {
         User,
-        UserPrecise,
         Programmatic,
         AutoScroll,
     }
@@ -3481,6 +3487,7 @@ internal partial class ReaderView : UserControl
         public bool DisableAnimation = false;
 
         // Options
+        public bool IsPrecise = false;
         public bool IgnoreTooClose = false;
     }
 
