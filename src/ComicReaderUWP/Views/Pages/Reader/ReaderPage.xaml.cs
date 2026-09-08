@@ -334,7 +334,7 @@ internal sealed partial class ReaderPage : BasePage
         ViewModel.ReaderLoadingInfoLiveData.ObserveSticky(this, info =>
         {
             MainReaderView.SetConfigurationDatabase(new ReaderConfigDatabase());
-            MainReaderView.SetPage(info.InitialPage);
+            MainReaderView.SetInitialPage(info.InitialPage);
             MainReaderView.StartLoadingImages(info.Images);
         });
 

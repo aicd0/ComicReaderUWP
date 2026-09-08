@@ -8,7 +8,6 @@ internal class ReaderViewDatabase(ReaderView.IConfigurationDatabase db)
     private const string KEY_CENTER_INSIDE_ZOOMING = "CenterInsideZooming";
     private const string KEY_VERTICAL_ZOOMING = "VerticalZooming";
     private const string KEY_HORIZONTAL_ZOOMING = "HorizontalZooming";
-    private const string KEY_AUTO_SCROLL_VELOCITY = "AutoScrollVelocity";
 
     private bool _initialized = false;
 
@@ -72,26 +71,6 @@ internal class ReaderViewDatabase(ReaderView.IConfigurationDatabase db)
         }
     }
 
-    private double? _autoScrollVelocity = null;
-    public double? AutoScrollVelocity
-    {
-        get
-        {
-            Initialize();
-            return _autoScrollVelocity;
-        }
-        set
-        {
-            if (_autoScrollVelocity == value)
-            {
-                return;
-            }
-
-            _autoScrollVelocity = value;
-            Write(KEY_AUTO_SCROLL_VELOCITY, _autoScrollVelocity?.ToString() ?? "");
-        }
-    }
-
     private void Initialize()
     {
         if (_initialized)
@@ -103,7 +82,6 @@ internal class ReaderViewDatabase(ReaderView.IConfigurationDatabase db)
         _centerInsideZooming = ParseDouble(Read(KEY_CENTER_INSIDE_ZOOMING));
         _fitWidthDualAwareZooming = ParseDouble(Read(KEY_VERTICAL_ZOOMING));
         _fitHeightZooming = ParseDouble(Read(KEY_HORIZONTAL_ZOOMING));
-        _autoScrollVelocity = ParseDouble(Read(KEY_AUTO_SCROLL_VELOCITY));
     }
 
     private string? Read(string key)
