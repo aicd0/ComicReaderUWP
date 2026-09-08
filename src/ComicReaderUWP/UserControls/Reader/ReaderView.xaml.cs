@@ -1433,6 +1433,7 @@ internal partial class ReaderView : UserControl
     private bool _pointerDown = false;
     private bool _isInInertiaTranslation = false;
     private PointerPoint? _initiatePointerPoint;
+    private PointerPoint? _lastPointerPoint;
 
     private void OnReaderPointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -1442,12 +1443,6 @@ internal partial class ReaderView : UserControl
 
     private void OnReaderPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppSettingsModel.Instance.AutoHideCursor)
-        {
-            ShowCursor();
-            HideCursorDelayed(3000);
-        }
-
         OnReaderPointerEvent(PointerEventType.Moved, e);
     }
 
@@ -1466,6 +1461,9 @@ internal partial class ReaderView : UserControl
     private void OnReaderPointerEvent(PointerEventType type, PointerRoutedEventArgs e)
     {
         PointerPoint pointerPoint = e.GetCurrentPoint(_gestureReference);
+        PointerPoint? lastPointerPoint = _lastPointerPoint;
+        _lastPointerPoint = pointerPoint;
+
         switch (type)
         {
             case PointerEventType.Pressed:
@@ -1481,17 +1479,26 @@ internal partial class ReaderView : UserControl
                     _initiatePointerPoint = null; // Suppress future events
                     StopMiddleButtonAutoScrolling();
                 }
-                break;
 
+                break;
             case PointerEventType.Moved:
+                if (lastPointerPoint?.Position == pointerPoint.Position)
+                {
+                    return;
+                }
+
+                if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppSettingsModel.Instance.AutoHideCursor)
+                {
+                    ShowCursor();
+                    HideCursorDelayed(3000);
+                }
+
                 UpdateMiddleButtonAutoScrolling(pointerPoint.Position);
                 break;
-
             case PointerEventType.Released:
             case PointerEventType.Cancelled:
                 _pointerDown = false;
                 break;
-
             default:
                 break;
         }
@@ -1514,6 +1521,7 @@ internal partial class ReaderView : UserControl
                         IList<PointerPoint> points = e.GetIntermediatePoints(_gestureReference);
                         _gestureRecognizer.ProcessMoveEvents(points);
                     }
+
                     break;
                 case PointerEventType.Released:
                 case PointerEventType.Cancelled:
@@ -1522,6 +1530,7 @@ internal partial class ReaderView : UserControl
                     {
                         _gestureRecognizer.CompleteGesture();
                     }
+
                     break;
                 default:
                     break;
