@@ -938,17 +938,23 @@ internal partial class ReaderView : UserControl
                 }
             }
 
-            double verticalPadding = DEFAULT_VERTICAL_PAGE_SPACING;
-            double horizontalPadding = DEFAULT_HORIZONTAL_PAGE_SPACING;
-            verticalPadding = _isVertical ? verticalPadding : 0;
-            horizontalPadding = _isVertical ? 0 : horizontalPadding;
+            double verticalPadding = _isVertical ? DEFAULT_VERTICAL_PAGE_SPACING : 0;
+            double horizontalPadding = _isVertical ? 0 : DEFAULT_HORIZONTAL_PAGE_SPACING;
             verticalPadding *= _pageSpacing / 100.0;
             horizontalPadding *= _pageSpacing / 100.0;
 
-            double thisImageWidth = 0;
-            double thisImageHeight = 0;
-            double neighbourImageWidth = 0;
-            double neighbourImageHeight = 0;
+            double defaultWidth = DEFAULT_IMAGE_SIDE_LENGTH;
+            double defaultHeight = DEFAULT_IMAGE_SIDE_LENGTH;
+            if (isDoubleWidth)
+            {
+                defaultWidth *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
+            }
+
+            double thisImageWidth;
+            double thisImageHeight;
+            double neighbourImageWidth;
+            double neighbourImageHeight;
+
             if (_useOriginalSize)
             {
                 double totalWidth = pageModel.OriginalWidth;
@@ -961,17 +967,25 @@ internal partial class ReaderView : UserControl
 
                 if (totalWidth < 1 || maxHeight < 1)
                 {
-                    verticalPadding = 0;
-                    horizontalPadding = 0;
+                    thisImageWidth = defaultWidth;
+                    thisImageHeight = defaultHeight;
+                    neighbourImageWidth = 0;
+                    neighbourImageHeight = 0;
                 }
                 else
                 {
                     thisImageWidth = pageModel.OriginalWidth;
                     thisImageHeight = pageModel.OriginalHeight;
+
                     if (neighbourModel is not null)
                     {
                         neighbourImageWidth = neighbourModel.OriginalWidth;
                         neighbourImageHeight = neighbourModel.OriginalHeight;
+                    }
+                    else
+                    {
+                        neighbourImageWidth = 0;
+                        neighbourImageHeight = 0;
                     }
                 }
             }
@@ -983,26 +997,27 @@ internal partial class ReaderView : UserControl
                     aspectRatio += neighbourModel.AspectRatio;
                 }
 
-                if (aspectRatio < 1e-3)
+                if (aspectRatio < 1E-3)
                 {
-                    verticalPadding = 0;
-                    horizontalPadding = 0;
+                    thisImageWidth = defaultWidth;
+                    thisImageHeight = defaultHeight;
+                    neighbourImageWidth = 0;
+                    neighbourImageHeight = 0;
                 }
                 else
                 {
-                    double defaultWidth = DEFAULT_IMAGE_SIDE_LENGTH;
-                    double defaultHeight = DEFAULT_IMAGE_SIDE_LENGTH;
-                    if (isDoubleWidth)
-                    {
-                        defaultWidth *= DUAL_FRAME_DEFAULT_WIDTH_MULTIPLIER;
-                    }
-
                     thisImageHeight = _isVertical ? defaultWidth / aspectRatio : defaultHeight;
                     thisImageWidth = thisImageHeight * pageModel.AspectRatio;
+
                     if (neighbourModel is not null)
                     {
                         neighbourImageHeight = thisImageHeight;
                         neighbourImageWidth = thisImageHeight * neighbourModel.AspectRatio;
+                    }
+                    else
+                    {
+                        neighbourImageWidth = 0;
+                        neighbourImageHeight = 0;
                     }
                 }
             }
