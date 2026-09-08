@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Misc;
-using ComicReaderUWP.Core.Database.Misc;
+using ComicReaderUWP.Core.Database.JSON;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
@@ -34,7 +34,7 @@ class FavoriteModel : JsonDatabase<FavoriteModel.JsonModel>
 
     public static readonly FavoriteModel Instance = new();
 
-    private FavoriteModel() : base("favorites.json") { }
+    private FavoriteModel() : base(new SimpleConfigDatabaseLayer("favorites.json")) { }
 
     protected override JsonModel InitializeModel(JsonModel? model)
     {

@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
-using ComicReaderUWP.Core.Database.Misc;
+using ComicReaderUWP.Core.Database.JSON;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
@@ -30,7 +30,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
     public static readonly ComicFilterModel Instance = new();
 
-    private ComicFilterModel() : base("filters.json") { }
+    private ComicFilterModel() : base(new SimpleConfigDatabaseLayer("filters.json")) { }
 
     protected override JsonModel InitializeModel(JsonModel? model)
     {

@@ -4,11 +4,10 @@
 using System.Text.Json;
 
 using ComicReaderUWP.Core.Common.DebugTools;
-using ComicReaderUWP.Core.Common.Threading;
 
-namespace ComicReaderUWP.Core.Database.Misc;
+namespace ComicReaderUWP.Core.Database.JSON;
 
-public abstract class JsonDatabase<T>(string fileName) where T : class
+public abstract class JsonDatabase<T>(IConfigBackingLayer backingLayer) where T : class
 {
     private const string TAG = nameof(JsonDatabase<>);
 
@@ -20,27 +19,25 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
 
     private static readonly JsonSerializerOptions _cloneSerializerOptions = new();
 
-    private readonly string _fileName = fileName;
-    private readonly ITaskDispatcher _queue = TaskDispatcher.Factory.NewQueue($"{nameof(JsonDatabase<>)}#{fileName}");
-
+    private readonly IConfigBackingLayer _backingLayer = backingLayer;
     private readonly Lock _lock = new();
     private volatile T? _jsonModel;
 
     protected abstract T InitializeModel(T? model);
 
-    protected void Read(Action<T> action)
+    public void Read(Action<T> action)
     {
         T jsonModel = Initialize();
         action(jsonModel);
     }
 
-    protected R Read<R>(Func<T, R> func)
+    public R Read<R>(Func<T, R> func)
     {
         T jsonModel = Initialize();
         return func(jsonModel);
     }
 
-    protected void Write(Action<T> action)
+    public void Write(Action<T> action)
     {
         T jsonModel = Initialize();
         lock (_lock)
@@ -51,7 +48,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
         }
     }
 
-    protected R Write<R>(Func<T, R> func)
+    public R Write<R>(Func<T, R> func)
     {
         T jsonModel = Initialize();
         lock (_lock)
@@ -63,7 +60,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
         }
     }
 
-    protected void Write(T model)
+    public void Write(T model)
     {
         ArgumentNullException.ThrowIfNull(model, nameof(model));
 
@@ -74,13 +71,10 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
         }
     }
 
-    protected void Save()
+    public void Save()
     {
         string json = Read(model => JsonSerializer.Serialize(model, _saveSerializerOptions));
-        _queue.Submit(() =>
-        {
-            SimpleConfigDatabase.Instance.TryPutConfig(_fileName, json);
-        });
+        _backingLayer.WriteConfig(json);
     }
 
     private T Initialize()
@@ -100,7 +94,7 @@ public abstract class JsonDatabase<T>(string fileName) where T : class
                 return jsonModel;
             }
 
-            string? json = SimpleConfigDatabase.Instance.TryGetConfig(_fileName);
+            string? json = _backingLayer.ReadConfig();
             if (!string.IsNullOrEmpty(json))
             {
                 try

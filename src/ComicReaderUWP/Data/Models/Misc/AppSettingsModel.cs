@@ -11,7 +11,7 @@ using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
-using ComicReaderUWP.Core.Database.Misc;
+using ComicReaderUWP.Core.Database.JSON;
 using ComicReaderUWP.Data.Database;
 
 using Windows.Globalization;
@@ -366,7 +366,7 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     // Constructor
     //
 
-    private AppSettingsModel() : base("settings.json") { }
+    private AppSettingsModel() : base(new SimpleConfigDatabaseLayer("settings.json")) { }
 
     protected override JsonModel InitializeModel(JsonModel? model)
     {
