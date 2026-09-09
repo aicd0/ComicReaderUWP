@@ -105,25 +105,25 @@ internal partial class ImageSourceSettingsViewModel : INotifyPropertyChanged
     public void SetScanOnLaunch(bool scanOnLaunch)
     {
         _scanOnLaunch = scanOnLaunch;
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
         model.ScanOnLaunch = scanOnLaunch;
-        AppSettingsModel.Instance.UpdateModel(model);
+        AppSettingsModel.UpdateModel(model);
     }
 
     public void SetRemoveUnreachableComics(bool removeUnreachableComics)
     {
         _removeUnreachableComics = removeUnreachableComics;
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
         model.RemoveUnreachableComics = removeUnreachableComics;
-        AppSettingsModel.Instance.UpdateModel(model);
+        AppSettingsModel.UpdateModel(model);
     }
 
     public void SetPromptBeforeRemovingComics(bool promptBeforeRemovingComics)
     {
         _promptBeforeRemovingComics = promptBeforeRemovingComics;
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
         model.PromptBeforeRemovingComics = promptBeforeRemovingComics;
-        AppSettingsModel.Instance.UpdateModel(model);
+        AppSettingsModel.UpdateModel(model);
     }
 
     public void SetDefaultArchiveCodePage(int index)
@@ -134,7 +134,7 @@ internal partial class ImageSourceSettingsViewModel : INotifyPropertyChanged
         }
 
         _defaultArchiveCodePageIndex = index;
-        AppSettingsModel.Instance.DefaultArchiveCodePage = _encodings[index].Item2;
+        AppSettingsModel.DefaultArchiveCodePage = _encodings[index].Item2;
     }
 
     private void Update()
@@ -145,7 +145,7 @@ internal partial class ImageSourceSettingsViewModel : INotifyPropertyChanged
 
     private void UpdateBasic()
     {
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
         bool scanOnLaunch = model.ScanOnLaunch;
         bool removeUnreachableComics = model.RemoveUnreachableComics;
         bool promptBeforeRemovingComics = model.PromptBeforeRemovingComics;
@@ -162,7 +162,7 @@ internal partial class ImageSourceSettingsViewModel : INotifyPropertyChanged
         {
             new(StringResourceProvider.Instance.Default, -1)
         };
-        int defaultCodePage = AppSettingsModel.Instance.DefaultArchiveCodePage;
+        int defaultCodePage = AppSettingsModel.DefaultArchiveCodePage;
         int selectedIndex = 0;
         foreach (Encoding info in supportedEncodings.Values)
         {
@@ -175,7 +175,7 @@ internal partial class ImageSourceSettingsViewModel : INotifyPropertyChanged
         }
         if (!supportedEncodings.ContainsKey(defaultCodePage))
         {
-            AppSettingsModel.Instance.DefaultArchiveCodePage = -1;
+            AppSettingsModel.DefaultArchiveCodePage = -1;
             selectedIndex = 0;
         }
 

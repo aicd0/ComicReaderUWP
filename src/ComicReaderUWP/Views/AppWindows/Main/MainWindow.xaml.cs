@@ -352,7 +352,7 @@ internal sealed partial class MainWindow : Window
                 DebugUtils.ReportLastCrash();
             }
 
-            if (AppSettingsModel.Instance.GetModel().ScanOnLaunch)
+            if (AppSettingsModel.GetModel().ScanOnLaunch)
             {
                 // Update comic library
                 // This operation is deferred to here because it may involve dialog displaying which requires a loaded window

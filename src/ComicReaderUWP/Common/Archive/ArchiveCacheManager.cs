@@ -28,7 +28,7 @@ internal static class ArchiveCacheManager
     private static readonly ConcurrentDictionary<string, bool> sFailedKeys = new();
 
     private static string CacheDirectoryPath => Path.Combine(StorageLocation.LocalCacheFolderPath, CACHE_FOLDER_NAME);
-    private static bool IsEnabled => AppSettingsModel.Instance.EnableCompressedFileCache;
+    private static bool IsEnabled => AppSettingsModel.EnableCompressedFileCache;
 
     public static Stream? GetOrCreate(string basePath, string subPath, SharpCompress.Archives.IArchive archive)
     {

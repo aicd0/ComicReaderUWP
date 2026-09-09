@@ -102,7 +102,7 @@ internal sealed partial class ReaderPage : BasePage
         GetMainPageAbility().SetCustomCenteredNavigationBar(_readerNavigationBar);
 
         // Initialize views
-        MainReaderView.OverScrollEnabled = AppSettingsModel.Instance.AutoSwitch;
+        MainReaderView.OverScrollEnabled = AppSettingsModel.AutoSwitch;
         _readerNavigationBar.Initialize(GetMainWindowAbility());
         ViewModel.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
 
@@ -180,7 +180,7 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.UpdateFavoriteStatus();
         });
 
-        AppSettingsModel.Instance.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ =>
+        AppSettingsModel.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ =>
         {
             UpdateDisplayStatus();
         });
@@ -228,7 +228,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             BottomGrid.Opacity = opacity;
 
-            bool autoToggleOverlaysOnCursor = AppSettingsModel.Instance.AutoToggleOverlaysOnCursor;
+            bool autoToggleOverlaysOnCursor = AppSettingsModel.AutoToggleOverlaysOnCursor;
             BottomGrid.IsHitTestVisible = autoToggleOverlaysOnCursor || opacity >= 0.5;
             GetMainPageAbility().SetHiddenOverlayHitTestVisibility(autoToggleOverlaysOnCursor);
         });
@@ -797,7 +797,7 @@ internal sealed partial class ReaderPage : BasePage
     private void UpdateDisplayStatus()
     {
         bool minimized = GetMainWindowAbility().IsMinimized;
-        AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.Instance.KeepScreenOnBehavior;
+        AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.KeepScreenOnBehavior;
         bool active = !minimized && IsResumed && behavior switch
         {
             AppSettingsModel.KeepScreenOnBehaviorEnum.Never => false,
@@ -859,7 +859,7 @@ internal sealed partial class ReaderPage : BasePage
 
         _shouldOverlayVisible = shouldOverlayVisible;
 
-        if (AppSettingsModel.Instance.AutoToggleOverlaysOnCursor)
+        if (AppSettingsModel.AutoToggleOverlaysOnCursor)
         {
             if (shouldOverlayVisible)
             {
@@ -1066,7 +1066,7 @@ internal sealed partial class ReaderPage : BasePage
                 IsChecked = autoSwitch,
                 Click = () =>
                 {
-                    AppSettingsModel.Instance.AutoSwitch = !autoSwitch;
+                    AppSettingsModel.AutoSwitch = !autoSwitch;
                     MainReaderView.OverScrollEnabled = !autoSwitch;
                 },
             });

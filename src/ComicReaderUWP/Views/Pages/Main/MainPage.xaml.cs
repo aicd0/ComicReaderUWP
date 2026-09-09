@@ -609,7 +609,7 @@ internal sealed partial class MainPage : BasePage
 
         if (_tabs.Count == 1)
         {
-            switch (AppSettingsModel.Instance.CloseLastTabBehavior)
+            switch (AppSettingsModel.CloseLastTabBehavior)
             {
                 case AppSettingsModel.CloseLastTabBehaviorEnum.CloseWindow:
                     break;

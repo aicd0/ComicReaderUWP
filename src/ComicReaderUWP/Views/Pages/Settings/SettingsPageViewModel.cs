@@ -145,9 +145,9 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         AppearanceChanged = true;
         BackgroundEntry selectedBackground = _backgrounds[index];
         _backgroundIndex = index;
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
         model.Background = selectedBackground.Value;
-        AppSettingsModel.Instance.UpdateModel(model);
+        AppSettingsModel.UpdateModel(model);
     }
 
     public void SetAppLanguage(int index)
@@ -160,7 +160,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         LanguageEntry selectedLanguage = _languages[index];
         _languageIndex = index;
         LanguageChanged = true;
-        AppSettingsModel.Instance.Language = selectedLanguage.Identifier;
+        AppSettingsModel.Language = selectedLanguage.Identifier;
     }
 
     public void SetAppearance(int index)
@@ -179,9 +179,9 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
             _ => AppSettingsModel.AppearanceSetting.UseSystemSetting,
         };
         AppearanceChanged = true;
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
         model.Theme = appearance;
-        AppSettingsModel.Instance.UpdateModel(model);
+        AppSettingsModel.UpdateModel(model);
     }
 
     public void UpdateStatistics()
@@ -207,7 +207,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void UpdateBackground()
     {
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
 
         AppSettingsModel.AppBackgroundEnum background = model.Background;
         List<BackgroundEntry> backgrounds = [
@@ -241,7 +241,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         LanguageEntry useSystemLanguage = new(StringResourceProvider.Instance.UseSystemLanguage, string.Empty);
         languages.Insert(0, useSystemLanguage);
 
-        string currentLanguage = AppSettingsModel.Instance.Language;
+        string currentLanguage = AppSettingsModel.Language;
         int selectedIndex = -1;
         for (int i = 0; i < languages.Count; i++)
         {
@@ -263,7 +263,7 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void UpdateAppearance()
     {
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
 
         AppSettingsModel.AppearanceSetting appearance = model.Theme;
         if (!Enum.IsDefined(appearance))

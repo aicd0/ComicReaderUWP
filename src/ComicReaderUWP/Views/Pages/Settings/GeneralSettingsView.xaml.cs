@@ -45,7 +45,7 @@ internal sealed partial class GeneralSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            AppSettingsModel.Instance.SaveBrowsingHistory = isChecked.Value;
+            AppSettingsModel.SaveBrowsingHistory = isChecked.Value;
         }
     }
 
@@ -54,7 +54,7 @@ internal sealed partial class GeneralSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            AppSettingsModel.Instance.EnableCompressedFileCache = isChecked.Value;
+            AppSettingsModel.EnableCompressedFileCache = isChecked.Value;
         }
     }
 }

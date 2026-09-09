@@ -707,7 +707,7 @@ internal class ComicPropertyModel
                     }
                 case ComicFilterModel.OrderMethodEnum.ShuffleStable:
                     {
-                        var rng = new Random(AppSettingsModel.Instance.GetModel().ComicShuffleRandomSeed);
+                        var rng = new Random(AppSettingsModel.GetModel().ComicShuffleRandomSeed);
                         int salt = rng.Next();
                         return [.. items.OrderBy(x => IdSelector(selector(x)) ^ salt)];
                     }

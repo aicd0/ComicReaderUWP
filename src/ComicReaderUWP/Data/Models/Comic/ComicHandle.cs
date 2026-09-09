@@ -438,7 +438,7 @@ internal abstract partial class ComicHandle
 
     private static async Task RescanLibraryInternal()
     {
-        AppSettingsModel.ExternalModel appSettings = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel appSettings = AppSettingsModel.GetModel();
         bool comicUpdatedSinceLastBroadcast = false;
 
         // Get all locations from database

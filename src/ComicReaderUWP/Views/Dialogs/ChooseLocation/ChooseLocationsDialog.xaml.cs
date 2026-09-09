@@ -41,7 +41,7 @@ public sealed partial class ChooseLocationsDialog : BaseContentDialog
             IsAddNew = true
         });
 
-        foreach (string folder in AppSettingsModel.Instance.GetModel().ComicFolders)
+        foreach (string folder in AppSettingsModel.GetModel().ComicFolders)
         {
             FolderItemDataSource.Add(new FolderItemViewModel
             {
@@ -77,7 +77,7 @@ public sealed partial class ChooseLocationsDialog : BaseContentDialog
                 {
                     return;
                 }
-                AppSettingsModel.Instance.AddComicFolder(folder.Path);
+                AppSettingsModel.AddComicFolder(folder.Path);
                 Update();
             }
             finally
@@ -97,7 +97,7 @@ public sealed partial class ChooseLocationsDialog : BaseContentDialog
         try
         {
             var item = (FolderItemViewModel)((Grid)sender).DataContext;
-            AppSettingsModel.Instance.RemoveComicFolder(item.Folder);
+            AppSettingsModel.RemoveComicFolder(item.Folder);
             Update();
         }
         finally

@@ -473,7 +473,7 @@ internal static class ArchiveManager
     private static SharpCompress.Readers.ReaderOptions CreateReaderOptions(string extensionHint)
     {
         SharpCompress.Common.IArchiveEncoding? archiveEncoding = null;
-        int defaultCodePage = AppSettingsModel.Instance.DefaultArchiveCodePage;
+        int defaultCodePage = AppSettingsModel.DefaultArchiveCodePage;
         if (defaultCodePage > 0)
         {
             try

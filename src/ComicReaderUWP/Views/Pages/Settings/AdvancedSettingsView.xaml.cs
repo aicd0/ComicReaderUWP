@@ -66,7 +66,7 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
     private void SendUsageDataToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
         bool sendUsageData = ((ToggleSwitch)sender).IsOn;
-        AppSettingsModel.Instance.SendUsageData = sendUsageData;
+        AppSettingsModel.SendUsageData = sendUsageData;
     }
 
     private void OnClearCacheClick(object sender, RoutedEventArgs e)
@@ -113,7 +113,7 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
             DialogResult result = await DialogUtils.EnqueueDialogAsync(ViewModel.Shared.WindowId, options);
             if (result == DialogResult.Primary)
             {
-                AppSettingsModel.Instance.Reset();
+                AppSettingsModel.Reset();
                 ViewModel.Shared.Update();
             }
         });

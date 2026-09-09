@@ -499,7 +499,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
     private MenuFlyout CreatePresetContextMenu(ReaderSettingsModel comicSettings)
     {
         List<Tuple<string, string>> presets = [];
-        foreach (KeyValuePair<string, ReaderSettingsModel> kvp in AppSettingsModel.Instance.ReaderSettingPresets)
+        foreach (KeyValuePair<string, ReaderSettingsModel> kvp in AppSettingsModel.ReaderSettingPresets)
         {
             presets.Add(new Tuple<string, string>(kvp.Value.PresetName, kvp.Key));
         }

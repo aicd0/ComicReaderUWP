@@ -196,7 +196,7 @@ internal class InitTaskManager
 
     private static void InitializeAppTheme()
     {
-        AppSettingsModel.AppearanceSetting themeSetting = AppSettingsModel.Instance.GetModel().Theme;
+        AppSettingsModel.AppearanceSetting themeSetting = AppSettingsModel.GetModel().Theme;
         switch (themeSetting)
         {
             case AppSettingsModel.AppearanceSetting.Light:
@@ -214,7 +214,7 @@ internal class InitTaskManager
     {
         if (EnvironmentProvider.IsPortable())
         {
-            string languageTag = AppSettingsModel.Instance.Language;
+            string languageTag = AppSettingsModel.Language;
             if (string.IsNullOrEmpty(languageTag))
             {
                 languageTag = EnvironmentProvider.GetCurrentSystemLanguage();
