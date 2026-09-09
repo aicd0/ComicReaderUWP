@@ -94,9 +94,9 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
 
     public void RefreshRandomSeed()
     {
-        AppSettingsModel.ExternalModel model = AppSettingsModel.Instance.GetModel();
+        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
         model.ComicShuffleRandomSeed = Random.Shared.Next();
-        AppSettingsModel.Instance.UpdateModel(model);
+        AppSettingsModel.UpdateModel(model);
     }
 
     private void Update()
@@ -109,7 +109,7 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
     {
         CoroutineUtils.RunInMainThread(() =>
         {
-            SendUsageData = AppSettingsModel.Instance.SendUsageData;
+            SendUsageData = AppSettingsModel.SendUsageData;
         });
     }
 

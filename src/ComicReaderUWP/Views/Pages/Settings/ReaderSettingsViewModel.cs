@@ -151,7 +151,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
 
         _preloadPagesAfter = value;
-        AppSettingsModel.Instance.PreloadPagesAfter = value;
+        AppSettingsModel.PreloadPagesAfter = value;
     }
 
     public void SetPreloadPagesBefore(int value)
@@ -162,7 +162,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
 
         _preloadPagesBefore = value;
-        AppSettingsModel.Instance.PreloadPagesBefore = value;
+        AppSettingsModel.PreloadPagesBefore = value;
     }
 
     public void SetKeepScreenOnBehavior(int index)
@@ -173,7 +173,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
 
         _keepScreenOnBehaviorIndex = index;
-        AppSettingsModel.Instance.KeepScreenOnBehavior = _keepScreenOnBehaviors[index].Behavior;
+        AppSettingsModel.KeepScreenOnBehavior = _keepScreenOnBehaviors[index].Behavior;
     }
 
     private void Update()
@@ -186,20 +186,20 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
     {
         CoroutineUtils.RunInMainThread(() =>
         {
-            TransitionAnimation = AppSettingsModel.Instance.TransitionAnimation;
-            RestoreLastReadingPosition = AppSettingsModel.Instance.RestoreLastReadingPosition;
-            RestoreLastReadingPositionOnlyAppliesToReadingComics = AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics;
-            UseScrollingAreaAsStartEnd = AppSettingsModel.Instance.UseScrollingAreaAsStartEnd;
-            AutoToggleOverlaysOnCursor = AppSettingsModel.Instance.AutoToggleOverlaysOnCursor;
-            AutomaticallyHideCursor = AppSettingsModel.Instance.AutoHideCursor;
-            PreloadPagesAfter = AppSettingsModel.Instance.PreloadPagesAfter;
-            PreloadPagesBefore = AppSettingsModel.Instance.PreloadPagesBefore;
+            TransitionAnimation = AppSettingsModel.TransitionAnimation;
+            RestoreLastReadingPosition = AppSettingsModel.RestoreLastReadingPosition;
+            RestoreLastReadingPositionOnlyAppliesToReadingComics = AppSettingsModel.RestoreLastReadingPositionOnlyAppliesToReadingComics;
+            UseScrollingAreaAsStartEnd = AppSettingsModel.UseScrollingAreaAsStartEnd;
+            AutoToggleOverlaysOnCursor = AppSettingsModel.AutoToggleOverlaysOnCursor;
+            AutomaticallyHideCursor = AppSettingsModel.AutoHideCursor;
+            PreloadPagesAfter = AppSettingsModel.PreloadPagesAfter;
+            PreloadPagesBefore = AppSettingsModel.PreloadPagesBefore;
         });
     }
 
     private void UpdateKeepScreenOnBehavior()
     {
-        AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.Instance.KeepScreenOnBehavior;
+        AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.KeepScreenOnBehavior;
         List<KeepScreenOnBehaviorEntry> entries = [
             new(AppSettingsModel.KeepScreenOnBehaviorEnum.Never),
             new(AppSettingsModel.KeepScreenOnBehaviorEnum.Always),

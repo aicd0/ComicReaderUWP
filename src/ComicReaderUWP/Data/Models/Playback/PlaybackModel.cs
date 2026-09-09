@@ -35,7 +35,7 @@ internal class PlaybackModel
     public bool CanGoNext => _isRepeat || _cursor < _items.Count - 1;
     public bool CanGoPrevious => _isRepeat || _cursor > 0;
 
-    private bool _isRepeat = AppSettingsModel.Instance.PlaybackDefaultRepeat;
+    private bool _isRepeat = AppSettingsModel.PlaybackDefaultRepeat;
     public bool IsRepeat
     {
         get => _isRepeat;
@@ -44,13 +44,13 @@ internal class PlaybackModel
             if (_isRepeat != value)
             {
                 _isRepeat = value;
-                AppSettingsModel.Instance.PlaybackDefaultRepeat = value;
+                AppSettingsModel.PlaybackDefaultRepeat = value;
                 DispatchPlaybackStatusChange(PlaybackStateChangeReason.Other);
             }
         }
     }
 
-    private bool _isShuffle = AppSettingsModel.Instance.PlaybackDefaultShuffle;
+    private bool _isShuffle = AppSettingsModel.PlaybackDefaultShuffle;
     public bool IsShuffle
     {
         get => _isShuffle;
@@ -59,7 +59,7 @@ internal class PlaybackModel
             if (_isShuffle != value)
             {
                 _isShuffle = value;
-                AppSettingsModel.Instance.PlaybackDefaultShuffle = value;
+                AppSettingsModel.PlaybackDefaultShuffle = value;
 
                 string? currentId = CurrentItem?.Id;
                 if (value)
@@ -217,8 +217,8 @@ internal class PlaybackModel
             return false;
         }
 
-        _isRepeat = model.IsRepeat ?? AppSettingsModel.Instance.PlaybackDefaultRepeat;
-        _isShuffle = model.IsShuffle ?? AppSettingsModel.Instance.PlaybackDefaultShuffle;
+        _isRepeat = model.IsRepeat ?? AppSettingsModel.PlaybackDefaultRepeat;
+        _isShuffle = model.IsShuffle ?? AppSettingsModel.PlaybackDefaultShuffle;
         _randomSeed = model.RandomSeed ?? Random.Shared.Next();
         _firstId = model.FirstId ?? model.CurrentId;
         UpdateInternalStates(model.CurrentId);

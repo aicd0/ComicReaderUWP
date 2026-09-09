@@ -51,7 +51,7 @@ internal static class OpenComicHelper
 
     public static void OpenComic(ActionHandler actionHandler, Route route)
     {
-        AppSettingsModel.OpenComicBehaviorEnum behavior = AppSettingsModel.Instance.OpenComicDefaultBehavior;
+        AppSettingsModel.OpenComicBehaviorEnum behavior = AppSettingsModel.OpenComicDefaultBehavior;
         switch (behavior)
         {
             case AppSettingsModel.OpenComicBehaviorEnum.OpenInCurrentTab:

@@ -16,7 +16,7 @@ internal class DebugService : IDebugService
 {
     public string DebugCommandPublicKeyPem => Secret.DebugCommandPublicKeyPem;
 
-    public bool SentryEnabled => AppSettingsModel.Instance.SendUsageData;
+    public bool SentryEnabled => AppSettingsModel.SendUsageData;
 
     public void OnCrashReport(string info)
     {

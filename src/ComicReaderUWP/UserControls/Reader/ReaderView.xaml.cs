@@ -610,8 +610,8 @@ internal partial class ReaderView : UserControl
         Log("LoadImage", $"Reason={reason}", $"F={frame}");
 
         List<int> frameIndices = [];
-        int maxPreloadPagesAfter = AppSettingsModel.Instance.PreloadPagesAfter;
-        int maxPreloadPagesBefore = AppSettingsModel.Instance.PreloadPagesBefore;
+        int maxPreloadPagesAfter = AppSettingsModel.PreloadPagesAfter;
+        int maxPreloadPagesBefore = AppSettingsModel.PreloadPagesBefore;
         int preloadedPagesAfter = 0;
         int preloadedPagesBefore = 0;
 
@@ -1492,7 +1492,7 @@ internal partial class ReaderView : UserControl
                     return;
                 }
 
-                if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppSettingsModel.Instance.AutoHideCursor)
+                if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse && AppSettingsModel.AutoHideCursor)
                 {
                     ShowCursor();
                     HideCursorDelayed(3000);
@@ -2416,7 +2416,7 @@ internal partial class ReaderView : UserControl
 
         double targetPage = _frameItemsSource[targetFrame].Page;
         float? zoom = _zoom > 1.01F ? 1F : null;
-        SetScrollViewer2(reason, source, zoom: zoom, page: targetPage, disableAnimation: !AppSettingsModel.Instance.TransitionAnimation);
+        SetScrollViewer2(reason, source, zoom: zoom, page: targetPage, disableAnimation: !AppSettingsModel.TransitionAnimation);
     }
 
     private ScrollResult SetScrollViewer1(

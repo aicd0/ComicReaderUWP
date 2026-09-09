@@ -91,7 +91,7 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
 
         Title = StringResourceProvider.Instance.EditPreset;
         Name = _presetModel.PresetName;
-        SetAsDefault = _presetModel.PresetKey == AppSettingsModel.Instance.DefaultReaderSettingPresetKey;
+        SetAsDefault = _presetModel.PresetKey == AppSettingsModel.DefaultReaderSettingPresetKey;
         UpdateUI();
     }
 
@@ -102,9 +102,9 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
             return;
         }
 
-        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.ReaderSettingPresets;
         presets.Remove(_presetModel.PresetKey);
-        AppSettingsModel.Instance.ReaderSettingPresets = presets;
+        AppSettingsModel.ReaderSettingPresets = presets;
 
         if (_comic is not null)
         {
@@ -122,13 +122,13 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         }
 
         _presetModel.PresetName = name;
-        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.ReaderSettingPresets;
         presets[_presetModel.PresetKey] = _presetModel;
-        AppSettingsModel.Instance.ReaderSettingPresets = presets;
+        AppSettingsModel.ReaderSettingPresets = presets;
 
         if (_setAsDefault)
         {
-            AppSettingsModel.Instance.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+            AppSettingsModel.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
         }
 
         if (_comic is not null)
@@ -147,13 +147,13 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
 
         _presetModel.PresetKey = Guid.NewGuid().ToString();
         _presetModel.PresetName = name;
-        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.Instance.ReaderSettingPresets;
+        Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.ReaderSettingPresets;
         presets[_presetModel.PresetKey] = _presetModel;
-        AppSettingsModel.Instance.ReaderSettingPresets = presets;
+        AppSettingsModel.ReaderSettingPresets = presets;
 
         if (_setAsDefault)
         {
-            AppSettingsModel.Instance.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
+            AppSettingsModel.DefaultReaderSettingPresetKey = _presetModel.PresetKey;
         }
 
         if (_comic is not null)
@@ -179,7 +179,7 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         bool isCustomPreset = _presetModel.PresetKey == ReaderSettingsModel.PRESET_KEY_CUSTOM;
         bool isNameValid = !string.IsNullOrEmpty(name);
         bool isNameExisting = false;
-        foreach (ReaderSettingsModel preset in AppSettingsModel.Instance.ReaderSettingPresets.Values)
+        foreach (ReaderSettingsModel preset in AppSettingsModel.ReaderSettingPresets.Values)
         {
             if (preset.PresetName == name)
             {

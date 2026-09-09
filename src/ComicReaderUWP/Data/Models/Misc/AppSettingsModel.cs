@@ -18,109 +18,109 @@ using Windows.Globalization;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
-internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
+internal static class AppSettingsModel
 {
     private const string TAG = nameof(AppSettingsModel);
     private const string APP_BACKGROUND_NONE = "None";
     private const string APP_BACKGROUND_ACRYLIC = "Acrylic";
 
-    public static readonly AppSettingsModel Instance = new();
+    private static readonly JsonDatabase _db = new();
 
     //
     // Events
     //
 
-    private readonly MutableLiveData<bool> _keepScreenOnBehaviorChangeLiveData = new();
-    public ILiveData<bool> KeepScreenOnBehaviorChangedLiveData => _keepScreenOnBehaviorChangeLiveData;
+    private static readonly MutableLiveData<bool> _keepScreenOnBehaviorChangeLiveData = new();
+    public static ILiveData<bool> KeepScreenOnBehaviorChangedLiveData => _keepScreenOnBehaviorChangeLiveData;
 
     //
     // Properties
     //
 
-    public bool AutoHideCursor
+    public static bool AutoHideCursor
     {
         get
         {
-            return Read(model => model.AutomaticallyHideCursor ?? false);
+            return _db.Read(model => model.AutomaticallyHideCursor ?? false);
         }
         set
         {
-            Write(model => model.AutomaticallyHideCursor = value);
-            Save();
+            _db.Write(model => model.AutomaticallyHideCursor = value);
+            _db.Save();
         }
     }
 
-    public bool AutoSwitch
+    public static bool AutoSwitch
     {
         get
         {
-            return Read(model => model.AutoSwitch ?? true);
+            return _db.Read(model => model.AutoSwitch ?? true);
         }
         set
         {
-            Write(model => model.AutoSwitch = value);
-            Save();
+            _db.Write(model => model.AutoSwitch = value);
+            _db.Save();
         }
     }
 
-    public bool AutoToggleOverlaysOnCursor
+    public static bool AutoToggleOverlaysOnCursor
     {
         get
         {
-            return Read(model => model.AutoToggleOverlaysOnCursor ?? true);
+            return _db.Read(model => model.AutoToggleOverlaysOnCursor ?? true);
         }
         set
         {
-            Write(model => model.AutoToggleOverlaysOnCursor = value);
-            Save();
+            _db.Write(model => model.AutoToggleOverlaysOnCursor = value);
+            _db.Save();
         }
     }
 
-    public CloseLastTabBehaviorEnum CloseLastTabBehavior
+    public static CloseLastTabBehaviorEnum CloseLastTabBehavior
     {
         get
         {
-            return Read(model => ConvertCloseLastTabBehaviorFromJson(model.CloseLastTabBehavior));
+            return _db.Read(model => ConvertCloseLastTabBehaviorFromJson(model.CloseLastTabBehavior));
         }
         set
         {
-            Write(model => model.CloseLastTabBehavior = ConvertCloseLastTabBehaviorToJson(value));
-            Save();
+            _db.Write(model => model.CloseLastTabBehavior = ConvertCloseLastTabBehaviorToJson(value));
+            _db.Save();
         }
     }
 
-    public int DefaultArchiveCodePage
+    public static int DefaultArchiveCodePage
     {
         get
         {
-            return Read(model => model.DefaultArchiveCodePage ?? -1);
+            return _db.Read(model => model.DefaultArchiveCodePage ?? -1);
         }
         set
         {
-            Write(model => model.DefaultArchiveCodePage = value);
-            Save();
+            _db.Write(model => model.DefaultArchiveCodePage = value);
+            _db.Save();
         }
     }
 
-    public KeepScreenOnBehaviorEnum KeepScreenOnBehavior
+    public static KeepScreenOnBehaviorEnum KeepScreenOnBehavior
     {
         get
         {
-            return Read(model => ConvertKeepScreenOnBehaviorFromJson(model.KeepScreenOnBehavior));
+            return _db.Read(model => ConvertKeepScreenOnBehaviorFromJson(model.KeepScreenOnBehavior));
         }
         set
         {
-            Write(model => model.KeepScreenOnBehavior = ConvertKeepScreenOnBehaviorToJson(value));
-            Save();
+            _db.Write(model => model.KeepScreenOnBehavior = ConvertKeepScreenOnBehaviorToJson(value));
+            _db.Save();
             _keepScreenOnBehaviorChangeLiveData.Emit(true);
         }
     }
 
-    public string Language
+    public static string Language
     {
         get
         {
-            return Read(model => model.Language ?? string.Empty);
+            return _db.Read(model => model.Language ?? string.Empty);
         }
         set
         {
@@ -136,198 +136,198 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                 }
             }
 
-            Write(model => model.Language = value);
-            Save();
+            _db.Write(model => model.Language = value);
+            _db.Save();
         }
     }
 
-    public OpenComicBehaviorEnum OpenComicDefaultBehavior
+    public static OpenComicBehaviorEnum OpenComicDefaultBehavior
     {
         get
         {
-            return Read(model => ConvertOpenComicDefaultBehaviorFromJson(model.OpenComicDefaultBehavior));
+            return _db.Read(model => ConvertOpenComicDefaultBehaviorFromJson(model.OpenComicDefaultBehavior));
         }
         set
         {
-            Write(model => model.OpenComicDefaultBehavior = ConvertOpenComicDefaultBehaviorToJson(value));
-            Save();
+            _db.Write(model => model.OpenComicDefaultBehavior = ConvertOpenComicDefaultBehaviorToJson(value));
+            _db.Save();
         }
     }
 
-    public bool PlaybackDefaultRepeat
+    public static bool PlaybackDefaultRepeat
     {
         get
         {
-            return Read(model => model.PlaybackDefaultRepeat ?? false);
+            return _db.Read(model => model.PlaybackDefaultRepeat ?? false);
         }
         set
         {
-            Write(model => model.PlaybackDefaultRepeat = value);
-            Save();
+            _db.Write(model => model.PlaybackDefaultRepeat = value);
+            _db.Save();
         }
     }
 
-    public bool PlaybackDefaultShuffle
+    public static bool PlaybackDefaultShuffle
     {
         get
         {
-            return Read(model => model.PlaybackDefaultShuffle ?? false);
+            return _db.Read(model => model.PlaybackDefaultShuffle ?? false);
         }
         set
         {
-            Write(model => model.PlaybackDefaultShuffle = value);
-            Save();
+            _db.Write(model => model.PlaybackDefaultShuffle = value);
+            _db.Save();
         }
     }
 
-    public int PreloadPagesAfter
+    public static int PreloadPagesAfter
     {
         get
         {
-            return Read(model => model.PreloadPagesAfter ?? 5);
+            return _db.Read(model => model.PreloadPagesAfter ?? 5);
         }
         set
         {
-            Write(model => model.PreloadPagesAfter = value);
-            Save();
+            _db.Write(model => model.PreloadPagesAfter = value);
+            _db.Save();
         }
     }
 
-    public int PreloadPagesBefore
+    public static int PreloadPagesBefore
     {
         get
         {
-            return Read(model => model.PreloadPagesBefore ?? 5);
+            return _db.Read(model => model.PreloadPagesBefore ?? 5);
         }
         set
         {
-            Write(model => model.PreloadPagesBefore = value);
-            Save();
+            _db.Write(model => model.PreloadPagesBefore = value);
+            _db.Save();
         }
     }
 
-    public bool RatingPercentageEnabled
+    public static bool RatingPercentageEnabled
     {
         get
         {
-            return Read(model => model.RatingPercentageEnabled ?? false);
+            return _db.Read(model => model.RatingPercentageEnabled ?? false);
         }
         set
         {
-            Write(model => model.RatingPercentageEnabled = value);
-            Save();
+            _db.Write(model => model.RatingPercentageEnabled = value);
+            _db.Save();
         }
     }
 
-    public bool RestoreLastReadingPosition
+    public static bool RestoreLastReadingPosition
     {
         get
         {
-            return Read(model => model.RestoreLastReadingPosition ?? true);
+            return _db.Read(model => model.RestoreLastReadingPosition ?? true);
         }
         set
         {
-            Write(model => model.RestoreLastReadingPosition = value);
-            Save();
+            _db.Write(model => model.RestoreLastReadingPosition = value);
+            _db.Save();
         }
     }
 
-    public bool RestoreLastReadingPositionOnlyAppliesToReadingComics
+    public static bool RestoreLastReadingPositionOnlyAppliesToReadingComics
     {
         get
         {
-            return Read(model => model.RestoreLastReadingPositionOnlyAppliesToReadingComics ?? false);
+            return _db.Read(model => model.RestoreLastReadingPositionOnlyAppliesToReadingComics ?? false);
         }
         set
         {
-            Write(model => model.RestoreLastReadingPositionOnlyAppliesToReadingComics = value);
-            Save();
+            _db.Write(model => model.RestoreLastReadingPositionOnlyAppliesToReadingComics = value);
+            _db.Save();
         }
     }
 
-    public bool SendUsageData
+    public static bool SendUsageData
     {
         get
         {
-            return Read(model => model.SendUsageData ?? true);
+            return _db.Read(model => model.SendUsageData ?? true);
         }
         set
         {
-            Write(model => model.SendUsageData = value);
-            Save();
+            _db.Write(model => model.SendUsageData = value);
+            _db.Save();
         }
     }
 
-    public bool UseScrollingAreaAsStartEnd
+    public static bool UseScrollingAreaAsStartEnd
     {
         get
         {
-            return Read(model => model.UseScrollingAreaAsStartEnd ?? false);
+            return _db.Read(model => model.UseScrollingAreaAsStartEnd ?? false);
         }
         set
         {
-            Write(model => model.UseScrollingAreaAsStartEnd = value);
-            Save();
+            _db.Write(model => model.UseScrollingAreaAsStartEnd = value);
+            _db.Save();
         }
     }
 
-    public bool SaveBrowsingHistory
+    public static bool SaveBrowsingHistory
     {
         get
         {
-            return Read(model => model.SaveBrowsingHistory ?? true);
+            return _db.Read(model => model.SaveBrowsingHistory ?? true);
         }
         set
         {
-            Write(model => model.SaveBrowsingHistory = value);
-            Save();
+            _db.Write(model => model.SaveBrowsingHistory = value);
+            _db.Save();
         }
     }
 
-    public bool EnableCompressedFileCache
+    public static bool EnableCompressedFileCache
     {
         get
         {
-            return Read(model => model.EnableCompressedFileCache ?? true);
+            return _db.Read(model => model.EnableCompressedFileCache ?? true);
         }
         set
         {
-            Write(model => model.EnableCompressedFileCache = value);
-            Save();
+            _db.Write(model => model.EnableCompressedFileCache = value);
+            _db.Save();
         }
     }
 
-    public bool TransitionAnimation
+    public static bool TransitionAnimation
     {
         get
         {
-            return Read(model => model.TransitionAnimation ?? true);
+            return _db.Read(model => model.TransitionAnimation ?? true);
         }
         set
         {
-            Write(model => model.TransitionAnimation = value);
-            Save();
+            _db.Write(model => model.TransitionAnimation = value);
+            _db.Save();
         }
     }
 
-    public string DefaultReaderSettingPresetKey
+    public static string DefaultReaderSettingPresetKey
     {
         get
         {
-            return Read(model => model.DefaultReaderSettingPresetKey ?? string.Empty);
+            return _db.Read(model => model.DefaultReaderSettingPresetKey ?? string.Empty);
         }
         set
         {
-            Write(model => model.DefaultReaderSettingPresetKey = value);
-            Save();
+            _db.Write(model => model.DefaultReaderSettingPresetKey = value);
+            _db.Save();
         }
     }
 
-    public Dictionary<string, ReaderSettingsModel> ReaderSettingPresets
+    public static Dictionary<string, ReaderSettingsModel> ReaderSettingPresets
     {
         get
         {
-            return Read(model =>
+            return _db.Read(model =>
             {
                 Dictionary<string, ReaderSettingsModel> presets = [];
                 if (model.ReaderSettingPresets is not null)
@@ -348,7 +348,7 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
         }
         set
         {
-            Write(model =>
+            _db.Write(model =>
             {
                 model.ReaderSettingPresets = [];
                 foreach (KeyValuePair<string, ReaderSettingsModel> kvp in value)
@@ -358,62 +358,44 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
                     model.ReaderSettingPresets[key] = setting.ToJsonModel();
                 }
             });
-            Save();
+            _db.Save();
         }
-    }
-
-    //
-    // Constructor
-    //
-
-    private AppSettingsModel() : base(new SimpleConfigDatabaseLayer("settings.json")) { }
-
-    protected override JsonModel InitializeModel(JsonModel? model)
-    {
-        model ??= new();
-        model.OpenComicDefaultBehavior ??= model.HomePageTapComicBehavior;
-        model.AutomaticallyHideCursor ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
-        model.DefaultArchiveCodePage ??= (int)AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<long>(KVNames.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
-        model.RatingPercentageEnabled ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
-        model.SaveBrowsingHistory ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
-        model.TransitionAnimation ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_TRANSITION_ANIMATION, true);
-        return model;
     }
 
     //
     // Getters
     //
 
-    public ExternalModel GetModel()
+    public static ExternalModel GetModel()
     {
-        return Read(ExternalModel.From);
+        return _db.Read(ExternalModel.From);
     }
 
     //
     // Setters
     //
 
-    public void Reset()
+    public static void Reset()
     {
         JsonModel newModel = new();
-        Read(model =>
+        _db.Read(model =>
         {
             newModel.ComicFolders = model.ComicFolders;
         });
 
-        Write(newModel);
+        _db.Write(newModel);
         Language = Language; // Language config needs to be applied immediately to take effect on next launch
     }
 
-    public void UpdateModel(ExternalModel model)
+    public static void UpdateModel(ExternalModel model)
     {
-        Write(model.To);
-        Save();
+        _db.Write(model.To);
+        _db.Save();
     }
 
-    public void AddComicFolder(string folderPath)
+    public static void AddComicFolder(string folderPath)
     {
-        bool updated = Write(m =>
+        bool updated = _db.Write(m =>
         {
             m.ComicFolders ??= [];
             for (int i = m.ComicFolders.Count - 1; i >= 0; i--)
@@ -439,13 +421,13 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         if (updated)
         {
-            Save();
+            _db.Save();
         }
     }
 
-    public void RemoveComicFolder(string folderPath)
+    public static void RemoveComicFolder(string folderPath)
     {
-        bool updated = Write(m =>
+        bool updated = _db.Write(m =>
         {
             m.ComicFolders ??= [];
             return m.ComicFolders.Remove(folderPath);
@@ -453,7 +435,7 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
 
         if (updated)
         {
-            Save();
+            _db.Save();
         }
     }
 
@@ -528,6 +510,23 @@ internal class AppSettingsModel : JsonDatabase<AppSettingsModel.JsonModel>
     //
     // Types
     //
+
+    private class JsonDatabase : JsonDatabase<JsonModel>
+    {
+        public JsonDatabase() : base(new SimpleConfigDatabaseLayer("settings.json")) { }
+
+        protected override JsonModel InitializeModel(JsonModel? model)
+        {
+            model ??= new();
+            model.OpenComicDefaultBehavior ??= model.HomePageTapComicBehavior;
+            model.AutomaticallyHideCursor ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_AUTO_HIDE_CURSOR, false);
+            model.DefaultArchiveCodePage ??= (int)AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault<long>(KVNames.KV_KEY_APP_DEFAULT_ARCHIVE_CODE_PAGE, -1);
+            model.RatingPercentageEnabled ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_RATING_PERCENTAGE_ENABLED, false);
+            model.SaveBrowsingHistory ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_SAVE_BROWSING_HISTORY, true);
+            model.TransitionAnimation ??= AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_TRANSITION_ANIMATION, true);
+            return model;
+        }
+    }
 
     public class ExternalModel
     {

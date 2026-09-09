@@ -31,7 +31,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            AppSettingsModel.Instance.TransitionAnimation = isChecked.Value;
+            AppSettingsModel.TransitionAnimation = isChecked.Value;
         }
     }
 
@@ -40,7 +40,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            AppSettingsModel.Instance.RestoreLastReadingPosition = isChecked.Value;
+            AppSettingsModel.RestoreLastReadingPosition = isChecked.Value;
         }
     }
 
@@ -49,7 +49,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            AppSettingsModel.Instance.RestoreLastReadingPositionOnlyAppliesToReadingComics = isChecked.Value;
+            AppSettingsModel.RestoreLastReadingPositionOnlyAppliesToReadingComics = isChecked.Value;
         }
     }
 
@@ -58,7 +58,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            AppSettingsModel.Instance.UseScrollingAreaAsStartEnd = isChecked.Value;
+            AppSettingsModel.UseScrollingAreaAsStartEnd = isChecked.Value;
         }
     }
 
@@ -67,7 +67,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            AppSettingsModel.Instance.AutoToggleOverlaysOnCursor = isChecked.Value;
+            AppSettingsModel.AutoToggleOverlaysOnCursor = isChecked.Value;
         }
     }
 
@@ -76,7 +76,7 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
         bool? isChecked = ((CheckBox)sender).IsChecked;
         if (isChecked.HasValue)
         {
-            AppSettingsModel.Instance.AutoHideCursor = isChecked.Value;
+            AppSettingsModel.AutoHideCursor = isChecked.Value;
         }
     }
 

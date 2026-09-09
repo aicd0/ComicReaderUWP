@@ -484,7 +484,7 @@ internal sealed partial class HomePage : BasePage
                 return;
             }
 
-            AppSettingsModel.Instance.AddComicFolder(folder.Path);
+            AppSettingsModel.AddComicFolder(folder.Path);
             ComicModel.RescanLibrary("HomePage#AddNewFolder");
         });
     }

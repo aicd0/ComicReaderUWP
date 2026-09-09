@@ -119,7 +119,7 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
         }
 
         _closeLastTabBehaviorIndex = index;
-        AppSettingsModel.Instance.CloseLastTabBehavior = _closeLastTabBehaviors[index].Behavior;
+        AppSettingsModel.CloseLastTabBehavior = _closeLastTabBehaviors[index].Behavior;
     }
 
     public void SetOpenComicDefaultBehavior(int index)
@@ -130,7 +130,7 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
         }
 
         _openComicDefaultBaheviorIndex = index;
-        AppSettingsModel.Instance.OpenComicDefaultBehavior = _openComicDefaultBaheviors[index].Behavior;
+        AppSettingsModel.OpenComicDefaultBehavior = _openComicDefaultBaheviors[index].Behavior;
     }
 
     private void Update()
@@ -143,7 +143,7 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
     private void UpdateCloseLastTabBehavior()
     {
-        AppSettingsModel.CloseLastTabBehaviorEnum behavior = AppSettingsModel.Instance.CloseLastTabBehavior;
+        AppSettingsModel.CloseLastTabBehaviorEnum behavior = AppSettingsModel.CloseLastTabBehavior;
         List<CloseLastTabBehaviorEntry> entries = [
             new(AppSettingsModel.CloseLastTabBehaviorEnum.CloseWindow),
             new(AppSettingsModel.CloseLastTabBehaviorEnum.OpenHomePage),
@@ -169,7 +169,7 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
     private void UpdateHomePageTapComicBehavior()
     {
-        AppSettingsModel.OpenComicBehaviorEnum behavior = AppSettingsModel.Instance.OpenComicDefaultBehavior;
+        AppSettingsModel.OpenComicBehaviorEnum behavior = AppSettingsModel.OpenComicDefaultBehavior;
         List<TapComicBehaviorEntry> entries = [
             new(AppSettingsModel.OpenComicBehaviorEnum.OpenInCurrentTab),
             new(AppSettingsModel.OpenComicBehaviorEnum.OpenInNewTab),
@@ -196,13 +196,13 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
     private void UpdateCommonSettings()
     {
-        EnableCompressedFileCache = AppSettingsModel.Instance.EnableCompressedFileCache;
+        EnableCompressedFileCache = AppSettingsModel.EnableCompressedFileCache;
     }
 
     private async Task UpdateHistory()
     {
         bool hasHistory = !await ComicHistoryItemModel.IsEmptyAsync();
-        bool saveBrowsingHistory = AppSettingsModel.Instance.SaveBrowsingHistory;
+        bool saveBrowsingHistory = AppSettingsModel.SaveBrowsingHistory;
 
         IsClearHistoryEnabled = hasHistory;
         SaveBrowsingHistory = saveBrowsingHistory;
