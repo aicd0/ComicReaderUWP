@@ -2579,10 +2579,9 @@ internal partial class ReaderView : UserControl
         Logger.Assert(double.IsFinite(request.HorizontalOffset ?? 0), "4FD89F79946B8D03");
         Logger.Assert(double.IsFinite(request.VerticalOffset ?? 0), "6678A0ED7D2FEB43");
 
-        _isPreciseScrolling = request.IsPrecise;
-
         if (request.Source == ScrollSource.User)
         {
+            _isPreciseScrolling = request.IsPrecise;
             OnUserScroll();
         }
 
