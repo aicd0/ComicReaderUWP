@@ -2,12 +2,11 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 
 using ComicReaderUWP.Common.Actions;
-using ComicReaderUWP.Core.Common.Algorithm;
+using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
@@ -16,9 +15,8 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
+using ComicReaderUWP.UserControls.ComicSelection;
 using ComicReaderUWP.ViewModels;
-
-using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Search;
 
@@ -92,104 +90,21 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _isSelectMode = false;
-    public bool IsSelectMode
-    {
-        get => _isSelectMode;
-        set
-        {
-            _isSelectMode = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{nameof(IsSelectMode)}"));
-        }
-    }
+    public readonly MutableLiveData<IReadOnlyList<ComicItemViewModel>> ResultsLiveData = new();
 
-    private ListViewSelectionMode _comicItemSelectionMode = ListViewSelectionMode.None;
-    public ListViewSelectionMode ComicItemSelectionMode
-    {
-        get => _comicItemSelectionMode;
-        set
-        {
-            _comicItemSelectionMode = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{nameof(ComicItemSelectionMode)}"));
-        }
-    }
-
-    private bool _isAnyComicSelected = false;
-    public bool IsAnyComicSelected
-    {
-        get => _isAnyComicSelected;
-        set
-        {
-            _isAnyComicSelected = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAnyComicSelected)));
-        }
-    }
-
-    private bool _isCommandBarSelectAllToggled = false;
-    public bool IsCommandBarSelectAllToggled
-    {
-        get => _isCommandBarSelectAllToggled;
-        set
-        {
-            _isCommandBarSelectAllToggled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarSelectAllToggled)));
-        }
-    }
-
-    private bool _isCommandBarFavoriteEnabled = false;
-    public bool IsCommandBarFavoriteEnabled
-    {
-        get => _isCommandBarFavoriteEnabled;
-        set
-        {
-            _isCommandBarFavoriteEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarFavoriteEnabled)));
-        }
-    }
-
-    private bool _isCommandBarUnFavoriteEnabled = false;
-    public bool IsCommandBarUnFavoriteEnabled
-    {
-        get => _isCommandBarUnFavoriteEnabled;
-        set
-        {
-            _isCommandBarUnFavoriteEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnFavoriteEnabled)));
-        }
-    }
-
-    private bool _isCommandBarHideEnabled = false;
-    public bool IsCommandBarHideEnabled
-    {
-        get => _isCommandBarHideEnabled;
-        set
-        {
-            _isCommandBarHideEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarHideEnabled)));
-        }
-    }
-
-    private bool _isCommandBarUnHideEnabled = false;
-    public bool IsCommandBarUnHideEnabled
-    {
-        get => _isCommandBarUnHideEnabled;
-        set
-        {
-            _isCommandBarUnHideEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnHideEnabled)));
-        }
-    }
-
+    public ComicSelectionViewModel ComicSelection { get; }
     public bool IsLoading;
-
     public bool IsResultEmpty => SearchResults.Count == 0;
-
-    public ObservableCollection<ComicItemViewModel> SearchResults = [];
+    public List<ComicItemViewModel> SearchResults { get; private set; } = [];
 
     private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.DefaultQueue;
-    private readonly List<ComicItemViewModel> _selectedItems = [];
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ComicSearchEngine _searchEngine = new();
+
+    public SearchPageViewModel()
+    {
+        ComicSelection = new(() => SearchResults.Count);
+    }
 
     public void Initialize(ActionHandler actionHandler, string searchText)
     {
@@ -197,7 +112,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         _searchEngine.SetResultCallback(OnSearchResult);
 
         IsLoading = true;
-        SetSelectMode(false);
+        ComicSelection.SetSelectMode(false);
 
         _searchEngine.SearchText = searchText;
         Refresh();
@@ -215,69 +130,6 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         IsNoResultTextVisible = !IsLoading && IsResultEmpty;
     }
 
-    public void SetSelectMode(bool val)
-    {
-        if (val == IsSelectMode)
-        {
-            return;
-        }
-
-        IsSelectMode = val;
-        ComicItemSelectionMode = val ? ListViewSelectionMode.Multiple : ListViewSelectionMode.None;
-    }
-
-    public void SetSelection(IEnumerable<ComicItemViewModel> selectedItems)
-    {
-        _selectedItems.Clear();
-        _selectedItems.AddRange(selectedItems);
-        UpdateCommandBarButtonStates();
-    }
-
-    public IReadOnlyList<ComicModel> GetSelectedComics()
-    {
-        return [.. _selectedItems.Select(x => x.Comic)];
-    }
-
-    private void UpdateCommandBarButtonStates()
-    {
-        bool allSelected = _selectedItems.Count == SearchResults.Count;
-        bool anySelected = false;
-        bool favoriteEnabled = false;
-        bool unfavoriteEnabled = false;
-        bool hideEnabled = false;
-        bool unhideEnabled = false;
-
-        foreach (ComicItemViewModel item in _selectedItems)
-        {
-            anySelected = true;
-
-            if (item.IsFavorite)
-            {
-                unfavoriteEnabled = true;
-            }
-            else
-            {
-                favoriteEnabled = true;
-            }
-
-            if (item.IsHide)
-            {
-                unhideEnabled = true;
-            }
-            else
-            {
-                hideEnabled = true;
-            }
-        }
-
-        IsAnyComicSelected = anySelected;
-        IsCommandBarSelectAllToggled = allSelected;
-        IsCommandBarFavoriteEnabled = favoriteEnabled;
-        IsCommandBarUnFavoriteEnabled = unfavoriteEnabled;
-        IsCommandBarHideEnabled = hideEnabled;
-        IsCommandBarUnHideEnabled = unhideEnabled;
-    }
-
     private void OnSearchResult(IReadOnlyList<ComicModel> comics)
     {
         _sharedDispatcher.Submit(() =>
@@ -291,7 +143,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                 {
                     OnClick = model =>
                     {
-                        if (_isSelectMode)
+                        if (ComicSelection.IsSelectMode)
                         {
                             return;
                         }
@@ -301,7 +153,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                     },
                     OnRequestContextFlyoutAsync = model =>
                     {
-                        IEnumerable<ComicModel>? selection = _isSelectMode ? _selectedItems.Select(x => x.Comic) : null;
+                        IEnumerable<ComicModel>? selection = ComicSelection.IsSelectMode ? ComicSelection.GetSelectedComics() : null;
                         return MenuFlyoutItemsCreator.CreateComicMenuItems(
                             _actionHandler,
                             comic,
@@ -316,13 +168,10 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
 
             CoroutineUtils.RunInMainThread(() =>
             {
-                bool ComicComparer(ComicItemViewModel x, ComicItemViewModel y) => x.Comic.Id == y.Comic.Id;
-                void ComicUpdater(ComicItemViewModel x, ComicItemViewModel y) => x.Update(y);
-
                 IsLoading = false;
-                DiffUtils.UpdateCollection(SearchResults, newItems, ComicComparer, ComicUpdater);
+                SearchResults = newItems;
+                ResultsLiveData.Emit(SearchResults);
                 UpdateUI();
-                UpdateCommandBarButtonStates();
             });
         });
     }
