@@ -3,23 +3,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Actions;
-using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.UserControls.ComicItemView;
 using ComicReaderUWP.UserControls.Misc;
 using ComicReaderUWP.ViewModels;
 using ComicReaderUWP.Views.Dialogs.EditFilter;
@@ -27,8 +21,6 @@ using ComicReaderUWP.Views.Dialogs.EditFilter;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 
 using Windows.Storage;
@@ -42,10 +34,8 @@ internal sealed partial class HomePage : BasePage
     private readonly HomePageViewModel ViewModel = new();
 
     private readonly SearchNavigationBar _searchNavigationBar;
-    private ScrollViewer? _comicGridScrollViewer;
 
     private ComicFilterModel.ViewTypeEnum? _viewType = null;
-    private bool? _usingGroupSource = null;
     private Storyboard? _headerTextBlockAnimation = null;
     private double _lastGridViewVerticalOffset = 0.0;
 
@@ -63,7 +53,7 @@ internal sealed partial class HomePage : BasePage
     {
         base.OnStart(bundle);
 
-        PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(ViewModel)));
+        ItemsView.Initialize(PageActionHandler);
 
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
@@ -105,28 +95,13 @@ internal sealed partial class HomePage : BasePage
 
         ViewModel.GroupingEnabledLiveData.ObserveSticky(this, delegate (bool grouped)
         {
-            if (_usingGroupSource == grouped)
-            {
-                return;
-            }
-
-            _usingGroupSource = grouped;
-
             if (grouped)
             {
-                ComicGridView.SetBinding(ItemsControl.ItemsSourceProperty, new Binding()
-                {
-                    Source = GroupedComicItemSource,
-                    Mode = BindingMode.OneWay,
-                });
+                ItemsView.SetGroupedItems(ViewModel.GroupedComicItems);
             }
             else
             {
-                ComicGridView.SetBinding(ItemsControl.ItemsSourceProperty, new Binding()
-                {
-                    Source = UngroupedComicItemSource,
-                    Mode = BindingMode.OneWay,
-                });
+                ItemsView.SetItems(ViewModel.UngroupedComicItems);
             }
         });
 
@@ -136,25 +111,9 @@ internal sealed partial class HomePage : BasePage
             {
                 return;
             }
+
             _viewType = type;
-            switch (type)
-            {
-                case ComicFilterModel.ViewTypeEnum.Large:
-                    ComicGridView.ItemTemplate = LargeComicItemTemplate;
-                    ComicGridView.ItemContainerStyle = (Style)Resources["VerticalComicItemContainerStyle"];
-                    ComicGridView.DesiredWidth = (double)Application.Current.Resources["ComicItemVerticalDesiredWidth"];
-                    ComicGridView.ItemHeight = (double)Application.Current.Resources["ComicItemVerticalDesiredHeight"];
-                    break;
-                case ComicFilterModel.ViewTypeEnum.Medium:
-                    ComicGridView.ItemTemplate = MediumComicItemTemplate;
-                    ComicGridView.ItemContainerStyle = (Style)Resources["SearchResultItemContainerExpandedStyle"];
-                    ComicGridView.DesiredWidth = (double)Application.Current.Resources["ComicItemHorizontalDesiredWidth"];
-                    ComicGridView.ItemHeight = (double)Application.Current.Resources["ComicItemHorizontalDesiredHeight"];
-                    break;
-                default:
-                    Logger.AssertNotReachHere("DBC3B0E205A8C333");
-                    break;
-            }
+            ItemsView.ItemViewType = type;
         });
 
         _searchNavigationBar.SearchTextChange += ViewModel.SetSearchText;
@@ -177,49 +136,8 @@ internal sealed partial class HomePage : BasePage
     // Grid View
     //
 
-    private void ComicGridView_Loaded(object sender, RoutedEventArgs e)
+    private void ItemsView_ScrollOffsetChanged(double verticalOffset)
     {
-        if (sender is not FrameworkElement element || !element.IsLoaded)
-        {
-            return;
-        }
-
-        ScrollViewer? scrollViewer = ComicGridView.ChildrenBreadthFirst().OfType<ScrollViewer>().FirstOrDefault();
-        if (scrollViewer != null)
-        {
-            _comicGridScrollViewer = scrollViewer;
-            scrollViewer.ViewChanged += ComicGridScrollViewer_ViewChanged;
-        }
-        else
-        {
-            Logger.AssertNotReachHere("90801E4FD070C67A");
-        }
-    }
-
-    private void ComicGridView_Unloaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement element || element.IsLoaded)
-        {
-            return;
-        }
-
-        ScrollViewer? scrollViewer = _comicGridScrollViewer;
-        if (scrollViewer != null)
-        {
-            scrollViewer.ViewChanged -= ComicGridScrollViewer_ViewChanged;
-        }
-        _comicGridScrollViewer = null;
-    }
-
-    private void ComicGridScrollViewer_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
-    {
-        if (sender is not ScrollViewer sv)
-        {
-            return;
-        }
-
-        double verticalOffset = sv.VerticalOffset;
-
         {
             Thickness p = HeaderAreaGrid.Padding;
             double newTop = Math.Max(20 - verticalOffset, 6);
@@ -250,132 +168,9 @@ internal sealed partial class HomePage : BasePage
         _lastGridViewVerticalOffset = verticalOffset;
     }
 
-    private void OnAdaptiveGridViewContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+    private void ItemsView_GroupCollapseRequested(ComicGroupViewModel group)
     {
-        if (args.ItemContainer.ContentTemplateRoot is not IComicItemView viewHolder || args.Item is not ComicItemViewModel item)
-        {
-            return;
-        }
-
-        if (args.InRecycleQueue)
-        {
-            viewHolder.SetComicModel(null);
-        }
-        else
-        {
-            viewHolder.SetComicModel(item);
-        }
-    }
-
-    private void CollapseExpandGroupButton_Click(object sender, RoutedEventArgs e)
-    {
-        var button = sender as Button;
-        if (button?.DataContext is ComicGroupViewModel group)
-        {
-            ViewModel.CollapseOrExpandGroup(group);
-        }
-    }
-
-    private void ComicGridView_Tapped(object sender, TappedRoutedEventArgs e)
-    {
-        ViewModel.SetSelectionMode(false);
-    }
-
-    private void ComicGridView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        List<ComicItemViewModel> selectedItems = [];
-        foreach (object? item in ComicGridView.SelectedItems)
-        {
-            if (item is ComicItemViewModel comicItem)
-            {
-                selectedItems.Add(comicItem);
-            }
-        }
-        ViewModel.SetSelection(selectedItems);
-    }
-
-    //
-    // Command Bar
-    //
-
-    private void CommandBarSelectAllClicked(object sender, RoutedEventArgs e)
-    {
-        var button = sender as AppBarToggleButton;
-        if (button == null)
-        {
-            return;
-        }
-        if (button.IsChecked == true)
-        {
-            ComicGridView.SelectAll();
-        }
-        else
-        {
-            ComicGridView.DeselectRange(new ItemIndexRange(0, (uint)ComicGridView.Items.Count));
-        }
-    }
-
-    private void CommandBarFavoriteButton_Click(object sender, RoutedEventArgs e)
-    {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
-        FavoriteModel.Instance.BatchAdd([.. comics.Select(x => new FavoriteModel.FavoriteItem
-        {
-            Id = x.Id,
-            Title = x.Title,
-        })]);
-    }
-
-    private void CommandBarUnfavoriteButton_Click(object sender, RoutedEventArgs e)
-    {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
-        FavoriteModel.Instance.BatchRemoveWithId([.. comics.Select(x => x.Id)]);
-    }
-
-    private void CommandBarCompletionStatusButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement fe)
-        {
-            return;
-        }
-
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
-        List<BaseMenuFlyoutItemModel> menuItems = MenuFlyoutItemsCreator.CreateCompletionStatusMenuItems(comics);
-
-        var flyout = new MenuFlyout();
-        foreach (BaseMenuFlyoutItemModel item in menuItems)
-        {
-            flyout.Items.Add(item.CreateMenuFlyoutItem());
-        }
-
-        flyout.ShowAt(fe, new FlyoutShowOptions { Placement = FlyoutPlacementMode.Top });
-    }
-
-    private void CommandBarHideButton_Click(object sender, RoutedEventArgs e)
-    {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
-        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-        {
-            await Task.WhenAll(comics.Select(x => x.SetHidden(true)));
-        }));
-    }
-
-    private void CommandBarUnhideButton_Click(object sender, RoutedEventArgs e)
-    {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
-        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
-        {
-            await Task.WhenAll(comics.Select(x => x.SetHidden(false)));
-        }));
-    }
-
-    private void CommandBarRemoveButton_Click(object sender, RoutedEventArgs e)
-    {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
-        string idList = string.Join(',', comics.Select(x => x.Id.ToString()));
-        ActionModel actionModel = ActionModel.Builder.Create(RemoveComicProvider.NAME)
-            .AddParameter(RemoveComicProvider.PARAM_COMIC_ID, idList)
-            .Build();
-        PageActionHandler.HandleNoResult(actionModel);
+        ViewModel.CollapseOrExpandGroup(group);
     }
 
     //
@@ -531,39 +326,5 @@ internal sealed partial class HomePage : BasePage
 
             flyout.ShowAt(fe);
         });
-    }
-
-    //
-    // Types
-    //
-
-    private class CustomActionHandler(HomePageViewModel viewModel) : CustomActionProvider.IHandler
-    {
-        public void Handle(string source, string name, IReadOnlyList<string> args)
-        {
-            bool handled = true;
-            switch (source)
-            {
-                case MenuFlyoutItemsCreator.CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU:
-                    switch (name)
-                    {
-                        case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
-                            viewModel.SetSelectionMode(!viewModel.IsSelectMode);
-                            break;
-                        default:
-                            handled = false;
-                            break;
-                    }
-                    break;
-                default:
-                    handled = false;
-                    break;
-            }
-
-            if (!handled)
-            {
-                Logger.F(TAG, $"Unknown action '{source}.{name}'");
-            }
-        }
     }
 }

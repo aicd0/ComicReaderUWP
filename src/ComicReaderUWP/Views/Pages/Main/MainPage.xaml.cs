@@ -223,6 +223,7 @@ internal sealed partial class MainPage : BasePage
 
         GetWindowEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, opacity =>
         {
+            TopOverlayBackground.Opacity = opacity;
             TopTile.Opacity = opacity;
             SidebarSplitView.Opacity = opacity;
             _tabContainerGrid?.Opacity = opacity;
@@ -787,7 +788,7 @@ internal sealed partial class MainPage : BasePage
         {
             _immersiveMode = immersiveMode;
             UpdateContentFramePlacement();
-            RootTabView.Background = _immersiveMode ?
+            TopOverlayBackground.Background = _immersiveMode ?
                 (Brush)Application.Current.Resources["TitleBarBackground"] :
                 new SolidColorBrush(Colors.Transparent);
         }
