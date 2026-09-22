@@ -76,6 +76,16 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         e.Handled = true;
     }
 
+    private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        VisualStateManager.GoToState(this, "PointerOver", true);
+    }
+
+    private void RootGrid_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        VisualStateManager.GoToState(this, "Normal", true);
+    }
+
     private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
     {
         ComicItemViewModel? item = Item;

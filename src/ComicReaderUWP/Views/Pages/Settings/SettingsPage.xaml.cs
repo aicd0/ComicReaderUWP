@@ -45,6 +45,7 @@ internal sealed partial class SettingsPage : BasePage
         GeneralSettingsSection.Initialize(ViewModel.Shared);
         ImageSourceSettingsSection.Initialize(this, ViewModel.Shared);
         ReaderSettingsSection.Initialize(ViewModel.Shared);
+        AppearanceSettingsSection.Initialize(ViewModel.Shared);
         PluginSettingsSection.Initialize(ViewModel.Shared);
         AdvancedSettingsSection.Initialize(ViewModel.Shared);
 
@@ -93,19 +94,9 @@ internal sealed partial class SettingsPage : BasePage
         });
     }
 
-    private void BackgroundComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        ViewModel.SetBackground(((ComboBox)sender).SelectedIndex);
-    }
-
     private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         ViewModel.SetAppLanguage(((ComboBox)sender).SelectedIndex);
-    }
-
-    private void AppearanceRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        ViewModel.SetAppearance(((RadioButtons)sender).SelectedIndex);
     }
 
     private void LicenseHyperlink_Click(Hyperlink sender, HyperlinkClickEventArgs args)

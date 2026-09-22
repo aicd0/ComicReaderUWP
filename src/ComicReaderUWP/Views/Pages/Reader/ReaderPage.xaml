@@ -132,7 +132,7 @@
                                     Text="{x:Bind ViewModel.Zooming, Mode=OneWay}" />
                                 <FontIcon
                                     VerticalAlignment="Center"
-                                    FontSize="14"
+                                    FontSize="12"
                                     Foreground="{ThemeResource ForegroundGrey2}"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>
@@ -146,11 +146,10 @@
                                     Margin="0,0,4,2"
                                     VerticalAlignment="Center"
                                     FontSize="14"
-                                    FontWeight="SemiBold"
                                     Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
                                 <FontIcon
                                     VerticalAlignment="Center"
-                                    FontSize="14"
+                                    FontSize="12"
                                     Foreground="{ThemeResource ForegroundGrey2}"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>

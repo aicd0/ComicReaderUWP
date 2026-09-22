@@ -85,30 +85,7 @@
                         Glyph="&#xE790;"
                         IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock
-                                    Margin="0,0,0,8"
-                                    Text="{x:Bind StringResource.ApplyOnNextLaunch}"
-                                    TextWrapping="Wrap"
-                                    Visibility="{x:Bind ViewModel.AppearanceChanged, Mode=OneWay}" />
-                                <muxc:RadioButtons
-                                    Margin="0,-8,0,0"
-                                    SelectedIndex="{x:Bind ViewModel.AppearanceIndex, Mode=OneWay}"
-                                    SelectionChanged="AppearanceRadioButtons_SelectionChanged">
-                                    <RadioButton x:Uid="ThemeLight" />
-                                    <RadioButton x:Uid="ThemeDark" />
-                                    <RadioButton x:Uid="ThemeUseSystemSetting" />
-                                </muxc:RadioButtons>
-                                <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
-                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind StringResource.Background}" />
-                                    <ComboBox
-                                        Margin="12,0,0,0"
-                                        DisplayMemberPath="Name"
-                                        ItemsSource="{x:Bind ViewModel.Backgrounds, Mode=OneWay}"
-                                        SelectedIndex="{x:Bind ViewModel.BackgroundIndex, Mode=OneWay}"
-                                        SelectionChanged="BackgroundComboBox_SelectionChanged" />
-                                </StackPanel>
-                            </StackPanel>
+                            <settings:AppearanceSettingsView x:Name="AppearanceSettingsSection" />
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>
 
