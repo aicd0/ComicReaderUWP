@@ -24,11 +24,10 @@ internal class AppearanceManager
             return backgroundBrush;
         }
 
-        AppSettingsModel.AppBackgroundEnum backgroundEnum = AppSettingsModel.GetModel().Background;
-        backgroundBrush = backgroundEnum switch
+        backgroundBrush = AppSettingsModel.AppBackground switch
         {
-            AppSettingsModel.AppBackgroundEnum.Acrylic => new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
-            _ => (Brush)Application.Current.Resources["AppBackgroundNone"],
+            AppSettingsModel.AppBackgroundEnum.None => (Brush)Application.Current.Resources["AppBackgroundNone"],
+            _ => new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
         };
 
         _themeBackgroundCache = backgroundBrush;

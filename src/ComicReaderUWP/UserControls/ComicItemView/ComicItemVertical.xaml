@@ -20,23 +20,18 @@
             <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
             <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
 
-            <cwm:AttachedCardShadow
-                x:Key="CommonShadow"
-                Opacity="0.1"
-                Offset="0" />
-
         </ResourceDictionary>
     </base:BaseUserControl.Resources>
 
     <Grid
         x:Name="RootGrid"
-        Background="{ThemeResource ComicItemBackground}"
+        Background="{ThemeResource ButtonBackground}"
         ContextRequested="RootGrid_ContextRequested"
         PointerEntered="RootGrid_PointerEntered"
         PointerExited="RootGrid_PointerExited"
         Tapped="RootGrid_Tapped">
         <Grid.BackgroundTransition>
-            <BrushTransition Duration="0:0:0.1" />
+            <BrushTransition Duration="0:0:0.083" />
         </Grid.BackgroundTransition>
 
         <Grid>
@@ -49,7 +44,7 @@
             <Grid Grid.Row="0" Padding="20,32,20,0">
                 <Grid Height="{StaticResource ComicItemVerticalImageHeight}">
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Grid cw:Effects.Shadow="{StaticResource CommonShadow}">
+                        <Grid>
                             <Image x:Name="ImageHolder1" Opacity="0" />
                         </Grid>
                         <Border CornerRadius="5">
@@ -94,30 +89,18 @@
                     Opacity="0.6"
                     Text="{x:Bind Item.PageCountAndProgress, Mode=OneWay}" />
             </StackPanel>
-
-            <Grid
-                Grid.Row="0"
-                Margin="10"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Visibility="{x:Bind Item.IsFavorite, Mode=OneWay}">
-                <FontIcon
-                    FontSize="14"
-                    Foreground="{ThemeResource SystemAccentColor}"
-                    Glyph="&#xE735;" />
-            </Grid>
         </Grid>
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="CommonStates">
                 <VisualState x:Name="Normal">
                     <VisualState.Setters>
-                        <Setter Target="RootGrid.Background" Value="{ThemeResource ComicItemBackground}" />
+                        <Setter Target="RootGrid.Background" Value="{ThemeResource ButtonBackground}" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState x:Name="PointerOver">
                     <VisualState.Setters>
-                        <Setter Target="RootGrid.Background" Value="{ThemeResource ComicItemBackgroundPointerOver}" />
+                        <Setter Target="RootGrid.Background" Value="{ThemeResource ButtonBackgroundPointerOver}" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

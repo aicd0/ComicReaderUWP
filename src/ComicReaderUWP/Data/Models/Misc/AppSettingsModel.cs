@@ -21,8 +21,6 @@ namespace ComicReaderUWP.Data.Models.Misc;
 internal static class AppSettingsModel
 {
     private const string TAG = nameof(AppSettingsModel);
-    private const string APP_BACKGROUND_NONE = "None";
-    private const string APP_BACKGROUND_ACRYLIC = "Acrylic";
 
     private static readonly JsonDatabase _db = new();
 
@@ -36,6 +34,19 @@ internal static class AppSettingsModel
     //
     // Properties
     //
+
+    public static AppBackgroundEnum AppBackground
+    {
+        get
+        {
+            return _db.Read(model => ConvertAppBackgroundFromJson(model.Background));
+        }
+        set
+        {
+            _db.Write(model => model.Background = ConvertAppBackgroundToJson(value));
+            _db.Save();
+        }
+    }
 
     public static bool AutoHideCursor
     {
@@ -507,6 +518,30 @@ internal static class AppSettingsModel
         };
     }
 
+    private static string ConvertAppBackgroundToJson(AppBackgroundEnum background)
+    {
+        return background switch
+        {
+            AppBackgroundEnum.None => "None",
+            AppBackgroundEnum.Acrylic => "Acrylic",
+            AppBackgroundEnum.Mica => "Mica",
+            AppBackgroundEnum.MicaAlt => "MicaAlt",
+            _ => "None",
+        };
+    }
+
+    private static AppBackgroundEnum ConvertAppBackgroundFromJson(string? background)
+    {
+        return background switch
+        {
+            "None" => AppBackgroundEnum.None,
+            "Acrylic" => AppBackgroundEnum.Acrylic,
+            "Mica" => AppBackgroundEnum.Mica,
+            "MicaAlt" => AppBackgroundEnum.MicaAlt,
+            _ => AppBackgroundEnum.None,
+        };
+    }
+
     //
     // Types
     //
@@ -535,7 +570,6 @@ internal static class AppSettingsModel
         public bool RemoveUnreachableComics { get; set; }
         public bool PromptBeforeRemovingComics { get; set; }
         public AppearanceSetting Theme { get; set; } = AppearanceSetting.UseSystemSetting;
-        public AppBackgroundEnum Background { get; set; } = AppBackgroundEnum.None;
         public int ComicShuffleRandomSeed { get; set; }
 
         public static ExternalModel From(JsonModel model)
@@ -574,12 +608,6 @@ internal static class AppSettingsModel
                 externalModel.Theme = AppearanceSetting.UseSystemSetting;
             }
 
-            externalModel.Background = model.Background switch
-            {
-                APP_BACKGROUND_ACRYLIC => AppBackgroundEnum.Acrylic,
-                _ => AppBackgroundEnum.None,
-            };
-
             return externalModel;
         }
 
@@ -591,12 +619,6 @@ internal static class AppSettingsModel
             model.PromptBeforeRemovingComics = PromptBeforeRemovingComics;
             model.Theme = (int)Theme;
             model.ComicShuffleRandomSeed = ComicShuffleRandomSeed;
-
-            model.Background = Background switch
-            {
-                AppBackgroundEnum.Acrylic => APP_BACKGROUND_ACRYLIC,
-                _ => APP_BACKGROUND_NONE,
-            };
         }
     }
 
@@ -632,6 +654,8 @@ internal static class AppSettingsModel
     {
         None,
         Acrylic,
+        Mica,
+        MicaAlt,
     }
 
     public class JsonModel

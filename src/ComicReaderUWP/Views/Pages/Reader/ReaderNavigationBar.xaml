@@ -71,10 +71,12 @@
                 <Flyout
                     Closed="ReaderSettingFlyout_Closed"
                     Closing="ReaderSettingFlyout_Closing"
-                    Opened="ReaderSettingFlyout_Opened">
+                    Opened="ReaderSettingFlyout_Opened"
+                    Placement="Bottom">
                     <Flyout.FlyoutPresenterStyle>
                         <Style TargetType="FlyoutPresenter">
                             <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Margin" Value="0,4,0,0" />
                             <Setter Property="Padding" Value="0" />
                             <Setter Property="MaxWidth" Value="1000" />
                         </Style>

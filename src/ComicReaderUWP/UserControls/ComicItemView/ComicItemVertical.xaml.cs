@@ -28,6 +28,7 @@ internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemVie
     public ComicItemVertical()
     {
         InitializeComponent();
+
         Loaded += ComicItemVertical_LoadedOrUnloaded;
         Unloaded += ComicItemVertical_LoadedOrUnloaded;
     }

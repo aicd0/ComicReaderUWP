@@ -123,12 +123,10 @@
                                         <ColumnDefinition x:Name="RightContentColumn" Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Border
-                                        Grid.Column="1"
-                                        Grid.ColumnSpan="2"
+                                        Grid.Column="2"
                                         Height="1"
                                         VerticalAlignment="Bottom"
-                                        BorderBrush="{ThemeResource TabViewBorderBrush}"
-                                        BorderThickness="1" />
+                                        Background="{ThemeResource TabViewBorderBrush}" />
                                     <ContentPresenter
                                         x:Name="LeftContentPresenter"
                                         Grid.Column="0"
@@ -205,6 +203,12 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
+
+            <Grid
+                x:Name="TopOverlayBackground"
+                Grid.Row="0"
+                Background="Transparent"
+                IsHitTestVisible="False" />
 
             <Grid
                 x:Name="TopTile"
@@ -350,6 +354,7 @@
             x:Name="RootTabView"
             VerticalAlignment="Stretch"
             AddTabButtonClick="OnAddTabButtonClicked"
+            Background="Transparent"
             CanDragTabs="True"
             SelectionChanged="OnTabViewSelectionChanged"
             Style="{StaticResource MainPageTabViewStyle}"

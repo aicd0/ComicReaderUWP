@@ -120,7 +120,7 @@ internal sealed partial class MainWindow : Window
 
         Title = StringResourceProvider.Instance.AppDisplayName;
         ExtendsContentIntoTitleBar = true;
-        TrySetAcrylicBackdrop();
+        TrySetSystemBackdrop();
         SetWindowIcon();
 
         SubscribeEvents();
@@ -512,12 +512,62 @@ internal sealed partial class MainWindow : Window
         }
     }
 
-    private void TrySetAcrylicBackdrop()
+    private void TrySetSystemBackdrop()
     {
-        if (DesktopAcrylicController.IsSupported())
+        void SetAcrylicBackdrop()
         {
-            var desktopAcrylicBackdrop = new DesktopAcrylicBackdrop();
+            DesktopAcrylicBackdrop desktopAcrylicBackdrop = new();
             SystemBackdrop = desktopAcrylicBackdrop;
+        }
+
+        void SetMicaBackdrop(MicaKind kind)
+        {
+            MicaBackdrop micaBackdrop = new()
+            {
+                Kind = kind,
+            };
+            SystemBackdrop = micaBackdrop;
+        }
+
+        bool supportAcrylic = DesktopAcrylicController.IsSupported();
+        bool supportMica = MicaController.IsSupported();
+
+        switch (AppSettingsModel.AppBackground)
+        {
+            case AppSettingsModel.AppBackgroundEnum.None:
+                if (supportMica)
+                {
+                    SetMicaBackdrop(MicaKind.BaseAlt);
+                }
+                else if (supportAcrylic)
+                {
+                    SetAcrylicBackdrop();
+                }
+
+                break;
+            case AppSettingsModel.AppBackgroundEnum.Acrylic:
+                if (supportAcrylic)
+                {
+                    SetAcrylicBackdrop();
+                }
+
+                break;
+            case AppSettingsModel.AppBackgroundEnum.Mica:
+                if (supportMica)
+                {
+                    SetMicaBackdrop(MicaKind.Base);
+                }
+
+                break;
+            case AppSettingsModel.AppBackgroundEnum.MicaAlt:
+                if (supportMica)
+                {
+                    SetMicaBackdrop(MicaKind.BaseAlt);
+                }
+
+                break;
+            default:
+                break;
         }
     }
 

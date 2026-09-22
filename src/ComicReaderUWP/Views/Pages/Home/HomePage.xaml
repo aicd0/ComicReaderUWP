@@ -60,7 +60,7 @@
         <Grid VerticalAlignment="Top">
             <Grid
                 x:Name="HeaderAreaBackgroundGrid"
-                Background="{ThemeResource HomeHeaderBackground}"
+                Background="{ThemeResource TitleBarBackground}"
                 IsHitTestVisible="False"
                 Opacity="0" />
             <Grid
