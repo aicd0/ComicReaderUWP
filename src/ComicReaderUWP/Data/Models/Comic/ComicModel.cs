@@ -80,6 +80,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public long Id => _internalModel.Id;
     public bool IsEditable => _internalModel.IsEditable;
     public bool IsExternal => _internalModel.IsExternal;
+    public bool IsCollection => _internalModel.IsCollection;
     public double LastPosition => _internalModel.LastPosition;
     public string Location => _internalModel.Location;
     public int Progress => _internalModel.Progress;
@@ -122,6 +123,19 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public string? GetExt(string key)
     {
         return _internalModel.GetExt(key);
+    }
+
+    public async Task Save()
+    {
+        bool wasExternal = IsExternal;
+        await _internalModel.Save();
+
+        if (wasExternal)
+        {
+            _idPool.Set(Id, this);
+        }
+
+        DispatchUpdateEvent();
     }
 
     public void SetExt(string key, string? value)
@@ -223,6 +237,12 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     public Task<ErrorResult> ShowInFileExplorer()
     {
+        if (IsCollection)
+        {
+            var err = ErrorLogger.Create(TAG);
+            return Task.FromResult(err.Error("A collection has no file location."));
+        }
+
         return ThirdPartyLauncher.ShowInFileExplorer(_internalModel.FileSystemPath);
     }
 
@@ -389,6 +409,11 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     //
     // Creators
     //
+
+    public static ComicModel CreateCollection()
+    {
+        return new ComicModel(CollectionComicHandle.FromExternal());
+    }
 
     public static async Task<ComicModel?> FromId(long id)
     {

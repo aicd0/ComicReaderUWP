@@ -16,6 +16,7 @@ internal class GlobalEvent
 
     private GlobalEvent() { }
 
+    public IMutableLiveData<object> CollectionUpdated = new MutableLiveDataWithDelay<object>(EventBus.Default.With("CollectionUpdated"), 1000, delay: 100);
     public IMutableLiveData<object> ComicUpdated = new MutableLiveDataWithDelay<object>(EventBus.Default.With("ComicUpdated"), 1000, delay: 100);
     public IMutableLiveData<object> FilterUpdated = new MutableLiveDataWithDelay<object>(EventBus.Default.With("FilterUpdated"), 1000, delay: 100);
     public IMutableLiveData<object> FavoriteUpdated = new MutableLiveDataWithDelay<object>(EventBus.Default.With("FavoriteUpdated"), 1000, delay: 100);

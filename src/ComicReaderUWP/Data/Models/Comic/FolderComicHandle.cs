@@ -71,7 +71,8 @@ internal partial class FolderComicHandle : ComicHandle
             await Enqueue(() =>
             {
                 SelectCommand command = SelectCommand.Create(ComicTable.Instance)
-                    .AppendCondition(new LikeCondition(ComicTable.ColumnLocation, sourceDir + "%"));
+                    .AppendCondition(new LikeCondition(ComicTable.ColumnLocation, sourceDir + "%"))
+                    .AppendCondition(CreateComicOnlyCondition());
                 IReaderToken<long> comicIdToken = command.PutQueryInt64(ComicTable.ColumnId);
                 using SelectCommand.IReader reader = command.Execute();
                 while (reader.Read())

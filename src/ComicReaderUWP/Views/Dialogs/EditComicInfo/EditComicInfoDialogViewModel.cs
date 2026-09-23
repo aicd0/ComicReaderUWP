@@ -35,6 +35,39 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
     public MutableLiveData<bool> DescriptionChangedLiveData = new();
     public MutableLiveData<bool> TagChangedLiveData = new();
 
+    private string _title = string.Empty;
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            _title = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
+        }
+    }
+
+    private bool _isCreationMode = false;
+    public bool IsCreationMode
+    {
+        get => _isCreationMode;
+        set
+        {
+            _isCreationMode = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCreationMode)));
+        }
+    }
+
+    private bool _isCollectionOnlyMode = false;
+    public bool IsCollectionOnlyMode
+    {
+        get => _isCollectionOnlyMode;
+        set
+        {
+            _isCollectionOnlyMode = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCollectionOnlyMode)));
+        }
+    }
+
     private bool _isTagInfoBarOpen = false;
     public bool IsTagInfoBarOpen
     {
@@ -113,6 +146,9 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
     public void Initialize(IEnumerable<ComicModel> comics)
     {
         _comics.AddRange(comics);
+        IsCreationMode = comics.All(x => x.IsExternal);
+        IsCollectionOnlyMode = comics.All(x => x.IsCollection);
+        Title = GetTitle();
 
         Title1ChangedLiveData.Emit(false);
         Title2ChangedLiveData.Emit(false);
@@ -135,7 +171,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         InitializeLinks();
     }
 
-    public void Save()
+    public async Task Save()
     {
         // Rating
         int rating = -1;
@@ -255,6 +291,14 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             }
 
             await Task.WhenAll(tasks);
+
+            if (IsCreationMode)
+            {
+                foreach (ComicModel comic in _comics)
+                {
+                    await comic.Save();
+                }
+            }
 
             foreach (ComicModel comic in _comics)
             {
@@ -404,6 +448,26 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
     public void SetClearReaderSettings(bool clearReaderSettings)
     {
         _clearReaderSettings = clearReaderSettings;
+    }
+
+    private string GetTitle()
+    {
+        if (!IsCollectionOnlyMode)
+        {
+            return StringResourceProvider.Instance.ComicInfo;
+        }
+
+        if (IsCreationMode)
+        {
+            return StringResourceProvider.Instance.NewCollection;
+        }
+
+        if (_comics.Count > 0)
+        {
+            return _comics[0].Title;
+        }
+
+        return StringResourceProvider.Instance.ComicInfo;
     }
 
     private T ExtractCommonValue<T>(Func<ComicModel, T> extractor, T defaultValue)

@@ -53,6 +53,14 @@ internal abstract partial class ComicHandle
     // Static Methods
     //
 
+    public static ICondition CreateComicOnlyCondition()
+    {
+        return new ComparisonCondition(
+            ColumnOrValue.FromColumn(ComicTable.ColumnType),
+            ColumnOrValue.FromValue((long)ComicType.Collection),
+            ComparisonCondition.TypeEnum.NotEqual);
+    }
+
     public static Task Enqueue(Action action)
     {
         return SqliteDB.MainDatabaseDispatcher.Submit(action);
@@ -143,6 +151,12 @@ internal abstract partial class ComicHandle
                         .Execute();
                     DeleteCommand.Create(TagCategoryTable.Instance)
                         .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), idChunk))
+                        .Execute();
+                    DeleteCommand.Create(ComicCollectionTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicCollectionTable.ColumnComicId), idChunk))
+                        .Execute();
+                    DeleteCommand.Create(ComicCollectionTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicCollectionTable.ColumnCollectionId), idChunk))
                         .Execute();
                     DeleteCommand.Create(ComicTable.Instance)
                         .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), idChunk))
@@ -358,6 +372,7 @@ internal abstract partial class ComicHandle
     {
         SelectCommand command = SelectCommand.Create(ComicTable.Instance)
             .AppendCondition(ComicTable.ColumnLocation, location)
+            .AppendCondition(CreateComicOnlyCondition())
             .Limit(1);
         IReaderToken<long> comicIdToken = command.PutQueryInt64(ComicTable.ColumnId);
         using SelectCommand.IReader reader = command.Execute();
@@ -381,6 +396,8 @@ internal abstract partial class ComicHandle
                 return new ArchiveComicHandle();
             case ComicType.PDF:
                 return new PdfComicHandle();
+            case ComicType.Collection:
+                return new CollectionComicHandle();
             default:
                 Logger.F(TAG, $"Unknown comic type: {type}");
                 return null;
@@ -445,7 +462,8 @@ internal abstract partial class ComicHandle
         HashSet<string> oldLocations = [];
         await Enqueue(() =>
         {
-            var command = SelectCommand.Create(ComicTable.Instance);
+            SelectCommand command = SelectCommand.Create(ComicTable.Instance)
+                .AppendCondition(CreateComicOnlyCondition());
             IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
             using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
@@ -506,15 +524,7 @@ internal abstract partial class ComicHandle
 
                         comic.Location = info.Location;
                         comic.SetAsDefaultInfo();
-
-                        var command = InsertCommand.Create(ComicTable.Instance);
-                        foreach (IColumnTypeless column in _allNonIdColumns.Value)
-                        {
-                            command.AppendColumn(column, comic.GetColumnValue(column));
-                        }
-
-                        comic.Id = command.Execute();
-                        comic.InternalSaveTagsNoLock();
+                        comic.InsertNewNoLock();
                     }
                 });
             }
@@ -636,7 +646,8 @@ internal abstract partial class ComicHandle
                         {
                             List<long> comicIds = [];
                             SelectCommand command = SelectCommand.Create(ComicTable.Instance)
-                                .AppendCondition(ComicTable.ColumnLocation, location);
+                                .AppendCondition(ComicTable.ColumnLocation, location)
+                                .AppendCondition(CreateComicOnlyCondition());
                             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
                             using SelectCommand.IReader reader = command.Execute();
                             while (reader.Read())
@@ -705,6 +716,7 @@ internal abstract partial class ComicHandle
     public abstract bool IsEditable { get; }
     public virtual string FileSystemPath => Location;
     public bool IsExternal => Id < 0;
+    public bool IsCollection => Type == ComicType.Collection;
 
     protected abstract ComicType Type { get; }
 
@@ -724,6 +736,27 @@ internal abstract partial class ComicHandle
     //
     // Setters
     //
+
+    public async Task Save()
+    {
+        await Enqueue(() =>
+        {
+            if (IsExternal)
+            {
+                InsertNewNoLock();
+            }
+            else
+            {
+                var command = UpdateCommand.Create(ComicTable.Instance);
+                foreach (IColumnTypeless column in _allNonIdColumns.Value)
+                {
+                    command.AppendColumn(column, GetColumnValue(column));
+                }
+
+                command.AppendCondition(ComicTable.ColumnId, Id).Execute();
+            }
+        });
+    }
 
     public void SetExt(string key, string? value)
     {
@@ -1063,6 +1096,18 @@ internal abstract partial class ComicHandle
         return evaluator(this);
     }
 
+    private void InsertNewNoLock()
+    {
+        var command = InsertCommand.Create(ComicTable.Instance);
+        foreach (IColumnTypeless column in _allNonIdColumns.Value)
+        {
+            command.AppendColumn(column, GetColumnValue(column));
+        }
+
+        Id = command.Execute();
+        InternalSaveTagsNoLock();
+    }
+
     //
     // Unsorted
     //
@@ -1117,7 +1162,7 @@ internal abstract partial class ComicHandle
         }));
     }
 
-    public void SetAsDefaultInfo()
+    private void SetAsDefaultInfo()
     {
         List<string> subPaths = [.. Location.Split(ArchiveManager.ARCHIVE_SEP)];
         var tags = new List<string>();
@@ -1290,16 +1335,5 @@ internal abstract partial class ComicHandle
                 _source.SetException(ex);
             }
         }
-    }
-
-    //
-    // Enums
-    //
-
-    internal enum ComicType : int
-    {
-        Folder = 1,
-        Archive = 2,
-        PDF = 3,
     }
 };

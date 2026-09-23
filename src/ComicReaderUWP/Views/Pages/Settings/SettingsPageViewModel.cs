@@ -158,7 +158,8 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
     {
         long QueryComicCount(Action<SelectCommand>? condition = null)
         {
-            var command = SelectCommand.Create(ComicTable.Instance);
+            SelectCommand command = SelectCommand.Create(ComicTable.Instance)
+                .AppendCondition(ComicHandle.CreateComicOnlyCondition());
             condition?.Invoke(command);
             IReaderToken<long> comicCountToken = command.PutQueryCountAll();
             using SelectCommand.IReader reader = command.Execute();

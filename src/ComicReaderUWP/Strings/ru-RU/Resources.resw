@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>Добавить папку</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>Добавить в подборку</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>Добавить в избранное</value>
   </data>
@@ -660,6 +663,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="New" xml:space="preserve">
     <value>Новый</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>Новая подборка</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Новая папка</value>
