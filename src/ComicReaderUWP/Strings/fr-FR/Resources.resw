@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>Ajouter un dossier</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>Ajouter à la collection</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>Ajouter aux favoris</value>
   </data>
@@ -659,6 +662,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   </data>
   <data name="New" xml:space="preserve">
     <value>Nouveau</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>Nouvelle collection</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Nouveau dossier</value>

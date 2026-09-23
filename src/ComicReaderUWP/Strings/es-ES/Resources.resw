@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>Agregar una carpeta</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>Añadir a la colección</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>Añadir a favoritos</value>
   </data>
@@ -659,6 +662,9 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   </data>
   <data name="New" xml:space="preserve">
     <value>Nuevo</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>Nueva colección</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Nueva carpeta</value>

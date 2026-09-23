@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>Add a folder</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>Add to collection</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>Add to favorites</value>
   </data>
@@ -661,6 +664,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   </data>
   <data name="New" xml:space="preserve">
     <value>New</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>New collection</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>New folder</value>

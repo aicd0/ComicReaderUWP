@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>폴더 추가</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>컬렉션에 추가</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>즐겨찾기에 추가</value>
   </data>
@@ -660,6 +663,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="New" xml:space="preserve">
     <value>새로운</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>새 컬렉션</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>새 폴더</value>

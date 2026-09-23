@@ -129,6 +129,7 @@ public static class SqliteDB
         _mainDatabase = new SqlDatabase(Path.Combine(DatabaseFolderPath, "main.db"));
 
         string comicTable = ComicTable.Instance.GetTableName();
+        string comicCollectionTable = ComicCollectionTable.Instance.GetTableName();
         string tagCategoryTable = TagCategoryTable.Instance.GetTableName();
         string tagTable = TagTable.Instance.GetTableName();
 
@@ -147,6 +148,11 @@ public static class SqliteDB
             "," + ComicTable.ColumnCompletionStatus.Name + " INTEGER NOT NULL" +
             "," + ComicTable.ColumnPageCount.Name + " INTEGER NOT NULL" +
             "," + ComicTable.ColumnExt.Name + " TEXT" +
+            ")");
+
+        ExecuteCommand(MainDatabase, "CREATE TABLE IF NOT EXISTS " + comicCollectionTable + " (" +
+            ComicCollectionTable.ColumnCollectionId.Name + " INTEGER NOT NULL REFERENCES " + comicTable + "(" + ComicTable.ColumnId.Name + ") ON DELETE CASCADE" +
+            "," + ComicCollectionTable.ColumnComicId.Name + " INTEGER NOT NULL REFERENCES " + comicTable + "(" + ComicTable.ColumnId.Name + ") ON DELETE CASCADE" +
             ")");
 
         ExecuteCommand(MainDatabase, "CREATE TABLE IF NOT EXISTS " + tagCategoryTable + " (" +
