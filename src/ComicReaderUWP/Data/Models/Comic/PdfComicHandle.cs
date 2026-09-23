@@ -15,6 +15,7 @@ using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Pdf;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Tables;
 
 using Microsoft.Graphics.Canvas;
 

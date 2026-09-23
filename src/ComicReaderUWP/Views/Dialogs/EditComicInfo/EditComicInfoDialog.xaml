@@ -4,11 +4,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"
     xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
+    xmlns:converters="using:ComicReaderUWP.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
-    Title="{x:Bind StringResource.ComicInfo}"
+    Title="{x:Bind ViewModel.Title, Mode=OneWay}"
     mc:Ignorable="d">
+
+    <base:BaseContentDialog.Resources>
+        <ResourceDictionary>
+            <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
+        </ResourceDictionary>
+    </base:BaseContentDialog.Resources>
 
     <StackPanel Orientation="Vertical">
         <ScrollView
@@ -184,7 +191,8 @@
                     Grid.ColumnSpan="3"
                     Click="ClearReaderSettingsCheckBox_Click"
                     Content="{x:Bind StringResource.ClearReaderSettings}"
-                    IsChecked="False" />
+                    IsChecked="False"
+                    Visibility="{x:Bind ViewModel.IsCollectionOnlyMode, Converter={StaticResource BooleanToVisibilityNegationConverter}, Mode=OneWay}" />
             </Grid>
         </ScrollView>
 

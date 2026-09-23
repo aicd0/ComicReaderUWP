@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>新增資料夾</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>加入合集</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>加入收藏夾</value>
   </data>
@@ -657,6 +660,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="New" xml:space="preserve">
     <value>新建</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>新增合集</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>新資料夾</value>

@@ -16,6 +16,7 @@ public class StringResourceProvider
     public string AboutCopyright => GetResourceString("AboutCopyright");
     public string Add => GetResourceString("Add");
     public string AddFolder => GetResourceString("AddFolder");
+    public string AddToCollection => GetResourceString("AddToCollection");
     public string AddToFavorites => GetResourceString("AddToFavorites");
     public string AllComics => GetResourceString("AllComics");
     public string AllComicsIn => GetResourceString("AllComicsIn");
@@ -146,6 +147,7 @@ public class StringResourceProvider
     public string Name => GetResourceString("Name");
     public string Never => GetResourceString("Never");
     public string New => GetResourceString("New");
+    public string NewCollection => GetResourceString("NewCollection");
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
     public string NewWindow => GetResourceString("NewWindow");

@@ -234,6 +234,7 @@ internal partial class PluginContext : IPluginContext
             var command = SelectCommand.Create(ComicTable.Instance);
             IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
             command.AppendCondition(filterCondition);
+            command.AppendCondition(ComicHandle.CreateComicOnlyCondition());
             using SelectCommand.IReader reader = command.Execute();
             while (reader.Read())
             {

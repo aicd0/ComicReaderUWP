@@ -108,8 +108,11 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
 
     private void DoneButton_Click(object sender, RoutedEventArgs args)
     {
-        ViewModel.Save();
-        Hide();
+        CoroutineUtils.Run(async () =>
+        {
+            await ViewModel.Save();
+            Hide();
+        });
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs args)

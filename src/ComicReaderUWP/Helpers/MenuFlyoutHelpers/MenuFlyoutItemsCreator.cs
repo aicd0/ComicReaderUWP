@@ -24,6 +24,7 @@ using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
+using ComicReaderUWP.Views.Dialogs.EditComicInfo;
 
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -170,6 +171,13 @@ internal static class MenuFlyoutItemsCreator
                     },
                 });
             }
+
+            items.Add(new SubItemMenuFlyoutItemModel()
+            {
+                Text = StringResourceProvider.Instance.AddToCollection,
+                Icon = new FontIconSource() { Glyph = "\uF5ED" },
+                Items = await CreateAddToCollectionMenuItems(actionHandler, inLibraryComics),
+            });
 
             items.Add(new SubItemMenuFlyoutItemModel()
             {
@@ -404,6 +412,77 @@ internal static class MenuFlyoutItemsCreator
                 },
             });
         }
+
+        return items;
+    }
+
+    private static async Task<IEnumerable<BaseMenuFlyoutItemModel>> CreateAddToCollectionMenuItems(ActionHandler actionHandler, IReadOnlyList<ComicModel> selectedComics)
+    {
+        int windowId = -1;
+        if (actionHandler.TryGetComponent(out IMainWindowComponent? mainWindowCom))
+        {
+            windowId = mainWindowCom.WindowId;
+        }
+
+        List<long> comicIds = [.. selectedComics.Where(x => !x.IsExternal && !x.IsCollection).Select(x => x.Id)];
+
+        List<BaseMenuFlyoutItemModel> items = [];
+
+        IReadOnlyList<long> collectionIds = await CollectionModel.GetAllCollectionIds();
+        if (collectionIds.Count > 0)
+        {
+            List<ComicModel> collections = await ComicModel.BatchFromId(collectionIds);
+            foreach (ComicModel collection in collections)
+            {
+                IReadOnlyList<long> linkedComicIds = await CollectionModel.GetComicIds(collection);
+                bool isLinked = comicIds.Count > 0 && comicIds.All(linkedComicIds.Contains);
+
+                items.Add(new ToggleMenuFlyoutItemModel()
+                {
+                    Text = collection.Title,
+                    IsChecked = isLinked,
+                    Click = () =>
+                    {
+                        CoroutineUtils.Run(() => BusyStateManager.WithBusyState(async () =>
+                        {
+                            if (isLinked)
+                            {
+                                await CollectionModel.RemoveComics(collection, comicIds);
+                            }
+                            else
+                            {
+                                await CollectionModel.AddComics(collection, comicIds);
+                            }
+                        }));
+                    },
+                });
+            }
+
+            items.Add(new SeparatorMenuFlyoutItemModel());
+        }
+
+        items.Add(new SimpleMenuFlyoutItemModel()
+        {
+            Text = StringResourceProvider.Instance.NewCollection,
+            Click = () =>
+            {
+                CoroutineUtils.Run(async () =>
+                {
+                    var collection = ComicModel.CreateCollection();
+                    var dialog = new EditComicInfoDialog([collection]);
+                    await dialog.ShowAsync(windowId);
+                    if (collection.IsExternal)
+                    {
+                        return;
+                    }
+
+                    await BusyStateManager.WithBusyState(async () =>
+                    {
+                        await CollectionModel.AddComics(collection, comicIds);
+                    });
+                });
+            },
+        });
 
         return items;
     }

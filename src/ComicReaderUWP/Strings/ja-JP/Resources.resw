@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>フォルダを追加する</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>コレクションに追加</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>お気に入りに追加</value>
   </data>
@@ -659,6 +662,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="New" xml:space="preserve">
     <value>新しい</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>新しいコレクション</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>新しいフォルダ</value>
