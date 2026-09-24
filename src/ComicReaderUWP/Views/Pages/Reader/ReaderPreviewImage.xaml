@@ -14,7 +14,10 @@
         Width="{StaticResource ReaderPreviewImageWidth}"
         Height="{StaticResource ReaderPreviewImageHeight}"
         ContextRequested="ReaderPreviewImage_ContextRequested">
-        <image:SimpleImageView x:Name="ImageHolder" />
+        <image:SimpleImageView
+            FrameHeight="{x:Bind ViewModel.ImageHeight}"
+            FrameWidth="{x:Bind ViewModel.ImageWidth}"
+            Uri="{x:Bind ViewModel.ImageUri, Mode=OneWay}" />
         <Grid
             Margin="0,0,8,8"
             Padding="5,2,5,5"

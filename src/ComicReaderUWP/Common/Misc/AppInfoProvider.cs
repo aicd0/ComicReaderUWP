@@ -1,19 +1,16 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 
 namespace ComicReaderUWP.Common.Misc;
 
-public class AppInfoProvider
+internal static class AppInfoProvider
 {
-    private static ReadOnlyDictionary<int, Encoding> _supportedEncodings = null;
-
-    public static readonly HashSet<string> SupportedImageExtensions =
+    private static readonly IReadOnlySet<string> _supportedImageExtensions = new HashSet<string>(
     [
         ".avif",
         ".bmp",
@@ -27,9 +24,10 @@ public class AppInfoProvider
         ".tif",
         ".tiff",
         ".webp",
-    ];
+    ]);
+    public static IReadOnlySet<string> SupportedImageExtensions => _supportedImageExtensions;
 
-    public static readonly HashSet<string> SupportedArchiveExtensions =
+    private static readonly IReadOnlySet<string> _supportedArchiveExtensions = new HashSet<string>(
     [
         ".7z",
         ".bz2",
@@ -42,57 +40,27 @@ public class AppInfoProvider
         ".tar",
         ".xz",
         ".zip",
-    ];
+    ]);
+    public static IReadOnlySet<string> SupportedArchiveExtensions => _supportedArchiveExtensions;
 
-    public static readonly HashSet<string> SupportedDocumentExtensions =
+    private static readonly IReadOnlySet<string> _supportedDocumentExtensions = new HashSet<string>(
     [
         ".pdf",
-    ];
+    ]);
+    public static IReadOnlySet<string> SupportedDocumentExtensions => _supportedDocumentExtensions;
 
-    private static HashSet<string> _supportedExternalFileExtensions = null;
-    public static HashSet<string> SupportedExternalFileExtensions
+    private static readonly Lazy<IReadOnlySet<string>> _supportedExternalFileExtensions = new(() =>
     {
-        get
-        {
-            if (_supportedExternalFileExtensions == null)
-            {
-                _supportedExternalFileExtensions = [];
-                _supportedExternalFileExtensions.UnionWith(SupportedImageExtensions);
-                _supportedExternalFileExtensions.UnionWith(SupportedArchiveExtensions);
-                _supportedExternalFileExtensions.UnionWith(SupportedDocumentExtensions);
-            }
+        HashSet<string> results = [];
+        results.UnionWith(SupportedImageExtensions);
+        results.UnionWith(SupportedArchiveExtensions);
+        results.UnionWith(SupportedDocumentExtensions);
+        return results;
+    });
+    public static IReadOnlySet<string> SupportedExternalFileExtensions => _supportedExternalFileExtensions.Value;
 
-            return _supportedExternalFileExtensions;
-        }
-    }
-
-    public static bool IsSupportedExternalFileExtension(string extension)
+    private static readonly Lazy<IReadOnlyDictionary<int, Encoding>> _supportedEncodings = new(() =>
     {
-        return SupportedExternalFileExtensions.Contains(extension.ToLower());
-    }
-
-    public static bool IsSupportedImageExtension(string extension)
-    {
-        return SupportedImageExtensions.Contains(extension.ToLower());
-    }
-
-    public static bool IsSupportedArchiveExtension(string extension)
-    {
-        return SupportedArchiveExtensions.Contains(extension.ToLower());
-    }
-
-    public static bool IsSupportedDocumentExtension(string extension)
-    {
-        return SupportedDocumentExtensions.Contains(extension.ToLower());
-    }
-
-    public static ReadOnlyDictionary<int, Encoding> GetSupportedEncodings()
-    {
-        if (_supportedEncodings != null)
-        {
-            return _supportedEncodings;
-        }
-
         // Encoding.GetEncodings() doesn't return the full list of encodings.
         // At least it doesn't work for current version of UWP.
         // ref: https://github.com/dotnet/runtime/issues/25819
@@ -125,7 +93,27 @@ public class AppInfoProvider
             }
             catch { }
         }
-        _supportedEncodings = new ReadOnlyDictionary<int, Encoding>(supportedEncodings);
-        return _supportedEncodings;
+        return new ReadOnlyDictionary<int, Encoding>(supportedEncodings);
+    });
+    public static IReadOnlyDictionary<int, Encoding> SupportedEncodings => _supportedEncodings.Value;
+
+    public static bool IsSupportedExternalFileExtension(string extension)
+    {
+        return SupportedExternalFileExtensions.Contains(extension.ToLower());
+    }
+
+    public static bool IsSupportedImageExtension(string extension)
+    {
+        return SupportedImageExtensions.Contains(extension.ToLower());
+    }
+
+    public static bool IsSupportedArchiveExtension(string extension)
+    {
+        return SupportedArchiveExtensions.Contains(extension.ToLower());
+    }
+
+    public static bool IsSupportedDocumentExtension(string extension)
+    {
+        return SupportedDocumentExtensions.Contains(extension.ToLower());
     }
 }

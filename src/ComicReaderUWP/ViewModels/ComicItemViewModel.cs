@@ -32,11 +32,13 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         get => _title;
         set
         {
-            if (_title != value)
+            if (_title == value)
             {
-                _title = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
+                return;
             }
+
+            _title = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
         }
     }
 
@@ -46,12 +48,14 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         get => _pageCount;
         set
         {
-            if (_pageCount != value)
+            if (_pageCount == value)
             {
-                _pageCount = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCount)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCountAndProgress)));
+                return;
             }
+
+            _pageCount = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCount)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCountAndProgress)));
         }
     }
 
@@ -61,14 +65,18 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         get => _rating;
         set
         {
-            if (_rating != value)
+            if (_rating == value)
             {
-                _rating = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rating)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRatingVisible)));
+                return;
             }
+
+            _rating = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rating)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRatingVisible)));
         }
     }
+
+    public bool IsRatingVisible => !string.IsNullOrEmpty(Rating);
 
     private string _progress = string.Empty;
     public string Progress
@@ -76,12 +84,14 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         get => _progress;
         set
         {
-            if (_progress != value)
+            if (_progress == value)
             {
-                _progress = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCountAndProgress)));
+                return;
             }
+
+            _progress = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageCountAndProgress)));
         }
     }
 
@@ -101,7 +111,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
             }
             else
             {
-                return $"{pageCount}  ·  {progress}";
+                return $"{pageCount}  Â·  {progress}";
             }
         }
     }
@@ -112,29 +122,47 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         get => _isFavorite;
         set
         {
-            if (_isFavorite != value)
+            if (_isFavorite == value)
             {
-                _isFavorite = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFavorite)));
+                return;
             }
+
+            _isFavorite = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFavorite)));
         }
     }
 
     private bool _isHidden = false;
-    public bool IsHide
+    public bool IsHidden
     {
         get => _isHidden;
         set
         {
-            if (_isHidden != value)
+            if (_isHidden == value)
             {
-                _isHidden = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsHide)));
+                return;
             }
+
+            _isHidden = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsHidden)));
         }
     }
 
-    public bool IsRatingVisible => !string.IsNullOrEmpty(Rating);
+    private string? _coverImageUri = null;
+    public string? CoverImageUri
+    {
+        get => _coverImageUri;
+        private set
+        {
+            if (_coverImageUri == value)
+            {
+                return;
+            }
+
+            _coverImageUri = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CoverImageUri)));
+        }
+    }
 
     public Action<ComicItemViewModel>? OnClick { get; set; }
     public Func<ComicItemViewModel, Task<List<BaseMenuFlyoutItemModel>>>? OnRequestContextFlyoutAsync { get; set; }
@@ -152,29 +180,21 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         _isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
         _isHidden = comic.Hidden;
         _pageCount = comic.PageCount > 0 ? $"{comic.PageCount}P" : string.Empty;
+        _coverImageUri = ComicExt.GetCoverImageUri(comic);
     }
 
     //
     // Utilities
     //
 
-    public ComicItemViewModel Clone()
-    {
-        return new ComicItemViewModel(Comic)
-        {
-            Progress = Progress,
-            OnClick = OnClick,
-            OnRequestContextFlyoutAsync = OnRequestContextFlyoutAsync,
-        };
-    }
-
     public void Update(ComicItemViewModel item)
     {
         Title = item.Title;
         Rating = item.Rating;
         IsFavorite = item.IsFavorite;
-        IsHide = item.IsHide;
+        IsHidden = item.IsHidden;
         PageCount = item.PageCount;
+        CoverImageUri = item.CoverImageUri;
 
         Progress = item.Progress;
         OnClick = item.OnClick;

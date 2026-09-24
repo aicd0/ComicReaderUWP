@@ -2,20 +2,79 @@
 // Licensed under the MIT License.
 
 using System;
+using System.IO;
+using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Helpers.Imaging;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace ComicReaderUWP.Common.Imaging;
 
 internal partial class SimpleImageView : UserControl
 {
+    public static readonly DependencyProperty UriProperty = DependencyProperty.Register(
+        nameof(Uri),
+        typeof(string),
+        typeof(SimpleImageView),
+        new PropertyMetadata(null, OnImagePropertyChanged));
+
+    public static readonly DependencyProperty FrameWidthProperty = DependencyProperty.Register(
+        nameof(FrameWidth),
+        typeof(double),
+        typeof(SimpleImageView),
+        new PropertyMetadata(double.PositiveInfinity, OnImagePropertyChanged));
+
+    public static readonly DependencyProperty FrameHeightProperty = DependencyProperty.Register(
+        nameof(FrameHeight),
+        typeof(double),
+        typeof(SimpleImageView),
+        new PropertyMetadata(double.PositiveInfinity, OnImagePropertyChanged));
+
+    public static readonly DependencyProperty StretchModeProperty = DependencyProperty.Register(
+        nameof(StretchMode),
+        typeof(StretchModeEnum),
+        typeof(SimpleImageView),
+        new PropertyMetadata(StretchModeEnum.Uniform, OnImagePropertyChanged));
+
+    public static readonly DependencyProperty StretchProperty = DependencyProperty.Register(
+        nameof(Stretch),
+        typeof(Stretch),
+        typeof(SimpleImageView),
+        new PropertyMetadata(Stretch.Uniform, OnStretchChanged));
+
+    private static void OnImagePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ((SimpleImageView)sender).UpdateImage();
+    }
+
+    private static void OnStretchChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ((SimpleImageView)sender).ImageHolder.Stretch = (Stretch)args.NewValue;
+    }
+
+    private static async Task<IImageSource?> ResolveImageSource(string? uri)
+    {
+        if (string.IsNullOrEmpty(uri))
+        {
+            return null;
+        }
+
+        if (ResourceUri.TryParse(uri, out ResourceUri? resourceUri))
+        {
+            return await resourceUri.ResolveImage();
+        }
+
+        return File.Exists(uri) ? new LocalFileImageSource(uri) : null;
+    }
+
     private readonly CancellationSession _cancellationSession = new();
     private bool _isLoaded = false;
-    private Model? _viewModel;
     private int _currentImageHash = 0;
 
     public SimpleImageView()
@@ -25,10 +84,34 @@ internal partial class SimpleImageView : UserControl
         Unloaded += SimpleImageView_LoadedOrUnloaded;
     }
 
-    public void SetModel(Model? model)
+    public string? Uri
     {
-        _viewModel = model;
-        UpdateImage();
+        get => (string?)GetValue(UriProperty);
+        set => SetValue(UriProperty, value);
+    }
+
+    public double FrameWidth
+    {
+        get => (double)GetValue(FrameWidthProperty);
+        set => SetValue(FrameWidthProperty, value);
+    }
+
+    public double FrameHeight
+    {
+        get => (double)GetValue(FrameHeightProperty);
+        set => SetValue(FrameHeightProperty, value);
+    }
+
+    public StretchModeEnum StretchMode
+    {
+        get => (StretchModeEnum)GetValue(StretchModeProperty);
+        set => SetValue(StretchModeProperty, value);
+    }
+
+    public Stretch Stretch
+    {
+        get => (Stretch)GetValue(StretchProperty);
+        set => SetValue(StretchProperty, value);
     }
 
     private void SimpleImageView_LoadedOrUnloaded(object sender, RoutedEventArgs e)
@@ -56,14 +139,11 @@ internal partial class SimpleImageView : UserControl
             return;
         }
 
-        Model? viewModel = _viewModel;
-        if (viewModel is null)
-        {
-            UnloadImage();
-            return;
-        }
-
-        int newHash = viewModel.GetImageHashCode();
+        string? uri = Uri;
+        double frameWidth = FrameWidth;
+        double frameHeight = FrameHeight;
+        StretchModeEnum stretchMode = StretchMode;
+        int newHash = HashCode.Combine(uri, frameWidth, frameHeight, stretchMode);
         if (newHash == _currentImageHash)
         {
             return;
@@ -76,12 +156,13 @@ internal partial class SimpleImageView : UserControl
 
         CoroutineUtils.Run(async () =>
         {
-            await ImageLoader.LoadImage(viewModel.Source, new()
+            IImageSource source = await ResolveImageSource(uri) ?? EmptyImageSource.Instance;
+            await ImageLoader.LoadImage(source, new()
             {
                 Token = token,
-                FrameWidth = viewModel.Width,
-                FrameHeight = viewModel.Height,
-                StretchMode = viewModel.StretchMode,
+                FrameWidth = frameWidth,
+                FrameHeight = frameHeight,
+                StretchMode = stretchMode,
                 Handler = handler,
             });
         });
@@ -110,24 +191,6 @@ internal partial class SimpleImageView : UserControl
 
         public void OnFailure()
         {
-        }
-    }
-
-    public class Model
-    {
-        public required IImageSource Source { get; set; }
-        public required double Width { get; set; } = double.PositiveInfinity;
-        public required double Height { get; set; } = double.PositiveInfinity;
-        public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
-        public string DebugDescription { get; set; } = string.Empty;
-
-        public int GetImageHashCode()
-        {
-            return HashCode.Combine(
-                Source.GetHashCode(),
-                Width,
-                Height,
-                StretchMode);
         }
     }
 }

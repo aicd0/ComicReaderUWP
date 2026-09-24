@@ -21,6 +21,7 @@ public partial class BaseContentDialog : ContentDialog, ILifecycleOwner
     private bool _isLoaded = false;
 
     public StringResourceProvider StringResource { get; } = StringResourceProvider.Instance;
+    public int WindowId { get; set; }
 
     public BaseContentDialog()
     {

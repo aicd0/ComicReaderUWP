@@ -204,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>亞克力</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>背景圖片</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>計算中...</value>
   </data>
@@ -286,6 +289,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>複製</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>封面圖片</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>封面頁數</value>
@@ -552,6 +558,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>跳到隨機頁面</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>圖像</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>亮度</value>
   </data>
@@ -564,11 +573,11 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>此設備上的圖片</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>影像處理</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>飽和度</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>圖片</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>包含隱藏漫畫</value>
@@ -729,6 +738,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>在新分頁中開啟</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>開啟中繼資料資料夾</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>打開外掛資料夾</value>
