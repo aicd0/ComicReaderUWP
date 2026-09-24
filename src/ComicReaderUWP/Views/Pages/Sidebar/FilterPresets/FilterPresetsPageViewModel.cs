@@ -240,7 +240,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
                             _actionHandler,
                             comic,
                             playlist: playlist,
-                            selectedComics: selectedComics,
+                            selectedItems: selectedComics,
                             canSelect: !SelectionMode);
                     },
                 };

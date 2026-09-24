@@ -567,7 +567,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                         _actionHandler,
                         comic,
                         playlist: playlist,
-                        selectedComics: selectedComics,
+                        selectedItems: selectedComics,
                         canSelect: true);
                 },
             };

@@ -17,6 +17,11 @@ internal static class ComicExt
 
     public static int GetCoverIndex(ComicModel comic)
     {
+        if (comic.IsCollection)
+        {
+            return -1;
+        }
+
         string? coverIndexString = comic.GetExt(COVER_INDEX);
         if (!string.IsNullOrEmpty(coverIndexString) && int.TryParse(coverIndexString, out int coverIndex) && coverIndex >= 0)
         {
