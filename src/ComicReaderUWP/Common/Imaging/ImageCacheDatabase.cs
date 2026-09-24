@@ -20,43 +20,51 @@ internal class ImageCacheDatabase(string databaseFilePath)
 {
     private const string TAG = nameof(ImageCacheDatabase);
     private const string MAIN_TABLE = "Main";
-    private const string MAIN_TABLE_FIELD_KEY = "Key";
-    private const string MAIN_TABLE_FIELD_EXT = "Ext";
+    private const string COLUMN_KEY = "Key";
+    private const string COLUMN_EXT = "Ext";
+    private const string URI_CACHE_KEY_TABLE = "uri_cache_key";
+    private const string COLUMN_URI = "uri";
+    private const string COLUMN_CACHE_KEY = "cache_key";
 
-    private readonly object _databaseLock = new();
+    private readonly Lock _databaseLock = new();
     private SqliteConnection? _connection;
     private readonly ConcurrentDictionary<string, CacheRecord> _recordCache = [];
+    private readonly ConcurrentDictionary<string, string> _uriCacheKeys = [];
 
     public void Clear()
     {
         lock (_databaseLock)
         {
             _recordCache.Clear();
+            _uriCacheKeys.Clear();
 
             SqliteConnection? connection = GetConnectionNoLock();
             if (connection is not null)
             {
                 using SqliteCommand command = connection.CreateCommand();
-                command.CommandText = "DELETE FROM " + MAIN_TABLE;
+                command.CommandText = "DELETE FROM " + MAIN_TABLE + ";" + "DELETE FROM " + URI_CACHE_KEY_TABLE;
                 command.ExecuteNonQuery();
             }
         }
     }
 
-    public CacheRecord? GetOrCreate(string? key)
+    public CacheRecord? GetCache(string key)
     {
-        if (string.IsNullOrEmpty(key))
-        {
-            return null;
-        }
-
+        ArgumentException.ThrowIfNullOrEmpty(key);
         string hashedKey = ToHashedKey(key);
-        CacheRecord? record = Get(hashedKey, key);
+        return GetCache(hashedKey, key);
+    }
+
+    public CacheRecord GetOrCreateCache(string key)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        string hashedKey = ToHashedKey(key);
+        CacheRecord? record = GetCache(hashedKey, key);
         record ??= CacheRecord.CreateNew(this, key);
         return _recordCache.GetOrAdd(hashedKey, record);
     }
 
-    private CacheRecord? Get(string hashedKey, string key)
+    private CacheRecord? GetCache(string hashedKey, string key)
     {
         {
             if (_recordCache.TryGetValue(hashedKey, out CacheRecord? record))
@@ -84,8 +92,8 @@ internal class ImageCacheDatabase(string databaseFilePath)
             using (SqliteCommand command = connection.CreateCommand())
             {
                 command.CommandText = $"SELECT " +
-                    $"{MAIN_TABLE_FIELD_EXT}" +
-                    $" FROM {MAIN_TABLE} WHERE {MAIN_TABLE_FIELD_KEY}=@key";
+                    $"{COLUMN_EXT}" +
+                    $" FROM {MAIN_TABLE} WHERE {COLUMN_KEY}=@key";
                 command.Parameters.AddWithValue("@key", hashedKey);
                 using SqliteDataReader query = command.ExecuteReader();
                 while (query.Read())
@@ -114,6 +122,81 @@ internal class ImageCacheDatabase(string databaseFilePath)
             }
 
             return records[0];
+        }
+    }
+
+    public string? GetCacheKey(string? uri)
+    {
+        if (string.IsNullOrEmpty(uri))
+        {
+            return null;
+        }
+
+        string hashedUri = ToHashedKey(uri);
+        if (_uriCacheKeys.TryGetValue(hashedUri, out string? cacheKey))
+        {
+            return cacheKey;
+        }
+
+        lock (_databaseLock)
+        {
+            if (_uriCacheKeys.TryGetValue(hashedUri, out cacheKey))
+            {
+                return cacheKey;
+            }
+
+            SqliteConnection? connection = GetConnectionNoLock();
+            if (connection is null)
+            {
+                return null;
+            }
+
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = $"SELECT {COLUMN_CACHE_KEY} FROM {URI_CACHE_KEY_TABLE} WHERE {COLUMN_URI}=@uri";
+            command.Parameters.AddWithValue("@uri", hashedUri);
+            using SqliteDataReader query = command.ExecuteReader();
+            if (!query.Read())
+            {
+                return null;
+            }
+
+            cacheKey = query.GetString(0);
+            _uriCacheKeys[hashedUri] = cacheKey;
+            return cacheKey;
+        }
+    }
+
+    public void SetCacheKey(string? uri, string? cacheKey)
+    {
+        if (string.IsNullOrEmpty(uri) || string.IsNullOrEmpty(cacheKey))
+        {
+            return;
+        }
+
+        string hashedUri = ToHashedKey(uri);
+        if (_uriCacheKeys.TryGetValue(hashedUri, out string? existingCacheKey) && existingCacheKey == cacheKey)
+        {
+            return;
+        }
+
+        lock (_databaseLock)
+        {
+            SqliteConnection? connection = GetConnectionNoLock();
+            if (connection is null)
+            {
+                return;
+            }
+
+            using (SqliteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = $"INSERT INTO {URI_CACHE_KEY_TABLE} ({COLUMN_URI},{COLUMN_CACHE_KEY}) VALUES (@uri,@cacheKey) " +
+                    $"ON CONFLICT({COLUMN_URI}) DO UPDATE SET {COLUMN_CACHE_KEY}=@cacheKey";
+                command.Parameters.AddWithValue("@uri", hashedUri);
+                command.Parameters.AddWithValue("@cacheKey", cacheKey);
+                command.ExecuteNonQuery();
+            }
+
+            _uriCacheKeys[hashedUri] = cacheKey;
         }
     }
 
@@ -194,8 +277,16 @@ internal class ImageCacheDatabase(string databaseFilePath)
         using (SqliteCommand command = connection.CreateCommand())
         {
             command.CommandText = "CREATE TABLE IF NOT EXISTS " + MAIN_TABLE + " (" +
-                MAIN_TABLE_FIELD_KEY + " TEXT PRIMARY KEY," +
-                MAIN_TABLE_FIELD_EXT + " TEXT)";
+                COLUMN_KEY + " TEXT PRIMARY KEY," +
+                COLUMN_EXT + " TEXT)";
+            command.ExecuteNonQuery();
+        }
+
+        using (SqliteCommand command = connection.CreateCommand())
+        {
+            command.CommandText = "CREATE TABLE IF NOT EXISTS " + URI_CACHE_KEY_TABLE + " (" +
+                COLUMN_URI + " TEXT PRIMARY KEY," +
+                COLUMN_CACHE_KEY + " TEXT)";
             command.ExecuteNonQuery();
         }
 
@@ -312,8 +403,8 @@ internal class ImageCacheDatabase(string databaseFilePath)
                 }
 
                 using SqliteCommand command = connection.CreateCommand();
-                command.CommandText = $"INSERT OR REPLACE INTO {MAIN_TABLE}({MAIN_TABLE_FIELD_KEY}" +
-                    $",{MAIN_TABLE_FIELD_EXT}" +
+                command.CommandText = $"INSERT OR REPLACE INTO {MAIN_TABLE}({COLUMN_KEY}" +
+                    $",{COLUMN_EXT}" +
                     $") VALUES(@key,@ext)";
                 command.Parameters.AddWithValue("@key", hashedKey);
                 command.Parameters.AddWithValue("@ext", extJson);

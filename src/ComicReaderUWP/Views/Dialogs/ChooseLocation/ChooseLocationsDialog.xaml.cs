@@ -20,16 +20,11 @@ namespace ComicReaderUWP.Views.Dialogs.ChooseLocation;
 
 public sealed partial class ChooseLocationsDialog : BaseContentDialog
 {
-    public ObservableCollection<FolderItemViewModel> FolderItemDataSource { get; set; }
+    public ObservableCollection<FolderItemViewModel> FolderItemDataSource { get; set; } = [];
 
-    private int WindowId { get; }
-
-    public ChooseLocationsDialog(int windowId)
+    public ChooseLocationsDialog()
     {
         InitializeComponent();
-
-        FolderItemDataSource = [];
-        WindowId = windowId;
     }
 
     private void Update()
