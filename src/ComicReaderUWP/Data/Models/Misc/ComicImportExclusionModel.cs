@@ -57,6 +57,11 @@ internal class ComicImportExclusionModel
 
         foreach (ComicModel comic in comics)
         {
+            if (comic.IsCollection)
+            {
+                return;
+            }
+
             string location = comic.Location;
             if (string.IsNullOrEmpty(location))
             {
