@@ -118,7 +118,7 @@ internal static partial class ImageLoader
 
     private static async Task<ImageMeta?> GetImageMeta(CacheRequestContext context)
     {
-        ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(context.Source.Uri);
+        ImageCacheDatabase.CacheRecord? record = await context.GetOrCreateCache();
         if (record is null)
         {
             return null;
@@ -126,7 +126,7 @@ internal static partial class ImageLoader
 
         return await record.Enqueue(async () =>
         {
-            string? fingerprint = context.Source.ValidateFingerprint ? await context.GetFingerprint() : null;
+            string? fingerprint = context.Source.IsCacheValidationEnabled ? await context.GetFingerprint() : null;
             ImageMeta? meta = CreateImageMetaFromCacheRecord(record, fingerprint);
             if (meta is not null)
             {
@@ -325,19 +325,6 @@ internal static partial class ImageLoader
         }
 
         long startTime = GetCurrentTick();
-        string uri = context.Source.Uri;
-        if (string.IsNullOrEmpty(uri))
-        {
-            Logger.E(TAG, "Image source URI is null or empty");
-            return false;
-        }
-
-        LRUCache? imageCache = GetImageLRUCache();
-        if (imageCache is null)
-        {
-            Logger.F(TAG, "Image cache is null");
-            return false;
-        }
 
         ImageMeta? meta = await GetImageMeta(context);
         if (meta is null)
@@ -400,14 +387,21 @@ internal static partial class ImageLoader
         }
         else
         {
-            ImageCacheDatabase.CacheRecord? record = ImageCacheDatabase.GetOrCreate(uri);
+            LRUCache? imageCache = GetImageLRUCache();
+            if (imageCache is null)
+            {
+                Logger.F(TAG, "Image cache is null");
+                return false;
+            }
+
+            ImageCacheDatabase.CacheRecord? record = await context.GetOrCreateCache();
             if (record is null)
             {
                 Logger.F(TAG, "Cache record is null");
                 return false;
             }
 
-            string? fingerprint = context.Source.ValidateFingerprint ? await context.GetFingerprint() : null;
+            string? fingerprint = context.Source.IsCacheValidationEnabled ? await context.GetFingerprint() : null;
 
             Tuple<Func<Task<DecodedImageModel>>, Action>? tuple = await record.Enqueue<Tuple<Func<Task<DecodedImageModel>>, Action>?>(async () =>
             {
@@ -511,7 +505,6 @@ internal static partial class ImageLoader
             CreateFunc = createFunc,
             CleanupAction = cleanupAction,
             Options = options,
-            Uri = uri,
             StartTime = startTime,
         };
 
@@ -970,6 +963,7 @@ internal static partial class ImageLoader
         private bool _connectionInitialized = false;
         private IImageConnection? _connection = null;
 
+        private string? _cacheKey = null;
         private string? _fingerprint = null;
         private Stream? _sourceStream = null;
         private BitmapDecoder? _bitmapDecoder = null;
@@ -986,6 +980,79 @@ internal static partial class ImageLoader
             _bitmapDecoder = null;
             _vectorService?.Dispose();
             _vectorService = null;
+        }
+
+        public async Task<ImageCacheDatabase.CacheRecord?> GetOrCreateCache()
+        {
+            string uri = _source.Uri;
+            if (string.IsNullOrEmpty(uri))
+            {
+                Logger.E(TAG, "Image source URI is null or empty");
+                return null;
+            }
+
+            ImageCacheDatabase.CacheRecord? cache = ImageCacheDatabase.GetCache(uri);
+            if (cache is not null)
+            {
+                return cache;
+            }
+
+            string cacheKey = await GetCacheKey();
+            if (string.IsNullOrEmpty(cacheKey))
+            {
+                Logger.E(TAG, "Image cache key is null or empty");
+                return null;
+            }
+
+            return ImageCacheDatabase.GetOrCreateCache(cacheKey);
+        }
+
+        public async Task<string> GetCacheKey()
+        {
+            if (_cacheKey is not null)
+            {
+                return _cacheKey;
+            }
+
+            _cacheKey = string.Empty;
+
+            string uri = _source.Uri;
+            if (string.IsNullOrEmpty(uri))
+            {
+                Logger.E(TAG, "Image source URI is null or empty");
+                return _cacheKey;
+            }
+
+            if (!_source.IsCacheValidationEnabled)
+            {
+                string? knownCacheKey = ImageCacheDatabase.GetCacheKey(uri);
+                if (!string.IsNullOrEmpty(knownCacheKey))
+                {
+                    _cacheKey = knownCacheKey;
+                    return _cacheKey;
+                }
+            }
+
+            IImageConnection? connection = await GetConnection();
+            if (connection is null)
+            {
+                return _cacheKey;
+            }
+
+            string cacheKey = connection.CacheKey;
+            if (string.IsNullOrEmpty(cacheKey))
+            {
+                Logger.E(TAG, $"Image connection cache key is null or empty (uri={uri})");
+                return _cacheKey;
+            }
+
+            _cacheKey = cacheKey;
+            if (uri != cacheKey)
+            {
+                ImageCacheDatabase.SetCacheKey(uri, cacheKey);
+            }
+
+            return _cacheKey;
         }
 
         public async Task<string> GetFingerprint()
@@ -1096,7 +1163,6 @@ internal static partial class ImageLoader
         public required Func<Task<DecodedImageModel>> CreateFunc;
         public required Action CleanupAction;
         public required LoadImageOptions Options;
-        public string Uri = string.Empty;
         public long StartTime;
     }
 }

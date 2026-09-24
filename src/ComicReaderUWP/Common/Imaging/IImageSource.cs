@@ -11,7 +11,7 @@ internal interface IImageSource
 
     ImageLoaderSchedulerGroup PreferredSchedulerGroup { get; }
 
-    bool ValidateFingerprint { get; }
+    bool IsCacheValidationEnabled { get; }
 
     Task<IImageConnection?> Open();
 }

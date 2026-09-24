@@ -9,21 +9,500 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Archive;
 using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Database.SqlHelpers;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Models.TagInfo;
 using ComicReaderUWP.Data.Tables;
+using ComicReaderUWP.SDK.Models;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 
 internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.Comic.IComicModel
 {
     private const string TAG = nameof(ComicModel);
+
+    //
+    // Static Variables
+    //
+
+    private static int _highestObjectId = 0;
+    private readonly int _objectId;
+    private static readonly MutableLiveData<bool> _isScanningLibraryLiveData = new(false);
+    public static LiveData<bool> IsScanningLibraryLiveData => _isScanningLibraryLiveData;
+
+    private static readonly Lock _alterLibraryLock = new();
+    private static readonly Queue<QueuedTask> _pendingAlterLibraryTasks = [];
+    private static bool _isAlteringLibrary = false;
+    private static bool _isLibraryScanPending = false;
+
+    //
+    // Static Methods
+    //
+
+    public static void RescanLibrary(string reason)
+    {
+        Logger.I(TAG, $"UpdateAllComics (reason={reason})");
+
+        lock (_alterLibraryLock)
+        {
+            if (_isLibraryScanPending)
+            {
+                return;
+            }
+
+            _isLibraryScanPending = true;
+        }
+
+        AlterLibrary(() => Task.CompletedTask); // Start a worker if not
+    }
+
+    public static Task RemoveComics(IEnumerable<ComicModel> comics)
+    {
+        List<ComicModel> removingComics = [.. comics.Where(x => !x.IsExternal)];
+
+        if (removingComics.Count == 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        HashSet<long> ids = [];
+        foreach (ComicModel comic in removingComics)
+        {
+            long id = comic.Id;
+            ids.Add(id);
+
+            comic._internalModel.MarkAsExternal();
+            _locationPool.GetOrAdd(comic.Location, comic);
+            _idPool.TryRemove(id, out _);
+        }
+
+        return AlterLibrary(async () =>
+        {
+            await RemoveComicsInternal(ids);
+            DispatchUpdateEvent();
+        });
+    }
+
+    public static Task<List<string>> GetAllTagCategories()
+    {
+        return ComicHandle.Enqueue<List<string>>(() =>
+        {
+            HashSet<string> tags = [];
+            var command = SelectCommand.Create(TagCategoryTable.Instance);
+            IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
+            command.Distinct();
+            using SelectCommand.IReader reader = command.Execute();
+            while (reader.Read())
+            {
+                string name = nameToken.GetValue();
+                tags.Add(name);
+            }
+            return [.. tags];
+        });
+    }
+
+    private static Task AlterLibrary(Func<Task> func)
+    {
+        QueuedTask item = new(func);
+        bool shouldStartWorker;
+
+        lock (_alterLibraryLock)
+        {
+            _pendingAlterLibraryTasks.Enqueue(item);
+            shouldStartWorker = !_isAlteringLibrary;
+            _isAlteringLibrary = true;
+        }
+
+        if (shouldStartWorker)
+        {
+            TaskDispatcher.DefaultThreadPool.SubmitAsync(AlterLibraryWorker);
+        }
+
+        return item.Task;
+    }
+
+    private static async Task AlterLibraryWorker()
+    {
+        while (true)
+        {
+            QueuedTask? next;
+
+            lock (_alterLibraryLock)
+            {
+                if (_pendingAlterLibraryTasks.Count > 0)
+                {
+                    next = _pendingAlterLibraryTasks.Dequeue();
+                }
+                else if (_isLibraryScanPending)
+                {
+                    _isLibraryScanPending = false;
+                    next = new(async () =>
+                    {
+                        _isScanningLibraryLiveData.Emit(true);
+                        try
+                        {
+                            await RescanLibraryInternal();
+                        }
+                        finally
+                        {
+                            _isScanningLibraryLiveData.Emit(false);
+                        }
+                    });
+                }
+                else
+                {
+                    _isAlteringLibrary = false;
+                    return;
+                }
+            }
+
+            await next.ExecuteAsync();
+        }
+    }
+
+    private static async Task RescanLibraryInternal()
+    {
+        AppSettingsModel.ExternalModel appSettings = AppSettingsModel.GetModel();
+        bool comicUpdatedSinceLastBroadcast = false;
+
+        // Get all locations from database
+        HashSet<string> oldLocations = [];
+        await ComicHandle.Enqueue(() =>
+        {
+            SelectCommand command = SelectCommand.Create(ComicTable.Instance)
+                .AppendCondition(ComicHandle.CreateComicOnlyCondition());
+            IReaderToken<string> locationToken = command.PutQueryString(ComicTable.ColumnLocation);
+            using SelectCommand.IReader reader = command.Execute();
+            while (reader.Read())
+            {
+                oldLocations.Add(locationToken.GetValue());
+            }
+        });
+
+        // Scan comics
+        Dictionary<string, ComicType> pendingLocations = [];
+        HashSet<string> newLocations = [];
+        HashSet<string> noAccessLocations = [];
+
+        async Task FlushPendingLocations()
+        {
+            List<UpdateItemInfo> updateQueue = [];
+            foreach (KeyValuePair<string, ComicType> pair in pendingLocations)
+            {
+                string location = pair.Key;
+                ComicType type = pair.Value;
+
+                if (!newLocations.Add(location))
+                {
+                    continue;
+                }
+
+                if (oldLocations.Contains(location))
+                {
+                    continue;
+                }
+
+                if (ComicImportExclusionModel.Instance.Contains(location))
+                {
+                    continue;
+                }
+
+                updateQueue.Add(new UpdateItemInfo
+                {
+                    Location = location,
+                    ItemType = type,
+                });
+            }
+
+            pendingLocations.Clear();
+
+            if (updateQueue.Count > 0)
+            {
+                comicUpdatedSinceLastBroadcast = true;
+                await TransactionBlock(() =>
+                {
+                    foreach (UpdateItemInfo info in updateQueue)
+                    {
+                        ComicHandle.InsertNoLock(info.ItemType, info.Location);
+                    }
+                });
+            }
+        }
+
+        var watch = new Stopwatch();
+        watch.Start();
+
+        foreach (string folderPath in appSettings.ComicFolders)
+        {
+            if (!Directory.Exists(folderPath))
+            {
+                Logger.I(TAG, $"Folder not exists, skipped: {folderPath}");
+                continue;
+            }
+
+            foreach (ComicScanner.ItemInfo itemInfo in ComicScanner.Search(folderPath, ComicScanner.PathType.Folder))
+            {
+                if (_isLibraryScanPending)
+                {
+                    return; // Fast exit
+                }
+
+                switch (itemInfo.Type)
+                {
+                    case ComicScanner.ItemType.Folder:
+                        continue;
+                    case ComicScanner.ItemType.File:
+                        break;
+                    case ComicScanner.ItemType.NoAccessLocation:
+                        noAccessLocations.Add(itemInfo.Path);
+                        continue;
+                    default:
+                        Logger.F(TAG, $"Unknown item type '{itemInfo.Type}' for path '{itemInfo.Path}'");
+                        continue;
+                }
+
+                string filename = StringUtils.ItemNameFromPath(itemInfo.Path);
+                string extension = StringUtils.ExtensionFromFilename(filename).ToLowerInvariant();
+                if (AppInfoProvider.IsSupportedImageExtension(extension))
+                {
+                    string location = StringUtils.ParentLocationFromLocation(itemInfo.Path);
+                    ComicType type = ArchiveManager.IsArchivePath(itemInfo.Path) ? ComicType.Archive : ComicType.Folder;
+                    pendingLocations[location] = type;
+                }
+                else
+                {
+                    switch (extension)
+                    {
+                        case ".pdf":
+                            pendingLocations[itemInfo.Path] = ComicType.PDF;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (watch.LapSpan().TotalSeconds > 2)
+                {
+                    await FlushPendingLocations();
+
+                    if (comicUpdatedSinceLastBroadcast)
+                    {
+                        comicUpdatedSinceLastBroadcast = false;
+                        DispatchUpdateEvent();
+                    }
+
+                    watch.Lap();
+                }
+            }
+        }
+
+        await FlushPendingLocations();
+
+        // Remove unreachable comics
+        if (appSettings.RemoveUnreachableComics)
+        {
+            List<string> locationRemoved = [.. oldLocations.Except(newLocations)];
+
+            for (int i = locationRemoved.Count - 1; i >= 0; i--)
+            {
+                string location = locationRemoved[i];
+                foreach (string noAccessLocation in noAccessLocations)
+                {
+                    if (StringUtils.FolderContain(noAccessLocation, location))
+                    {
+                        locationRemoved.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            if (locationRemoved.Count > 0)
+            {
+                bool proceed = true;
+                if (appSettings.PromptBeforeRemovingComics)
+                {
+                    string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
+                        .Replace("$count", locationRemoved.Count.ToString())
+                        .Replace("$comics", string.Join('\n', locationRemoved));
+                    DialogOptions options = new DialogOptions.Builder()
+                        .SetTitle(StringResourceProvider.Instance.Warning)
+                        .SetContent(promptContent)
+                        .SetPrimaryButtonText(StringResourceProvider.Instance.Remove)
+                        .SetCloseButtonText(StringResourceProvider.Instance.Cancel)
+                        .Build();
+                    DialogResult result = await DialogUtils.EnqueueDialogAsync(options);
+                    proceed = result == DialogResult.Primary;
+                }
+
+                if (proceed)
+                {
+                    comicUpdatedSinceLastBroadcast = true;
+
+                    List<long> removedComicIds = [];
+                    await ComicHandle.Enqueue(() =>
+                    {
+                        foreach (string location in locationRemoved)
+                        {
+                            List<long> comicIds = [];
+                            SelectCommand command = SelectCommand.Create(ComicTable.Instance)
+                                .AppendCondition(ComicTable.ColumnLocation, location)
+                                .AppendCondition(ComicHandle.CreateComicOnlyCondition());
+                            IReaderToken<long> idToken = command.PutQueryInt64(ComicTable.ColumnId);
+                            using SelectCommand.IReader reader = command.Execute();
+                            while (reader.Read())
+                            {
+                                comicIds.Add(idToken.GetValue());
+                            }
+
+                            if (comicIds.Count == 0)
+                            {
+                                Logger.F(TAG, $"Removing: No rows found for location '{location}'");
+                                continue;
+                            }
+
+                            if (comicIds.Count != 1)
+                            {
+                                Logger.F(TAG, $"Removing: Found {comicIds.Count} rows for location '{location}'");
+                            }
+
+                            Logger.I(TAG, $"Removing: {location}");
+                            removedComicIds.AddRange(comicIds);
+                        }
+                    });
+
+                    await RemoveComicsInternal(removedComicIds);
+                }
+            }
+        }
+
+        if (comicUpdatedSinceLastBroadcast)
+        {
+            DispatchUpdateEvent();
+        }
+    }
+
+    private static async Task RemoveComicsInternal(IEnumerable<long> comicIds)
+    {
+        List<long> ids = [.. comicIds];
+        if (ids.Count == 0)
+        {
+            return;
+        }
+
+        List<string> resourceIds = [];
+        List<ComicModel> comics = await BatchFromId(ids);
+        foreach (ComicModel comic in comics)
+        {
+            string? resourceId = comic.GetExt(ComicExt.RESOURCE_UUID);
+            if (!string.IsNullOrEmpty(resourceId))
+            {
+                resourceIds.Add(resourceId);
+            }
+
+            _idPool.TryRemove(comic.Id, out _);
+        }
+
+        await ComicHandle.Enqueue(() =>
+        {
+            SqliteDB.MainDatabase.WithTransaction(() =>
+            {
+                foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
+                {
+                    DeleteCommand.Create(TagTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagTable.ColumnComicId), idChunk))
+                        .Execute();
+                    DeleteCommand.Create(TagCategoryTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(TagCategoryTable.ColumnComicId), idChunk))
+                        .Execute();
+                    DeleteCommand.Create(ComicCollectionTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicCollectionTable.ColumnComicId), idChunk))
+                        .Execute();
+                    DeleteCommand.Create(ComicCollectionTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicCollectionTable.ColumnCollectionId), idChunk))
+                        .Execute();
+                    DeleteCommand.Create(ComicTable.Instance)
+                        .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), idChunk))
+                        .Execute();
+                }
+            });
+        });
+
+        await SqliteDB.MiscDatabaseDispatcher.Submit(() =>
+        {
+            foreach (IEnumerable<long> idChunk in SqlUtils.ChunkBy(ids))
+            {
+                DeleteCommand.Create(ComicHistoryTable.Instance)
+                    .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicHistoryTable.ColumnComicId), idChunk))
+                    .Execute();
+            }
+        });
+
+        FavoriteModel.Instance.BatchRemoveWithId([.. ids]);
+
+        List<Task> resourceTasks = [];
+        foreach (string resourceId in resourceIds)
+        {
+            resourceTasks.Add(ResourceManager.Release(resourceId));
+        }
+
+        await Task.WhenAll(resourceTasks);
+    }
+
+    private static Task TransactionBlock(Action action)
+    {
+        return ComicHandle.Enqueue(() =>
+        {
+            SqliteDB.MainDatabase.WithTransaction(action);
+        });
+    }
+
+    private static void DispatchUpdateEvent()
+    {
+        GlobalEvent.Instance.ComicUpdated.Emit(0);
+    }
+
+    //
+    // Pool
+    //
+
+    private static readonly ConcurrentWeakPool<long, ComicModel> _idPool = new();
+    private static readonly ConcurrentWeakPool<string, ComicModel> _locationPool = new();
+
+    private static bool TryGetExisting(long id, [MaybeNullWhen(false)] out ComicModel model)
+    {
+        return _idPool.TryGetValue(id, out model);
+    }
+
+    private static bool TryGetExisting(string location, [MaybeNullWhen(false)] out ComicModel model)
+    {
+        return _locationPool.TryGetValue(location, out model);
+    }
+
+    private static ComicModel ReplaceWithExisting(ComicHandle comicHandle)
+    {
+        var model = new ComicModel(comicHandle);
+
+        if (!model.IsExternal)
+        {
+            return _idPool.GetOrAdd(model.Id, model);
+        }
+
+        return _locationPool.GetOrAdd(model.Location, model);
+    }
+
+    //
+    // Constructors
+    //
 
     private readonly ComicHandle _internalModel;
 
@@ -36,9 +515,6 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     //
     // Equality
     //
-
-    private static int _highestObjectId = 0;
-    private readonly int _objectId;
 
     public bool Equals(ComicModel? other)
     {
@@ -589,95 +1065,33 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     }
 
     //
-    // Static Utilities
+    // Types
     //
 
-    public static void RescanLibrary(string reason)
+    private struct UpdateItemInfo
     {
-        ComicHandle.RescanLibrary(reason);
-    }
+        public string Location;
+        public ComicType ItemType;
+    };
 
-    public static Task RemoveComics(IEnumerable<ComicModel> comics)
+    private sealed class QueuedTask(Func<Task> func)
     {
-        List<ComicModel> removingComics = [.. comics.Where(x => !x.IsExternal)];
+        private readonly Func<Task> _func = func;
+        private readonly TaskCompletionSource _source = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        if (removingComics.Count == 0)
+        public Task Task => _source.Task;
+
+        public async Task ExecuteAsync()
         {
-            return Task.CompletedTask;
-        }
-
-        HashSet<long> ids = [];
-        foreach (ComicModel comic in removingComics)
-        {
-            long id = comic.Id;
-            ids.Add(id);
-
-            comic._internalModel.MarkAsExternal();
-            _locationPool.GetOrAdd(comic.Location, comic);
-            _idPool.TryRemove(id, out _);
-        }
-
-        return ComicHandle.AlterLibrary(async () =>
-        {
-            await ComicHandle.RemoveComicsUnsafe(ids);
-            FavoriteModel.Instance.BatchRemoveWithId([.. ids]);
-            DispatchUpdateEvent();
-        });
-    }
-
-    public static Task<List<string>> GetAllTagCategories()
-    {
-        return ComicHandle.Enqueue<List<string>>(() =>
-        {
-            HashSet<string> tags = [];
-            var command = SelectCommand.Create(TagCategoryTable.Instance);
-            IReaderToken<string> nameToken = command.PutQueryString(TagCategoryTable.ColumnName);
-            command.Distinct();
-            using SelectCommand.IReader reader = command.Execute();
-            while (reader.Read())
+            try
             {
-                string name = nameToken.GetValue();
-                tags.Add(name);
+                await _func();
+                _source.SetResult();
             }
-            return [.. tags];
-        });
-    }
-
-    //
-    // Pool
-    //
-
-    private static readonly ConcurrentWeakPool<long, ComicModel> _idPool = new();
-    private static readonly ConcurrentWeakPool<string, ComicModel> _locationPool = new();
-
-    private static bool TryGetExisting(long id, [MaybeNullWhen(false)] out ComicModel model)
-    {
-        return _idPool.TryGetValue(id, out model);
-    }
-
-    private static bool TryGetExisting(string location, [MaybeNullWhen(false)] out ComicModel model)
-    {
-        return _locationPool.TryGetValue(location, out model);
-    }
-
-    private static ComicModel ReplaceWithExisting(ComicHandle comicHandle)
-    {
-        var model = new ComicModel(comicHandle);
-
-        if (!model.IsExternal)
-        {
-            return _idPool.GetOrAdd(model.Id, model);
+            catch (Exception ex)
+            {
+                _source.SetException(ex);
+            }
         }
-
-        return _locationPool.GetOrAdd(model.Location, model);
-    }
-
-    //
-    // Static Helpers
-    //
-
-    private static void DispatchUpdateEvent()
-    {
-        GlobalEvent.Instance.ComicUpdated.Emit(0);
     }
 }

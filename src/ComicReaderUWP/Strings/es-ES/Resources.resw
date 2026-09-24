@@ -204,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>Acrílico</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>Imagen de fondo</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>Calculador...</value>
   </data>
@@ -286,6 +289,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>Copiar</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Imagen de portada</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>Número de páginas de portada</value>
@@ -554,6 +560,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>Ir a una página aleatoria</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>Imagen</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>Brillo</value>
   </data>
@@ -566,11 +575,11 @@ La evaluación se realizará en el siguiente orden:
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Imágenes en este dispositivo</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>Procesamiento de imágenes</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Saturación</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>Imágenes</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>Incluir cómics ocultos</value>
@@ -731,6 +740,9 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Abrir en nueva pestaña</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>Abrir carpeta de metadatos</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>Abrir carpeta de plugins</value>

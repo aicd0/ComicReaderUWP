@@ -36,6 +36,7 @@ public class StringResourceProvider
     public string AutoToggleOverlaysOnCursor => GetResourceString("AutoToggleOverlaysOnCursor");
     public string Background => GetResourceString("Background");
     public string BackgroundAcrylic => GetResourceString("BackgroundAcrylic");
+    public string BackgroundImage => GetResourceString("BackgroundImage");
     public string Calculating => GetResourceString("Calculating");
     public string Cancel => GetResourceString("Cancel");
     public string Category => GetResourceString("Category");
@@ -61,6 +62,7 @@ public class StringResourceProvider
     public string ContributionRunAfterLink => GetResourceString("ContributionRunAfterLink");
     public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
     public string Copy => GetResourceString("Copy");
+    public string CoverImage => GetResourceString("CoverImage");
     public string CoverPageCount => GetResourceString("CoverPageCount");
     public string Custom => GetResourceString("Custom");
     public string DebugModeWarning => GetResourceString("DebugModeWarning");
@@ -125,10 +127,11 @@ public class StringResourceProvider
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
     public string Horizontal => GetResourceString("Horizontal");
+    public string Image => GetResourceString("Image");
     public string ImageBrightness => GetResourceString("ImageBrightness");
     public string ImageContrast => GetResourceString("ImageContrast");
-    public string ImageProcessing => GetResourceString("ImageProcessing");
     public string ImageSaturation => GetResourceString("ImageSaturation");
+    public string Images => GetResourceString("Images");
     public string IncludeHiddenComics => GetResourceString("IncludeHiddenComics");
     public string InstallPlugin => GetResourceString("InstallPlugin");
     public string InstallPluginWarning => GetResourceString("InstallPluginWarning");
@@ -167,6 +170,7 @@ public class StringResourceProvider
     public string OpenInCurrentTab => GetResourceString("OpenInCurrentTab");
     public string OpenInLastActiveReaderTab => GetResourceString("OpenInLastActiveReaderTab");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
+    public string OpenMetadataFolder => GetResourceString("OpenMetadataFolder");
     public string OpenPluginsFolder => GetResourceString("OpenPluginsFolder");
     public string OpenSidebar => GetResourceString("OpenSidebar");
     public string OpenUserDataFolder => GetResourceString("OpenUserDataFolder");

@@ -204,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>아크릴</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>배경 이미지</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>계산 중...</value>
   </data>
@@ -286,6 +289,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>복사</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>표지 이미지</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>표지 페이지 수</value>
@@ -555,6 +561,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>임의의 페이지로 이동</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>이미지</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>밝기</value>
   </data>
@@ -567,11 +576,11 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>이 장치의 이미지</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>이미지 처리</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>채도</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>이미지</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>숨겨진 만화 포함</value>
@@ -732,6 +741,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>새 탭에서 열기</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>메타데이터 폴더 열기</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>플러그인 폴더 열기</value>

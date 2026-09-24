@@ -216,7 +216,7 @@ internal sealed partial class MainPage : BasePage
             ViewModel.IsBusy = busy;
         });
 
-        ComicHandle.IsScanningLibraryLiveData.ObserveSticky(this, scanning =>
+        ComicModel.IsScanningLibraryLiveData.ObserveSticky(this, scanning =>
         {
             ViewModel.Refreshing = scanning;
         });

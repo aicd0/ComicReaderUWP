@@ -162,7 +162,7 @@ internal sealed partial class ComicSelectionViewModel(Func<int> totalItemCountPr
                 favoriteEnabled = true;
             }
 
-            if (item.IsHide)
+            if (item.IsHidden)
             {
                 unhideEnabled = true;
             }

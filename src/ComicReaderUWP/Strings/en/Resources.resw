@@ -204,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>Acrylic</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>Background Image</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>Calculating...</value>
   </data>
@@ -286,6 +289,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>Copy</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Cover Image</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>Cover page count</value>
@@ -556,6 +562,9 @@ The evaluation will be performed in the following order:
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>Go to a random page</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>Brightness</value>
   </data>
@@ -568,11 +577,11 @@ The evaluation will be performed in the following order:
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Images on this device</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>Image Processing</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Saturation</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>Images</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>Include hidden comics</value>
@@ -733,6 +742,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Open in new tab</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>Open metadata folder</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>Open plugins folder</value>

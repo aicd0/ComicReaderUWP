@@ -204,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>Акрил</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>Фоновое изображение</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>Расчет...</value>
   </data>
@@ -286,6 +289,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>Копировать</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Обложка</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>Количество страниц обложки</value>
@@ -555,6 +561,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>Перейти на случайную страницу</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>Изображение</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>Яркость</value>
   </data>
@@ -567,11 +576,11 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Изображения на этом устройстве</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>Обработка изображений</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Насыщенность</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>Картинки</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>Включать скрытые комиксы</value>
@@ -732,6 +741,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Открыть в новой вкладке</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>Открыть папку метаданных</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>Открыть папку плагинов</value>

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 
@@ -157,7 +156,7 @@ internal partial class ImageSourceSettingsViewModel : INotifyPropertyChanged
 
     private void UpdateEncodings()
     {
-        ReadOnlyDictionary<int, Encoding> supportedEncodings = AppInfoProvider.GetSupportedEncodings();
+        IReadOnlyDictionary<int, Encoding> supportedEncodings = AppInfoProvider.SupportedEncodings;
         var encodings = new List<Tuple<string, int>>
         {
             new(StringResourceProvider.Instance.Default, -1)

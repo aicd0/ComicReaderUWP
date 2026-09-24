@@ -8,6 +8,7 @@
     xmlns:cw="using:CommunityToolkit.WinUI"
     xmlns:cwm="using:CommunityToolkit.WinUI.Media"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:ComicReaderUWP.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:ComicItemViewModel}"
@@ -43,14 +44,12 @@
 
             <Grid Grid.Row="0" Padding="20,32,20,0">
                 <Grid Height="{StaticResource ComicItemVerticalImageHeight}">
-                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Grid>
-                            <Image x:Name="ImageHolder1" Opacity="0" />
-                        </Grid>
-                        <Border CornerRadius="5">
-                            <Image x:Name="ImageHolder2" />
-                        </Border>
-                    </Grid>
+                    <Border
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        CornerRadius="5">
+                        <image:SimpleImageView x:Name="ImageHolder" Uri="{x:Bind Item.CoverImageUri, Mode=OneWay}" />
+                    </Border>
                 </Grid>
             </Grid>
 

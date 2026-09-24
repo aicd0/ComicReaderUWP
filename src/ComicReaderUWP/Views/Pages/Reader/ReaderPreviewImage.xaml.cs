@@ -29,15 +29,6 @@ internal sealed partial class ReaderPreviewImage : UserControl
         ViewModel = args.NewValue as ReaderPreviewImageViewModel;
 
         Bindings.Update();
-
-        if (ViewModel is null)
-        {
-            ImageHolder.SetModel(null);
-        }
-        else
-        {
-            ImageHolder.SetModel(ViewModel.Image);
-        }
     }
 
     private void ReaderPreviewImage_ContextRequested(UIElement sender, ContextRequestedEventArgs args)

@@ -204,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>アクリル</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>背景画像</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>計算中...</value>
   </data>
@@ -286,6 +289,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>コピー</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>表紙画像</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>表紙ページ数</value>
@@ -554,6 +560,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>ランダムなページにジャンプ</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>画像</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>明るさ</value>
   </data>
@@ -566,11 +575,11 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>このデバイス上の画像</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>画像処理</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>彩度</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>画像</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>非表示の漫画を含める</value>
@@ -731,6 +740,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>新しいタブで開く</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>メタデータフォルダを開く</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>プラグインフォルダーを開く</value>

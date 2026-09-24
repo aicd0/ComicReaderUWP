@@ -10,10 +10,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
-using ComicReaderUWP.Core.Common.Lifecycle;
+using ComicReaderUWP.Common.Storage;
+using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
@@ -24,16 +27,9 @@ namespace ComicReaderUWP.Views.Dialogs.EditComicInfo;
 
 internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
+    private const string TAG = nameof(EditComicInfoDialogViewModel);
 
-    public MutableLiveData<string> Title1TextLiveData = new();
-    public MutableLiveData<string> Title2TextLiveData = new();
-    public MutableLiveData<string> DescriptionTextLiveData = new();
-    public MutableLiveData<string> TagTextLiveData = new();
-    public MutableLiveData<bool> Title1ChangedLiveData = new();
-    public MutableLiveData<bool> Title2ChangedLiveData = new();
-    public MutableLiveData<bool> DescriptionChangedLiveData = new();
-    public MutableLiveData<bool> TagChangedLiveData = new();
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private string _title = string.Empty;
     public string Title
@@ -68,14 +64,49 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _isTagInfoBarOpen = false;
-    public bool IsTagInfoBarOpen
+    public string Title1
     {
-        get => _isTagInfoBarOpen;
+        get => _title1;
         set
         {
-            _isTagInfoBarOpen = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsTagInfoBarOpen)));
+            _title1 = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title1)));
+        }
+    }
+
+    public string Title1Label => GetChangedLabel(StringResourceProvider.Instance.Title1, _title1Changed);
+
+    public string Title2
+    {
+        get => _title2;
+        set
+        {
+            _title2 = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title2)));
+        }
+    }
+
+    public string Title2Label => GetChangedLabel(StringResourceProvider.Instance.Title2, _title2Changed);
+
+    public string Description
+    {
+        get => _description;
+        set
+        {
+            _description = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Description)));
+        }
+    }
+
+    public string DescriptionLabel => GetChangedLabel(StringResourceProvider.Instance.Description, _descriptionChanged);
+
+    public string Tags
+    {
+        get => _tags;
+        set
+        {
+            _tags = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Tags)));
         }
     }
 
@@ -90,19 +121,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         }
     }
 
-    public string RatingLabel
-    {
-        get
-        {
-            string text = StringResourceProvider.Instance.Rating;
-            if (RatingChanged)
-            {
-                text += " *";
-            }
-
-            return text;
-        }
-    }
+    public string RatingLabel => GetChangedLabel(StringResourceProvider.Instance.Rating, RatingChanged);
 
     private string _rating = string.Empty;
     public string Rating
@@ -126,7 +145,24 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isTagInfoBarOpen = false;
+    public bool IsTagInfoBarOpen
+    {
+        get => _isTagInfoBarOpen;
+        set
+        {
+            _isTagInfoBarOpen = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsTagInfoBarOpen)));
+        }
+    }
+
+    public string TagsLabel => GetChangedLabel(StringResourceProvider.Instance.Tags, _tagsChanged);
+    public string CoverImageLabel => GetChangedLabel(StringResourceProvider.Instance.CoverImage, _coverImageChanged);
+    public string BackgroundImageLabel => GetChangedLabel(StringResourceProvider.Instance.BackgroundImage, _backgroundImageChanged);
+
     public ObservableCollection<LinkItemViewModel> Links { get; } = [];
+    public ResourceUri? CoverImageUri { get; private set; }
+    public ResourceUri? BackgroundImageUri { get; private set; }
 
     private readonly List<ComicModel> _comics = [];
     private string _title1 = string.Empty;
@@ -140,6 +176,10 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
     private bool _title2Changed = false;
     private bool _descriptionChanged = false;
     private bool _tagsChanged = false;
+    private bool _coverImageChanged = false;
+    private string? _coverImagePendingFilePath = null;
+    private bool _backgroundImageChanged = false;
+    private string? _backgroundImagePendingFilePath = null;
     private Dictionary<TagWithId, HashSet<TagWithId>> _commonTags = [];
     private List<TagLinkModel.LinkModel> _commonLinks = [];
 
@@ -150,18 +190,9 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         IsCollectionOnlyMode = comics.All(x => x.IsCollection);
         Title = GetTitle();
 
-        Title1ChangedLiveData.Emit(false);
-        Title2ChangedLiveData.Emit(false);
-        DescriptionChangedLiveData.Emit(false);
-
-        _title1 = ToStandardString(ExtractCommonValue((comic) => comic.Title1, string.Empty));
-        Title1TextLiveData.Emit(_title1);
-
-        _title2 = ToStandardString(ExtractCommonValue((comic) => comic.Title2, string.Empty));
-        Title2TextLiveData.Emit(_title2);
-
-        _description = ToStandardString(ExtractCommonValue((comic) => comic.Description, string.Empty));
-        DescriptionTextLiveData.Emit(_description);
+        Title1 = ToStandardString(ExtractCommonValue((comic) => comic.Title1, string.Empty));
+        Title2 = ToStandardString(ExtractCommonValue((comic) => comic.Title2, string.Empty));
+        Description = ToStandardString(ExtractCommonValue((comic) => comic.Description, string.Empty));
 
         string commonRating = ExtractCommonValue(comic => comic.Rating.ToString(), string.Empty);
         Rating = commonRating == "-1" ? string.Empty : commonRating;
@@ -169,6 +200,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
 
         InitializeTags(_tagIdMode);
         InitializeLinks();
+        InitializeImages();
     }
 
     public async Task Save()
@@ -277,6 +309,19 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
                     needFlushExt = true;
                 }
 
+                if (_coverImageChanged)
+                {
+                    comic.SetExt(ComicExt.COVER_INDEX, null);
+                    await ApplyImageChange(comic, ComicExt.COVER_IMAGE, _coverImagePendingFilePath);
+                    needFlushExt = true;
+                }
+
+                if (_backgroundImageChanged)
+                {
+                    await ApplyImageChange(comic, ComicExt.BACKGROUND_IMAGE, _backgroundImagePendingFilePath);
+                    needFlushExt = true;
+                }
+
                 if (_clearReaderSettings)
                 {
                     comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, null);
@@ -317,9 +362,10 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         {
             return;
         }
+
         _title1 = text;
         _title1Changed = true;
-        Title1ChangedLiveData.Emit(true);
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title1Label)));
     }
 
     public void SetTitle2(string text)
@@ -329,9 +375,10 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         {
             return;
         }
+
         _title2 = text;
         _title2Changed = true;
-        Title2ChangedLiveData.Emit(true);
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title2Label)));
     }
 
     public void SetDescription(string text)
@@ -341,9 +388,10 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
         {
             return;
         }
+
         _description = text;
         _descriptionChanged = true;
-        DescriptionChangedLiveData.Emit(true);
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DescriptionLabel)));
     }
 
     public void SetRating(string ratingText)
@@ -448,6 +496,49 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
     public void SetClearReaderSettings(bool clearReaderSettings)
     {
         _clearReaderSettings = clearReaderSettings;
+    }
+
+    public void SetCoverImage(string? pendingFilePath)
+    {
+        _coverImageChanged = true;
+        _coverImagePendingFilePath = pendingFilePath;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CoverImageLabel)));
+    }
+
+    public void SetBackgroundImage(string? pendingFilePath)
+    {
+        _backgroundImageChanged = true;
+        _backgroundImagePendingFilePath = pendingFilePath;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BackgroundImageLabel)));
+    }
+
+    public async Task OpenMetadataFolder()
+    {
+        ComicModel? comic = _comics.Count > 0 ? _comics[0] : null;
+        if (comic is null)
+        {
+            return;
+        }
+
+        string resourceId = comic.GetExt(ComicExt.RESOURCE_UUID) ?? string.Empty;
+        if (string.IsNullOrEmpty(resourceId))
+        {
+            resourceId = ResourceManager.Acquire();
+            comic.SetExt(ComicExt.RESOURCE_UUID, resourceId);
+            await comic.FlushExt();
+        }
+
+        string? folderPath = await ResourceManager.CreateFolder(resourceId);
+        if (folderPath is null)
+        {
+            return;
+        }
+
+        ErrorResult err = await ThirdPartyLauncher.ShowInFileExplorer(folderPath);
+        if (!err.IsSuccessful)
+        {
+            Logger.E(TAG, err.Message, err.Exception);
+        }
     }
 
     private string GetTitle()
@@ -603,14 +694,13 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             sb.Append('\n');
         }
 
-        _tags = ToStandardString(sb.ToString());
-        TagTextLiveData.Emit(_tags);
+        Tags = ToStandardString(sb.ToString());
     }
 
     private void MarkTagChange(bool changed)
     {
         _tagsChanged = changed;
-        TagChangedLiveData.Emit(changed);
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TagsLabel)));
     }
 
     private static Dictionary<string, HashSet<string>> MergeTags(Dictionary<string, HashSet<string>> comicTags,
@@ -1025,8 +1115,65 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
     }
 
     //
+    // Images
+    //
+
+    private void InitializeImages()
+    {
+        CoverImageUri = ParseImageUri(ComicExt.COVER_IMAGE);
+        BackgroundImageUri = ParseImageUri(ComicExt.BACKGROUND_IMAGE);
+    }
+
+    private ResourceUri? ParseImageUri(string extKey)
+    {
+        string commonValue = ExtractCommonValue((comic) => comic.GetExt(extKey) ?? string.Empty, string.Empty);
+        bool divergent = _comics.Any((comic) => (comic.GetExt(extKey) ?? string.Empty) != commonValue);
+        if (divergent || !ResourceUri.TryParse(commonValue, out ResourceUri? value))
+        {
+            return null;
+        }
+
+        return value;
+    }
+
+    private static async Task ApplyImageChange(ComicModel comic, string extKey, string? pendingFilePath)
+    {
+        string? oldUri = comic.GetExt(extKey);
+        if (ResourceUri.TryParse(oldUri, out ResourceUri? resourceUri))
+        {
+            await resourceUri.Release();
+        }
+
+        if (pendingFilePath is null)
+        {
+            comic.SetExt(extKey, null);
+            return;
+        }
+
+        string resourceId = comic.GetExt(ComicExt.RESOURCE_UUID) ?? string.Empty;
+        if (string.IsNullOrEmpty(resourceId))
+        {
+            resourceId = ResourceManager.Acquire();
+        }
+
+        string? fileName = await ResourceManager.ImportFile(resourceId, pendingFilePath);
+        if (fileName is null)
+        {
+            return;
+        }
+
+        comic.SetExt(ComicExt.RESOURCE_UUID, resourceId);
+        comic.SetExt(extKey, ResourceUri.CreateResourceFile(resourceId, fileName).ToString());
+    }
+
+    //
     // Utilities
     //
+
+    private static string GetChangedLabel(string label, bool changed)
+    {
+        return changed ? label + " *" : label;
+    }
 
     private static string ToStandardString(string text)
     {
