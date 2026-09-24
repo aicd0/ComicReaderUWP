@@ -158,7 +158,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
                             _actionHandler,
                             comic,
                             playlist: playlist,
-                            selectedComics: selection,
+                            selectedItems: selection,
                             canSelect: true);
                     },
                 };
