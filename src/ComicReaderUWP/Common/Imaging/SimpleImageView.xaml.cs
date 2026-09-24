@@ -36,12 +36,6 @@ internal partial class SimpleImageView : UserControl
         typeof(SimpleImageView),
         new PropertyMetadata(double.PositiveInfinity, OnImagePropertyChanged));
 
-    public static readonly DependencyProperty StretchModeProperty = DependencyProperty.Register(
-        nameof(StretchMode),
-        typeof(StretchModeEnum),
-        typeof(SimpleImageView),
-        new PropertyMetadata(StretchModeEnum.Uniform, OnImagePropertyChanged));
-
     public static readonly DependencyProperty StretchProperty = DependencyProperty.Register(
         nameof(Stretch),
         typeof(Stretch),
@@ -55,7 +49,9 @@ internal partial class SimpleImageView : UserControl
 
     private static void OnStretchChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        ((SimpleImageView)sender).ImageHolder.Stretch = (Stretch)args.NewValue;
+        var view = (SimpleImageView)sender;
+        view.ImageHolder.Stretch = (Stretch)args.NewValue;
+        view.UpdateImage();
     }
 
     private static async Task<IImageSource?> ResolveImageSource(string? uri)
@@ -102,12 +98,6 @@ internal partial class SimpleImageView : UserControl
         set => SetValue(FrameHeightProperty, value);
     }
 
-    public StretchModeEnum StretchMode
-    {
-        get => (StretchModeEnum)GetValue(StretchModeProperty);
-        set => SetValue(StretchModeProperty, value);
-    }
-
     public Stretch Stretch
     {
         get => (Stretch)GetValue(StretchProperty);
@@ -142,8 +132,8 @@ internal partial class SimpleImageView : UserControl
         string? uri = Uri;
         double frameWidth = FrameWidth;
         double frameHeight = FrameHeight;
-        StretchModeEnum stretchMode = StretchMode;
-        int newHash = HashCode.Combine(uri, frameWidth, frameHeight, stretchMode);
+        Stretch stretch = Stretch;
+        int newHash = HashCode.Combine(uri, frameWidth, frameHeight, stretch);
         if (newHash == _currentImageHash)
         {
             return;
@@ -162,7 +152,7 @@ internal partial class SimpleImageView : UserControl
                 Token = token,
                 FrameWidth = frameWidth,
                 FrameHeight = frameHeight,
-                StretchMode = stretchMode,
+                Stretch = stretch,
                 Handler = handler,
             });
         });

@@ -3,6 +3,8 @@
 
 using ComicReaderUWP.Common.Utils;
 
+using Microsoft.UI.Xaml.Media;
+
 namespace ComicReaderUWP.Common.Imaging;
 
 internal class LoadImageOptions
@@ -11,7 +13,7 @@ internal class LoadImageOptions
     public required IImageResultHandler Handler { get; set; }
     public double FrameWidth { get; set; }
     public double FrameHeight { get; set; }
-    public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
+    public Stretch Stretch { get; set; } = Stretch.Uniform;
     public ImageLoaderSchedulerGroup? SchedulerGroup { get; set; }
     public int Priority { get; set; } = 0;
 
@@ -23,7 +25,7 @@ internal class LoadImageOptions
             Handler = Handler,
             FrameWidth = FrameWidth,
             FrameHeight = FrameHeight,
-            StretchMode = StretchMode,
+            Stretch = Stretch,
             SchedulerGroup = SchedulerGroup,
             Priority = Priority,
         };

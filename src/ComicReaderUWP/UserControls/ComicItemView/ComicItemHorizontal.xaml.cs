@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.ViewModels;
@@ -47,7 +46,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         double scale = DisplayUtils.GetRasterizationScale(this);
         ImageHolder.FrameWidth = (double)Application.Current.Resources["ComicItemHorizontalImageWidth"] * scale;
         ImageHolder.FrameHeight = (double)Application.Current.Resources["ComicItemHorizontalImageHeight"] * scale;
-        ImageHolder.StretchMode = StretchModeEnum.UniformToFill;
     }
 
     private void UserControl_Tapped(object sender, TappedRoutedEventArgs e)
