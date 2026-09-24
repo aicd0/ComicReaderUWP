@@ -20,6 +20,7 @@ using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using Windows.Graphics.Imaging;
@@ -336,7 +337,7 @@ internal static partial class ImageLoader
         CalculateDesiredDimension(
             options.FrameWidth,
             options.FrameHeight,
-            options.StretchMode,
+            options.Stretch,
             originalSize.Width,
             originalSize.Height,
             out bool useOriginalSize,
@@ -514,14 +515,14 @@ internal static partial class ImageLoader
     }
 
     private static void CalculateDesiredDimension(double frameWidth, double frameHeight,
-        StretchModeEnum stretchMode, double originWidth, double originHeight,
+        Stretch stretch, double originWidth, double originHeight,
         out bool useOriginalSize, out Size desiredSize)
     {
         double imageRatio = originWidth / originHeight;
         double frameRatio = frameWidth / frameHeight;
         double desiredWidthRaw;
         double desiredHeightRaw;
-        if (imageRatio > frameRatio == (stretchMode == StretchModeEnum.Uniform))
+        if (imageRatio > frameRatio == (stretch == Stretch.Uniform))
         {
             if (double.IsInfinity(frameWidth))
             {
