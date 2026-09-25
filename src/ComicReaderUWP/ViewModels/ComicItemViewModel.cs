@@ -26,6 +26,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
 
     public ComicModel Comic { get; }
 
+    public bool IsCollection => Comic.IsCollection;
+
     private string _title;
     public string Title
     {

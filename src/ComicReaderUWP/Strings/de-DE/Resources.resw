@@ -246,6 +246,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Alle ausblenden</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>Sammlung</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Mit der Option „zur Ausschlussliste hinzufügen“ wird verhindert, dass der Comic beim nächsten Aktualisieren der Bibliothek erneut importiert wird.</value>
   </data>

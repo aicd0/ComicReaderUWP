@@ -246,6 +246,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>すべて折りたたむ</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>コレクション</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>「除外リストに追加」を選択すると、次回ライブラリを更新したときにこのコミックが再度インポートされなくなります。</value>
   </data>

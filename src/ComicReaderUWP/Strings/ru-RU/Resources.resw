@@ -246,6 +246,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Свернуть все</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>Коллекция</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Выбор пункта «добавить в список исключений» не позволит повторно импортировать комикс при следующем обновлении библиотеки.</value>
   </data>

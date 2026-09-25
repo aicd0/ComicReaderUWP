@@ -246,6 +246,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>折疊全部</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>合集</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>選擇「加入排除清單」後，下次更新媒體庫時將不會再次匯入此漫畫。</value>
   </data>
