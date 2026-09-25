@@ -246,6 +246,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Réduire tout</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>Collection</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Sélectionner « ajouter à la liste d’exclusion » empêchera la réimportation de la BD lors de la prochaine mise à jour de la bibliothèque.</value>
   </data>

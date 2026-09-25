@@ -48,6 +48,7 @@ public class StringResourceProvider
     public string CloseSidebar => GetResourceString("CloseSidebar");
     public string CloseWindow => GetResourceString("CloseWindow");
     public string CollapseAll => GetResourceString("CollapseAll");
+    public string Collection => GetResourceString("Collection");
     public string ComicExclusionExplaination => GetResourceString("ComicExclusionExplaination");
     public string ComicInfo => GetResourceString("ComicInfo");
     public string ComicRemovalPromptContent => GetResourceString("ComicRemovalPromptContent");

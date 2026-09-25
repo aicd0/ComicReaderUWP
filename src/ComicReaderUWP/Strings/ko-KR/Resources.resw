@@ -246,6 +246,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>모두 접기</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>컬렉션</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>"제외 목록에 추가"를 선택하면 다음에 라이브러리를 업데이트할 때 이 만화가 다시 가져와지지 않습니다.</value>
   </data>

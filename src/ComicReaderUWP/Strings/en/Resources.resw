@@ -246,6 +246,9 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Collapse all</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>Collection</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Selecting "add to exclusion list" will prevent the comic from being imported again the next time the library is updated.</value>
   </data>
