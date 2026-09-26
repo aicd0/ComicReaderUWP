@@ -174,9 +174,7 @@ internal sealed partial class ComicSelectionView : BaseUserControl
 
     private void ApplyContentPadding()
     {
-        Thickness padding = ContentPadding;
-        padding.Left += 35.0;
-        ItemsGrid.Padding = padding;
+        ItemsGrid.Padding = ContentPadding;
     }
 
     //
