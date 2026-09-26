@@ -199,6 +199,8 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         _searchEngine.SetResultCallback(OnSearchResult);
         _searchEngine.IncludeHidden = true;
 
+        ViewType = ComicFilterModel.Instance.GetModel()?.LastFilter?.ViewType ?? ComicFilterModel.ViewTypeEnum.Medium;
+
         Refresh();
     }
 

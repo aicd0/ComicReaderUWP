@@ -38,10 +38,14 @@
             x:Name="ItemsView"
             ContentPadding="0,0,0,8"
             DataContext="{x:Bind ViewModel.ComicSelection}"
-            ItemViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}">
+            ItemViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}"
+            ScrollOffsetChanged="ItemsView_ScrollOffsetChanged">
             <comicselection:ComicSelectionView.HeaderContent>
-                <StackPanel Margin="8,40,43,12" Orientation="Vertical">
-                    <Grid>
+                <StackPanel
+                    x:Name="HeaderRoot"
+                    Margin="0,40,0,4"
+                    Orientation="Vertical">
+                    <Grid Margin="43,0,43,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -140,26 +144,37 @@
                             </Button>
                         </StackPanel>
                     </Grid>
-                    <!--  Item count and view type  -->
-                    <Grid Margin="0,12,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            FontWeight="SemiBold"
-                            Text="{x:Bind ViewModel.ItemCountText, Mode=OneWay}" />
-                        <controls:ViewTypeSelector
-                            x:Name="ViewTypeSelector"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            SelectedViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}" />
+                    <!--  Docked bar  -->
+                    <Grid x:Name="DockedBarSpacer">
+                        <Grid x:Name="DockedBar">
+                            <Grid
+                                x:Name="DockedBarBackground"
+                                Background="{ThemeResource TitleBarBackground}"
+                                Opacity="0" />
+                            <Grid Margin="43,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="ItemCountTextBlock"
+                                    Grid.Column="0"
+                                    VerticalAlignment="Center"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.ItemCountText, Mode=OneWay}" />
+                                <controls:ViewTypeSelector
+                                    x:Name="ViewTypeSelector"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    SelectedViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}" />
+                            </Grid>
+                        </Grid>
                     </Grid>
                 </StackPanel>
             </comicselection:ComicSelectionView.HeaderContent>
         </comicselection:ComicSelectionView>
+
+        <Grid x:Name="DockedBarHost" VerticalAlignment="Top" />
     </Grid>
 
 </base:BasePage>
