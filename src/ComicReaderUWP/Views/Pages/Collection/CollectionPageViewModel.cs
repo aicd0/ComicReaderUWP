@@ -10,10 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions;
-using ComicReaderUWP.Common.Actions.Providers;
-using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.Core.Common.Algorithm;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
@@ -123,20 +120,44 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _hasAnyTags = false;
-    public bool HasAnyTags
-    {
-        get => _hasAnyTags;
-        set
-        {
-            _hasAnyTags = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasAnyTags)));
-        }
-    }
-
     public string FavoriteButtonText => IsFavorite
         ? StringResourceProvider.Instance.RemoveFromFavorites
         : StringResourceProvider.Instance.AddToFavorites;
+
+    private int _itemCount = 0;
+    public int ItemCount
+    {
+        get => _itemCount;
+        set
+        {
+            if (_itemCount == value)
+            {
+                return;
+            }
+
+            _itemCount = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ItemCount)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ItemCountText)));
+        }
+    }
+
+    public string ItemCountText => StringResourceProvider.Instance.NItems.Replace("$n", ItemCount.ToString());
+
+    private ComicFilterModel.ViewTypeEnum _viewType = ComicFilterModel.ViewTypeEnum.Medium;
+    public ComicFilterModel.ViewTypeEnum ViewType
+    {
+        get => _viewType;
+        set
+        {
+            if (_viewType == value)
+            {
+                return;
+            }
+
+            _viewType = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ViewType)));
+        }
+    }
 
     public ComicModel? Collection => _collection;
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
@@ -283,7 +304,6 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         int rating = (int)Math.Round(value * 20.0, MidpointRounding.AwayFromZero);
         if (rating == collection.Rating)
         {
-            // Skip the write which is triggered by updating the rating control itself
             return;
         }
 
@@ -306,6 +326,11 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
                 FavoriteModel.Instance.Add(id, title, true);
             }
         });
+    }
+
+    public void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
+    {
+        ViewType = viewType;
     }
 
     //
@@ -363,8 +388,8 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         BackgroundImageUri = null;
         IsEditable = false;
         IsFavorite = false;
+        ItemCount = 0;
         ComicTags.Clear();
-        HasAnyTags = false;
         TitleLiveData.Emit(StringResourceProvider.Instance.Collection);
         ResultsLiveData.Emit([]);
     }
@@ -380,13 +405,14 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         BackgroundImageUri = collection.GetExt(ComicExt.BACKGROUND_IMAGE);
         IsEditable = collection.IsEditable;
         IsFavorite = isFavorite;
-        LoadTags(collection);
+        TagCollectionViewModel.Update(ComicTags, collection, _actionHandler);
         TitleLiveData.Emit(Name.Length > 0 ? Name : StringResourceProvider.Instance.Collection);
     }
 
     private void ApplyResults(List<ComicModel> comics, List<ComicItemViewModel> items)
     {
         _comics = comics;
+        ItemCount = comics.Count;
         ResultsLiveData.Emit(items);
     }
 
@@ -424,60 +450,6 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         }
 
         return items;
-    }
-
-    //
-    // Tags
-    //
-
-    private void LoadTags(ComicModel collection)
-    {
-        List<TagCollectionViewModel> newCollection = [];
-        foreach (KeyValuePair<string, ComicTagCategory> tagItem in collection.Tags)
-        {
-            List<TagViewModel> tagModels = [];
-            foreach (string tag in tagItem.Value.Tags)
-            {
-                TagViewModel tagModel = new()
-                {
-                    Tag = tag,
-                    OnClicked = () => OpenTagSearch(tagItem.Key, tag),
-                };
-                tagModels.Add(tagModel);
-            }
-
-            tagModels.Sort((a, b) => string.Compare(a.Tag, b.Tag, ignoreCase: true));
-            var tagCollectionModel = new TagCollectionViewModel(tagItem.Key);
-            foreach (TagViewModel tag in tagModels)
-            {
-                tagCollectionModel.Tags.Add(tag);
-            }
-
-            newCollection.Add(tagCollectionModel);
-        }
-
-        newCollection.Sort((a, b) => string.Compare(a.Name, b.Name, ignoreCase: true));
-        DiffUtils.UpdateCollection(ComicTags, newCollection, (x, y) => x.Name == y.Name, (x, y) =>
-        {
-            DiffUtils.UpdateCollection(x.Tags, y.Tags, (a, b) => a.Tag == b.Tag, (a, b) =>
-            {
-                a.OnClicked = b.OnClicked;
-            });
-        });
-
-        HasAnyTags = ComicTags.Count > 0;
-    }
-
-    private void OpenTagSearch(string tagCategory, string tag)
-    {
-        string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(tagCategory)}\"=\"{ExpressionUtils.EscapeString(tag)}\"";
-        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
-            .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
-        ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
-            .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
-            .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
-            .Build();
-        _actionHandler.HandleNoResult(actionModel);
     }
 
     //

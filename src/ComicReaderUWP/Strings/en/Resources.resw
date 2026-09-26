@@ -666,6 +666,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="More" xml:space="preserve">
     <value>More</value>
   </data>
+  <data name="NItems" xml:space="preserve">
+    <value>$n item(s)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>

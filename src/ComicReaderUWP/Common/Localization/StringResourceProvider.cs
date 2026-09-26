@@ -148,6 +148,7 @@ public class StringResourceProvider
     public string MergeSingleItemGroups => GetResourceString("MergeSingleItemGroups");
     public string Miscellaneous => GetResourceString("Miscellaneous");
     public string More => GetResourceString("More");
+    public string NItems => GetResourceString("NItems");
     public string Name => GetResourceString("Name");
     public string Never => GetResourceString("Never");
     public string New => GetResourceString("New");

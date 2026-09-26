@@ -10,7 +10,6 @@
     xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
-    xmlns:vm="using:ComicReaderUWP.ViewModels"
     Background="Transparent"
     mc:Ignorable="d">
 
@@ -39,130 +38,126 @@
             x:Name="ItemsView"
             ContentPadding="0,0,0,8"
             DataContext="{x:Bind ViewModel.ComicSelection}"
-            ItemViewType="Medium">
+            ItemViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}">
             <comicselection:ComicSelectionView.HeaderContent>
-                <Grid Margin="8,40,43,64">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <StackPanel Margin="8,40,43,12" Orientation="Vertical">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                    <!--  Cover image  -->
-                    <image:SimpleImageView
-                        Grid.Column="0"
-                        Width="110"
-                        Height="155"
-                        Margin="0,0,32,0"
-                        Uri="{x:Bind ViewModel.CoverImageUri, Mode=OneWay}"
-                        Visibility="{x:Bind ViewModel.IsCoverImageVisible, Mode=OneWay}" />
+                        <!--  Cover image  -->
+                        <image:SimpleImageView
+                            Grid.Column="0"
+                            MaxWidth="160"
+                            MaxHeight="160"
+                            Margin="0,0,32,0"
+                            VerticalAlignment="Top"
+                            Uri="{x:Bind ViewModel.CoverImageUri, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.IsCoverImageVisible, Mode=OneWay}" />
 
-                    <!--  Information  -->
-                    <StackPanel Grid.Column="1" Orientation="Vertical">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                        <!--  Information  -->
+                        <StackPanel Grid.Column="1" Orientation="Vertical">
                             <TextBlock
-                                Grid.Column="0"
                                 FontSize="24"
-                                FontWeight="SemiBold"
+                                FontWeight="SemiLight"
                                 MaxLines="2"
                                 Text="{x:Bind ViewModel.Name, Mode=OneWay}"
                                 TextTrimming="CharacterEllipsis"
                                 TextWrapping="Wrap"
                                 ToolTipService.ToolTip="{x:Bind ViewModel.Name, Mode=OneWay}" />
-                            <StackPanel
-                                Grid.Column="1"
-                                Margin="32,0,0,0"
-                                VerticalAlignment="Top"
-                                Orientation="Horizontal"
-                                Spacing="8">
-                                <!--  Edit  -->
-                                <Button
-                                    Padding="8"
-                                    Click="EditButton_Click"
-                                    IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
-                                    ToolTipService.ToolTip="{x:Bind StringResource.Edit}">
-                                    <Button.Content>
-                                        <FontIcon FontSize="18" Glyph="&#xE70F;" />
-                                    </Button.Content>
-                                </Button>
-                                <!--  Add to favorites  -->
-                                <Button
-                                    Padding="8"
-                                    Click="FavoriteButton_Click"
-                                    ToolTipService.ToolTip="{x:Bind StringResource.AddToFavorites}"
-                                    Visibility="{x:Bind ViewModel.IsFavorite, Mode=OneWay, Converter={StaticResource BooleanToVisibilityNegationConverter}}">
-                                    <Button.Content>
-                                        <FontIcon FontSize="18" Glyph="&#xE734;" />
-                                    </Button.Content>
-                                </Button>
-                                <!--  Remove from favorites  -->
-                                <Button
-                                    Padding="8"
-                                    Click="FavoriteButton_Click"
-                                    Foreground="{ThemeResource SystemAccentColor}"
-                                    ToolTipService.ToolTip="{x:Bind StringResource.RemoveFromFavorites}"
-                                    Visibility="{x:Bind ViewModel.IsFavorite, Mode=OneWay}">
-                                    <Button.Content>
-                                        <FontIcon FontSize="18" Glyph="&#xE735;" />
-                                    </Button.Content>
-                                </Button>
-                                <!--  More  -->
-                                <Button
-                                    Padding="8"
-                                    Click="MoreButton_Click"
-                                    ToolTipService.ToolTip="{x:Bind StringResource.More}">
-                                    <Button.Content>
-                                        <FontIcon FontSize="18" Glyph="&#xE712;" />
-                                    </Button.Content>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-                        <!--  Description  -->
+                            <!--  Description  -->
+                            <TextBlock
+                                Margin="0,8,0,0"
+                                FontSize="14"
+                                FontWeight="SemiLight"
+                                Text="{x:Bind ViewModel.Description, Mode=OneWay}"
+                                TextWrapping="Wrap"
+                                Visibility="{x:Bind ViewModel.Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
+                            <!--  Rating  -->
+                            <muxc:RatingControl
+                                x:Name="RcRating"
+                                Margin="0,8,0,0"
+                                HorizontalAlignment="Left"
+                                IsClearEnabled="True"
+                                IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
+                                ValueChanged="RatingControl_ValueChanged"
+                                Value="{x:Bind ViewModel.Rating, Mode=TwoWay}" />
+                            <!--  Tags  -->
+                            <controls:ComicTagsView Margin="0,12,0,0" Tags="{x:Bind ViewModel.ComicTags}" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Column="2"
+                            Margin="32,0,0,0"
+                            VerticalAlignment="Top"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <!--  Edit  -->
+                            <Button
+                                Padding="8"
+                                Click="EditButton_Click"
+                                IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.Edit}">
+                                <Button.Content>
+                                    <FontIcon FontSize="18" Glyph="&#xE70F;" />
+                                </Button.Content>
+                            </Button>
+                            <!--  Add to favorites  -->
+                            <Button
+                                Padding="8"
+                                Click="FavoriteButton_Click"
+                                ToolTipService.ToolTip="{x:Bind StringResource.AddToFavorites}"
+                                Visibility="{x:Bind ViewModel.IsFavorite, Mode=OneWay, Converter={StaticResource BooleanToVisibilityNegationConverter}}">
+                                <Button.Content>
+                                    <FontIcon FontSize="18" Glyph="&#xE734;" />
+                                </Button.Content>
+                            </Button>
+                            <!--  Remove from favorites  -->
+                            <Button
+                                Padding="8"
+                                Click="FavoriteButton_Click"
+                                Foreground="{ThemeResource SystemAccentColor}"
+                                ToolTipService.ToolTip="{x:Bind StringResource.RemoveFromFavorites}"
+                                Visibility="{x:Bind ViewModel.IsFavorite, Mode=OneWay}">
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="{ThemeResource SystemAccentColor}" />
+                                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="{ThemeResource SystemAccentColor}" />
+                                </Button.Resources>
+                                <Button.Content>
+                                    <FontIcon FontSize="18" Glyph="&#xE735;" />
+                                </Button.Content>
+                            </Button>
+                            <!--  More  -->
+                            <Button
+                                Padding="8"
+                                Click="MoreButton_Click"
+                                ToolTipService.ToolTip="{x:Bind StringResource.More}">
+                                <Button.Content>
+                                    <FontIcon FontSize="18" Glyph="&#xE712;" />
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <!--  Item count and view type  -->
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock
-                            Margin="0,4,0,0"
-                            FontSize="14"
-                            FontWeight="Normal"
-                            Text="{x:Bind ViewModel.Description, Mode=OneWay}"
-                            TextWrapping="Wrap"
-                            Visibility="{x:Bind ViewModel.Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
-                        <!--  Rating  -->
-                        <muxc:RatingControl
-                            x:Name="RcRating"
-                            Margin="0,4,0,0"
-                            HorizontalAlignment="Left"
-                            IsClearEnabled="True"
-                            IsEnabled="{x:Bind ViewModel.IsEditable, Mode=OneWay}"
-                            ValueChanged="OnRatingControlValueChanged"
-                            Value="{x:Bind ViewModel.Rating, Mode=TwoWay}" />
-                        <Rectangle
-                            Height="1"
-                            Margin="0,14"
-                            Fill="{ThemeResource ComicInfoSeparatorForeground}"
-                            Visibility="{x:Bind ViewModel.HasAnyTags, Mode=OneWay}" />
-                        <!--  Tags  -->
-                        <ListView ItemsSource="{x:Bind ViewModel.ComicTags}" SelectionMode="None">
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                                    <Setter Property="Padding" Value="0" />
-                                    <Setter Property="MinHeight" Value="0" />
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                            <ListView.ItemContainerTransitions>
-                                <TransitionCollection />
-                            </ListView.ItemContainerTransitions>
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="vm:TagCollectionViewModel">
-                                    <controls:TagCategoryView DataContext="{x:Bind}" />
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </StackPanel>
-                </Grid>
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind ViewModel.ItemCountText, Mode=OneWay}" />
+                        <controls:ViewTypeSelector
+                            x:Name="ViewTypeSelector"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            SelectedViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}" />
+                    </Grid>
+                </StackPanel>
             </comicselection:ComicSelectionView.HeaderContent>
         </comicselection:ComicSelectionView>
     </Grid>

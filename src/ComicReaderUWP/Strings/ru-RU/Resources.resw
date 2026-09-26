@@ -665,6 +665,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="More" xml:space="preserve">
     <value>Более</value>
   </data>
+  <data name="NItems" xml:space="preserve">
+    <value>$n элемент(ов)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Имя</value>
   </data>

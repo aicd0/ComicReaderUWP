@@ -662,6 +662,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="More" xml:space="preserve">
     <value>更多</value>
   </data>
+  <data name="NItems" xml:space="preserve">
+    <value>$n 個項目</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>名稱</value>
   </data>

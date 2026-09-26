@@ -10,7 +10,6 @@
     xmlns:local="using:ComicReaderUWP.Views.Pages.Sidebar.ComicInfo"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
-    xmlns:vm="using:ComicReaderUWP.ViewModels"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -130,21 +129,7 @@
                         Fill="{ThemeResource ComicInfoSeparatorForeground}"
                         Visibility="{x:Bind ViewModel.HasAnyTags, Mode=OneWay}" />
                     <!--  Tags  -->
-                    <ListView ItemsSource="{x:Bind ViewModel.ComicTags}" SelectionMode="None">
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem">
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                                <Setter Property="Padding" Value="0" />
-                                <Setter Property="MinHeight" Value="0" />
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="vm:TagCollectionViewModel">
-                                <controls:TagCategoryView DataContext="{x:Bind}" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <controls:ComicTagsView Tags="{x:Bind ViewModel.ComicTags}" />
                 </StackPanel>
             </ScrollViewer>
             <!--  Bottom controls  -->

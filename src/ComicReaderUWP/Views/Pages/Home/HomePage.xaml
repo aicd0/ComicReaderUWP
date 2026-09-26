@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"
     xmlns:comicselection="using:ComicReaderUWP.UserControls.ComicSelection"
+    xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Background="Transparent"
@@ -84,14 +85,7 @@
                     VerticalAlignment="Bottom"
                     Orientation="Horizontal"
                     Spacing="5">
-                    <DropDownButton x:Name="ViewTypeDropDownButton">
-                        <DropDownButton.Content>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontSize="16" Glyph="&#xE71D;" />
-                                <TextBlock x:Name="ViewTypeDropDownButtonText" />
-                            </StackPanel>
-                        </DropDownButton.Content>
-                    </DropDownButton>
+                    <controls:ViewTypeSelector x:Name="ViewTypeSelector" />
                     <DropDownButton x:Name="SortAndGroupDropDownButton">
                         <DropDownButton.Content>
                             <StackPanel Orientation="Horizontal" Spacing="8">

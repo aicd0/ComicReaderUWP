@@ -40,6 +40,7 @@ internal sealed partial class CollectionPage : BasePage
         base.OnStart(bundle);
 
         ItemsView.Initialize(PageActionHandler);
+        ViewTypeSelector.ViewTypeChanged += ViewModel.SelectViewType;
 
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.Collection);
         GetMainPageAbility().SetIcon(new FontIconSource() { Glyph = "\uF5ED" });
@@ -103,7 +104,7 @@ internal sealed partial class CollectionPage : BasePage
     // Header
     //
 
-    private void OnRatingControlValueChanged(RatingControl sender, object args)
+    private void RatingControl_ValueChanged(RatingControl sender, object args)
     {
         ViewModel.SetRating(sender.Value);
     }

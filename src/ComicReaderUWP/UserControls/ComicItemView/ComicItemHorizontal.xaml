@@ -73,7 +73,7 @@
                 Margin="0,0,0,4"
                 FontSize="14"
                 FontWeight="SemiBold"
-                MaxLines="3"
+                MaxLines="{x:Bind Item.TitleMaxLines, Mode=OneWay}"
                 Text="{x:Bind Item.Title, Mode=OneWay}"
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="Wrap"

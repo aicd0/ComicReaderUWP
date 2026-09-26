@@ -65,11 +65,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     private int _updateFilterSubmitted = 0;
     private int _updateComicSubmitted = 0;
 
-    private readonly List<ComicFilterModel.ViewTypeEnum> _viewTypes = [
-        ComicFilterModel.ViewTypeEnum.Large,
-        ComicFilterModel.ViewTypeEnum.Medium,
-    ];
-
     public HomePageViewModel()
     {
         ComicSelection = new(() => _comics.Count);
@@ -252,7 +247,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     // Filters
     //
 
-    private void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
+    public void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
     {
         _sharedDispatcher.Submit(() =>
         {
@@ -472,20 +467,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         // Update UI
         {
-            var viewTypeDropDown = new DropDownButtonModel
-            {
-                Name = StringResourceProvider.Instance.ViewType,
-                Items = _viewTypes.ConvertAll(x => new ToggleMenuFlyoutItemModel()
-                {
-                    Text = ViewTypeToDisplayName(x),
-                    IsChecked = x == filter.ViewType,
-                    Click = () =>
-                    {
-                        SelectViewType(x);
-                    },
-                }),
-            };
-
             List<ComicPropertyModel> properties = await ComicPropertyModel.GetProperties();
             var sortByDropDown = new SubItemMenuFlyoutItemModel()
             {
@@ -521,7 +502,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
             var uiModel = new FilterModel
             {
-                ViewTypeDropDown = viewTypeDropDown,
                 SortAndGroupDropDown = sortAndGroupDropDown,
                 FilterPresetDropDown = filterPresetDropDown,
             };
@@ -977,16 +957,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return items.Select(x => x.Item2);
     }
 
-    private static string ViewTypeToDisplayName(ComicFilterModel.ViewTypeEnum viewType)
-    {
-        return viewType switch
-        {
-            ComicFilterModel.ViewTypeEnum.Large => StringResourceProvider.Instance.ViewTypeLarge,
-            ComicFilterModel.ViewTypeEnum.Medium => StringResourceProvider.Instance.ViewTypeMedium,
-            _ => "Unknown"
-        };
-    }
-
     private static long GetTick()
     {
         return Environment.TickCount64;
@@ -994,7 +964,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     public class FilterModel
     {
-        public DropDownButtonModel ViewTypeDropDown { get; set; } = new();
         public DropDownButtonModel SortAndGroupDropDown { get; set; } = new();
         public DropDownButtonModel FilterPresetDropDown { get; set; } = new();
     }

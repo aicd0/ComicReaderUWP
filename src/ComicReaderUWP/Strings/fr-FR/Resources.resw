@@ -664,6 +664,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   <data name="More" xml:space="preserve">
     <value>Plus</value>
   </data>
+  <data name="NItems" xml:space="preserve">
+    <value>$n élément(s)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>nom</value>
   </data>

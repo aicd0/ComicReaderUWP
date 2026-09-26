@@ -54,6 +54,7 @@ internal sealed partial class HomePage : BasePage
         base.OnStart(bundle);
 
         ItemsView.Initialize(PageActionHandler);
+        ViewTypeSelector.ViewTypeChanged += ViewModel.SelectViewType;
 
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.NewTab);
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Document });
@@ -107,6 +108,8 @@ internal sealed partial class HomePage : BasePage
 
         ViewModel.ViewTypeLiveData.ObserveSticky(this, delegate (ComicFilterModel.ViewTypeEnum type)
         {
+            ViewTypeSelector.SelectedViewType = type;
+
             if (_viewType == type)
             {
                 return;
@@ -210,7 +213,6 @@ internal sealed partial class HomePage : BasePage
             return;
         }
 
-        BindDropDownButton(ViewTypeDropDownButton, ViewTypeDropDownButtonText, model.ViewTypeDropDown);
         BindDropDownButton(SortAndGroupDropDownButton, SortAndGroupDropDownButtonText, model.SortAndGroupDropDown);
         BindDropDownButton(FilterPresetDropDownButton, FilterPresetDropDownButtonText, model.FilterPresetDropDown);
     }
