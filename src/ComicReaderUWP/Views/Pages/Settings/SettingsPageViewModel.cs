@@ -26,28 +26,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     public SettingsSharedViewModel Shared { get; } = new();
 
-    private List<BackgroundEntry> _backgrounds = [];
-    public List<BackgroundEntry> Backgrounds
-    {
-        get => _backgrounds;
-        set
-        {
-            _backgrounds = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Backgrounds)));
-        }
-    }
-
-    private int _backgroundIndex = 0;
-    public int BackgroundIndex
-    {
-        get => _backgroundIndex;
-        set
-        {
-            _backgroundIndex = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BackgroundIndex)));
-        }
-    }
-
     private List<LanguageEntry> _languages = [];
     public List<LanguageEntry> Languages
     {
@@ -67,28 +45,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         {
             _languageIndex = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LanguageIndex)));
-        }
-    }
-
-    private int _appearanceIndex;
-    public int AppearanceIndex
-    {
-        get => _appearanceIndex;
-        set
-        {
-            _appearanceIndex = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceIndex)));
-        }
-    }
-
-    private bool _appearanceChanged;
-    public bool AppearanceChanged
-    {
-        get => _appearanceChanged;
-        set
-        {
-            _appearanceChanged = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AppearanceChanged)));
         }
     }
 
@@ -130,26 +86,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         Shared.UpdateStarted += Update;
     }
 
-    public void SetBackground(int index)
-    {
-        if (index == _backgroundIndex)
-        {
-            return;
-        }
-
-        if (index < 0 || index >= _backgrounds.Count)
-        {
-            return;
-        }
-
-        AppearanceChanged = true;
-        BackgroundEntry selectedBackground = _backgrounds[index];
-        _backgroundIndex = index;
-        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
-        model.Background = selectedBackground.Value;
-        AppSettingsModel.UpdateModel(model);
-    }
-
     public void SetAppLanguage(int index)
     {
         if (index < 0 || index >= _languages.Count || index == _languageIndex)
@@ -163,27 +99,6 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         AppSettingsModel.Language = selectedLanguage.Identifier;
     }
 
-    public void SetAppearance(int index)
-    {
-        if (index == _appearanceIndex)
-        {
-            return;
-        }
-
-        _appearanceIndex = index;
-        AppSettingsModel.AppearanceSetting appearance = index switch
-        {
-            0 => AppSettingsModel.AppearanceSetting.Light,
-            1 => AppSettingsModel.AppearanceSetting.Dark,
-            2 => AppSettingsModel.AppearanceSetting.UseSystemSetting,
-            _ => AppSettingsModel.AppearanceSetting.UseSystemSetting,
-        };
-        AppearanceChanged = true;
-        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
-        model.Theme = appearance;
-        AppSettingsModel.UpdateModel(model);
-    }
-
     public void UpdateStatistics()
     {
         CoroutineUtils.Run(UpdateStatisticsInternal);
@@ -195,33 +110,11 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
 
     private void Update()
     {
-        UpdateAppearance();
-        UpdateBackground();
         UpdateLanguage();
         CoroutineUtils.Run(UpdateStatisticsInternal);
         UpdateSharedSettings();
 
-        AppearanceChanged = false;
         LanguageChanged = false;
-    }
-
-    private void UpdateBackground()
-    {
-        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
-
-        AppSettingsModel.AppBackgroundEnum background = model.Background;
-        List<BackgroundEntry> backgrounds = [
-            new(StringResourceProvider.Instance.None, AppSettingsModel.AppBackgroundEnum.None),
-            new(StringResourceProvider.Instance.BackgroundAcrylic, AppSettingsModel.AppBackgroundEnum.Acrylic)
-        ];
-        int backgroundIndex = backgrounds.FindIndex(x => x.Value == background);
-        if (backgroundIndex < 0)
-        {
-            backgroundIndex = 0;
-        }
-
-        Backgrounds = backgrounds;
-        BackgroundIndex = backgroundIndex;
     }
 
     private void UpdateLanguage()
@@ -261,30 +154,12 @@ internal partial class SettingsPageViewModel : INotifyPropertyChanged
         LanguageIndex = selectedIndex;
     }
 
-    private void UpdateAppearance()
-    {
-        AppSettingsModel.ExternalModel model = AppSettingsModel.GetModel();
-
-        AppSettingsModel.AppearanceSetting appearance = model.Theme;
-        if (!Enum.IsDefined(appearance))
-        {
-            appearance = AppSettingsModel.AppearanceSetting.UseSystemSetting;
-        }
-
-        AppearanceIndex = appearance switch
-        {
-            AppSettingsModel.AppearanceSetting.Light => 0,
-            AppSettingsModel.AppearanceSetting.Dark => 1,
-            AppSettingsModel.AppearanceSetting.UseSystemSetting => 2,
-            _ => 2,
-        };
-    }
-
     private async Task UpdateStatisticsInternal()
     {
         long QueryComicCount(Action<SelectCommand>? condition = null)
         {
-            var command = SelectCommand.Create(ComicTable.Instance);
+            SelectCommand command = SelectCommand.Create(ComicTable.Instance)
+                .AppendCondition(ComicHandle.CreateComicOnlyCondition());
             condition?.Invoke(command);
             IReaderToken<long> comicCountToken = command.PutQueryCountAll();
             using SelectCommand.IReader reader = command.Execute();

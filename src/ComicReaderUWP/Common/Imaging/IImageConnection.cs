@@ -11,6 +11,8 @@ internal interface IImageConnection : IDisposable
 {
     string Path { get; }
 
+    string CacheKey { get; }
+
     string Fingerprint { get; }
 
     Task<Stream?> OpenImageStream();

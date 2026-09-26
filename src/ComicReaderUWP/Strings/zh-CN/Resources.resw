@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>添加文件夹</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>添加到合集</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>添加收藏</value>
   </data>
@@ -201,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>亚克力</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>背景图片</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>计算中...</value>
   </data>
@@ -240,16 +246,17 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>折叠全部</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>合集</value>
+  </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>合集信息</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>选择“添加到排除列表”后，下次更新媒体库时将不会再次导入此漫画。</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>漫画信息</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>以下 $count 本漫画将被永久从你的库中移除：
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>完成状态</value>
@@ -283,6 +290,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>复制</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>封面图片</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>封面页数</value>
@@ -551,6 +561,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>跳转到随机页面</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>图像</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>亮度</value>
   </data>
@@ -563,11 +576,11 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>此设备上的图片</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>图像处理</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>饱和度</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>图片</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>包含隐藏漫画</value>
@@ -651,6 +664,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="More" xml:space="preserve">
     <value>更多</value>
   </data>
+  <data name="NItems" xml:space="preserve">
+    <value>$n 个项目</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>名称</value>
   </data>
@@ -659,6 +675,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="New" xml:space="preserve">
     <value>新建</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>新建合集</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>新文件夹</value>
@@ -725,6 +744,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>在新标签页中打开</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>打开元数据文件夹</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>打开插件文件夹</value>
@@ -829,6 +851,11 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>取消收藏</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>以下 $count 个项目将从你的书库中永久删除：
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>从列表中移除当前文件夹</value>

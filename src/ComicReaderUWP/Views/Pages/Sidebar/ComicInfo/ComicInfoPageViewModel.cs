@@ -5,25 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions;
-using ComicReaderUWP.Common.Actions.Providers;
-using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.Core.Common.Algorithm;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Models.Playback;
-using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
-using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.Helpers.Search;
 using ComicReaderUWP.ViewModels;
-
-using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 
@@ -119,7 +109,6 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
     public readonly MutableLiveData<string> ComicDescriptionLiveData = new();
     public readonly MutableLiveData<bool> IsExternalComicLiveData = new(true);
     public readonly MutableLiveData<CompletionStatusEnum> CompletionStatusLiveData = new();
-    public readonly MutableLiveData<KeyValuePair<string, string>> EditTagLiveData = new();
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private ComicModel? _comic;
@@ -238,7 +227,8 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         ComicDir = comic.Location;
         IsEditable = comic.IsEditable;
 
-        LoadComicTag();
+        TagCollectionViewModel.Update(ComicTags, comic, _actionHandler);
+        HasAnyTags = ComicTags.Count > 0;
         CompletionStatusLiveData.Emit(comic.CompletionStatus);
 
         if (!comic.IsExternal)
@@ -246,115 +236,5 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             int rating = comic.Rating;
             Rating = rating >= 0 ? rating * 0.05F : -1.0;
         }
-    }
-
-    private void LoadComicTag()
-    {
-        ComicModel? comic = _comic;
-        if (comic == null)
-        {
-            return;
-        }
-
-        List<TagCollectionViewModel> newCollection = [];
-        foreach (KeyValuePair<string, ComicTagCategory> tagItem in comic.Tags)
-        {
-            List<TagViewModel> tagModels = [];
-            foreach (string tag in tagItem.Value.Tags)
-            {
-                TagViewModel tagModel = new()
-                {
-                    Tag = tag,
-                    OnClicked = () =>
-                    {
-                        string expression = $"%{ComicSQLProviderUtils.VAR_TAG}.\"{ExpressionUtils.EscapeString(tagItem.Key)}\"=\"{ExpressionUtils.EscapeString(tag)}\"";
-                        Route route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_SEARCH)
-                            .WithParam(RouterConstants.ARG_KEYWORD, $"exp:\"{ExpressionUtils.EscapeString(expression)}\"");
-                        ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
-                            .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
-                            .AddParameter(OpenTabProvider.PARAM_TAB_ID, string.Empty)
-                            .Build();
-                        _actionHandler.HandleNoResult(actionModel);
-                    },
-                    OnRequestContextFlyoutAsync = () =>
-                    {
-                        return CreateTagContextMenuItems(tagItem.Key, tag);
-                    },
-                };
-
-                tagModels.Add(tagModel);
-            }
-
-            tagModels.Sort((a, b) => string.Compare(a.Tag, b.Tag, ignoreCase: true));
-            var tagCollectionModel = new TagCollectionViewModel(tagItem.Key);
-            foreach (TagViewModel tag in tagModels)
-            {
-                tagCollectionModel.Tags.Add(tag);
-            }
-
-            newCollection.Add(tagCollectionModel);
-        }
-
-        newCollection.Sort((a, b) => string.Compare(a.Name, b.Name, ignoreCase: true));
-        DiffUtils.UpdateCollection(ComicTags, newCollection, (x, y) => x.Name == y.Name, (x, y) =>
-        {
-            DiffUtils.UpdateCollection(x.Tags, y.Tags, (a, b) => a.Tag == b.Tag, (a, b) =>
-            {
-                a.OnRequestContextFlyoutAsync = b.OnRequestContextFlyoutAsync;
-                a.OnClicked = b.OnClicked;
-            });
-        });
-
-        HasAnyTags = ComicTags.Count > 0;
-    }
-
-    private async Task<List<BaseMenuFlyoutItemModel>> CreateTagContextMenuItems(string tagCategory, string tag)
-    {
-        List<BaseMenuFlyoutItemModel> items = [];
-
-        items.Add(new SubItemMenuFlyoutItemModel()
-        {
-            Text = StringResourceProvider.Instance.Links,
-            Icon = new FontIconSource() { Glyph = "\uE71B" },
-            Items = await MenuFlyoutItemsCreator.CreateTagLinkMenuItems(tagCategory, tag, _actionHandler),
-        });
-
-        items.Add(new SimpleMenuFlyoutItemModel()
-        {
-            Text = StringResourceProvider.Instance.Edit,
-            Icon = new FontIconSource() { Glyph = "\uE70F" },
-            Click = () =>
-            {
-                EditTagLiveData.Emit(new(tagCategory, tag));
-            },
-        });
-
-        items.Add(new SimpleMenuFlyoutItemModel()
-        {
-            Text = StringResourceProvider.Instance.Delete,
-            Icon = new FontIconSource() { Glyph = "\uE74D" },
-            Click = () =>
-            {
-                CoroutineUtils.Run(async () =>
-                {
-                    ComicModel? comic = _comic;
-                    if (comic == null)
-                    {
-                        return;
-                    }
-
-                    Dictionary<string, HashSet<string>> tags = comic.TagsCopy;
-                    if (tags.TryGetValue(tagCategory, out HashSet<string>? tagSet))
-                    {
-                        if (tagSet.Remove(tag))
-                        {
-                            await comic.SetTags(tags);
-                        }
-                    }
-                });
-            },
-        });
-
-        return items;
     }
 }

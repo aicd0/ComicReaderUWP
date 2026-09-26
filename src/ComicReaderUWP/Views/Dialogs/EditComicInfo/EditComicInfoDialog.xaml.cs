@@ -1,6 +1,7 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -21,6 +22,8 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
     {
         InitializeComponent();
 
+        TabSelectorBar.SelectedItem = GeneralSelectorBarItem;
+
         ViewModel.Initialize(comics);
     }
 
@@ -32,84 +35,33 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
     {
         base.OnStart();
 
-        ObserveData();
-    }
+        CoverImageField.WindowId = WindowId;
+        CoverImageField.Changed += CoverImageField_Changed;
+        CoverImageField.Initialize(ViewModel.CoverImageUri);
 
-    private void ObserveData()
-    {
-        ViewModel.Title1TextLiveData.ObserveSticky(this, (text) =>
-        {
-            Title1TextBox.Text = text;
-        });
-
-        ViewModel.Title2TextLiveData.ObserveSticky(this, (text) =>
-        {
-            Title2TextBox.Text = text;
-        });
-
-        ViewModel.DescriptionTextLiveData.ObserveSticky(this, (text) =>
-        {
-            DescriptionTextBox.Text = text;
-        });
-
-        ViewModel.TagTextLiveData.ObserveSticky(this, (text) =>
-        {
-            TagTextBox.Text = text;
-        });
-
-        ViewModel.Title1ChangedLiveData.ObserveSticky(this, (changed) =>
-        {
-            string name = StringResource.Title1;
-            if (changed)
-            {
-                name += " *";
-            }
-
-            Title1NameTextBlock.Text = name;
-        });
-
-        ViewModel.Title2ChangedLiveData.ObserveSticky(this, (changed) =>
-        {
-            string name = StringResource.Title2;
-            if (changed)
-            {
-                name += " *";
-            }
-
-            Title2NameTextBlock.Text = name;
-        });
-
-        ViewModel.DescriptionChangedLiveData.ObserveSticky(this, (changed) =>
-        {
-            string name = StringResource.Description;
-            if (changed)
-            {
-                name += " *";
-            }
-
-            DescriptionNameTextBlock.Text = name;
-        });
-
-        ViewModel.TagChangedLiveData.ObserveSticky(this, (changed) =>
-        {
-            string name = StringResource.Tags;
-            if (changed)
-            {
-                name += " *";
-            }
-
-            TagNameTextBlock.Text = name;
-        });
+        BackgroundImageField.WindowId = WindowId;
+        BackgroundImageField.Changed += BackgroundImageField_Changed;
+        BackgroundImageField.Initialize(ViewModel.BackgroundImageUri);
     }
 
     //
     // Events
     //
 
+    private void TabSelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    {
+        bool showImages = sender.SelectedItem == ImagesSelectorBarItem;
+        GeneralTabGrid.Visibility = showImages ? Visibility.Collapsed : Visibility.Visible;
+        ImagesTabGrid.Visibility = showImages ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     private void DoneButton_Click(object sender, RoutedEventArgs args)
     {
-        ViewModel.Save();
-        Hide();
+        CoroutineUtils.Run(async () =>
+        {
+            await ViewModel.Save();
+            Hide();
+        });
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs args)
@@ -195,6 +147,21 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
     private void ClearReaderSettingsCheckBox_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.SetClearReaderSettings(((CheckBox)sender).IsChecked == true);
+    }
+
+    private void CoverImageField_Changed(object? sender, EventArgs e)
+    {
+        ViewModel.SetCoverImage(CoverImageField.PendingFilePath);
+    }
+
+    private void BackgroundImageField_Changed(object? sender, EventArgs e)
+    {
+        ViewModel.SetBackgroundImage(BackgroundImageField.PendingFilePath);
+    }
+
+    private void OpenMetadataFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        CoroutineUtils.Run(ViewModel.OpenMetadataFolder);
     }
 
     //

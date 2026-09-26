@@ -9,9 +9,8 @@ internal class LoadImageOptions
 {
     public required CancellationSession.IToken Token { get; set; }
     public required IImageResultHandler Handler { get; set; }
-    public double FrameWidth { get; set; }
-    public double FrameHeight { get; set; }
-    public StretchModeEnum StretchMode { get; set; } = StretchModeEnum.Uniform;
+    public double DecodeWidth { get; set; }
+    public double DecodeHeight { get; set; }
     public ImageLoaderSchedulerGroup? SchedulerGroup { get; set; }
     public int Priority { get; set; } = 0;
 
@@ -21,9 +20,8 @@ internal class LoadImageOptions
         {
             Token = Token,
             Handler = Handler,
-            FrameWidth = FrameWidth,
-            FrameHeight = FrameHeight,
-            StretchMode = StretchMode,
+            DecodeWidth = DecodeWidth,
+            DecodeHeight = DecodeHeight,
             SchedulerGroup = SchedulerGroup,
             Priority = Priority,
         };

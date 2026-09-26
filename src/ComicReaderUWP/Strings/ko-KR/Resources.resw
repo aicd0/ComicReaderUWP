@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>폴더 추가</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>컬렉션에 추가</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>즐겨찾기에 추가</value>
   </data>
@@ -201,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>아크릴</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>배경 이미지</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>계산 중...</value>
   </data>
@@ -240,16 +246,17 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>모두 접기</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>컬렉션</value>
+  </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>컬렉션 정보</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>"제외 목록에 추가"를 선택하면 다음에 라이브러리를 업데이트할 때 이 만화가 다시 가져와지지 않습니다.</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>만화 정보</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>다음 $count개의 만화가 라이브러리에서 영구적으로 삭제됩니다:
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>완료 상태</value>
@@ -283,6 +290,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>복사</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>표지 이미지</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>표지 페이지 수</value>
@@ -552,6 +562,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>임의의 페이지로 이동</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>이미지</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>밝기</value>
   </data>
@@ -564,11 +577,11 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>이 장치의 이미지</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>이미지 처리</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>채도</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>이미지</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>숨겨진 만화 포함</value>
@@ -652,6 +665,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="More" xml:space="preserve">
     <value>더</value>
   </data>
+  <data name="NItems" xml:space="preserve">
+    <value>$n개 항목</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>이름</value>
   </data>
@@ -660,6 +676,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="New" xml:space="preserve">
     <value>새로운</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>새 컬렉션</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>새 폴더</value>
@@ -726,6 +745,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>새 탭에서 열기</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>메타데이터 폴더 열기</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>플러그인 폴더 열기</value>
@@ -830,6 +852,11 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>즐겨찾기에서 제거</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>다음 $count개 항목이 라이브러리에서 영구적으로 삭제됩니다:
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>목록에서 이 폴더를 제거합니다</value>

@@ -31,7 +31,7 @@ internal sealed partial class ImageSourceSettingsView : BaseUserControl
     {
         ViewModel.Initialize(shared);
 
-        ComicHandle.IsScanningLibraryLiveData.ObserveSticky(owner, isScanning =>
+        ComicModel.IsScanningLibraryLiveData.ObserveSticky(owner, isScanning =>
         {
             ViewModel.IsRescanning = isScanning;
         });
@@ -41,9 +41,8 @@ internal sealed partial class ImageSourceSettingsView : BaseUserControl
     {
         CoroutineUtils.Run(async () =>
         {
-            int windowId = ViewModel.Shared.WindowId;
-            var dialog = new ChooseLocationsDialog(windowId);
-            await dialog.ShowAsync(windowId);
+            var dialog = new ChooseLocationsDialog();
+            await dialog.ShowAsync(ViewModel.Shared.WindowId);
         });
     }
 

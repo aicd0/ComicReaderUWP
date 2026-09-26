@@ -1,0 +1,63 @@
+<base:BaseUserControl
+    x:Class="ComicReaderUWP.UserControls.ChooseImage.ChooseImageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:ComicReaderUWP.Common.BaseUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:image="using:ComicReaderUWP.Common.Imaging"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="100"
+    d:DesignWidth="100"
+    mc:Ignorable="d">
+
+    <StackPanel Orientation="Vertical">
+        <Grid HorizontalAlignment="Left">
+            <Border
+                x:Name="ImageBorder"
+                MaxWidth="260"
+                MaxHeight="120"
+                BorderBrush="{ThemeResource ButtonBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Visibility="Collapsed">
+                <Grid CornerRadius="3">
+                    <image:SimpleImageView x:Name="ImageHolder" />
+                </Grid>
+            </Border>
+            <Border
+                x:Name="PlaceholderBorder"
+                Width="120"
+                Height="120"
+                Background="{ThemeResource ButtonBackground}"
+                BorderBrush="{ThemeResource ButtonBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <FontIcon
+                    FontSize="16"
+                    Glyph="&#xE91B;"
+                    Opacity="0.6" />
+            </Border>
+        </Grid>
+
+        <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+            <Button
+                Padding="5,5,4,4"
+                Click="AddImageButton_Click"
+                ToolTipService.ToolTip="{x:Bind StringResource.Add}">
+                <Button.Content>
+                    <FontIcon FontSize="16" Glyph="&#xE710;" />
+                </Button.Content>
+            </Button>
+            <Button
+                Margin="8,0,0,0"
+                Padding="5,5,4,4"
+                Click="DeleteImageButton_Click"
+                ToolTipService.ToolTip="{x:Bind StringResource.Remove}">
+                <Button.Content>
+                    <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                </Button.Content>
+            </Button>
+        </StackPanel>
+    </StackPanel>
+
+</base:BaseUserControl>

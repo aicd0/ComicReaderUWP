@@ -16,6 +16,7 @@ using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
@@ -59,8 +60,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     }
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
-    private double _previewImageHeight;
-    private double _previewImageWidth;
 
     // Comic Status
     private ComicModel? _comic;
@@ -255,11 +254,9 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public ObservableCollection<ReaderPreviewImageViewModel> PreviewDataSource { get; set; } = [];
     public IEnumerable<ReaderPreviewImageViewModel> SelectedPreviews => _selectedPreviewImages;
 
-    public void Initialize(ActionHandler actionHandler, double previewImageWidth, double previewImageHeight)
+    public void Initialize(ActionHandler actionHandler)
     {
         _actionHandler = actionHandler;
-        _previewImageWidth = previewImageWidth;
-        _previewImageHeight = previewImageHeight;
         Playback.PlaybackStateChanged += Playback_PlaybackStateChanged;
     }
 
@@ -298,7 +295,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         foreach (int pageIndex in pageIndicesList)
         {
             string imageName = comicConnection.GetImageName(pageIndex);
-            var imageSource = new ComicImageSource(comic, comicConnection, pageIndex);
+            var imageSource = new ComicImageSource(comic, pageIndex, comicConnection);
             ImageMeta? imageMeta = await ImageLoader.LoadImageMeta(imageSource, new()
             {
                 Priority = ImageLoadingPriority.READER_IMAGE,
@@ -512,12 +509,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         if (!comic.IsExternal)
         {
-            string? coverIndexString = comic.GetExt(ComicExt.COVER_INDEX);
-            if (string.IsNullOrEmpty(coverIndexString) || !int.TryParse(coverIndexString, out int coverIndex))
-            {
-                coverIndex = 0;
-            }
-
+            int coverIndex = ComicExt.GetCoverIndex(comic);
             items.Add(new SimpleMenuFlyoutItemModel()
             {
                 Text = StringResourceProvider.Instance.SetAsCover,
@@ -527,9 +519,15 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 {
                     CoroutineUtils.Run(async () =>
                     {
+                        string? oldCoverImage = comic.GetExt(ComicExt.COVER_IMAGE);
                         comic.SetExt(ComicExt.COVER_INDEX, index.ToString(CultureInfo.InvariantCulture));
-                        comic.SetExt(ComicExt.COVER_CACHE_KEY, null);
+                        comic.SetExt(ComicExt.COVER_IMAGE, ResourceUri.CreateComicImage(comic.Id, index).ToString());
                         await comic.FlushExt();
+
+                        if (ResourceUri.TryParse(oldCoverImage, out ResourceUri? parsedOldCoverImage))
+                        {
+                            await parsedOldCoverImage.Release();
+                        }
                     });
                 },
             });
@@ -815,7 +813,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         List<IImageSource> images = new(imageCount);
         for (int i = 0; i < imageCount; ++i)
         {
-            images.Add(new ComicImageSource(comic, connection, i));
+            images.Add(new ComicImageSource(comic, i, connection));
         }
 
         // Load preview images
@@ -825,13 +823,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             IImageSource imageSource = images[i];
             PreviewDataSource.Add(new()
             {
-                Image = new SimpleImageView.Model
-                {
-                    Source = imageSource,
-                    Width = _previewImageWidth,
-                    Height = _previewImageHeight,
-                    DebugDescription = i.ToString(),
-                },
+                ImageUri = ResourceUri.CreateComicImage(comic.Id, index).ToString(),
                 Page = i + 1,
                 RequestContextMenu = async () => await CreateImageContextMenuItems(index, imageSource),
             });

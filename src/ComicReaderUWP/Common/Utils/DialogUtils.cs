@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
@@ -142,6 +143,11 @@ internal class DialogUtils
             {
                 ClearQueue();
                 return;
+            }
+
+            if (item.Dialog is BaseContentDialog baseDialog)
+            {
+                baseDialog.WindowId = windowId;
             }
 
             DialogResult result;

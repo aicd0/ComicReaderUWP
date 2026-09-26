@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>Ajouter un dossier</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>Ajouter à la collection</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>Ajouter aux favoris</value>
   </data>
@@ -201,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>Acrylique</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>Image d’arrière-plan</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>Calculateur...</value>
   </data>
@@ -240,16 +246,17 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Réduire tout</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>Collection</value>
+  </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>Informations sur la collection</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Sélectionner « ajouter à la liste d’exclusion » empêchera la réimportation de la BD lors de la prochaine mise à jour de la bibliothèque.</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Informations sur la bande dessinée</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>Les $count bandes dessinées suivantes seront définitivement supprimées de votre bibliothèque :
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>État d'achèvement</value>
@@ -283,6 +290,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>Copie</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Image de couverture</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>Nombre de pages de couverture</value>
@@ -551,6 +561,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>Accéder à une page aléatoire</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>Luminosité</value>
   </data>
@@ -563,11 +576,11 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Images sur cet appareil</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>Traitement d’images</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Saturation</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>Images</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>Inclure les comics masqués</value>
@@ -651,6 +664,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   <data name="More" xml:space="preserve">
     <value>Plus</value>
   </data>
+  <data name="NItems" xml:space="preserve">
+    <value>$n élément(s)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>nom</value>
   </data>
@@ -659,6 +675,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   </data>
   <data name="New" xml:space="preserve">
     <value>Nouveau</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>Nouvelle collection</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Nouveau dossier</value>
@@ -725,6 +744,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Ouvrir dans un nouvel onglet</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>Ouvrir le dossier des métadonnées</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>Ouvrir le dossier des plugins</value>
@@ -829,6 +851,11 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Supprimer des favoris</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>Les $count élément(s) suivant(s) seront définitivement supprimés de votre bibliothèque :
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Supprimer ce dossier de la liste</value>

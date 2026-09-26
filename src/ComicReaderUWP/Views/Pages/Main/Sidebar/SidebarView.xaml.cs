@@ -250,7 +250,7 @@ internal sealed partial class SidebarView : BaseUserControl
 
         PageNavigationBundle bundle = AppRouter.Process(item.PageRoute)!;
         _handler.TransferAbility(bundle);
-        ContentFrame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+        ContentFrame.Navigate(bundle.PageTrait.PageType, bundle);
     }
 
     private bool SelectItem(string tag)

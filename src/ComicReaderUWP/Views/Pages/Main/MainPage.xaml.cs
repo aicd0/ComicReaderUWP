@@ -21,6 +21,7 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.Views.AppWindows.Main;
+using ComicReaderUWP.Views.Pages.Home;
 using ComicReaderUWP.Views.Pages.Main.Sidebar;
 
 using Microsoft.UI;
@@ -216,13 +217,14 @@ internal sealed partial class MainPage : BasePage
             ViewModel.IsBusy = busy;
         });
 
-        ComicHandle.IsScanningLibraryLiveData.ObserveSticky(this, scanning =>
+        ComicModel.IsScanningLibraryLiveData.ObserveSticky(this, scanning =>
         {
             ViewModel.Refreshing = scanning;
         });
 
         GetWindowEventBus().With<double>(EventId.TitleBarOpacity).ObserveSticky(this, opacity =>
         {
+            TopOverlayBackground.Opacity = opacity;
             TopTile.Opacity = opacity;
             SidebarSplitView.Opacity = opacity;
             _tabContainerGrid?.Opacity = opacity;
@@ -399,7 +401,7 @@ internal sealed partial class MainPage : BasePage
             return false;
         }
 
-        if (!bundle.PageTrait.SupportMultiInstance())
+        if (!bundle.PageTrait.AllowMultiplePages)
         {
             foreach (TabInfo tab in _tabs)
             {
@@ -450,7 +452,7 @@ internal sealed partial class MainPage : BasePage
 
         TransferAbility(bundle.Communicator, tabInfo);
         var frame = (Frame)tabInfo.Item.Content;
-        frame.Navigate(bundle.PageTrait.GetPageType(), bundle);
+        frame.Navigate(bundle.PageTrait.PageType, bundle);
         return true;
     }
 
@@ -776,8 +778,8 @@ internal sealed partial class MainPage : BasePage
     private void OnPageChangedInternal(TabInfo tabInfo)
     {
         IPageTrait pageTrait = tabInfo.CurrentBundle.PageTrait;
-        bool immersiveMode = pageTrait.ImmersiveMode();
-        bool isHomePage = pageTrait is HomePageTrait;
+        bool immersiveMode = pageTrait.IsImmersiveMode;
+        bool isHomePage = pageTrait.PageType == typeof(HomePage);
 
         ViewModel.IsHomePage = isHomePage;
         ViewModel.CanGoBack = ((Frame)tabInfo.Item.Content).CanGoBack;
@@ -787,7 +789,7 @@ internal sealed partial class MainPage : BasePage
         {
             _immersiveMode = immersiveMode;
             UpdateContentFramePlacement();
-            RootTabView.Background = _immersiveMode ?
+            TopOverlayBackground.Background = _immersiveMode ?
                 (Brush)Application.Current.Resources["TitleBarBackground"] :
                 new SolidColorBrush(Colors.Transparent);
         }
@@ -852,7 +854,7 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        if (!isVisible && !_currentTab.CurrentBundle.PageTrait.ImmersiveMode())
+        if (!isVisible && !_currentTab.CurrentBundle.PageTrait.IsImmersiveMode)
         {
             // Only hide the title bar when the current page supports immersive mode.
             return;

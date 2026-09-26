@@ -14,6 +14,7 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Tables;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 

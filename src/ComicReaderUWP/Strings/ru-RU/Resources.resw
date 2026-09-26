@@ -129,6 +129,9 @@
   <data name="AddFolder" xml:space="preserve">
     <value>Добавить папку</value>
   </data>
+  <data name="AddToCollection" xml:space="preserve">
+    <value>Добавить в подборку</value>
+  </data>
   <data name="AddToFavorites" xml:space="preserve">
     <value>Добавить в избранное</value>
   </data>
@@ -201,6 +204,9 @@
   <data name="BackgroundAcrylic" xml:space="preserve">
     <value>Акрил</value>
   </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>Фоновое изображение</value>
+  </data>
   <data name="Calculating" xml:space="preserve">
     <value>Расчет...</value>
   </data>
@@ -240,16 +246,17 @@
   <data name="CollapseAll" xml:space="preserve">
     <value>Свернуть все</value>
   </data>
+  <data name="Collection" xml:space="preserve">
+    <value>Коллекция</value>
+  </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>Информация о коллекции</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Выбор пункта «добавить в список исключений» не позволит повторно импортировать комикс при следующем обновлении библиотеки.</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Информация о комиксах</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>Следующие $count комиксов будут безвозвратно удалены из вашей библиотеки:
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>Состояние завершения</value>
@@ -283,6 +290,9 @@ $comics</value>
   </data>
   <data name="Copy" xml:space="preserve">
     <value>Копировать</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Обложка</value>
   </data>
   <data name="CoverPageCount" xml:space="preserve">
     <value>Количество страниц обложки</value>
@@ -552,6 +562,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="HotkeyRandomPage.Header" xml:space="preserve">
     <value>Перейти на случайную страницу</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>Изображение</value>
+  </data>
   <data name="ImageBrightness" xml:space="preserve">
     <value>Яркость</value>
   </data>
@@ -564,11 +577,11 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Изображения на этом устройстве</value>
   </data>
-  <data name="ImageProcessing" xml:space="preserve">
-    <value>Обработка изображений</value>
-  </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Насыщенность</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>Картинки</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>Включать скрытые комиксы</value>
@@ -652,6 +665,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="More" xml:space="preserve">
     <value>Более</value>
   </data>
+  <data name="NItems" xml:space="preserve">
+    <value>$n элемент(ов)</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Имя</value>
   </data>
@@ -660,6 +676,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="New" xml:space="preserve">
     <value>Новый</value>
+  </data>
+  <data name="NewCollection" xml:space="preserve">
+    <value>Новая подборка</value>
   </data>
   <data name="NewFolder" xml:space="preserve">
     <value>Новая папка</value>
@@ -726,6 +745,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Открыть в новой вкладке</value>
+  </data>
+  <data name="OpenMetadataFolder" xml:space="preserve">
+    <value>Открыть папку метаданных</value>
   </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>Открыть папку плагинов</value>
@@ -830,6 +852,11 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Удалить из избранного</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>Следующие $count элемент(ов) будут безвозвратно удалены из вашей библиотеки:
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Удалить эту папку из списка</value>

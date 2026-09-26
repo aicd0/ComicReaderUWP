@@ -444,7 +444,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
             }
 
             settingsModified = settingsModified || tabModified;
-            ViewModel.ImageProcessingTabTitle = GetLabel(StringResource.ImageProcessing, tabModified);
+            ViewModel.ImageProcessingTabTitle = GetLabel(StringResource.Image, tabModified);
         }
 
         PresetDropDownButton.Flyout = CreatePresetContextMenu(comicSettings);

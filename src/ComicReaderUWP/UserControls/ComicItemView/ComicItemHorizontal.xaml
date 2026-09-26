@@ -6,6 +6,7 @@
     xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
     xmlns:converters="using:ComicReaderUWP.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Tapped="UserControl_Tapped"
     mc:Ignorable="d">
@@ -22,17 +23,27 @@
     <Grid
         x:Name="RootGrid"
         Padding="10,8"
-        Background="Transparent"
+        Background="{ThemeResource ButtonBackground}"
+        BorderBrush="{ThemeResource ButtonBorderBrush}"
+        BorderThickness="{ThemeResource ButtonBorderThemeThickness}"
         ContextRequested="RootGrid_ContextRequested"
+        PointerEntered="RootGrid_PointerEntered"
+        PointerExited="RootGrid_PointerExited"
         Tapped="RootGrid_Tapped">
+        <Grid.BackgroundTransition>
+            <BrushTransition Duration="0:0:0.083" />
+        </Grid.BackgroundTransition>
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Width="{StaticResource ComicItemHorizontalImageWidth}">
-            <Rectangle Fill="{ThemeResource ImagePlaceHolderBackground}" />
-            <Image x:Name="ImageHolder" Stretch="UniformToFill" />
+        <Grid Grid.Column="0" Width="85">
+            <image:SimpleImageView
+                x:Name="ImageHolder"
+                Stretch="UniformToFill"
+                Uri="{x:Bind Item.CoverImageUri, Mode=OneWay}" />
         </Grid>
 
         <StackPanel
@@ -41,11 +52,28 @@
             Padding="12,2,8,5"
             Orientation="Vertical"
             Spacing="3">
+            <StackPanel
+                HorizontalAlignment="Left"
+                Opacity="0.6"
+                Orientation="Horizontal"
+                Spacing="4"
+                Visibility="{x:Bind Item.IsCollection, Mode=OneWay}">
+                <FontIcon
+                    Margin="0,1,0,0"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Glyph="&#xF5ED;" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind StringResource.Collection}" />
+            </StackPanel>
             <TextBlock
                 Margin="0,0,0,4"
                 FontSize="14"
                 FontWeight="SemiBold"
-                MaxLines="3"
+                MaxLines="{x:Bind Item.TitleMaxLines, Mode=OneWay}"
                 Text="{x:Bind Item.Title, Mode=OneWay}"
                 TextTrimming="CharacterEllipsis"
                 TextWrapping="Wrap"
@@ -72,18 +100,20 @@
                 Text="{x:Bind Item.PageCountAndProgress, Mode=OneWay}" />
         </StackPanel>
 
-        <Grid
-            Grid.Column="1"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            Visibility="{x:Bind Item.IsFavorite, Mode=OneWay}">
-            <FontIcon
-                Margin="0,0,10,8"
-                FontSize="14"
-                Foreground="{ThemeResource SystemAccentColor}"
-                Glyph="&#xE735;" />
-        </Grid>
-
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal">
+                    <VisualState.Setters>
+                        <Setter Target="RootGrid.Background" Value="{ThemeResource ButtonBackground}" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="PointerOver">
+                    <VisualState.Setters>
+                        <Setter Target="RootGrid.Background" Value="{ThemeResource ButtonBackgroundPointerOver}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 
 </base:BaseUserControl>

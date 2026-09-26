@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.Json;
@@ -12,7 +11,6 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Localization;
-using ComicReaderUWP.Core.Common.Algorithm;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
@@ -23,9 +21,8 @@ using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.Helpers.Search;
+using ComicReaderUWP.UserControls.ComicSelection;
 using ComicReaderUWP.ViewModels;
-
-using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.Home;
 
@@ -34,14 +31,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     private const string TAG = nameof(HomePageViewModel);
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    public readonly MutableLiveData<string> UrlLiveData = new();
-    public readonly MutableLiveData<FilterModel> FilterLiveData = new();
-    public readonly MutableLiveData<bool> GroupingEnabledLiveData = new();
-    public readonly MutableLiveData<ComicFilterModel.ViewTypeEnum> ViewTypeLiveData = new();
-
-    public ObservableCollection<ComicItemViewModel> UngroupedComicItems { get; set; } = [];
-    public ObservableCollection<ComicGroupViewModel> GroupedComicItems { get; set; } = [];
 
     private bool _libraryEmptyVisible = false;
     public bool LibraryEmptyVisible
@@ -54,122 +43,20 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _isSelectMode = false;
-    public bool IsSelectMode
-    {
-        get => _isSelectMode;
-        set
-        {
-            _isSelectMode = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{nameof(IsSelectMode)}"));
-        }
-    }
+    public readonly MutableLiveData<string> UrlLiveData = new();
+    public readonly MutableLiveData<FilterModel> FilterLiveData = new();
+    public readonly MutableLiveData<bool> GroupingEnabledLiveData = new();
+    public readonly MutableLiveData<ComicFilterModel.ViewTypeEnum> ViewTypeLiveData = new();
 
-    private ListViewSelectionMode _comicItemSelectionMode = ListViewSelectionMode.None;
-    public ListViewSelectionMode ComicItemSelectionMode
-    {
-        get => _comicItemSelectionMode;
-        set
-        {
-            _comicItemSelectionMode = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{nameof(ComicItemSelectionMode)}"));
-        }
-    }
-
-    private bool _isAnyComicSelected = false;
-    public bool IsAnyComicSelected
-    {
-        get => _isAnyComicSelected;
-        set
-        {
-            _isAnyComicSelected = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAnyComicSelected)));
-        }
-    }
-
-    private bool _isCommandBarSelectAllToggled = false;
-    public bool IsCommandBarSelectAllToggled
-    {
-        get => _isCommandBarSelectAllToggled;
-        set
-        {
-            _isCommandBarSelectAllToggled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarSelectAllToggled)));
-        }
-    }
-
-    private bool _isCommandBarFavoriteEnabled = false;
-    public bool IsCommandBarFavoriteEnabled
-    {
-        get => _isCommandBarFavoriteEnabled;
-        set
-        {
-            _isCommandBarFavoriteEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarFavoriteEnabled)));
-        }
-    }
-
-    private bool _isCommandBarUnFavoriteEnabled = false;
-    public bool IsCommandBarUnFavoriteEnabled
-    {
-        get => _isCommandBarUnFavoriteEnabled;
-        set
-        {
-            _isCommandBarUnFavoriteEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnFavoriteEnabled)));
-        }
-    }
-
-    private bool _isCommandBarHideEnabled = false;
-    public bool IsCommandBarHideEnabled
-    {
-        get => _isCommandBarHideEnabled;
-        set
-        {
-            _isCommandBarHideEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarHideEnabled)));
-        }
-    }
-
-    private bool _isCommandBarUnHideEnabled = false;
-    public bool IsCommandBarUnHideEnabled
-    {
-        get => _isCommandBarUnHideEnabled;
-        set
-        {
-            _isCommandBarUnHideEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCommandBarUnHideEnabled)));
-        }
-    }
-
-    private bool _isCollapseAllEnabled = false;
-    public bool IsCollapseAllEnabled
-    {
-        get => _isCollapseAllEnabled;
-        set
-        {
-            _isCollapseAllEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCollapseAllEnabled)));
-        }
-    }
-
-    private bool _isExpandAllEnabled = false;
-    public bool IsExpandAllEnabled
-    {
-        get => _isExpandAllEnabled;
-        set
-        {
-            _isExpandAllEnabled = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsExpandAllEnabled)));
-        }
-    }
+    public List<ComicItemViewModel> UngroupedComicItems { get; private set; } = [];
+    public List<ComicGroupViewModel> GroupedComicItems { get; private set; } = [];
+    public ComicSelectionViewModel ComicSelection { get; }
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private readonly ComicSearchEngine _searchEngine = new();
     private ComicFilterModel.ExternalModel? _filterSettingsModel;
     private ComicFilterModel.ExternalFilterModel? _filterModel;
     private IReadOnlyList<ComicModel> _comics = [];
-    private readonly List<ComicItemViewModel> _selectedComicItems = [];
     private long _lastSearchTime = 0;
 
     private readonly ITaskDispatcher _sharedDispatcher = TaskDispatcher.Factory.NewQueue("HomePageQueue");
@@ -178,10 +65,10 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     private int _updateFilterSubmitted = 0;
     private int _updateComicSubmitted = 0;
 
-    private readonly List<ComicFilterModel.ViewTypeEnum> _viewTypes = [
-        ComicFilterModel.ViewTypeEnum.Large,
-        ComicFilterModel.ViewTypeEnum.Medium,
-    ];
+    public HomePageViewModel()
+    {
+        ComicSelection = new(() => _comics.Count);
+    }
 
     public void Initialize(ActionHandler actionHandler, string? filterJson)
     {
@@ -277,37 +164,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         });
     }
 
-    public void SetSelectionMode(bool enabled)
-    {
-        if (IsSelectMode == enabled)
-        {
-            return;
-        }
-
-        IsSelectMode = enabled;
-        ComicItemSelectionMode = enabled ? ListViewSelectionMode.Multiple : ListViewSelectionMode.None;
-        if (enabled)
-        {
-            _selectedComicItems.Clear();
-            UpdateCommandBarButtonStates();
-        }
-    }
-
-    public void SetSelection(List<ComicItemViewModel> items)
-    {
-        _selectedComicItems.Clear();
-        _selectedComicItems.AddRange(items);
-        UpdateCommandBarButtonStates();
-    }
-
     public IReadOnlyList<ComicModel> GetComics()
     {
         return _comics;
-    }
-
-    public IReadOnlyList<ComicModel> GetSelectedComics()
-    {
-        return [.. _selectedComicItems.Select(x => x.Comic)];
     }
 
     public void CollapseOrExpandGroup(ComicGroupViewModel groupModel)
@@ -329,58 +188,66 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             }
 
             filter.CollapsedGroups = collapsedGroups;
-            filter.Modified = filter.SaveSortingAndGroupingSettings;
+            filter.Modified |= filter.SaveSortingAndGroupingSettings;
             UpdateLastFilter(filter);
         }
-
-        UpdateCollapseExpandGroupButtonStates();
     }
 
     public void CollapseAllGroups()
     {
-        HashSet<string> collapsedGroups = _filterModel?.CollapsedGroups.ToHashSet() ?? [];
+        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
+        HashSet<string> collapsedGroups = filter?.CollapsedGroups.ToHashSet() ?? [];
+        bool changed = false;
         foreach (ComicGroupViewModel group in GroupedComicItems)
         {
-            group.Collapsed = true;
-            collapsedGroups.Add(group.GroupName);
+            changed |= collapsedGroups.Add(group.GroupName);
         }
 
-        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
+        if (!changed)
+        {
+            return;
+        }
+
         if (filter is not null)
         {
             filter.CollapsedGroups = collapsedGroups;
-            filter.Modified = filter.SaveSortingAndGroupingSettings;
+            filter.Modified |= filter.SaveSortingAndGroupingSettings;
             UpdateLastFilter(filter);
         }
 
-        UpdateCollapseExpandGroupButtonStates();
+        ScheduleDisplayComics();
     }
 
     public void ExpandAllGroups()
     {
-        HashSet<string> collapsedGroups = _filterModel?.CollapsedGroups.ToHashSet() ?? [];
+        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
+        HashSet<string> collapsedGroups = filter?.CollapsedGroups.ToHashSet() ?? [];
+        bool changed = false;
         foreach (ComicGroupViewModel group in GroupedComicItems)
         {
-            group.Collapsed = false;
-            collapsedGroups.Remove(group.GroupName);
+            changed |= collapsedGroups.Remove(group.GroupName);
         }
 
-        ComicFilterModel.ExternalFilterModel? filter = _filterModel;
+        if (!changed)
+        {
+            return;
+        }
+
         if (filter is not null)
         {
             filter.CollapsedGroups = collapsedGroups;
-            filter.Modified = filter.SaveSortingAndGroupingSettings;
+            filter.Modified |= filter.SaveSortingAndGroupingSettings;
             UpdateLastFilter(filter);
         }
 
-        UpdateCollapseExpandGroupButtonStates();
+        ScheduleDisplayComics();
     }
 
     //
     // Filters
     //
 
-    private void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
+    public void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
     {
         _sharedDispatcher.Submit(() =>
         {
@@ -388,7 +255,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             if (filter.ViewType != viewType)
             {
                 filter.ViewType = viewType;
-                filter.Modified = filter.SaveViewSettings;
+                filter.Modified |= filter.SaveViewSettings;
             }
 
             UpdateLastFilter(filter);
@@ -401,7 +268,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         _sharedDispatcher.Submit(() =>
         {
             ComicFilterModel.ExternalFilterModel filter = _filterModel ?? ComicFilterModel.ExternalFilterModel.FromDefault();
-            filter.Modified = handler(filter) && filter.SaveSortingAndGroupingSettings;
+            bool changed = handler(filter);
+            filter.Modified |= changed && filter.SaveSortingAndGroupingSettings;
             UpdateLastFilter(filter);
             ScheduleUpdateFilters(false);
         });
@@ -544,59 +412,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         ScheduleDisplayComics();
     }
 
-    private void UpdateCommandBarButtonStates()
-    {
-        IEnumerable<ComicItemViewModel> selectedComicItems = _selectedComicItems.DistinctBy(x => x.Comic);
-        bool allSelected = selectedComicItems.Count() == _comics.Count;
-        bool anySelected = false;
-        bool favoriteEnabled = false;
-        bool unfavoriteEnabled = false;
-        bool hideEnabled = false;
-        bool unhideEnabled = false;
-
-        foreach (ComicItemViewModel item in selectedComicItems)
-        {
-            anySelected = true;
-
-            if (item.IsFavorite)
-            {
-                unfavoriteEnabled = true;
-            }
-            else
-            {
-                favoriteEnabled = true;
-            }
-
-            if (item.IsHide)
-            {
-                unhideEnabled = true;
-            }
-            else
-            {
-                hideEnabled = true;
-            }
-        }
-
-        IsAnyComicSelected = anySelected;
-        IsCommandBarSelectAllToggled = allSelected;
-        IsCommandBarFavoriteEnabled = favoriteEnabled;
-        IsCommandBarUnFavoriteEnabled = unfavoriteEnabled;
-        IsCommandBarHideEnabled = hideEnabled;
-        IsCommandBarUnHideEnabled = unhideEnabled;
-    }
-
-    private void UpdateCollapseExpandGroupButtonStates()
-    {
-        if (!GroupingEnabledLiveData.HasValue)
-        {
-            return;
-        }
-
-        bool groupingEnabled = GroupingEnabledLiveData.Value;
-        IsCollapseAllEnabled = groupingEnabled && GroupedComicItems.Count > 0 && GroupedComicItems.Any(x => !x.Collapsed);
-        IsExpandAllEnabled = groupingEnabled && GroupedComicItems.Count > 0 && GroupedComicItems.Any(x => x.Collapsed);
-    }
-
     private async Task UpdateFiltersNoLock(bool reloadFromDatabase)
     {
         Logger.I(TAG, "UpdateFiltersNoLock");
@@ -652,20 +467,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         // Update UI
         {
-            var viewTypeDropDown = new DropDownButtonModel
-            {
-                Name = StringResourceProvider.Instance.ViewType,
-                Items = _viewTypes.ConvertAll(x => new ToggleMenuFlyoutItemModel()
-                {
-                    Text = ViewTypeToDisplayName(x),
-                    IsChecked = x == filter.ViewType,
-                    Click = () =>
-                    {
-                        SelectViewType(x);
-                    },
-                }),
-            };
-
             List<ComicPropertyModel> properties = await ComicPropertyModel.GetProperties();
             var sortByDropDown = new SubItemMenuFlyoutItemModel()
             {
@@ -701,7 +502,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
             var uiModel = new FilterModel
             {
-                ViewTypeDropDown = viewTypeDropDown,
                 SortAndGroupDropDown = sortAndGroupDropDown,
                 FilterPresetDropDown = filterPresetDropDown,
             };
@@ -732,7 +532,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 OnClick = model =>
                 {
-                    if (_isSelectMode)
+                    if (ComicSelection.IsSelectMode)
                     {
                         return;
                     }
@@ -742,12 +542,12 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
                 },
                 OnRequestContextFlyoutAsync = model =>
                 {
-                    List<ComicModel>? selectedComics = _isSelectMode ? _selectedComicItems.ConvertAll(x => x.Comic) : null;
+                    IReadOnlyList<ComicModel>? selectedComics = ComicSelection.IsSelectMode ? ComicSelection.GetSelectedComics() : null;
                     return MenuFlyoutItemsCreator.CreateComicMenuItems(
                         _actionHandler,
                         comic,
                         playlist: playlist,
-                        selectedComics: selectedComics,
+                        selectedItems: selectedComics,
                         canSelect: true);
                 },
             };
@@ -801,31 +601,17 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
         await MainThreadUtils.RunInMainThread(() =>
         {
-            bool ComicComparer(ComicItemViewModel x, ComicItemViewModel y) => x.Comic.Id == y.Comic.Id;
-            void ComicUpdater(ComicItemViewModel x, ComicItemViewModel y) => x.Update(y);
-
             if (comicsGrouped != null)
             {
-                // Disable ME as it's causing a native crash in Microsoft.ui.xaml.dll.
-                // This is not guaranteed a fix but so far it works fine. 
-                // How to reproduce: Under group view (with 20+ groups), scroll to bottom (or close to bottom)
-                // of the list. Then switch between different filter presets which share the same group names,
-                // the crash should occur.
-                // This problem can still be reproduced under lastest Windows SDK (1.8.250916003). The native
-                // stack trace indicates that it relates to a MAUI collection component (likely GridView).
-                DiffUtils.UpdateCollection(GroupedComicItems, comicsGrouped, (x, y) => x.GroupName == y.GroupName, (x, y) =>
-                {
-                    x.Collapsed = y.Collapsed;
-                    x.Description = y.Description;
-                    x.UpdateItems(y.Items, ComicComparer, ComicUpdater);
-                }, disableME: true);
-
+                GroupedComicItems = comicsGrouped;
+                UngroupedComicItems = [];
                 GroupingEnabledLiveData.Emit(true);
                 LibraryEmptyVisible = GroupedComicItems.Count == 0;
             }
             else if (comicsUngrouped != null)
             {
-                DiffUtils.UpdateCollection(UngroupedComicItems, comicsUngrouped, ComicComparer, ComicUpdater);
+                UngroupedComicItems = comicsUngrouped;
+                GroupedComicItems = [];
                 GroupingEnabledLiveData.Emit(false);
                 LibraryEmptyVisible = UngroupedComicItems.Count == 0;
             }
@@ -833,9 +619,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             {
                 Logger.F(TAG, "Shouldn't reach");
             }
-
-            UpdateCollapseExpandGroupButtonStates();
-            UpdateCommandBarButtonStates();
         });
     }
 
@@ -1174,16 +957,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         return items.Select(x => x.Item2);
     }
 
-    private static string ViewTypeToDisplayName(ComicFilterModel.ViewTypeEnum viewType)
-    {
-        return viewType switch
-        {
-            ComicFilterModel.ViewTypeEnum.Large => StringResourceProvider.Instance.ViewTypeLarge,
-            ComicFilterModel.ViewTypeEnum.Medium => StringResourceProvider.Instance.ViewTypeMedium,
-            _ => "Unknown"
-        };
-    }
-
     private static long GetTick()
     {
         return Environment.TickCount64;
@@ -1191,7 +964,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
     public class FilterModel
     {
-        public DropDownButtonModel ViewTypeDropDown { get; set; } = new();
         public DropDownButtonModel SortAndGroupDropDown { get; set; } = new();
         public DropDownButtonModel FilterPresetDropDown { get; set; } = new();
     }

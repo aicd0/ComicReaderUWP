@@ -16,6 +16,7 @@ public class StringResourceProvider
     public string AboutCopyright => GetResourceString("AboutCopyright");
     public string Add => GetResourceString("Add");
     public string AddFolder => GetResourceString("AddFolder");
+    public string AddToCollection => GetResourceString("AddToCollection");
     public string AddToFavorites => GetResourceString("AddToFavorites");
     public string AllComics => GetResourceString("AllComics");
     public string AllComicsIn => GetResourceString("AllComicsIn");
@@ -35,6 +36,7 @@ public class StringResourceProvider
     public string AutoToggleOverlaysOnCursor => GetResourceString("AutoToggleOverlaysOnCursor");
     public string Background => GetResourceString("Background");
     public string BackgroundAcrylic => GetResourceString("BackgroundAcrylic");
+    public string BackgroundImage => GetResourceString("BackgroundImage");
     public string Calculating => GetResourceString("Calculating");
     public string Cancel => GetResourceString("Cancel");
     public string Category => GetResourceString("Category");
@@ -46,9 +48,10 @@ public class StringResourceProvider
     public string CloseSidebar => GetResourceString("CloseSidebar");
     public string CloseWindow => GetResourceString("CloseWindow");
     public string CollapseAll => GetResourceString("CollapseAll");
+    public string Collection => GetResourceString("Collection");
+    public string CollectionInformation => GetResourceString("CollectionInformation");
     public string ComicExclusionExplaination => GetResourceString("ComicExclusionExplaination");
     public string ComicInfo => GetResourceString("ComicInfo");
-    public string ComicRemovalPromptContent => GetResourceString("ComicRemovalPromptContent");
     public string CompletionStatus => GetResourceString("CompletionStatus");
     public string CompletionStatusAbandoned => GetResourceString("CompletionStatusAbandoned");
     public string CompletionStatusCompleted => GetResourceString("CompletionStatusCompleted");
@@ -60,6 +63,7 @@ public class StringResourceProvider
     public string ContributionRunAfterLink => GetResourceString("ContributionRunAfterLink");
     public string ContributionRunBeforeLink => GetResourceString("ContributionRunBeforeLink");
     public string Copy => GetResourceString("Copy");
+    public string CoverImage => GetResourceString("CoverImage");
     public string CoverPageCount => GetResourceString("CoverPageCount");
     public string Custom => GetResourceString("Custom");
     public string DebugModeWarning => GetResourceString("DebugModeWarning");
@@ -124,10 +128,11 @@ public class StringResourceProvider
     public string HideCursorAutomatically => GetResourceString("HideCursorAutomatically");
     public string History => GetResourceString("History");
     public string Horizontal => GetResourceString("Horizontal");
+    public string Image => GetResourceString("Image");
     public string ImageBrightness => GetResourceString("ImageBrightness");
     public string ImageContrast => GetResourceString("ImageContrast");
-    public string ImageProcessing => GetResourceString("ImageProcessing");
     public string ImageSaturation => GetResourceString("ImageSaturation");
+    public string Images => GetResourceString("Images");
     public string IncludeHiddenComics => GetResourceString("IncludeHiddenComics");
     public string InstallPlugin => GetResourceString("InstallPlugin");
     public string InstallPluginWarning => GetResourceString("InstallPluginWarning");
@@ -143,9 +148,11 @@ public class StringResourceProvider
     public string MergeSingleItemGroups => GetResourceString("MergeSingleItemGroups");
     public string Miscellaneous => GetResourceString("Miscellaneous");
     public string More => GetResourceString("More");
+    public string NItems => GetResourceString("NItems");
     public string Name => GetResourceString("Name");
     public string Never => GetResourceString("Never");
     public string New => GetResourceString("New");
+    public string NewCollection => GetResourceString("NewCollection");
     public string NewFolder => GetResourceString("NewFolder");
     public string NewTab => GetResourceString("NewTab");
     public string NewWindow => GetResourceString("NewWindow");
@@ -165,6 +172,7 @@ public class StringResourceProvider
     public string OpenInCurrentTab => GetResourceString("OpenInCurrentTab");
     public string OpenInLastActiveReaderTab => GetResourceString("OpenInLastActiveReaderTab");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
+    public string OpenMetadataFolder => GetResourceString("OpenMetadataFolder");
     public string OpenPluginsFolder => GetResourceString("OpenPluginsFolder");
     public string OpenSidebar => GetResourceString("OpenSidebar");
     public string OpenUserDataFolder => GetResourceString("OpenUserDataFolder");
@@ -196,6 +204,7 @@ public class StringResourceProvider
     public string Remove => GetResourceString("Remove");
     public string RemoveAndExclude => GetResourceString("RemoveAndExclude");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
+    public string RemoveItemsConfirmation => GetResourceString("RemoveItemsConfirmation");
     public string RemovePluginsConfirmation => GetResourceString("RemovePluginsConfirmation");
     public string Repeat => GetResourceString("Repeat");
     public string Reset => GetResourceString("Reset");
