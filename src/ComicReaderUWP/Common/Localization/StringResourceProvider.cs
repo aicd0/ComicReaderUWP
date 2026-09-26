@@ -49,9 +49,9 @@ public class StringResourceProvider
     public string CloseWindow => GetResourceString("CloseWindow");
     public string CollapseAll => GetResourceString("CollapseAll");
     public string Collection => GetResourceString("Collection");
+    public string CollectionInformation => GetResourceString("CollectionInformation");
     public string ComicExclusionExplaination => GetResourceString("ComicExclusionExplaination");
     public string ComicInfo => GetResourceString("ComicInfo");
-    public string ComicRemovalPromptContent => GetResourceString("ComicRemovalPromptContent");
     public string CompletionStatus => GetResourceString("CompletionStatus");
     public string CompletionStatusAbandoned => GetResourceString("CompletionStatusAbandoned");
     public string CompletionStatusCompleted => GetResourceString("CompletionStatusCompleted");
@@ -203,6 +203,7 @@ public class StringResourceProvider
     public string Remove => GetResourceString("Remove");
     public string RemoveAndExclude => GetResourceString("RemoveAndExclude");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");
+    public string RemoveItemsConfirmation => GetResourceString("RemoveItemsConfirmation");
     public string RemovePluginsConfirmation => GetResourceString("RemovePluginsConfirmation");
     public string Repeat => GetResourceString("Repeat");
     public string Reset => GetResourceString("Reset");

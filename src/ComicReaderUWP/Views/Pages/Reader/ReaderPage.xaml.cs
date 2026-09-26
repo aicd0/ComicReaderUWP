@@ -120,11 +120,7 @@ internal sealed partial class ReaderPage : BasePage
             UpdatePinRelatedUI();
         }
 
-        // Initialize view model
-        double scale = GetMainWindowAbility().GetRasterizationScale();
-        double previewImageWidth = (double)Application.Current.Resources["ReaderPreviewImageWidth"] * scale;
-        double previewImageHeight = (double)Application.Current.Resources["ReaderPreviewImageHeight"] * scale;
-        ViewModel.Initialize(PageActionHandler, previewImageWidth, previewImageHeight);
+        ViewModel.Initialize(PageActionHandler);
 
         CoroutineUtils.Run(async () =>
         {

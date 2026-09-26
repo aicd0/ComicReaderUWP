@@ -17,9 +17,6 @@ namespace ComicReaderUWP.UserControls.ChooseImage;
 
 internal sealed partial class ChooseImageView : BaseUserControl
 {
-    private const double PREVIEW_WIDTH = 260.0;
-    private const double PREVIEW_HEIGHT = 120.0;
-
     private static readonly string[] IMAGE_FILE_TYPES = [.. AppInfoProvider.SupportedImageExtensions];
 
     private string? _pendingFilePath = null;
@@ -27,9 +24,6 @@ internal sealed partial class ChooseImageView : BaseUserControl
     public ChooseImageView()
     {
         InitializeComponent();
-
-        ImageHolder.FrameWidth = PREVIEW_WIDTH;
-        ImageHolder.FrameHeight = PREVIEW_HEIGHT;
     }
 
     public event EventHandler? Changed;

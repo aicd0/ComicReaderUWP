@@ -6,117 +6,24 @@
 using System;
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Views.Pages.Home;
 using ComicReaderUWP.Views.Pages.Reader;
-using ComicReaderUWP.Views.Pages.Search;
 using ComicReaderUWP.Views.Pages.Settings;
 
 namespace ComicReaderUWP.Helpers.Navigation;
 
-internal class DefaultPageTrait : IPageTrait
+internal class DefaultPageTrait(Type pageType) : IPageTrait
 {
-    private readonly Type _pageType;
+    private readonly Type _pageType = pageType;
 
-    public DefaultPageTrait(Type pageType)
-    {
-        _pageType = pageType;
-    }
+    public Type PageType => _pageType;
 
-    public Type GetPageType()
-    {
-        return _pageType;
-    }
+    public bool IsImmersiveMode => false;
 
-    public bool ImmersiveMode()
-    {
-        return false;
-    }
-
-    public bool SupportMultiInstance()
-    {
-        return true;
-    }
-}
-
-internal class HomePageTrait : IPageTrait
-{
-    private HomePageTrait() { }
-
-    public Type GetPageType()
-    {
-        return typeof(HomePage);
-    }
-
-    public bool ImmersiveMode()
-    {
-        return false;
-    }
-
-    public bool SupportMultiInstance()
-    {
-        return true;
-    }
-
-    private static IPageTrait _instance;
-    public static IPageTrait Instance
-    {
-        get
-        {
-            _instance ??= new HomePageTrait();
-            return _instance;
-        }
-    }
-}
-
-internal class SearchPageTrait : IPageTrait
-{
-    private SearchPageTrait() { }
-
-    public Type GetPageType()
-    {
-        return typeof(SearchPage);
-    }
-
-    public bool ImmersiveMode()
-    {
-        return false;
-    }
-
-    public bool SupportMultiInstance()
-    {
-        return true;
-    }
-
-    private static IPageTrait _instance;
-    public static IPageTrait Instance
-    {
-        get
-        {
-            _instance ??= new SearchPageTrait();
-            return _instance;
-        }
-    }
+    public bool AllowMultiplePages => true;
 }
 
 internal class ReaderPageTrait : IPageTrait
 {
-    private ReaderPageTrait() { }
-
-    public Type GetPageType()
-    {
-        return typeof(ReaderPage);
-    }
-
-    public bool ImmersiveMode()
-    {
-        return true;
-    }
-
-    public bool SupportMultiInstance()
-    {
-        return true;
-    }
-
     private static IPageTrait _instance;
     public static IPageTrait Instance
     {
@@ -126,27 +33,18 @@ internal class ReaderPageTrait : IPageTrait
             return _instance;
         }
     }
+
+    private ReaderPageTrait() { }
+
+    public Type PageType => typeof(ReaderPage);
+
+    public bool IsImmersiveMode => true;
+
+    public bool AllowMultiplePages => true;
 }
 
 internal class SettingsPageTrait : IPageTrait
 {
-    private SettingsPageTrait() { }
-
-    public Type GetPageType()
-    {
-        return typeof(SettingsPage);
-    }
-
-    public bool ImmersiveMode()
-    {
-        return false;
-    }
-
-    public bool SupportMultiInstance()
-    {
-        return false;
-    }
-
     private static IPageTrait _instance;
     public static IPageTrait Instance
     {
@@ -156,4 +54,12 @@ internal class SettingsPageTrait : IPageTrait
             return _instance;
         }
     }
+
+    private SettingsPageTrait() { }
+
+    public Type PageType => typeof(SettingsPage);
+
+    public bool IsImmersiveMode => false;
+
+    public bool AllowMultiplePages => false;
 }

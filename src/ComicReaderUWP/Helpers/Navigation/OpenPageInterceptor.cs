@@ -7,8 +7,11 @@ using System.Collections.Generic;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Views.Pages.Collection;
 using ComicReaderUWP.Views.Pages.DevTools;
+using ComicReaderUWP.Views.Pages.Home;
 using ComicReaderUWP.Views.Pages.Main;
+using ComicReaderUWP.Views.Pages.Search;
 using ComicReaderUWP.Views.Pages.Sidebar.ComicInfo;
 using ComicReaderUWP.Views.Pages.Sidebar.Favorite;
 using ComicReaderUWP.Views.Pages.Sidebar.FilterPresets;
@@ -25,8 +28,9 @@ internal class OpenPageInterceptor : IRouterInterceptor
     {
         { RouterConstants.HOST_MAIN, new DefaultPageTrait(typeof(MainPage)) },
         { RouterConstants.HOST_READER, ReaderPageTrait.Instance },
-        { RouterConstants.HOST_HOME, HomePageTrait.Instance },
-        { RouterConstants.HOST_SEARCH, SearchPageTrait.Instance },
+        { RouterConstants.HOST_HOME, new DefaultPageTrait(typeof(HomePage)) },
+        { RouterConstants.HOST_SEARCH, new DefaultPageTrait(typeof(SearchPage)) },
+        { RouterConstants.HOST_COLLECTION, new DefaultPageTrait(typeof(CollectionPage)) },
         { RouterConstants.HOST_SETTINGS, SettingsPageTrait.Instance },
         { RouterConstants.HOST_SIDE_PANE_FAVORITE, new DefaultPageTrait(typeof(FavoritePage)) },
         { RouterConstants.HOST_SIDE_PANE_HISTORY, new DefaultPageTrait(typeof(HistoryPage)) },

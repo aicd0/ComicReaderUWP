@@ -249,16 +249,14 @@
   <data name="Collection" xml:space="preserve">
     <value>Collection</value>
   </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>Collection information</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Selecting "add to exclusion list" will prevent the comic from being imported again the next time the library is updated.</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Comic information</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>The following $count comics will be permanently removed from your library:
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>Completion status</value>
@@ -852,6 +850,11 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Remove from favorites</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>The following $count item(s) will be permanently removed from your library:
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Remove this folder from the list</value>

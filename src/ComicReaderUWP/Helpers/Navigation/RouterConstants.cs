@@ -12,6 +12,7 @@ internal static class RouterConstants
     public const string HOST_READER = "reader";
     public const string HOST_HOME = "home";
     public const string HOST_SEARCH = "search";
+    public const string HOST_COLLECTION = "collection";
     public const string HOST_SETTINGS = "settings";
     public const string HOST_SIDE_PANE_FAVORITE = "side_pane_favorite";
     public const string HOST_SIDE_PANE_HISTORY = "side_pane_history";
@@ -23,6 +24,7 @@ internal static class RouterConstants
     public const string HOST_DEV_TOOLS = "dev_tools";
 
     public const string ARG_FILTER_JSON = "filter_json";
+    public const string ARG_ID = "id";
     public const string ARG_KEYWORD = "keyword";
     public const string ARG_PAGE = "page";
     public const string ARG_PLAYBACK = "playback";
