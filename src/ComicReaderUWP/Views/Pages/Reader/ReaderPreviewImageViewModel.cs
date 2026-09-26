@@ -27,10 +27,6 @@ internal partial class ReaderPreviewImageViewModel : INotifyPropertyChanged
         }
     }
 
-    public double ImageWidth { get; init; } = double.PositiveInfinity;
-
-    public double ImageHeight { get; init; } = double.PositiveInfinity;
-
     private int _page = -1;
     public int Page
     {

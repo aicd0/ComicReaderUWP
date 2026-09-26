@@ -11,13 +11,10 @@
     mc:Ignorable="d">
 
     <Grid
-        Width="{StaticResource ReaderPreviewImageWidth}"
-        Height="{StaticResource ReaderPreviewImageHeight}"
+        Width="140"
+        Height="200"
         ContextRequested="ReaderPreviewImage_ContextRequested">
-        <image:SimpleImageView
-            FrameHeight="{x:Bind ViewModel.ImageHeight}"
-            FrameWidth="{x:Bind ViewModel.ImageWidth}"
-            Uri="{x:Bind ViewModel.ImageUri, Mode=OneWay}" />
+        <image:SimpleImageView Uri="{x:Bind ViewModel.ImageUri, Mode=OneWay}" />
         <Grid
             Margin="0,0,8,8"
             Padding="5,2,5,5"

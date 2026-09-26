@@ -331,9 +331,9 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
                 bool proceed = true;
                 if (appSettings.PromptBeforeRemovingComics)
                 {
-                    string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
+                    string promptContent = StringResourceProvider.Instance.RemoveItemsConfirmation
                         .Replace("$count", locationRemoved.Count.ToString())
-                        .Replace("$comics", string.Join('\n', locationRemoved));
+                        .Replace("$items", string.Join('\n', locationRemoved));
                     DialogOptions options = new DialogOptions.Builder()
                         .SetTitle(StringResourceProvider.Instance.Warning)
                         .SetContent(promptContent)

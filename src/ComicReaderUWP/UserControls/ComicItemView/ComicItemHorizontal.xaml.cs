@@ -14,12 +14,9 @@ namespace ComicReaderUWP.UserControls.ComicItemView;
 
 internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemView
 {
-    private bool _frameSizeApplied = false;
-
     public ComicItemHorizontal()
     {
         InitializeComponent();
-        Loaded += ComicItemHorizontal_Loaded;
     }
 
     public ComicItemViewModel? Item { get; private set; }
@@ -33,19 +30,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
 
         Item = item;
         Bindings.Update();
-    }
-
-    private void ComicItemHorizontal_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (_frameSizeApplied)
-        {
-            return;
-        }
-
-        _frameSizeApplied = true;
-        double scale = DisplayUtils.GetRasterizationScale(this);
-        ImageHolder.FrameWidth = (double)Application.Current.Resources["ComicItemHorizontalImageWidth"] * scale;
-        ImageHolder.FrameHeight = (double)Application.Current.Resources["ComicItemHorizontalImageHeight"] * scale;
     }
 
     private void UserControl_Tapped(object sender, TappedRoutedEventArgs e)

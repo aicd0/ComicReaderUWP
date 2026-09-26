@@ -448,7 +448,7 @@ internal static class MenuFlyoutItemsCreator
 
                 items.Add(new ToggleMenuFlyoutItemModel()
                 {
-                    Text = collection.Title,
+                    Text = TrimText(collection.Title),
                     IsChecked = isLinked,
                     Click = () =>
                     {
@@ -693,5 +693,18 @@ internal static class MenuFlyoutItemsCreator
         }
 
         return items;
+    }
+
+    private static string TrimText(string text)
+    {
+        const int maxLength = 30;
+
+        if (text.Length <= maxLength)
+        {
+            return text;
+        }
+
+        int count = maxLength / 2 - 1;
+        return $"{text[..count]} ... {text[^count..]}";
     }
 }

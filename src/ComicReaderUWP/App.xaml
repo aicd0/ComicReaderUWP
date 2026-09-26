@@ -95,13 +95,8 @@
                     <x:Double x:Key="ContentDialogMinWidth">10</x:Double>
                     <x:Double x:Key="ComicItemVerticalDesiredWidth">160</x:Double>
                     <x:Double x:Key="ComicItemVerticalDesiredHeight">310</x:Double>
-                    <x:Double x:Key="ComicItemVerticalImageHeight">150</x:Double>
                     <x:Double x:Key="ComicItemHorizontalDesiredWidth">320</x:Double>
                     <x:Double x:Key="ComicItemHorizontalDesiredHeight">136</x:Double>
-                    <x:Double x:Key="ComicItemHorizontalImageWidth">85</x:Double>
-                    <x:Double x:Key="ComicItemHorizontalImageHeight">120</x:Double>
-                    <x:Double x:Key="ReaderPreviewImageWidth">140</x:Double>
-                    <x:Double x:Key="ReaderPreviewImageHeight">200</x:Double>
 
                     <Style TargetType="main:TitleBar">
                         <Setter Property="ButtonBackground" Value="Transparent" />

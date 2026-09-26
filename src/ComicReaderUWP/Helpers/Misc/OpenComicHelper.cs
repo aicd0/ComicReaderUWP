@@ -28,6 +28,12 @@ internal static class OpenComicHelper
         PlaylistModel.Builder? playlist = null,
         PlaybackModel.Builder? playback = null)
     {
+        if (comic.IsCollection)
+        {
+            return Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_COLLECTION)
+                .WithParam(RouterConstants.ARG_ID, comic.Id.ToString());
+        }
+
         playlist ??= new PlaylistModel.Builder();
         string itemId = playlist.EnsureComic(comic);
 

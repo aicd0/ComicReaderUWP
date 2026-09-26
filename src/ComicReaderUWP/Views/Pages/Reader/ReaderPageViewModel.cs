@@ -60,8 +60,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     }
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
-    private double _previewImageHeight;
-    private double _previewImageWidth;
 
     // Comic Status
     private ComicModel? _comic;
@@ -256,11 +254,9 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
     public ObservableCollection<ReaderPreviewImageViewModel> PreviewDataSource { get; set; } = [];
     public IEnumerable<ReaderPreviewImageViewModel> SelectedPreviews => _selectedPreviewImages;
 
-    public void Initialize(ActionHandler actionHandler, double previewImageWidth, double previewImageHeight)
+    public void Initialize(ActionHandler actionHandler)
     {
         _actionHandler = actionHandler;
-        _previewImageWidth = previewImageWidth;
-        _previewImageHeight = previewImageHeight;
         Playback.PlaybackStateChanged += Playback_PlaybackStateChanged;
     }
 
@@ -828,8 +824,6 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             PreviewDataSource.Add(new()
             {
                 ImageUri = ResourceUri.CreateComicImage(comic.Id, index).ToString(),
-                ImageWidth = _previewImageWidth,
-                ImageHeight = _previewImageHeight,
                 Page = i + 1,
                 RequestContextMenu = async () => await CreateImageContextMenuItems(index, imageSource),
             });

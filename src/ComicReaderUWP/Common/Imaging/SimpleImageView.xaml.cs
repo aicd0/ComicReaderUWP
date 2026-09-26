@@ -14,27 +14,19 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 
+using Windows.Foundation;
+
 namespace ComicReaderUWP.Common.Imaging;
 
 internal partial class SimpleImageView : UserControl
 {
+    private const long RELOAD_INTERVAL_MS = 500;
+
     public static readonly DependencyProperty UriProperty = DependencyProperty.Register(
         nameof(Uri),
         typeof(string),
         typeof(SimpleImageView),
-        new PropertyMetadata(null, OnImagePropertyChanged));
-
-    public static readonly DependencyProperty FrameWidthProperty = DependencyProperty.Register(
-        nameof(FrameWidth),
-        typeof(double),
-        typeof(SimpleImageView),
-        new PropertyMetadata(double.PositiveInfinity, OnImagePropertyChanged));
-
-    public static readonly DependencyProperty FrameHeightProperty = DependencyProperty.Register(
-        nameof(FrameHeight),
-        typeof(double),
-        typeof(SimpleImageView),
-        new PropertyMetadata(double.PositiveInfinity, OnImagePropertyChanged));
+        new PropertyMetadata(null, OnUriChanged));
 
     public static readonly DependencyProperty StretchProperty = DependencyProperty.Register(
         nameof(Stretch),
@@ -42,16 +34,16 @@ internal partial class SimpleImageView : UserControl
         typeof(SimpleImageView),
         new PropertyMetadata(Stretch.Uniform, OnStretchChanged));
 
-    private static void OnImagePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    private static void OnUriChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        ((SimpleImageView)sender).UpdateImage();
+        ((SimpleImageView)sender).LoadUri();
     }
 
     private static void OnStretchChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
         var view = (SimpleImageView)sender;
         view.ImageHolder.Stretch = (Stretch)args.NewValue;
-        view.UpdateImage();
+        view.RequestReload();
     }
 
     private static async Task<IImageSource?> ResolveImageSource(string? uri)
@@ -69,9 +61,20 @@ internal partial class SimpleImageView : UserControl
         return File.Exists(uri) ? new LocalFileImageSource(uri) : null;
     }
 
-    private readonly CancellationSession _cancellationSession = new();
     private bool _isLoaded = false;
-    private int _currentImageHash = 0;
+
+    private readonly CancellationSession _loadImageSession = new();
+    private bool _reloadPosted = false;
+    private bool _reloadPending = false;
+    private long _lastReloadTick = 0;
+    private Size _availableSize = new(0, 0);
+    private int _imageHash = 0;
+    private Size _imageSize = new(0, 0);
+
+    private readonly CancellationSession _uriSession = new();
+    private string? _uri = null;
+    private IImageSource? _source = null;
+    private Size? _originalSize = null;
 
     public SimpleImageView()
     {
@@ -84,18 +87,6 @@ internal partial class SimpleImageView : UserControl
     {
         get => (string?)GetValue(UriProperty);
         set => SetValue(UriProperty, value);
-    }
-
-    public double FrameWidth
-    {
-        get => (double)GetValue(FrameWidthProperty);
-        set => SetValue(FrameWidthProperty, value);
-    }
-
-    public double FrameHeight
-    {
-        get => (double)GetValue(FrameHeightProperty);
-        set => SetValue(FrameHeightProperty, value);
     }
 
     public Stretch Stretch
@@ -114,7 +105,8 @@ internal partial class SimpleImageView : UserControl
         _isLoaded = IsLoaded;
         if (_isLoaded)
         {
-            UpdateImage();
+            LoadUri();
+            RequestReload();
         }
         else
         {
@@ -122,7 +114,24 @@ internal partial class SimpleImageView : UserControl
         }
     }
 
-    private void UpdateImage()
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        Size result = base.MeasureOverride(availableSize);
+
+        if (availableSize != _availableSize)
+        {
+            _availableSize = availableSize;
+            RequestReload(throttled: true, post: true);
+        }
+
+        return result;
+    }
+
+    //
+    // Loading
+    //
+
+    private void LoadUri()
     {
         if (!_isLoaded)
         {
@@ -130,48 +139,195 @@ internal partial class SimpleImageView : UserControl
         }
 
         string? uri = Uri;
-        double frameWidth = FrameWidth;
-        double frameHeight = FrameHeight;
-        Stretch stretch = Stretch;
-        int newHash = HashCode.Combine(uri, frameWidth, frameHeight, stretch);
-        if (newHash == _currentImageHash)
+        if (uri == _uri)
         {
             return;
         }
 
+        _uriSession.Next();
+        _uri = uri;
+        _source = null;
+        _originalSize = null;
         UnloadImage();
-        _currentImageHash = newHash;
-        CancellationSession.IToken token = _cancellationSession.Token;
-        IImageResultHandler handler = new WeakImageResultHandler(this);
+
+        if (string.IsNullOrEmpty(uri))
+        {
+            return;
+        }
+
+        CancellationSession.IToken token = _uriSession.Token;
 
         CoroutineUtils.Run(async () =>
         {
-            IImageSource source = await ResolveImageSource(uri) ?? EmptyImageSource.Instance;
+            IImageSource? source = await ResolveImageSource(uri);
+
+            if (source is null || token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            ImageMeta? meta = await ImageLoader.LoadImageMeta(source, new());
+
+            if (meta is null || token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            _source = source;
+            _originalSize = new(meta.Width, meta.Height);
+            RequestReload();
+        });
+    }
+
+    private void RequestReload(bool throttled = false, bool post = false)
+    {
+        if (throttled)
+        {
+            long elapsed = Environment.TickCount64 - _lastReloadTick;
+            if (elapsed < RELOAD_INTERVAL_MS)
+            {
+                if (_reloadPending)
+                {
+                    return;
+                }
+
+                _reloadPending = true;
+                CoroutineUtils.Run(async () =>
+                {
+                    await Task.Delay((int)(RELOAD_INTERVAL_MS - elapsed));
+                    if (_reloadPending)
+                    {
+                        RequestReload(post: post);
+                    }
+                });
+                return;
+            }
+        }
+
+        _reloadPending = false;
+
+        if (post)
+        {
+            PostReload();
+        }
+        else
+        {
+            ReloadImage();
+        }
+    }
+
+    private void PostReload()
+    {
+        if (_reloadPosted)
+        {
+            return;
+        }
+
+        _reloadPosted = true;
+        CoroutineUtils.PostInMainThread(() =>
+        {
+            _reloadPosted = false;
+            ReloadImage();
+        });
+    }
+
+    private void ReloadImage()
+    {
+        if (!_isLoaded)
+        {
+            return;
+        }
+
+        IImageSource? source = _source;
+        Size? originalSize = _originalSize;
+        if (source is null || originalSize is null)
+        {
+            return;
+        }
+
+        double scale = DisplayUtils.GetRasterizationScale(this) * 1.2;
+        Size availableSize = new(_availableSize.Width * scale, _availableSize.Height * scale);
+        Size newImageSize = CalculateTargetSize(availableSize, originalSize.Value, Stretch);
+        if (newImageSize.Width < 1.0 || newImageSize.Height < 1.0)
+        {
+            return;
+        }
+
+        Size imageSize = _imageSize;
+        if (imageSize.Width >= 1.0 && imageSize.Height >= 1.0)
+        {
+            double widthDiff = Math.Abs(newImageSize.Width - imageSize.Width) / imageSize.Width;
+            double heightDiff = Math.Abs(newImageSize.Height - imageSize.Height) / imageSize.Height;
+            double diff = Math.Max(widthDiff, heightDiff);
+            if (diff < 0.05)
+            {
+                return;
+            }
+        }
+
+        int newImageHash = HashCode.Combine(source.Uri, newImageSize.Width, newImageSize.Height);
+
+        _loadImageSession.Next();
+        _lastReloadTick = Environment.TickCount64;
+        _imageHash = newImageHash;
+        _imageSize = newImageSize;
+
+        CancellationSession.IToken token = _loadImageSession.Token;
+        IImageResultHandler handler = new WeakImageResultHandler(this, newImageHash);
+
+        CoroutineUtils.Run(async () =>
+        {
             await ImageLoader.LoadImage(source, new()
             {
                 Token = token,
-                FrameWidth = frameWidth,
-                FrameHeight = frameHeight,
-                Stretch = stretch,
+                DecodeWidth = newImageSize.Width,
+                DecodeHeight = newImageSize.Height,
                 Handler = handler,
             });
         });
     }
 
+    private static Size CalculateTargetSize(Size available, Size origin, Stretch stretch)
+    {
+        if (available.Width <= 0.0 || available.Height <= 0.0 || origin.Width <= 0.0 || origin.Height <= 0.0)
+        {
+            return new(0.0, 0.0);
+        }
+
+        switch (stretch)
+        {
+            case Stretch.None:
+                return origin;
+            case Stretch.Fill:
+                return available;
+            case Stretch.UniformToFill:
+                {
+                    double scale = Math.Max(available.Width / origin.Width, available.Height / origin.Height);
+                    return new(origin.Width * scale, origin.Height * scale);
+                }
+            default:
+                {
+                    double scale = Math.Min(available.Width / origin.Width, available.Height / origin.Height);
+                    return new(origin.Width * scale, origin.Height * scale);
+                }
+        }
+    }
+
     private void UnloadImage()
     {
-        _currentImageHash = 0;
-        _cancellationSession.Next();
+        _loadImageSession.Next();
+        _imageHash = 0;
+        _imageSize = new(0, 0);
         ImageHolder.Source = null;
     }
 
-    private class WeakImageResultHandler(SimpleImageView view) : IImageResultHandler
+    private class WeakImageResultHandler(SimpleImageView view, int imageHash) : IImageResultHandler
     {
         private readonly WeakReference<SimpleImageView> _imageViewRef = new(view);
 
         public void OnSuccess(DecodedImageModel result)
         {
-            if (!_imageViewRef.TryGetTarget(out SimpleImageView? view) || !view.IsLoaded)
+            if (!_imageViewRef.TryGetTarget(out SimpleImageView? view) || !view.IsLoaded || view._imageHash != imageHash)
             {
                 return;
             }

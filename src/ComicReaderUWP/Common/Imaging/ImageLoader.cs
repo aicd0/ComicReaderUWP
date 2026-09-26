@@ -20,7 +20,6 @@ using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using Windows.Graphics.Imaging;
@@ -93,9 +92,6 @@ internal static partial class ImageLoader
 
         return ImageLoaderScheduler.Submit(async () =>
         {
-            options.FrameWidth *= 1.2;
-            options.FrameHeight *= 1.2;
-
             using CacheRequestContext context = new(source);
             if (!await LoadImage(context, options))
             {
@@ -335,9 +331,8 @@ internal static partial class ImageLoader
 
         Size originalSize = new(meta.Width, meta.Height);
         CalculateDesiredDimension(
-            options.FrameWidth,
-            options.FrameHeight,
-            options.Stretch,
+            options.DecodeWidth,
+            options.DecodeHeight,
             originalSize.Width,
             originalSize.Height,
             out bool useOriginalSize,
@@ -515,44 +510,12 @@ internal static partial class ImageLoader
     }
 
     private static void CalculateDesiredDimension(double frameWidth, double frameHeight,
-        Stretch stretch, double originWidth, double originHeight,
+        double originWidth, double originHeight,
         out bool useOriginalSize, out Size desiredSize)
     {
-        double imageRatio = originWidth / originHeight;
-        double frameRatio = frameWidth / frameHeight;
-        double desiredWidthRaw;
-        double desiredHeightRaw;
-        if (imageRatio > frameRatio == (stretch == Stretch.Uniform))
-        {
-            if (double.IsInfinity(frameWidth))
-            {
-                desiredWidthRaw = originWidth;
-                desiredHeightRaw = originHeight;
-                useOriginalSize = true;
-            }
-            else
-            {
-                desiredWidthRaw = frameWidth;
-                desiredHeightRaw = desiredWidthRaw / imageRatio;
-                useOriginalSize = desiredWidthRaw >= originWidth;
-            }
-        }
-        else
-        {
-            if (double.IsInfinity(frameHeight))
-            {
-                desiredWidthRaw = originWidth;
-                desiredHeightRaw = originHeight;
-                useOriginalSize = true;
-            }
-            else
-            {
-                desiredHeightRaw = frameHeight;
-                desiredWidthRaw = desiredHeightRaw * imageRatio;
-                useOriginalSize = desiredHeightRaw >= originHeight;
-            }
-        }
-
+        double desiredWidthRaw = Math.Min(frameWidth, originWidth);
+        double desiredHeightRaw = Math.Min(frameHeight, originHeight);
+        useOriginalSize = desiredWidthRaw >= originWidth && desiredHeightRaw >= originHeight;
         int desiredWidth = Math.Max(1, (int)Math.Round(desiredWidthRaw));
         int desiredHeight = Math.Max(1, (int)Math.Round(desiredHeightRaw));
         desiredSize = new(desiredWidth, desiredHeight);

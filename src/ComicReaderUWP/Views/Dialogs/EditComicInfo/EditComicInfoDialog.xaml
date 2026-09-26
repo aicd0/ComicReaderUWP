@@ -40,7 +40,6 @@
         </muxc:SelectorBar>
         <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
 
-        <!--  General tab  -->
         <ScrollView
             Width="600"
             MaxHeight="600"

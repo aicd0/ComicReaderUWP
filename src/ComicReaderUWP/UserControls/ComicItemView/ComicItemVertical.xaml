@@ -43,7 +43,7 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Padding="20,32,20,0">
-                <Grid Height="{StaticResource ComicItemVerticalImageHeight}">
+                <Grid Height="150">
                     <Border
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"

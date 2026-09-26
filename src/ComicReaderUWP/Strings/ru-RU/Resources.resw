@@ -249,16 +249,14 @@
   <data name="Collection" xml:space="preserve">
     <value>Коллекция</value>
   </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>Информация о коллекции</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Выбор пункта «добавить в список исключений» не позволит повторно импортировать комикс при следующем обновлении библиотеки.</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Информация о комиксах</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>Следующие $count комиксов будут безвозвратно удалены из вашей библиотеки:
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>Состояние завершения</value>
@@ -851,6 +849,11 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Удалить из избранного</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>Следующие $count элемент(ов) будут безвозвратно удалены из вашей библиотеки:
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Удалить эту папку из списка</value>

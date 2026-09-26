@@ -553,12 +553,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             return StringResourceProvider.Instance.NewCollection;
         }
 
-        if (_comics.Count > 0)
-        {
-            return _comics[0].Title;
-        }
-
-        return StringResourceProvider.Instance.ComicInfo;
+        return StringResourceProvider.Instance.CollectionInformation;
     }
 
     private T ExtractCommonValue<T>(Func<ComicModel, T> extractor, T defaultValue)

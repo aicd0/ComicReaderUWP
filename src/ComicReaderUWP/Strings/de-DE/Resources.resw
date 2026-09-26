@@ -249,16 +249,14 @@
   <data name="Collection" xml:space="preserve">
     <value>Sammlung</value>
   </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>Sammlungsinformationen</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Mit der Option „zur Ausschlussliste hinzufügen“ wird verhindert, dass der Comic beim nächsten Aktualisieren der Bibliothek erneut importiert wird.</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>Comic-Informationen</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>Die folgenden $count Comics werden dauerhaft aus deiner Bibliothek entfernt:
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>Abschlussstatus</value>
@@ -850,6 +848,11 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Aus Favoriten entfernen</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>Die folgenden $count Element(e) werden dauerhaft aus deiner Bibliothek entfernt:
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Entfernen Sie diesen Ordner aus der Liste</value>
