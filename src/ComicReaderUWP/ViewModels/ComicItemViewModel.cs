@@ -27,6 +27,8 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
     public ComicModel Comic { get; }
 
     public bool IsCollection => Comic.IsCollection;
+    public bool IsRatingVisible => !string.IsNullOrEmpty(Rating);
+    public int TitleMaxLines => IsCollection && IsRatingVisible ? 2 : 3;
 
     private string _title;
     public string Title
@@ -75,10 +77,9 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
             _rating = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rating)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRatingVisible)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TitleMaxLines)));
         }
     }
-
-    public bool IsRatingVisible => !string.IsNullOrEmpty(Rating);
 
     private string _progress = string.Empty;
     public string Progress
