@@ -24,7 +24,7 @@
                     <Grid Height="52" />
                     <Grid
                         x:Name="SpLibraryEmpty"
-                        Padding="0,30"
+                        Padding="35,30"
                         Visibility="{x:Bind ViewModel.LibraryEmptyVisible, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />

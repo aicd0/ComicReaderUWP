@@ -24,6 +24,8 @@ namespace ComicReaderUWP.UserControls.AdaptiveGrid;
 /// new column.</remarks>
 public partial class AdaptiveGridView : GridView
 {
+    private const double FIXED_PADDING = 35.0;
+
     private bool _isLoaded;
     private ScrollMode _savedVerticalScrollMode;
     private ScrollMode _savedHorizontalScrollMode;
@@ -56,6 +58,9 @@ public partial class AdaptiveGridView : GridView
     protected override void PrepareContainerForItemOverride(DependencyObject obj, object item)
     {
         base.PrepareContainerForItemOverride(obj, item);
+
+        ApplyItemsPanelPadding();
+
         if (obj is FrameworkElement element)
         {
             var heightBinding = new Binding()
@@ -119,7 +124,7 @@ public partial class AdaptiveGridView : GridView
             _needContainerMarginForLayout = true;
         }
 
-        return ((containerWidth - 35.0) / columns) - itemMargin.Left - itemMargin.Right;
+        return ((containerWidth - FIXED_PADDING) / columns) - itemMargin.Left - itemMargin.Right;
     }
 
     /// <summary>
@@ -239,19 +244,27 @@ public partial class AdaptiveGridView : GridView
 
     private void RecalculateLayout(double containerWidth)
     {
-        Panel itemsPanel = ItemsPanelRoot;
-        double panelMargin = itemsPanel != null ?
-                          itemsPanel.Margin.Left + itemsPanel.Margin.Right :
-                          0;
+        ApplyItemsPanelPadding();
+
         double padding = Padding.Left + Padding.Right;
         double border = BorderThickness.Left + BorderThickness.Right;
 
         // width should be the displayable width
-        containerWidth = containerWidth - padding - panelMargin - border;
+        containerWidth = containerWidth - padding - FIXED_PADDING - border;
         if (containerWidth > 0)
         {
             double newWidth = CalculateItemWidth(containerWidth);
             ItemWidth = newWidth;
+        }
+    }
+
+    private void ApplyItemsPanelPadding()
+    {
+        Thickness fixedMargin = new(FIXED_PADDING, 0.0, 0.0, 0.0);
+        Panel itemsPanel = ItemsPanelRoot;
+        if (itemsPanel != null && !itemsPanel.Margin.Equals(fixedMargin))
+        {
+            itemsPanel.Margin = fixedMargin;
         }
     }
 }
