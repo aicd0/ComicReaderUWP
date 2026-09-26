@@ -249,16 +249,14 @@
   <data name="Collection" xml:space="preserve">
     <value>컬렉션</value>
   </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>컬렉션 정보</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>"제외 목록에 추가"를 선택하면 다음에 라이브러리를 업데이트할 때 이 만화가 다시 가져와지지 않습니다.</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>만화 정보</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>다음 $count개의 만화가 라이브러리에서 영구적으로 삭제됩니다:
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>완료 상태</value>
@@ -851,6 +849,11 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>즐겨찾기에서 제거</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>다음 $count개 항목이 라이브러리에서 영구적으로 삭제됩니다:
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>목록에서 이 폴더를 제거합니다</value>

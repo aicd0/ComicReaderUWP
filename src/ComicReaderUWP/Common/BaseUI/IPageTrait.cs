@@ -7,9 +7,9 @@ namespace ComicReaderUWP.Common.BaseUI;
 
 internal interface IPageTrait
 {
-    Type GetPageType();
+    Type PageType { get; }
 
-    bool ImmersiveMode();
+    bool IsImmersiveMode { get; }
 
-    bool SupportMultiInstance();
+    bool AllowMultiplePages { get; }
 }

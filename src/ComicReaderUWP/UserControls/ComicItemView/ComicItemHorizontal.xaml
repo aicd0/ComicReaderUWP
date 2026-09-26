@@ -39,7 +39,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Width="{StaticResource ComicItemHorizontalImageWidth}">
+        <Grid Grid.Column="0" Width="85">
             <image:SimpleImageView
                 x:Name="ImageHolder"
                 Stretch="UniformToFill"

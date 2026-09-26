@@ -249,16 +249,14 @@
   <data name="Collection" xml:space="preserve">
     <value>合集</value>
   </data>
+  <data name="CollectionInformation" xml:space="preserve">
+    <value>合集資訊</value>
+  </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>選擇「加入排除清單」後，下次更新媒體庫時將不會再次匯入此漫畫。</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
     <value>漫畫資訊</value>
-  </data>
-  <data name="ComicRemovalPromptContent" xml:space="preserve">
-    <value>以下 $count 本漫畫將永久從你的庫中移除：
-
-$comics</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
     <value>完成狀態</value>
@@ -848,6 +846,11 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>取消收藏</value>
+  </data>
+  <data name="RemoveItemsConfirmation" xml:space="preserve">
+    <value>以下 $count 個項目將從你的書庫中永久刪除：
+
+$items</value>
   </data>
   <data name="RemoveLocationButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>從清單中移除目前資料夾</value>

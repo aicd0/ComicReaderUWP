@@ -56,9 +56,9 @@ internal class RemoveComicProvider : IActionProvider
             return ActionResult.FromSuccess();
         }
 
-        string promptContent = StringResourceProvider.Instance.ComicRemovalPromptContent
+        string promptContent = StringResourceProvider.Instance.RemoveItemsConfirmation
             .Replace("$count", comics.Count.ToString())
-            .Replace("$comics", string.Join('\n', comics.Select(x => x.IsCollection ? x.Title : x.Location)));
+            .Replace("$items", string.Join('\n', comics.Select(x => x.IsCollection ? x.Title : x.Location)));
         promptContent += $"\n\n{StringResourceProvider.Instance.ComicExclusionExplaination}";
         DialogOptions options = new DialogOptions.Builder()
             .SetTitle(StringResourceProvider.Instance.Warning)

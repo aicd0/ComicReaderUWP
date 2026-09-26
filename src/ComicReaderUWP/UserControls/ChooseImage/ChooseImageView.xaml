@@ -20,7 +20,9 @@
                 BorderThickness="1"
                 CornerRadius="4"
                 Visibility="Collapsed">
-                <image:SimpleImageView x:Name="ImageHolder" />
+                <Grid CornerRadius="3">
+                    <image:SimpleImageView x:Name="ImageHolder" />
+                </Grid>
             </Border>
             <Border
                 x:Name="PlaceholderBorder"
