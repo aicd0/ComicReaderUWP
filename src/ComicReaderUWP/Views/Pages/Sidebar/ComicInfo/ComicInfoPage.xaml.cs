@@ -17,7 +17,6 @@ using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Data.Models.Playback;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Views.Dialogs.EditComicInfo;
-using ComicReaderUWP.Views.Dialogs.EditTag;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -77,12 +76,6 @@ internal sealed partial class ComicInfoPage : BasePage
         GetWindowEventBus().With<PlaybackModel>(EventId.PlaybackChanged).ObserveSticky(this, playback =>
         {
             ViewModel.Playback = playback;
-        });
-
-        ViewModel.EditTagLiveData.Observe(this, pair =>
-        {
-            var dialog = new EditTagDialog(pair.Key, pair.Value);
-            CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
         });
 
         ViewModel.CompletionStatusLiveData.ObserveSticky(this, completionStatus =>
@@ -165,7 +158,16 @@ internal sealed partial class ComicInfoPage : BasePage
     private void OnRatingControlValueChanged(RatingControl sender, object args)
     {
         int value = (int)sender.Value;
-        ViewModel.Comic?.SetRating(value < 1 ? -1 : value * 20);
+        CoroutineUtils.Run(async () =>
+        {
+            ComicModel? comic = ViewModel.Comic;
+            if (comic is null)
+            {
+                return;
+            }
+
+            await comic.SetRating(value < 1 ? -1 : value * 20);
+        });
     }
 
     private void OnDirectoryTapped(object sender, TappedRoutedEventArgs e)
