@@ -38,6 +38,29 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         return model;
     }
 
+    public ViewTypeEnum LastViewType
+    {
+        get => GetModel()?.LastFilter?.ViewType ?? ViewTypeEnum.Medium;
+        set
+        {
+            ExternalModel? model = GetModel();
+            if (model is null)
+            {
+                return;
+            }
+
+            ExternalFilterModel lastFilter = model.LastFilter ??= ExternalFilterModel.FromDefault();
+            if (lastFilter.ViewType == value)
+            {
+                return;
+            }
+
+            lastFilter.ViewType = value;
+            lastFilter.Modified |= lastFilter.SaveViewSettings;
+            UpdateModel(model);
+        }
+    }
+
     public ExternalModel? GetModel()
     {
         return Read(ExternalModel.From);

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"
     xmlns:comicselection="using:ComicReaderUWP.UserControls.ComicSelection"
+    xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
     xmlns:converters="using:ComicReaderUWP.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -31,24 +32,44 @@
 
         <comicselection:ComicSelectionView
             x:Name="ItemsView"
-            ContentPadding="0,15,0,0"
+            ContentPadding="0,15,0,8"
             DataContext="{x:Bind ViewModel.ComicSelection}"
-            ItemViewType="Medium">
+            ItemViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}"
+            ScrollOffsetChanged="ItemsView_ScrollOffsetChanged">
             <comicselection:ComicSelectionView.HeaderContent>
-                <StackPanel Margin="35,0,35,16" Orientation="Vertical">
-                    <TextBlock
-                        FontSize="28"
-                        FontWeight="SemiBold"
-                        Text="{x:Bind ViewModel.Title, Mode=OneWay}"
-                        TextTrimming="CharacterEllipsis" />
-                    <TextBlock
-                        Margin="0,2,0,0"
-                        FontSize="14"
-                        FontWeight="Normal"
-                        Foreground="{ThemeResource ForegroundGrey2}"
-                        Text="{x:Bind ViewModel.FilterDetails, Mode=OneWay}"
-                        TextWrapping="Wrap"
-                        Visibility="{x:Bind ViewModel.FilterDetails, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
+                <StackPanel
+                    x:Name="HeaderRoot"
+                    Margin="42,0,42,4"
+                    Orientation="Vertical">
+                    <!--  Docked bar  -->
+                    <Grid x:Name="DockedBarSpacer">
+                        <Grid x:Name="DockedBar">
+                            <Grid
+                                x:Name="DockedBarBackground"
+                                Background="{ThemeResource TitleBarBackground}"
+                                Opacity="0" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="TitleTextBlock"
+                                    Grid.Column="0"
+                                    VerticalAlignment="Center"
+                                    FontSize="28"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.Title, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <controls:ViewTypeSelector
+                                    x:Name="ViewTypeSelector"
+                                    Grid.Column="1"
+                                    Margin="0,8"
+                                    VerticalAlignment="Center"
+                                    SelectedViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}" />
+                            </Grid>
+                        </Grid>
+                    </Grid>
                 </StackPanel>
             </comicselection:ComicSelectionView.HeaderContent>
         </comicselection:ComicSelectionView>
@@ -72,6 +93,8 @@
                 HorizontalAlignment="Center"
                 FontSize="18" />
         </StackPanel>
+
+        <Grid x:Name="DockedBarHost" VerticalAlignment="Top" />
 
     </Grid>
 </base:BasePage>
