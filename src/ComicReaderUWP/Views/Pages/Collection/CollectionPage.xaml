@@ -43,9 +43,9 @@
             <comicselection:ComicSelectionView.HeaderContent>
                 <StackPanel
                     x:Name="HeaderRoot"
-                    Margin="0,40,0,4"
+                    Margin="0,36,0,4"
                     Orientation="Vertical">
-                    <Grid Margin="43,0,43,4">
+                    <Grid Margin="42,0,42,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -151,7 +151,7 @@
                                 x:Name="DockedBarBackground"
                                 Background="{ThemeResource TitleBarBackground}"
                                 Opacity="0" />
-                            <Grid Margin="43,8">
+                            <Grid Margin="42,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />

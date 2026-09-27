@@ -46,14 +46,19 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _filterDetails = "";
-    public string FilterDetails
+    private ComicFilterModel.ViewTypeEnum _viewType = ComicFilterModel.ViewTypeEnum.Medium;
+    public ComicFilterModel.ViewTypeEnum ViewType
     {
-        get => _filterDetails;
+        get => _viewType;
         set
         {
-            _filterDetails = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FilterDetails)));
+            if (_viewType == value)
+            {
+                return;
+            }
+
+            _viewType = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ViewType)));
         }
     }
 
@@ -111,11 +116,24 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         _actionHandler = actionHandler;
         _searchEngine.SetResultCallback(OnSearchResult);
 
+        ViewType = ComicFilterModel.Instance.LastViewType;
+
         IsLoading = true;
         ComicSelection.SetSelectMode(false);
 
         _searchEngine.SearchText = searchText;
         Refresh();
+    }
+
+    public void SelectViewType(ComicFilterModel.ViewTypeEnum viewType)
+    {
+        if (ViewType == viewType)
+        {
+            return;
+        }
+
+        ViewType = viewType;
+        ComicFilterModel.Instance.LastViewType = viewType;
     }
 
     public void Refresh()

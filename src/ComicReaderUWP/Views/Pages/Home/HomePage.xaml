@@ -66,7 +66,7 @@
                 Opacity="0" />
             <Grid
                 x:Name="HeaderAreaGrid"
-                Padding="40,20,34,8"
+                Padding="42,20,42,8"
                 VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -81,7 +81,6 @@
                     Text="Library" />
                 <StackPanel
                     Grid.Column="1"
-                    Margin="0,0,8,0"
                     VerticalAlignment="Bottom"
                     Orientation="Horizontal"
                     Spacing="5">
