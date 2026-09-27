@@ -31,7 +31,7 @@ internal partial class CollectionComicHandle : ComicHandle
         return [];
     }
 
-    protected override Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
+    public override Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
     {
         var err = ErrorLogger<BaseComicConnection>.Create(TAG);
         return Task.FromResult(err.Error("A collection has no content to open."));

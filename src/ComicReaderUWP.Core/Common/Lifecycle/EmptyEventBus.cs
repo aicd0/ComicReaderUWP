@@ -9,17 +9,12 @@ public class EmptyEventBus : IEventBus
 
     private EmptyEventBus() { }
 
-    public void Clear()
-    {
-    }
-
-    public IMutableLiveData<T> With<T>(string eventId) where T : notnull
+    public IMutableLiveData<T> With<T>(string eventId, Func<IMutableLiveData<T>> createFunc) where T : notnull
     {
         return new EmptyLiveData<T>();
     }
 
-    public IMutableLiveData<object> With(string eventId)
+    public void Clear()
     {
-        return new EmptyLiveData<object>();
     }
 }

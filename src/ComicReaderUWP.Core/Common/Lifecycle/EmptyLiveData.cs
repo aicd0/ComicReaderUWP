@@ -3,7 +3,7 @@
 
 namespace ComicReaderUWP.Core.Common.Lifecycle;
 
-public class EmptyLiveData<T> : IMutableLiveData<T> where T : notnull
+internal class EmptyLiveData<T> : IMutableLiveData<T> where T : notnull
 {
     public bool HasValue => false;
 

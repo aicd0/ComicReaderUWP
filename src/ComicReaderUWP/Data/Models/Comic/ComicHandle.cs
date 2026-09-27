@@ -52,17 +52,18 @@ internal abstract partial class ComicHandle
         return SqliteDB.MainDatabaseDispatcher.Submit(func);
     }
 
-    public static void InsertNoLock(ComicType type, string location)
+    public static long InsertNoLock(ComicType type, string location)
     {
         ComicHandle? comic = FromType(type);
         if (comic is null)
         {
-            return;
+            return -1;
         }
 
         comic.Location = location;
         comic.SetAsDefaultInfo();
         comic.InsertNewNoLock();
+        return comic.Id;
     }
 
     public static Task<ComicHandle?> FromId(long id)
@@ -330,7 +331,7 @@ internal abstract partial class ComicHandle
     // Properties
     //
 
-    public long Id { get; private set; } = -1;
+    public long Id { get; set; } = -1;
     public CompletionStatusEnum CompletionStatus { get; private set; }
     public string Location { get; protected set; } = string.Empty;
     public string Title1 { get; protected set; } = string.Empty;
@@ -343,7 +344,7 @@ internal abstract partial class ComicHandle
     public string Description { get; private set; } = string.Empty;
     public IReadOnlyDictionary<string, ComicTagCategory> Tags => _tags;
     public IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory> TagsForPlugin => _tags;
-    public int PageCount { get; private set; } = -1;
+    public int PageCount { get; set; } = -1;
 
     public abstract bool IsEditable { get; }
     public virtual string FileSystemPath => Location;
@@ -406,13 +407,15 @@ internal abstract partial class ComicHandle
     {
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnExt, GetColumnValue(ComicTable.ColumnExt))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnExt, GetColumnValue(ComicTable.ColumnExt))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         });
     }
 
@@ -421,13 +424,15 @@ internal abstract partial class ComicHandle
         Title1 = title;
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnTitle1, GetColumnValue(ComicTable.ColumnTitle1))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnTitle1, GetColumnValue(ComicTable.ColumnTitle1))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         });
     }
 
@@ -436,13 +441,15 @@ internal abstract partial class ComicHandle
         Title2 = title;
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnTitle2, GetColumnValue(ComicTable.ColumnTitle2))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnTitle2, GetColumnValue(ComicTable.ColumnTitle2))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         });
     }
 
@@ -451,13 +458,15 @@ internal abstract partial class ComicHandle
         Description = description;
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnDescription, GetColumnValue(ComicTable.ColumnDescription))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnDescription, GetColumnValue(ComicTable.ColumnDescription))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         });
     }
 
@@ -505,10 +514,12 @@ internal abstract partial class ComicHandle
 
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                InternalSaveTagsNoLock();
-            });
+                return;
+            }
+
+            InternalSaveTagsNoLock();
         });
     }
 
@@ -517,13 +528,15 @@ internal abstract partial class ComicHandle
         Location = location;
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnLocation, GetColumnValue(ComicTable.ColumnLocation))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnLocation, GetColumnValue(ComicTable.ColumnLocation))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         });
     }
 
@@ -533,33 +546,15 @@ internal abstract partial class ComicHandle
         Rating = rating;
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnRating, GetColumnValue(ComicTable.ColumnRating))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
-        });
-    }
+                return;
+            }
 
-    private async Task SetPageCount(int pageCount)
-    {
-        if (PageCount == pageCount)
-        {
-            return;
-        }
-
-        PageCount = pageCount;
-        await Enqueue(() =>
-        {
-            SaveNoLock(() =>
-            {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnPageCount, GetColumnValue(ComicTable.ColumnPageCount))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnRating, GetColumnValue(ComicTable.ColumnRating))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         });
     }
 
@@ -570,80 +565,17 @@ internal abstract partial class ComicHandle
 
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
-                    .AppendColumn(ComicTable.ColumnLastPosition, GetColumnValue(ComicTable.ColumnLastPosition))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
-        });
-    }
-
-    public void MarkAsExternal()
-    {
-        Id = -1;
-    }
-
-    //
-    // Comic Connection
-    //
-
-    public async Task<ErrorResult<ComicConnection>> OpenComic()
-    {
-        var err = ErrorLogger<ComicConnection>.Create(TAG);
-
-        ErrorResult<BaseComicConnection> connectionErr = await OpenComicConnection();
-        if (!connectionErr.IsSuccessful)
-        {
-            return err.Error(connectionErr);
-        }
-
-        BaseComicConnection connection = connectionErr.Result;
-
-        ErrorResult innerErr = await InitializeConnection(connection);
-        if (!innerErr.IsSuccessful)
-        {
-            connection.Dispose();
-            return err.Error(innerErr);
-        }
-
-        return err.Success(new ComicConnection(connection));
-    }
-
-    private async Task<ErrorResult> InitializeConnection(BaseComicConnection connection)
-    {
-        var err = ErrorLogger.Create(TAG);
-
-        bool needFlushExt = false;
-
-        // Refresh page count
-        int pageCount = connection.ImageCount;
-        if (pageCount <= 0)
-        {
-            return err.Error($"No images found at '{Location}'.", isFatal: true);
-        }
-
-        await SetPageCount(pageCount);
-
-        // Refresh cover index
-        string? coverIndexString = GetExt(ComicExt.COVER_INDEX);
-        if (coverIndexString is not null)
-        {
-            if (!int.TryParse(coverIndexString, out int coverIndex) || coverIndex < 0 || coverIndex >= pageCount)
-            {
-                SetExt(ComicExt.COVER_INDEX, null);
-                needFlushExt = true;
+                return;
             }
-        }
 
-        if (needFlushExt)
-        {
-            await FlushExt();
-        }
-
-        return err.Success();
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
+                .AppendColumn(ComicTable.ColumnLastPosition, GetColumnValue(ComicTable.ColumnLastPosition))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
+        });
     }
 
     //
@@ -670,7 +602,7 @@ internal abstract partial class ComicHandle
 
     public abstract IReadOnlyList<string> GetFolderViewPath();
 
-    protected abstract Task<ErrorResult<BaseComicConnection>> OpenComicConnection();
+    public abstract Task<ErrorResult<BaseComicConnection>> OpenComicConnection();
 
     //
     // DB Helpers
@@ -715,7 +647,7 @@ internal abstract partial class ComicHandle
         return evaluators;
     });
 
-    private object GetColumnValue(IColumnTypeless column)
+    public object GetColumnValue(IColumnTypeless column)
     {
         Func<ComicHandle, object> evaluator = _columnValueEvaluator.Value[column.Name];
         return evaluator(this);
@@ -743,13 +675,15 @@ internal abstract partial class ComicHandle
 
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnHidden, GetColumnValue(ComicTable.ColumnHidden))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnHidden, GetColumnValue(ComicTable.ColumnHidden))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         });
     }
 
@@ -759,13 +693,15 @@ internal abstract partial class ComicHandle
 
         await Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnCompletionStatus, GetColumnValue(ComicTable.ColumnCompletionStatus))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnCompletionStatus, GetColumnValue(ComicTable.ColumnCompletionStatus))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         });
     }
 
@@ -776,14 +712,16 @@ internal abstract partial class ComicHandle
 
         CoroutineUtils.Run(() => Enqueue(() =>
         {
-            SaveNoLock(() =>
+            if (IsExternal)
             {
-                UpdateCommand.Create(ComicTable.Instance)
-                    .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
-                    .AppendColumn(ComicTable.ColumnLastVisit, GetColumnValue(ComicTable.ColumnLastVisit))
-                    .AppendCondition(ComicTable.ColumnId, Id)
-                    .Execute();
-            });
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnProgress, GetColumnValue(ComicTable.ColumnProgress))
+                .AppendColumn(ComicTable.ColumnLastVisit, GetColumnValue(ComicTable.ColumnLastVisit))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
         }));
     }
 
@@ -845,22 +783,6 @@ internal abstract partial class ComicHandle
                     .Execute();
             }
         }
-    }
-
-    private void SaveNoLock(Action action)
-    {
-        if (IsExternal)
-        {
-            return;
-        }
-
-        if (Id < 0)
-        {
-            Logger.F(TAG, "SaveNoLock: Cannot save comic with invalid id");
-            return;
-        }
-
-        action();
     }
 
     //

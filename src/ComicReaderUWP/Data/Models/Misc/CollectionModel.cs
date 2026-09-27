@@ -63,7 +63,7 @@ internal static class CollectionModel
 
     public static async Task<IReadOnlyList<long>> GetComicIds(ComicModel collection)
     {
-        if (collection.IsExternal)
+        if (collection.IsExternal || !collection.IsCollection)
         {
             return [];
         }
@@ -76,10 +76,18 @@ internal static class CollectionModel
     // Writes
     //
 
-    public static async Task AddComics(ComicModel collection, IEnumerable<long> comicIds)
+    public static async Task AddComics(ComicModel collection, IEnumerable<ComicModel> comics)
     {
+        if (collection.IsExternal || !collection.IsCollection)
+        {
+            return;
+        }
+
         long collectionId = collection.Id;
-        List<long> ids = [.. comicIds.Where(x => x >= 0 && x != collectionId).Distinct()];
+        List<long> ids = [.. comics
+            .Where(x => !x.IsExternal && !x.IsCollection)
+            .Select(x => x.Id)
+            .Distinct()];
         if (ids.Count == 0)
         {
             return;
@@ -115,7 +123,7 @@ internal static class CollectionModel
 
         if (insertedCount > 0)
         {
-            DispatchUpdateEvent();
+            DispatchUpdateEvent([collectionId]);
         }
     }
 
@@ -152,7 +160,7 @@ internal static class CollectionModel
 
         if (removedCount > 0)
         {
-            DispatchUpdateEvent();
+            DispatchUpdateEvent([collectionId]);
         }
     }
 
@@ -192,8 +200,8 @@ internal static class CollectionModel
         return ids;
     }
 
-    private static void DispatchUpdateEvent()
+    private static void DispatchUpdateEvent(IEnumerable<long> collectionIds)
     {
-        GlobalEvent.Instance.CollectionUpdated.Emit(0);
+        GlobalEvent.Instance.CollectionUpdated.Emit(collectionIds);
     }
 }

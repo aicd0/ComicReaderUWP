@@ -36,14 +36,14 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
     // Properties
     //
 
-    private string _name = string.Empty;
-    public string Name
+    private string _title = string.Empty;
+    public string Title
     {
-        get => _name;
+        get => _title;
         set
         {
-            _name = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+            _title = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
         }
     }
 
@@ -314,18 +314,22 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
 
     public void ToggleFavorite()
     {
-        long id = _collectionId;
-        string title = Name;
+        ComicModel? collection = _collection;
+        if (collection is null)
+        {
+            return;
+        }
+
         bool isFavorite = IsFavorite;
         _sharedDispatcher.Submit(() =>
         {
             if (isFavorite)
             {
-                FavoriteModel.Instance.RemoveWithId(id, true);
+                FavoriteModel.Instance.RemoveWithId(collection.Id, true);
             }
             else
             {
-                FavoriteModel.Instance.Add(id, title, true);
+                FavoriteModel.Instance.Add(collection.Id, collection.Title, true);
             }
         });
     }
@@ -349,14 +353,9 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
     {
         Logger.I(TAG, "ReloadNoLock");
 
-        long collectionId = _collectionId;
-        ComicModel? collection = await ComicModel.FromId(collectionId);
-        if (collection is null || !collection.IsCollection || collection.Id != collectionId)
+        ComicModel? collection = await ComicModel.FromId(_collectionId);
+        if (collection is null || !collection.IsCollection)
         {
-            _collection = null;
-            _members = [];
-            _memberIds = [];
-            await MainThreadUtils.RunInMainThread(ApplyEmptyState);
             return;
         }
 
@@ -364,7 +363,7 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         List<ComicModel> members = await ComicModel.BatchFromId(memberIds);
         members.Sort(CompareByTitle);
         List<ComicItemViewModel> items = BuildItems(members);
-        bool isFavorite = FavoriteModel.Instance.FromId(collectionId) != null;
+        bool isFavorite = FavoriteModel.Instance.FromId(collection.Id) != null;
 
         _collection = collection;
         _members = members;
@@ -372,7 +371,7 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
 
         await MainThreadUtils.RunInMainThread(() =>
         {
-            ApplyInfo(isFavorite);
+            ApplyInfo(collection, isFavorite);
 
             if (string.IsNullOrEmpty(_searchEngine.SearchText))
             {
@@ -386,26 +385,9 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         });
     }
 
-    private void ApplyEmptyState()
+    private void ApplyInfo(ComicModel collection, bool isFavorite)
     {
-        _comics = [];
-        Name = string.Empty;
-        Description = string.Empty;
-        Rating = -1.0;
-        CoverImageUri = null;
-        BackgroundImageUri = null;
-        IsEditable = false;
-        IsFavorite = false;
-        ItemCount = 0;
-        ComicTags.Clear();
-        TitleLiveData.Emit(StringResourceProvider.Instance.Collection);
-        ResultsLiveData.Emit([]);
-    }
-
-    private void ApplyInfo(bool isFavorite)
-    {
-        ComicModel collection = _collection!;
-        Name = collection.Title;
+        Title = GetTitle(collection);
         Description = collection.Description;
         int rating = collection.Rating;
         Rating = rating >= 0 ? rating * 0.05F : -1.0;
@@ -414,7 +396,7 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         IsEditable = collection.IsEditable;
         IsFavorite = isFavorite;
         TagCollectionViewModel.Update(ComicTags, collection, _actionHandler);
-        TitleLiveData.Emit(Name.Length > 0 ? Name : StringResourceProvider.Instance.Collection);
+        TitleLiveData.Emit(collection.Title);
     }
 
     private void ApplyResults(List<ComicModel> comics, List<ComicItemViewModel> items)
@@ -463,6 +445,13 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
     //
     // Utilities
     //
+
+    private static string GetTitle(ComicModel collection)
+    {
+        return collection.Title1.Length > 0 && collection.Title2.Length > 0
+            ? collection.Title1 + "\n" + collection.Title2
+            : collection.Title;
+    }
 
     private static int CompareByTitle(ComicModel a, ComicModel b)
     {

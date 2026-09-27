@@ -12,7 +12,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:ComicReaderUWP.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:ComicItemViewModel}"
-    Tapped="UserControl_Tapped"
     mc:Ignorable="d">
 
     <base:BaseUserControl.Resources>
@@ -30,6 +29,7 @@
         ContextRequested="RootGrid_ContextRequested"
         PointerEntered="RootGrid_PointerEntered"
         PointerExited="RootGrid_PointerExited"
+        PointerPressed="RootGrid_PointerPressed"
         Tapped="RootGrid_Tapped">
         <Grid.BackgroundTransition>
             <BrushTransition Duration="0:0:0.083" />

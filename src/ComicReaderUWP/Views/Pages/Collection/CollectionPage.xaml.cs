@@ -8,6 +8,7 @@ using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
@@ -57,6 +58,11 @@ internal sealed partial class CollectionPage : BasePage
         ViewModel.Initialize(PageActionHandler, collectionId);
 
         ObserveData();
+
+        if (collectionId >= 0)
+        {
+            CoroutineUtils.Run(() => ComicModel.UpdateCollections(triggerCollectionIds: [collectionId]));
+        }
     }
 
     private void ObserveData()
@@ -81,9 +87,13 @@ internal sealed partial class CollectionPage : BasePage
             ItemsView.SetItems(items);
         });
 
-        ViewModel.TitleLiveData.ObserveSticky(this, title =>
+        ViewModel.TitleLiveData.Observe(this, title =>
         {
             GetMainPageAbility().SetTitle(title);
+        }, new ObserveOptions()
+        {
+            Sticky = true,
+            PublishBehavior = LiveDataPublishBehavior.ActiveOnStart,
         });
 
         _searchNavigationBar.SearchTextChange += ViewModel.SetSearchText;

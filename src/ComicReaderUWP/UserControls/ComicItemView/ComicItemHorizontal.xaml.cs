@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.ViewModels;
 
@@ -14,6 +13,8 @@ namespace ComicReaderUWP.UserControls.ComicItemView;
 
 internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemView
 {
+    private bool _isPrimaryPointerPressed;
+
     public ComicItemHorizontal()
     {
         InitializeComponent();
@@ -32,12 +33,6 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         Bindings.Update();
     }
 
-    private void UserControl_Tapped(object sender, TappedRoutedEventArgs e)
-    {
-        // Prevent tap events being dispatched to other controls
-        e.Handled = true;
-    }
-
     private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
         VisualStateManager.GoToState(this, "PointerOver", true);
@@ -48,8 +43,21 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         VisualStateManager.GoToState(this, "Normal", true);
     }
 
+    private void RootGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        _isPrimaryPointerPressed = e.GetCurrentPoint(sender as UIElement).Properties.IsLeftButtonPressed;
+    }
+
     private void RootGrid_Tapped(object sender, TappedRoutedEventArgs e)
     {
+        bool isPrimaryPointerPressed = _isPrimaryPointerPressed;
+        _isPrimaryPointerPressed = false;
+
+        if (!isPrimaryPointerPressed)
+        {
+            return;
+        }
+
         ComicItemViewModel? item = Item;
         if (item is null)
         {

@@ -10,7 +10,21 @@ namespace ComicReaderUWP.Core.Common.Utils;
 public static class Extensions
 {
     //
-    // Lifecycle
+    // EventBus
+    //
+
+    public static IMutableLiveData<object> With(this IEventBus eventBus, string eventId)
+    {
+        return eventBus.With<object>(eventId);
+    }
+
+    public static IMutableLiveData<T> With<T>(this IEventBus eventBus, string eventId) where T : notnull
+    {
+        return eventBus.With(eventId, () => new MutableLiveData<T>());
+    }
+
+    //
+    // LiveData
     //
 
     private static readonly ObserveOptions sObserveOptionDefault = new();
