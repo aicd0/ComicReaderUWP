@@ -5,9 +5,7 @@ namespace ComicReaderUWP.Core.Common.Lifecycle;
 
 public interface IEventBus
 {
-    public IMutableLiveData<T> With<T>(string eventId) where T : notnull;
-
-    public IMutableLiveData<object> With(string eventId);
+    public IMutableLiveData<T> With<T>(string eventId, Func<IMutableLiveData<T>> createFunc) where T : notnull;
 
     public void Clear();
 }

@@ -5,9 +5,18 @@ using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Core.Common.Lifecycle.Utils;
 
-public sealed class MutableLiveDataWithDelay<T>(IMutableLiveData<T> liveData, long minInterval, int delay = 0) : IMutableLiveData<T> where T : notnull
+public sealed class MutableLiveDataWithDelay<T>(
+    IMutableLiveData<T> liveData,
+    long minInterval,
+    int delay = 0,
+    Func<T, T, T>? mergeFunc = null) : IMutableLiveData<T> where T : notnull
 {
     private readonly IMutableLiveData<T> _liveData = liveData;
+    private readonly Lock _lock = new();
+
+    private long _lastEmitTime = 0L;
+    private T? _pendingValue = default;
+    private bool _emitScheduled = false;
 
     public bool HasValue => _liveData.HasValue;
 
@@ -15,17 +24,51 @@ public sealed class MutableLiveDataWithDelay<T>(IMutableLiveData<T> liveData, lo
 
     public void Clear()
     {
+        lock (_lock)
+        {
+            _pendingValue = default;
+            _emitScheduled = false;
+        }
+
         _liveData.Clear();
     }
 
     public void Emit(T value)
     {
-        _liveData.Emit(value);
+        int timeRemaining;
+
+        lock (_lock)
+        {
+            if (_emitScheduled)
+            {
+                _pendingValue = mergeFunc is not null ? mergeFunc(_pendingValue!, value) : value;
+                return;
+            }
+
+            _emitScheduled = true;
+            _pendingValue = value;
+
+            long currentTime = GetTick();
+            long timeElapsed = currentTime - _lastEmitTime;
+            timeRemaining = Math.Max((int)(minInterval - timeElapsed), delay);
+        }
+
+        if (timeRemaining <= 0)
+        {
+            EmitPending();
+            return;
+        }
+
+        CoroutineUtils.Run(async () =>
+        {
+            await Task.Delay(timeRemaining);
+            EmitPending();
+        });
     }
 
     public void Observe(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)
     {
-        _liveData.Observe(owner, new ObserverWrapper(this, observer, minInterval, delay), options);
+        _liveData.Observe(owner, observer, options);
     }
 
     public void RemoveObserver(IValueObserver<T> observer)
@@ -38,54 +81,28 @@ public sealed class MutableLiveDataWithDelay<T>(IMutableLiveData<T> liveData, lo
         return _liveData.HasObserver(observer);
     }
 
-    private class ObserverWrapper(MutableLiveDataWithDelay<T> liveData, IValueObserver<T> observer, long minInterval, int delay) : IValueObserver<T>
+    private void EmitPending()
     {
-        private long _lastChangedTime = 0L;
-        private T? _lastValue = default;
-        private bool _notifyScheduled = false;
+        T value;
 
-        public void OnChanged(T value)
+        lock (_lock)
         {
-            _lastValue = value;
-            if (_notifyScheduled)
+            if (!_emitScheduled)
             {
                 return;
             }
 
-            long currentTime = GetTick();
-            long timeElapsed = currentTime - _lastChangedTime;
-            int timeRemaining = Math.Max((int)(minInterval - timeElapsed), delay);
-            if (timeRemaining <= 0)
-            {
-                _lastChangedTime = currentTime;
-                observer.OnChanged(value);
-                return;
-            }
-
-            _notifyScheduled = true;
-            CoroutineUtils.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(timeRemaining);
-                    if (!liveData.HasObserver(this))
-                    {
-                        return;
-                    }
-
-                    _lastChangedTime = GetTick();
-                    observer.OnChanged(_lastValue);
-                }
-                finally
-                {
-                    _notifyScheduled = false;
-                }
-            });
+            value = _pendingValue!;
+            _pendingValue = default;
+            _emitScheduled = false;
+            _lastEmitTime = GetTick();
         }
 
-        private static long GetTick()
-        {
-            return Environment.TickCount64;
-        }
+        _liveData.Emit(value);
+    }
+
+    private static long GetTick()
+    {
+        return Environment.TickCount64;
     }
 }

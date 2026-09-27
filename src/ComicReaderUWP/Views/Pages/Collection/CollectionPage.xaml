@@ -68,10 +68,9 @@
                                 FontSize="24"
                                 FontWeight="SemiLight"
                                 MaxLines="2"
-                                Text="{x:Bind ViewModel.Name, Mode=OneWay}"
+                                Text="{x:Bind ViewModel.Title, Mode=OneWay}"
                                 TextTrimming="CharacterEllipsis"
-                                TextWrapping="Wrap"
-                                ToolTipService.ToolTip="{x:Bind ViewModel.Name, Mode=OneWay}" />
+                                TextWrapping="Wrap" />
                             <!--  Description  -->
                             <TextBlock
                                 Margin="0,8,0,0"

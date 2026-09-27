@@ -131,7 +131,7 @@ internal partial class FolderComicHandle : ComicHandle
         });
     }
 
-    protected override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
+    public override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
     {
         var err = ErrorLogger<BaseComicConnection>.Create(TAG);
 

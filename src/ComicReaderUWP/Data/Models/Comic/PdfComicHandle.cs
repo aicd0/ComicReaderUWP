@@ -49,7 +49,7 @@ internal partial class PdfComicHandle : ComicHandle
         return dirName.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
     }
 
-    protected override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
+    public override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
     {
         var err = ErrorLogger<BaseComicConnection>.Create(TAG);
 

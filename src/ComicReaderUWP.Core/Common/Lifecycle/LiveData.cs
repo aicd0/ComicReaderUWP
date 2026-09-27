@@ -17,8 +17,10 @@ public class LiveData<T> : ILiveData<T> where T : notnull
 
     private readonly Lock _emitLock = new();
     private bool _emittingValue = false;
-    private T? _valueEmitted;
+    private readonly List<T> _pendingEmittedValues = [];
+    private readonly List<T> _tempEmittedValues = [];
 
+    public bool Lossless { get; init; } = false;
     public bool HasValue => _version > 0;
 
     public T Value => _value is not null ? _value : throw new NullReferenceException("No value present.");
@@ -74,7 +76,12 @@ public class LiveData<T> : ILiveData<T> where T : notnull
 
         lock (_emitLock)
         {
-            _valueEmitted = value;
+            if (!Lossless)
+            {
+                _pendingEmittedValues.Clear();
+            }
+
+            _pendingEmittedValues.Add(value);
 
             if (_emittingValue)
             {
@@ -86,14 +93,22 @@ public class LiveData<T> : ILiveData<T> where T : notnull
 
         CoroutineUtils.PostInMainThread(() =>
         {
+            List<T> values = _tempEmittedValues;
+            values.Clear();
+
             lock (_emitLock)
             {
                 _emittingValue = false;
-                value = _valueEmitted;
-                _valueEmitted = default;
+                values.AddRange(_pendingEmittedValues);
+                _pendingEmittedValues.Clear();
             }
 
-            EmitInternal(value);
+            foreach (T pendingValue in values)
+            {
+                EmitInternal(pendingValue);
+            }
+
+            values.Clear();
         });
     }
 
@@ -170,28 +185,34 @@ public class LiveData<T> : ILiveData<T> where T : notnull
         }
 
         _dispatchingValue = true;
-        do
+        try
         {
-            _dispatchInvalidated = false;
-            T value = _value!;
-            if (initiator != null)
+            do
             {
-                ConsiderNotify(initiator, value);
-            }
-            else
-            {
-                var snapshot = new List<ObserverWrapper>(_observers.Values);
-                foreach (ObserverWrapper observer in snapshot)
+                _dispatchInvalidated = false;
+                T value = _value!;
+                if (initiator != null)
                 {
-                    ConsiderNotify(observer, value);
-                    if (_dispatchInvalidated)
+                    ConsiderNotify(initiator, value);
+                }
+                else
+                {
+                    var snapshot = new List<ObserverWrapper>(_observers.Values);
+                    foreach (ObserverWrapper observer in snapshot)
                     {
-                        break;
+                        ConsiderNotify(observer, value);
+                        if (_dispatchInvalidated)
+                        {
+                            break;
+                        }
                     }
                 }
-            }
-        } while (_dispatchInvalidated);
-        _dispatchingValue = false;
+            } while (_dispatchInvalidated);
+        }
+        finally
+        {
+            _dispatchingValue = false;
+        }
     }
 
     private void ConsiderNotify(ObserverWrapper observer, T value)

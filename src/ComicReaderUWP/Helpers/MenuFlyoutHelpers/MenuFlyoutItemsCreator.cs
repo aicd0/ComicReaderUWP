@@ -433,7 +433,7 @@ internal static class MenuFlyoutItemsCreator
             windowId = mainWindowCom.WindowId;
         }
 
-        List<long> comicIds = [.. selectedComics.Where(x => !x.IsExternal && !x.IsCollection).Select(x => x.Id)];
+        List<ComicModel> comics = [.. selectedComics.Where(x => !x.IsExternal && !x.IsCollection)];
 
         List<BaseMenuFlyoutItemModel> items = [];
 
@@ -444,7 +444,7 @@ internal static class MenuFlyoutItemsCreator
             foreach (ComicModel collection in collections)
             {
                 IReadOnlyList<long> linkedComicIds = await CollectionModel.GetComicIds(collection);
-                bool isLinked = comicIds.Count > 0 && comicIds.All(linkedComicIds.Contains);
+                bool isLinked = comics.Count > 0 && comics.All(x => linkedComicIds.Contains(x.Id));
 
                 items.Add(new ToggleMenuFlyoutItemModel()
                 {
@@ -456,11 +456,11 @@ internal static class MenuFlyoutItemsCreator
                         {
                             if (isLinked)
                             {
-                                await CollectionModel.RemoveComics(collection, comicIds);
+                                await CollectionModel.RemoveComics(collection, comics.Select(x => x.Id));
                             }
                             else
                             {
-                                await CollectionModel.AddComics(collection, comicIds);
+                                await CollectionModel.AddComics(collection, comics);
                             }
                         }));
                     },
@@ -487,20 +487,17 @@ internal static class MenuFlyoutItemsCreator
 
                     await BusyStateManager.WithBusyState(async () =>
                     {
-                        await CollectionModel.AddComics(collection, comicIds);
+                        await CollectionModel.AddComics(collection, comics);
 
                         // Set default cover
                         string? coverImage = ComicExt.GetCoverImageUri(collection);
-                        if (string.IsNullOrEmpty(coverImage) && comicIds.Count > 0)
+                        if (string.IsNullOrEmpty(coverImage) && comics.Count > 0)
                         {
-                            ComicModel? comic = await ComicModel.FromId(comicIds[0]);
-                            if (comic is not null)
-                            {
-                                int coverIndex = ComicExt.GetCoverIndex(comic);
-                                collection.SetExt(ComicExt.COVER_INDEX, coverIndex.ToString(CultureInfo.InvariantCulture));
-                                collection.SetExt(ComicExt.COVER_IMAGE, ResourceUri.CreateComicImage(comic.Id, coverIndex).ToString());
-                                await collection.FlushExt();
-                            }
+                            ComicModel comic = comics[0];
+                            int coverIndex = ComicExt.GetCoverIndex(comic);
+                            collection.SetExt(ComicExt.COVER_INDEX, coverIndex.ToString(CultureInfo.InvariantCulture));
+                            collection.SetExt(ComicExt.COVER_IMAGE, ResourceUri.CreateComicImage(comic.Id, coverIndex).ToString());
+                            await collection.FlushExt();
                         }
                     });
                 });

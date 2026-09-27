@@ -11,7 +11,7 @@ public class EventBus : IEventBus
 
     private readonly ConcurrentDictionary<string, ILiveDataCommonAbility> _topics = [];
 
-    public IMutableLiveData<T> With<T>(string eventId) where T : notnull
+    public IMutableLiveData<T> With<T>(string eventId, Func<IMutableLiveData<T>> createFunc) where T : notnull
     {
         while (true)
         {
@@ -20,17 +20,12 @@ public class EventBus : IEventBus
                 return (IMutableLiveData<T>)topic;
             }
 
-            var newTopic = new MutableLiveData<T>();
+            IMutableLiveData<T> newTopic = createFunc();
             if (_topics.TryAdd(eventId, newTopic))
             {
                 return newTopic;
             }
         }
-    }
-
-    public IMutableLiveData<object> With(string eventId)
-    {
-        return With<object>(eventId);
     }
 
     public void Clear()

@@ -47,7 +47,7 @@ internal partial class ArchiveComicHandle : ComicHandle
         return pieces[..^1];
     }
 
-    protected override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
+    public override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
     {
         var err = ErrorLogger<BaseComicConnection>.Create(TAG);
 

@@ -119,6 +119,7 @@ internal partial class SearchPageViewModel : INotifyPropertyChanged
         ViewType = ComicFilterModel.Instance.LastViewType;
 
         IsLoading = true;
+        UpdateUI();
         ComicSelection.SetSelectMode(false);
 
         _searchEngine.SearchText = searchText;
