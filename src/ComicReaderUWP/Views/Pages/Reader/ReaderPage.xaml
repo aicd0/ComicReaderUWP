@@ -9,6 +9,7 @@
     xmlns:cwc="using:CommunityToolkit.WinUI.Controls"
     xmlns:cwm="using:CommunityToolkit.WinUI.Media"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:reader="using:ComicReaderUWP.Views.Pages.Reader"
@@ -36,13 +37,24 @@
     </Page.Resources>
 
     <Grid>
-        <!--  Reader section  -->
         <Grid x:Name="GMainSection">
-            <!--  Fullscreen background  -->
+
+            <!--  Background  -->
             <Rectangle
                 Fill="{ThemeResource ReaderFullscreenBackground}"
                 IsHitTestVisible="False"
                 Visibility="{x:Bind ViewModel.IsFullscreen, Mode=OneWay}" />
+            <image:SimpleImageView
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsHitTestVisible="False"
+                Stretch="UniformToFill"
+                Uri="{x:Bind ViewModel.BackgroundImageUri, Mode=OneWay}" />
+            <Border
+                Background="{ThemeResource BackgroundImageAcrylic}"
+                IsHitTestVisible="False"
+                Visibility="{x:Bind ViewModel.BackgroundImageUri, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
+
             <!--  Loading status  -->
             <TextBlock
                 x:Name="TbReaderStatus"

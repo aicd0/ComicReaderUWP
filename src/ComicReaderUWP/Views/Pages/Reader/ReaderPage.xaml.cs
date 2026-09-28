@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -174,6 +175,17 @@ internal sealed partial class ReaderPage : BasePage
         GlobalEvent.Instance.FavoriteUpdated.Observe(this, _ =>
         {
             ViewModel.UpdateFavoriteStatus();
+        });
+
+        GlobalEvent.Instance.ComicUpdated.Observe(this, ids =>
+        {
+            ComicModel? comic = ViewModel.Comic;
+            if (comic is null || !ids.Contains(comic.Id))
+            {
+                return;
+            }
+
+            ViewModel.UpdateComicMetadata();
         });
 
         AppSettingsModel.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ =>

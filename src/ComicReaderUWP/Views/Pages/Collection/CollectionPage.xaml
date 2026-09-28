@@ -29,10 +29,15 @@
     <Grid>
         <!--  Background image  -->
         <image:SimpleImageView
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
             IsHitTestVisible="False"
-            Opacity="0.25"
             Stretch="UniformToFill"
             Uri="{x:Bind ViewModel.BackgroundImageUri, Mode=OneWay}" />
+        <Border
+            Background="{ThemeResource BackgroundImageAcrylic}"
+            IsHitTestVisible="False"
+            Visibility="{x:Bind ViewModel.BackgroundImageUri, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />
 
         <comicselection:ComicSelectionView
             x:Name="ItemsView"

@@ -8,6 +8,10 @@
     d:DesignWidth="400"
     mc:Ignorable="d">
 
-    <Image x:Name="ImageHolder" Stretch="Uniform" />
+    <Image
+        x:Name="ImageHolder"
+        HorizontalAlignment="{x:Bind HorizontalAlignment, Mode=OneWay}"
+        VerticalAlignment="{x:Bind VerticalAlignment, Mode=OneWay}"
+        Stretch="Uniform" />
 
 </UserControl>
