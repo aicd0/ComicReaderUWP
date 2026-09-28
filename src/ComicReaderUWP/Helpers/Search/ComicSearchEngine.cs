@@ -29,6 +29,8 @@ internal class ComicSearchEngine
     public string SearchText { get; set; } = string.Empty;
     public string Expression { get; set; } = string.Empty;
     public bool IncludeHidden { get; set; } = false;
+    public bool ExcludeInCollectionComics { get; set; } = false;
+    public ICondition? CustomCondition { get; set; } = null;
 
     public void SetResultCallback(Action<IReadOnlyList<ComicModel>>? callback)
     {
@@ -58,13 +60,7 @@ internal class ComicSearchEngine
     {
         Logger.I(TAG, "UpdateNoLock");
 
-        string searchText = SearchText;
-        string expression = Expression;
-        bool includeHidden = IncludeHidden;
-
-        ICondition? expressionCondition = ParseExpression(expression);
-
-        List<long> ids = await SearchByKeywords(searchText, includeHidden, expressionCondition);
+        List<long> ids = await SearchByKeywords();
         List<ComicModel> comicItems = await ComicModel.BatchFromId(ids);
 
         Dictionary<long, int> order = [];
@@ -149,8 +145,14 @@ internal class ComicSearchEngine
         return condition;
     }
 
-    private async Task<List<long>> SearchByKeywords(string searchText, bool includeHidden, ICondition? additionalCondition)
+    private async Task<List<long>> SearchByKeywords()
     {
+        string searchText = SearchText;
+        bool includeHidden = IncludeHidden;
+        bool excludeInCollectionComics = ExcludeInCollectionComics;
+        ICondition? expressionCondition = ParseExpression(Expression);
+        ICondition? customCondition = CustomCondition;
+
         ICondition? searchCondition = ParseSearchExpresssion(searchText, includeHidden, out List<string> remaining);
         for (int i = 0; i < remaining.Count; i++)
         {
@@ -170,9 +172,19 @@ internal class ComicSearchEngine
                 command.AppendCondition(searchCondition);
             }
 
-            if (additionalCondition is not null)
+            if (expressionCondition is not null)
             {
-                command.AppendCondition(additionalCondition);
+                command.AppendCondition(expressionCondition);
+            }
+
+            if (customCondition is not null)
+            {
+                command.AppendCondition(customCondition);
+            }
+
+            if (excludeInCollectionComics)
+            {
+                command.AppendCondition(CreateExcludeInCollectionsCondition());
             }
 
             using SelectCommand.IReader reader = command.Execute();
@@ -221,6 +233,13 @@ internal class ComicSearchEngine
         }
 
         return ids;
+    }
+
+    private static ICondition CreateExcludeInCollectionsCondition()
+    {
+        var subquery = SelectCommand.Create(ComicCollectionTable.Instance);
+        _ = subquery.PutQueryInt64(ComicCollectionTable.ColumnComicId);
+        return new NotCondition(new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), subquery));
     }
 
     private class Match
