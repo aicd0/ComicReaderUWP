@@ -247,6 +247,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         }
     }
 
+    private string? _backgroundImageUri = null;
+    public string? BackgroundImageUri
+    {
+        get => _backgroundImageUri;
+        set
+        {
+            _backgroundImageUri = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BackgroundImageUri)));
+        }
+    }
+
     public PlaylistModel Playlist { get; private set; } = PlaylistModel.CreateEmpty();
     public PlaybackModel Playback { get; } = new();
     public ReaderPage.ReaderStatusEnum ReaderStatus => ReaderStatusLiveData.Value.Status;
@@ -436,6 +447,17 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         {
             UpdateFavoriteStatusInternal(comic);
         }
+    }
+
+    public void UpdateComicMetadata()
+    {
+        ComicModel? comic = _comic;
+        if (comic is null)
+        {
+            return;
+        }
+
+        BackgroundImageUri = comic.GetExt(ComicExt.BACKGROUND_IMAGE);
     }
 
     public async Task<IReadOnlyList<BaseMenuFlyoutItemModel>> CreateImageContextMenuItems(int index, IImageSource imageSource)
@@ -746,6 +768,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         // Close and clear previous comic
         CloseComicConnection();
         _comic = null;
+        BackgroundImageUri = null;
 
         // Clear preview images
         foreach (ReaderPreviewImageViewModel previewImage in _selectedPreviewImages)
@@ -769,6 +792,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
 
         _comic = comic;
         CompletionStatusEnum completionStatus = comic.CompletionStatus;
+        UpdateComicMetadata();
 
         // Save to history
         if (!comic.IsExternal)

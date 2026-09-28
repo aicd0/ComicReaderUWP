@@ -33,6 +33,12 @@ internal sealed partial class ComicItemHorizontal : BaseUserControl, IComicItemV
         Bindings.Update();
     }
 
+    private void BaseUserControl_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        // Selection mode doesn't work without this.
+        e.Handled = true;
+    }
+
     private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
         VisualStateManager.GoToState(this, "PointerOver", true);

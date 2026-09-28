@@ -8,6 +8,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Tapped="BaseUserControl_Tapped"
     mc:Ignorable="d">
 
     <base:BaseUserControl.Resources>
@@ -42,6 +43,8 @@
         <Grid Grid.Column="0" Width="85">
             <image:SimpleImageView
                 x:Name="ImageHolder"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
                 Stretch="UniformToFill"
                 Uri="{x:Bind Item.CoverImageUri, Mode=OneWay}" />
         </Grid>
