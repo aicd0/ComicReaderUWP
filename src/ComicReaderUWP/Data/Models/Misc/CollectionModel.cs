@@ -72,6 +72,14 @@ internal static class CollectionModel
         return await ComicHandle.Enqueue(() => QueryComicIdsNoLock(collectionId));
     }
 
+    public static ICondition CreateMemberCondition(long collectionId)
+    {
+        SelectCommand subquery = SelectCommand.Create(ComicCollectionTable.Instance)
+            .AppendCondition(ComicCollectionTable.ColumnCollectionId, collectionId);
+        _ = subquery.PutQueryInt64(ComicCollectionTable.ColumnComicId);
+        return new InCondition(ColumnOrValue.FromColumn(ComicTable.ColumnId), subquery);
+    }
+
     //
     // Writes
     //

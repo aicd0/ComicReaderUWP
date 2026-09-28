@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -176,8 +175,6 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
     private ActionHandler _actionHandler = ActionHandler.Dummy;
     private long _collectionId = -1;
     private ComicModel? _collection;
-    private List<ComicModel> _members = [];
-    private HashSet<long> _memberIds = [];
     private List<ComicModel> _comics = [];
     private long _lastSearchTime = 0;
     private int _reloadSubmitted = 0;
@@ -196,8 +193,13 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
     {
         _actionHandler = actionHandler;
         _collectionId = collectionId;
+
+        if (collectionId >= 0)
+        {
+            _searchEngine.CustomCondition = CollectionModel.CreateMemberCondition(collectionId);
+        }
+
         _searchEngine.SetResultCallback(OnSearchResult);
-        _searchEngine.IncludeHidden = true;
 
         ViewType = ComicFilterModel.Instance.LastViewType;
 
@@ -241,7 +243,7 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
         if (timeRemain <= 0)
         {
             _lastSearchTime = tick;
-            ScheduleSearch();
+            _searchEngine.Update();
         }
         else
         {
@@ -249,31 +251,14 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
             {
                 await Task.Delay(timeRemain);
                 _lastSearchTime = GetTick();
-                ScheduleSearch();
+                _searchEngine.Update();
             });
         }
-    }
-
-    private void ScheduleSearch()
-    {
-        if (string.IsNullOrEmpty(_searchEngine.SearchText))
-        {
-            _sharedDispatcher.Submit(() =>
-            {
-                List<ComicModel> members = _members;
-                List<ComicItemViewModel> items = BuildItems(members);
-                CoroutineUtils.RunInMainThread(() => ApplyResults(members, items));
-            });
-            return;
-        }
-
-        _searchEngine.Update();
     }
 
     private void OnSearchResult(IReadOnlyList<ComicModel> comics)
     {
-        HashSet<long> memberIds = _memberIds;
-        List<ComicModel> filtered = [.. comics.Where(x => memberIds.Contains(x.Id))];
+        List<ComicModel> filtered = [.. comics];
         filtered.Sort(CompareByTitle);
 
         List<ComicItemViewModel> items = BuildItems(filtered);
@@ -359,29 +344,13 @@ internal partial class CollectionPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        IReadOnlyList<long> memberIds = await CollectionModel.GetComicIds(collection);
-        List<ComicModel> members = await ComicModel.BatchFromId(memberIds);
-        members.Sort(CompareByTitle);
-        List<ComicItemViewModel> items = BuildItems(members);
         bool isFavorite = FavoriteModel.Instance.FromId(collection.Id) != null;
-
         _collection = collection;
-        _members = members;
-        _memberIds = [.. members.Select(x => x.Id)];
 
         await MainThreadUtils.RunInMainThread(() =>
         {
             ApplyInfo(collection, isFavorite);
-
-            if (string.IsNullOrEmpty(_searchEngine.SearchText))
-            {
-                ApplyResults(members, items);
-            }
-            else
-            {
-                // The search is applied again by OnSearchResult
-                _searchEngine.Update();
-            }
+            _searchEngine.Update();
         });
     }
 

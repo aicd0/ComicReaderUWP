@@ -73,6 +73,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     public void Initialize(ActionHandler actionHandler, string? filterJson)
     {
         _actionHandler = actionHandler;
+        _searchEngine.ExcludeInCollectionComics = true;
         _searchEngine.SetResultCallback(OnComicSearchResult);
         _filterSettingsModel = ComicFilterModel.Instance.GetModel() ?? new();
 
