@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using ComicReaderUWP.Common.BaseUI;
@@ -51,17 +52,23 @@ internal sealed partial class ComicInfoPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
+        GlobalEvent.Instance.ComicUpdated.Observe(this, ids =>
+        {
+            ComicModel? comic = ViewModel.Comic;
+            if (comic is null || !ids.Contains(comic.Id))
+            {
+                return;
+            }
+
+            ViewModel.Reload();
+        });
+
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, _ =>
         {
             ViewModel.Reload();
         });
 
-        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
-        {
-            ViewModel.Reload();
-        });
-
-        GlobalEvent.Instance.TagInfoUpdated.Observe(this, delegate
+        GlobalEvent.Instance.TagInfoUpdated.Observe(this, _ =>
         {
             ViewModel.Reload();
         });
@@ -83,7 +90,7 @@ internal sealed partial class ComicInfoPage : BasePage
             SetCompletionStateButton.Label = CompletionStatusService.EnumToString(completionStatus);
         });
 
-        ViewModel.IsExternalComicLiveData.ObserveSticky(this, delegate (bool isExternal)
+        ViewModel.IsExternalComicLiveData.ObserveSticky(this, isExternal =>
         {
             RcRating.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;
             SetCompletionStateButton.Visibility = isExternal ? Visibility.Collapsed : Visibility.Visible;

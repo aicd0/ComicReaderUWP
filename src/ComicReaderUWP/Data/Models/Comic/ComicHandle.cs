@@ -144,7 +144,7 @@ internal abstract partial class ComicHandle
                 string location = locationToken.GetValue();
                 string title1 = title1Token.GetValue();
                 string title2 = title2Token.GetValue();
-                bool hidden = hiddenToken.GetValue();
+                bool isHidden = hiddenToken.GetValue();
                 int rating = ratingToken.GetValue();
                 int progress = progressToken.GetValue();
                 DateTimeOffset lastVisit = lastVisitToken.GetValue();
@@ -164,7 +164,7 @@ internal abstract partial class ComicHandle
                 comic.Location = location;
                 comic.Title1 = title1;
                 comic.Title2 = title2;
-                comic.Hidden = hidden;
+                comic.IsHidden = isHidden;
                 comic.Rating = rating;
                 comic.Progress = progress;
                 comic.LastVisit = lastVisit;
@@ -336,7 +336,7 @@ internal abstract partial class ComicHandle
     public string Location { get; protected set; } = string.Empty;
     public string Title1 { get; protected set; } = string.Empty;
     public string Title2 { get; protected set; } = string.Empty;
-    public bool Hidden { get; protected set; } = false;
+    public bool IsHidden { get; protected set; } = false;
     public int Rating { get; protected set; } = -1;
     public int Progress { get; protected set; } = -1;
     public DateTimeOffset LastVisit { get; protected set; } = DateTimeOffset.MinValue;
@@ -635,7 +635,7 @@ internal abstract partial class ComicHandle
         evaluators[ComicTable.ColumnLocation.Name] = i => TypeAssert.AssertString(i.Location);
         evaluators[ComicTable.ColumnTitle1.Name] = i => TypeAssert.AssertString(i.Title1);
         evaluators[ComicTable.ColumnTitle2.Name] = i => TypeAssert.AssertString(i.Title2);
-        evaluators[ComicTable.ColumnHidden.Name] = i => TypeAssert.AssertBoolean(i.Hidden);
+        evaluators[ComicTable.ColumnHidden.Name] = i => TypeAssert.AssertBoolean(i.IsHidden);
         evaluators[ComicTable.ColumnRating.Name] = i => TypeAssert.AssertInt(i.Rating);
         evaluators[ComicTable.ColumnProgress.Name] = i => TypeAssert.AssertInt(i.Progress);
         evaluators[ComicTable.ColumnLastVisit.Name] = i => TypeAssert.AssertDateTimeOffset(i.LastVisit);
@@ -671,7 +671,7 @@ internal abstract partial class ComicHandle
 
     public async Task SaveHiddenAsync(bool hidden)
     {
-        Hidden = hidden;
+        IsHidden = hidden;
 
         await Enqueue(() =>
         {

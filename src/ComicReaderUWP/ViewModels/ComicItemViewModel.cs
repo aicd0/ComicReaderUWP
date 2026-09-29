@@ -181,7 +181,7 @@ internal partial class ComicItemViewModel : INotifyPropertyChanged
         int rating = comic.Rating;
         _rating = rating >= 0 ? Math.Round(rating * 0.05F, 1, MidpointRounding.AwayFromZero).ToString("0.#") : string.Empty;
         _isFavorite = FavoriteModel.Instance.FromId(comic.Id) != null;
-        _isHidden = comic.Hidden;
+        _isHidden = comic.IsHidden;
         _pageCount = comic.PageCount > 0 ? $"{comic.PageCount}P" : string.Empty;
         _coverImageUri = ComicExt.GetCoverImageUri(comic);
     }

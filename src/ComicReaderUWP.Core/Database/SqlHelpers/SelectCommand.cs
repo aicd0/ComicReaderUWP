@@ -41,22 +41,22 @@ public partial class SelectCommand
 
     public IReaderToken<long> PutQueryCountAll()
     {
-        return PutToken(new GeneralToken<long>("COUNT(*)", delegate (SqliteDataReader reader, int ordinal) { return reader.GetInt64(ordinal); }));
+        return PutToken(new GeneralToken<long>("COUNT(*)", (reader, ordinal) => { return reader.GetInt64(ordinal); }));
     }
 
     public IReaderToken<int> PutQueryInt32(IColumn<int> column)
     {
-        return PutToken(new ColumnToken<int>(column, delegate (SqliteDataReader reader, int ordinal) { return reader.GetInt32(ordinal); }));
+        return PutToken(new ColumnToken<int>(column, (reader, ordinal) => { return reader.GetInt32(ordinal); }));
     }
 
     public IReaderToken<long> PutQueryInt64(IColumn<long> column)
     {
-        return PutToken(new ColumnToken<long>(column, delegate (SqliteDataReader reader, int ordinal) { return reader.GetInt64(ordinal); }));
+        return PutToken(new ColumnToken<long>(column, (reader, ordinal) => { return reader.GetInt64(ordinal); }));
     }
 
     public IReaderToken<string> PutQueryString(IColumn<string> column)
     {
-        return PutToken(new ColumnToken<string>(column, delegate (SqliteDataReader reader, int ordinal)
+        return PutToken(new ColumnToken<string>(column, (reader, ordinal) =>
         {
             return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal);
         }));
@@ -64,17 +64,17 @@ public partial class SelectCommand
 
     public IReaderToken<bool> PutQueryBoolean(IColumn<bool> column)
     {
-        return PutToken(new ColumnToken<bool>(column, delegate (SqliteDataReader reader, int ordinal) { return reader.GetBoolean(ordinal); }));
+        return PutToken(new ColumnToken<bool>(column, (reader, ordinal) => { return reader.GetBoolean(ordinal); }));
     }
 
     public IReaderToken<double> PutQueryDouble(IColumn<double> column)
     {
-        return PutToken(new ColumnToken<double>(column, delegate (SqliteDataReader reader, int ordinal) { return reader.GetDouble(ordinal); }));
+        return PutToken(new ColumnToken<double>(column, (reader, ordinal) => { return reader.GetDouble(ordinal); }));
     }
 
     public IReaderToken<DateTimeOffset> PutQueryDateTimeOffset(IColumn<DateTimeOffset> column)
     {
-        return PutToken(new ColumnToken<DateTimeOffset>(column, delegate (SqliteDataReader reader, int ordinal) { return reader.GetDateTimeOffset(ordinal); }));
+        return PutToken(new ColumnToken<DateTimeOffset>(column, (reader, ordinal) => { return reader.GetDateTimeOffset(ordinal); }));
     }
 
     public SelectCommand AppendCondition(IColumnTypeless column, object value)

@@ -195,7 +195,7 @@ internal static class MenuFlyoutItemsCreator
                 Items = CreateCompletionStatusMenuItems(inLibraryItems),
             });
 
-            if (primaryItem.Hidden)
+            if (primaryItem.IsHidden)
             {
                 items.Add(new SimpleMenuFlyoutItemModel()
                 {
@@ -478,6 +478,7 @@ internal static class MenuFlyoutItemsCreator
                 CoroutineUtils.Run(async () =>
                 {
                     var collection = ComicModel.CreateCollection();
+                    await collection.SetTitle1(StringResourceProvider.Instance.NewCollection);
                     var dialog = new EditComicInfoDialog([collection]);
                     await dialog.ShowAsync(windowId);
                     if (collection.IsExternal)

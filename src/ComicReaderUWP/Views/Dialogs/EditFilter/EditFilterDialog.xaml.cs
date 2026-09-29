@@ -34,17 +34,17 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
 
     private void ObserveData()
     {
-        ViewModel.NameLiveData.ObserveSticky(this, delegate (string text)
+        ViewModel.NameLiveData.ObserveSticky(this, text =>
         {
             NameTextBox.Text = text ?? "";
         });
 
-        ViewModel.ExpressionLiveData.ObserveSticky(this, delegate (string text)
+        ViewModel.ExpressionLiveData.ObserveSticky(this, text =>
         {
             ExpressionTextBox.Text = text ?? "";
         });
 
-        ViewModel.ParseResultLiveData.ObserveSticky(this, delegate (string text)
+        ViewModel.ParseResultLiveData.ObserveSticky(this, text =>
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -57,12 +57,12 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
             }
         });
 
-        ViewModel.SaveEnableLiveData.ObserveSticky(this, delegate (bool enabled)
+        ViewModel.SaveEnableLiveData.ObserveSticky(this, enabled =>
         {
             SaveButton.IsEnabled = enabled;
         });
 
-        ViewModel.SaveAsNewEnableLiveData.ObserveSticky(this, delegate (bool enabled)
+        ViewModel.SaveAsNewEnableLiveData.ObserveSticky(this, enabled =>
         {
             SaveAsNewButton.IsEnabled = enabled;
         });

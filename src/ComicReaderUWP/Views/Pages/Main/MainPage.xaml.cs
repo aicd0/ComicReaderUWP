@@ -1159,7 +1159,7 @@ internal sealed partial class MainPage : BasePage
 
         public void RegisterOverlayVisibilityChangedHandler(ILifecycleOwner owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)
         {
-            _overlayVisibilityChangeLiveData.ObserveSticky(owner, delegate (bool visible)
+            _overlayVisibilityChangeLiveData.ObserveSticky(owner, visible =>
             {
                 handler(visible);
             });

@@ -66,7 +66,7 @@ public static class MainThreadUtils
         }
 
         var taskCompletionSource = new TaskCompletionSource<bool>();
-        bool success = dispatcher.TryEnqueue(priority, delegate
+        bool success = dispatcher.TryEnqueue(priority, () =>
         {
             try
             {
@@ -103,7 +103,7 @@ public static class MainThreadUtils
         }
 
         var taskCompletionSource = new TaskCompletionSource<bool>();
-        bool success = dispatcher.TryEnqueue(priority, async delegate
+        bool success = dispatcher.TryEnqueue(priority, async () =>
         {
             try
             {

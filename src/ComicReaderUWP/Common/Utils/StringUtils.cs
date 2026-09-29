@@ -62,7 +62,7 @@ class StringUtils
 
     public static IComparer<List<string>> SmartFileNameComparer { get; } = new SmartFileNameComparerInternal();
 
-    public static Func<string, List<string>> SmartFileNameKeySelector { get; } = delegate (string x)
+    public static Func<string, List<string>> SmartFileNameKeySelector { get; } = x =>
     {
         List<string> list = [];
         bool lastIsNumber = false;

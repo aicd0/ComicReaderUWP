@@ -67,12 +67,12 @@ internal sealed partial class HomePage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
+        GlobalEvent.Instance.ComicUpdated.Observe(this, _ =>
         {
             ViewModel.Refresh(filters: true, library: true);
         });
 
-        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, _ =>
         {
             ViewModel.Refresh(library: true);
         });
@@ -94,7 +94,7 @@ internal sealed partial class HomePage : BasePage
 
         ViewModel.FilterLiveData.ObserveSticky(this, UpdateFilters);
 
-        ViewModel.GroupingEnabledLiveData.ObserveSticky(this, delegate (bool grouped)
+        ViewModel.GroupingEnabledLiveData.ObserveSticky(this, grouped =>
         {
             if (grouped)
             {
@@ -106,7 +106,7 @@ internal sealed partial class HomePage : BasePage
             }
         });
 
-        ViewModel.ViewTypeLiveData.ObserveSticky(this, delegate (ComicFilterModel.ViewTypeEnum type)
+        ViewModel.ViewTypeLiveData.ObserveSticky(this, type =>
         {
             ViewTypeSelector.SelectedViewType = type;
 

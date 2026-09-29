@@ -47,7 +47,7 @@ internal sealed partial class HistoryPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.HistoryUpdated.Observe(this, delegate
+        GlobalEvent.Instance.HistoryUpdated.Observe(this, _ =>
         {
             CoroutineUtils.Run(Update);
         });

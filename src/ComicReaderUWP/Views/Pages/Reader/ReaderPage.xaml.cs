@@ -351,7 +351,7 @@ internal sealed partial class ReaderPage : BasePage
             GridViewModeEnabled = enabled;
         };
 
-        _readerNavigationBar.InfoPaneExpanded += delegate
+        _readerNavigationBar.InfoPaneExpanded += () =>
         {
             GetMainPageAbility().SetSidePanePage(SidebarView.ITEM_COMIC_INFO);
             GetMainPageAbility().SetSidePaneOpenState(true, force: true);

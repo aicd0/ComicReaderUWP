@@ -441,7 +441,7 @@ internal partial class ReaderView : UserControl
         if (!_postUiStateUpdated)
         {
             _postUiStateUpdated = true;
-            PostToCurrentThread(delegate
+            PostToCurrentThread(() =>
             {
                 _postUiStateUpdated = false;
                 UpdateUIInternal();
@@ -2157,7 +2157,7 @@ internal partial class ReaderView : UserControl
             else
             {
                 _postHideCursor = true;
-                PostToCurrentThread(delegate
+                PostToCurrentThread(() =>
                 {
                     _postHideCursor = false;
                     HideCursorIfNeeded();
@@ -2166,7 +2166,7 @@ internal partial class ReaderView : UserControl
         }
 
         _postHideCursor = true;
-        PostToCurrentThread(delegate
+        PostToCurrentThread(() =>
         {
             _postHideCursor = false;
             HideCursorIfNeeded();

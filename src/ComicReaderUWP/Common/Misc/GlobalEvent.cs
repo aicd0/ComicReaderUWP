@@ -19,18 +19,18 @@ internal class GlobalEvent
 
     private GlobalEvent() { }
 
-    public IMutableLiveData<IEnumerable<long>> CollectionUpdated = new MutableLiveDataWithDelay<IEnumerable<long>>(
+    public MutableLiveDataWithDelay<IEnumerable<long>> CollectionUpdated = new(
         EventBus.Default.With("CollectionUpdated", () => new MutableLiveData<IEnumerable<long>>() { Lossless = true }),
         1000,
         delay: 100,
         mergeFunc: static (a, b) => [.. a.Union(b)]);
-    public IMutableLiveData<IEnumerable<long>> ComicUpdated = new MutableLiveDataWithDelay<IEnumerable<long>>(
+    public MutableLiveDataWithDelay<IEnumerable<long>> ComicUpdated = new(
         EventBus.Default.With("ComicUpdated", () => new MutableLiveData<IEnumerable<long>>() { Lossless = true }),
         1000,
         delay: 100,
         mergeFunc: static (a, b) => [.. a.Union(b)]);
-    public IMutableLiveData<object> FilterUpdated = new MutableLiveDataWithDelay<object>(EventBus.Default.With("FilterUpdated"), 1000, delay: 100);
-    public IMutableLiveData<object> FavoriteUpdated = new MutableLiveDataWithDelay<object>(EventBus.Default.With("FavoriteUpdated"), 1000, delay: 100);
-    public IMutableLiveData<object> HistoryUpdated = new MutableLiveDataWithDelay<object>(EventBus.Default.With("HistoryUpdated"), 1000, delay: 100);
-    public IMutableLiveData<object> TagInfoUpdated = new MutableLiveDataWithDelay<object>(EventBus.Default.With("TagInfoUpdated"), 1000, delay: 100);
+    public MutableLiveDataWithDelay<object> FilterUpdated = new(EventBus.Default.With("FilterUpdated"), 1000, delay: 100);
+    public MutableLiveDataWithDelay<object> FavoriteUpdated = new(EventBus.Default.With("FavoriteUpdated"), 1000, delay: 100);
+    public MutableLiveDataWithDelay<object> HistoryUpdated = new(EventBus.Default.With("HistoryUpdated"), 1000, delay: 100);
+    public MutableLiveDataWithDelay<object> TagInfoUpdated = new(EventBus.Default.With("TagInfoUpdated"), 1000, delay: 100);
 }

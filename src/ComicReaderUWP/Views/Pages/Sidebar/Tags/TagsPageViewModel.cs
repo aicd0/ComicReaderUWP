@@ -219,7 +219,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             List<ComicModel> requestedComics = await ComicModel.BatchFromId(requestingComicIds);
             foreach (ComicModel comic in requestedComics)
             {
-                if (comic.Hidden)
+                if (comic.IsHidden)
                 {
                     continue;
                 }

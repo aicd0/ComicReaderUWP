@@ -51,7 +51,7 @@ internal sealed partial class FavoritePage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, _ =>
         {
             CoroutineUtils.Run(Update);
         });
