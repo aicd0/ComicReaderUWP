@@ -278,19 +278,6 @@ internal class ImageCacheDatabase(string databaseFilePath)
                     removedUris.AddRange(uris);
                 }
 
-                // Mappings whose cache record is gone can no longer resolve to cached content.
-                using (SqliteCommand command = connection.CreateCommand())
-                {
-                    command.CommandText =
-                        $"DELETE FROM {URI_CACHE_KEY_TABLE} WHERE {COLUMN_CACHE_KEY} NOT IN (" +
-                        $"SELECT {COLUMN_KEY} FROM {CACHE_TABLE}) RETURNING {COLUMN_URI}";
-                    using SqliteDataReader query = command.ExecuteReader();
-                    while (query.Read())
-                    {
-                        removedUris.Add(query.GetString(0));
-                    }
-                }
-
                 transaction.Commit();
             }
             catch (Exception ex)

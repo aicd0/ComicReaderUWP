@@ -89,7 +89,7 @@ internal class PlaylistModel
                 comicIdMap.TryGetValue(jsonItem.ComicId.Value, out comic);
             }
 
-            if (comic is not null)
+            if (comic is not null && !comic.IsCollection)
             {
                 string id = string.IsNullOrEmpty(jsonItem.Id) ? Guid.NewGuid().ToString() : jsonItem.Id;
                 items.Add(new()
@@ -159,6 +159,11 @@ internal class PlaylistModel
         {
             foreach (PlaylistItem item in items)
             {
+                if (item.Comic.IsCollection)
+                {
+                    continue;
+                }
+
                 _comics.Add(new PlaylistItemJsonModel()
                 {
                     Id = item.Id,

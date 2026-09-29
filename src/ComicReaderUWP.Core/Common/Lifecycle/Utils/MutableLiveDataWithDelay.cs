@@ -74,13 +74,20 @@ public sealed class MutableLiveDataWithDelay<T>(
             long currentTime = GetTick();
             int requiredDelay = Math.Max(_delay, delay);
             long deadline = Math.Max(_lastEmitTime + _minInterval, currentTime + requiredDelay);
+
             if (_emitScheduled)
             {
-                deadline = Math.Min(deadline, _pendingDeadline);
+                if (deadline >= _pendingDeadline)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                _emitScheduled = true;
             }
 
             _pendingDeadline = deadline;
-            _emitScheduled = true;
             version = ++_emitVersion;
             timeRemaining = (int)Math.Clamp(deadline - currentTime, int.MinValue, int.MaxValue);
         }
