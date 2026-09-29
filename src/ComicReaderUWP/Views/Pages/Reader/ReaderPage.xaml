@@ -47,9 +47,9 @@
             <image:SimpleImageView
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
+                ImageUri="{x:Bind ViewModel.BackgroundImageUri, Mode=OneWay}"
                 IsHitTestVisible="False"
-                Stretch="UniformToFill"
-                Uri="{x:Bind ViewModel.BackgroundImageUri, Mode=OneWay}" />
+                Stretch="UniformToFill" />
             <Border
                 Background="{ThemeResource BackgroundImageAcrylic}"
                 IsHitTestVisible="False"

@@ -39,7 +39,7 @@ internal sealed partial class ChooseImageView : BaseUserControl
 
     private void UpdatePreview(string? uri)
     {
-        ImageHolder.Uri = uri;
+        ImageHolder.ImageUri = uri;
 
         bool hasImage = !string.IsNullOrEmpty(uri);
         ImageBorder.Visibility = hasImage ? Visibility.Visible : Visibility.Collapsed;

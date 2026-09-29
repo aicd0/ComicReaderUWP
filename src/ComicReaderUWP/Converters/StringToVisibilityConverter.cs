@@ -12,7 +12,7 @@ namespace ComicReaderUWP.Converters;
 /// Value converter that translates not empty string to <see cref="Visibility.Visible"/> and empty string
 /// to <see cref="Visibility.Collapsed"/>.
 /// </summary>
-public partial class StringToVisibilityConverter : IValueConverter
+internal partial class StringToVisibilityConverter : IValueConverter
 {
     public static Visibility Convert(string? value)
     {

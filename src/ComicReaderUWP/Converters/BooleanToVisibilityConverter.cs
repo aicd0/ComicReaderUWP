@@ -12,7 +12,7 @@ namespace ComicReaderUWP.Converters;
 /// Value converter that translates true to <see cref="Visibility.Visible"/> and false
 /// to <see cref="Visibility.Collapsed"/>.
 /// </summary>
-public class BooleanToVisibilityConverter : IValueConverter
+internal partial class BooleanToVisibilityConverter : IValueConverter
 {
     public static Visibility Convert(bool visibility)
     {
@@ -37,7 +37,7 @@ public class BooleanToVisibilityConverter : IValueConverter
 /// Value converter that translates false to <see cref="Visibility.Visible"/> and true
 /// to <see cref="Visibility.Collapsed"/>.
 /// </summary>
-public class BooleanToVisibilityNegationConverter : IValueConverter
+internal partial class BooleanToVisibilityNegationConverter : IValueConverter
 {
     public object Convert(object value, Type target_type, object parameter, string language)
     {

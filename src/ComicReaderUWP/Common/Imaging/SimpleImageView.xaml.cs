@@ -22,11 +22,17 @@ internal partial class SimpleImageView : UserControl
 {
     private const long RELOAD_INTERVAL_MS = 500;
 
-    public static readonly DependencyProperty UriProperty = DependencyProperty.Register(
-        nameof(Uri),
+    public static readonly DependencyProperty ImageSourceProperty = DependencyProperty.Register(
+        nameof(ImageSource),
+        typeof(IImageSource),
+        typeof(SimpleImageView),
+        new PropertyMetadata(null, OnImageSourceChanged));
+
+    public static readonly DependencyProperty ImageUriProperty = DependencyProperty.Register(
+        nameof(ImageUri),
         typeof(string),
         typeof(SimpleImageView),
-        new PropertyMetadata(null, OnUriChanged));
+        new PropertyMetadata(null, OnImageUriChanged));
 
     public static readonly DependencyProperty StretchProperty = DependencyProperty.Register(
         nameof(Stretch),
@@ -34,9 +40,14 @@ internal partial class SimpleImageView : UserControl
         typeof(SimpleImageView),
         new PropertyMetadata(Stretch.Uniform, OnStretchChanged));
 
-    private static void OnUriChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    private static void OnImageSourceChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        ((SimpleImageView)sender).LoadUri();
+        ((SimpleImageView)sender).LoadSource();
+    }
+
+    private static void OnImageUriChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ((SimpleImageView)sender).LoadSource();
     }
 
     private static void OnStretchChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -71,7 +82,7 @@ internal partial class SimpleImageView : UserControl
     private int _imageHash = 0;
     private Size _imageSize = new(0, 0);
 
-    private readonly CancellationSession _uriSession = new();
+    private readonly CancellationSession _sourceSession = new();
     private string? _uri = null;
     private IImageSource? _source = null;
     private Size? _originalSize = null;
@@ -83,10 +94,16 @@ internal partial class SimpleImageView : UserControl
         Unloaded += SimpleImageView_LoadedOrUnloaded;
     }
 
-    public string? Uri
+    public IImageSource? ImageSource
     {
-        get => (string?)GetValue(UriProperty);
-        set => SetValue(UriProperty, value);
+        get => (IImageSource?)GetValue(ImageSourceProperty);
+        set => SetValue(ImageSourceProperty, value);
+    }
+
+    public string? ImageUri
+    {
+        get => (string?)GetValue(ImageUriProperty);
+        set => SetValue(ImageUriProperty, value);
     }
 
     public Stretch Stretch
@@ -105,7 +122,7 @@ internal partial class SimpleImageView : UserControl
         _isLoaded = IsLoaded;
         if (_isLoaded)
         {
-            LoadUri();
+            LoadSource();
             RequestReload();
         }
         else
@@ -131,20 +148,21 @@ internal partial class SimpleImageView : UserControl
     // Loading
     //
 
-    private void LoadUri()
+    private void LoadSource()
     {
         if (!_isLoaded)
         {
             return;
         }
 
-        string? uri = Uri;
-        if (uri == _uri)
+        IImageSource? source = ImageSource;
+        string? uri = source is null ? ImageUri : source.Uri;
+        if (_uri == uri)
         {
             return;
         }
 
-        _uriSession.Next();
+        _sourceSession.Next();
         _uri = uri;
         _source = null;
         _originalSize = null;
@@ -155,11 +173,11 @@ internal partial class SimpleImageView : UserControl
             return;
         }
 
-        CancellationSession.IToken token = _uriSession.Token;
+        CancellationSession.IToken token = _sourceSession.Token;
 
         CoroutineUtils.Run(async () =>
         {
-            IImageSource? source = await ResolveImageSource(uri);
+            source ??= await ResolveImageSource(uri);
 
             if (source is null || token.IsCancellationRequested)
             {

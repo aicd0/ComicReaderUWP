@@ -45,8 +45,8 @@
                 x:Name="ImageHolder"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Stretch="UniformToFill"
-                Uri="{x:Bind Item.CoverImageUri, Mode=OneWay}" />
+                ImageUri="{x:Bind Item.CoverImageUri, Mode=OneWay}"
+                Stretch="UniformToFill" />
         </Grid>
 
         <StackPanel

@@ -11,7 +11,7 @@ namespace ComicReaderUWP.Converters;
 /// Value converter that translates true to <see cref="\uE76C"/> and false
 /// to <see cref="\uE70D"/>.
 /// </summary>
-public class BooleanToCollapseGlyphConverter : IValueConverter
+internal partial class BooleanToCollapseGlyphConverter : IValueConverter
 {
     public static string Convert(bool value)
     {
