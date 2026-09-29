@@ -203,13 +203,6 @@ internal sealed partial class MainPage : BasePage
         ViewModel.UpdateMoreMenuItems();
     }
 
-    protected override void OnStop()
-    {
-        base.OnStop();
-
-        ViewModel.OnStop();
-    }
-
     private void ObserveData()
     {
         BusyStateManager.Busy.ObserveSticky(this, busy =>
@@ -351,18 +344,11 @@ internal sealed partial class MainPage : BasePage
                 handled = true;
                 GetMainWindowAbility().ExitFullscreen();
                 break;
-            case Windows.System.VirtualKey.F10:
-                if (ctrlDown)
-                {
-                    handled = true;
-                    ViewModel.StartOrStopLogger();
-                }
-                break;
             case Windows.System.VirtualKey.F11:
                 if (ctrlDown)
                 {
                     handled = true;
-                    ViewModel.ShowOrHideLogger();
+                    ViewModel.OpenDevTools();
                 }
                 break;
         }

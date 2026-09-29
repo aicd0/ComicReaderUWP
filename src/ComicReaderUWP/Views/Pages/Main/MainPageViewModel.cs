@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 
@@ -17,10 +16,8 @@ using ComicReaderUWP.Common.Services;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
-using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
-using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -31,8 +28,6 @@ namespace ComicReaderUWP.Views.Pages.Main;
 internal partial class MainPageViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    public ObservableCollection<LogItemViewModel> LogItems { get; } = [];
 
     private bool _isBusy = false;
     public bool IsBusy
@@ -54,17 +49,6 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             _isFullscreen = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFullscreen)));
             UpdateMoreMenuItems();
-        }
-    }
-
-    private bool _isLogVisible = false;
-    public bool IsLogVisible
-    {
-        get => _isLogVisible;
-        set
-        {
-            _isLogVisible = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLogVisible)));
         }
     }
 
@@ -170,21 +154,24 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
     private ActionHandler _actionHandler = ActionHandler.Dummy;
 
-    public MainPageViewModel()
-    {
-        _logListener = new LogListener(this);
-    }
-
     public void Initialize(ActionHandler actionHandler)
     {
         _actionHandler = actionHandler;
-        ShowOrHideLogger(AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_LOG_VISIBLE, false));
-        StartOrStopLogger(AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_LOG_STARTED, true));
     }
 
-    public void OnStop()
+    public void OpenDevTools()
     {
-        Logger.RemoveListener(_logListener);
+        if (!DebugUtils.DeveloperMode)
+        {
+            return;
+        }
+
+        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
+        ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
+            .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
+            .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
+            .Build();
+        _actionHandler.HandleNoResult(actionModel);
     }
 
     public void UpdateSidebarButton(bool opened)
@@ -303,15 +290,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             {
                 Text = "Dev tools",
                 Icon = new FontIconSource() { Glyph = "\uEC7A" },
-                Click = () =>
-                {
-                    var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
-                    ActionModel actionModel = ActionModel.Builder.Create(OpenTabProvider.NAME)
-                        .AddParameter(OpenTabProvider.PARAM_URL, route.Url)
-                        .AddParameter(OpenTabProvider.PARAM_WINDOW_ID, "-1")
-                        .Build();
-                    _actionHandler.HandleNoResult(actionModel);
-                },
+                Click = OpenDevTools,
             });
         }
 
@@ -346,97 +325,5 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         });
 
         MoreButtonFlyoutItems = items;
-    }
-
-    //
-    // Logs
-    //
-
-    private readonly LogListener _logListener;
-    private bool _logStarted = false;
-
-    public void StartOrStopLogger()
-    {
-        StartOrStopLogger(!_logStarted);
-    }
-
-    public void ShowOrHideLogger()
-    {
-        ShowOrHideLogger(!_isLogVisible);
-    }
-
-    private void StartOrStopLogger(bool started)
-    {
-        if (started && !DebugUtils.DeveloperMode)
-        {
-            return;
-        }
-
-        if (started == _logStarted)
-        {
-            return;
-        }
-
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_LOG_STARTED, started);
-        _logStarted = started;
-        if (started)
-        {
-            Logger.AddListener(_logListener);
-        }
-    }
-
-    public void ShowOrHideLogger(bool visible)
-    {
-        if (visible && !DebugUtils.DeveloperMode)
-        {
-            return;
-        }
-
-        if (_isLogVisible == visible)
-        {
-            return;
-        }
-
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_LOG_VISIBLE, visible);
-        IsLogVisible = visible;
-    }
-
-    private void AppendLog(string message)
-    {
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            LogItemViewModel item = new()
-            {
-                Text = message,
-            };
-
-            LogItems.Insert(0, item);
-            while (LogItems.Count > 100)
-            {
-                LogItems.RemoveAt(LogItems.Count - 1);
-            }
-        });
-    }
-
-    private class LogListener(MainPageViewModel viewModel) : Logger.ILogListener
-    {
-        public void OnLog(Logger.LogItem item)
-        {
-            if (!viewModel._logStarted)
-            {
-                return;
-            }
-
-            if (item.Level <= 4)
-            {
-                List<LogTag?> consoleWhitelist = DebugModel.ConsoleWhitelist;
-                if (!consoleWhitelist.Any(t => t is null || t.ContainsAny(item.Tag)))
-                {
-                    return;
-                }
-            }
-
-            viewModel.AppendLog(item.DisplayMessage);
-        }
     }
 }

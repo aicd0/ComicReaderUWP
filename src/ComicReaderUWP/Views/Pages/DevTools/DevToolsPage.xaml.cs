@@ -3,18 +3,27 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Archive;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
+using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Models;
+using ComicReaderUWP.ViewModels;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -23,10 +32,14 @@ namespace ComicReaderUWP.Views.Pages.DevTools;
 internal sealed partial class DevToolsPage : BasePage
 {
     private const string TAG = nameof(DevToolsPage);
+    private const int MAX_LOG_ITEM_COUNT = 10000;
+    private const int COUNTER_UPDATE_INTERVAL = 500;
 
     public DevToolsPage()
     {
         InitializeComponent();
+
+        _logListener = new LogListener(this);
     }
 
     //
@@ -39,6 +52,12 @@ internal sealed partial class DevToolsPage : BasePage
 
         GetMainPageAbility().SetTitle("Dev tools");
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Repair });
+
+        StartOrStopLogger(AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_LOG_STARTED, true));
+        UpdateLogToggleButton();
+
+        InitializeCounters();
+        UpdateCounters();
     }
 
     protected override void OnResume()
@@ -47,6 +66,13 @@ internal sealed partial class DevToolsPage : BasePage
 
         SetResult(null);
         RestoreConfig();
+    }
+
+    protected override void OnStop()
+    {
+        base.OnStop();
+
+        Logger.RemoveListener(_logListener);
     }
 
     //
@@ -150,6 +176,193 @@ internal sealed partial class DevToolsPage : BasePage
     private void DeveloperModeToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         DebugUtils.DeveloperMode = DeveloperModeToggleSwitch.IsOn;
+    }
+
+    //
+    // Logs
+    //
+
+    private readonly LogListener _logListener;
+    private bool _logStarted = false;
+    private bool _logStickToLatest = true;
+
+    public ObservableCollection<LogItemViewModel> LogItems { get; } = [];
+
+    private void LogToggleButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        StartOrStopLogger(!_logStarted);
+    }
+
+    private void LogStickButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        _logStickToLatest = LogStickButton.IsChecked == true;
+        if (_logStickToLatest)
+        {
+            ScrollToLatestLog();
+        }
+    }
+
+    private void StartOrStopLogger(bool started)
+    {
+        if (started && !DebugUtils.DeveloperMode)
+        {
+            return;
+        }
+
+        if (started == _logStarted)
+        {
+            return;
+        }
+
+        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_LOG_STARTED, started);
+        _logStarted = started;
+        if (started)
+        {
+            Logger.AddListener(_logListener);
+        }
+
+        UpdateLogToggleButton();
+    }
+
+    private void UpdateLogToggleButton()
+    {
+        LogToggleButton.Content = _logStarted ? "Pause" : "Start";
+    }
+
+    private void ScrollToLatestLog()
+    {
+        if (LogItems.Count == 0)
+        {
+            return;
+        }
+
+        LogListView.ScrollIntoView(LogItems[^1]);
+    }
+
+    private void AppendLog(string message)
+    {
+        CoroutineUtils.RunInMainThread(() =>
+        {
+            LogItemViewModel item = new()
+            {
+                Text = message,
+            };
+
+            LogItems.Add(item);
+            while (LogItems.Count > MAX_LOG_ITEM_COUNT)
+            {
+                LogItems.RemoveAt(0);
+            }
+
+            if (_logStickToLatest)
+            {
+                LogListView.ScrollIntoView(item);
+            }
+        });
+    }
+
+    private class LogListener(DevToolsPage page) : Logger.ILogListener
+    {
+        public void OnLog(Logger.LogItem item)
+        {
+            Interlocked.Increment(ref page._receivedLogCount);
+            page.RequestCounterUpdate();
+
+            if (!page._logStarted)
+            {
+                return;
+            }
+
+            if (item.Level <= 4)
+            {
+                List<LogTag?> consoleWhitelist = DebugModel.ConsoleWhitelist;
+                if (!consoleWhitelist.Any(t => t is null || t.ContainsAny(item.Tag)))
+                {
+                    return;
+                }
+            }
+
+            page.AppendLog(item.DisplayMessage);
+        }
+    }
+
+    //
+    // Counters
+    //
+
+    private readonly List<EventCounter> _counters = [];
+    private long _receivedLogCount = 0L;
+    private long _lastCounterUpdateTime = 0L;
+    private int _counterUpdateScheduled = 0;
+
+    private void InitializeCounters()
+    {
+        GlobalEvent events = GlobalEvent.Instance;
+        _counters.Add(new EventCounter("Logs", () => Interlocked.Read(ref _receivedLogCount)));
+        ObserveEventCounter("CollectionUpdated", events.CollectionUpdated);
+        ObserveEventCounter("ComicUpdated", events.ComicUpdated);
+        ObserveEventCounter("FilterUpdated", events.FilterUpdated);
+        ObserveEventCounter("FavoriteUpdated", events.FavoriteUpdated);
+        ObserveEventCounter("HistoryUpdated", events.HistoryUpdated);
+        ObserveEventCounter("TagInfoUpdated", events.TagInfoUpdated);
+    }
+
+    private void ObserveEventCounter<T>(string name, ILiveDataObserveAbility<IValueObserver<T>> liveData) where T : notnull
+    {
+        long count = 0L;
+        _counters.Add(new EventCounter(name, () => count));
+        liveData.Observe(this, _ =>
+        {
+            count++;
+            RequestCounterUpdate();
+        });
+    }
+
+    private void RequestCounterUpdate()
+    {
+        long now = Environment.TickCount64;
+        long last = Interlocked.Read(ref _lastCounterUpdateTime);
+        if (now - last >= COUNTER_UPDATE_INTERVAL && Interlocked.CompareExchange(ref _lastCounterUpdateTime, now, last) == last)
+        {
+            CoroutineUtils.RunInMainThread(UpdateCounters);
+            return;
+        }
+
+        if (Interlocked.CompareExchange(ref _counterUpdateScheduled, 1, 0) != 0)
+        {
+            return;
+        }
+
+        CoroutineUtils.Run(async () =>
+        {
+            int remaining = (int)(COUNTER_UPDATE_INTERVAL - (Environment.TickCount64 - Interlocked.Read(ref _lastCounterUpdateTime)));
+            if (remaining > 0)
+            {
+                await Task.Delay(remaining);
+            }
+
+            Interlocked.Exchange(ref _counterUpdateScheduled, 0);
+            Interlocked.Exchange(ref _lastCounterUpdateTime, Environment.TickCount64);
+            CoroutineUtils.RunInMainThread(UpdateCounters);
+        });
+    }
+
+    private void UpdateCounters()
+    {
+        var builder = new StringBuilder();
+        foreach (EventCounter counter in _counters)
+        {
+            builder.Append((counter.Name + ": ").PadRight(20)).Append(counter.Count.ToString("N0", CultureInfo.InvariantCulture)).AppendLine();
+        }
+
+        CounterTextBlock.Text = builder.ToString().TrimEnd();
+    }
+
+    private class EventCounter(string name, Func<long> getCount)
+    {
+        public string Name { get; } = name;
+
+        public long Count => getCount();
     }
 
     //
