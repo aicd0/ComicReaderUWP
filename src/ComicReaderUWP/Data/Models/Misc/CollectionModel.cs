@@ -39,37 +39,40 @@ internal static class CollectionModel
         });
     }
 
-    public static async Task<IReadOnlyList<long>> GetCollectionIds(long comicId)
+    public static async Task<IReadOnlySet<long>> GetCollectionIdsContainingAll(IEnumerable<long> comicIds)
     {
-        if (comicId < 0)
+        List<long> ids = [.. comicIds.Where(x => x >= 0).Distinct()];
+        if (ids.Count == 0)
         {
-            return [];
+            return new HashSet<long>();
         }
 
         return await ComicHandle.Enqueue(() =>
         {
-            SelectCommand command = SelectCommand.Create(ComicCollectionTable.Instance)
-                .AppendCondition(ComicCollectionTable.ColumnComicId, comicId);
-            IReaderToken<long> collectionIdToken = command.PutQueryInt64(ComicCollectionTable.ColumnCollectionId);
-            List<long> ids = [];
-            using SelectCommand.IReader reader = command.Execute();
-            while (reader.Read())
+            HashSet<long> result = [];
+            bool hasResult = false;
+            foreach (IEnumerable<long> chunk in SqlUtils.ChunkBy(ids))
             {
-                ids.Add(collectionIdToken.GetValue());
+                List<long> chunkIds = [.. chunk];
+                HashSet<long> matched = QueryCollectionIdsContainingAllNoLock(chunkIds);
+                if (!hasResult)
+                {
+                    result = matched;
+                    hasResult = true;
+                }
+                else
+                {
+                    result.IntersectWith(matched);
+                }
+
+                if (result.Count == 0)
+                {
+                    break;
+                }
             }
-            return ids;
+
+            return result;
         });
-    }
-
-    public static async Task<IReadOnlyList<long>> GetComicIds(ComicModel collection)
-    {
-        if (collection.IsExternal || !collection.IsCollection)
-        {
-            return [];
-        }
-
-        long collectionId = collection.Id;
-        return await ComicHandle.Enqueue(() => QueryComicIdsNoLock(collectionId));
     }
 
     public static ICondition CreateMemberCondition(long collectionId)
@@ -176,18 +179,23 @@ internal static class CollectionModel
     // Private helpers
     //
 
-    private static List<long> QueryComicIdsNoLock(long collectionId)
+    private static HashSet<long> QueryCollectionIdsContainingAllNoLock(List<long> comicIds)
     {
+        HashSet<long> collectionIds = [];
         SelectCommand command = SelectCommand.Create(ComicCollectionTable.Instance)
-            .AppendCondition(ComicCollectionTable.ColumnCollectionId, collectionId);
-        IReaderToken<long> comicIdToken = command.PutQueryInt64(ComicCollectionTable.ColumnComicId);
-        List<long> ids = [];
+            .AppendCondition(new InCondition(ColumnOrValue.FromColumn(ComicCollectionTable.ColumnComicId), comicIds))
+            .GroupBy(ComicCollectionTable.ColumnCollectionId);
+        IReaderToken<long> collectionIdToken = command.PutQueryInt64(ComicCollectionTable.ColumnCollectionId);
+        IReaderToken<long> matchedCountToken = command.PutQueryCountDistinct(ComicCollectionTable.ColumnComicId);
         using SelectCommand.IReader reader = command.Execute();
         while (reader.Read())
         {
-            ids.Add(comicIdToken.GetValue());
+            if (matchedCountToken.GetValue() == comicIds.Count)
+            {
+                collectionIds.Add(collectionIdToken.GetValue());
+            }
         }
-        return ids;
+        return collectionIds;
     }
 
     private static HashSet<long> QueryLinkedComicIdsNoLock(long collectionId, List<long> comicIds)
