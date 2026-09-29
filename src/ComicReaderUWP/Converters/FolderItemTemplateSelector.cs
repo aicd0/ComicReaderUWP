@@ -10,7 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Converters;
 
-public class FolderItemTemplateSelector : DataTemplateSelector
+internal partial class FolderItemTemplateSelector : DataTemplateSelector
 {
     public DataTemplate NormalTemplate { get; set; }
     public DataTemplate AddNewTemplate { get; set; }

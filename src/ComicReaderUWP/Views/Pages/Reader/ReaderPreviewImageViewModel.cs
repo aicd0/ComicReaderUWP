@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
 namespace ComicReaderUWP.Views.Pages.Reader;
@@ -16,14 +17,14 @@ internal partial class ReaderPreviewImageViewModel : INotifyPropertyChanged
 
     public Func<Task<IReadOnlyList<BaseMenuFlyoutItemModel>>>? RequestContextMenu { get; init; }
 
-    private string? _imageUri = null;
-    public string? ImageUri
+    private IImageSource? _imageSource = null;
+    public IImageSource? ImageSource
     {
-        get => _imageUri;
+        get => _imageSource;
         set
         {
-            _imageUri = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageUri)));
+            _imageSource = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageSource)));
         }
     }
 

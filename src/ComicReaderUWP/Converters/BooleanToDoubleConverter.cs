@@ -10,7 +10,7 @@ namespace ComicReaderUWP.Converters;
 /// <summary>
 /// Value converter that translates true to 1.0 and false to 0.0.
 /// </summary>
-public class BooleanToDoubleConverter : IValueConverter
+internal partial class BooleanToDoubleConverter : IValueConverter
 {
     public static double Convert(bool bool_value)
     {
@@ -34,7 +34,7 @@ public class BooleanToDoubleConverter : IValueConverter
 /// <summary>
 /// Value converter that translates true to 0.0 and false to 1.0.
 /// </summary>
-public class BooleanToDoubleNegationConverter : IValueConverter
+internal partial class BooleanToDoubleNegationConverter : IValueConverter
 {
     public object Convert(object value, Type target_type, object parameter, string language)
     {

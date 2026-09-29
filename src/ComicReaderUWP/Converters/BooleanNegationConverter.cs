@@ -10,7 +10,7 @@ namespace ComicReaderUWP.Converters;
 /// <summary>
 /// Value converter that translates true to false and vice versa.
 /// </summary>
-public class BooleanNegationConverter : IValueConverter
+internal partial class BooleanNegationConverter : IValueConverter
 {
     public object Convert(object value, Type target_type, object parameter, string language)
     {

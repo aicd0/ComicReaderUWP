@@ -847,7 +847,7 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             IImageSource imageSource = images[i];
             PreviewDataSource.Add(new()
             {
-                ImageUri = ResourceUri.CreateComicImage(comic.Id, index).ToString(),
+                ImageSource = imageSource,
                 Page = i + 1,
                 RequestContextMenu = async () => await CreateImageContextMenuItems(index, imageSource),
             });

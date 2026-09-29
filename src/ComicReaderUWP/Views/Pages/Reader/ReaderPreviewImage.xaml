@@ -14,7 +14,7 @@
         Width="140"
         Height="200"
         ContextRequested="ReaderPreviewImage_ContextRequested">
-        <image:SimpleImageView Uri="{x:Bind ViewModel.ImageUri, Mode=OneWay}" />
+        <image:SimpleImageView ImageSource="{x:Bind ViewModel.ImageSource, Mode=OneWay}" />
         <Grid
             Margin="0,0,8,8"
             Padding="5,2,5,5"

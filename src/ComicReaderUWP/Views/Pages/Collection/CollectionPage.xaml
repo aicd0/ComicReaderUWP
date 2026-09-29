@@ -31,9 +31,9 @@
         <image:SimpleImageView
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
+            ImageUri="{x:Bind ViewModel.BackgroundImageUri, Mode=OneWay}"
             IsHitTestVisible="False"
-            Stretch="UniformToFill"
-            Uri="{x:Bind ViewModel.BackgroundImageUri, Mode=OneWay}" />
+            Stretch="UniformToFill" />
         <Border
             Background="{ThemeResource BackgroundImageAcrylic}"
             IsHitTestVisible="False"
@@ -64,7 +64,7 @@
                             MaxHeight="160"
                             Margin="0,0,32,0"
                             VerticalAlignment="Top"
-                            Uri="{x:Bind ViewModel.CoverImageUri, Mode=OneWay}"
+                            ImageUri="{x:Bind ViewModel.CoverImageUri, Mode=OneWay}"
                             Visibility="{x:Bind ViewModel.IsCoverImageVisible, Mode=OneWay}" />
 
                         <!--  Information  -->
