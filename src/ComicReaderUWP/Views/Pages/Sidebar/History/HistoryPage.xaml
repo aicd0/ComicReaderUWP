@@ -72,7 +72,7 @@
                         <FontIcon
                             Grid.Column="0"
                             FontSize="18"
-                            Glyph="&#xE8B9;" />
+                            Glyph="{x:Bind ItemGlyph}" />
                         <TextBlock
                             Grid.Column="1"
                             Margin="8,0,0,2"

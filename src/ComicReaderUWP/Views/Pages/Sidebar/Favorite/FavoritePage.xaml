@@ -80,7 +80,7 @@
                         <FontIcon
                             Margin="0,2,0,0"
                             FontSize="18"
-                            Glyph="&#xE8B9;"
+                            Glyph="{x:Bind ItemGlyph}"
                             Visibility="{x:Bind IsItem, Mode=OneWay}" />
                     </Grid>
                     <TextBlock

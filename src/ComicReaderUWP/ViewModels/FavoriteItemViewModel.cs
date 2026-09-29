@@ -5,16 +5,17 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.ViewModels;
 
-public enum FavoriteNodeType
+internal enum FavoriteNodeType
 {
     Item,
     Filter
 };
 
-public partial class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChanged
+internal partial class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -28,6 +29,7 @@ public partial class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChang
         _expanded = false;
     }
 
+    public ComicModel? Comic { get; set; }
     public string Name { get; set; }
     public string EditingName { get; set; }
     public long Id { get; set; }
@@ -59,6 +61,8 @@ public partial class FavoriteItemViewModel : BaseViewModel, INotifyPropertyChang
         get => Type == FavoriteNodeType.Item;
         set { Type = value ? FavoriteNodeType.Item : FavoriteNodeType.Filter; }
     }
+
+    public string ItemGlyph => Comic is null ? "\uE9CE" : (Comic.IsCollection ? "\uF5ED" : "\uE8B9");
 
     public void FixParent()
     {

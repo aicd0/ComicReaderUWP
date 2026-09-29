@@ -1,22 +1,24 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-#nullable disable
-
 using System.Collections.ObjectModel;
 
 using ComicReaderUWP.Common.BaseUI;
+using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.ViewModels;
 
-public class HistoryItemViewModel : BaseViewModel
+internal class HistoryItemViewModel : BaseViewModel
 {
+    public ComicModel? Comic { get; set; }
     public long Id { get; set; }
-    public string Time { get; set; }
-    public string Title { get; set; }
+    public string Time { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+
+    public string ItemGlyph => Comic is null ? "\uE9CE" : (Comic.IsCollection ? "\uF5ED" : "\uE8B9");
 }
 
-public class HistoryGroupViewModel : ObservableCollection<HistoryItemViewModel>
+internal class HistoryGroupViewModel : ObservableCollection<HistoryItemViewModel>
 {
     public HistoryGroupViewModel(string key) : base()
     {
