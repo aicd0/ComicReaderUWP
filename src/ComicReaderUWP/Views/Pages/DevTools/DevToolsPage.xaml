@@ -6,54 +6,122 @@
     xmlns:cwc="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:ComicReaderUWP.ViewModels"
     mc:Ignorable="d">
 
     <Grid>
-        <ScrollViewer>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="320" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" MinWidth="320" />
+        </Grid.ColumnDefinitions>
+
+        <ScrollViewer Grid.Column="0">
             <StackPanel Padding="16" Orientation="Vertical">
-
                 <TextBlock x:Name="TbOperationResult" Foreground="Yellow" />
-
-                <Grid Height="16" />
-
+                <TextBlock
+                    x:Name="CounterTextBlock"
+                    Margin="0,8,0,0"
+                    FontFamily="Consolas"
+                    FontSize="12" />
                 <TextBox
                     x:Name="CommonConfigsTextBlock"
+                    Margin="0,16,0,0"
                     AcceptsReturn="True"
                     TextWrapping="NoWrap" />
-                <Grid Height="8" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel
+                    Margin="0,8,0,0"
+                    Orientation="Horizontal"
+                    Spacing="8">
                     <Button Click="ApplyConfigsButton_Click" Content="Apply" />
                     <Button Click="RestoreConfigsButton_Click" Content="Restore" />
                     <Button Click="ResetConfigsButton_Click" Content="Reset" />
                 </StackPanel>
-
-                <Grid Height="16" />
-
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel
+                    Margin="0,16,0,0"
+                    Orientation="Horizontal"
+                    Spacing="8">
                     <Button Click="CrashAppButton_Click" Content="Crash the app" />
                     <Button Click="TriggerBackgroundTaskFailure_Click" Content="Trigger background task failure" />
                     <Button Click="TriggerAssertFailureButton_Click" Content="Trigger assert failure" />
                 </StackPanel>
-                <Grid Height="8" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel
+                    Margin="0,8,0,0"
+                    Orientation="Horizontal"
+                    Spacing="8">
                     <Button Click="ShowDialogOnActiveWindowButton_Click" Content="Show dialog on active window" />
                 </StackPanel>
-                <Grid Height="8" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel
+                    Margin="0,8,0,0"
+                    Orientation="Horizontal"
+                    Spacing="8">
                     <Button Click="PrintMemoryLeakReportButton_Click" Content="Print memory leak report" />
                 </StackPanel>
-                <Grid Height="8" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel
+                    Margin="0,8,0,0"
+                    Orientation="Horizontal"
+                    Spacing="8">
                     <Button Click="RunArchiveBenchmarkButton_Click" Content="Archive benchmark" />
                 </StackPanel>
-
-                <Grid Height="16" />
-
-                <TextBlock Text="Developer mode" />
+                <TextBlock Margin="0,16,0,0" Text="Developer mode" />
                 <ToggleSwitch x:Name="DeveloperModeToggleSwitch" Toggled="DeveloperModeToggleSwitch_Toggled" />
-
             </StackPanel>
         </ScrollViewer>
+
+        <cwc:GridSplitter
+            Grid.Column="1"
+            Width="8"
+            ResizeBehavior="PreviousAndNext"
+            ResizeDirection="Columns" />
+
+        <Grid
+            Grid.Column="2"
+            Background="{ThemeResource CommandBarBackground}"
+            BorderBrush="{ThemeResource SidePaneBorderBrush}"
+            BorderThickness="1,0,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <StackPanel
+                Margin="16,12"
+                Orientation="Horizontal"
+                Spacing="12">
+                <Button x:Name="LogToggleButton" Click="LogToggleButton_Click" />
+                <ToggleButton
+                    x:Name="LogStickButton"
+                    Click="LogStickButton_Click"
+                    Content="Stick to latest"
+                    IsChecked="True" />
+            </StackPanel>
+            <ListView
+                x:Name="LogListView"
+                Grid.Row="1"
+                Padding="8,0,8,8"
+                ItemsSource="{x:Bind LogItems}"
+                SelectionMode="None">
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection />
+                </ListView.ItemContainerTransitions>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="MinHeight" Value="0" />
+                        <Setter Property="Padding" Value="8,0" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:LogItemViewModel">
+                        <TextBlock
+                            FontFamily="Consolas"
+                            FontSize="12"
+                            IsTextSelectionEnabled="True"
+                            Text="{x:Bind Text}"
+                            TextWrapping="Wrap" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
     </Grid>
 
 </base:BasePage>

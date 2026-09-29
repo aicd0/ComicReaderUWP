@@ -12,7 +12,6 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:primitiveContract7Present="using:Microsoft.UI.Xaml.Controls.Primitives?IsApiContractPresent(Windows.Foundation.UniversalApiContract,7)"
     xmlns:sidebar="using:ComicReaderUWP.Views.Pages.Main.Sidebar"
-    xmlns:vm="using:ComicReaderUWP.ViewModels"
     KeyboardAcceleratorPlacementMode="Hidden"
     mc:Ignorable="d">
 
@@ -178,10 +177,6 @@
             Key="Escape"
             Invoked="KeyboardAccelerator_Invoked"
             Modifiers="None" />
-        <KeyboardAccelerator
-            Key="F10"
-            Invoked="KeyboardAccelerator_Invoked"
-            Modifiers="Control" />
         <KeyboardAccelerator
             Key="F11"
             Invoked="KeyboardAccelerator_Invoked"
@@ -374,35 +369,5 @@
                 VerticalAlignment="Center"
                 IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
         </Grid>
-
-        <!--  Logs  -->
-        <ListView
-            x:Name="LogListView"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            IsHitTestVisible="False"
-            ItemsSource="{x:Bind ViewModel.LogItems}"
-            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-            ScrollViewer.VerticalScrollBarVisibility="Disabled"
-            Visibility="{x:Bind ViewModel.IsLogVisible, Mode=OneWay}">
-            <ListView.ItemContainerTransitions>
-                <TransitionCollection />
-            </ListView.ItemContainerTransitions>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                    <Setter Property="Padding" Value="0" />
-                    <Setter Property="MinHeight" Value="0" />
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="vm:LogItemViewModel">
-                    <Grid HorizontalAlignment="Left" Background="#90000000">
-                        <TextBlock Foreground="#B0FFFFFF" Text="{x:Bind Text}" />
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
     </Grid>
 </base:BasePage>
