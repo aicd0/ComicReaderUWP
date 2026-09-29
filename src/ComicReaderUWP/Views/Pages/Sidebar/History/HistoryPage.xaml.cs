@@ -59,6 +59,14 @@ internal sealed partial class HistoryPage : BasePage
         HistoryGroupViewModel? currentGroup = null;
         List<ComicHistoryItemModel> historyItems = await ComicHistoryItemModel.GetAllAsync();
         historyItems.Sort((x, y) => y.DateTime.CompareTo(x.DateTime));
+
+        List<ComicModel> comics = await ComicModel.BatchFromId(historyItems.Select(x => x.ComicId));
+        Dictionary<long, ComicModel> comicMap = new();
+        foreach (ComicModel comic in comics)
+        {
+            comicMap[comic.Id] = comic;
+        }
+
         foreach (ComicHistoryItemModel item in historyItems)
         {
             DateTimeOffset localTime = item.DateTime.ToLocalTime();
@@ -70,9 +78,11 @@ internal sealed partial class HistoryPage : BasePage
             }
 
             currentGroup ??= new HistoryGroupViewModel(key);
+            comicMap.TryGetValue(item.ComicId, out ComicModel? comic);
             var itemOut = new HistoryItemViewModel
             {
                 Id = item.ComicId,
+                Comic = comic,
                 Time = localTime.ToString("t", EnvironmentProvider.Instance.GetCurrentAppLanguageInfo()),
                 Title = item.Title
             };
@@ -97,15 +107,15 @@ internal sealed partial class HistoryPage : BasePage
 
     private async Task OpenItem(HistoryItemViewModel item, bool newTab)
     {
-        ComicModel? comic = await ComicModel.FromId(item.Id);
+        ComicModel? comic = item.Comic ?? await ComicModel.FromId(item.Id);
         if (comic is null)
         {
             DeleteItem(item);
             return;
         }
 
-        IEnumerable<long> playlistComicIds = DataSource.SelectMany(x => x).Select(x => x.Id);
-        PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComicIds(playlistComicIds);
+        IEnumerable<ComicModel> playlistComics = DataSource.SelectMany(x => x).Select(x => x.Comic).OfType<ComicModel>();
+        PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(playlistComics);
         if (newTab)
         {
             Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);

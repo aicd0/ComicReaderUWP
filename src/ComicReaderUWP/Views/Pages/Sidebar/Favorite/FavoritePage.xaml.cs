@@ -46,14 +46,14 @@ internal sealed partial class FavoritePage : BasePage
     {
         base.OnResume();
 
-        Update();
+        CoroutineUtils.Run(Update);
     }
 
     private void ObserveData()
     {
         GlobalEvent.Instance.FavoriteUpdated.Observe(this, delegate
         {
-            Update();
+            CoroutineUtils.Run(Update);
         });
     }
 
@@ -62,16 +62,24 @@ internal sealed partial class FavoritePage : BasePage
         return GetAbility<IMainPageAbility>()!;
     }
 
-    // utilities
-    private void Update()
+    private async Task Update()
     {
-        FavoriteModel.ExternalModel model = FavoriteModel.Instance.GetModel();
-        if (model == null)
+        static void CollectItemIds(List<FavoriteModel.ExternalNodeModel> nodes, List<long> ids)
         {
-            return;
+            foreach (FavoriteModel.ExternalNodeModel node in nodes)
+            {
+                if (node.Type == "i")
+                {
+                    ids.Add(node.Id);
+                }
+                else
+                {
+                    CollectItemIds(node.Children, ids);
+                }
+            }
         }
 
-        static void fillNode(List<FavoriteModel.ExternalNodeModel> it, ObservableCollection<FavoriteItemViewModel> et, FavoriteItemViewModel? parent)
+        static void FillNode(List<FavoriteModel.ExternalNodeModel> it, ObservableCollection<FavoriteItemViewModel> et, Dictionary<long, ComicModel> comicMap)
         {
             foreach (FavoriteModel.ExternalNodeModel inode in it)
             {
@@ -80,24 +88,43 @@ internal sealed partial class FavoritePage : BasePage
 
                 if (type == FavoriteNodeType.Filter)
                 {
-                    fillNode(inode.Children, enode.Children, enode);
+                    FillNode(inode.Children, enode.Children, comicMap);
                 }
                 else
                 {
                     enode.Id = inode.Id;
+                    comicMap.TryGetValue(inode.Id, out ComicModel? comic);
+                    enode.Comic = comic;
                 }
 
                 et.Add(enode);
             }
         }
 
+        FavoriteModel.ExternalModel model = FavoriteModel.Instance.GetModel();
+        if (model == null)
+        {
+            return;
+        }
+
+        List<long> itemIds = [];
+        CollectItemIds(model.Children, itemIds);
+
+        List<ComicModel> comics = await ComicModel.BatchFromId(itemIds);
+        Dictionary<long, ComicModel> comicMap = new();
+        foreach (ComicModel comic in comics)
+        {
+            comicMap[comic.Id] = comic;
+        }
+
         ObservableCollection<FavoriteItemViewModel> items = [];
-        fillNode(model.Children, items, null);
+        FillNode(model.Children, items, comicMap);
 
         static bool comparer(FavoriteItemViewModel x, FavoriteItemViewModel y) => x.Type == y.Type && x.Id == y.Id;
         static void updater(FavoriteItemViewModel x, FavoriteItemViewModel y)
         {
             x.Name = y.Name;
+            x.Comic = y.Comic;
             DiffUtils.UpdateCollection(x.Children, y.Children, comparer, updater);
         }
 
@@ -304,15 +331,15 @@ internal sealed partial class FavoritePage : BasePage
                 return;
             }
 
-            ComicModel? comic = await ComicModel.FromId(item.Id);
+            ComicModel? comic = item.Comic ?? await ComicModel.FromId(item.Id);
             if (comic is null)
             {
                 DeleteItem(item);
                 return;
             }
 
-            IEnumerable<long> playlistComicIds = item.Parent?.Children.Where(x => x.Type == FavoriteNodeType.Item).Select(x => x.Id) ?? [];
-            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComicIds(playlistComicIds);
+            IEnumerable<ComicModel> playlistComics = item.Parent?.Children.Where(x => x.Type == FavoriteNodeType.Item).Select(x => x.Comic).OfType<ComicModel>() ?? [];
+            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(playlistComics);
             Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
             OpenComicHelper.OpenComic(PageActionHandler, route);
             GetMainPageAbility().SetSidePaneOpenState(false, force: false);
@@ -415,15 +442,15 @@ internal sealed partial class FavoritePage : BasePage
         CoroutineUtils.Run(async () =>
         {
             var item = (FavoriteItemViewModel)((MenuFlyoutItem)sender).DataContext;
-            ComicModel? comic = await ComicModel.FromId(item.Id);
+            ComicModel? comic = item.Comic ?? await ComicModel.FromId(item.Id);
             if (comic is null)
             {
                 DeleteItem(item);
                 return;
             }
 
-            IEnumerable<long> playlistComicIds = item.Parent?.Children.Where(x => x.Type == FavoriteNodeType.Item).Select(x => x.Id) ?? [];
-            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComicIds(playlistComicIds);
+            IEnumerable<ComicModel> playlistComics = item.Parent?.Children.Where(x => x.Type == FavoriteNodeType.Item).Select(x => x.Comic).OfType<ComicModel>() ?? [];
+            PlaylistModel.Builder playlist = new PlaylistModel.Builder().AddComics(playlistComics);
             Route route = OpenComicHelper.GetComicRoute(comic, playlist: playlist);
             GetMainPageAbility().OpenInNewTab(route);
         });

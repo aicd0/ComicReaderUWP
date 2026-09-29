@@ -201,31 +201,16 @@ internal class PlaylistModel
 
         public Builder AddComic(ComicModel comic)
         {
+            if (comic.IsCollection)
+            {
+                return this;
+            }
+
             _comics.Add(new PlaylistItemJsonModel()
             {
                 IsExternal = comic.IsExternal,
                 Location = comic.Location,
                 ComicId = comic.Id
-            });
-            return this;
-        }
-
-        public Builder AddComicIds(IEnumerable<long> ids)
-        {
-            foreach (long id in ids)
-            {
-                AddComicId(id);
-            }
-
-            return this;
-        }
-
-        public Builder AddComicId(long id)
-        {
-            _comics.Add(new PlaylistItemJsonModel()
-            {
-                IsExternal = false,
-                ComicId = id,
             });
             return this;
         }
