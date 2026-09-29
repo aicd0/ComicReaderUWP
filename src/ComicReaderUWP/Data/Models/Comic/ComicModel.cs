@@ -911,9 +911,15 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         });
     }
 
-    private static void DispatchUpdateEvent(IEnumerable<long> comicIds)
+    private static void DispatchUpdateEvent(IEnumerable<long> comicIds, int delay = 0)
     {
-        GlobalEvent.Instance.ComicUpdated.Emit([.. comicIds.Where(x => x >= 0)]);
+        List<long> filtered = [.. comicIds.Where(x => x >= 0)];
+        if (filtered.Count == 0)
+        {
+            return;
+        }
+
+        GlobalEvent.Instance.ComicUpdated.EmitDelayed(filtered, delay);
     }
 
     //
@@ -969,9 +975,8 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Getters/Setters
     //
 
-    public string Description => _internalModel.Description;
-    public bool Hidden => _internalModel.Hidden;
     public long Id => _internalModel.Id;
+    public bool IsHidden => _internalModel.IsHidden;
     public bool IsEditable => _internalModel.IsEditable;
     public bool IsExternal => _internalModel.IsExternal;
     public bool IsCollection => _internalModel.IsCollection;
@@ -983,6 +988,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public IReadOnlyDictionary<string, ComicTagCategory> Tags => _internalModel.Tags;
     public string Title1 => _internalModel.Title1;
     public string Title2 => _internalModel.Title2;
+    public string Description => _internalModel.Description;
     public CompletionStatusEnum CompletionStatus => _internalModel.CompletionStatus;
     public int PageCount => _internalModel.PageCount;
     public IReadOnlyList<string> FolderViewPath => _internalModel.GetFolderViewPath();
@@ -1063,6 +1069,11 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     public async Task SetRating(int rating)
     {
+        if (Rating == rating)
+        {
+            return;
+        }
+
         await _internalModel.SetRating(rating);
         DispatchUpdateEvent([Id]);
     }
@@ -1075,25 +1086,32 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     public async Task SetCompletionStatus(CompletionStatusEnum status)
     {
+        bool updated = false;
+
         switch (status)
         {
             case CompletionStatusEnum.Unread:
-                await SetProgress(-1, 0);
+                updated = true;
+                await _internalModel.SetProgress(-1, 0);
                 break;
             case CompletionStatusEnum.Reading:
+                updated = true;
                 _internalModel.SetAsVisited();
                 break;
             default:
                 break;
         }
 
-        if (CompletionStatus == status)
+        if (CompletionStatus != status)
         {
-            return;
+            updated = true;
+            await _internalModel.SaveCompletionStatus(status);
         }
 
-        await _internalModel.SaveCompletionStatus(status);
-        DispatchUpdateEvent([Id]);
+        if (updated)
+        {
+            DispatchUpdateEvent([Id]);
+        }
     }
 
     public async Task SetAsVisited()
@@ -1103,8 +1121,9 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         if (CompletionStatusService.CanTransitToReadingAutomatically(CompletionStatus))
         {
             await _internalModel.SaveCompletionStatus(CompletionStatusEnum.Reading);
-            DispatchUpdateEvent([Id]);
         }
+
+        DispatchUpdateEvent([Id]);
     }
 
     public async Task SetProgress(int progress, double lastPosition)
@@ -1115,14 +1134,17 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
 
         await _internalModel.SetProgress(progress, lastPosition);
-
-        // This method is expected to be called frequently,
-        // skip the event to improve performance.
+        DispatchUpdateEvent([Id], delay: 5000);
     }
 
-    public async Task SetHidden(bool hidden)
+    public async Task SetHidden(bool isHidden)
     {
-        await _internalModel.SaveHiddenAsync(hidden);
+        if (IsHidden == isHidden)
+        {
+            return;
+        }
+
+        await _internalModel.SaveHiddenAsync(isHidden);
         DispatchUpdateEvent([Id]);
     }
 
@@ -1272,7 +1294,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
     }
 
-    bool SDK.Plugins.Comic.IComicModel.IsHidden => Hidden;
+    bool SDK.Plugins.Comic.IComicModel.IsHidden => IsHidden;
 
     SDK.Plugins.Comic.CompletionStatusEnum SDK.Plugins.Comic.IComicModel.CompletionStatus =>
         CompletionStatusService.HostEnumToSDKEnum(CompletionStatus);

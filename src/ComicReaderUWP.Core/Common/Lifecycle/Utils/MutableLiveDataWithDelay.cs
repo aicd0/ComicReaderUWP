@@ -7,14 +7,18 @@ namespace ComicReaderUWP.Core.Common.Lifecycle.Utils;
 
 public sealed class MutableLiveDataWithDelay<T>(
     IMutableLiveData<T> liveData,
-    long minInterval,
+    int minInterval,
     int delay = 0,
     Func<T, T, T>? mergeFunc = null) : IMutableLiveData<T> where T : notnull
 {
     private readonly IMutableLiveData<T> _liveData = liveData;
-    private readonly Lock _lock = new();
+    private readonly int _minInterval = minInterval;
+    private readonly int _delay = delay;
 
+    private readonly Lock _lock = new();
     private long _lastEmitTime = 0L;
+    private long _pendingDeadline = 0L;
+    private long _emitVersion = 0L;
     private T? _pendingValue = default;
     private bool _emitScheduled = false;
 
@@ -35,35 +39,12 @@ public sealed class MutableLiveDataWithDelay<T>(
 
     public void Emit(T value)
     {
-        int timeRemaining;
+        EmitInternal(value, 0);
+    }
 
-        lock (_lock)
-        {
-            if (_emitScheduled)
-            {
-                _pendingValue = mergeFunc is not null ? mergeFunc(_pendingValue!, value) : value;
-                return;
-            }
-
-            _emitScheduled = true;
-            _pendingValue = value;
-
-            long currentTime = GetTick();
-            long timeElapsed = currentTime - _lastEmitTime;
-            timeRemaining = Math.Max((int)(minInterval - timeElapsed), delay);
-        }
-
-        if (timeRemaining <= 0)
-        {
-            EmitPending();
-            return;
-        }
-
-        CoroutineUtils.Run(async () =>
-        {
-            await Task.Delay(timeRemaining);
-            EmitPending();
-        });
+    public void EmitDelayed(T value, int delay)
+    {
+        EmitInternal(value, delay);
     }
 
     public void Observe(ILifecycleOwner owner, IValueObserver<T> observer, ObserveOptions options)
@@ -81,13 +62,49 @@ public sealed class MutableLiveDataWithDelay<T>(
         return _liveData.HasObserver(observer);
     }
 
-    private void EmitPending()
+    private void EmitInternal(T value, int delay)
+    {
+        long version;
+        int timeRemaining;
+
+        lock (_lock)
+        {
+            _pendingValue = _emitScheduled && mergeFunc is not null ? mergeFunc(_pendingValue!, value) : value;
+
+            long currentTime = GetTick();
+            int requiredDelay = Math.Max(_delay, delay);
+            long deadline = Math.Max(_lastEmitTime + _minInterval, currentTime + requiredDelay);
+            if (_emitScheduled)
+            {
+                deadline = Math.Min(deadline, _pendingDeadline);
+            }
+
+            _pendingDeadline = deadline;
+            _emitScheduled = true;
+            version = ++_emitVersion;
+            timeRemaining = (int)Math.Clamp(deadline - currentTime, int.MinValue, int.MaxValue);
+        }
+
+        if (timeRemaining <= 0)
+        {
+            EmitPending(version);
+            return;
+        }
+
+        CoroutineUtils.Run(async () =>
+        {
+            await Task.Delay(timeRemaining);
+            EmitPending(version);
+        });
+    }
+
+    private void EmitPending(long version)
     {
         T value;
 
         lock (_lock)
         {
-            if (!_emitScheduled)
+            if (!_emitScheduled || _emitVersion != version)
             {
                 return;
             }

@@ -69,7 +69,7 @@ internal class ComicSearchEngine
             order[ids[i]] = i;
         }
 
-        comicItems.Sort(delegate (ComicModel x, ComicModel y)
+        comicItems.Sort((x, y) =>
         {
             if (!order.TryGetValue(x.Id, out int xIndex))
             {
@@ -221,7 +221,7 @@ internal class ComicSearchEngine
             return true;
         });
 
-        matches.Sort(delegate (Match x, Match y)
+        matches.Sort((x, y) =>
         {
             return y.Similarity - x.Similarity;
         });

@@ -59,7 +59,7 @@ internal class ComicImportExclusionModel
         {
             if (comic.IsCollection)
             {
-                return;
+                continue;
             }
 
             string location = comic.Location;

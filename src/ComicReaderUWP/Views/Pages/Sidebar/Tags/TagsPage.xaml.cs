@@ -40,12 +40,12 @@ internal sealed partial class TagsPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.TagInfoUpdated.Observe(this, delegate
+        GlobalEvent.Instance.TagInfoUpdated.Observe(this, _ =>
         {
             ViewModel.UpdateTags();
         });
 
-        GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
+        GlobalEvent.Instance.ComicUpdated.Observe(this, _ =>
         {
             ViewModel.UpdateTags();
         });

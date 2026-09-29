@@ -41,12 +41,12 @@ internal sealed partial class FilterPresetsPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.ComicUpdated.Observe(this, delegate
+        GlobalEvent.Instance.ComicUpdated.Observe(this, _ =>
         {
             ViewModel.UpdateComics();
         });
 
-        GlobalEvent.Instance.FilterUpdated.Observe(this, delegate
+        GlobalEvent.Instance.FilterUpdated.Observe(this, _ =>
         {
             ViewModel.UpdateComics();
         });
