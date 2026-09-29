@@ -441,10 +441,10 @@ internal static class MenuFlyoutItemsCreator
         if (collectionIds.Count > 0)
         {
             List<ComicModel> collections = await ComicModel.BatchFromId(collectionIds);
+            IReadOnlySet<long> linkedCollectionIds = await CollectionModel.GetCollectionIdsContainingAll(comics.Select(x => x.Id));
             foreach (ComicModel collection in collections)
             {
-                IReadOnlyList<long> linkedComicIds = await CollectionModel.GetComicIds(collection);
-                bool isLinked = comics.Count > 0 && comics.All(x => linkedComicIds.Contains(x.Id));
+                bool isLinked = linkedCollectionIds.Contains(collection.Id);
 
                 items.Add(new ToggleMenuFlyoutItemModel()
                 {

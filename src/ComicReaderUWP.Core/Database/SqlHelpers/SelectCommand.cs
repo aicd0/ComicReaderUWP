@@ -12,6 +12,7 @@ public partial class SelectCommand
     private readonly ITable _table;
     private readonly Dictionary<string, ITokenInternal> _tokens = [];
     private readonly List<ICondition> _conditions = [];
+    private readonly List<IColumnTypeless> _groupBy = [];
 
     private bool _distinct = false;
     private int _limit = 0;
@@ -39,9 +40,20 @@ public partial class SelectCommand
         return this;
     }
 
+    public SelectCommand GroupBy(params IColumnTypeless[] columns)
+    {
+        _groupBy.AddRange(columns);
+        return this;
+    }
+
     public IReaderToken<long> PutQueryCountAll()
     {
         return PutToken(new GeneralToken<long>("COUNT(*)", (reader, ordinal) => { return reader.GetInt64(ordinal); }));
+    }
+
+    public IReaderToken<long> PutQueryCountDistinct(IColumnTypeless column)
+    {
+        return PutToken(new GeneralToken<long>($"COUNT(DISTINCT {column.Name})", (reader, ordinal) => { return reader.GetInt64(ordinal); }));
     }
 
     public IReaderToken<int> PutQueryInt32(IColumn<int> column)
@@ -175,6 +187,20 @@ public partial class SelectCommand
                 }
 
                 sb.Append('(').Append(_conditions[i].GetExpression(command)).Append(')');
+            }
+        }
+
+        if (_groupBy.Count > 0)
+        {
+            sb.Append(" GROUP BY ");
+            for (int i = 0; i < _groupBy.Count; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append(',');
+                }
+
+                sb.Append(_groupBy[i].Name);
             }
         }
 

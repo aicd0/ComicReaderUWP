@@ -1,8 +1,6 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.Core.Common.Test;
-
 using Microsoft.UI.Dispatching;
 
 namespace ComicReaderUWP.Core.Common.Threading;
@@ -52,12 +50,6 @@ public static class MainThreadUtils
 
     private static async Task RunInMainThread(Action action, DispatcherQueuePriority priority, bool runImmediatelyIfPossible)
     {
-        if (TestSettings.UseCurrentThreadAsMainThread)
-        {
-            action();
-            return;
-        }
-
         DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable.");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
@@ -89,12 +81,6 @@ public static class MainThreadUtils
 
     private static async Task RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority, bool runImmediatelyIfPossible)
     {
-        if (TestSettings.UseCurrentThreadAsMainThread)
-        {
-            await action();
-            return;
-        }
-
         DispatcherQueue dispatcher = GetMainThreadDispatcher() ?? throw new InvalidOperationException("Main thread dispatcher is currently unavailable.");
         if (runImmediatelyIfPossible && dispatcher.HasThreadAccess)
         {
@@ -126,11 +112,6 @@ public static class MainThreadUtils
 
     public static bool IsMainThread()
     {
-        if (TestSettings.UseCurrentThreadAsMainThread)
-        {
-            return true;
-        }
-
         DispatcherQueue? queue = GetMainThreadDispatcher();
         if (queue == null)
         {
