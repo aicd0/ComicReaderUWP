@@ -34,6 +34,8 @@ internal static partial class ImageLoader
     private const string IMAGES_FOLDER_NAME = "Images";
     private const string MAIN_DATABASE_FILE_NAME = "db_main.db";
     private const long MIN_CACHE_CAPACITY = 1024 * 1024 * 1024;
+    private const int CACHE_TTL_DAYS = 30;
+    private const int MAX_CACHE_ROWS = 100000;
 
     private static string _cacheDirectoryPath = string.Empty;
     private static ImageCacheDatabase? sImageCacheDatabase;
@@ -75,7 +77,13 @@ internal static partial class ImageLoader
         }
 
         string databaseFilePath = Path.Combine(_cacheDirectoryPath, MAIN_DATABASE_FILE_NAME);
-        sImageCacheDatabase = new(databaseFilePath);
+        ImageCacheDatabase database = new(databaseFilePath);
+        sImageCacheDatabase = database;
+
+        TaskDispatcher.LongRunningThreadPool.Submit(() =>
+        {
+            database.Cleanup(TimeSpan.FromDays(CACHE_TTL_DAYS), MAX_CACHE_ROWS);
+        });
     }
 
     public static void Clear()
