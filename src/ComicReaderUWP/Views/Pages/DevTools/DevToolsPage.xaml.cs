@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -17,6 +17,7 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.Collections;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
@@ -185,8 +186,11 @@ internal sealed partial class DevToolsPage : BasePage
     private readonly LogListener _logListener;
     private bool _logStarted = false;
     private bool _logStickToLatest = true;
+    private readonly ObservableRingCollection<LogItemViewModel> _logItems = [];
+    private readonly ConcurrentQueue<string> _pendingLogMessages = new();
+    private int _logFlushScheduled = 0;
 
-    public ObservableCollection<LogItemViewModel> LogItems { get; } = [];
+    public ObservableRingCollection<LogItemViewModel> LogItems => _logItems;
 
     private void LogToggleButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
@@ -231,34 +235,47 @@ internal sealed partial class DevToolsPage : BasePage
 
     private void ScrollToLatestLog()
     {
-        if (LogItems.Count == 0)
+        if (_logItems.Count == 0)
         {
             return;
         }
 
-        LogListView.ScrollIntoView(LogItems[^1]);
+        LogListView.ScrollIntoView(_logItems[^1]);
     }
 
     private void AppendLog(string message)
     {
-        CoroutineUtils.RunInMainThread(() =>
+        _pendingLogMessages.Enqueue(message);
+
+        if (Interlocked.Exchange(ref _logFlushScheduled, 1) == 0)
         {
-            LogItemViewModel item = new()
+            CoroutineUtils.RunInMainThread(FlushPendingLogs);
+        }
+    }
+
+    private void FlushPendingLogs()
+    {
+        Interlocked.Exchange(ref _logFlushScheduled, 0);
+
+        LogItemViewModel? lastItem = null;
+        while (_pendingLogMessages.TryDequeue(out string? message))
+        {
+            lastItem = new LogItemViewModel()
             {
                 Text = message,
             };
+            _logItems.Add(lastItem);
+        }
 
-            LogItems.Add(item);
-            while (LogItems.Count > MAX_LOG_ITEM_COUNT)
-            {
-                LogItems.RemoveAt(0);
-            }
+        while (_logItems.Count > MAX_LOG_ITEM_COUNT)
+        {
+            _logItems.RemoveAt(0);
+        }
 
-            if (_logStickToLatest)
-            {
-                LogListView.ScrollIntoView(item);
-            }
-        });
+        if (_logStickToLatest && lastItem != null)
+        {
+            LogListView.ScrollIntoView(lastItem);
+        }
     }
 
     private class LogListener(DevToolsPage page) : Logger.ILogListener
