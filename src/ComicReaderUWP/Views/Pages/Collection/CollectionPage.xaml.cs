@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 
+using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
@@ -42,7 +44,8 @@ internal sealed partial class CollectionPage : BasePage
     {
         base.OnStart(bundle);
 
-        ItemsView.Initialize(PageActionHandler);
+        PageActionHandler.RegisterProvider(new CustomActionProvider(new CustomActionHandler(ViewModel)));
+        ItemsView.Initialize(ViewModel.ComicSelection, PageActionHandler);
         ViewTypeSelector.ViewTypeChanged += ViewModel.SelectViewType;
 
         GetMainPageAbility().SetTitle(StringResourceProvider.Instance.Collection);
@@ -248,5 +251,37 @@ internal sealed partial class CollectionPage : BasePage
     private IMainPageAbilityForTab GetMainPageAbility()
     {
         return GetAbility<IMainPageAbilityForTab>()!;
+    }
+
+    private class CustomActionHandler(CollectionPageViewModel viewModel) : CustomActionProvider.IHandler
+    {
+        private const string TAG = nameof(CustomActionHandler);
+
+        public void Handle(string source, string name, IReadOnlyList<string> args)
+        {
+            bool handled = true;
+            switch (source)
+            {
+                case MenuFlyoutItemsCreator.CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU:
+                    switch (name)
+                    {
+                        case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
+                            viewModel.ComicSelection.SetSelectMode(!viewModel.ComicSelection.IsSelectMode);
+                            break;
+                        default:
+                            handled = false;
+                            break;
+                    }
+                    break;
+                default:
+                    handled = false;
+                    break;
+            }
+
+            if (!handled)
+            {
+                Logger.F(TAG, $"Unknown action '{source}.{name}'");
+            }
+        }
     }
 }

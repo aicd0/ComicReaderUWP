@@ -38,8 +38,6 @@ internal sealed partial class ComicSelectionView : BaseUserControl
     public delegate void ScrollOffsetChangedEventHandler(double verticalOffset);
     public event ScrollOffsetChangedEventHandler? ScrollOffsetChanged;
 
-    public ComicSelectionViewModel ViewModel => (ComicSelectionViewModel)DataContext;
-
     public ComicFilterModel.ViewTypeEnum ItemViewType
     {
         get => (ComicFilterModel.ViewTypeEnum)GetValue(ItemViewTypeProperty);
@@ -86,6 +84,8 @@ internal sealed partial class ComicSelectionView : BaseUserControl
         typeof(ComicSelectionView),
         new PropertyMetadata(null));
 
+    public ComicSelectionViewModel? ViewModel { get; set; }
+
     private readonly ObservableCollection<ComicItemViewModel> _items = [];
     private readonly ObservableCollection<ComicGroupViewModel> _groups = [];
     private readonly ICollectionView _groupedView;
@@ -97,8 +97,6 @@ internal sealed partial class ComicSelectionView : BaseUserControl
     {
         InitializeComponent();
 
-        DataContextChanged += (sender, args) => Bindings.Update();
-
         GroupedItemSource.Source = _groups;
         _groupedView = GroupedItemSource.View;
 
@@ -106,22 +104,35 @@ internal sealed partial class ComicSelectionView : BaseUserControl
         ApplyItemViewType();
     }
 
-    public void Initialize(ActionHandler actionHandler)
+    public void Initialize(ComicSelectionViewModel viewModel, ActionHandler actionHandler)
     {
+        ViewModel = viewModel;
         _actionHandler = actionHandler;
-        _actionHandler.RegisterProvider(new CustomActionProvider(new SelectActionHandler(this)));
+        Bindings.Update();
     }
 
     public void SetItems(IEnumerable<ComicItemViewModel> items)
     {
+        ComicSelectionViewModel? viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
         List<ComicItemViewModel> newItems = [.. items];
         DiffUtils.UpdateCollection(_items, newItems, (x, y) => x.Comic.Id == y.Comic.Id, (x, y) => x.Update(y));
         ApplyItemsSource(false);
-        ViewModel.UpdateCommandBarButtonStates();
+        viewModel.UpdateCommandBarButtonStates();
     }
 
     public void SetGroupedItems(IEnumerable<ComicGroupViewModel> groups)
     {
+        ComicSelectionViewModel? viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
         List<ComicGroupViewModel> newGroups = [.. groups];
 
         // Disable ME as it's causing a native crash in Microsoft.ui.xaml.dll. This is not guaranteed a fix
@@ -136,7 +147,7 @@ internal sealed partial class ComicSelectionView : BaseUserControl
         }, disableME: true);
 
         ApplyItemsSource(true);
-        ViewModel.UpdateCommandBarButtonStates();
+        viewModel.UpdateCommandBarButtonStates();
     }
 
     private void ApplyItemsSource(bool grouped)
@@ -200,7 +211,13 @@ internal sealed partial class ComicSelectionView : BaseUserControl
 
     private void FavoriteButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        ComicSelectionViewModel? viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<ComicModel> comics = viewModel.GetSelectedComics();
         FavoriteModel.Instance.BatchAdd([.. comics.Select(x => new FavoriteModel.FavoriteItem
         {
             Id = x.Id,
@@ -210,18 +227,30 @@ internal sealed partial class ComicSelectionView : BaseUserControl
 
     private void UnfavoriteButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        ComicSelectionViewModel? viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<ComicModel> comics = viewModel.GetSelectedComics();
         FavoriteModel.Instance.BatchRemoveWithId([.. comics.Select(x => x.Id)]);
     }
 
     private void CompletionStatusButton_Click(object sender, RoutedEventArgs e)
     {
+        ComicSelectionViewModel? viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
         if (sender is not FrameworkElement anchor)
         {
             return;
         }
 
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        IReadOnlyList<ComicModel> comics = viewModel.GetSelectedComics();
         List<BaseMenuFlyoutItemModel> menuItems = MenuFlyoutItemsCreator.CreateCompletionStatusMenuItems(comics);
 
         var flyout = new MenuFlyout();
@@ -245,7 +274,13 @@ internal sealed partial class ComicSelectionView : BaseUserControl
 
     private void RemoveButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        ComicSelectionViewModel? viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<ComicModel> comics = viewModel.GetSelectedComics();
         string idList = string.Join(',', comics.Select(x => x.Id.ToString()));
         ActionModel actionModel = ActionModel.Builder.Create(RemoveComicProvider.NAME)
             .AddParameter(RemoveComicProvider.PARAM_COMIC_ID, idList)
@@ -255,16 +290,17 @@ internal sealed partial class ComicSelectionView : BaseUserControl
 
     private void SetSelectedComicsHidden(bool hidden)
     {
-        IReadOnlyList<ComicModel> comics = ViewModel.GetSelectedComics();
+        ComicSelectionViewModel? viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<ComicModel> comics = viewModel.GetSelectedComics();
         CoroutineUtils.Run(() => BusyStateManager.WithBusyState(() =>
         {
             return Task.WhenAll(comics.Select(x => x.SetHidden(hidden)));
         }));
-    }
-
-    private void ToggleSelectMode()
-    {
-        ViewModel.SetSelectMode(!ViewModel.IsSelectMode);
     }
 
     //
@@ -290,12 +326,12 @@ internal sealed partial class ComicSelectionView : BaseUserControl
 
     private void ItemsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        ViewModel.SetSelection(ItemsGrid.SelectedItems.OfType<ComicItemViewModel>());
+        ViewModel?.SetSelection(ItemsGrid.SelectedItems.OfType<ComicItemViewModel>());
     }
 
     private void ItemsGrid_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        ViewModel.SetSelectMode(false);
+        ViewModel?.SetSelectMode(false);
     }
 
     private void ItemsGrid_Loaded(object sender, RoutedEventArgs e)
@@ -345,40 +381,6 @@ internal sealed partial class ComicSelectionView : BaseUserControl
         if (sender is Button button && button.DataContext is ComicGroupViewModel group)
         {
             GroupCollapseRequested?.Invoke(group);
-        }
-    }
-
-    //
-    // Types
-    //
-
-    private class SelectActionHandler(ComicSelectionView view) : CustomActionProvider.IHandler
-    {
-        public void Handle(string source, string name, IReadOnlyList<string> args)
-        {
-            bool handled = true;
-            switch (source)
-            {
-                case MenuFlyoutItemsCreator.CUSTOM_ACTION_SOURCE_COMIC_ITEM_MENU:
-                    switch (name)
-                    {
-                        case MenuFlyoutItemsCreator.CUSTOM_ACTION_NAME_SELECT:
-                            view.ToggleSelectMode();
-                            break;
-                        default:
-                            handled = false;
-                            break;
-                    }
-                    break;
-                default:
-                    handled = false;
-                    break;
-            }
-
-            if (!handled)
-            {
-                Logger.F(TAG, $"Unknown action '{source}.{name}'");
-            }
         }
     }
 }
