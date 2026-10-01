@@ -174,6 +174,42 @@ internal sealed partial class DevToolsPage : BasePage
         });
     }
 
+    private void RunGcBenchmarkButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        static string ToMB(long bytes)
+        {
+            return (bytes / 1048576.0).ToString("N1", CultureInfo.InvariantCulture);
+        }
+
+        var button = (Button)sender;
+        button.IsEnabled = false;
+
+        const int gcBenchmarkIterationCount = 5;
+
+        var report = new StringBuilder();
+        report.Append("GC.Collect(2, Forced, blocking: true) x ").Append(gcBenchmarkIterationCount).AppendLine();
+
+        for (int i = 0; i < gcBenchmarkIterationCount; ++i)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            stopwatch.Stop();
+
+            GCMemoryInfo memoryInfo = GC.GetGCMemoryInfo();
+            report.Append('#').Append(i + 1)
+                  .Append(": ").Append(stopwatch.Elapsed.TotalMilliseconds.ToString("N1", CultureInfo.InvariantCulture)).Append(" ms")
+                  .Append(", gen=").Append(memoryInfo.Generation)
+                  .Append(", heap=").Append(ToMB(memoryInfo.HeapSizeBytes)).Append(" MB")
+                  .Append(", fragmented=").Append(ToMB(memoryInfo.FragmentedBytes)).Append(" MB")
+                  .Append(", committed=").Append(ToMB(memoryInfo.TotalCommittedBytes)).Append(" MB")
+                  .Append(", pause=").Append(memoryInfo.PauseTimePercentage.ToString("N2", CultureInfo.InvariantCulture)).Append('%')
+                  .AppendLine();
+        }
+
+        button.IsEnabled = true;
+        SetResult(report.ToString());
+    }
+
     private void DeveloperModeToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         DebugUtils.DeveloperMode = DeveloperModeToggleSwitch.IsOn;

@@ -16,7 +16,6 @@
             x:Name="ItemsView"
             Margin="0,0,-1,0"
             ContentPadding="0,10,0,10"
-            DataContext="{x:Bind ViewModel.ComicSelection}"
             GroupCollapseRequested="ItemsView_GroupCollapseRequested"
             ScrollOffsetChanged="ItemsView_ScrollOffsetChanged">
             <comicselection:ComicSelectionView.HeaderContent>

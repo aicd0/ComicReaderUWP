@@ -33,7 +33,6 @@
         <comicselection:ComicSelectionView
             x:Name="ItemsView"
             ContentPadding="0,15,0,8"
-            DataContext="{x:Bind ViewModel.ComicSelection}"
             ItemViewType="{x:Bind ViewModel.ViewType, Mode=OneWay}"
             ScrollOffsetChanged="ItemsView_ScrollOffsetChanged">
             <comicselection:ComicSelectionView.HeaderContent>
