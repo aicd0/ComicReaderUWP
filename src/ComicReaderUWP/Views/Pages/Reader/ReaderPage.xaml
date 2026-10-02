@@ -78,18 +78,29 @@
                 SizeChanged="BottomGrid_SizeChanged">
                 <Rectangle Height="1" Fill="{ThemeResource SidePaneBorderBrush}" />
                 <StackPanel
-                    Padding="8,8"
+                    Padding="8,0,8,12"
                     Background="{ThemeResource TitleBarBackground}"
                     Orientation="Vertical">
+                    <Slider
+                        x:Name="PlaybackSlider"
+                        Margin="4,0"
+                        FlowDirection="{x:Bind ViewModel.PreferredFlowDirection, Mode=OneWay}"
+                        IsThumbToolTipEnabled="False"
+                        Minimum="0.5"
+                        StepFrequency="0.01"
+                        ValueChanged="PlaybackSlider_ValueChanged" />
                     <Grid>
-                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            Orientation="Horizontal"
+                            Spacing="4">
                             <Button
                                 Click="PlaybackPreviousButton_Click"
                                 IsEnabled="{x:Bind ViewModel.IsPlaybackPreviousEnabled, Mode=OneWay}"
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="&#xE892;" />
+                                    <FontIcon FontSize="14" Glyph="&#xE892;" />
                                 </Button.Content>
                             </Button>
                             <Button
@@ -98,7 +109,7 @@
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind ViewModel.PlayOrPauseButtonTooltip, Mode=OneWay}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
+                                    <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
                                 </Button.Content>
                             </Button>
                             <Button
@@ -107,7 +118,7 @@
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind StringResource.Next}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="&#xE893;" />
+                                    <FontIcon FontSize="14" Glyph="&#xE893;" />
                                 </Button.Content>
                             </Button>
                             <Button
@@ -123,14 +134,14 @@
                                 Style="{StaticResource ReaderPlaybackControlButtonStyle}"
                                 ToolTipService.ToolTip="{x:Bind StringResource.More}">
                                 <Button.Content>
-                                    <FontIcon FontSize="16" Glyph="&#xE712;" />
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
                                 </Button.Content>
                             </Button>
                         </StackPanel>
                         <StackPanel
-                            Padding="4,0"
                             HorizontalAlignment="Right"
-                            Orientation="Horizontal">
+                            Orientation="Horizontal"
+                            Spacing="4">
                             <StackPanel
                                 Margin="0,0,8,0"
                                 Padding="4,0"
@@ -138,13 +149,13 @@
                                 Orientation="Horizontal"
                                 PointerWheelChanged="Zooming_PointerWheelChanged">
                                 <TextBlock
-                                    Margin="0,0,4,2"
+                                    Margin="0,0,2,2"
                                     VerticalAlignment="Center"
                                     FontSize="14"
                                     Text="{x:Bind ViewModel.Zooming, Mode=OneWay}" />
                                 <FontIcon
                                     VerticalAlignment="Center"
-                                    FontSize="12"
+                                    FontSize="14"
                                     Foreground="{ThemeResource ForegroundGrey2}"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>
@@ -155,13 +166,13 @@
                                 Orientation="Horizontal"
                                 PointerWheelChanged="PageIndicator_PointerWheelChanged">
                                 <TextBlock
-                                    Margin="0,0,4,2"
+                                    Margin="0,0,2,2"
                                     VerticalAlignment="Center"
                                     FontSize="14"
                                     Text="{x:Bind ViewModel.PrimaryPageIndicatorText, Mode=OneWay}" />
                                 <FontIcon
                                     VerticalAlignment="Center"
-                                    FontSize="12"
+                                    FontSize="14"
                                     Foreground="{ThemeResource ForegroundGrey2}"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>
@@ -190,14 +201,6 @@
                             </Button>
                         </StackPanel>
                     </Grid>
-                    <Slider
-                        x:Name="PlaybackSlider"
-                        Margin="4,2,4,-4"
-                        FlowDirection="{x:Bind ViewModel.PreferredFlowDirection, Mode=OneWay}"
-                        IsThumbToolTipEnabled="False"
-                        Minimum="0.5"
-                        StepFrequency="0.01"
-                        ValueChanged="PlaybackSlider_ValueChanged" />
                 </StackPanel>
             </StackPanel>
             <!--  Tips  -->
