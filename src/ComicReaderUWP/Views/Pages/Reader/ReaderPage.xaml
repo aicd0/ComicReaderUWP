@@ -9,6 +9,7 @@
     xmlns:cwc="using:CommunityToolkit.WinUI.Controls"
     xmlns:cwm="using:CommunityToolkit.WinUI.Media"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hotkey="using:ComicReaderUWP.Common.HotKey"
     xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
@@ -95,28 +96,31 @@
                             Orientation="Horizontal"
                             Spacing="4">
                             <Button
+                                hotkey:ShortcutToolTip.Action="OpenPreviousComic"
+                                hotkey:ShortcutToolTip.Text="{x:Bind StringResource.Previous}"
                                 Click="PlaybackPreviousButton_Click"
                                 IsEnabled="{x:Bind ViewModel.IsPlaybackPreviousEnabled, Mode=OneWay}"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind StringResource.Previous}">
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}">
                                 <Button.Content>
                                     <FontIcon FontSize="14" Glyph="&#xE892;" />
                                 </Button.Content>
                             </Button>
                             <Button
+                                hotkey:ShortcutToolTip.Action="ToggleAutoScroll"
+                                hotkey:ShortcutToolTip.Text="{x:Bind ViewModel.PlayOrPauseButtonTooltip, Mode=OneWay}"
                                 Click="PlaybackPlayButton_Click"
                                 IsEnabled="{x:Bind ViewModel.IsAutoPlayEnabled, Mode=OneWay}"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind ViewModel.PlayOrPauseButtonTooltip, Mode=OneWay}">
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}">
                                 <Button.Content>
                                     <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.PlayOrPauseButtonGlyph, Mode=OneWay}" />
                                 </Button.Content>
                             </Button>
                             <Button
+                                hotkey:ShortcutToolTip.Action="OpenNextComic"
+                                hotkey:ShortcutToolTip.Text="{x:Bind StringResource.Next}"
                                 Click="PlaybackNextButton_Click"
                                 IsEnabled="{x:Bind ViewModel.IsPlaybackNextEnabled, Mode=OneWay}"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind StringResource.Next}">
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}">
                                 <Button.Content>
                                     <FontIcon FontSize="14" Glyph="&#xE893;" />
                                 </Button.Content>
@@ -192,9 +196,10 @@
                                 </Button.Content>
                             </Button>
                             <Button
+                                hotkey:ShortcutToolTip.Action="ToggleFullscreen"
+                                hotkey:ShortcutToolTip.Text="{x:Bind ViewModel.FullscreenButtonText, Mode=OneWay}"
                                 Click="FullscreenButton_Click"
-                                Style="{StaticResource ReaderPlaybackControlButtonStyle}"
-                                ToolTipService.ToolTip="{x:Bind ViewModel.FullscreenButtonText, Mode=OneWay}">
+                                Style="{StaticResource ReaderPlaybackControlButtonStyle}">
                                 <Button.Content>
                                     <FontIcon FontSize="14" Glyph="{x:Bind ViewModel.FullscreenButtonGlyph, Mode=OneWay}" />
                                 </Button.Content>

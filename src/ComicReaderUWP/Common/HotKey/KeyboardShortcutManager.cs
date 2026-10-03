@@ -40,6 +40,39 @@ internal static class KeyboardShortcutManager
         return GetCachedShortcuts();
     }
 
+    public static IReadOnlyList<KeyboardShortcutModel> GetShortcuts(string action)
+    {
+        List<KeyboardShortcutModel> shortcuts = [];
+        foreach (KeyboardShortcutModel shortcut in GetCachedShortcuts())
+        {
+            if (shortcut.Action == action)
+            {
+                shortcuts.Add(shortcut);
+            }
+        }
+
+        foreach (KeyboardShortcutModel shortcut in KeyboardShortcutActions.InternalShortcuts)
+        {
+            if (shortcut.Action == action)
+            {
+                shortcuts.Add(shortcut);
+            }
+        }
+
+        return shortcuts;
+    }
+
+    public static string GetShortcutDisplayText(string action)
+    {
+        List<string> keys = [];
+        foreach (KeyboardShortcutModel shortcut in GetShortcuts(action))
+        {
+            keys.Add(shortcut.ToString());
+        }
+
+        return string.Join(", ", keys);
+    }
+
     public static void Add(KeyboardShortcutModel shortcut)
     {
         List<KeyboardShortcutModel> shortcuts = [.. GetCachedShortcuts()];
@@ -141,26 +174,6 @@ internal static class KeyboardShortcutManager
         }
 
         return false;
-    }
-
-    private static List<KeyboardShortcutModel> GetShortcuts(string action)
-    {
-        List<KeyboardShortcutModel> shortcuts = [];
-        foreach (KeyboardShortcutModel shortcut in GetCachedShortcuts())
-        {
-            if (shortcut.Action == action)
-            {
-                shortcuts.Add(shortcut);
-            }
-        }
-        foreach (KeyboardShortcutModel shortcut in KeyboardShortcutActions.InternalShortcuts)
-        {
-            if (shortcut.Action == action)
-            {
-                shortcuts.Add(shortcut);
-            }
-        }
-        return shortcuts;
     }
 
     private static List<KeyboardShortcutModel> GetCachedShortcuts()

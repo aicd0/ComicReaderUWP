@@ -135,6 +135,9 @@
   <data name="AddKeyboardShortcut" xml:space="preserve">
     <value>단축키 추가</value>
   </data>
+  <data name="AddNewTab" xml:space="preserve">
+    <value>새 탭 추가</value>
+  </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>컬렉션에 추가</value>
   </data>
@@ -784,9 +787,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>메타데이터 폴더 열기</value>
-  </data>
-  <data name="OpenNewTab" xml:space="preserve">
-    <value>새 탭 열기</value>
   </data>
   <data name="OpenNextComic" xml:space="preserve">
     <value>다음 만화 열기</value>

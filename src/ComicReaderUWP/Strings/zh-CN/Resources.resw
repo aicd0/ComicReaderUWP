@@ -135,6 +135,9 @@
   <data name="AddKeyboardShortcut" xml:space="preserve">
     <value>添加快捷键</value>
   </data>
+  <data name="AddNewTab" xml:space="preserve">
+    <value>添加新标签页</value>
+  </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>添加到合集</value>
   </data>
@@ -783,9 +786,6 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>打开元数据文件夹</value>
-  </data>
-  <data name="OpenNewTab" xml:space="preserve">
-    <value>打开新标签页</value>
   </data>
   <data name="OpenNextComic" xml:space="preserve">
     <value>打开下一部漫画</value>

@@ -20,6 +20,7 @@ using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
+using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.Views.AppWindows.Main;
@@ -31,6 +32,7 @@ using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -199,13 +201,6 @@ internal sealed partial class MainPage : BasePage
         UpdateKeyboardAccelerators();
     }
 
-    protected override void OnResume()
-    {
-        base.OnResume();
-
-        ViewModel.UpdateMoreMenuItems();
-    }
-
     private void ObserveData()
     {
         BusyStateManager.Busy.ObserveSticky(this, busy =>
@@ -266,6 +261,31 @@ internal sealed partial class MainPage : BasePage
     private void OpenSidebarButton_Click(object sender, RoutedEventArgs e)
     {
         SetSidebarOpenState(!_isSidebarOpen, force: true);
+    }
+
+    private void MoreButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement element)
+        {
+            return;
+        }
+
+        List<BaseMenuFlyoutItemModel> menuItems = ViewModel.CreateMoreMenuItems();
+        if (menuItems.Count == 0)
+        {
+            return;
+        }
+
+        MenuFlyout flyout = new()
+        {
+            Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
+        };
+        foreach (BaseMenuFlyoutItemModel item in menuItems)
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+
+        flyout.ShowAt(element);
     }
 
     //
@@ -351,6 +371,7 @@ internal sealed partial class MainPage : BasePage
 
         KeyboardAccelerators.Clear();
 
+        AddKeyboardAccelerators(KeyboardShortcutActions.AddNewTab, (_, _) => OpenNewTab());
         AddKeyboardAccelerators(KeyboardShortcutActions.CloseTab, (_, _) =>
         {
             if (RootTabView.SelectedItem is TabViewItem closingTab)
@@ -362,7 +383,6 @@ internal sealed partial class MainPage : BasePage
         AddKeyboardAccelerators(KeyboardShortcutActions.JumpToNextTab, (_, _) => JumpToAdjacentTab(1));
         AddKeyboardAccelerators(KeyboardShortcutActions.JumpToPreviousTab, (_, _) => JumpToAdjacentTab(-1));
         AddKeyboardAccelerators(KeyboardShortcutActions.OpenDevTools, (_, _) => ViewModel.OpenDevTools());
-        AddKeyboardAccelerators(KeyboardShortcutActions.OpenNewTab, (_, _) => OpenNewTab());
         AddKeyboardAccelerators(KeyboardShortcutActions.ToggleFullscreen, (_, _) =>
         {
             IMainWindowAbility mainWindowAbility = GetMainWindowAbility();
@@ -653,11 +673,14 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        // Drop the built-in "(Ctrl + F4)" accelerator hint from the close button tooltip since the close tab shortcut is configurable.
+        // Replace the built-in close button tooltip with the current close tab shortcut.
         Button? closeButton = item.ChildrenBreadthFirst().OfType<Button>().FirstOrDefault(button => button.Name == "CloseButton");
         if (closeButton is not null)
         {
-            ToolTipService.SetToolTip(closeButton, KeyboardShortcutActions.Get(KeyboardShortcutActions.CloseTab)?.Name ?? "Close tab");
+            ShortcutToolTip.Apply(
+                closeButton,
+                KeyboardShortcutActions.CloseTab,
+                KeyboardShortcutActions.Get(KeyboardShortcutActions.CloseTab)?.Name ?? "Close tab");
         }
 
         // Ellipsize long tab titles instead of clipping them.
@@ -751,6 +774,13 @@ internal sealed partial class MainPage : BasePage
     private void RootTabView_Loaded(object sender, RoutedEventArgs e)
     {
         RootTabView.KeyboardAccelerators.Clear();
+
+        // Replace the built-in add tab button tooltip with the current open new tab shortcut.
+        Button? addButton = RootTabView.ChildrenBreadthFirst().OfType<Button>().FirstOrDefault(button => button.Name == "AddButton");
+        if (addButton is not null)
+        {
+            ShortcutToolTip.Apply(addButton, KeyboardShortcutActions.AddNewTab, StringResource.AddNewTab);
+        }
     }
 
     private void RootTabView_AddTabButtonClick(TabView sender, object args)

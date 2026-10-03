@@ -276,7 +276,7 @@
 
                         <!--  More button  -->
                         <AppBarButton
-                            Flyout="{x:Bind ViewModel.MoreButtonFlyout, Mode=OneWay}"
+                            Click="MoreButton_Click"
                             Style="{StaticResource NavigationPageTopTileAppBarButton}"
                             ToolTipService.ToolTip="{x:Bind StringResource.More}">
                             <AppBarButton.Content>

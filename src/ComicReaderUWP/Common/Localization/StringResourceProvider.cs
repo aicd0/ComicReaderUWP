@@ -18,6 +18,7 @@ public class StringResourceProvider
     public string Add => GetResourceString("Add");
     public string AddFolder => GetResourceString("AddFolder");
     public string AddKeyboardShortcut => GetResourceString("AddKeyboardShortcut");
+    public string AddNewTab => GetResourceString("AddNewTab");
     public string AddToCollection => GetResourceString("AddToCollection");
     public string AddToFavorites => GetResourceString("AddToFavorites");
     public string AllComics => GetResourceString("AllComics");
@@ -190,7 +191,6 @@ public class StringResourceProvider
     public string OpenInLastActiveReaderTab => GetResourceString("OpenInLastActiveReaderTab");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenMetadataFolder => GetResourceString("OpenMetadataFolder");
-    public string OpenNewTab => GetResourceString("OpenNewTab");
     public string OpenNextComic => GetResourceString("OpenNextComic");
     public string OpenPluginsFolder => GetResourceString("OpenPluginsFolder");
     public string OpenPreviousComic => GetResourceString("OpenPreviousComic");

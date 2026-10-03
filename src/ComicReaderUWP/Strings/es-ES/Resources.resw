@@ -135,6 +135,9 @@
   <data name="AddKeyboardShortcut" xml:space="preserve">
     <value>Añadir atajo</value>
   </data>
+  <data name="AddNewTab" xml:space="preserve">
+    <value>Añadir nueva pestaña</value>
+  </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>Añadir a la colección</value>
   </data>
@@ -783,9 +786,6 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   </data>
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>Abrir carpeta de metadatos</value>
-  </data>
-  <data name="OpenNewTab" xml:space="preserve">
-    <value>Abrir una pestaña nueva</value>
   </data>
   <data name="OpenNextComic" xml:space="preserve">
     <value>Abrir el siguiente cómic</value>

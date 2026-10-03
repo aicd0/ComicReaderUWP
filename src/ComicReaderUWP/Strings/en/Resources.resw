@@ -135,6 +135,9 @@
   <data name="AddKeyboardShortcut" xml:space="preserve">
     <value>Add shortcut</value>
   </data>
+  <data name="AddNewTab" xml:space="preserve">
+    <value>Add new tab</value>
+  </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>Add to collection</value>
   </data>
@@ -785,9 +788,6 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   </data>
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>Open metadata folder</value>
-  </data>
-  <data name="OpenNewTab" xml:space="preserve">
-    <value>Open a new tab</value>
   </data>
   <data name="OpenNextComic" xml:space="preserve">
     <value>Open next comic</value>
