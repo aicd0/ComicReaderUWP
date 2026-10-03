@@ -11,6 +11,7 @@ namespace ComicReaderUWP.Common.HotKey;
 
 internal static class KeyboardShortcutActions
 {
+    public const string CloseTab = "CloseTab";
     public const string ExitFullscreen = "ExitFullscreen";
     public const string GoToFirstPage = "GoToFirstPage";
     public const string GoToLastPage = "GoToLastPage";
@@ -19,7 +20,12 @@ internal static class KeyboardShortcutActions
     public const string GoToPreviousPage = "GoToPreviousPage";
     public const string GoToRandomPage = "GoToRandomPage";
     public const string GoToRightPage = "GoToRightPage";
+    public const string JumpToNextTab = "JumpToNextTab";
+    public const string JumpToPreviousTab = "JumpToPreviousTab";
     public const string OpenDevTools = "OpenDevTools";
+    public const string OpenNewTab = "OpenNewTab";
+    public const string OpenNextComic = "OpenNextComic";
+    public const string OpenPreviousComic = "OpenPreviousComic";
     public const string ToggleAutoScroll = "ToggleAutoScroll";
     public const string ToggleFullscreen = "ToggleFullscreen";
 
@@ -28,6 +34,7 @@ internal static class KeyboardShortcutActions
 
     private static readonly List<KeyboardShortcutActionEntry> sAll =
     [
+        new() { Id = CloseTab, Name = StringResourceProvider.Instance.CloseTab },
         new() { Id = ExitFullscreen, Name = StringResourceProvider.Instance.ExitFullscreen, IsInternal = true },
         new() { Id = GoToFirstPage, Name = StringResourceProvider.Instance.GoToFirstPage, Scope = ReaderScope },
         new() { Id = GoToLastPage, Name = StringResourceProvider.Instance.GoToLastPage, Scope = ReaderScope },
@@ -36,13 +43,19 @@ internal static class KeyboardShortcutActions
         new() { Id = GoToPreviousPage, Name = StringResourceProvider.Instance.GoToPreviousPage, Scope = ReaderScope },
         new() { Id = GoToRandomPage, Name = StringResourceProvider.Instance.GoToRandomPage, Scope = ReaderScope },
         new() { Id = GoToRightPage, Name = StringResourceProvider.Instance.GoToRightPage, Scope = ReaderScope },
+        new() { Id = JumpToNextTab, Name = StringResourceProvider.Instance.JumpToNextTab },
+        new() { Id = JumpToPreviousTab, Name = StringResourceProvider.Instance.JumpToPreviousTab },
         new() { Id = OpenDevTools, Name = "Open dev tools", IsInternal = true },
+        new() { Id = OpenNewTab, Name = StringResourceProvider.Instance.OpenNewTab },
+        new() { Id = OpenNextComic, Name = StringResourceProvider.Instance.OpenNextComic, Scope = ReaderScope },
+        new() { Id = OpenPreviousComic, Name = StringResourceProvider.Instance.OpenPreviousComic, Scope = ReaderScope },
         new() { Id = ToggleAutoScroll, Name = StringResourceProvider.Instance.ToggleAutoScroll, Scope = ReaderScope },
         new() { Id = ToggleFullscreen, Name = StringResourceProvider.Instance.ToggleFullscreen },
     ];
 
     private static readonly IReadOnlyList<KeyboardShortcutModel> sDefaultShortcuts =
     [
+        CreateShortcut(CloseTab, VirtualKey.W, VirtualKeyModifiers.Control),
         CreateShortcut(GoToFirstPage, VirtualKey.Home),
         CreateShortcut(GoToLastPage, VirtualKey.End),
         CreateShortcut(GoToLeftPage, VirtualKey.Left),
@@ -52,6 +65,11 @@ internal static class KeyboardShortcutActions
         CreateShortcut(GoToPreviousPage, VirtualKey.Up),
         CreateShortcut(GoToRandomPage, VirtualKey.R),
         CreateShortcut(GoToRightPage, VirtualKey.Right),
+        CreateShortcut(JumpToNextTab, VirtualKey.Tab, VirtualKeyModifiers.Control),
+        CreateShortcut(JumpToPreviousTab, VirtualKey.Tab, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift),
+        CreateShortcut(OpenNewTab, VirtualKey.T, VirtualKeyModifiers.Control),
+        CreateShortcut(OpenNextComic, VirtualKey.Down, VirtualKeyModifiers.Control),
+        CreateShortcut(OpenPreviousComic, VirtualKey.Up, VirtualKeyModifiers.Control),
         CreateShortcut(ToggleAutoScroll, VirtualKey.Space),
     ];
     public static IReadOnlyList<KeyboardShortcutModel> DefaultShortcuts => sDefaultShortcuts;

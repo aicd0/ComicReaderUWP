@@ -106,14 +106,14 @@
                                     x:Name="TabContentPresenter"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
-                                    Loaded="OnTabContentPresenterLoaded" />
+                                    Loaded="TabContentPresenter_Loaded" />
                                 <Grid
                                     x:Name="TabContainerGrid"
                                     VerticalAlignment="Top"
                                     Background="{TemplateBinding Background}"
-                                    Loaded="OnTabContainerGridLoaded"
-                                    SizeChanged="OnTabContainerGridSizeChanged"
-                                    Unloaded="OnTabContainerGridUnloaded"
+                                    Loaded="TabContainerGrid_Loaded"
+                                    SizeChanged="TabContainerGrid_SizeChanged"
+                                    Unloaded="TabContainerGrid_Unloaded"
                                     XYFocusKeyboardNavigation="Enabled">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition x:Name="LeftContentColumn" Width="Auto" />
@@ -175,8 +175,8 @@
     <Grid
         AllowDrop="True"
         Background="Transparent"
-        DragOver="OnRootTabViewDragOver"
-        Drop="OnRootTabViewDrop">
+        DragOver="RootGrid_DragOver"
+        Drop="RootGrid_Drop">
 
         <!--  Content (immersive mode)  -->
         <Grid x:Name="ContentGridImmersive" />
@@ -199,7 +199,7 @@
                 Grid.Row="0"
                 VerticalAlignment="Top"
                 Background="{ThemeResource TabViewItemHeaderBackgroundSelected}"
-                SizeChanged="OnTopTileSizeChanged">
+                SizeChanged="TopTile_SizeChanged">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -337,15 +337,16 @@
         <muxc:TabView
             x:Name="RootTabView"
             VerticalAlignment="Stretch"
-            AddTabButtonClick="OnAddTabButtonClicked"
+            AddTabButtonClick="RootTabView_AddTabButtonClick"
             Background="Transparent"
             CanDragTabs="True"
-            SelectionChanged="OnTabViewSelectionChanged"
+            Loaded="RootTabView_Loaded"
+            SelectionChanged="RootTabView_SelectionChanged"
             Style="{StaticResource MainPageTabViewStyle}"
-            TabCloseRequested="OnTabCloseRequested"
+            TabCloseRequested="RootTabView_TabCloseRequested"
             TabDragCompleted="RootTabView_TabDragCompleted"
-            TabDragStarting="OnRootTabViewTabDragStarting"
-            TabDroppedOutside="OnRootTabViewTabDroppedOutside">
+            TabDragStarting="RootTabView_TabDragStarting"
+            TabDroppedOutside="RootTabView_TabDroppedOutside">
             <muxc:TabView.TabStripFooter>
                 <main:TitleBar x:Name="MainTitleBar" />
             </muxc:TabView.TabStripFooter>

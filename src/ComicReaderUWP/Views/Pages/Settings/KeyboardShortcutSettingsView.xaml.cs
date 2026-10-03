@@ -41,6 +41,11 @@ internal sealed partial class KeyboardShortcutSettingsView : BaseUserControl
         });
     }
 
+    private void RestoreShortcutsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.Reset();
+    }
+
     private void EditShortcutButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button || button.DataContext is not KeyboardShortcutItemViewModel item)

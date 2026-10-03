@@ -79,11 +79,14 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
-        <Button
+        <StackPanel
             Margin="0,16,0,0"
             HorizontalAlignment="Left"
-            Click="AddShortcutButton_Click"
-            Content="{x:Bind StringResource.Add}" />
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button Click="AddShortcutButton_Click" Content="{x:Bind StringResource.Add}" />
+            <Button Click="RestoreShortcutsButton_Click" Content="{x:Bind StringResource.Restore}" />
+        </StackPanel>
     </StackPanel>
 
 </base:BaseUserControl>

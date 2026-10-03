@@ -246,6 +246,9 @@
   <data name="CloseSidebar" xml:space="preserve">
     <value>Закрыть боковую панель</value>
   </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>Закрыть вкладку</value>
+  </data>
   <data name="CloseWindow" xml:space="preserve">
     <value>Закрыть окно</value>
   </data>
@@ -611,6 +614,12 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="InvertImage" xml:space="preserve">
     <value>Инверсия</value>
   </data>
+  <data name="JumpToNextTab" xml:space="preserve">
+    <value>Перейти к следующей вкладке</value>
+  </data>
+  <data name="JumpToPreviousTab" xml:space="preserve">
+    <value>Перейти к предыдущей вкладке</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Не выключать экран</value>
   </data>
@@ -776,8 +785,17 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>Открыть папку метаданных</value>
   </data>
+  <data name="OpenNewTab" xml:space="preserve">
+    <value>Открыть новую вкладку</value>
+  </data>
+  <data name="OpenNextComic" xml:space="preserve">
+    <value>Открыть следующий комикс</value>
+  </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>Открыть папку плагинов</value>
+  </data>
+  <data name="OpenPreviousComic" xml:space="preserve">
+    <value>Открыть предыдущий комикс</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Открыть боковую панель</value>

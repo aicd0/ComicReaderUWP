@@ -77,6 +77,11 @@ internal static class KeyboardShortcutManager
         AppSettingsModel.KeyboardShortcuts = shortcuts;
     }
 
+    public static void Reset()
+    {
+        AppSettingsModel.KeyboardShortcuts = [.. KeyboardShortcutActions.DefaultShortcuts];
+    }
+
     public static List<KeyboardAccelerator> CreateAccelerators(string action, TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> handler)
     {
         List<KeyboardAccelerator> accelerators = [];

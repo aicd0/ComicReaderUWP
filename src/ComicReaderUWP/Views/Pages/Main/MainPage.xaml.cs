@@ -12,6 +12,7 @@ using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.HotKey;
 using ComicReaderUWP.Common.Misc;
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
@@ -88,7 +89,7 @@ internal sealed partial class MainPage : BasePage
     public void Open(Route route, string targetTabId, string initiateTabId)
     {
         MainThreadUtils.AssertOnMainThread();
-        LoadTabNoLock(route, targetTabId: targetTabId, initiateTabId: initiateTabId);
+        LoadTab(route, targetTabId: targetTabId, initiateTabId: initiateTabId);
     }
 
     public void CloseAllTabs()
@@ -97,7 +98,7 @@ internal sealed partial class MainPage : BasePage
 
         while (_tabs.Count > 0)
         {
-            CloseTabInternalNoLock(_tabs[0]);
+            CloseTabInternal(_tabs[0]);
         }
     }
 
@@ -158,7 +159,7 @@ internal sealed partial class MainPage : BasePage
                 }
 
                 var route = Route.Create(tab.Url);
-                LoadTabNoLock(
+                LoadTab(
                     route,
                     targetTabId: string.Empty,
                     selectTab: i == jsonModel.SelectedIndex,
@@ -167,7 +168,7 @@ internal sealed partial class MainPage : BasePage
             }
         }
 
-        EnsureInitialTabNoLock();
+        EnsureInitialTab();
     }
 
     //
@@ -227,7 +228,7 @@ internal sealed partial class MainPage : BasePage
             _tabContainerGrid?.Opacity = opacity;
         });
 
-        GetWindowEventBus().With<string>(EventId.CloseTab).Observe(this, CloseTabNoLock);
+        GetWindowEventBus().With<string>(EventId.CloseTab).Observe(this, CloseTab);
 
         GetMainWindowAbility().RegisterFullscreenChangedHandler(this, isFullscreen =>
         {
@@ -301,7 +302,7 @@ internal sealed partial class MainPage : BasePage
     // Size Change Events
     //
 
-    private void OnTabContainerGridSizeChanged(object sender, SizeChangedEventArgs e)
+    private void TabContainerGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (_rootTabHeight == e.NewSize.Height)
         {
@@ -313,7 +314,7 @@ internal sealed partial class MainPage : BasePage
         DispatchTopOverlayHeightChangeEvent();
     }
 
-    private void OnTopTileSizeChanged(object sender, SizeChangedEventArgs e)
+    private void TopTile_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (_navigationBarHeight == e.NewSize.Height)
         {
@@ -350,9 +351,18 @@ internal sealed partial class MainPage : BasePage
 
         KeyboardAccelerators.Clear();
 
+        AddKeyboardAccelerators(KeyboardShortcutActions.CloseTab, (_, _) =>
+        {
+            if (RootTabView.SelectedItem is TabViewItem closingTab)
+            {
+                CloseTabByUser(closingTab);
+            }
+        });
         AddKeyboardAccelerators(KeyboardShortcutActions.ExitFullscreen, (_, _) => GetMainWindowAbility().ExitFullscreen());
+        AddKeyboardAccelerators(KeyboardShortcutActions.JumpToNextTab, (_, _) => JumpToAdjacentTab(1));
+        AddKeyboardAccelerators(KeyboardShortcutActions.JumpToPreviousTab, (_, _) => JumpToAdjacentTab(-1));
         AddKeyboardAccelerators(KeyboardShortcutActions.OpenDevTools, (_, _) => ViewModel.OpenDevTools());
-
+        AddKeyboardAccelerators(KeyboardShortcutActions.OpenNewTab, (_, _) => OpenNewTab());
         AddKeyboardAccelerators(KeyboardShortcutActions.ToggleFullscreen, (_, _) =>
         {
             IMainWindowAbility mainWindowAbility = GetMainWindowAbility();
@@ -371,16 +381,34 @@ internal sealed partial class MainPage : BasePage
     // Tabs Management
     //
 
-    private void EnsureInitialTabNoLock()
+    private void OpenNewTab()
+    {
+        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
+        LoadTab(route);
+    }
+
+    private void JumpToAdjacentTab(int offset)
+    {
+        int tabCount = RootTabView.TabItems.Count;
+        if (tabCount == 0)
+        {
+            return;
+        }
+
+        int index = Math.Max(0, RootTabView.SelectedIndex);
+        RootTabView.SelectedIndex = (index + offset + tabCount) % tabCount;
+    }
+
+    private void EnsureInitialTab()
     {
         if (_tabs.Count == 0)
         {
             var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-            LoadTabNoLock(route);
+            LoadTab(route);
         }
     }
 
-    private bool LoadTabNoLock(
+    private bool LoadTab(
         Route route,
         string targetTabId = "",
         string initiateTabId = "",
@@ -414,10 +442,10 @@ internal sealed partial class MainPage : BasePage
         bool newTab = string.IsNullOrEmpty(targetTabId);
         if (newTab)
         {
-            targetTabId = AddTabNoLock(bundle, initiateTabId, newTabId);
+            targetTabId = AddTab(bundle, initiateTabId, newTabId);
         }
 
-        TabInfo? tabInfo = GetTabInfoNoLock(targetTabId);
+        TabInfo? tabInfo = GetTabInfo(targetTabId);
         if (tabInfo is null)
         {
             Logger.F(TAG, $"Failed to find tab info for ID {targetTabId}");
@@ -450,7 +478,7 @@ internal sealed partial class MainPage : BasePage
         return true;
     }
 
-    private string AddTabNoLock(PageNavigationBundle bundle, string initiateTabId, string newTabId)
+    private string AddTab(PageNavigationBundle bundle, string initiateTabId, string newTabId)
     {
         int placementIndex = -1;
         if (!string.IsNullOrEmpty(initiateTabId))
@@ -484,6 +512,7 @@ internal sealed partial class MainPage : BasePage
             Header = StringResource.Untitled,
             Content = frame,
         };
+        item.Loaded += TabItem_Loaded;
         MainPageAbilityForTab ability = new(this, tabId);
         TabInfo tabInfo = new()
         {
@@ -510,7 +539,40 @@ internal sealed partial class MainPage : BasePage
         return tabId;
     }
 
-    private void CloseTabNoLock(string tabId)
+    private void CloseTabByUser(TabViewItem closingTab)
+    {
+        string closingTabId = string.Empty;
+        for (int i = 0; i < _tabs.Count; ++i)
+        {
+            TabInfo tabInfo = _tabs[i];
+            if (tabInfo.Item == closingTab)
+            {
+                closingTabId = tabInfo.Id;
+                break;
+            }
+        }
+
+        if (_tabs.Count == 1)
+        {
+            switch (AppSettingsModel.CloseLastTabBehavior)
+            {
+                case AppSettingsModel.CloseLastTabBehaviorEnum.CloseWindow:
+                    break;
+                case AppSettingsModel.CloseLastTabBehaviorEnum.OpenHomePage:
+                    {
+                        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
+                        LoadTab(route);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        CloseTab(closingTabId);
+    }
+
+    private void CloseTab(string tabId)
     {
         if (string.IsNullOrEmpty(tabId))
         {
@@ -534,7 +596,7 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        CloseTabInternalNoLock(closingTab);
+        CloseTabInternal(closingTab);
 
         if (_tabs.Count > 0)
         {
@@ -558,7 +620,7 @@ internal sealed partial class MainPage : BasePage
         App.Instance.WindowManager.ScheduleSavingWindowState();
     }
 
-    private void CloseTabInternalNoLock(TabInfo tabInfo)
+    private void CloseTabInternal(TabInfo tabInfo)
     {
         ((Frame)tabInfo.Item.Content).Navigated -= tabInfo.NavigatedHandler;
         tabInfo.NavigatedHandler = null;
@@ -567,7 +629,7 @@ internal sealed partial class MainPage : BasePage
         RootTabView.TabItems.Remove(tabInfo.Item);
     }
 
-    private TabInfo? GetTabInfoNoLock(string tabId)
+    private TabInfo? GetTabInfo(string tabId)
     {
         foreach (TabInfo tab in _tabs)
         {
@@ -584,46 +646,124 @@ internal sealed partial class MainPage : BasePage
     // TabView
     //
 
-    private void OnAddTabButtonClicked(TabView sender, object args)
+    private void TabItem_Loaded(object sender, RoutedEventArgs e)
     {
-        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-        LoadTabNoLock(route);
-    }
-
-    private void OnTabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
-    {
-        string closingTabId = string.Empty;
-        for (int i = 0; i < _tabs.Count; ++i)
+        if (sender is not TabViewItem item)
         {
-            TabInfo tabInfo = _tabs[i];
-            if (tabInfo.Item == args.Tab)
-            {
-                closingTabId = tabInfo.Id;
-                break;
-            }
+            return;
         }
 
-        if (_tabs.Count == 1)
+        // Drop the built-in "(Ctrl + F4)" accelerator hint from the close button tooltip since the close tab shortcut is configurable.
+        Button? closeButton = item.ChildrenBreadthFirst().OfType<Button>().FirstOrDefault(button => button.Name == "CloseButton");
+        if (closeButton is not null)
         {
-            switch (AppSettingsModel.CloseLastTabBehavior)
+            ToolTipService.SetToolTip(closeButton, KeyboardShortcutActions.Get(KeyboardShortcutActions.CloseTab)?.Name ?? "Close tab");
+        }
+
+        // Ellipsize long tab titles instead of clipping them.
+        ContentPresenter? headerPresenter = item.ChildrenBreadthFirst().OfType<ContentPresenter>().FirstOrDefault(presenter => presenter.Name == "ContentPresenter");
+        if (headerPresenter is not null)
+        {
+            if (headerPresenter.ChildrenBreadthFirst().OfType<TextBlock>().FirstOrDefault() is TextBlock headerText)
             {
-                case AppSettingsModel.CloseLastTabBehaviorEnum.CloseWindow:
-                    break;
-                case AppSettingsModel.CloseLastTabBehaviorEnum.OpenHomePage:
+                headerText.TextTrimming = TextTrimming.CharacterEllipsis;
+            }
+        }
+    }
+
+    private void RootGrid_DragOver(object sender, DragEventArgs e)
+    {
+        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
+    }
+
+    private void RootGrid_Drop(object sender, DragEventArgs e)
+    {
+        // Handle tab drag-drop
+        if (e.DataView.Properties.TryGetValue("windowId", out object windowIdObj) && windowIdObj is int sourceWindowId &&
+            e.DataView.Properties.TryGetValue("tabId", out object tabIdObj) && tabIdObj is string sourceTabId &&
+            e.DataView.Properties.TryGetValue("url", out object urlObj) && urlObj is string url)
+        {
+            if (sourceWindowId != WindowId)
+            {
+                App.Instance.WindowManager.GetEventBus(sourceWindowId).With<string>(EventId.CloseTab).Emit(sourceTabId);
+                LoadTab(Route.Create(url), oldTabId: sourceTabId);
+                EnsureInitialTab();
+            }
+
+            return;
+        }
+
+        // Handle file drop
+        if (e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
+        {
+            CoroutineUtils.Run(async () =>
+            {
+                IReadOnlyList<Windows.Storage.IStorageItem> items = await e.DataView.GetStorageItemsAsync();
+                foreach (Windows.Storage.IStorageItem? item in items)
+                {
+                    if (item is Windows.Storage.StorageFile file)
                     {
-                        var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
-                        LoadTabNoLock(route);
+                        await App.Instance.OnCommandLine(CurrentWindow, [item.Path]);
                     }
-                    break;
-                default:
-                    break;
-            }
-        }
+                }
+            });
 
-        CloseTabNoLock(closingTabId);
+            return;
+        }
     }
 
-    private void OnTabViewSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void TabContainerGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        _tabContainerGrid = (Grid)sender;
+
+        GetWindowEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
+        _tabContainerGridOpacityListenerToken = _tabContainerGrid.RegisterPropertyChangedCallback(OpacityProperty, (sender, dp) =>
+        {
+            if (!IsStarted)
+            {
+                return;
+            }
+
+            GetWindowEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
+        });
+    }
+
+    private void TabContainerGrid_Unloaded(object sender, RoutedEventArgs e)
+    {
+        _tabContainerGrid?.UnregisterPropertyChangedCallback(OpacityProperty, _tabContainerGridOpacityListenerToken);
+        _tabContainerGrid = null;
+    }
+
+    private void TabContentPresenter_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_contentPresenterLoaded)
+        {
+            return;
+        }
+
+        _contentPresenterLoaded = true;
+        var tabContentPresenter = (ContentPresenter)sender;
+        var parent = (Grid)tabContentPresenter.Parent;
+        parent.Children.Remove(tabContentPresenter);
+        ContentGrid.Children.Add(tabContentPresenter);
+    }
+
+    private void RootTabView_Loaded(object sender, RoutedEventArgs e)
+    {
+        RootTabView.KeyboardAccelerators.Clear();
+    }
+
+    private void RootTabView_AddTabButtonClick(TabView sender, object args)
+    {
+        OpenNewTab();
+    }
+
+    private void RootTabView_TabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
+    {
+        CloseTabByUser(args.Tab);
+    }
+
+    private void RootTabView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count == 0)
         {
@@ -663,7 +803,7 @@ internal sealed partial class MainPage : BasePage
         App.Instance.WindowManager.ScheduleSavingWindowState();
     }
 
-    private void OnRootTabViewTabDragStarting(TabView sender, TabViewTabDragStartingEventArgs args)
+    private void RootTabView_TabDragStarting(TabView sender, TabViewTabDragStartingEventArgs args)
     {
         TabInfo? draggingTab = null;
         foreach (TabInfo tabInfo in _tabs)
@@ -684,48 +824,7 @@ internal sealed partial class MainPage : BasePage
         args.Data.Properties.Add("url", draggingTab.CurrentBundle.Url);
     }
 
-    private void OnRootTabViewDrop(object sender, DragEventArgs e)
-    {
-        // Handle tab drag-drop
-        if (e.DataView.Properties.TryGetValue("windowId", out object windowIdObj) && windowIdObj is int sourceWindowId &&
-            e.DataView.Properties.TryGetValue("tabId", out object tabIdObj) && tabIdObj is string sourceTabId &&
-            e.DataView.Properties.TryGetValue("url", out object urlObj) && urlObj is string url)
-        {
-            if (sourceWindowId != WindowId)
-            {
-                App.Instance.WindowManager.GetEventBus(sourceWindowId).With<string>(EventId.CloseTab).Emit(sourceTabId);
-                LoadTabNoLock(Route.Create(url), oldTabId: sourceTabId);
-                EnsureInitialTabNoLock();
-            }
-
-            return;
-        }
-
-        // Handle file drop
-        if (e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
-        {
-            CoroutineUtils.Run(async () =>
-            {
-                IReadOnlyList<Windows.Storage.IStorageItem> items = await e.DataView.GetStorageItemsAsync();
-                foreach (Windows.Storage.IStorageItem? item in items)
-                {
-                    if (item is Windows.Storage.StorageFile file)
-                    {
-                        await App.Instance.OnCommandLine(CurrentWindow, [item.Path]);
-                    }
-                }
-            });
-
-            return;
-        }
-    }
-
-    private void OnRootTabViewDragOver(object sender, DragEventArgs e)
-    {
-        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
-    }
-
-    private void OnRootTabViewTabDroppedOutside(TabView sender, TabViewTabDroppedOutsideEventArgs args)
+    private void RootTabView_TabDroppedOutside(TabView sender, TabViewTabDroppedOutsideEventArgs args)
     {
         TabViewItem? tab = args.Tab;
         if (tab is null)
@@ -794,42 +893,6 @@ internal sealed partial class MainPage : BasePage
         }
 
         tabInfo.Ability.RestoreStates();
-    }
-
-    private void OnTabContainerGridLoaded(object sender, RoutedEventArgs e)
-    {
-        _tabContainerGrid = (Grid)sender;
-
-        GetWindowEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
-        _tabContainerGridOpacityListenerToken = _tabContainerGrid.RegisterPropertyChangedCallback(OpacityProperty, (sender, dp) =>
-        {
-            if (!IsStarted)
-            {
-                return;
-            }
-
-            GetWindowEventBus().With<double>(EventId.TitleBarOpacity).Emit(_tabContainerGrid.Opacity);
-        });
-    }
-
-    private void OnTabContainerGridUnloaded(object sender, RoutedEventArgs e)
-    {
-        _tabContainerGrid?.UnregisterPropertyChangedCallback(OpacityProperty, _tabContainerGridOpacityListenerToken);
-        _tabContainerGrid = null;
-    }
-
-    private void OnTabContentPresenterLoaded(object sender, RoutedEventArgs e)
-    {
-        if (_contentPresenterLoaded)
-        {
-            return;
-        }
-
-        _contentPresenterLoaded = true;
-        var tabContentPresenter = (ContentPresenter)sender;
-        var parent = (Grid)tabContentPresenter.Parent;
-        parent.Children.Remove(tabContentPresenter);
-        ContentGrid.Children.Add(tabContentPresenter);
     }
 
     //
@@ -1277,7 +1340,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTabNoLock(route, targetTabId: _tabId, initiateTabId: _tabId);
+            parent.LoadTab(route, targetTabId: _tabId, initiateTabId: _tabId);
         }
 
         public override void OpenInNewTab(Route route)
@@ -1287,7 +1350,7 @@ internal sealed partial class MainPage : BasePage
                 return;
             }
 
-            parent.LoadTabNoLock(route, initiateTabId: _tabId);
+            parent.LoadTab(route, initiateTabId: _tabId);
         }
 
         public void RegisterRefreshHandler(ILifecycleOwner owner, IMainPageAbilityForTab.CommonEventHandler handler)
@@ -1432,7 +1495,7 @@ internal sealed partial class MainPage : BasePage
                 return null;
             }
 
-            return parent.GetTabInfoNoLock(_tabId);
+            return parent.GetTabInfo(_tabId);
         }
 
         private static bool IsSameSource(string url1, string url2)
@@ -1469,7 +1532,7 @@ internal sealed partial class MainPage : BasePage
             }
 
             string currentTabId = parent._currentTab?.Id ?? string.Empty;
-            parent.LoadTabNoLock(route, targetTabId: tabInfo.Id, initiateTabId: currentTabId);
+            parent.LoadTab(route, targetTabId: tabInfo.Id, initiateTabId: currentTabId);
         }
 
         public override void OpenInNewTab(Route route)
@@ -1480,7 +1543,7 @@ internal sealed partial class MainPage : BasePage
             }
 
             string currentTabId = parent._currentTab?.Id ?? string.Empty;
-            parent.LoadTabNoLock(route, initiateTabId: currentTabId);
+            parent.LoadTab(route, initiateTabId: currentTabId);
         }
     }
 

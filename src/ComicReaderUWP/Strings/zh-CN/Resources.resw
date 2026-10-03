@@ -246,6 +246,9 @@
   <data name="CloseSidebar" xml:space="preserve">
     <value>关闭侧边栏</value>
   </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>关闭标签页</value>
+  </data>
   <data name="CloseWindow" xml:space="preserve">
     <value>关闭窗口</value>
   </data>
@@ -610,6 +613,12 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="InvertImage" xml:space="preserve">
     <value>反色</value>
   </data>
+  <data name="JumpToNextTab" xml:space="preserve">
+    <value>跳转到下一个标签页</value>
+  </data>
+  <data name="JumpToPreviousTab" xml:space="preserve">
+    <value>跳转到上一个标签页</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>保持屏幕开启</value>
   </data>
@@ -775,8 +784,17 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>打开元数据文件夹</value>
   </data>
+  <data name="OpenNewTab" xml:space="preserve">
+    <value>打开新标签页</value>
+  </data>
+  <data name="OpenNextComic" xml:space="preserve">
+    <value>打开下一部漫画</value>
+  </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>打开插件文件夹</value>
+  </data>
+  <data name="OpenPreviousComic" xml:space="preserve">
+    <value>打开上一部漫画</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>打开侧边栏</value>
