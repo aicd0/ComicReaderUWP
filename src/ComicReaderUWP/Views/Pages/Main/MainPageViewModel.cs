@@ -10,6 +10,7 @@ using System.Linq;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.HotKey;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Services;
@@ -21,7 +22,6 @@ using ComicReaderUWP.Helpers.Navigation;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReaderUWP.Views.Pages.Main;
 
@@ -48,7 +48,6 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         {
             _isFullscreen = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFullscreen)));
-            UpdateMoreMenuItems();
         }
     }
 
@@ -118,40 +117,6 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
     }
 
-    private List<BaseMenuFlyoutItemModel> _moreButtonFlyoutItems = [];
-    public List<BaseMenuFlyoutItemModel> MoreButtonFlyoutItems
-    {
-        get => _moreButtonFlyoutItems;
-        set
-        {
-            _moreButtonFlyoutItems = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MoreButtonFlyout)));
-        }
-    }
-
-    public FlyoutBase? MoreButtonFlyout
-    {
-        get
-        {
-            if (MoreButtonFlyoutItems.Count == 0)
-            {
-                return null;
-            }
-
-            var flyout = new MenuFlyout()
-            {
-                Placement = FlyoutPlacementMode.BottomEdgeAlignedRight,
-            };
-
-            foreach (BaseMenuFlyoutItemModel item in MoreButtonFlyoutItems)
-            {
-                flyout.Items.Add(item.CreateMenuFlyoutItem());
-            }
-
-            return flyout;
-        }
-    }
-
     private ActionHandler _actionHandler = ActionHandler.Dummy;
 
     public void Initialize(ActionHandler actionHandler)
@@ -188,7 +153,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         }
     }
 
-    public void UpdateMoreMenuItems()
+    public List<BaseMenuFlyoutItemModel> CreateMoreMenuItems()
     {
         List<BaseMenuFlyoutItemModel> items = [];
 
@@ -230,6 +195,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             {
                 Text = StringResourceProvider.Instance.ExitFullscreen,
                 Icon = new FontIconSource() { Glyph = "\uE73F" },
+                ShortcutAction = KeyboardShortcutActions.ToggleFullscreen,
                 Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
@@ -245,6 +211,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             {
                 Text = StringResourceProvider.Instance.EnterFullscreen,
                 Icon = new FontIconSource() { Glyph = "\uE740" },
+                ShortcutAction = KeyboardShortcutActions.ToggleFullscreen,
                 Click = () =>
                 {
                     ActionModel actionModel = ActionModel.Builder.Create(FullscreenServiceProvider.NAME)
@@ -290,6 +257,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             {
                 Text = "Dev tools",
                 Icon = new FontIconSource() { Glyph = "\uEC7A" },
+                ShortcutAction = KeyboardShortcutActions.OpenDevTools,
                 Click = OpenDevTools,
             });
         }
@@ -324,6 +292,6 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
             },
         });
 
-        MoreButtonFlyoutItems = items;
+        return items;
     }
 }

@@ -135,6 +135,9 @@
   <data name="AddKeyboardShortcut" xml:space="preserve">
     <value>ショートカットを追加</value>
   </data>
+  <data name="AddNewTab" xml:space="preserve">
+    <value>新しいタブを追加</value>
+  </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>コレクションに追加</value>
   </data>
@@ -783,9 +786,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>メタデータフォルダを開く</value>
-  </data>
-  <data name="OpenNewTab" xml:space="preserve">
-    <value>新しいタブを開く</value>
   </data>
   <data name="OpenNextComic" xml:space="preserve">
     <value>次のコミックを開く</value>

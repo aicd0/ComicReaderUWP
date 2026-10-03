@@ -3,6 +3,7 @@
 
 using System;
 
+using ComicReaderUWP.Common.HotKey;
 using ComicReaderUWP.Converters;
 
 using Microsoft.UI.Xaml.Controls;
@@ -15,6 +16,7 @@ internal class SimpleMenuFlyoutItemModel : BaseMenuFlyoutItemModel
     public IconSource? Icon { get; set; }
     public bool IsEnabled { get; set; } = true;
     public Action? Click { get; set; }
+    public string? ShortcutAction { get; set; }
 
     protected override MenuFlyoutItemBase CreateMenuFlyoutItemInternal()
     {
@@ -24,6 +26,15 @@ internal class SimpleMenuFlyoutItemModel : BaseMenuFlyoutItemModel
             Icon = IconSourceToIconElementConverter.Convert(Icon),
             IsEnabled = IsEnabled,
         };
+
+        if (ShortcutAction is not null)
+        {
+            string shortcutText = KeyboardShortcutManager.GetShortcutDisplayText(ShortcutAction);
+            if (!string.IsNullOrEmpty(shortcutText))
+            {
+                item.KeyboardAcceleratorTextOverride = shortcutText;
+            }
+        }
 
         if (Click != null)
         {

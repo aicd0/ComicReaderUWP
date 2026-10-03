@@ -135,6 +135,9 @@
   <data name="AddKeyboardShortcut" xml:space="preserve">
     <value>Добавить сочетание клавиш</value>
   </data>
+  <data name="AddNewTab" xml:space="preserve">
+    <value>Добавить новую вкладку</value>
+  </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>Добавить в подборку</value>
   </data>
@@ -784,9 +787,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>Открыть папку метаданных</value>
-  </data>
-  <data name="OpenNewTab" xml:space="preserve">
-    <value>Открыть новую вкладку</value>
   </data>
   <data name="OpenNextComic" xml:space="preserve">
     <value>Открыть следующий комикс</value>
