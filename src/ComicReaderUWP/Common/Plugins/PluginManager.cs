@@ -231,17 +231,9 @@ internal partial class PluginManager
             }
         }
 
-        foreach (KeyValuePair<string, PluginContext> kvp in _plugins)
-        {
-            if (kvp.Value.Status == PluginStatusEnum.Error)
-            {
-                _disabledPlugins[kvp.Key] = true;
-            }
-        }
-
         List<string> disabledPlugins = [.. _disabledPlugins.Keys];
         disabledPlugins.Sort();
-        string json = System.Text.Json.JsonSerializer.Serialize(disabledPlugins);
+        string json = JsonSerializer.Serialize(disabledPlugins);
         AppDB.AppKV.GetCollection(KVNames.KV_LIB_PLUGINS).Set(KEY_DISABLED_PLUGINS, json);
     }
 

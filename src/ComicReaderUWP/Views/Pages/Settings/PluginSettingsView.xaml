@@ -88,11 +88,7 @@
                         </Viewbox>
                         <StackPanel Grid.Column="1" Orientation="Vertical">
                             <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Bottom"
-                                    FontSize="14"
-                                    FontWeight="SemiBold"
-                                    Text="{x:Bind Name, Mode=OneWay}" />
+                                <TextBlock VerticalAlignment="Bottom" Text="{x:Bind Name, Mode=OneWay}" />
                                 <TextBlock
                                     Margin="6,0,0,0"
                                     VerticalAlignment="Bottom"
