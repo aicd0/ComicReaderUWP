@@ -85,7 +85,7 @@
             Orientation="Horizontal"
             Spacing="8">
             <Button Click="AddShortcutButton_Click" Content="{x:Bind StringResource.Add}" />
-            <Button Click="RestoreShortcutsButton_Click" Content="{x:Bind StringResource.Restore}" />
+            <Button Click="ResetShortcutsButton_Click" Content="{x:Bind StringResource.Reset}" />
         </StackPanel>
     </StackPanel>
 
