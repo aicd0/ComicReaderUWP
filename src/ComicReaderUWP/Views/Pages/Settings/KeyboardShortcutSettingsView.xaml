@@ -41,7 +41,7 @@
                             Grid.Column="0"
                             VerticalAlignment="Center"
                             Orientation="Horizontal">
-                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ShortcutText}" />
+                            <TextBlock Text="{x:Bind ShortcutText}" />
                             <TextBlock
                                 Margin="12,0,0,0"
                                 Opacity="0.6"
