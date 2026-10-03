@@ -80,7 +80,6 @@
 
         <Grid
             Grid.Column="2"
-            Background="{ThemeResource CommandBarBackground}"
             BorderBrush="{ThemeResource SidePaneBorderBrush}"
             BorderThickness="1,0,0,0">
             <Grid.RowDefinitions>

@@ -282,7 +282,6 @@
                     IsTabStop="True"
                     ItemsSource="{x:Bind FrameItemsSource}"
                     Loaded="OnReaderListViewLoadedOrUnloaded"
-                    PreviewKeyDown="OnReaderKeyDown"
                     TabFocusNavigation="Local"
                     Unloaded="OnReaderListViewLoadedOrUnloaded">
                     <framelayout:ReaderListView.ItemTemplate>

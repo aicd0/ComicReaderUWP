@@ -1,0 +1,76 @@
+<base:BaseContentDialog
+    x:Class="ComicReaderUWP.Views.Dialogs.EditKeyboardShortcut.EditKeyboardShortcutDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:ComicReaderUWP.Common.BaseUI"
+    xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="{x:Bind ViewModel.Title, Mode=OneWay}"
+    mc:Ignorable="d">
+
+    <StackPanel Width="400" Orientation="Vertical">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Text="{x:Bind StringResource.KeyboardKeys}" />
+            <controls:KeyboardShortcutRecorder
+                x:Name="Recorder"
+                Grid.Row="0"
+                Grid.Column="2" />
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="2"
+                Margin="0,8,0,0"
+                Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                TextWrapping="Wrap"
+                Visibility="{x:Bind ViewModel.HasError, Mode=OneWay}" />
+            <TextBlock
+                Grid.Row="3"
+                Grid.Column="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Text="{x:Bind StringResource.Action}" />
+            <ComboBox
+                Grid.Row="3"
+                Grid.Column="2"
+                DisplayMemberPath="Name"
+                ItemsSource="{x:Bind ViewModel.Actions, Mode=OneWay}"
+                SelectedIndex="{x:Bind ViewModel.ActionIndex, Mode=OneWay}"
+                SelectionChanged="ActionComboBox_SelectionChanged" />
+        </Grid>
+        <Grid Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button
+                Grid.Column="0"
+                HorizontalAlignment="Stretch"
+                Click="OkButton_Click"
+                Content="{x:Bind StringResource.OK}"
+                IsEnabled="{x:Bind ViewModel.OkEnabled, Mode=OneWay}" />
+            <Button
+                Grid.Column="2"
+                HorizontalAlignment="Stretch"
+                Click="CancelButton_Click"
+                Content="{x:Bind StringResource.Cancel}" />
+        </Grid>
+    </StackPanel>
+
+</base:BaseContentDialog>

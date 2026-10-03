@@ -123,11 +123,17 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. Все права защищены.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>Действие</value>
+  </data>
   <data name="Add" xml:space="preserve">
     <value>Добавлять</value>
   </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Добавить папку</value>
+  </data>
+  <data name="AddKeyboardShortcut" xml:space="preserve">
+    <value>Добавить сочетание клавиш</value>
   </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>Добавить в подборку</value>
@@ -359,6 +365,9 @@ $files</value>
   <data name="EditImportExclusionList" xml:space="preserve">
     <value>Изменить список исключений при импорте</value>
   </data>
+  <data name="EditKeyboardShortcut" xml:space="preserve">
+    <value>Изменить сочетание клавиш</value>
+  </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Редактировать пресет</value>
   </data>
@@ -523,6 +532,27 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="GoForward" xml:space="preserve">
     <value>Идти вперед</value>
   </data>
+  <data name="GoToFirstPage" xml:space="preserve">
+    <value>Перейти на первую страницу</value>
+  </data>
+  <data name="GoToLastPage" xml:space="preserve">
+    <value>Перейти на последнюю страницу</value>
+  </data>
+  <data name="GoToLeftPage" xml:space="preserve">
+    <value>Перейти на левую страницу</value>
+  </data>
+  <data name="GoToNextPage" xml:space="preserve">
+    <value>Перейти на следующую страницу</value>
+  </data>
+  <data name="GoToPreviousPage" xml:space="preserve">
+    <value>Перейти на предыдущую страницу</value>
+  </data>
+  <data name="GoToRandomPage" xml:space="preserve">
+    <value>Перейти на случайную страницу</value>
+  </data>
+  <data name="GoToRightPage" xml:space="preserve">
+    <value>Перейти на правую страницу</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>Группировка</value>
   </data>
@@ -546,21 +576,6 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="Horizontal" xml:space="preserve">
     <value>Горизонтальный</value>
-  </data>
-  <data name="HotkeyFirstPage.Header" xml:space="preserve">
-    <value>Перейти на первую страницу</value>
-  </data>
-  <data name="HotkeyLastPage.Header" xml:space="preserve">
-    <value>Перейти на последнюю страницу</value>
-  </data>
-  <data name="HotkeyNextPage.Header" xml:space="preserve">
-    <value>Перейти на следующую страницу</value>
-  </data>
-  <data name="HotkeyPreviousPage.Header" xml:space="preserve">
-    <value>Перейти на предыдущую страницу</value>
-  </data>
-  <data name="HotkeyRandomPage.Header" xml:space="preserve">
-    <value>Перейти на случайную страницу</value>
   </data>
   <data name="Image" xml:space="preserve">
     <value>Изображение</value>
@@ -599,8 +614,17 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Не выключать экран</value>
   </data>
+  <data name="KeyboardKeys" xml:space="preserve">
+    <value>Клавиши</value>
+  </data>
+  <data name="KeyboardShortcutInUse" xml:space="preserve">
+    <value>Это сочетание клавиш уже используется.</value>
+  </data>
+  <data name="KeyboardShortcutReserved" xml:space="preserve">
+    <value>Это сочетание клавиш зарезервировано.</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
-    <value>Ознакомьтесь со всеми сочетаниями клавиш</value>
+    <value>Настроить все сочетания клавиш</value>
   </data>
   <data name="KeyboardShortcutsExpander.Header" xml:space="preserve">
     <value>Сочетания клавиш</value>
@@ -704,6 +728,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="NoHistory.Text" xml:space="preserve">
     <value>Ваша история просмотров отображается здесь</value>
   </data>
+  <data name="NoKeyboardShortcuts" xml:space="preserve">
+    <value>Нет сочетаний клавиш.</value>
+  </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>Нет установленных плагинов</value>
   </data>
@@ -790,6 +817,9 @@ NOT                      - Логическое не. Например: NOT %tag
   </data>
   <data name="PreloadPagesBefore" xml:space="preserve">
     <value>Предзагрузка страниц (до текущей страницы)</value>
+  </data>
+  <data name="PressKeyCombination" xml:space="preserve">
+    <value>Нажмите сочетание клавиш</value>
   </data>
   <data name="Previous" xml:space="preserve">
     <value>Предыдущий</value>
@@ -1032,6 +1062,9 @@ $plugins</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>Переключить автопрокрутку</value>
+  </data>
+  <data name="ToggleFullscreen" xml:space="preserve">
+    <value>Переключить полноэкранный режим</value>
   </data>
   <data name="TotalComics" xml:space="preserve">
     <value>Всего комиксов</value>

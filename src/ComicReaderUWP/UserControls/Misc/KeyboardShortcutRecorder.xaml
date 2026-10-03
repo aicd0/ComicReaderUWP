@@ -1,0 +1,34 @@
+<base:BaseUserControl
+    x:Class="ComicReaderUWP.UserControls.Misc.KeyboardShortcutRecorder"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:ComicReaderUWP.Common.BaseUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    IsTabStop="True"
+    PreviewKeyDown="OnPreviewKeyDown"
+    PreviewKeyUp="OnPreviewKeyUp"
+    Tapped="OnTapped"
+    UseSystemFocusVisuals="True"
+    mc:Ignorable="d">
+
+    <Border
+        MinHeight="36"
+        Padding="12,0"
+        Background="{ThemeResource TextControlBackgroundDisabled}"
+        BorderBrush="{ThemeResource TextControlBorderBrush}"
+        BorderThickness="1"
+        CornerRadius="4">
+        <Grid VerticalAlignment="Center">
+            <TextBlock
+                x:Name="PlaceholderTextBlock"
+                HorizontalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <TextBlock
+                x:Name="ValueTextBlock"
+                HorizontalAlignment="Center"
+                Visibility="Collapsed" />
+        </Grid>
+    </Border>
+
+</base:BaseUserControl>

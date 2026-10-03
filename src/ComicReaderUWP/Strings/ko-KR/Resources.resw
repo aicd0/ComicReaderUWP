@@ -123,11 +123,17 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. 모든 권리 보유.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>동작</value>
+  </data>
   <data name="Add" xml:space="preserve">
     <value>추가하다</value>
   </data>
   <data name="AddFolder" xml:space="preserve">
     <value>폴더 추가</value>
+  </data>
+  <data name="AddKeyboardShortcut" xml:space="preserve">
+    <value>단축키 추가</value>
   </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>컬렉션에 추가</value>
@@ -359,6 +365,9 @@ $files</value>
   <data name="EditImportExclusionList" xml:space="preserve">
     <value>가져오기 제외 목록 편집</value>
   </data>
+  <data name="EditKeyboardShortcut" xml:space="preserve">
+    <value>단축키 편집</value>
+  </data>
   <data name="EditPreset" xml:space="preserve">
     <value>프리셋 편집</value>
   </data>
@@ -523,6 +532,27 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="GoForward" xml:space="preserve">
     <value>앞으로 나아가다</value>
   </data>
+  <data name="GoToFirstPage" xml:space="preserve">
+    <value>첫 페이지로 이동</value>
+  </data>
+  <data name="GoToLastPage" xml:space="preserve">
+    <value>마지막 페이지로 이동</value>
+  </data>
+  <data name="GoToLeftPage" xml:space="preserve">
+    <value>왼쪽 페이지로 이동</value>
+  </data>
+  <data name="GoToNextPage" xml:space="preserve">
+    <value>다음 페이지로 이동</value>
+  </data>
+  <data name="GoToPreviousPage" xml:space="preserve">
+    <value>이전 페이지로 이동</value>
+  </data>
+  <data name="GoToRandomPage" xml:space="preserve">
+    <value>임의의 페이지로 이동</value>
+  </data>
+  <data name="GoToRightPage" xml:space="preserve">
+    <value>오른쪽 페이지로 이동</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>그룹화</value>
   </data>
@@ -546,21 +576,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="Horizontal" xml:space="preserve">
     <value>수평의</value>
-  </data>
-  <data name="HotkeyFirstPage.Header" xml:space="preserve">
-    <value>첫 페이지로 이동</value>
-  </data>
-  <data name="HotkeyLastPage.Header" xml:space="preserve">
-    <value>마지막 페이지로 이동</value>
-  </data>
-  <data name="HotkeyNextPage.Header" xml:space="preserve">
-    <value>다음 페이지로 이동</value>
-  </data>
-  <data name="HotkeyPreviousPage.Header" xml:space="preserve">
-    <value>이전 페이지로 이동</value>
-  </data>
-  <data name="HotkeyRandomPage.Header" xml:space="preserve">
-    <value>임의의 페이지로 이동</value>
   </data>
   <data name="Image" xml:space="preserve">
     <value>이미지</value>
@@ -599,8 +614,17 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="KeepScreenOn" xml:space="preserve">
     <value>화면 켜짐 유지</value>
   </data>
+  <data name="KeyboardKeys" xml:space="preserve">
+    <value>키</value>
+  </data>
+  <data name="KeyboardShortcutInUse" xml:space="preserve">
+    <value>이 단축키는 이미 사용 중입니다.</value>
+  </data>
+  <data name="KeyboardShortcutReserved" xml:space="preserve">
+    <value>이 단축키는 예약되어 있습니다.</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
-    <value>모든 키보드 단축키를 확인하세요</value>
+    <value>모든 키보드 단축키 설정</value>
   </data>
   <data name="KeyboardShortcutsExpander.Header" xml:space="preserve">
     <value>단축키</value>
@@ -704,6 +728,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="NoHistory.Text" xml:space="preserve">
     <value>귀하의 검색 기록이 여기에 표시됩니다.</value>
   </data>
+  <data name="NoKeyboardShortcuts" xml:space="preserve">
+    <value>키보드 단축키가 없습니다.</value>
+  </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>설치된 플러그인이 없습니다</value>
   </data>
@@ -790,6 +817,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="PreloadPagesBefore" xml:space="preserve">
     <value>페이지 미리 로드 (현재 페이지 이전)</value>
+  </data>
+  <data name="PressKeyCombination" xml:space="preserve">
+    <value>키 조합을 누르세요</value>
   </data>
   <data name="Previous" xml:space="preserve">
     <value>이전</value>
@@ -1032,6 +1062,9 @@ $plugins</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>자동 스크롤 전환</value>
+  </data>
+  <data name="ToggleFullscreen" xml:space="preserve">
+    <value>전체 화면 전환</value>
   </data>
   <data name="TotalComics" xml:space="preserve">
     <value>총 만화 수</value>

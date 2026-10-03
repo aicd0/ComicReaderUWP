@@ -14,8 +14,10 @@ public class StringResourceProvider
     //// SECTION MARKER - DO NOT MOVE ////
     public string About => GetResourceString("About");
     public string AboutCopyright => GetResourceString("AboutCopyright");
+    public string Action => GetResourceString("Action");
     public string Add => GetResourceString("Add");
     public string AddFolder => GetResourceString("AddFolder");
+    public string AddKeyboardShortcut => GetResourceString("AddKeyboardShortcut");
     public string AddToCollection => GetResourceString("AddToCollection");
     public string AddToFavorites => GetResourceString("AddToFavorites");
     public string AllComics => GetResourceString("AllComics");
@@ -82,6 +84,7 @@ public class StringResourceProvider
     public string DuringAutoScrolling => GetResourceString("DuringAutoScrolling");
     public string Edit => GetResourceString("Edit");
     public string EditImportExclusionList => GetResourceString("EditImportExclusionList");
+    public string EditKeyboardShortcut => GetResourceString("EditKeyboardShortcut");
     public string EditPreset => GetResourceString("EditPreset");
     public string Enable => GetResourceString("Enable");
     public string EnableCompressedFileCache => GetResourceString("EnableCompressedFileCache");
@@ -121,6 +124,13 @@ public class StringResourceProvider
     public string GeneralSettingsDescription => GetResourceString("GeneralSettingsDescription");
     public string GoBack => GetResourceString("GoBack");
     public string GoForward => GetResourceString("GoForward");
+    public string GoToFirstPage => GetResourceString("GoToFirstPage");
+    public string GoToLastPage => GetResourceString("GoToLastPage");
+    public string GoToLeftPage => GetResourceString("GoToLeftPage");
+    public string GoToNextPage => GetResourceString("GoToNextPage");
+    public string GoToPreviousPage => GetResourceString("GoToPreviousPage");
+    public string GoToRandomPage => GetResourceString("GoToRandomPage");
+    public string GoToRightPage => GetResourceString("GoToRightPage");
     public string Group => GetResourceString("Group");
     public string Help => GetResourceString("Help");
     public string Hidden => GetResourceString("Hidden");
@@ -138,6 +148,9 @@ public class StringResourceProvider
     public string InstallPluginWarning => GetResourceString("InstallPluginWarning");
     public string InvertImage => GetResourceString("InvertImage");
     public string KeepScreenOn => GetResourceString("KeepScreenOn");
+    public string KeyboardKeys => GetResourceString("KeyboardKeys");
+    public string KeyboardShortcutInUse => GetResourceString("KeyboardShortcutInUse");
+    public string KeyboardShortcutReserved => GetResourceString("KeyboardShortcutReserved");
     public string LastReadTime => GetResourceString("LastReadTime");
     public string LeftToRight => GetResourceString("LeftToRight");
     public string License => GetResourceString("License");
@@ -159,6 +172,7 @@ public class StringResourceProvider
     public string Next => GetResourceString("Next");
     public string NoComicsHint => GetResourceString("NoComicsHint");
     public string NoContent => GetResourceString("NoContent");
+    public string NoKeyboardShortcuts => GetResourceString("NoKeyboardShortcuts");
     public string NoPluginsInstalled => GetResourceString("NoPluginsInstalled");
     public string NoRating => GetResourceString("NoRating");
     public string NoResults => GetResourceString("NoResults");
@@ -187,6 +201,7 @@ public class StringResourceProvider
     public string Plugins => GetResourceString("Plugins");
     public string PreloadPagesAfter => GetResourceString("PreloadPagesAfter");
     public string PreloadPagesBefore => GetResourceString("PreloadPagesBefore");
+    public string PressKeyCombination => GetResourceString("PressKeyCombination");
     public string Previous => GetResourceString("Previous");
     public string PrivacyPolicy => GetResourceString("PrivacyPolicy");
     public string Proceed => GetResourceString("Proceed");
@@ -252,6 +267,7 @@ public class StringResourceProvider
     public string Title1 => GetResourceString("Title1");
     public string Title2 => GetResourceString("Title2");
     public string ToggleAutoScroll => GetResourceString("ToggleAutoScroll");
+    public string ToggleFullscreen => GetResourceString("ToggleFullscreen");
     public string TotalComics => GetResourceString("TotalComics");
     public string TransitionAnimation => GetResourceString("TransitionAnimation");
     public string TwoPageMode => GetResourceString("TwoPageMode");

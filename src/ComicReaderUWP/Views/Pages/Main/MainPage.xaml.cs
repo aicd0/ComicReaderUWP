@@ -10,6 +10,7 @@ using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.HotKey;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
@@ -194,6 +195,7 @@ internal sealed partial class MainPage : BasePage
         ViewModel.Initialize(PageActionHandler);
         ObserveData();
         SyncSidebarOpenState(SidebarSplitView.IsPaneOpen, initialSync: true);
+        UpdateKeyboardAccelerators();
     }
 
     protected override void OnResume()
@@ -209,6 +211,8 @@ internal sealed partial class MainPage : BasePage
         {
             ViewModel.IsBusy = busy;
         });
+
+        KeyboardShortcutManager.ShortcutsChangedLiveData.Observe(this, _ => UpdateKeyboardAccelerators());
 
         ComicModel.IsScanningLibraryLiveData.ObserveSticky(this, scanning =>
         {
@@ -331,32 +335,36 @@ internal sealed partial class MainPage : BasePage
     }
 
     //
-    // Key Events
+    // Configurable keyboard shortcuts
     //
 
-    private void KeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    private void UpdateKeyboardAccelerators()
     {
-        bool handled = false;
-        bool ctrlDown = args.KeyboardAccelerator.Modifiers.HasFlag(Windows.System.VirtualKeyModifiers.Control);
-        switch (args.KeyboardAccelerator.Key)
+        void AddKeyboardAccelerators(string action, Windows.Foundation.TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> handler)
         {
-            case Windows.System.VirtualKey.Escape:
-                handled = true;
-                GetMainWindowAbility().ExitFullscreen();
-                break;
-            case Windows.System.VirtualKey.F11:
-                if (ctrlDown)
-                {
-                    handled = true;
-                    ViewModel.OpenDevTools();
-                }
-                break;
+            foreach (KeyboardAccelerator accelerator in KeyboardShortcutManager.CreateAccelerators(action, handler))
+            {
+                KeyboardAccelerators.Add(accelerator);
+            }
         }
 
-        if (handled)
+        KeyboardAccelerators.Clear();
+
+        AddKeyboardAccelerators(KeyboardShortcutActions.ExitFullscreen, (_, _) => GetMainWindowAbility().ExitFullscreen());
+        AddKeyboardAccelerators(KeyboardShortcutActions.OpenDevTools, (_, _) => ViewModel.OpenDevTools());
+
+        AddKeyboardAccelerators(KeyboardShortcutActions.ToggleFullscreen, (_, _) =>
         {
-            args.Handled = true;
-        }
+            IMainWindowAbility mainWindowAbility = GetMainWindowAbility();
+            if (mainWindowAbility.IsFullscreen)
+            {
+                mainWindowAbility.ExitFullscreen();
+            }
+            else
+            {
+                mainWindowAbility.EnterFullscreen();
+            }
+        });
     }
 
     //

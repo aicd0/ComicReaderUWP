@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.HotKey;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
@@ -15,6 +16,7 @@ using ComicReaderUWP.Core.Database.JSON;
 using ComicReaderUWP.Data.Database;
 
 using Windows.Globalization;
+using Windows.System;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
@@ -30,6 +32,9 @@ internal static class AppSettingsModel
 
     private static readonly MutableLiveData<bool> _keepScreenOnBehaviorChangeLiveData = new();
     public static ILiveData<bool> KeepScreenOnBehaviorChangedLiveData => _keepScreenOnBehaviorChangeLiveData;
+
+    private static readonly MutableLiveData<bool> _keyboardShortcutsChangedLiveData = new();
+    public static ILiveData<bool> KeyboardShortcutsChangedLiveData => _keyboardShortcutsChangedLiveData;
 
     //
     // Properties
@@ -124,6 +129,82 @@ internal static class AppSettingsModel
             _db.Write(model => model.KeepScreenOnBehavior = ConvertKeepScreenOnBehaviorToJson(value));
             _db.Save();
             _keepScreenOnBehaviorChangeLiveData.Emit(true);
+        }
+    }
+
+    public static List<KeyboardShortcutModel> KeyboardShortcuts
+    {
+        get
+        {
+            return _db.Read(model =>
+            {
+                List<KeyboardShortcutModel> shortcuts = [];
+                if (model.KeyboardShortcuts is null)
+                {
+                    shortcuts.AddRange(KeyboardShortcutActions.DefaultShortcuts);
+                }
+                else
+                {
+                    foreach (KeyboardShortcutJsonModel? jsonModel in model.KeyboardShortcuts)
+                    {
+                        if (jsonModel is null)
+                        {
+                            continue;
+                        }
+
+                        string action = jsonModel.Action ?? string.Empty;
+                        if (string.IsNullOrEmpty(action))
+                        {
+                            continue;
+                        }
+
+                        if (!Enum.TryParse(jsonModel.Key, out VirtualKey key) || key == VirtualKey.None)
+                        {
+                            continue;
+                        }
+
+                        VirtualKeyModifiers modifiers = VirtualKeyModifiers.None;
+                        if (!string.IsNullOrEmpty(jsonModel.Modifiers) && !Enum.TryParse(jsonModel.Modifiers, out modifiers))
+                        {
+                            continue;
+                        }
+
+                        shortcuts.Add(new KeyboardShortcutModel
+                        {
+                            Action = action,
+                            Key = key,
+                            Modifiers = modifiers,
+                        });
+                    }
+                }
+
+                return shortcuts;
+            });
+        }
+        set
+        {
+            _db.Write(model =>
+            {
+                List<KeyboardShortcutJsonModel?> jsonModels = [];
+                foreach (KeyboardShortcutModel shortcut in value)
+                {
+                    if (shortcut.Key == VirtualKey.None)
+                    {
+                        continue;
+                    }
+
+                    jsonModels.Add(new KeyboardShortcutJsonModel
+                    {
+                        Action = shortcut.Action,
+                        Key = shortcut.Key.ToString(),
+                        Modifiers = shortcut.Modifiers.ToString(),
+                    });
+                }
+
+                model.KeyboardShortcuts = jsonModels;
+            });
+            _db.Save();
+            _keyboardShortcutsChangedLiveData.Emit(true);
         }
     }
 
@@ -395,6 +476,9 @@ internal static class AppSettingsModel
         });
 
         _db.Write(newModel);
+
+        _keepScreenOnBehaviorChangeLiveData.Emit(true);
+        _keyboardShortcutsChangedLiveData.Emit(true);
         Language = Language; // Language config needs to be applied immediately to take effect on next launch
     }
 
@@ -658,6 +742,18 @@ internal static class AppSettingsModel
         MicaAlt,
     }
 
+    public class KeyboardShortcutJsonModel
+    {
+        [JsonPropertyName("Action")]
+        public string? Action { get; set; }
+
+        [JsonPropertyName("Key")]
+        public string? Key { get; set; }
+
+        [JsonPropertyName("Modifiers")]
+        public string? Modifiers { get; set; }
+    }
+
     public class JsonModel
     {
         [JsonPropertyName("AutoSwitch")]
@@ -692,6 +788,9 @@ internal static class AppSettingsModel
 
         [JsonPropertyName("KeepScreenOnBehavior")]
         public string? KeepScreenOnBehavior { get; set; }
+
+        [JsonPropertyName("KeyboardShortcuts")]
+        public List<KeyboardShortcutJsonModel?>? KeyboardShortcuts { get; set; }
 
         [JsonPropertyName("OpenComicDefaultBehavior")]
         public string? OpenComicDefaultBehavior { get; set; }

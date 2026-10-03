@@ -123,11 +123,17 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. Alle Rechte vorbehalten.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>Aktion</value>
+  </data>
   <data name="Add" xml:space="preserve">
     <value>Hinzufügen</value>
   </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Einen Ordner hinzufügen</value>
+  </data>
+  <data name="AddKeyboardShortcut" xml:space="preserve">
+    <value>Tastenkürzel hinzufügen</value>
   </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>Zu Sammlung hinzufügen</value>
@@ -359,6 +365,9 @@ $files</value>
   <data name="EditImportExclusionList" xml:space="preserve">
     <value>Import-Ausschlussliste bearbeiten</value>
   </data>
+  <data name="EditKeyboardShortcut" xml:space="preserve">
+    <value>Tastenkürzel bearbeiten</value>
+  </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Voreinstellung bearbeiten</value>
   </data>
@@ -522,6 +531,27 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="GoForward" xml:space="preserve">
     <value>Weiter</value>
   </data>
+  <data name="GoToFirstPage" xml:space="preserve">
+    <value>Zur ersten Seite</value>
+  </data>
+  <data name="GoToLastPage" xml:space="preserve">
+    <value>Zur letzten Seite gehen</value>
+  </data>
+  <data name="GoToLeftPage" xml:space="preserve">
+    <value>Zur linken Seite</value>
+  </data>
+  <data name="GoToNextPage" xml:space="preserve">
+    <value>Zur nächsten Seite</value>
+  </data>
+  <data name="GoToPreviousPage" xml:space="preserve">
+    <value>Zur vorherigen Seite</value>
+  </data>
+  <data name="GoToRandomPage" xml:space="preserve">
+    <value>Gehen Sie zu einer zufälligen Seite</value>
+  </data>
+  <data name="GoToRightPage" xml:space="preserve">
+    <value>Zur rechten Seite</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>Gruppierung</value>
   </data>
@@ -545,21 +575,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="Horizontal" xml:space="preserve">
     <value>Horizontal</value>
-  </data>
-  <data name="HotkeyFirstPage.Header" xml:space="preserve">
-    <value>Zur ersten Seite</value>
-  </data>
-  <data name="HotkeyLastPage.Header" xml:space="preserve">
-    <value>Zur letzten Seite gehen</value>
-  </data>
-  <data name="HotkeyNextPage.Header" xml:space="preserve">
-    <value>Zur nächsten Seite</value>
-  </data>
-  <data name="HotkeyPreviousPage.Header" xml:space="preserve">
-    <value>Zur vorherigen Seite</value>
-  </data>
-  <data name="HotkeyRandomPage.Header" xml:space="preserve">
-    <value>Gehen Sie zu einer zufälligen Seite</value>
   </data>
   <data name="Image" xml:space="preserve">
     <value>Bild</value>
@@ -598,8 +613,17 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Bildschirm eingeschaltet lassen</value>
   </data>
+  <data name="KeyboardKeys" xml:space="preserve">
+    <value>Tasten</value>
+  </data>
+  <data name="KeyboardShortcutInUse" xml:space="preserve">
+    <value>Diese Tastenkombination wird bereits verwendet.</value>
+  </data>
+  <data name="KeyboardShortcutReserved" xml:space="preserve">
+    <value>Diese Tastenkombination ist reserviert.</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
-    <value>Alle Tastaturkürzel ansehen</value>
+    <value>Alle Tastenkürzel konfigurieren</value>
   </data>
   <data name="KeyboardShortcutsExpander.Header" xml:space="preserve">
     <value>Tastaturkürzel</value>
@@ -703,6 +727,9 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   <data name="NoHistory.Text" xml:space="preserve">
     <value>Ihr Browserverlauf wird hier angezeigt</value>
   </data>
+  <data name="NoKeyboardShortcuts" xml:space="preserve">
+    <value>Keine Tastenkürzel.</value>
+  </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>Keine Plugins installiert</value>
   </data>
@@ -789,6 +816,9 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   </data>
   <data name="PreloadPagesBefore" xml:space="preserve">
     <value>Seiten vorladen (vor der aktuellen Seite)</value>
+  </data>
+  <data name="PressKeyCombination" xml:space="preserve">
+    <value>Tastenkombination drücken</value>
   </data>
   <data name="Previous" xml:space="preserve">
     <value>Zurück</value>
@@ -1031,6 +1061,9 @@ Kategorie 2: Tag 4, Tag 5</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>Automatisches Scrollen umschalten</value>
+  </data>
+  <data name="ToggleFullscreen" xml:space="preserve">
+    <value>Vollbild umschalten</value>
   </data>
   <data name="TotalComics" xml:space="preserve">
     <value>Comics insgesamt</value>

@@ -117,23 +117,7 @@
                         Glyph="&#xE92E;"
                         IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1000*" MaxWidth="350" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel
-                                    Grid.Column="0"
-                                    Margin="0,0,0,2"
-                                    Orientation="Vertical">
-                                    <settings:HotkeyInfo Key="PgDn" x:Uid="HotkeyNextPage" />
-                                    <settings:HotkeyInfo Key="PgUp" x:Uid="HotkeyPreviousPage" />
-                                    <settings:HotkeyInfo Key="Home" x:Uid="HotkeyFirstPage" />
-                                    <settings:HotkeyInfo Key="End" x:Uid="HotkeyLastPage" />
-                                    <settings:HotkeyInfo Key="R" x:Uid="HotkeyRandomPage" />
-                                    <settings:HotkeyInfo Key="Space" Header="{x:Bind StringResource.ToggleAutoScroll}" />
-                                </StackPanel>
-                            </Grid>
+                            <settings:KeyboardShortcutSettingsView x:Name="KeyboardShortcutSettingsSection" />
                         </settings:SettingExpander.InnerContent>
                     </settings:SettingExpander>
 
