@@ -172,17 +172,6 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <Page.KeyboardAccelerators>
-        <KeyboardAccelerator
-            Key="Escape"
-            Invoked="KeyboardAccelerator_Invoked"
-            Modifiers="None" />
-        <KeyboardAccelerator
-            Key="F11"
-            Invoked="KeyboardAccelerator_Invoked"
-            Modifiers="Control" />
-    </Page.KeyboardAccelerators>
-
     <Grid
         AllowDrop="True"
         Background="Transparent"

@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.HotKey;
 using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Models.F8;
@@ -425,6 +426,49 @@ internal partial class ReaderView : UserControl
     {
         _originalDataModel = [.. images];
         Reload(_originalDataModel);
+    }
+
+    public void LoadShortcuts()
+    {
+        void AddShortcutAccelerators(string action, Windows.Foundation.TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> handler)
+        {
+            foreach (KeyboardAccelerator accelerator in KeyboardShortcutManager.CreateAccelerators(action, handler))
+            {
+                ContentListView.KeyboardAccelerators.Add(accelerator);
+            }
+        }
+
+        ContentListView.KeyboardAccelerators.Clear();
+
+        AddShortcutAccelerators(KeyboardShortcutActions.GoToNextPage, (_, _) => MoveFrameByUser("JumpPageUsingShortcut", 1));
+        AddShortcutAccelerators(KeyboardShortcutActions.GoToPreviousPage, (_, _) => MoveFrameByUser("JumpPageUsingShortcut", -1));
+        AddShortcutAccelerators(KeyboardShortcutActions.GoToLeftPage, (_, _) => MoveFrameByUser("JumpToLeftPageUsingShortcut", _isLeftToRight ? -1 : 1));
+        AddShortcutAccelerators(KeyboardShortcutActions.GoToRightPage, (_, _) => MoveFrameByUser("JumpToRightPageUsingShortcut", _isLeftToRight ? 1 : -1));
+        AddShortcutAccelerators(KeyboardShortcutActions.GoToFirstPage, (_, _) => SetPage(1, "JumpToFirstPageUsingShortcut", ScrollSource.User));
+        AddShortcutAccelerators(KeyboardShortcutActions.GoToLastPage, (_, _) => SetPage(PageCount, "JumpToLastPageUsingShortcut", ScrollSource.User));
+
+        AddShortcutAccelerators(KeyboardShortcutActions.GoToRandomPage, (_, _) =>
+        {
+            int page = Random.Shared.Next(Math.Max(1, PageCount)) + 1;
+            SetPage(page, "JumpToRandomPageUsingShortcut", ScrollSource.User);
+        });
+
+        AddShortcutAccelerators(KeyboardShortcutActions.ToggleAutoScroll, (_, _) =>
+        {
+            if (_isMiddleButtonAutoScrolling)
+            {
+                return;
+            }
+
+            if (_isAutoScrolling)
+            {
+                StopAutoScrolling();
+            }
+            else
+            {
+                StartAutoScrolling();
+            }
+        });
     }
 
     public void MoveFrame(int increment)
@@ -1766,95 +1810,6 @@ internal partial class ReaderView : UserControl
             {
                 SetScrollViewer3("FitScreenUsingCenterCrop", ScrollSource.User, zoom: 1F, zoomType: ZoomType.CenterInside, disableAnimation: false);
             }
-        }
-    }
-
-    #endregion
-
-    #region Key Down Event Handlers
-
-    private void OnReaderKeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        bool handled = true;
-        switch (e.Key)
-        {
-            case Windows.System.VirtualKey.Right:
-                if (_isLeftToRight)
-                {
-                    MoveFrameByUser("JumpToNextPageUsingRightKey", 1);
-                }
-                else
-                {
-                    MoveFrameByUser("JumpToPreviousPageUsingRightKey", -1);
-                }
-
-                break;
-
-            case Windows.System.VirtualKey.Left:
-                if (_isLeftToRight)
-                {
-                    MoveFrameByUser("JumpToPreviousPageUsingLeftKey", -1);
-                }
-                else
-                {
-                    MoveFrameByUser("JumpToNextPageUsingLeftKey", 1);
-                }
-
-                break;
-
-            case Windows.System.VirtualKey.Up:
-                MoveFrameByUser("JumpToPerviousPageUsingUpKey", -1);
-                break;
-
-            case Windows.System.VirtualKey.Down:
-                MoveFrameByUser("JumpToNextPageUsingDownKey", 1);
-                break;
-
-            case Windows.System.VirtualKey.PageUp:
-                MoveFrameByUser("JumpToPerviousPageUsingPgUpKey", -1);
-                break;
-
-            case Windows.System.VirtualKey.PageDown:
-                MoveFrameByUser("JumpToNextPageUsingPgDownKey", 1);
-                break;
-
-            case Windows.System.VirtualKey.Home:
-                SetPage(1, "JumpToFirstPageUsingHomeKey", ScrollSource.User);
-                break;
-
-            case Windows.System.VirtualKey.End:
-                SetPage(PageCount, "JumpToLastPageUsingEndKey", ScrollSource.User);
-                break;
-
-            case Windows.System.VirtualKey.Space:
-                if (!_isMiddleButtonAutoScrolling)
-                {
-                    if (_isAutoScrolling)
-                    {
-                        StopAutoScrolling();
-                    }
-                    else
-                    {
-                        StartAutoScrolling();
-                    }
-                }
-                break;
-
-            case Windows.System.VirtualKey.R:
-                {
-                    int page = Random.Shared.Next(Math.Max(1, PageCount)) + 1;
-                    SetPage(page, "JumpToRandomPageUsingRKey", ScrollSource.User);
-                }
-                break;
-
-            default:
-                handled = false;
-                break;
-        }
-
-        if (handled)
-        {
-            e.Handled = true;
         }
     }
 

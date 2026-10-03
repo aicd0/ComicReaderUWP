@@ -123,11 +123,17 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author。保留所有權利。</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>操作</value>
+  </data>
   <data name="Add" xml:space="preserve">
     <value>添加</value>
   </data>
   <data name="AddFolder" xml:space="preserve">
     <value>新增資料夾</value>
+  </data>
+  <data name="AddKeyboardShortcut" xml:space="preserve">
+    <value>新增快捷鍵</value>
   </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>加入合集</value>
@@ -357,6 +363,9 @@
   <data name="EditImportExclusionList" xml:space="preserve">
     <value>編輯匯入排除清單</value>
   </data>
+  <data name="EditKeyboardShortcut" xml:space="preserve">
+    <value>編輯快捷鍵</value>
+  </data>
   <data name="EditPreset" xml:space="preserve">
     <value>編輯預設</value>
   </data>
@@ -520,6 +529,27 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="GoForward" xml:space="preserve">
     <value>前進</value>
   </data>
+  <data name="GoToFirstPage" xml:space="preserve">
+    <value>跳到第一頁</value>
+  </data>
+  <data name="GoToLastPage" xml:space="preserve">
+    <value>跳到最後一頁</value>
+  </data>
+  <data name="GoToLeftPage" xml:space="preserve">
+    <value>跳到左侧页面</value>
+  </data>
+  <data name="GoToNextPage" xml:space="preserve">
+    <value>跳到下一頁</value>
+  </data>
+  <data name="GoToPreviousPage" xml:space="preserve">
+    <value>跳到上一頁</value>
+  </data>
+  <data name="GoToRandomPage" xml:space="preserve">
+    <value>跳到隨機頁面</value>
+  </data>
+  <data name="GoToRightPage" xml:space="preserve">
+    <value>跳到右侧页面</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>分組</value>
   </data>
@@ -543,21 +573,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="Horizontal" xml:space="preserve">
     <value>橫向</value>
-  </data>
-  <data name="HotkeyFirstPage.Header" xml:space="preserve">
-    <value>跳到第一頁</value>
-  </data>
-  <data name="HotkeyLastPage.Header" xml:space="preserve">
-    <value>跳到最後一頁</value>
-  </data>
-  <data name="HotkeyNextPage.Header" xml:space="preserve">
-    <value>跳到下一頁</value>
-  </data>
-  <data name="HotkeyPreviousPage.Header" xml:space="preserve">
-    <value>跳到上一頁</value>
-  </data>
-  <data name="HotkeyRandomPage.Header" xml:space="preserve">
-    <value>跳到隨機頁面</value>
   </data>
   <data name="Image" xml:space="preserve">
     <value>圖像</value>
@@ -596,8 +611,17 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="KeepScreenOn" xml:space="preserve">
     <value>保持螢幕開啟</value>
   </data>
+  <data name="KeyboardKeys" xml:space="preserve">
+    <value>按鍵</value>
+  </data>
+  <data name="KeyboardShortcutInUse" xml:space="preserve">
+    <value>此快捷鍵已在使用中。</value>
+  </data>
+  <data name="KeyboardShortcutReserved" xml:space="preserve">
+    <value>此快捷鍵已被保留。</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
-    <value>查看所有鍵盤快速鍵</value>
+    <value>設定所有鍵盤快捷鍵</value>
   </data>
   <data name="KeyboardShortcutsExpander.Header" xml:space="preserve">
     <value>鍵盤快速鍵</value>
@@ -701,6 +725,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="NoHistory.Text" xml:space="preserve">
     <value>您的瀏覽記錄會顯示在此處</value>
   </data>
+  <data name="NoKeyboardShortcuts" xml:space="preserve">
+    <value>沒有鍵盤快捷鍵。</value>
+  </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>未安裝外掛程式</value>
   </data>
@@ -787,6 +814,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   </data>
   <data name="PreloadPagesBefore" xml:space="preserve">
     <value>預載入頁數（目前頁之前）</value>
+  </data>
+  <data name="PressKeyCombination" xml:space="preserve">
+    <value>按下組合鍵</value>
   </data>
   <data name="Previous" xml:space="preserve">
     <value>上一個</value>
@@ -1029,6 +1059,9 @@ $plugins</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>切換自動捲動</value>
+  </data>
+  <data name="ToggleFullscreen" xml:space="preserve">
+    <value>切換全螢幕</value>
   </data>
   <data name="TotalComics" xml:space="preserve">
     <value>漫畫總數</value>

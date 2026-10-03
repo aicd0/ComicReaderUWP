@@ -123,11 +123,17 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. All rights reserved.</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
   <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Add a folder</value>
+  </data>
+  <data name="AddKeyboardShortcut" xml:space="preserve">
+    <value>Add shortcut</value>
   </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>Add to collection</value>
@@ -359,6 +365,9 @@ $files</value>
   <data name="EditImportExclusionList" xml:space="preserve">
     <value>Edit import exclusion list</value>
   </data>
+  <data name="EditKeyboardShortcut" xml:space="preserve">
+    <value>Edit shortcut</value>
+  </data>
   <data name="EditPreset" xml:space="preserve">
     <value>Edit preset</value>
   </data>
@@ -524,6 +533,27 @@ The evaluation will be performed in the following order:
   <data name="GoForward" xml:space="preserve">
     <value>Go forward</value>
   </data>
+  <data name="GoToFirstPage" xml:space="preserve">
+    <value>Go to first page</value>
+  </data>
+  <data name="GoToLastPage" xml:space="preserve">
+    <value>Go to last page</value>
+  </data>
+  <data name="GoToLeftPage" xml:space="preserve">
+    <value>Go to left page</value>
+  </data>
+  <data name="GoToNextPage" xml:space="preserve">
+    <value>Go to next page</value>
+  </data>
+  <data name="GoToPreviousPage" xml:space="preserve">
+    <value>Go to previous page</value>
+  </data>
+  <data name="GoToRandomPage" xml:space="preserve">
+    <value>Go to a random page</value>
+  </data>
+  <data name="GoToRightPage" xml:space="preserve">
+    <value>Go to right page</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>Group</value>
   </data>
@@ -547,21 +577,6 @@ The evaluation will be performed in the following order:
   </data>
   <data name="Horizontal" xml:space="preserve">
     <value>Horizontal</value>
-  </data>
-  <data name="HotkeyFirstPage.Header" xml:space="preserve">
-    <value>Go to first page</value>
-  </data>
-  <data name="HotkeyLastPage.Header" xml:space="preserve">
-    <value>Go to last page</value>
-  </data>
-  <data name="HotkeyNextPage.Header" xml:space="preserve">
-    <value>Go to next page</value>
-  </data>
-  <data name="HotkeyPreviousPage.Header" xml:space="preserve">
-    <value>Go to previous page</value>
-  </data>
-  <data name="HotkeyRandomPage.Header" xml:space="preserve">
-    <value>Go to a random page</value>
   </data>
   <data name="Image" xml:space="preserve">
     <value>Image</value>
@@ -600,8 +615,17 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Keep screen on</value>
   </data>
+  <data name="KeyboardKeys" xml:space="preserve">
+    <value>Keys</value>
+  </data>
+  <data name="KeyboardShortcutInUse" xml:space="preserve">
+    <value>This shortcut is already in use.</value>
+  </data>
+  <data name="KeyboardShortcutReserved" xml:space="preserve">
+    <value>This shortcut is reserved.</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
-    <value>Check out all keyboard shortcuts</value>
+    <value>Configure all keyboard shortcuts</value>
   </data>
   <data name="KeyboardShortcutsExpander.Header" xml:space="preserve">
     <value>Keyboard shortcuts</value>
@@ -705,6 +729,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="NoHistory.Text" xml:space="preserve">
     <value>Your browsing history appears here</value>
   </data>
+  <data name="NoKeyboardShortcuts" xml:space="preserve">
+    <value>No keyboard shortcuts.</value>
+  </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>No plugins installed</value>
   </data>
@@ -791,6 +818,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   </data>
   <data name="PreloadPagesBefore" xml:space="preserve">
     <value>Preload pages (before current page)</value>
+  </data>
+  <data name="PressKeyCombination" xml:space="preserve">
+    <value>Press a key combination</value>
   </data>
   <data name="Previous" xml:space="preserve">
     <value>Previous</value>
@@ -1033,6 +1063,9 @@ Category2: Tag4, Tag5</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>Toggle auto scrolling</value>
+  </data>
+  <data name="ToggleFullscreen" xml:space="preserve">
+    <value>Toggle fullscreen</value>
   </data>
   <data name="TotalComics" xml:space="preserve">
     <value>Total comics</value>

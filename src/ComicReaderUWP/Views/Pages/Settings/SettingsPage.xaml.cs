@@ -46,6 +46,7 @@ internal sealed partial class SettingsPage : BasePage
         ImageSourceSettingsSection.Initialize(this, ViewModel.Shared);
         ReaderSettingsSection.Initialize(ViewModel.Shared);
         AppearanceSettingsSection.Initialize(ViewModel.Shared);
+        KeyboardShortcutSettingsSection.Initialize(this, ViewModel.Shared);
         PluginSettingsSection.Initialize(ViewModel.Shared);
         AdvancedSettingsSection.Initialize(ViewModel.Shared);
 

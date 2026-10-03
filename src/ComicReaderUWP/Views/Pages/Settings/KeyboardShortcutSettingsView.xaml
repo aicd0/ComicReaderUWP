@@ -1,0 +1,89 @@
+<base:BaseUserControl
+    x:Class="ComicReaderUWP.Views.Pages.Settings.KeyboardShortcutSettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:ComicReaderUWP.Common.BaseUI"
+    xmlns:converters="using:ComicReaderUWP.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:settings="using:ComicReaderUWP.Views.Pages.Settings"
+    d:DesignHeight="100"
+    d:DesignWidth="100"
+    mc:Ignorable="d">
+
+    <base:BaseUserControl.Resources>
+        <ResourceDictionary>
+            <converters:BooleanToVisibilityNegationConverter x:Key="BooleanToVisibilityNegationConverter" />
+        </ResourceDictionary>
+    </base:BaseUserControl.Resources>
+
+    <StackPanel Orientation="Vertical">
+        <TextBlock
+            Text="{x:Bind StringResource.NoKeyboardShortcuts}"
+            TextWrapping="Wrap"
+            Visibility="{x:Bind ViewModel.HasShortcuts, Mode=OneWay, Converter={StaticResource BooleanToVisibilityNegationConverter}}" />
+        <ListView
+            Padding="2,3,0,5"
+            Background="{ThemeResource SettingsListViewBackground}"
+            CornerRadius="4"
+            ItemsSource="{x:Bind ViewModel.Shortcuts, Mode=OneWay}"
+            SelectionMode="Single"
+            Visibility="{x:Bind ViewModel.HasShortcuts, Mode=OneWay}">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="settings:KeyboardShortcutItemViewModel">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ShortcutText}" />
+                            <TextBlock
+                                Margin="12,0,0,0"
+                                Opacity="0.6"
+                                Text="{x:Bind ActionName}" />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="1"
+                            Width="32"
+                            Height="32"
+                            Margin="12,0,0,0"
+                            Padding="0"
+                            Click="EditShortcutButton_Click"
+                            ToolTipService.ToolTip="{x:Bind StringResource.Edit}">
+                            <FontIcon FontSize="16" Glyph="&#xE70F;" />
+                        </Button>
+                        <Button
+                            Grid.Column="2"
+                            Width="32"
+                            Height="32"
+                            Margin="8,0,0,0"
+                            Padding="0"
+                            Click="RemoveShortcutButton_Click"
+                            ToolTipService.ToolTip="{x:Bind StringResource.Delete}">
+                            <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                        </Button>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+            <ListView.ItemContainerStyle>
+                <Style BasedOn="{StaticResource DefaultListViewItemStyle}" TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    <Setter Property="Margin" Value="0" />
+                    <Setter Property="Padding" Value="20,8,12,8" />
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+        <Button
+            Margin="0,16,0,0"
+            HorizontalAlignment="Left"
+            Click="AddShortcutButton_Click"
+            Content="{x:Bind StringResource.Add}" />
+    </StackPanel>
+
+</base:BaseUserControl>

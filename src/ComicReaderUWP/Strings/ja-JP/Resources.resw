@@ -123,11 +123,17 @@
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. 無断複写・転載を禁じます。</value>
   </data>
+  <data name="Action" xml:space="preserve">
+    <value>アクション</value>
+  </data>
   <data name="Add" xml:space="preserve">
     <value>追加</value>
   </data>
   <data name="AddFolder" xml:space="preserve">
     <value>フォルダを追加する</value>
+  </data>
+  <data name="AddKeyboardShortcut" xml:space="preserve">
+    <value>ショートカットを追加</value>
   </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>コレクションに追加</value>
@@ -359,6 +365,9 @@ $files</value>
   <data name="EditImportExclusionList" xml:space="preserve">
     <value>インポート除外リストを編集</value>
   </data>
+  <data name="EditKeyboardShortcut" xml:space="preserve">
+    <value>ショートカットを編集</value>
+  </data>
   <data name="EditPreset" xml:space="preserve">
     <value>プリセットを編集</value>
   </data>
@@ -522,6 +531,27 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="GoForward" xml:space="preserve">
     <value>前進する</value>
   </data>
+  <data name="GoToFirstPage" xml:space="preserve">
+    <value>最初のページへジャンプ</value>
+  </data>
+  <data name="GoToLastPage" xml:space="preserve">
+    <value>最後のページへジャンプ</value>
+  </data>
+  <data name="GoToLeftPage" xml:space="preserve">
+    <value>左のページに移動</value>
+  </data>
+  <data name="GoToNextPage" xml:space="preserve">
+    <value>次のページへ進む</value>
+  </data>
+  <data name="GoToPreviousPage" xml:space="preserve">
+    <value>前のページへジャンプ</value>
+  </data>
+  <data name="GoToRandomPage" xml:space="preserve">
+    <value>ランダムなページにジャンプ</value>
+  </data>
+  <data name="GoToRightPage" xml:space="preserve">
+    <value>右のページに移動</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>グループ化</value>
   </data>
@@ -545,21 +575,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="Horizontal" xml:space="preserve">
     <value>水平</value>
-  </data>
-  <data name="HotkeyFirstPage.Header" xml:space="preserve">
-    <value>最初のページへジャンプ</value>
-  </data>
-  <data name="HotkeyLastPage.Header" xml:space="preserve">
-    <value>最後のページへジャンプ</value>
-  </data>
-  <data name="HotkeyNextPage.Header" xml:space="preserve">
-    <value>次のページへ進む</value>
-  </data>
-  <data name="HotkeyPreviousPage.Header" xml:space="preserve">
-    <value>前のページへジャンプ</value>
-  </data>
-  <data name="HotkeyRandomPage.Header" xml:space="preserve">
-    <value>ランダムなページにジャンプ</value>
   </data>
   <data name="Image" xml:space="preserve">
     <value>画像</value>
@@ -598,8 +613,17 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="KeepScreenOn" xml:space="preserve">
     <value>画面をオンのままにする</value>
   </data>
+  <data name="KeyboardKeys" xml:space="preserve">
+    <value>キー</value>
+  </data>
+  <data name="KeyboardShortcutInUse" xml:space="preserve">
+    <value>このショートカットはすでに使用されています。</value>
+  </data>
+  <data name="KeyboardShortcutReserved" xml:space="preserve">
+    <value>このショートカットは予約されています。</value>
+  </data>
   <data name="KeyboardShortcutsExpander.Detail" xml:space="preserve">
-    <value>すべてのショートカットキーを表示</value>
+    <value>すべてのキーボードショートカットを設定</value>
   </data>
   <data name="KeyboardShortcutsExpander.Header" xml:space="preserve">
     <value>ショートカットキー</value>
@@ -703,6 +727,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="NoHistory.Text" xml:space="preserve">
     <value>閲覧履歴はここに表示されます</value>
   </data>
+  <data name="NoKeyboardShortcuts" xml:space="preserve">
+    <value>キーボードショートカットはありません。</value>
+  </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>プラグインがインストールされていません</value>
   </data>
@@ -789,6 +816,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="PreloadPagesBefore" xml:space="preserve">
     <value>ページを先読み（現在のページより前）</value>
+  </data>
+  <data name="PressKeyCombination" xml:space="preserve">
+    <value>キーの組み合わせを押してください</value>
   </data>
   <data name="Previous" xml:space="preserve">
     <value>前へ</value>
@@ -1031,6 +1061,9 @@ $plugins</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>自動スクロール切替</value>
+  </data>
+  <data name="ToggleFullscreen" xml:space="preserve">
+    <value>フルスクリーンの切り替え</value>
   </data>
   <data name="TotalComics" xml:space="preserve">
     <value>漫画総数</value>

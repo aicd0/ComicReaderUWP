@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
+using ComicReaderUWP.Common.HotKey;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
@@ -103,6 +104,7 @@ internal sealed partial class ReaderPage : BasePage
         GetMainPageAbility().SetCustomCenteredNavigationBar(_readerNavigationBar);
 
         // Initialize views
+        MainReaderView.LoadShortcuts();
         MainReaderView.OverScrollEnabled = AppSettingsModel.AutoSwitch;
         _readerNavigationBar.Initialize(GetMainWindowAbility());
         ViewModel.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
@@ -172,10 +174,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.FavoriteUpdated.Observe(this, _ =>
-        {
-            ViewModel.UpdateFavoriteStatus();
-        });
+        GlobalEvent.Instance.FavoriteUpdated.Observe(this, _ => ViewModel.UpdateFavoriteStatus());
 
         GlobalEvent.Instance.ComicUpdated.Observe(this, ids =>
         {
@@ -188,10 +187,9 @@ internal sealed partial class ReaderPage : BasePage
             ViewModel.UpdateComicMetadata();
         });
 
-        AppSettingsModel.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ =>
-        {
-            UpdateDisplayStatus();
-        });
+        KeyboardShortcutManager.ShortcutsChangedLiveData.Observe(this, _ => MainReaderView.LoadShortcuts());
+
+        AppSettingsModel.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ => UpdateDisplayStatus());
 
         GetWindowEventBus().With<double>(EventId.TopOverlayHeight).ObserveSticky(this, h =>
         {
