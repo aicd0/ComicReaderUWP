@@ -41,7 +41,7 @@
                             Grid.Column="0"
                             VerticalAlignment="Center"
                             Orientation="Horizontal">
-                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ShortcutText}" />
+                            <TextBlock Text="{x:Bind ShortcutText}" />
                             <TextBlock
                                 Margin="12,0,0,0"
                                 Opacity="0.6"
@@ -85,7 +85,7 @@
             Orientation="Horizontal"
             Spacing="8">
             <Button Click="AddShortcutButton_Click" Content="{x:Bind StringResource.Add}" />
-            <Button Click="RestoreShortcutsButton_Click" Content="{x:Bind StringResource.Restore}" />
+            <Button Click="ResetShortcutsButton_Click" Content="{x:Bind StringResource.Reset}" />
         </StackPanel>
     </StackPanel>
 

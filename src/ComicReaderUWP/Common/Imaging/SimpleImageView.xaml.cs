@@ -125,10 +125,6 @@ internal partial class SimpleImageView : UserControl
             LoadSource();
             RequestReload();
         }
-        else
-        {
-            UnloadImage();
-        }
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -345,7 +341,7 @@ internal partial class SimpleImageView : UserControl
 
         public void OnSuccess(DecodedImageModel result)
         {
-            if (!_imageViewRef.TryGetTarget(out SimpleImageView? view) || !view.IsLoaded || view._imageHash != imageHash)
+            if (!_imageViewRef.TryGetTarget(out SimpleImageView? view) || view._imageHash != imageHash)
             {
                 return;
             }

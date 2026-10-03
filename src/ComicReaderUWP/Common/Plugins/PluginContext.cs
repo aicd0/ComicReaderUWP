@@ -60,8 +60,8 @@ internal partial class PluginContext : IPluginContext
     public string Name { get; init; }
     public string Publisher { get; init; }
     public string Description { get; init; }
-    public IconSource? Icon => _plugin.Icon;
-    public string Version => _plugin.Version;
+    public IconSource? Icon => SafeAction(() => _plugin.Icon, null);
+    public string Version => SafeAction(() => _plugin.Version, string.Empty);
     public string PluginFilePath { get; init; }
     public PluginFileLoadContext LoadContext { get; init; }
     public bool IsActive => Status == PluginStatusEnum.Initialized;

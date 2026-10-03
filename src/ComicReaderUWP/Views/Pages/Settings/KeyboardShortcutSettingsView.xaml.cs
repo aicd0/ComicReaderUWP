@@ -41,7 +41,7 @@ internal sealed partial class KeyboardShortcutSettingsView : BaseUserControl
         });
     }
 
-    private void RestoreShortcutsButton_Click(object sender, RoutedEventArgs e)
+    private void ResetShortcutsButton_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.Reset();
     }
