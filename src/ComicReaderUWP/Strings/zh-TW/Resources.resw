@@ -246,6 +246,9 @@
   <data name="CloseSidebar" xml:space="preserve">
     <value>關閉側邊欄</value>
   </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>關閉標籤頁</value>
+  </data>
   <data name="CloseWindow" xml:space="preserve">
     <value>關閉視窗</value>
   </data>
@@ -608,6 +611,12 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="InvertImage" xml:space="preserve">
     <value>反色</value>
   </data>
+  <data name="JumpToNextTab" xml:space="preserve">
+    <value>跳轉到下一個標籤頁</value>
+  </data>
+  <data name="JumpToPreviousTab" xml:space="preserve">
+    <value>跳轉到上一個標籤頁</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>保持螢幕開啟</value>
   </data>
@@ -773,8 +782,17 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>開啟中繼資料資料夾</value>
   </data>
+  <data name="OpenNewTab" xml:space="preserve">
+    <value>開啟新標籤頁</value>
+  </data>
+  <data name="OpenNextComic" xml:space="preserve">
+    <value>開啟下一部漫畫</value>
+  </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>打開外掛資料夾</value>
+  </data>
+  <data name="OpenPreviousComic" xml:space="preserve">
+    <value>開啟上一部漫畫</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>打開側邊欄</value>

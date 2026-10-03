@@ -246,6 +246,9 @@
   <data name="CloseSidebar" xml:space="preserve">
     <value>Close sidebar</value>
   </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>Close tab</value>
+  </data>
   <data name="CloseWindow" xml:space="preserve">
     <value>Close window</value>
   </data>
@@ -612,6 +615,12 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="InvertImage" xml:space="preserve">
     <value>Invert</value>
   </data>
+  <data name="JumpToNextTab" xml:space="preserve">
+    <value>Jump to next tab</value>
+  </data>
+  <data name="JumpToPreviousTab" xml:space="preserve">
+    <value>Jump to previous tab</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Keep screen on</value>
   </data>
@@ -777,8 +786,17 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>Open metadata folder</value>
   </data>
+  <data name="OpenNewTab" xml:space="preserve">
+    <value>Open a new tab</value>
+  </data>
+  <data name="OpenNextComic" xml:space="preserve">
+    <value>Open next comic</value>
+  </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>Open plugins folder</value>
+  </data>
+  <data name="OpenPreviousComic" xml:space="preserve">
+    <value>Open previous comic</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Open sidebar</value>

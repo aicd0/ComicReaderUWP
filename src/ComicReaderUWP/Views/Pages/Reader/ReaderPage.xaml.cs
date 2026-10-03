@@ -442,6 +442,18 @@ internal sealed partial class ReaderPage : BasePage
             }
         };
 
+        MainReaderView.ReaderEventComicNavigation += (sender, forward) =>
+        {
+            if (forward)
+            {
+                ViewModel.Playback.Next();
+            }
+            else
+            {
+                ViewModel.Playback.Previous(fromOverScroll: false);
+            }
+        };
+
         MainReaderView.ImageContextRequested = async (sender, args) =>
         {
             ComicModel? comic = ViewModel.Comic;

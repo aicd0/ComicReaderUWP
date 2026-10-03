@@ -246,6 +246,9 @@
   <data name="CloseSidebar" xml:space="preserve">
     <value>サイドバーを閉じる</value>
   </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>タブを閉じる</value>
+  </data>
   <data name="CloseWindow" xml:space="preserve">
     <value>ウィンドウを閉じる</value>
   </data>
@@ -610,6 +613,12 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="InvertImage" xml:space="preserve">
     <value>色反転</value>
   </data>
+  <data name="JumpToNextTab" xml:space="preserve">
+    <value>次のタブに移動</value>
+  </data>
+  <data name="JumpToPreviousTab" xml:space="preserve">
+    <value>前のタブに移動</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>画面をオンのままにする</value>
   </data>
@@ -775,8 +784,17 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>メタデータフォルダを開く</value>
   </data>
+  <data name="OpenNewTab" xml:space="preserve">
+    <value>新しいタブを開く</value>
+  </data>
+  <data name="OpenNextComic" xml:space="preserve">
+    <value>次のコミックを開く</value>
+  </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>プラグインフォルダーを開く</value>
+  </data>
+  <data name="OpenPreviousComic" xml:space="preserve">
+    <value>前のコミックを開く</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>サイドバーを開く</value>

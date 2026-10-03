@@ -67,4 +67,9 @@ internal partial class KeyboardShortcutSettingsViewModel : INotifyPropertyChange
     {
         KeyboardShortcutManager.Remove(shortcut);
     }
+
+    public void Reset()
+    {
+        KeyboardShortcutManager.Reset();
+    }
 }

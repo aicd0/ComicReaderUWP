@@ -246,6 +246,9 @@
   <data name="CloseSidebar" xml:space="preserve">
     <value>Seitenleiste schließen</value>
   </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>Tab schließen</value>
+  </data>
   <data name="CloseWindow" xml:space="preserve">
     <value>Fenster schließen</value>
   </data>
@@ -610,6 +613,12 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   <data name="InvertImage" xml:space="preserve">
     <value>Umkehren</value>
   </data>
+  <data name="JumpToNextTab" xml:space="preserve">
+    <value>Zum nächsten Tab wechseln</value>
+  </data>
+  <data name="JumpToPreviousTab" xml:space="preserve">
+    <value>Zum vorherigen Tab wechseln</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>Bildschirm eingeschaltet lassen</value>
   </data>
@@ -775,8 +784,17 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>Metadatenordner öffnen</value>
   </data>
+  <data name="OpenNewTab" xml:space="preserve">
+    <value>Neuen Tab öffnen</value>
+  </data>
+  <data name="OpenNextComic" xml:space="preserve">
+    <value>Nächsten Comic öffnen</value>
+  </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>Plugin-Ordner öffnen</value>
+  </data>
+  <data name="OpenPreviousComic" xml:space="preserve">
+    <value>Vorherigen Comic öffnen</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>Seitenleiste öffnen</value>

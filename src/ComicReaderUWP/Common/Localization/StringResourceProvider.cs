@@ -48,6 +48,7 @@ public class StringResourceProvider
     public string ClearReaderSettings => GetResourceString("ClearReaderSettings");
     public string CloseLastTabBehavior => GetResourceString("CloseLastTabBehavior");
     public string CloseSidebar => GetResourceString("CloseSidebar");
+    public string CloseTab => GetResourceString("CloseTab");
     public string CloseWindow => GetResourceString("CloseWindow");
     public string CollapseAll => GetResourceString("CollapseAll");
     public string Collection => GetResourceString("Collection");
@@ -147,6 +148,8 @@ public class StringResourceProvider
     public string InstallPlugin => GetResourceString("InstallPlugin");
     public string InstallPluginWarning => GetResourceString("InstallPluginWarning");
     public string InvertImage => GetResourceString("InvertImage");
+    public string JumpToNextTab => GetResourceString("JumpToNextTab");
+    public string JumpToPreviousTab => GetResourceString("JumpToPreviousTab");
     public string KeepScreenOn => GetResourceString("KeepScreenOn");
     public string KeyboardKeys => GetResourceString("KeyboardKeys");
     public string KeyboardShortcutInUse => GetResourceString("KeyboardShortcutInUse");
@@ -187,7 +190,10 @@ public class StringResourceProvider
     public string OpenInLastActiveReaderTab => GetResourceString("OpenInLastActiveReaderTab");
     public string OpenInNewTab => GetResourceString("OpenInNewTab");
     public string OpenMetadataFolder => GetResourceString("OpenMetadataFolder");
+    public string OpenNewTab => GetResourceString("OpenNewTab");
+    public string OpenNextComic => GetResourceString("OpenNextComic");
     public string OpenPluginsFolder => GetResourceString("OpenPluginsFolder");
+    public string OpenPreviousComic => GetResourceString("OpenPreviousComic");
     public string OpenSidebar => GetResourceString("OpenSidebar");
     public string OpenUserDataFolder => GetResourceString("OpenUserDataFolder");
     public string OverwriteExistingEntries => GetResourceString("OverwriteExistingEntries");

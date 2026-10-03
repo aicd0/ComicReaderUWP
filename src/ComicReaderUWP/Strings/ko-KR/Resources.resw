@@ -246,6 +246,9 @@
   <data name="CloseSidebar" xml:space="preserve">
     <value>사이드바 닫기</value>
   </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>탭 닫기</value>
+  </data>
   <data name="CloseWindow" xml:space="preserve">
     <value>창 닫기</value>
   </data>
@@ -611,6 +614,12 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="InvertImage" xml:space="preserve">
     <value>반전</value>
   </data>
+  <data name="JumpToNextTab" xml:space="preserve">
+    <value>다음 탭으로 이동</value>
+  </data>
+  <data name="JumpToPreviousTab" xml:space="preserve">
+    <value>이전 탭으로 이동</value>
+  </data>
   <data name="KeepScreenOn" xml:space="preserve">
     <value>화면 켜짐 유지</value>
   </data>
@@ -776,8 +785,17 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="OpenMetadataFolder" xml:space="preserve">
     <value>메타데이터 폴더 열기</value>
   </data>
+  <data name="OpenNewTab" xml:space="preserve">
+    <value>새 탭 열기</value>
+  </data>
+  <data name="OpenNextComic" xml:space="preserve">
+    <value>다음 만화 열기</value>
+  </data>
   <data name="OpenPluginsFolder" xml:space="preserve">
     <value>플러그인 폴더 열기</value>
+  </data>
+  <data name="OpenPreviousComic" xml:space="preserve">
+    <value>이전 만화 열기</value>
   </data>
   <data name="OpenSidebar" xml:space="preserve">
     <value>사이드바 열기</value>
