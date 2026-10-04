@@ -210,11 +210,6 @@ internal sealed partial class DevToolsPage : BasePage
         SetResult(report.ToString());
     }
 
-    private void DeveloperModeToggleSwitch_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-    {
-        DebugUtils.DeveloperMode = DeveloperModeToggleSwitch.IsOn;
-    }
-
     //
     // Logs
     //
@@ -547,6 +542,5 @@ internal sealed partial class DevToolsPage : BasePage
     private void RestoreConfig()
     {
         CommonConfigsTextBlock.Text = DebugModel.LoadJsonConfig();
-        DeveloperModeToggleSwitch.IsOn = DebugUtils.DeveloperMode;
     }
 }

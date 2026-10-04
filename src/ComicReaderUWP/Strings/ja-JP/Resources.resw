@@ -344,6 +344,12 @@ $files</value>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>マンガリーダー [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>開発者モード</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>開発者ツール</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>差分モード</value>
   </data>

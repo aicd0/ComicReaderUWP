@@ -344,6 +344,12 @@ $files</value>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>만화 리더 UWP [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>개발자 모드</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>개발자 도구</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff 모드</value>
   </data>

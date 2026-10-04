@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Archive;
 using ComicReaderUWP.Common.Imaging;
@@ -55,6 +56,17 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _developerMode;
+    public bool DeveloperMode
+    {
+        get => _developerMode;
+        set
+        {
+            _developerMode = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DeveloperMode)));
+        }
+    }
+
     private bool _sendUsageData;
     public bool SendUsageData
     {
@@ -102,24 +114,18 @@ internal partial class AdvancedSettingsViewModel : INotifyPropertyChanged
     private void Update()
     {
         UpdateBasicSettings();
-        UpdateCacheSize();
+        CoroutineUtils.Run(UpdateCacheSize);
     }
 
     private void UpdateBasicSettings()
     {
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            SendUsageData = AppSettingsModel.SendUsageData;
-        });
+        DeveloperMode = DebugUtils.DeveloperMode;
+        SendUsageData = AppSettingsModel.SendUsageData;
     }
 
-    private void UpdateCacheSize()
+    private async Task UpdateCacheSize()
     {
-        string size = GetCacheSize();
-        CoroutineUtils.RunInMainThread(() =>
-        {
-            CacheSize = size;
-        });
+        CacheSize = await TaskDispatcher.LongRunningThreadPool.Submit(() => GetCacheSize());
     }
 
     //

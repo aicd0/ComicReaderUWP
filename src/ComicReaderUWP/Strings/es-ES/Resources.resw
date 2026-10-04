@@ -344,6 +344,12 @@ $files</value>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Lector de Cómics [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>Modo de desarrollador</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>Herramientas de desarrollador</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Modo diferencial</value>
   </data>

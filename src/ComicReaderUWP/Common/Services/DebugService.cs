@@ -6,16 +6,12 @@ using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
-using ComicReaderUWP.Helpers.Navigation;
 using ComicReaderUWP.SDK.Models;
-using ComicReaderUWP.Views.AppWindows.Main;
 
 namespace ComicReaderUWP.Common.Services;
 
 internal class DebugService : IDebugService
 {
-    public string DebugCommandPublicKeyPem => Secret.DebugCommandPublicKeyPem;
-
     public bool SentryEnabled => AppSettingsModel.SendUsageData;
 
     public void OnCrashReport(string info)
@@ -32,16 +28,5 @@ internal class DebugService : IDebugService
             })
             .Build();
         CoroutineUtils.Run(() => DialogUtils.EnqueueDialogAsync(options));
-    }
-
-    public bool HandleDebugCommand(string command)
-    {
-        if (command == "dev_tools")
-        {
-            MainWindow.Open(RouterConstants.SCHEME_APP + RouterConstants.HOST_DEV_TOOLS);
-            return true;
-        }
-
-        return false;
     }
 }
