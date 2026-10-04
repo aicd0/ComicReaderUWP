@@ -740,7 +740,7 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
     <value>Votre historique de navigation sera affiché ici</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>Aucun raccourci clavier.</value>
+    <value>Aucun raccourci clavier</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>Aucun plugin installé</value>

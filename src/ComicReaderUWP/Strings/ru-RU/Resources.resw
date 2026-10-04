@@ -741,7 +741,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Ваша история просмотров отображается здесь</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>Нет сочетаний клавиш.</value>
+    <value>Нет сочетаний клавиш</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>Нет установленных плагинов</value>

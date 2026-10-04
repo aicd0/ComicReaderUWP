@@ -741,7 +741,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
     <value>귀하의 검색 기록이 여기에 표시됩니다.</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>키보드 단축키가 없습니다.</value>
+    <value>키보드 단축키가 없습니다</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>설치된 플러그인이 없습니다</value>

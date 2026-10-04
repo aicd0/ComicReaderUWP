@@ -742,7 +742,7 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
     <value>Your browsing history appears here</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>No keyboard shortcuts.</value>
+    <value>No keyboard shortcuts</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>No plugins installed</value>
