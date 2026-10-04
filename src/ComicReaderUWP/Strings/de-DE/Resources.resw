@@ -344,6 +344,12 @@ $files</value>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Comic-Leser UWP [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>Entwicklermodus</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>Entwicklertools</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff-Modus</value>
   </data>

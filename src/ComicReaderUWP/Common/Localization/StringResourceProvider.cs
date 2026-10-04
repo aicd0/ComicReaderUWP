@@ -78,6 +78,8 @@ public class StringResourceProvider
     public string Descending => GetResourceString("Descending");
     public string Description => GetResourceString("Description");
     public string DevAppDisplayName => GetResourceString("DevAppDisplayName");
+    public string DeveloperMode => GetResourceString("DeveloperMode");
+    public string DeveloperTools => GetResourceString("DeveloperTools");
     public string DiffMode => GetResourceString("DiffMode");
     public string Disable => GetResourceString("Disable");
     public string Disabled => GetResourceString("Disabled");

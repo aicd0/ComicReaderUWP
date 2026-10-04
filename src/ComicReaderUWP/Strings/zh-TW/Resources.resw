@@ -342,6 +342,12 @@
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>漫畫閱讀器 UWP [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>開發者模式</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>開發者工具</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>差異模式</value>
   </data>
