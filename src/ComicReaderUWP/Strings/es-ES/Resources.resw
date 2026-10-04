@@ -740,7 +740,7 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
     <value>Tu historial de navegación aparece aquí</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>No hay atajos de teclado.</value>
+    <value>No hay atajos de teclado</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>No hay complementos instalados</value>

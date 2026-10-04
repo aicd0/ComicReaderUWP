@@ -740,7 +740,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
     <value>閲覧履歴はここに表示されます</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>キーボードショートカットはありません。</value>
+    <value>キーボードショートカットはありません</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>プラグインがインストールされていません</value>

@@ -738,7 +738,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
     <value>您的瀏覽記錄會顯示在此處</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>沒有鍵盤快捷鍵。</value>
+    <value>沒有鍵盤快捷鍵</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>未安裝外掛程式</value>

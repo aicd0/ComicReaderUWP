@@ -740,7 +740,7 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
     <value>Ihr Browserverlauf wird hier angezeigt</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>Keine Tastenkürzel.</value>
+    <value>Keine Tastenkürzel</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>Keine Plugins installiert</value>
