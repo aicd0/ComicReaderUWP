@@ -12,7 +12,9 @@ namespace ComicReaderUWP.Common.HotKey;
 internal static class KeyboardShortcutActions
 {
     public const string AddNewTab = "AddNewTab";
+    public const string AddNewWindow = "AddNewWindow";
     public const string CloseTab = "CloseTab";
+    public const string ExitApp = "ExitApp";
     public const string ExitFullscreen = "ExitFullscreen";
     public const string GoToFirstPage = "GoToFirstPage";
     public const string GoToLastPage = "GoToLastPage";
@@ -34,8 +36,10 @@ internal static class KeyboardShortcutActions
 
     private static readonly List<KeyboardShortcutActionEntry> sAll =
     [
-        new() { Id = AddNewTab, Name = StringResourceProvider.Instance.AddNewTab },
+        new() { Id = AddNewTab, Name = StringResourceProvider.Instance.NewTab },
+        new() { Id = AddNewWindow, Name = StringResourceProvider.Instance.NewWindow },
         new() { Id = CloseTab, Name = StringResourceProvider.Instance.CloseTab },
+        new() { Id = ExitApp, Name = StringResourceProvider.Instance.Exit },
         new() { Id = ExitFullscreen, Name = StringResourceProvider.Instance.ExitFullscreen, IsInternal = true },
         new() { Id = GoToFirstPage, Name = StringResourceProvider.Instance.GoToFirstPage, Scope = ReaderScope },
         new() { Id = GoToLastPage, Name = StringResourceProvider.Instance.GoToLastPage, Scope = ReaderScope },

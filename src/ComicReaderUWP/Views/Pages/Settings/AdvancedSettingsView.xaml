@@ -44,15 +44,20 @@
             Click="OnRefreshRandomSeedClick"
             Content="{x:Bind StringResource.RefreshRandomSeed}" />
         <TextBlock
-            x:Uid="DebugMode"
             Margin="0,16,0,0"
+            Text="{x:Bind StringResource.SendUsageData}"
+            TextWrapping="Wrap" />
+        <ToggleSwitch IsOn="{x:Bind ViewModel.SendUsageData, Mode=TwoWay}" Toggled="SendUsageDataToggleSwitch_Toggled" />
+        <TextBlock
+            x:Uid="DebugMode"
+            Margin="0,8,0,0"
             TextWrapping="Wrap" />
         <ToggleSwitch IsOn="{x:Bind ViewModel.Shared.DebugMode, Mode=OneWay}" Toggled="DebugModeToggleSwitch_Toggled" />
         <TextBlock
             Margin="0,8,0,0"
-            Text="{x:Bind StringResource.SendUsageData}"
+            Text="{x:Bind StringResource.DeveloperMode}"
             TextWrapping="Wrap" />
-        <ToggleSwitch IsOn="{x:Bind ViewModel.SendUsageData, Mode=TwoWay}" Toggled="SendUsageDataToggleSwitch_Toggled" />
+        <ToggleSwitch IsOn="{x:Bind ViewModel.DeveloperMode, Mode=OneWay}" Toggled="DeveloperModeToggleSwitch_Toggled" />
         <Button
             Margin="0,32,0,0"
             Click="ResetAllSettingsButton_Click"

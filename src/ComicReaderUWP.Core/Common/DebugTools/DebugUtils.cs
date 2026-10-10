@@ -26,54 +26,56 @@ public static class DebugUtils
 
     public static bool DebugBuild => IS_DEBUG_BUILD;
 
-    private static bool? _debugMode = null;
+    private static volatile int _debugMode = -1;
     public static bool DebugMode
     {
         get
         {
-            if (!_debugMode.HasValue)
+            int value = _debugMode;
+            if (value == -1)
             {
-                _debugMode = CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValueOrDefault(KEY_DEBUG_MODE, DebugBuild);
+                value = CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValueOrDefault(KEY_DEBUG_MODE, DebugBuild) ? 1 : 0;
+                _debugMode = value;
             }
 
-            return _debugMode.Value;
+            return value == 1;
         }
         set
         {
-            if (value == _debugMode)
+            int newValue = value ? 1 : 0;
+            if (newValue == _debugMode)
             {
                 return;
             }
 
-            _debugMode = value;
+            _debugMode = newValue;
             CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).Set(KEY_DEBUG_MODE, value);
         }
     }
 
-    public static bool DebugModeStrict => IS_DEBUG_BUILD && DebugMode;
-
-    private static bool UnlockedDeveloperMode => DebugBuild || DebugCommand.UnlockedDeveloperMode;
-
-    private static bool? _developerMode = null;
+    private static volatile int _developerMode = -1;
     public static bool DeveloperMode
     {
         get
         {
-            if (!_developerMode.HasValue)
+            int value = _developerMode;
+            if (value == -1)
             {
-                _developerMode = UnlockedDeveloperMode && CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValueOrDefault(KEY_DEVELOPER_MODE, true);
+                value = CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).GetValueOrDefault(KEY_DEVELOPER_MODE, DebugBuild) ? 1 : 0;
+                _developerMode = value;
             }
 
-            return _developerMode.Value;
+            return value == 1;
         }
         set
         {
-            if (value == _developerMode)
+            int newValue = value ? 1 : 0;
+            if (newValue == _developerMode)
             {
                 return;
             }
 
-            _developerMode = value;
+            _developerMode = newValue;
             CoreDB.CoreRegistry.CreateKey(RegistryNames.DEBUG_SETTINGS).Set(KEY_DEVELOPER_MODE, value);
         }
     }

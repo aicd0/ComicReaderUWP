@@ -344,6 +344,12 @@ $files</value>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Comic-Leser UWP [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>Entwicklermodus</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>Entwicklertools</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff-Modus</value>
   </data>
@@ -740,7 +746,7 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
     <value>Ihr Browserverlauf wird hier angezeigt</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>Keine Tastenkürzel.</value>
+    <value>Keine Tastenkürzel</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>Keine Plugins installiert</value>

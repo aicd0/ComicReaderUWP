@@ -344,6 +344,12 @@ $files</value>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Comic Reader UWP [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>Developer mode</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>Developer tools</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff mode</value>
   </data>
@@ -742,7 +748,7 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
     <value>Your browsing history appears here</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>No keyboard shortcuts.</value>
+    <value>No keyboard shortcuts</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>No plugins installed</value>

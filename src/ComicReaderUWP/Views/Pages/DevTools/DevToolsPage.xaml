@@ -67,8 +67,6 @@
                     Spacing="8">
                     <Button Click="RunArchiveBenchmarkButton_Click" Content="Archive benchmark" />
                 </StackPanel>
-                <TextBlock Margin="0,16,0,0" Text="Developer mode" />
-                <ToggleSwitch x:Name="DeveloperModeToggleSwitch" Toggled="DeveloperModeToggleSwitch_Toggled" />
             </StackPanel>
         </ScrollViewer>
 

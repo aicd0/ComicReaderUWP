@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Core.Common.DebugTools;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -35,13 +34,6 @@ internal sealed partial class SearchNavigationBar : BaseUserControl
 
     private void OnSearchBoxQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        string queryText = args.QueryText;
-
-        if (DebugCommand.TryExecute(queryText))
-        {
-            return;
-        }
-
-        SearchTextSubmitted?.Invoke(queryText);
+        SearchTextSubmitted?.Invoke(args.QueryText);
     }
 }

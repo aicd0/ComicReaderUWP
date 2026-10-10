@@ -344,6 +344,12 @@ $files</value>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Читатель Комиксов UWP [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>Режим разработчика</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>Инструменты разработчика</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Режим дифференциации</value>
   </data>
@@ -741,7 +747,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Ваша история просмотров отображается здесь</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>Нет сочетаний клавиш.</value>
+    <value>Нет сочетаний клавиш</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>Нет установленных плагинов</value>

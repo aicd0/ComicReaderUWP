@@ -344,6 +344,12 @@ $files</value>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>만화 리더 UWP [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>개발자 모드</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>개발자 도구</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff 모드</value>
   </data>
@@ -741,7 +747,7 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
     <value>귀하의 검색 기록이 여기에 표시됩니다.</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>키보드 단축키가 없습니다.</value>
+    <value>키보드 단축키가 없습니다</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>설치된 플러그인이 없습니다</value>

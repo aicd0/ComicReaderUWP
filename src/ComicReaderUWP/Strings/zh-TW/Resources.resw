@@ -342,6 +342,12 @@
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>漫畫閱讀器 UWP [Dev]</value>
   </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>開發者模式</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>開發者工具</value>
+  </data>
   <data name="DiffMode" xml:space="preserve">
     <value>差異模式</value>
   </data>
@@ -738,7 +744,7 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
     <value>您的瀏覽記錄會顯示在此處</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>沒有鍵盤快捷鍵。</value>
+    <value>沒有鍵盤快捷鍵</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>未安裝外掛程式</value>
