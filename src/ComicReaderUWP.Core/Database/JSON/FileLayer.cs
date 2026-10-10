@@ -21,6 +21,10 @@ public class FileLayer(string filepath) : IConfigBackingLayer
         {
             return null;
         }
+        catch (DirectoryNotFoundException)
+        {
+            return null;
+        }
         catch (Exception ex)
         {
             Logger.F(TAG, ex);
@@ -33,6 +37,25 @@ public class FileLayer(string filepath) : IConfigBackingLayer
         try
         {
             File.WriteAllText(_filepath, value);
+        }
+        catch (DirectoryNotFoundException)
+        {
+            string? folderPath = Path.GetDirectoryName(_filepath);
+            if (string.IsNullOrEmpty(folderPath))
+            {
+                Logger.F(TAG, "Directory not found and folder is null or empty.");
+                return;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(folderPath);
+                File.WriteAllText(_filepath, value);
+            }
+            catch (Exception ex)
+            {
+                Logger.F(TAG, ex);
+            }
         }
         catch (Exception ex)
         {
