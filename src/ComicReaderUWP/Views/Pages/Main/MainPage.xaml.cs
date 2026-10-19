@@ -884,9 +884,10 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        _tabs.Remove(removingTab);
-        RootTabView.TabItems.Remove(removingTab.Item);
-        MainWindow.Open(removingTab.CurrentBundle.Url, oldTabId: removingTab.Id);
+        string url = removingTab.CurrentBundle.Url;
+        string tabId = removingTab.Id;
+        CloseTab(tabId);
+        MainWindow.Open(url, oldTabId: tabId);
     }
 
     private void OnPageChanged()
