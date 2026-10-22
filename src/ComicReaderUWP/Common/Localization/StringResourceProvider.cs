@@ -26,6 +26,7 @@ public class StringResourceProvider
     public string AllHidden => GetResourceString("AllHidden");
     public string AllMatchedResults => GetResourceString("AllMatchedResults");
     public string AllPages => GetResourceString("AllPages");
+    public string AllowPerComicConfiguration => GetResourceString("AllowPerComicConfiguration");
     public string Always => GetResourceString("Always");
     public string AntiAliasingFilter => GetResourceString("AntiAliasingFilter");
     public string AppDescription => GetResourceString("AppDescription");

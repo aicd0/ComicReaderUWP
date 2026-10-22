@@ -165,6 +165,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>Alle Seiten</value>
   </data>
+  <data name="AllowPerComicConfiguration" xml:space="preserve">
+    <value>Konfiguration pro Comic zulassen</value>
+  </data>
   <data name="Always" xml:space="preserve">
     <value>Immer</value>
   </data>
