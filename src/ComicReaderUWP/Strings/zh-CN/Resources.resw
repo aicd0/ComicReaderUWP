@@ -165,6 +165,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>所有页面</value>
   </data>
+  <data name="AllowPerComicConfiguration" xml:space="preserve">
+    <value>允许单本漫画配置</value>
+  </data>
   <data name="Always" xml:space="preserve">
     <value>始终</value>
   </data>

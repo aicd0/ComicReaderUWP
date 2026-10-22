@@ -57,4 +57,10 @@ internal sealed partial class EditReaderSettingPresetDialog : BaseContentDialog
         var checkBox = (CheckBox)sender;
         ViewModel.UpdateSetAsDefault(checkBox.IsChecked ?? false);
     }
+
+    private void AllowPerComicConfigurationCheckBox_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        var checkBox = (CheckBox)sender;
+        ViewModel.UpdateAllowPerComicConfiguration(checkBox.IsChecked ?? false);
+    }
 }
