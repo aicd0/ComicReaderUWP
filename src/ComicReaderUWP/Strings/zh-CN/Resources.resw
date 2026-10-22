@@ -165,6 +165,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>所有页面</value>
   </data>
+  <data name="AllowPerComicConfiguration" xml:space="preserve">
+    <value>允许单本漫画配置</value>
+  </data>
   <data name="Always" xml:space="preserve">
     <value>始终</value>
   </data>
@@ -343,6 +346,12 @@ $files</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>漫画阅读器 UWP [Dev]</value>
+  </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>开发者模式</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>开发者工具</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
     <value>差异模式</value>
@@ -740,7 +749,7 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
     <value>您的浏览记录会显示在此处</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>没有键盘快捷键。</value>
+    <value>没有键盘快捷键</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>未安装插件</value>

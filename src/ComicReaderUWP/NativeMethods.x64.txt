@@ -10,7 +10,9 @@ GetDpiForWindow
 GetMonitorInfo
 GetWindowPlacement
 GetWindowRect
+INVALID_HANDLE_VALUE
 LocalFree
+MONITORINFOEXW
 MessageBox
 MonitorFromPoint
 MonitorFromRect
@@ -23,6 +25,4 @@ SetWindowPlacement
 SetWindowPos
 ShowWindow
 UnregisterHotKey
-INVALID_HANDLE_VALUE
-MONITORINFOEXW
 WHEEL_DELTA

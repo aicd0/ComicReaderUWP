@@ -124,6 +124,12 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         _actionHandler = actionHandler;
     }
 
+    public void ExitApp()
+    {
+        ApplicationService.StartExiting();
+        Application.Current.Exit();
+    }
+
     public void OpenDevTools()
     {
         if (!DebugUtils.DeveloperMode)
@@ -161,6 +167,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         {
             Text = StringResourceProvider.Instance.NewTab,
             Icon = new FontIconSource() { Glyph = "\uE8A5" },
+            ShortcutAction = KeyboardShortcutActions.AddNewTab,
             Click = () =>
             {
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
@@ -176,6 +183,7 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         {
             Text = StringResourceProvider.Instance.NewWindow,
             Icon = new FontIconSource() { Glyph = "\uE78B" },
+            ShortcutAction = KeyboardShortcutActions.AddNewWindow,
             Click = () =>
             {
                 var route = Route.Create(RouterConstants.SCHEME_APP + RouterConstants.HOST_HOME);
@@ -285,11 +293,8 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
         items.Add(new SimpleMenuFlyoutItemModel()
         {
             Text = StringResourceProvider.Instance.Exit,
-            Click = () =>
-            {
-                ApplicationService.StartExiting();
-                Application.Current.Exit();
-            },
+            ShortcutAction = KeyboardShortcutActions.ExitApp,
+            Click = ExitApp,
         });
 
         return items;

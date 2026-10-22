@@ -21,7 +21,6 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock
                 Grid.Row="0"
@@ -36,15 +35,16 @@
                 Text="{x:Bind ViewModel.Name, Mode=OneWay}"
                 TextChanged="NameTextBox_TextChanged"
                 TextWrapping="Wrap" />
-            <CheckBox
-                Grid.Row="1"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Margin="0,16,0,0"
-                Click="SetAsDefaultCheckBox_Click"
-                Content="{x:Bind StringResource.SetAsDefault}"
-                IsChecked="{x:Bind ViewModel.SetAsDefault, Mode=OneWay}" />
         </Grid>
+        <CheckBox
+            Margin="0,16,0,0"
+            Click="SetAsDefaultCheckBox_Click"
+            Content="{x:Bind StringResource.SetAsDefault}"
+            IsChecked="{x:Bind ViewModel.SetAsDefault, Mode=OneWay}" />
+        <CheckBox
+            Click="AllowPerComicConfigurationCheckBox_Click"
+            Content="{x:Bind StringResource.AllowPerComicConfiguration}"
+            IsChecked="{x:Bind ViewModel.AllowPerComicConfiguration, Mode=OneWay}" />
         <Grid Margin="0,16,0,0" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

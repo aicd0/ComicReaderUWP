@@ -48,6 +48,17 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         }
     }
 
+    private bool _allowPerComicConfiguration = true;
+    public bool AllowPerComicConfiguration
+    {
+        get => _allowPerComicConfiguration;
+        set
+        {
+            _allowPerComicConfiguration = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AllowPerComicConfiguration)));
+        }
+    }
+
     private bool _saveEnabled = false;
     public bool SaveEnabled
     {
@@ -92,6 +103,7 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         Title = StringResourceProvider.Instance.EditPreset;
         Name = _presetModel.PresetName;
         SetAsDefault = _presetModel.PresetKey == AppSettingsModel.DefaultReaderSettingPresetKey;
+        AllowPerComicConfiguration = _presetModel.AllowPerComicConfiguration;
         UpdateUI();
     }
 
@@ -122,6 +134,7 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
         }
 
         _presetModel.PresetName = name;
+        _presetModel.AllowPerComicConfiguration = _allowPerComicConfiguration;
         Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.ReaderSettingPresets;
         presets[_presetModel.PresetKey] = _presetModel;
         AppSettingsModel.ReaderSettingPresets = presets;
@@ -147,6 +160,7 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
 
         _presetModel.PresetKey = Guid.NewGuid().ToString();
         _presetModel.PresetName = name;
+        _presetModel.AllowPerComicConfiguration = _allowPerComicConfiguration;
         Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.ReaderSettingPresets;
         presets[_presetModel.PresetKey] = _presetModel;
         AppSettingsModel.ReaderSettingPresets = presets;
@@ -171,6 +185,11 @@ internal partial class EditReaderSettingPresetDialogViewModel : INotifyPropertyC
     public void UpdateSetAsDefault(bool isDefault)
     {
         _setAsDefault = isDefault;
+    }
+
+    public void UpdateAllowPerComicConfiguration(bool allow)
+    {
+        _allowPerComicConfiguration = allow;
     }
 
     private void UpdateUI()

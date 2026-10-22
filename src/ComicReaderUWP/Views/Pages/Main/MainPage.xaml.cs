@@ -372,6 +372,7 @@ internal sealed partial class MainPage : BasePage
         KeyboardAccelerators.Clear();
 
         AddKeyboardAccelerators(KeyboardShortcutActions.AddNewTab, (_, _) => OpenNewTab());
+        AddKeyboardAccelerators(KeyboardShortcutActions.AddNewWindow, (_, _) => MainWindow.Open());
         AddKeyboardAccelerators(KeyboardShortcutActions.CloseTab, (_, _) =>
         {
             if (RootTabView.SelectedItem is TabViewItem closingTab)
@@ -379,6 +380,7 @@ internal sealed partial class MainPage : BasePage
                 CloseTabByUser(closingTab);
             }
         });
+        AddKeyboardAccelerators(KeyboardShortcutActions.ExitApp, (_, _) => ViewModel.ExitApp());
         AddKeyboardAccelerators(KeyboardShortcutActions.ExitFullscreen, (_, _) => GetMainWindowAbility().ExitFullscreen());
         AddKeyboardAccelerators(KeyboardShortcutActions.JumpToNextTab, (_, _) => JumpToAdjacentTab(1));
         AddKeyboardAccelerators(KeyboardShortcutActions.JumpToPreviousTab, (_, _) => JumpToAdjacentTab(-1));
@@ -882,9 +884,10 @@ internal sealed partial class MainPage : BasePage
             return;
         }
 
-        _tabs.Remove(removingTab);
-        RootTabView.TabItems.Remove(removingTab.Item);
-        MainWindow.Open(removingTab.CurrentBundle.Url, oldTabId: removingTab.Id);
+        string url = removingTab.CurrentBundle.Url;
+        string tabId = removingTab.Id;
+        CloseTab(tabId);
+        MainWindow.Open(url, oldTabId: tabId);
     }
 
     private void OnPageChanged()

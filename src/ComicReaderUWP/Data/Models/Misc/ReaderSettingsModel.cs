@@ -43,6 +43,7 @@ internal class ReaderSettingsModel
         {
             PresetKey = key,
             PresetName = model.PresetName ?? fallbackModel.PresetName,
+            AllowPerComicConfiguration = model.AllowPerComicConfiguration ?? fallbackModel.AllowPerComicConfiguration,
             OriginalSize = model.OriginalSize ?? fallbackModel.OriginalSize,
             IsVertical = model.VerticalReading ?? fallbackModel.IsVertical,
             IsLeftToRight = model.LeftToRight ?? fallbackModel.IsLeftToRight,
@@ -113,16 +114,19 @@ internal class ReaderSettingsModel
         }
 
         JsonModel? jsonModel = null;
-        string? customSettingsJson = comic.GetExt(ComicExt.CUSTOM_READER_SETTINGS);
-        if (!string.IsNullOrEmpty(customSettingsJson))
+        if (presetModel is null || presetModel.AllowPerComicConfiguration)
         {
-            try
+            string? customSettingsJson = comic.GetExt(ComicExt.CUSTOM_READER_SETTINGS);
+            if (!string.IsNullOrEmpty(customSettingsJson))
             {
-                jsonModel = JsonSerializer.Deserialize<JsonModel>(customSettingsJson);
-            }
-            catch (JsonException ex)
-            {
-                Logger.E(TAG, ex);
+                try
+                {
+                    jsonModel = JsonSerializer.Deserialize<JsonModel>(customSettingsJson);
+                }
+                catch (JsonException ex)
+                {
+                    Logger.E(TAG, ex);
+                }
             }
         }
 
@@ -163,6 +167,7 @@ internal class ReaderSettingsModel
 
     public string PresetKey { get; set; } = string.Empty;
     public string PresetName { get; set; } = "?";
+    public bool AllowPerComicConfiguration { get; set; } = true;
     public bool OriginalSize { get; set; } = false;
     public bool IsVertical { get; set; } = true;
     public bool IsLeftToRight { get; set; } = false;
@@ -222,6 +227,7 @@ internal class ReaderSettingsModel
         return new()
         {
             PresetName = PresetName,
+            AllowPerComicConfiguration = AllowPerComicConfiguration,
             OriginalSize = OriginalSize,
             VerticalReading = IsVertical,
             LeftToRight = IsLeftToRight,
@@ -250,18 +256,34 @@ internal class ReaderSettingsModel
 
     public void SaveToComic(ComicModel comic)
     {
-        JsonModel? jsonModel = ToJsonModel();
+        comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, PresetKey);
 
-        ReaderSettingsModel? diffModel = LoadFromPreset(PresetKey);
-        if (diffModel is not null)
+        ReaderSettingsModel? presetModel = LoadFromPreset(PresetKey);
+        if (presetModel is null || presetModel.AllowPerComicConfiguration)
         {
-            var diffJsonModel = diffModel.ToJsonModel();
-            jsonModel = NullOutMatchingFields(jsonModel, diffJsonModel);
+            JsonModel? jsonModel = ToJsonModel();
+            if (presetModel is not null)
+            {
+                var diffJsonModel = presetModel.ToJsonModel();
+                jsonModel = NullOutMatchingFields(jsonModel, diffJsonModel);
+            }
+
+            string customSettingsJson = JsonSerializer.Serialize(jsonModel);
+            comic.SetExt(ComicExt.CUSTOM_READER_SETTINGS, customSettingsJson);
+        }
+        else
+        {
+            ReaderSettingsModel updated = Clone();
+            updated.PresetName = presetModel.PresetName;
+            updated.AllowPerComicConfiguration = presetModel.AllowPerComicConfiguration;
+
+            Dictionary<string, ReaderSettingsModel> presets = AppSettingsModel.ReaderSettingPresets;
+            presets[PresetKey] = updated;
+            AppSettingsModel.ReaderSettingPresets = presets;
+
+            comic.SetExt(ComicExt.CUSTOM_READER_SETTINGS, null);
         }
 
-        string customSettingsJson = JsonSerializer.Serialize(jsonModel);
-        comic.SetExt(ComicExt.READER_SETTING_PRESET_KEY, PresetKey);
-        comic.SetExt(ComicExt.CUSTOM_READER_SETTINGS, customSettingsJson);
         CoroutineUtils.Run(comic.FlushExt);
     }
 
@@ -351,6 +373,9 @@ internal class ReaderSettingsModel
     {
         [JsonPropertyName("PresetName")]
         public string? PresetName { get; set; }
+
+        [JsonPropertyName("AllowPerComicConfiguration")]
+        public bool? AllowPerComicConfiguration { get; set; }
 
         [JsonPropertyName("OriginalSize")]
         public bool? OriginalSize { get; set; }

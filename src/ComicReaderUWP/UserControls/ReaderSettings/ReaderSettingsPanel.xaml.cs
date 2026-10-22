@@ -265,6 +265,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         }
 
         _comicSettings.SaveToComic(_comic);
+        _presetSettings = ReaderSettingsModel.LoadFromPreset(_comicSettings.PresetKey);
     }
 
     private void UpdateUI()

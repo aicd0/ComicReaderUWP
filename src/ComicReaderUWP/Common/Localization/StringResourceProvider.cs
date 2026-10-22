@@ -26,6 +26,7 @@ public class StringResourceProvider
     public string AllHidden => GetResourceString("AllHidden");
     public string AllMatchedResults => GetResourceString("AllMatchedResults");
     public string AllPages => GetResourceString("AllPages");
+    public string AllowPerComicConfiguration => GetResourceString("AllowPerComicConfiguration");
     public string Always => GetResourceString("Always");
     public string AntiAliasingFilter => GetResourceString("AntiAliasingFilter");
     public string AppDescription => GetResourceString("AppDescription");
@@ -78,6 +79,8 @@ public class StringResourceProvider
     public string Descending => GetResourceString("Descending");
     public string Description => GetResourceString("Description");
     public string DevAppDisplayName => GetResourceString("DevAppDisplayName");
+    public string DeveloperMode => GetResourceString("DeveloperMode");
+    public string DeveloperTools => GetResourceString("DeveloperTools");
     public string DiffMode => GetResourceString("DiffMode");
     public string Disable => GetResourceString("Disable");
     public string Disabled => GetResourceString("Disabled");

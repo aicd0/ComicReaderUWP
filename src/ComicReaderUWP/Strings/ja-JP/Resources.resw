@@ -165,6 +165,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>すべてのページ</value>
   </data>
+  <data name="AllowPerComicConfiguration" xml:space="preserve">
+    <value>漫画ごとの設定を許可</value>
+  </data>
   <data name="Always" xml:space="preserve">
     <value>常に</value>
   </data>
@@ -343,6 +346,12 @@ $files</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>マンガリーダー [Dev]</value>
+  </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>開発者モード</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>開発者ツール</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
     <value>差分モード</value>
@@ -740,7 +749,7 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
     <value>閲覧履歴はここに表示されます</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>キーボードショートカットはありません。</value>
+    <value>キーボードショートカットはありません</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>プラグインがインストールされていません</value>

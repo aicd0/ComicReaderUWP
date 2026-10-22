@@ -165,6 +165,9 @@
   <data name="AllPages" xml:space="preserve">
     <value>All pages</value>
   </data>
+  <data name="AllowPerComicConfiguration" xml:space="preserve">
+    <value>Allow per-comic configuration</value>
+  </data>
   <data name="Always" xml:space="preserve">
     <value>Always</value>
   </data>
@@ -343,6 +346,12 @@ $files</value>
   </data>
   <data name="DevAppDisplayName" xml:space="preserve">
     <value>Comic Reader UWP [Dev]</value>
+  </data>
+  <data name="DeveloperMode" xml:space="preserve">
+    <value>Developer mode</value>
+  </data>
+  <data name="DeveloperTools" xml:space="preserve">
+    <value>Developer tools</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
     <value>Diff mode</value>
@@ -742,7 +751,7 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
     <value>Your browsing history appears here</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
-    <value>No keyboard shortcuts.</value>
+    <value>No keyboard shortcuts</value>
   </data>
   <data name="NoPluginsInstalled" xml:space="preserve">
     <value>No plugins installed</value>
