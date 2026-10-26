@@ -263,7 +263,7 @@ internal sealed partial class ReaderPage : BasePage
         GetMainWindowAbility().RegisterPointerInsideRootElementChangedHandler(this, isInside =>
         {
             _isPointerInsideRootElement = isInside;
-            UpdateOverlayState();
+            UpdateOverlayStateByCursor();
         });
 
         ViewModel.TitleLiveData.Observe(this, title =>
@@ -547,14 +547,24 @@ internal sealed partial class ReaderPage : BasePage
 
     private void ReaderGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
+        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+        {
+            return;
+        }
+
         _isPointerInsideReader = true;
-        UpdateOverlayState();
+        UpdateOverlayStateByCursor();
     }
 
     private void ReaderGrid_PointerExited(object sender, PointerRoutedEventArgs e)
     {
+        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+        {
+            return;
+        }
+
         _isPointerInsideReader = false;
-        UpdateOverlayState();
+        UpdateOverlayStateByCursor();
     }
 
     private void Reader_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
@@ -844,7 +854,7 @@ internal sealed partial class ReaderPage : BasePage
     // Overlay
     //
 
-    private bool _shouldOverlayVisible = false;
+    private bool _isPointerInsideOverlay = false;
     private bool _isPointerInsideRootElement = true;
     private bool _isPointerInsideReader = false;
 
@@ -854,7 +864,7 @@ internal sealed partial class ReaderPage : BasePage
     private bool _isOverlayHold = false;
     private long _hideOverlayDeadline = -1;
 
-    private void UpdateOverlayState()
+    private void UpdateOverlayStateByCursor()
     {
         bool GetPointerInsideWindowState()
         {
@@ -869,17 +879,17 @@ internal sealed partial class ReaderPage : BasePage
         }
 
         bool isPointerInsideWindow = GetPointerInsideWindowState();
-        bool shouldOverlayVisible = (isPointerInsideWindow || _isPointerInsideRootElement) && !_isPointerInsideReader;
-        if (shouldOverlayVisible == _shouldOverlayVisible)
+        bool isPointerInsideOverlay = (isPointerInsideWindow || _isPointerInsideRootElement) && !_isPointerInsideReader;
+        if (isPointerInsideOverlay == _isPointerInsideOverlay)
         {
             return;
         }
 
-        _shouldOverlayVisible = shouldOverlayVisible;
+        _isPointerInsideOverlay = isPointerInsideOverlay;
 
         if (AppSettingsModel.AutoToggleOverlaysOnCursor)
         {
-            if (shouldOverlayVisible)
+            if (isPointerInsideOverlay)
             {
                 ShowOverlay();
             }
@@ -895,7 +905,6 @@ internal sealed partial class ReaderPage : BasePage
         if (!_isOverlayVisible ||
             ViewModel.IsPinned ||
             _isOverlayHold ||
-            _shouldOverlayVisible ||
             GridViewModeEnabled)
         {
             return;
@@ -903,30 +912,27 @@ internal sealed partial class ReaderPage : BasePage
 
         if (delayMilliseconds > 0)
         {
-            void PostHideTask(int delay)
+            _hideOverlayDeadline = GetTick() + delayMilliseconds;
+            CoroutineUtils.Run(async () =>
             {
-                CoroutineUtils.Run(async () =>
+                while (true)
                 {
-                    await Task.Delay(delayMilliseconds + 1);
-
                     if (_hideOverlayDeadline == -1)
                     {
                         return;
                     }
 
-                    long currentTick = GetTick();
-                    if (currentTick <= _hideOverlayDeadline)
+                    long remaining = _hideOverlayDeadline - GetTick();
+                    if (remaining > 0)
                     {
-                        PostHideTask((int)(_hideOverlayDeadline - currentTick));
-                        return;
+                        await Task.Delay((int)remaining + 1);
+                        continue;
                     }
 
                     TryHideOverlay();
-                });
-            }
-
-            _hideOverlayDeadline = GetTick() + delayMilliseconds;
-            PostHideTask(delayMilliseconds);
+                    return;
+                }
+            });
             return;
         }
 

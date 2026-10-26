@@ -25,6 +25,7 @@ using ComicReaderUWP.Views.Pages.Main;
 
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
+using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -371,11 +372,21 @@ internal sealed partial class MainWindow : Window
 
     private void ContentFrame_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
+        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+        {
+            return;
+        }
+
         Members._mainWindowAbility.SendPointerInsideRootElementChangedEvent(true);
     }
 
     private void ContentFrame_PointerExited(object sender, PointerRoutedEventArgs e)
     {
+        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+        {
+            return;
+        }
+
         Members._mainWindowAbility.SendPointerInsideRootElementChangedEvent(false);
     }
 
