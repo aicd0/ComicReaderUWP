@@ -6,6 +6,8 @@ using System.Drawing;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Core.Common.Lifecycle;
 
+using Microsoft.UI.Input;
+
 namespace ComicReaderUWP.Common.BaseUI.PageAbilities;
 
 internal interface IMainWindowAbility : IPageAbility
@@ -15,6 +17,8 @@ internal interface IMainWindowAbility : IPageAbility
     public delegate void FullscreenChangedEventHandler(bool isFullscreen);
 
     public delegate void PointerInsideChangedEventHandler(bool isPointerInside);
+
+    public delegate void LastPointerDeviceTypeChangedEventHandler(PointerDeviceType deviceType);
 
     bool IsActive { get; }
 
@@ -30,6 +34,8 @@ internal interface IMainWindowAbility : IPageAbility
 
     bool IsFocusLocked { get; }
 
+    PointerDeviceType LastPointerDeviceType { get; }
+
     void EnterFullscreen();
 
     void ExitFullscreen();
@@ -43,6 +49,8 @@ internal interface IMainWindowAbility : IPageAbility
     void RegisterMinimizeChangedHandler(ILifecycleOwner owner, MinimizeChangedEventHandler handler);
 
     void RegisterPointerInsideRootElementChangedHandler(ILifecycleOwner owner, PointerInsideChangedEventHandler handler);
+
+    void RegisterLastPointerDeviceTypeChangedHandler(ILifecycleOwner owner, LastPointerDeviceTypeChangedEventHandler handler);
 
     void RequestFocusLock();
 

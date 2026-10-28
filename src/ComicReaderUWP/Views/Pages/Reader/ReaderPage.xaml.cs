@@ -35,6 +35,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 
 namespace ComicReaderUWP.Views.Pages.Reader;
 
@@ -87,9 +88,10 @@ internal sealed partial class ReaderPage : BasePage
     public ReaderPage()
     {
         InitializeComponent();
+
         _readerNavigationBar = new();
 
-        ViewModel.PreviewDataSource = [];
+        AddHandler(PointerPressedEvent, new PointerEventHandler(ReaderPage_AnyPointerPressed), handledEventsToo: true);
     }
 
     //
@@ -246,6 +248,12 @@ internal sealed partial class ReaderPage : BasePage
 
         GetMainWindowAbility().RegisterFullscreenChangedHandler(this, ViewModel.SetFullscreen);
 
+        GetMainWindowAbility().RegisterPointerInsideRootElementChangedHandler(this, isInside =>
+        {
+            _isMouseInsideRootElement = isInside;
+            UpdateOverlayStateByMouse();
+        });
+
         GetMainPageAbility().RegisterRefreshHandler(this, ViewModel.Playback.Refresh);
 
         GetMainPageAbility().RegisterOverlayVisibilityChangedHandler(this, visible =>
@@ -256,14 +264,8 @@ internal sealed partial class ReaderPage : BasePage
             }
             else
             {
-                HideOverlay();
+                HideOverlayInternal();
             }
-        });
-
-        GetMainWindowAbility().RegisterPointerInsideRootElementChangedHandler(this, isInside =>
-        {
-            _isPointerInsideRootElement = isInside;
-            UpdateOverlayStateByCursor();
         });
 
         ViewModel.TitleLiveData.Observe(this, title =>
@@ -364,7 +366,7 @@ internal sealed partial class ReaderPage : BasePage
 
         MainReaderView.ReaderEventTapped += sender =>
         {
-            BottomTileSetHold(!_isOverlayVisible);
+            ToggleOverlayHold();
         };
 
         MainReaderView.ReaderEventPageChanged += (sender, isIntermediate) =>
@@ -375,7 +377,7 @@ internal sealed partial class ReaderPage : BasePage
 
             if (!MainReaderView.IsAutoScrolling)
             {
-                BottomTileSetHold(false);
+                UnholdOverlay();
             }
 
             if (!isIntermediate)
@@ -418,7 +420,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             if (isAutoScrolling)
             {
-                BottomTileSetHold(false);
+                UnholdOverlay();
             }
 
             ViewModel.IsAutoPlaying = isAutoScrolling;
@@ -545,6 +547,29 @@ internal sealed partial class ReaderPage : BasePage
     // Common Input Events
     //
 
+    private void ReaderPage_AnyPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse)
+        {
+            return;
+        }
+
+        bool IsElementInsideReader(object? source)
+        {
+            for (var element = source as DependencyObject; element is not null; element = VisualTreeHelper.GetParent(element))
+            {
+                if (element == MainReaderView)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        _isPointerInsideOverlay = !IsElementInsideReader(e.OriginalSource);
+    }
+
     private void ReaderGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
         if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
@@ -552,8 +577,8 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        _isPointerInsideReader = true;
-        UpdateOverlayStateByCursor();
+        _isMouseInsideReader = true;
+        UpdateOverlayStateByMouse();
     }
 
     private void ReaderGrid_PointerExited(object sender, PointerRoutedEventArgs e)
@@ -563,8 +588,8 @@ internal sealed partial class ReaderPage : BasePage
             return;
         }
 
-        _isPointerInsideReader = false;
-        UpdateOverlayStateByCursor();
+        _isMouseInsideReader = false;
+        UpdateOverlayStateByMouse();
     }
 
     private void Reader_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
@@ -855,18 +880,19 @@ internal sealed partial class ReaderPage : BasePage
     //
 
     private bool _isPointerInsideOverlay = false;
-    private bool _isPointerInsideRootElement = true;
-    private bool _isPointerInsideReader = false;
+    private bool _isMouseInsideRootElement = true;
+    private bool _isMouseInsideReader = false;
 
     private double _topOverlayHeight = 0.0;
     private double _rightOverlayWidth = 0.0;
-    private bool _isOverlayVisible = false;
+    private bool _isOverlayVisible = true;
     private bool _isOverlayHold = false;
+    private long _hideOverlaySession = 0;
     private long _hideOverlayDeadline = -1;
 
-    private void UpdateOverlayStateByCursor()
+    private void UpdateOverlayStateByMouse()
     {
-        bool GetPointerInsideWindowState()
+        bool GetMouseInsideWindowState()
         {
             SizeF windowSize = GetMainWindowAbility().WindowSize;
             PointF pointerPos = GetMainWindowAbility().GetPointerPosition();
@@ -878,8 +904,9 @@ internal sealed partial class ReaderPage : BasePage
                 pointerPos.Y <= windowSize.Height - padding;
         }
 
-        bool isPointerInsideWindow = GetPointerInsideWindowState();
-        bool isPointerInsideOverlay = (isPointerInsideWindow || _isPointerInsideRootElement) && !_isPointerInsideReader;
+        bool isPointerInsideWindow = GetMouseInsideWindowState();
+        bool isPointerInsideOverlay = (isPointerInsideWindow || _isMouseInsideRootElement) && !_isMouseInsideReader;
+
         if (isPointerInsideOverlay == _isPointerInsideOverlay)
         {
             return;
@@ -895,48 +922,37 @@ internal sealed partial class ReaderPage : BasePage
             }
             else
             {
-                TryHideOverlay(1000);
+                HideOverlay(delay: 1000);
             }
         }
     }
 
-    private void TryHideOverlay(int delayMilliseconds = 0)
+    private void ToggleOverlayHold()
     {
-        if (!_isOverlayVisible ||
-            ViewModel.IsPinned ||
-            _isOverlayHold ||
-            GridViewModeEnabled)
+        _isOverlayHold = !_isOverlayHold;
+        if (_isOverlayHold)
         {
-            return;
+            ShowOverlay();
         }
-
-        if (delayMilliseconds > 0)
+        else
         {
-            _hideOverlayDeadline = GetTick() + delayMilliseconds;
-            CoroutineUtils.Run(async () =>
-            {
-                while (true)
-                {
-                    if (_hideOverlayDeadline == -1)
-                    {
-                        return;
-                    }
-
-                    long remaining = _hideOverlayDeadline - GetTick();
-                    if (remaining > 0)
-                    {
-                        await Task.Delay((int)remaining + 1);
-                        continue;
-                    }
-
-                    TryHideOverlay();
-                    return;
-                }
-            });
-            return;
+            HideOverlay();
         }
+    }
 
-        HideOverlay();
+    private void UnholdOverlay()
+    {
+        _isOverlayHold = false;
+
+        PointerDeviceType pointerDeviceType = GetMainWindowAbility().LastPointerDeviceType;
+        if (pointerDeviceType == PointerDeviceType.Mouse || !_isPointerInsideOverlay)
+        {
+            HideOverlay();
+        }
+        else
+        {
+            HideOverlay(delay: 3000, ignorePointerPosition: true);
+        }
     }
 
     private void ShowOverlay()
@@ -952,7 +968,57 @@ internal sealed partial class ReaderPage : BasePage
         GetMainPageAbility().SetOverlayVisibility(true);
     }
 
-    private void HideOverlay()
+    private void HideOverlay(int delay = 0, bool ignorePointerPosition = false)
+    {
+        bool CanHideOverlay()
+        {
+            return _isOverlayVisible &&
+                !ViewModel.IsPinned &&
+                (ignorePointerPosition || !_isPointerInsideOverlay) &&
+                !_isOverlayHold &&
+                !GridViewModeEnabled;
+        }
+
+        if (!CanHideOverlay())
+        {
+            return;
+        }
+
+        CoroutineUtils.Run(async () =>
+        {
+            long session = ++_hideOverlaySession;
+
+            if (delay > 0)
+            {
+                _hideOverlayDeadline = GetTick() + delay;
+
+                while (true)
+                {
+                    long remaining = _hideOverlayDeadline - GetTick();
+                    if (remaining <= 0)
+                    {
+                        if (!CanHideOverlay())
+                        {
+                            return;
+                        }
+
+                        break;
+                    }
+
+                    await Task.Delay((int)remaining + 1);
+
+                    if (session != _hideOverlaySession || _hideOverlayDeadline == -1)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            HideOverlayInternal();
+        });
+    }
+
+    private void HideOverlayInternal()
     {
         _hideOverlayDeadline = -1;
 
@@ -964,20 +1030,6 @@ internal sealed partial class ReaderPage : BasePage
         _isOverlayVisible = false;
         _isOverlayHold = false;
         GetMainPageAbility().SetOverlayVisibility(false);
-    }
-
-    private void BottomTileSetHold(bool hold)
-    {
-        _isOverlayHold = hold;
-
-        if (hold)
-        {
-            ShowOverlay();
-        }
-        else
-        {
-            TryHideOverlay();
-        }
     }
 
     //
