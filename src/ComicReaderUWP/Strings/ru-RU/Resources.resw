@@ -184,7 +184,7 @@
     <value>Читатель Комиксов UWP</value>
   </data>
   <data name="AppearanceExpander.Detail" xml:space="preserve">
-    <value>Выбор темы оформления интерфейса</value>
+    <value>Настройте оформление приложения</value>
   </data>
   <data name="AppearanceExpander.Header" xml:space="preserve">
     <value>Оформление</value>
@@ -208,7 +208,7 @@
     <value>Автоматическое переключение</value>
   </data>
   <data name="AutoToggleOverlaysOnCursor" xml:space="preserve">
-    <value>Автоматически скрывать или показывать незакрепленные панели по положению курсора</value>
+    <value>Автоматически показывать или скрывать незакреплённые оверлеи в зависимости от положения курсора</value>
   </data>
   <data name="Background" xml:space="preserve">
     <value>Фон</value>
@@ -244,7 +244,7 @@
     <value>Очистить кэш</value>
   </data>
   <data name="ClearReaderSettings" xml:space="preserve">
-    <value>Сбросить настройки читалки</value>
+    <value>Сбросить настройки чтения</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
     <value>Действие при закрытии последней вкладки</value>
@@ -575,7 +575,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Справка</value>
   </data>
   <data name="Hidden" xml:space="preserve">
-    <value>Скрытые</value>
+    <value>Скрыто</value>
   </data>
   <data name="Hide" xml:space="preserve">
     <value>Скрыть</value>
@@ -590,7 +590,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Домой</value>
   </data>
   <data name="Horizontal" xml:space="preserve">
-    <value>Горизонтальное</value>
+    <value>Горизонтальный</value>
   </data>
   <data name="Image" xml:space="preserve">
     <value>Изображение</value>
@@ -774,7 +774,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>ХОРОШО</value>
   </data>
   <data name="OnlyAppliesToReadingComics" xml:space="preserve">
-    <value>Применить только к комиксам со статусом «Читаю»</value>
+    <value>Применять только к комиксам со статусом «Читаю»</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
@@ -789,7 +789,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Открыть в текущей вкладке</value>
   </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
-    <value>Открыть в последней активной вкладке читалки</value>
+    <value>Открыть в последней активной вкладке читателя</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Открыть в новой вкладке</value>
@@ -873,16 +873,16 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Настройте параметры чтения</value>
   </data>
   <data name="ReaderExpander.Header" xml:space="preserve">
-    <value>Читалка</value>
+    <value>Читатель</value>
   </data>
   <data name="ReaderSettingButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>Настройки читалки</value>
+    <value>Настройки читателя</value>
   </data>
   <data name="ReaderStatusError" xml:space="preserve">
     <value>Произошла ошибка при загрузке</value>
   </data>
   <data name="ReaderStatusLoading" xml:space="preserve">
-    <value>Читалка загружается</value>
+    <value>Читатель загружается</value>
   </data>
   <data name="ReaderTipContent" xml:space="preserve">
     <value>1. Дважды нажмите, чтобы подогнать страницу по ширине или высоте.
@@ -911,7 +911,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Удалить из избранного</value>
   </data>
   <data name="RemoveItemsConfirmation" xml:space="preserve">
-    <value>Следующие $count элемент(ы) будут безвозвратно удалены из вашей библиотеки:
+    <value>Следующие элементы будут безвозвратно удалены из вашей библиотеки ($count):
 
 $items</value>
   </data>
@@ -1002,10 +1002,10 @@ $plugins</value>
     <value>Раздельный</value>
   </data>
   <data name="SetAsCover" xml:space="preserve">
-    <value>Выбрать в качестве обложки</value>
+    <value>Сделать обложкой</value>
   </data>
   <data name="SetAsDefault" xml:space="preserve">
-    <value>Выбрать по умолчанию</value>
+    <value>Сделать по умолчанию</value>
   </data>
   <data name="SetCompletionState" xml:space="preserve">
     <value>Задать статус прочтения</value>
@@ -1114,7 +1114,7 @@ $plugins</value>
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">
-    <value>Возможно произошел сбой в работе приложения</value>
+    <value>Возможно, приложение аварийно завершилось</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Показать</value>
