@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="About" xml:space="preserve">
-    <value>О приложении</value>
+    <value>О программе</value>
   </data>
   <data name="AboutCopyright" xml:space="preserve">
     <value>© 2026 $author. Все права защищены.</value>
@@ -127,7 +127,7 @@
     <value>Действие</value>
   </data>
   <data name="Add" xml:space="preserve">
-    <value>Добавлять</value>
+    <value>Добавить</value>
   </data>
   <data name="AddFolder" xml:space="preserve">
     <value>Добавить папку</value>
@@ -136,7 +136,7 @@
     <value>Добавить сочетание клавиш</value>
   </data>
   <data name="AddNewTab" xml:space="preserve">
-    <value>Добавить новую вкладку</value>
+    <value>Новая вкладка</value>
   </data>
   <data name="AddToCollection" xml:space="preserve">
     <value>Добавить в подборку</value>
@@ -145,10 +145,10 @@
     <value>Добавить в избранное</value>
   </data>
   <data name="AdvancedExpander.Detail" xml:space="preserve">
-    <value>Необычные настройки</value>
+    <value>Расширенные настройки</value>
   </data>
   <data name="AdvancedExpander.Header" xml:space="preserve">
-    <value>Передовой</value>
+    <value>Дополнительно</value>
   </data>
   <data name="AllComics" xml:space="preserve">
     <value>Все комиксы</value>
@@ -160,13 +160,13 @@
     <value>Все скрытые элементы</value>
   </data>
   <data name="AllMatchedResults" xml:space="preserve">
-    <value>Все совпавшие результаты</value>
+    <value>Все найденные совпадения</value>
   </data>
   <data name="AllPages" xml:space="preserve">
     <value>Все страницы</value>
   </data>
   <data name="AllowPerComicConfiguration" xml:space="preserve">
-    <value>Разрешить настройку для каждого комикса</value>
+    <value>Разрешить индивидуальные настройки для каждого комикса</value>
   </data>
   <data name="Always" xml:space="preserve">
     <value>Всегда</value>
@@ -184,16 +184,16 @@
     <value>Читатель Комиксов UWP</value>
   </data>
   <data name="AppearanceExpander.Detail" xml:space="preserve">
-    <value>Выберите тему приложения для отображения</value>
+    <value>Настройте оформление приложения</value>
   </data>
   <data name="AppearanceExpander.Header" xml:space="preserve">
-    <value>Появление</value>
+    <value>Оформление</value>
   </data>
   <data name="ApplyOnNextLaunch" xml:space="preserve">
-    <value>Вы увидите изменения при следующем запуске приложения.</value>
+    <value>Изменения вступят в силу при следующем запуске приложения</value>
   </data>
   <data name="ArchiveEncoding.Text" xml:space="preserve">
-    <value>Кодировка сжатого файла</value>
+    <value>Кодировка архивов</value>
   </data>
   <data name="Ascending" xml:space="preserve">
     <value>По возрастанию</value>
@@ -220,7 +220,7 @@
     <value>Фоновое изображение</value>
   </data>
   <data name="Calculating" xml:space="preserve">
-    <value>Расчет...</value>
+    <value>Вычисление...</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Отмена</value>
@@ -247,7 +247,7 @@
     <value>Сбросить настройки чтения</value>
   </data>
   <data name="CloseLastTabBehavior" xml:space="preserve">
-    <value>Поведение при закрытии последней вкладки</value>
+    <value>Действие при закрытии последней вкладки</value>
   </data>
   <data name="CloseSidebar" xml:space="preserve">
     <value>Закрыть боковую панель</value>
@@ -265,28 +265,28 @@
     <value>Коллекция</value>
   </data>
   <data name="CollectionInformation" xml:space="preserve">
-    <value>Информация о коллекции</value>
+    <value>Сведения о коллекции</value>
   </data>
   <data name="ComicExclusionExplaination" xml:space="preserve">
     <value>Выбор пункта «добавить в список исключений» не позволит повторно импортировать комикс при следующем обновлении библиотеки.</value>
   </data>
   <data name="ComicInfo" xml:space="preserve">
-    <value>Информация о комиксах</value>
+    <value>Сведения о комиксе</value>
   </data>
   <data name="CompletionStatus" xml:space="preserve">
-    <value>Состояние завершения</value>
+    <value>Статус прочтения</value>
   </data>
   <data name="CompletionStatusAbandoned" xml:space="preserve">
-    <value>Брошено</value>
+    <value>Заброшено</value>
   </data>
   <data name="CompletionStatusCompleted" xml:space="preserve">
-    <value>Завершено</value>
+    <value>Прочитано</value>
   </data>
   <data name="CompletionStatusOnHold" xml:space="preserve">
     <value>Отложено</value>
   </data>
   <data name="CompletionStatusPlanToRead" xml:space="preserve">
-    <value>Запланировано к чтению</value>
+    <value>Планирую прочитать</value>
   </data>
   <data name="CompletionStatusReading" xml:space="preserve">
     <value>Читаю</value>
@@ -322,7 +322,7 @@
     <value>Режим отладки</value>
   </data>
   <data name="DebugModeWarning" xml:space="preserve">
-    <value>Включение режима отладки может привести к нестабильной работе приложения. Что делать?</value>
+    <value>Включение режима отладки может привести к нестабильной работе приложения. Продолжить?</value>
   </data>
   <data name="Default" xml:space="preserve">
     <value>По умолчанию</value>
@@ -354,7 +354,7 @@ $files</value>
     <value>Инструменты разработчика</value>
   </data>
   <data name="DiffMode" xml:space="preserve">
-    <value>Режим дифференциации</value>
+    <value>Режим сравнения</value>
   </data>
   <data name="Disable" xml:space="preserve">
     <value>Отключить</value>
@@ -366,7 +366,7 @@ $files</value>
     <value>Отказ от ответственности</value>
   </data>
   <data name="Done" xml:space="preserve">
-    <value>Сделанный</value>
+    <value>Готово</value>
   </data>
   <data name="DownloadPluginsFromGitHub" xml:space="preserve">
     <value>Скачать плагины с GitHub</value>
@@ -375,7 +375,7 @@ $files</value>
     <value>Во время автопрокрутки</value>
   </data>
   <data name="Edit" xml:space="preserve">
-    <value>Редактировать</value>
+    <value>Изменить</value>
   </data>
   <data name="EditImportExclusionList" xml:space="preserve">
     <value>Изменить список исключений при импорте</value>
@@ -384,7 +384,7 @@ $files</value>
     <value>Изменить сочетание клавиш</value>
   </data>
   <data name="EditPreset" xml:space="preserve">
-    <value>Редактировать пресет</value>
+    <value>Изменить пресет</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>Включить</value>
@@ -488,7 +488,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>SQL-запрос: $query</value>
   </data>
   <data name="Favorite" xml:space="preserve">
-    <value>Собирать</value>
+    <value>В избранное</value>
   </data>
   <data name="Favorites" xml:space="preserve">
     <value>Избранное</value>
@@ -500,7 +500,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Используйте кнопку ниже, чтобы отправить нам предложения или сообщить об ошибке на GitHub.</value>
   </data>
   <data name="FileOperations" xml:space="preserve">
-    <value>Операции с файлами</value>
+    <value>Действия с файлами</value>
   </data>
   <data name="FilterPresets" xml:space="preserve">
     <value>Предустановки фильтров</value>
@@ -524,7 +524,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Средний</value>
   </data>
   <data name="FunctionItemCount" xml:space="preserve">
-    <value>Количество предметов</value>
+    <value>Количество элементов</value>
   </data>
   <data name="FunctionMax" xml:space="preserve">
     <value>Максимум</value>
@@ -542,10 +542,10 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Изменить поведение приложения по умолчанию</value>
   </data>
   <data name="GoBack" xml:space="preserve">
-    <value>Возвращаться</value>
+    <value>Перейти назад</value>
   </data>
   <data name="GoForward" xml:space="preserve">
-    <value>Идти вперед</value>
+    <value>Перейти вперед</value>
   </data>
   <data name="GoToFirstPage" xml:space="preserve">
     <value>Перейти на первую страницу</value>
@@ -572,22 +572,22 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Группировка</value>
   </data>
   <data name="Help" xml:space="preserve">
-    <value>Помощь</value>
+    <value>Справка</value>
   </data>
   <data name="Hidden" xml:space="preserve">
     <value>Скрыто</value>
   </data>
   <data name="Hide" xml:space="preserve">
-    <value>Скрывать</value>
+    <value>Скрыть</value>
   </data>
   <data name="HideCursorAutomatically" xml:space="preserve">
-    <value>Скрыть курсор автоматически (экспериментальный)</value>
+    <value>Автоматически скрывать курсор (экспериментальное)</value>
   </data>
   <data name="History" xml:space="preserve">
     <value>История</value>
   </data>
   <data name="HomeButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>Дом</value>
+    <value>Домой</value>
   </data>
   <data name="Horizontal" xml:space="preserve">
     <value>Горизонтальный</value>
@@ -611,7 +611,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Насыщенность</value>
   </data>
   <data name="Images" xml:space="preserve">
-    <value>Картинки</value>
+    <value>Изображения</value>
   </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>Включать скрытые комиксы</value>
@@ -657,7 +657,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Язык</value>
   </data>
   <data name="LastReadTime" xml:space="preserve">
-    <value>Время последнего чтения</value>
+    <value>Дата последнего чтения</value>
   </data>
   <data name="LeftToRight" xml:space="preserve">
     <value>Слева направо</value>
@@ -708,7 +708,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Прочее</value>
   </data>
   <data name="More" xml:space="preserve">
-    <value>Более</value>
+    <value>Еще</value>
   </data>
   <data name="NItems" xml:space="preserve">
     <value>$n элемент(ов)</value>
@@ -735,19 +735,19 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Новое окно</value>
   </data>
   <data name="Next" xml:space="preserve">
-    <value>Следующий</value>
+    <value>Далее</value>
   </data>
   <data name="NoComicsHint" xml:space="preserve">
-    <value>Ваши комиксы появятся здесь</value>
+    <value>Здесь будут отображаться ваши комиксы</value>
   </data>
   <data name="NoContent" xml:space="preserve">
     <value>Нет содержимого для отображения</value>
   </data>
   <data name="NoFavorite.Text" xml:space="preserve">
-    <value>Ваши избранные отображаются здесь</value>
+    <value>Здесь будут отображаться избранные комиксы</value>
   </data>
   <data name="NoHistory.Text" xml:space="preserve">
-    <value>Ваша история просмотров отображается здесь</value>
+    <value>Здесь появится история чтения</value>
   </data>
   <data name="NoKeyboardShortcuts" xml:space="preserve">
     <value>Нет сочетаний клавиш</value>
@@ -768,13 +768,13 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Ваши теги будут отображаться здесь</value>
   </data>
   <data name="None" xml:space="preserve">
-    <value>Никто</value>
+    <value>Нет</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>ХОРОШО</value>
   </data>
   <data name="OnlyAppliesToReadingComics" xml:space="preserve">
-    <value>Применяется только к комиксам со статусом «Читается»</value>
+    <value>Применять только к комиксам со статусом «Читаю»</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
@@ -789,7 +789,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Открыть в текущей вкладке</value>
   </data>
   <data name="OpenInLastActiveReaderTab" xml:space="preserve">
-    <value>Открыть в последней активной вкладке читалки</value>
+    <value>Открыть в последней активной вкладке читателя</value>
   </data>
   <data name="OpenInNewTab" xml:space="preserve">
     <value>Открыть в новой вкладке</value>
@@ -822,7 +822,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Страница $page</value>
   </data>
   <data name="PageSpacing" xml:space="preserve">
-    <value>интервал</value>
+    <value>Интервал</value>
   </data>
   <data name="Pause" xml:space="preserve">
     <value>Пауза</value>
@@ -870,13 +870,13 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Рейтинг</value>
   </data>
   <data name="ReaderExpander.Detail" xml:space="preserve">
-    <value>Настройте считыватель</value>
+    <value>Настройте параметры чтения</value>
   </data>
   <data name="ReaderExpander.Header" xml:space="preserve">
     <value>Читатель</value>
   </data>
   <data name="ReaderSettingButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>Настройки ридера</value>
+    <value>Настройки читателя</value>
   </data>
   <data name="ReaderStatusError" xml:space="preserve">
     <value>Произошла ошибка при загрузке</value>
@@ -893,7 +893,7 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Список чтения</value>
   </data>
   <data name="ReadingListEmpty" xml:space="preserve">
-    <value>Ваш список чтения появится здесь</value>
+    <value>Здесь будет отображаться ваш список чтения</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Обновить</value>
@@ -902,16 +902,16 @@ NOT                      - Логическое не. Например: NOT %tag
     <value>Обновить случайное зерно</value>
   </data>
   <data name="Remove" xml:space="preserve">
-    <value>Удалять</value>
+    <value>Удалить</value>
   </data>
   <data name="RemoveAndExclude" xml:space="preserve">
-    <value>Удалить (добавить в список исключений)</value>
+    <value>Удалить (добавить в исключения)</value>
   </data>
   <data name="RemoveFromFavorites" xml:space="preserve">
     <value>Удалить из избранного</value>
   </data>
   <data name="RemoveItemsConfirmation" xml:space="preserve">
-    <value>Следующие $count элемент(ов) будут безвозвратно удалены из вашей библиотеки:
+    <value>Следующие элементы будут безвозвратно удалены из вашей библиотеки ($count):
 
 $items</value>
   </data>
@@ -957,7 +957,7 @@ $plugins</value>
 Запустить в безопасном режиме?</value>
   </data>
   <data name="Save" xml:space="preserve">
-    <value>Сохранять</value>
+    <value>Сохранить</value>
   </data>
   <data name="SaveAsDefaultConfig" xml:space="preserve">
     <value>Сохранить как конфигурацию по умолчанию</value>
@@ -975,7 +975,7 @@ $plugins</value>
     <value>Сканировать при запуске</value>
   </data>
   <data name="Search" xml:space="preserve">
-    <value>Искать</value>
+    <value>Поиск</value>
   </data>
   <data name="SearchResults" xml:space="preserve">
     <value>Результаты поиска</value>
@@ -984,7 +984,7 @@ $plugins</value>
     <value>Результаты '$keyword'</value>
   </data>
   <data name="Select" xml:space="preserve">
-    <value>Выбирать</value>
+    <value>Выбрать</value>
   </data>
   <data name="SelectAllAppBarButton.Label" xml:space="preserve">
     <value>Выбрать все</value>
@@ -1008,7 +1008,7 @@ $plugins</value>
     <value>Сделать по умолчанию</value>
   </data>
   <data name="SetCompletionState" xml:space="preserve">
-    <value>Установить состояние завершения</value>
+    <value>Задать статус прочтения</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Настройки</value>
@@ -1035,7 +1035,7 @@ $plugins</value>
     <value>Функция сортировки</value>
   </data>
   <data name="SpreadDetection" xml:space="preserve">
-    <value>Определение разворотов</value>
+    <value>Определение двухстраничных разворотов</value>
   </data>
   <data name="StartEndFromScrollingArea" xml:space="preserve">
     <value>Использовать начало/конец области прокрутки как начало/конец чтения</value>
@@ -1044,10 +1044,10 @@ $plugins</value>
     <value>Статистика</value>
   </data>
   <data name="SwapLeftAndRightPages" xml:space="preserve">
-    <value>Поменять страницы местами</value>
+    <value>Поменять левую и правую страницы местами</value>
   </data>
   <data name="Tag" xml:space="preserve">
-    <value>Ярлык</value>
+    <value>Тег</value>
   </data>
   <data name="TagIntroduction.Message" xml:space="preserve">
     <value>Правильное использование тегов может облегчить организацию вашей библиотеки. Например:
@@ -1067,25 +1067,25 @@ $plugins</value>
     <value>$text: </value>
   </data>
   <data name="ThemeDark.Content" xml:space="preserve">
-    <value>Темный</value>
+    <value>Темная</value>
   </data>
   <data name="ThemeLight.Content" xml:space="preserve">
-    <value>Светлый цвет</value>
+    <value>Светлая</value>
   </data>
   <data name="ThemeUseSystemSetting.Content" xml:space="preserve">
-    <value>Следуйте системным настройкам</value>
+    <value>Использовать системные настройки</value>
   </data>
   <data name="Tip" xml:space="preserve">
-    <value>Кончик</value>
+    <value>Подсказка</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>Заголовок</value>
+    <value>Название</value>
   </data>
   <data name="Title1" xml:space="preserve">
-    <value>Заголовок 1</value>
+    <value>Название 1</value>
   </data>
   <data name="Title2" xml:space="preserve">
-    <value>Заголовок 2</value>
+    <value>Название 2</value>
   </data>
   <data name="ToggleAutoScroll" xml:space="preserve">
     <value>Переключить автопрокрутку</value>
@@ -1100,7 +1100,7 @@ $plugins</value>
     <value>Анимация перелистывания страниц</value>
   </data>
   <data name="TwoPageMode" xml:space="preserve">
-    <value>Режим разворота</value>
+    <value>Двухстраничный режим</value>
   </data>
   <data name="Unfavorite" xml:space="preserve">
     <value>Удалить из избранного</value>
@@ -1114,7 +1114,7 @@ $plugins</value>
 $info</value>
   </data>
   <data name="UnhandledExceptionTitle" xml:space="preserve">
-    <value>Это приложение могло выйти из строя</value>
+    <value>Возможно, приложение аварийно завершилось</value>
   </data>
   <data name="Unhide" xml:space="preserve">
     <value>Показать</value>
@@ -1123,10 +1123,10 @@ $info</value>
     <value>Открепить</value>
   </data>
   <data name="Untitled" xml:space="preserve">
-    <value>Безымянный</value>
+    <value>Без названия</value>
   </data>
   <data name="UseSystemLanguage" xml:space="preserve">
-    <value>Использовать системный язык</value>
+    <value>Использовать язык системы</value>
   </data>
   <data name="Vertical" xml:space="preserve">
     <value>Вертикальный</value>
@@ -1135,16 +1135,16 @@ $info</value>
     <value>Вид</value>
   </data>
   <data name="ViewTypeLarge" xml:space="preserve">
-    <value>Большой</value>
+    <value>Крупный</value>
   </data>
   <data name="ViewTypeMedium" xml:space="preserve">
-    <value>Середина</value>
+    <value>Средний</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Предупреждение</value>
   </data>
   <data name="WatchingFolders.Text" xml:space="preserve">
-    <value>Прямо сейчас мы наблюдаем за этими папками:</value>
+    <value>В данный момент мы отслеживаем следующие папки:</value>
   </data>
   <data name="WindowN" xml:space="preserve">
     <value>Окно $n</value>
