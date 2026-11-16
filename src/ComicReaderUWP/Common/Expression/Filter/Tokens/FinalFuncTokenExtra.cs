@@ -22,7 +22,7 @@ class FinalFuncTokenExtra : ITokenExtra
         }
 
         Name = name;
-        Parameters = [.. parameters];
+        Parameters = (ExpressionToken[])[.. parameters];
     }
 
     public void ToString(StringBuilder stringBuilder)

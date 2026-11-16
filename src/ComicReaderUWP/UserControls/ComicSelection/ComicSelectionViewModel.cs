@@ -136,7 +136,7 @@ internal sealed partial class ComicSelectionViewModel(Func<int> totalItemCountPr
 
     public IReadOnlyList<ComicModel> GetSelectedComics()
     {
-        return [.. _selectedItems.Select(x => x.Comic)];
+        return (ComicModel[])[.. _selectedItems.Select(x => x.Comic)];
     }
 
     public void UpdateCommandBarButtonStates()

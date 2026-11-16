@@ -57,7 +57,7 @@ internal static class KeyboardShortcutActions
         new() { Id = ToggleFullscreen, Name = StringResourceProvider.Instance.ToggleFullscreen },
     ];
 
-    private static readonly IReadOnlyList<KeyboardShortcutModel> sDefaultShortcuts =
+    private static readonly KeyboardShortcutModel[] sDefaultShortcuts =
     [
         CreateShortcut(AddNewTab, VirtualKey.T, VirtualKeyModifiers.Control),
         CreateShortcut(CloseTab, VirtualKey.W, VirtualKeyModifiers.Control),
@@ -79,7 +79,7 @@ internal static class KeyboardShortcutActions
     ];
     public static IReadOnlyList<KeyboardShortcutModel> DefaultShortcuts => sDefaultShortcuts;
 
-    private static readonly IReadOnlyList<KeyboardShortcutModel> sInternalShortcuts =
+    private static readonly KeyboardShortcutModel[] sInternalShortcuts =
     [
         CreateShortcut(ExitFullscreen, VirtualKey.Escape),
         CreateShortcut(OpenDevTools, VirtualKey.F11, VirtualKeyModifiers.Control),

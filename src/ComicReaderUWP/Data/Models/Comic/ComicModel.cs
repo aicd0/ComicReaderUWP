@@ -1035,13 +1035,13 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
             _idPool.Set(Id, this);
         }
 
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public void SetExt(string key, string? value)
     {
         _internalModel.SetExt(key, value);
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public async Task FlushExt()
@@ -1052,19 +1052,19 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public async Task SetTitle1(string title)
     {
         await _internalModel.SetTitle1(title);
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public async Task SetTitle2(string title)
     {
         await _internalModel.SetTitle2(title);
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public async Task SetDescription(string description)
     {
         await _internalModel.SetDescription(description);
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public async Task SetRating(int rating)
@@ -1075,13 +1075,13 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
 
         await _internalModel.SetRating(rating);
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public async Task SetTags<T>(IEnumerable<KeyValuePair<string, T>> tags) where T : IEnumerable<string>
     {
         await _internalModel.SetTags(tags);
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public async Task SetCompletionStatus(CompletionStatusEnum status)
@@ -1110,7 +1110,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
         if (updated)
         {
-            DispatchUpdateEvent([Id]);
+            DispatchUpdateEvent((long[])[Id]);
         }
     }
 
@@ -1123,7 +1123,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
             await _internalModel.SaveCompletionStatus(CompletionStatusEnum.Reading);
         }
 
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public async Task SetProgress(int progress, double lastPosition)
@@ -1134,7 +1134,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
 
         await _internalModel.SetProgress(progress, lastPosition);
-        DispatchUpdateEvent([Id], delay: 5000);
+        DispatchUpdateEvent((long[])[Id], delay: 5000);
     }
 
     public async Task SetHidden(bool isHidden)
@@ -1145,7 +1145,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         }
 
         await _internalModel.SaveHiddenAsync(isHidden);
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     public async Task SetLocation(string location)
@@ -1174,7 +1174,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
                 .Execute();
         });
 
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     //
@@ -1354,7 +1354,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     {
         CompletionStatusEnum convertedStatus = CompletionStatusService.SDKEnumToHostEnum(status);
         await _internalModel.SaveCompletionStatus(convertedStatus);
-        DispatchUpdateEvent([Id]);
+        DispatchUpdateEvent((long[])[Id]);
     }
 
     async Task<SDK.Plugins.Comic.IComicConnection?> SDK.Plugins.Comic.IComicModel.Open()
@@ -1381,7 +1381,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
                 _locationPool.GetOrAdd(location, this);
             }
 
-            DispatchUpdateEvent([Id]);
+            DispatchUpdateEvent((long[])[Id]);
         }
 
         return success;

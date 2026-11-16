@@ -10,7 +10,7 @@ namespace ComicReaderUWP.Common.Misc;
 
 internal static class AppInfoProvider
 {
-    private static readonly IReadOnlySet<string> _supportedImageExtensions = new HashSet<string>(
+    private static readonly IReadOnlySet<string> _supportedImageExtensions = new HashSet<string>((string[])
     [
         ".avif",
         ".bmp",
@@ -27,7 +27,7 @@ internal static class AppInfoProvider
     ]);
     public static IReadOnlySet<string> SupportedImageExtensions => _supportedImageExtensions;
 
-    private static readonly IReadOnlySet<string> _supportedArchiveExtensions = new HashSet<string>(
+    private static readonly IReadOnlySet<string> _supportedArchiveExtensions = new HashSet<string>((string[])
     [
         ".7z",
         ".bz2",
@@ -43,7 +43,7 @@ internal static class AppInfoProvider
     ]);
     public static IReadOnlySet<string> SupportedArchiveExtensions => _supportedArchiveExtensions;
 
-    private static readonly IReadOnlySet<string> _supportedDocumentExtensions = new HashSet<string>(
+    private static readonly IReadOnlySet<string> _supportedDocumentExtensions = new HashSet<string>((string[])
     [
         ".pdf",
     ]);

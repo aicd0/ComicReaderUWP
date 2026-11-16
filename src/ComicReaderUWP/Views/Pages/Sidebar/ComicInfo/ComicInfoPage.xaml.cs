@@ -116,7 +116,7 @@ internal sealed partial class ComicInfoPage : BasePage
             return;
         }
 
-        List<BaseMenuFlyoutItemModel> menuItems = MenuFlyoutItemsCreator.CreateCompletionStatusMenuItems([comic]);
+        List<BaseMenuFlyoutItemModel> menuItems = MenuFlyoutItemsCreator.CreateCompletionStatusMenuItems((ComicModel[])[comic]);
 
         var flyout = new MenuFlyout();
         foreach (BaseMenuFlyoutItemModel item in menuItems)
@@ -210,7 +210,7 @@ internal sealed partial class ComicInfoPage : BasePage
             return;
         }
 
-        var dialog = new EditComicInfoDialog([comic]);
+        var dialog = new EditComicInfoDialog((ComicModel[])[comic]);
         CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
     }
 

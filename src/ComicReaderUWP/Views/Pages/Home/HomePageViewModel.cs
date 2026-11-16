@@ -482,7 +482,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             var sortAndGroupDropDown = new DropDownButtonModel
             {
                 Name = StringResourceProvider.Instance.Sort + " & " + StringResourceProvider.Instance.Group,
-                Items = [sortByDropDown, groupByDropDown],
+                Items = (BaseMenuFlyoutItemModel[])[sortByDropDown, groupByDropDown],
             };
 
             string lastFilterName = filter.Name ?? "";

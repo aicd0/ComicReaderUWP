@@ -64,7 +64,7 @@ internal sealed partial class CollectionPage : BasePage
 
         if (collectionId >= 0)
         {
-            CoroutineUtils.Run(() => ComicModel.UpdateCollections(triggerCollectionIds: [collectionId]));
+            CoroutineUtils.Run(() => ComicModel.UpdateCollections(triggerCollectionIds: (long[])[collectionId]));
         }
     }
 
@@ -132,7 +132,7 @@ internal sealed partial class CollectionPage : BasePage
             return;
         }
 
-        var dialog = new EditComicInfoDialog([collection]);
+        var dialog = new EditComicInfoDialog((ComicModel[])[collection]);
         CoroutineUtils.Run(() => dialog.ShowAsync(WindowId));
     }
 

@@ -127,7 +127,7 @@ internal partial class ArchiveComicHandle : ComicHandle
             }
         }
 
-        return [.. entries.OrderBy(x => StringUtils.SmartFileNameKeySelector(x), StringUtils.SmartFileNameComparer)];
+        return (string[])[.. entries.OrderBy(x => StringUtils.SmartFileNameKeySelector(x), StringUtils.SmartFileNameComparer)];
     }
 
     private partial class ArchiveComicConnection(string archivePath, IReadOnlyList<string> entries) : BaseComicConnection

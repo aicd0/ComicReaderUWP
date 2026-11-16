@@ -164,7 +164,7 @@ internal partial class FolderComicHandle : ComicHandle
             return err.Error($"Cannot access '{Location}'.", ex);
         }
 
-        IReadOnlyList<string> images = [.. files
+        IReadOnlyList<string> images = (string[])[.. files
             .Where(file =>
             {
                 string extension = Path.GetExtension(file);
@@ -176,7 +176,7 @@ internal partial class FolderComicHandle : ComicHandle
 
     private partial class FolderComicConnection(IEnumerable<string> imageFiles) : BaseComicConnection
     {
-        private readonly IReadOnlyList<string> _imageFiles = [.. imageFiles];
+        private readonly IReadOnlyList<string> _imageFiles = (string[])[.. imageFiles];
 
         public override int ImageCount => _imageFiles.Count;
 

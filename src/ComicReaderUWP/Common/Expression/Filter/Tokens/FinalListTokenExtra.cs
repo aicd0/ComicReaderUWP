@@ -20,7 +20,7 @@ internal class FinalListTokenExtra : ITokenExtra
             }
         }
 
-        Expressions = [.. expressions];
+        Expressions = (ExpressionToken[])[.. expressions];
     }
 
     public void ToString(StringBuilder stringBuilder)
