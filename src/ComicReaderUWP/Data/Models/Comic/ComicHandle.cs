@@ -92,7 +92,7 @@ internal abstract partial class ComicHandle
 
     private static ComicHandle? FromIdNoLock(long id)
     {
-        List<ComicHandle> result = BatchFromIdNoLock([id]);
+        List<ComicHandle> result = BatchFromIdNoLock((long[])[id]);
         if (result.Count == 0)
         {
             return null;
@@ -610,7 +610,7 @@ internal abstract partial class ComicHandle
 
     private static readonly Lazy<IReadOnlyList<IColumnTypeless>> _allNonIdColumns = new(() =>
     {
-        return [
+        return (IColumnTypeless[])[
             ComicTable.ColumnType,
             ComicTable.ColumnLocation,
             ComicTable.ColumnTitle1,

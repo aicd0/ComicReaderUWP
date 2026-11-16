@@ -264,10 +264,10 @@ internal class ComicPropertyModel
             if (!comic.Tags.TryGetValue(Name, out ComicTagCategory? category))
             {
                 string name = StringResourceProvider.Instance.Ungrouped;
-                return [name];
+                return (string[])[name];
             }
 
-            return [.. category.Tags];
+            return (string[])[.. category.Tags];
         }
 
         string GetRatingGroupName(ComicModel comic)
@@ -392,7 +392,7 @@ internal class ComicPropertyModel
         ComicGrouper CreateFallbackGrouper()
         {
             Logger.F(TAG, "Using fallback grouper");
-            return CreateGrouper(x => [new(StringResourceProvider.Instance.Ungrouped)]);
+            return CreateGrouper(x => (string[])[new(StringResourceProvider.Instance.Ungrouped)]);
         }
 
         ComicGrouper CreatePluginPropertyGrouper()
@@ -407,13 +407,13 @@ internal class ComicPropertyModel
 
         return Type switch
         {
-            PropertyTypeEnum.Title => CreateGrouper(x => [GetTitleGroupName(x)]),
-            PropertyTypeEnum.Progress => CreateGrouper(x => [GetProgressGroupName(x)]),
+            PropertyTypeEnum.Title => CreateGrouper(x => (string[])[GetTitleGroupName(x)]),
+            PropertyTypeEnum.Progress => CreateGrouper(x => (string[])[GetProgressGroupName(x)]),
             PropertyTypeEnum.Tag => CreateGrouper(GetTagGroupNames),
-            PropertyTypeEnum.Rating => CreateGrouper(x => [GetRatingGroupName(x)]),
-            PropertyTypeEnum.CompletionStatus => CreateGrouper(x => [GetCompletionStatusGroupName(x)]),
-            PropertyTypeEnum.LastReadTime => CreateGrouper(x => [GetLastReadTimeGroupName(x)]),
-            PropertyTypeEnum.Pages => CreateGrouper(x => [GetPagesGroupName(x)]),
+            PropertyTypeEnum.Rating => CreateGrouper(x => (string[])[GetRatingGroupName(x)]),
+            PropertyTypeEnum.CompletionStatus => CreateGrouper(x => (string[])[GetCompletionStatusGroupName(x)]),
+            PropertyTypeEnum.LastReadTime => CreateGrouper(x => (string[])[GetLastReadTimeGroupName(x)]),
+            PropertyTypeEnum.Pages => CreateGrouper(x => (string[])[GetPagesGroupName(x)]),
             PropertyTypeEnum.PluginVirtualProperty => CreatePluginPropertyGrouper(),
             _ => CreateFallbackGrouper(),
         };

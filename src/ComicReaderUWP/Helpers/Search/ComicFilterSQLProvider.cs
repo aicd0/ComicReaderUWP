@@ -148,7 +148,7 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
         return path1.ToLower() switch
         {
             ComicSQLProviderUtils.VAR_TAG => ComicSQLProviderUtils.CreateTagCondition(new BooleanCondition(true)),
-            ComicSQLProviderUtils.VAR_TITLE => new OrCondition([
+            ComicSQLProviderUtils.VAR_TITLE => new OrCondition((ICondition[])[
                 NotNullAndEmptyCondition(ComicTable.ColumnTitle1),
                 NotNullAndEmptyCondition(ComicTable.ColumnTitle2),
             ]),
@@ -186,7 +186,7 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
         return path1.ToLower() switch
         {
             ComicSQLProviderUtils.VAR_TAG => ComicSQLProviderUtils.CreateTagCondition(conditionCreator(TagTable.ColumnContent)),
-            ComicSQLProviderUtils.VAR_TITLE => new OrCondition([
+            ComicSQLProviderUtils.VAR_TITLE => new OrCondition((ICondition[])[
                 conditionCreator(ComicTable.ColumnTitle1),
                 conditionCreator(ComicTable.ColumnTitle2),
             ]),
@@ -212,7 +212,7 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
 
     private static ICondition NotNullAndEmptyCondition(IColumnTypeless column)
     {
-        return new AndCondition([
+        return new AndCondition((ICondition[])[
             new ComparisonCondition(ColumnOrValue.FromColumn(column), ColumnOrValue.FromValue(null), ComparisonCondition.TypeEnum.IsNot),
             new ComparisonCondition(ColumnOrValue.FromColumn(column), ColumnOrValue.FromValue(""), ComparisonCondition.TypeEnum.NotEqual),
         ]);

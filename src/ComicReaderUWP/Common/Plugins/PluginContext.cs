@@ -117,7 +117,7 @@ internal partial class PluginContext : IPluginContext
             return [];
         }
 
-        return [.. SafeAction(() => creator.CreateMenuItems(windowContext), []).Select(CreateHostMenuFlyoutItem)];
+        return (BaseMenuFlyoutItemModel[])[.. SafeAction(() => creator.CreateMenuItems(windowContext), []).Select(CreateHostMenuFlyoutItem)];
     }
 
     public IReadOnlyList<BaseMenuFlyoutItemModel> GetComicMenuItems(IWindowContext windowContext, IComicModel primary, IEnumerable<IComicModel> selection)
@@ -133,7 +133,7 @@ internal partial class PluginContext : IPluginContext
             return [];
         }
 
-        return [.. SafeAction(() => creator.CreateMenuItems(windowContext, primary, selection), []).Select(CreateHostMenuFlyoutItem)];
+        return (BaseMenuFlyoutItemModel[])[.. SafeAction(() => creator.CreateMenuItems(windowContext, primary, selection), []).Select(CreateHostMenuFlyoutItem)];
     }
 
     public IEnumerable<IVirtualProperty<IComicModel>> GetAllComicVirtualProperties()
@@ -143,7 +143,7 @@ internal partial class PluginContext : IPluginContext
             return [];
         }
 
-        return [.. _comicVirtualProperties.Values];
+        return (IVirtualProperty<IComicModel>[])[.. _comicVirtualProperties.Values];
     }
 
     public IReadOnlyList<ISidebarPageProvider> GetAllSidebarPageProviders()
@@ -153,7 +153,7 @@ internal partial class PluginContext : IPluginContext
             return [];
         }
 
-        return [.. _sidebarPageProviders];
+        return (ISidebarPageProvider[])[.. _sidebarPageProviders];
     }
 
     public void SetReadingComic(PluginWindowContext windowContext, IComicModel? comic)
@@ -340,7 +340,7 @@ internal partial class PluginContext : IPluginContext
             {
                 Text = subItemMenuItem.Text,
                 Icon = subItemMenuItem.Icon,
-                Items = [.. subItemMenuItem.Items.Select(CreateHostMenuFlyoutItem)],
+                Items = (BaseMenuFlyoutItemModel[])[.. subItemMenuItem.Items.Select(CreateHostMenuFlyoutItem)],
             },
             _ => throw new NotSupportedException($"Unsupported menu item type: {item.GetType().FullName}"),
         };

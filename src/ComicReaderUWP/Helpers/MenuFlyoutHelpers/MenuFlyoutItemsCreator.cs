@@ -50,7 +50,7 @@ internal static class MenuFlyoutItemsCreator
     {
         if (selectedItems is null)
         {
-            selectedItems = [primaryItem];
+            selectedItems = (ComicModel[])[primaryItem];
         }
         else
         {
@@ -61,7 +61,7 @@ internal static class MenuFlyoutItemsCreator
             }
             else
             {
-                selectedItems = [primaryItem];
+                selectedItems = (ComicModel[])[primaryItem];
             }
         }
 
@@ -479,7 +479,7 @@ internal static class MenuFlyoutItemsCreator
                 {
                     var collection = ComicModel.CreateCollection();
                     await collection.SetTitle1(StringResourceProvider.Instance.NewCollection);
-                    var dialog = new EditComicInfoDialog([collection]);
+                    var dialog = new EditComicInfoDialog((ComicModel[])[collection]);
                     await dialog.ShowAsync(windowId);
                     if (collection.IsExternal)
                     {

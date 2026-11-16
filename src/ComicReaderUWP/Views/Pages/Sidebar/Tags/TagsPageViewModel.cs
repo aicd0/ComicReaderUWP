@@ -344,7 +344,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
             .SelectMany(x => x.CollectDataContext<TagCateogryModel>());
         if (!selectedCategories.Any(x => x.Name == primaryCategory.Name))
         {
-            selectedCategories = [primaryCategory];
+            selectedCategories = (TagCateogryModel[])[primaryCategory];
         }
 
         items.Add(new SimpleMenuFlyoutItemModel()
@@ -388,7 +388,7 @@ internal partial class TagsPageViewModel : INotifyPropertyChanged
         IEnumerable<TagModel> selectedTags = selection.SelectMany(x => x.CollectDataContext<TagModel>());
         if (!selectedTags.Any(x => x.Name == primaryTag.Name))
         {
-            selectedTags = [primaryTag];
+            selectedTags = (TagModel[])[primaryTag];
         }
 
         items.Add(new SubItemMenuFlyoutItemModel()

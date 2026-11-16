@@ -8,7 +8,7 @@ namespace ComicReaderUWP.Common.Expression.Filter.Tokens;
 
 class IntermediateExpressionListTokenExtra(IEnumerable<ExpressionToken> expressions) : ITokenExtra
 {
-    public readonly IReadOnlyList<ExpressionToken> Expressions = [.. expressions];
+    public readonly IReadOnlyList<ExpressionToken> Expressions = (ExpressionToken[])[.. expressions];
 
     public void ToString(StringBuilder stringBuilder)
     {

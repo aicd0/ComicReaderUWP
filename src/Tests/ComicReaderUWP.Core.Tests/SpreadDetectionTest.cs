@@ -26,7 +26,7 @@ public class SpreadDetectionTest
         }
     }
 
-    private static bool IsSpreadPage(float aspectRatio, IEnumerable<float> samples)
+    private static bool IsSpreadPage(float aspectRatio, float[] samples)
     {
         SpreadDetectionHelper.PageSamples pageSamples = new();
         foreach (float item in samples)

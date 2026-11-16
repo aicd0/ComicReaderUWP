@@ -134,7 +134,7 @@ internal static class CollectionModel
 
         if (insertedCount > 0)
         {
-            DispatchUpdateEvent([collectionId]);
+            DispatchUpdateEvent((long[])[collectionId]);
         }
     }
 
@@ -171,7 +171,7 @@ internal static class CollectionModel
 
         if (removedCount > 0)
         {
-            DispatchUpdateEvent([collectionId]);
+            DispatchUpdateEvent((long[])[collectionId]);
         }
     }
 

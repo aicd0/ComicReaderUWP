@@ -8,7 +8,7 @@ namespace ComicReaderUWP.Common.Expression.Filter.Tokens;
 
 class FinalVariableTokenExtra(IEnumerable<string> path) : ITokenExtra
 {
-    public readonly IReadOnlyList<string> Path = [.. path];
+    public readonly IReadOnlyList<string> Path = (string[])[.. path];
 
     public void ToString(StringBuilder stringBuilder)
     {

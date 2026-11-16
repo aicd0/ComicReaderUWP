@@ -10,7 +10,7 @@ namespace ComicReaderUWP.Data.Models.Comic;
 
 internal static class CompletionStatusService
 {
-    public static readonly IReadOnlyList<CompletionStatusEnum> AllStatus = [
+    public static readonly IReadOnlyList<CompletionStatusEnum> AllStatus = (CompletionStatusEnum[])[
         CompletionStatusEnum.Abandoned,
         CompletionStatusEnum.OnHold,
         CompletionStatusEnum.Unread,

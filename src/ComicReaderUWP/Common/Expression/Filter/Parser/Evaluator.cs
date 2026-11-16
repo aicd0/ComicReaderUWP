@@ -150,7 +150,7 @@ internal class Evaluator
                         }
                         else
                         {
-                            LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(node, ExpressionToken.CreateFinalFunction(functionName, [nextToken]));
+                            LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(node, ExpressionToken.CreateFinalFunction(functionName, (ExpressionToken[])[nextToken]));
                             tokens.Remove(node);
                             tokens.Remove(nextNode);
                             node = newNode;
@@ -202,7 +202,7 @@ internal class Evaluator
                     {
                         throw new ExpressionException($"Operator '{token.RawOperatorExtra.Name}' must be surrounded by valid tokens on both sides");
                     }
-                    LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(previousNode, ExpressionToken.CreateFinalFunction(token.RawOperatorExtra.Name, [previousToken, nextToken]));
+                    LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(previousNode, ExpressionToken.CreateFinalFunction(token.RawOperatorExtra.Name, (ExpressionToken[])[previousToken, nextToken]));
                     tokens.Remove(previousNode);
                     tokens.Remove(node);
                     tokens.Remove(nextNode);
@@ -253,7 +253,7 @@ internal class Evaluator
                     }
                     else if (IsScalarReturnValueToken(nextToken))
                     {
-                        parameters.Add(ExpressionToken.CreateFinalList([nextToken]));
+                        parameters.Add(ExpressionToken.CreateFinalList((ExpressionToken[])[nextToken]));
                     }
                     else
                     {
@@ -291,7 +291,7 @@ internal class Evaluator
                     ExpressionToken nextToken = nextNode.Value;
                     if (IsScalarReturnValueToken(nextToken))
                     {
-                        LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(node, ExpressionToken.CreateFinalFunction(functionName, [nextToken]));
+                        LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(node, ExpressionToken.CreateFinalFunction(functionName, (ExpressionToken[])[nextToken]));
                         tokens.Remove(node);
                         tokens.Remove(nextNode);
                         node = newNode;
@@ -334,7 +334,7 @@ internal class Evaluator
                     {
                         throw new ExpressionException($"Keyword '{functionName}' must be surrounded by final tokens on both sides");
                     }
-                    LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(previousNode, ExpressionToken.CreateFinalFunction(functionName, [previousToken, nextToken]));
+                    LinkedListNode<ExpressionToken> newNode = tokens.AddBefore(previousNode, ExpressionToken.CreateFinalFunction(functionName, (ExpressionToken[])[previousToken, nextToken]));
                     tokens.Remove(previousNode);
                     tokens.Remove(node);
                     tokens.Remove(nextNode);

@@ -427,7 +427,7 @@ internal partial class ReaderView : UserControl
 
     public void StartLoadingImages(IEnumerable<IImageSource> images)
     {
-        _originalDataModel = [.. images];
+        _originalDataModel = (IImageSource[])[.. images];
         Reload(_originalDataModel);
     }
 
