@@ -5,8 +5,8 @@ using System.IO;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.ErrorHandling;
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Storage;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Models.Comic;
 
 namespace ComicReaderUWP.Helpers.Imaging;
@@ -24,6 +24,8 @@ internal sealed partial class ComicImageSource : IImageSource
     public ImageLoaderSchedulerGroup PreferredSchedulerGroup => _preferredSchedulerGroup;
 
     public bool IsCacheValidationEnabled => _connection is not null;
+
+    public ImageCacheValidationMode CacheValidationMode => _connection is null ? ImageCacheValidationMode.None : ImageCacheValidationMode.Synchronized;
 
     public ComicImageSource(ComicModel comic, int index, string? uri = null)
     {

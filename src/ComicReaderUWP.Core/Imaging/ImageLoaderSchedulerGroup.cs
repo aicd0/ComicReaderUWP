@@ -1,12 +1,11 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
-// Licensed under the MIT License.
+// Licensed under the GNU General Public License v3.0 or later.
 
-using System;
 using System.Collections.Concurrent;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
-internal class ImageLoaderSchedulerGroup
+public class ImageLoaderSchedulerGroup
 {
     private const string DEFAULT_GROUP_NAME = "Default";
 

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 
 namespace ComicReaderUWP.Views.Pages.Reader;

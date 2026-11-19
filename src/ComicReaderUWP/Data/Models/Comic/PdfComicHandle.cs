@@ -11,10 +11,10 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.ErrorHandling;
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Pdf;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Tables;
 
 using Microsoft.Graphics.Canvas;

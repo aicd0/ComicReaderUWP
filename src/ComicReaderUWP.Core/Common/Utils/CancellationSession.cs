@@ -1,13 +1,9 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
+namespace ComicReaderUWP.Core.Common.Utils;
 
-namespace ComicReaderUWP.Common.Utils;
-
-internal sealed class CancellationSession
+public sealed class CancellationSession
 {
     private readonly Lock _lock = new();
     private readonly List<WeakReference<CancellationSession>> _subSessions = [];

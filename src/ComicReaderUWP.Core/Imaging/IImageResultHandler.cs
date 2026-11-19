@@ -1,9 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
-internal interface IImageResultHandler
+public interface IImageResultHandler
 {
     public void OnSuccess(DecodedImageModel result);
 

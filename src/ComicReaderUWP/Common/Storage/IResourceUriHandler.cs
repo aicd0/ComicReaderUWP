@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
+using ComicReaderUWP.Core.Imaging;
 
 namespace ComicReaderUWP.Common.Storage;
 

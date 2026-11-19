@@ -4,8 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:usercontrols="using:ComicReaderUWP.UserControls.Misc"
     d:DesignHeight="100"
     d:DesignWidth="100"
     mc:Ignorable="d">
@@ -21,7 +21,7 @@
                 CornerRadius="4"
                 Visibility="Collapsed">
                 <Grid CornerRadius="3">
-                    <image:SimpleImageView x:Name="ImageHolder" />
+                    <usercontrols:SimpleImageView x:Name="ImageHolder" />
                 </Grid>
             </Border>
             <Border

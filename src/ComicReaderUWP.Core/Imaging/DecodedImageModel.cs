@@ -3,9 +3,9 @@
 
 using Microsoft.UI.Xaml.Media;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
-internal class DecodedImageModel
+public class DecodedImageModel
 {
     public required ImageSource Source { get; init; }
 }

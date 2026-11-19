@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Models.Comic;
 
 using ComicReaderUWP.Helpers.Imaging;

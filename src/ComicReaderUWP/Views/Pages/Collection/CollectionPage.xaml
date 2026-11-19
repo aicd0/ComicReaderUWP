@@ -7,7 +7,7 @@
     xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
     xmlns:converters="using:ComicReaderUWP.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:image="using:ComicReaderUWP.Common.Imaging"
+    xmlns:usercontrols="using:ComicReaderUWP.UserControls.Misc"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     Background="Transparent"
@@ -28,7 +28,7 @@
 
     <Grid>
         <!--  Background image  -->
-        <image:SimpleImageView
+        <usercontrols:SimpleImageView
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             ImageUri="{x:Bind ViewModel.BackgroundImageUri, Mode=OneWay}"
@@ -57,7 +57,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!--  Cover image  -->
-                        <image:SimpleImageView
+                        <usercontrols:SimpleImageView
                             Grid.Column="0"
                             MaxWidth="160"
                             MaxHeight="160"

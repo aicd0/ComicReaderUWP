@@ -6,8 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
-
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Helpers.Imaging;
 
 namespace ComicReaderUWP.Common.Storage;

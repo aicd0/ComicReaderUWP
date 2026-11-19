@@ -1,17 +1,15 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Threading.Tasks;
+namespace ComicReaderUWP.Core.Imaging;
 
-namespace ComicReaderUWP.Common.Imaging;
-
-internal interface IImageSource
+public interface IImageSource
 {
     string Uri { get; }
 
     ImageLoaderSchedulerGroup PreferredSchedulerGroup { get; }
 
-    bool IsCacheValidationEnabled { get; }
+    ImageCacheValidationMode CacheValidationMode { get; }
 
     Task<IImageConnection?> Open();
 }
