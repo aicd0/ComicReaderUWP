@@ -13,7 +13,6 @@ using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
-using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Tables;
 
 namespace ComicReaderUWP.Data.Models.Comic;
@@ -176,7 +175,7 @@ internal partial class ArchiveComicHandle : ComicHandle
 
         public override string GetImageSignature(int index)
         {
-            return FileUtils.GetFileSignature(_archivePath);
+            return GetFileSignature(_archivePath);
         }
 
         public override async Task<Stream?> OpenImageStream(int index)

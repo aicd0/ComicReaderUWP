@@ -1,18 +1,17 @@
-﻿// Copyright (c) aicd0. All rights reserved.
-// Licensed under the GNU General Public License v3.0 or later.
+// Copyright (c) aicd0. All rights reserved.
+// Licensed under the MIT License.
 
 using ComicReaderUWP.Core.Common.DebugTools;
-using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Common.Threading;
 
 using Windows.Graphics.Imaging;
 
 namespace ComicReaderUWP.Core.Imaging;
 
-public partial class ImageLoaderContext(IImageSource source) : IDisposable
+public sealed partial class ImageLoaderContext(IImageSource source) : IDisposable
 {
     private const string TAG = nameof(ImageLoaderContext);
 
-    private const int VALIDATION_PRIORITY = -1;
     private const int IMAGE_META_VERSION = 1;
 
     private static ImageCacheDatabase? sDatabase = null;
@@ -34,14 +33,42 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
         return fingerprint is null || metaFingerprint == fingerprint;
     }
 
-    internal static void SaveImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, long size, BitmapDecoder decoder)
+    internal static void SaveImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, ImageMeta meta)
+    {
+        record.PutExt(ImageCacheExt.IMAGE_META_VERSION, IMAGE_META_VERSION.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
+        record.PutExt(ImageCacheExt.IMAGE_META_WIDTH, meta.Width.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_HEIGHT, meta.Height.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DPI_X, meta.DpiX.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DPI_Y, meta.DpiY.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, meta.BitsPerPixel.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_DECODER_NAME, meta.Format);
+        record.PutExt(ImageCacheExt.IMAGE_META_SIZE, meta.Size.ToString());
+        record.PutExt(ImageCacheExt.IMAGE_META_FRAME_COUNT, meta.FrameCount.ToString());
+    }
+
+    private static async Task<ImageMeta?> DecodeImageMeta(Stream stream)
+    {
+        try
+        {
+            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
+            return CreateImageMeta(stream.CanSeek ? stream.Length : 0, decoder);
+        }
+        catch (Exception ex)
+        {
+            Logger.E(TAG, ex);
+            return null;
+        }
+    }
+
+    private static ImageMeta? CreateImageMeta(long size, BitmapDecoder decoder)
     {
         uint width = decoder.OrientedPixelWidth;
         uint height = decoder.OrientedPixelHeight;
         if (width == 0 || height == 0)
         {
             Logger.F(TAG, $"Invalid image dimensions: width={width}, height={height}");
-            return;
+            return null;
         }
 
         int bitsPerPixel = decoder.BitmapPixelFormat switch
@@ -69,16 +96,17 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
             _ => decoder.DecoderInformation.FriendlyName,
         };
 
-        record.PutExt(ImageCacheExt.IMAGE_META_VERSION, IMAGE_META_VERSION.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
-        record.PutExt(ImageCacheExt.IMAGE_META_WIDTH, width.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_HEIGHT, height.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DPI_X, decoder.DpiX.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DPI_Y, decoder.DpiY.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, bitsPerPixel.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DECODER_NAME, decoderName);
-        record.PutExt(ImageCacheExt.IMAGE_META_SIZE, size.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_FRAME_COUNT, decoder.FrameCount.ToString());
+        return new ImageMeta
+        {
+            Width = (int)width,
+            Height = (int)height,
+            DpiX = decoder.DpiX,
+            DpiY = decoder.DpiY,
+            Format = decoderName,
+            BitsPerPixel = bitsPerPixel,
+            Size = size,
+            FrameCount = (int)decoder.FrameCount,
+        };
     }
 
     private readonly IImageSource _source = source;
@@ -88,8 +116,6 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
 
     private string? _cacheKey = null;
     private string? _fingerprint = null;
-    private Stream? _sourceStream = null;
-    private BitmapDecoder? _bitmapDecoder = null;
     private IVectorImageService? _vectorService = null;
 
     private int _disposeRequested = 0;
@@ -136,9 +162,6 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
 
         _connection?.Dispose();
         _connection = null;
-        _sourceStream?.Dispose();
-        _sourceStream = null;
-        _bitmapDecoder = null;
         _vectorService?.Dispose();
         _vectorService = null;
     }
@@ -203,63 +226,6 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
         return _fingerprint;
     }
 
-    internal async Task<Stream?> GetSourceStream()
-    {
-        if (_sourceStream is not null)
-        {
-            _sourceStream.Seek(0, SeekOrigin.Begin);
-            return _sourceStream;
-        }
-
-        IImageConnection? connection = await GetConnection();
-        if (connection is null)
-        {
-            return null;
-        }
-
-        try
-        {
-            _sourceStream = await connection.OpenImageStream();
-        }
-        catch (Exception ex)
-        {
-            Logger.E(TAG, ex);
-        }
-
-        return _sourceStream;
-    }
-
-    internal void UnrefSourceStream()
-    {
-        _sourceStream = null;
-        _bitmapDecoder = null;
-    }
-
-    internal async Task<BitmapDecoder?> GetBitmapDecoder()
-    {
-        if (_bitmapDecoder is not null)
-        {
-            return _bitmapDecoder;
-        }
-
-        Stream? stream = await GetSourceStream();
-        if (stream is null)
-        {
-            return null;
-        }
-
-        try
-        {
-            _bitmapDecoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
-        }
-        catch (Exception ex)
-        {
-            Logger.E(TAG, ex);
-        }
-
-        return _bitmapDecoder;
-    }
-
     internal async Task<IVectorImageService?> GetVectorService()
     {
         if (_vectorService is not null)
@@ -275,6 +241,24 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
 
         _vectorService = connection.OpenVectorService();
         return _vectorService;
+    }
+
+    internal async Task<Stream?> GetSourceStream(ImageLoaderScheduler.Request request)
+    {
+        IImageConnection? connection = await GetConnection();
+        if (connection is null || string.IsNullOrEmpty(request.Uri))
+        {
+            return null;
+        }
+
+        string? fingerprint = await GetValidationFingerprint();
+        return await ImageLoaderScheduler.AcquireBuffer(request, fingerprint, connection.OpenImageStream);
+    }
+
+    internal async Task<ImageMeta?> GetImageMeta(ImageLoaderScheduler.Request request)
+    {
+        using Stream? buffer = await GetSourceStream(request);
+        return buffer is null ? null : await DecodeImageMeta(buffer);
     }
 
     private async Task<string> GetCacheKey(ImageCacheDatabase db)
@@ -327,7 +311,10 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
 
     private void TryBeginDeferredValidation()
     {
-        ImageCacheDatabase? db = sDatabase ?? throw new InvalidOperationException("No cache database was injected into this context.");
+        if (sDatabase is null)
+        {
+            throw new InvalidOperationException("No cache database was injected into this context.");
+        }
 
         lock (_lock)
         {
@@ -340,12 +327,11 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
             _referenceCount++;
         }
 
-        CoroutineUtils.Run(async () =>
+        TaskDispatcher.DefaultThreadPool.SubmitAsync(async () =>
         {
             try
             {
-                ImageLoaderSchedulerGroup group = _source.PreferredSchedulerGroup;
-                await ImageLoaderScheduler.Submit(ValidateCache, group, VALIDATION_PRIORITY);
+                await ValidateCache();
             }
             finally
             {
@@ -384,6 +370,7 @@ public partial class ImageLoaderContext(IImageSource source) : IDisposable
                 if (stale == true)
                 {
                     Logger.I(TAG, $"The picture of '{_source.Uri}' no longer matches the file and its cache was dropped");
+                    ImageLoaderScheduler.InvalidateBuffer(_source.Uri);
                 }
             }
         }

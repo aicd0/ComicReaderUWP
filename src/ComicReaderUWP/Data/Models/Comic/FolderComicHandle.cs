@@ -12,7 +12,6 @@ using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
-using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Tables;
 
@@ -226,7 +225,7 @@ internal partial class FolderComicHandle : ComicHandle
                 return string.Empty;
             }
 
-            return FileUtils.GetFileSignature(_imageFiles[index]);
+            return GetFileSignature(_imageFiles[index]);
         }
 
         public override async Task<Stream?> OpenImageStream(int index)
@@ -240,7 +239,7 @@ internal partial class FolderComicHandle : ComicHandle
             string imageFile = _imageFiles[index];
             try
             {
-                return new FileStream(imageFile, FileMode.Open, FileAccess.Read);
+                return new FileStream(imageFile, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 16, FileOptions.SequentialScan);
             }
             catch (FileNotFoundException ex)
             {

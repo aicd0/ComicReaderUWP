@@ -342,29 +342,33 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (newBitmap is null)
         {
-            using Stream? stream = await connection.OpenImageStream();
-            if (stream is null)
+            using ImageContent? content = await ImageLoader.LoadImageContent(source.Source, new()
+            {
+                Priority = ImageLoadingPriority.READER_IMAGE,
+            });
+
+            if (content is null)
             {
                 Logger.W(TAG, $"Decode failed (Cannot open stream) (name={Name}-{item.Index}, uri={item.Source?.Source.Uri})");
                 return;
             }
 
-            ImageMeta? meta = await ImageLoader.LoadImageMeta(source.Source, new()
+            if (content.Meta is not null && content.Meta.FrameCount > 1)
             {
-                Priority = ImageLoadingPriority.READER_IMAGE,
-            });
-
-            if (meta is not null && meta.FrameCount > 1)
-            {
-                newBitmap = AnimatedBitmapModel.FromStream(_canvasDevice, stream);
+                newBitmap = AnimatedBitmapModel.FromStream(_canvasDevice, content.Stream);
             }
 
             if (newBitmap is null)
             {
+                if (content.Stream.CanSeek)
+                {
+                    content.Stream.Position = 0;
+                }
+
                 CanvasBitmap bitmap;
                 try
                 {
-                    bitmap = await CanvasBitmap.LoadAsync(_canvasDevice, stream.AsRandomAccessStream());
+                    bitmap = await CanvasBitmap.LoadAsync(_canvasDevice, content.Stream.AsRandomAccessStream());
                 }
                 catch (Exception ex)
                 {

@@ -1,5 +1,5 @@
-﻿// Copyright (c) aicd0. All rights reserved.
-// Licensed under the GNU General Public License v3.0 or later.
+// Copyright (c) aicd0. All rights reserved.
+// Licensed under the MIT License.
 
 using System.Collections.Concurrent;
 
@@ -10,27 +10,104 @@ namespace ComicReaderUWP.Core.Imaging;
 internal static class ImageLoaderScheduler
 {
     private static readonly ConcurrentDictionary<string, GroupState> sGroups = new();
+    private static readonly ConcurrentDictionary<string, int> sMemoryCacheRequests = [];
+    private static long sSequence;
 
-    public static Task Submit(Func<Task> func, ImageLoaderSchedulerGroup group, int priority)
+    static ImageLoaderScheduler()
     {
-        GroupState state = sGroups.GetOrAdd(group.Name, _ => new GroupState(group.MaxConcurrentTasks));
-        QueuedTask item = new(func);
-        state.Enqueue(item, priority);
-        return item.Task;
+        ImageMemoryCache.Instance.EntryAdded += uri =>
+        {
+            foreach (GroupState state in sGroups.Values)
+            {
+                state.FlushBufferRequest(uri);
+            }
+        };
     }
 
-    public static Task<T> Submit<T>(Func<Task<T>> func, ImageLoaderSchedulerGroup group, int priority)
+    public static long NewSequence()
     {
-        GroupState state = sGroups.GetOrAdd(group.Name, _ => new GroupState(group.MaxConcurrentTasks));
-        QueuedTask<T> item = new(func);
-        state.Enqueue(item, priority);
-        return item.Task;
+        return Interlocked.Increment(ref sSequence);
+    }
+
+    public static async Task<Stream?> AcquireBuffer(Request request, string? fingerprint, Func<Task<Stream?>> openStream)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(request.Uri);
+
+        string uri = request.Uri;
+        Stream? cached = ImageMemoryCache.Instance.TryAcquire(uri, fingerprint);
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        QueuedFunc<Stream?> item = new(() => ImageMemoryCache.Instance.AcquireAsync(uri, new()
+        {
+            Fingerprint = fingerprint,
+            OpenStream = openStream,
+        }), request);
+        Enqueue(item, request);
+        return await item.Task;
+    }
+
+    public static void InvalidateBuffer(string uri)
+    {
+        ImageMemoryCache.Instance.Invalidate(uri);
+    }
+
+    public static void ClearBuffer()
+    {
+        ImageMemoryCache.Instance.Clear();
+    }
+
+    public static bool HasBufferRequest(string uri)
+    {
+        return sMemoryCacheRequests.TryGetValue(uri, out int count) && count > 0;
+    }
+
+    internal static bool HasBuffer(string uri)
+    {
+        return ImageMemoryCache.Instance.Contains(uri);
+    }
+
+    private static void RemoveBufferRequest(string uri)
+    {
+        while (sMemoryCacheRequests.TryGetValue(uri, out int count))
+        {
+            if (count > 1)
+            {
+                if (sMemoryCacheRequests.TryUpdate(uri, count - 1, count))
+                {
+                    return;
+                }
+            }
+            else if (sMemoryCacheRequests.TryRemove(new KeyValuePair<string, int>(uri, count)))
+            {
+                return;
+            }
+        }
+    }
+
+    private static void Enqueue(IQueuedTask item, Request request)
+    {
+        GroupState state = sGroups.GetOrAdd(request.Group.Name, _ => new GroupState(request.Group.MaxConcurrentTasks));
+        state.Enqueue(item, request.Priority);
+    }
+
+    internal readonly record struct Request
+    {
+        public required ImageLoaderSchedulerGroup Group { get; init; }
+
+        public int Priority { get; init; }
+
+        public string? Uri { get; init; }
+
+        public long Sequence { get; init; }
     }
 
     private sealed class GroupState(int maxConcurrentTasks)
     {
         private readonly Lock _lock = new();
-        private readonly SortedDictionary<int, Queue<IQueuedTask>> _queue = [];
+        private readonly SortedDictionary<int, SortedDictionary<long, IQueuedTask>> _queue = [];
         private readonly int _maxConcurrentTasks = maxConcurrentTasks;
         private int _activeWorkers = 0;
 
@@ -40,13 +117,13 @@ internal static class ImageLoaderScheduler
 
             lock (_lock)
             {
-                if (!_queue.TryGetValue(priority, out Queue<IQueuedTask>? bucket))
+                if (!_queue.TryGetValue(priority, out SortedDictionary<long, IQueuedTask>? bucket))
                 {
-                    bucket = new Queue<IQueuedTask>();
+                    bucket = [];
                     _queue.Add(priority, bucket);
                 }
 
-                bucket.Enqueue(item);
+                bucket.Add(item.Sequence, item);
 
                 if (_activeWorkers < _maxConcurrentTasks)
                 {
@@ -65,71 +142,145 @@ internal static class ImageLoaderScheduler
             }
         }
 
+        public void FlushBufferRequest(string uri)
+        {
+            List<(int Priority, long Sequence, IQueuedTask Item)> matches = [];
+
+            lock (_lock)
+            {
+                foreach ((int priority, SortedDictionary<long, IQueuedTask> bucket) in _queue)
+                {
+                    foreach ((long sequence, IQueuedTask item) in bucket)
+                    {
+                        if (item.Uri == uri)
+                        {
+                            matches.Add((priority, sequence, item));
+                        }
+                    }
+                }
+
+                foreach ((int priority, long sequence, _) in matches)
+                {
+                    if (_queue.TryGetValue(priority, out SortedDictionary<long, IQueuedTask>? bucket))
+                    {
+                        bucket.Remove(sequence);
+                    }
+                }
+            }
+
+            foreach ((_, _, IQueuedTask item) in matches)
+            {
+                Dispatch(item);
+            }
+        }
+
         private async Task RunWorker()
         {
             while (true)
             {
-                IQueuedTask? next;
-                lock (_lock)
+                IQueuedTask? next = TakeNext();
+                if (next is null)
                 {
-                    if (_queue.Count == 0)
-                    {
-                        _activeWorkers--;
-                        return;
-                    }
+                    return;
+                }
 
-                    int highestPriority = _queue.Keys.Last();
-                    Queue<IQueuedTask> bucket = _queue[highestPriority];
-                    next = bucket.Dequeue();
-                    if (bucket.Count == 0)
-                    {
-                        _queue.Remove(highestPriority);
-                    }
+                if (next.Uri is not null && HasBuffer(next.Uri))
+                {
+                    Dispatch(next);
+                    continue;
                 }
 
                 await next.ExecuteAsync();
             }
         }
+
+        private IQueuedTask? TakeNext()
+        {
+            lock (_lock)
+            {
+                while (_queue.Count > 0)
+                {
+                    int highestPriority = _queue.Keys.Last();
+                    SortedDictionary<long, IQueuedTask> bucket = _queue[highestPriority];
+                    if (bucket.Count == 0)
+                    {
+                        _queue.Remove(highestPriority);
+                        continue;
+                    }
+
+                    KeyValuePair<long, IQueuedTask> first = bucket.First();
+                    bucket.Remove(first.Key);
+                    return first.Value;
+                }
+
+                _activeWorkers--;
+                return null;
+            }
+        }
+
+        private static void Dispatch(IQueuedTask item)
+        {
+            TaskDispatcher.DefaultThreadPool.SubmitAsync(item.ExecuteAsync);
+        }
     }
 
     private interface IQueuedTask
     {
+        long Sequence { get; }
+
+        string? Uri { get; }
+
         Task ExecuteAsync();
     }
 
-    private sealed class QueuedTask(Func<Task> func) : IQueuedTask
+    private abstract class QueuedItem : IQueuedTask
     {
-        private readonly Func<Task> _func = func;
-        private readonly TaskCompletionSource _source = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _started;
 
-        public Task Task => _source.Task;
-
-        public async Task ExecuteAsync()
+        protected QueuedItem(Request request)
         {
-            try
+            Sequence = request.Sequence;
+            Uri = request.Uri;
+
+            if (request.Uri is not null)
             {
-                await _func();
-                _source.SetResult();
+                sMemoryCacheRequests.AddOrUpdate(request.Uri, 1, (_, count) => count + 1);
             }
-            catch (Exception ex)
+        }
+
+        public long Sequence { get; }
+
+        public string? Uri { get; }
+
+        public abstract Task ExecuteAsync();
+
+        protected void Begin()
+        {
+            if (Interlocked.Exchange(ref _started, 1) != 0)
             {
-                _source.SetException(ex);
+                return;
+            }
+
+            if (Uri is not null)
+            {
+                RemoveBufferRequest(Uri);
             }
         }
     }
 
-    private sealed class QueuedTask<T>(Func<Task<T>> func) : IQueuedTask
+    private sealed class QueuedFunc<T>(Func<Task<T>> func, Request request) : QueuedItem(request)
     {
-        private readonly Func<Task<T>> _func = func;
         private readonly TaskCompletionSource<T> _source = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public Task<T> Task => _source.Task;
 
-        public async Task ExecuteAsync()
+        public override async Task ExecuteAsync()
         {
+            Begin();
+
             try
             {
-                _source.SetResult(await _func());
+                _source.SetResult(await func());
             }
             catch (Exception ex)
             {
