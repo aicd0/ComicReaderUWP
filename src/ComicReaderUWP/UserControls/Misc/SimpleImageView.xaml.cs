@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Constants;
 using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Utils;
@@ -23,19 +24,16 @@ internal partial class SimpleImageView : UserControl
 {
     private const long RELOAD_INTERVAL_MS = 500;
 
-    /// <summary>
-    /// A picture someone is waiting for outranks the measuring passes queued behind it. A grid hands out thirty sources
-    /// at once, and each one is measured before it is drawn; without this the first picture is drawn only once the last
-    /// of those measurements is done, so the grid stays blank and then fills in a burst. The scheduler serves the
-    /// highest number first, and a measurement takes the default.
-    /// </summary>
-    private const int IMAGE_PRIORITY = 1;
-
     public static readonly DependencyProperty ImageSourceProperty = DependencyProperty.Register(
         nameof(ImageSource),
         typeof(IImageSource),
         typeof(SimpleImageView),
         new PropertyMetadata(null, OnImageSourceChanged));
+
+    private static void OnImageSourceChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ((SimpleImageView)sender).LoadSource();
+    }
 
     public static readonly DependencyProperty ImageUriProperty = DependencyProperty.Register(
         nameof(ImageUri),
@@ -43,27 +41,41 @@ internal partial class SimpleImageView : UserControl
         typeof(SimpleImageView),
         new PropertyMetadata(null, OnImageUriChanged));
 
+    private static void OnImageUriChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ((SimpleImageView)sender).LoadSource();
+    }
+
     public static readonly DependencyProperty StretchProperty = DependencyProperty.Register(
         nameof(Stretch),
         typeof(Stretch),
         typeof(SimpleImageView),
         new PropertyMetadata(Stretch.Uniform, OnStretchChanged));
 
-    private static void OnImageSourceChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
-    {
-        ((SimpleImageView)sender).LoadSource();
-    }
-
-    private static void OnImageUriChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
-    {
-        ((SimpleImageView)sender).LoadSource();
-    }
-
     private static void OnStretchChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
         var view = (SimpleImageView)sender;
         view.ImageHolder.Stretch = (Stretch)args.NewValue;
         view.RequestReload();
+    }
+
+    public static readonly DependencyProperty ImagePriorityProperty = DependencyProperty.Register(
+        nameof(ImagePriority),
+        typeof(int),
+        typeof(SimpleImageView),
+        new PropertyMetadata(ImageLoadingPriority.PREVIEW_IMAGE, OnImagePriorityChanged));
+
+    private static void OnImagePriorityChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        var view = (SimpleImageView)sender;
+
+        // Priority only decides the order of a load that has not finished yet; a displayed picture needs nothing.
+        if (view.ImageHolder.Source is null)
+        {
+            view._loadImageSession.Next();
+            view._imageSize = new(0, 0);
+            view.RequestReload();
+        }
     }
 
     private static async Task<IImageSource?> ResolveImageSource(string? uri)
@@ -122,6 +134,12 @@ internal partial class SimpleImageView : UserControl
         set => SetValue(StretchProperty, value);
     }
 
+    public int ImagePriority
+    {
+        get => (int)GetValue(ImagePriorityProperty);
+        set => SetValue(ImagePriorityProperty, value);
+    }
+
     private void SimpleImageView_LoadedOrUnloaded(object sender, RoutedEventArgs e)
     {
         if (_isLoaded == IsLoaded)
@@ -137,7 +155,7 @@ internal partial class SimpleImageView : UserControl
         }
         else
         {
-            ReleaseLoaderContext();
+            ReleaseLoadState();
         }
     }
 
@@ -172,7 +190,7 @@ internal partial class SimpleImageView : UserControl
             return;
         }
 
-        ReleaseLoaderContext();
+        ReleaseLoadState();
         _sourceSession.Next();
         _uri = uri;
         _source = null;
@@ -316,7 +334,7 @@ internal partial class SimpleImageView : UserControl
             DecodeWidth = newImageSize.Width,
             DecodeHeight = newImageSize.Height,
             Handler = handler,
-            Priority = IMAGE_PRIORITY,
+            Priority = ImagePriority,
         };
 
         CoroutineUtils.Run(async () =>
@@ -372,8 +390,14 @@ internal partial class SimpleImageView : UserControl
         ImageHolder.Source = null;
     }
 
-    private void ReleaseLoaderContext()
+    private void ReleaseLoadState()
     {
+        if (ImageHolder.Source is null)
+        {
+            _loadImageSession.Next();
+            _imageSize = new(0, 0);
+        }
+
         _loaderContext?.Dispose();
         _loaderContext = null;
     }

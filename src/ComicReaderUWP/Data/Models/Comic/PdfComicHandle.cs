@@ -125,7 +125,7 @@ internal partial class PdfComicHandle : ComicHandle
 
         public override string GetImageSignature(int index)
         {
-            return FileUtils.GetFileSignature(pdfPath);
+            return GetFileSignature(pdfPath);
         }
 
         public override async Task<Stream?> OpenImageStream(int index)
