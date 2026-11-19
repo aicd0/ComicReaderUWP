@@ -1,10 +1,9 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
-// Licensed under the MIT License.
+// Licensed under the GNU General Public License v3.0 or later.
 
-using System.Collections.Generic;
 using System.Drawing;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
 internal static class ImageCacheStrategy
 {

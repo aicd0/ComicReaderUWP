@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Helpers.Imaging;
 
 using Microsoft.UI.Xaml;
@@ -16,11 +17,19 @@ using Microsoft.UI.Xaml.Media;
 
 using Windows.Foundation;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.UserControls.Misc;
 
 internal partial class SimpleImageView : UserControl
 {
     private const long RELOAD_INTERVAL_MS = 500;
+
+    /// <summary>
+    /// A picture someone is waiting for outranks the measuring passes queued behind it. A grid hands out thirty sources
+    /// at once, and each one is measured before it is drawn; without this the first picture is drawn only once the last
+    /// of those measurements is done, so the grid stays blank and then fills in a burst. The scheduler serves the
+    /// highest number first, and a measurement takes the default.
+    /// </summary>
+    private const int IMAGE_PRIORITY = 1;
 
     public static readonly DependencyProperty ImageSourceProperty = DependencyProperty.Register(
         nameof(ImageSource),
@@ -82,6 +91,7 @@ internal partial class SimpleImageView : UserControl
     private int _imageHash = 0;
     private Size _imageSize = new(0, 0);
 
+    private ImageLoaderContext? _loaderContext = null;
     private readonly CancellationSession _sourceSession = new();
     private string? _uri = null;
     private IImageSource? _source = null;
@@ -125,6 +135,10 @@ internal partial class SimpleImageView : UserControl
             LoadSource();
             RequestReload();
         }
+        else
+        {
+            ReleaseLoaderContext();
+        }
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -158,6 +172,7 @@ internal partial class SimpleImageView : UserControl
             return;
         }
 
+        ReleaseLoaderContext();
         _sourceSession.Next();
         _uri = uri;
         _source = null;
@@ -180,13 +195,16 @@ internal partial class SimpleImageView : UserControl
                 return;
             }
 
-            ImageMeta? meta = await ImageLoader.LoadImageMeta(source, new());
+            ImageLoaderContext loaderContext = new(source);
+            ImageMeta? meta = await ImageLoader.LoadImageMeta(loaderContext, new());
 
             if (meta is null || token.IsCancellationRequested)
             {
+                loaderContext.Dispose();
                 return;
             }
 
+            _loaderContext = loaderContext;
             _source = source;
             _originalSize = new(meta.Width, meta.Height);
             RequestReload();
@@ -289,15 +307,34 @@ internal partial class SimpleImageView : UserControl
         CancellationSession.IToken token = _loadImageSession.Token;
         IImageResultHandler handler = new WeakImageResultHandler(this, newImageHash);
 
+        ImageLoaderContext? context = _loaderContext;
+        _loaderContext = null;
+
+        LoadImageOptions options = new()
+        {
+            Token = token,
+            DecodeWidth = newImageSize.Width,
+            DecodeHeight = newImageSize.Height,
+            Handler = handler,
+            Priority = IMAGE_PRIORITY,
+        };
+
         CoroutineUtils.Run(async () =>
         {
-            await ImageLoader.LoadImage(source, new()
+            if (context is null)
             {
-                Token = token,
-                DecodeWidth = newImageSize.Width,
-                DecodeHeight = newImageSize.Height,
-                Handler = handler,
-            });
+                await ImageLoader.LoadImage(source, options);
+                return;
+            }
+
+            try
+            {
+                await ImageLoader.LoadImage(context, options);
+            }
+            finally
+            {
+                context.Dispose();
+            }
         });
     }
 
@@ -333,6 +370,12 @@ internal partial class SimpleImageView : UserControl
         _imageHash = 0;
         _imageSize = new(0, 0);
         ImageHolder.Source = null;
+    }
+
+    private void ReleaseLoaderContext()
+    {
+        _loaderContext?.Dispose();
+        _loaderContext = null;
     }
 
     private class WeakImageResultHandler(SimpleImageView view, int imageHash) : IImageResultHandler

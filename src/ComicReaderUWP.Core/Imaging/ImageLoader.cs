@@ -1,20 +1,9 @@
-﻿// Copyright (c) aicd0. All rights reserved.
-// Licensed under the MIT License.
+// Copyright (c) aicd0. All rights reserved.
+// Licensed under the GNU General Public License v3.0 or later.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
-using ComicReaderUWP.Common.Utils;
-using ComicReaderUWP.Core.Common.Caching;
-using ComicReaderUWP.Core.Common.DebugTools;
-using ComicReaderUWP.Core.Common.Storage;
-using ComicReaderUWP.Core.Common.Threading;
-using ComicReaderUWP.Core.Common.Utils;
+using System.Text;
 
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
@@ -22,17 +11,22 @@ using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 
+using ComicReaderUWP.Core.Common.Caching;
+using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Storage;
+using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
+
 using Windows.Graphics.Imaging;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
-internal static partial class ImageLoader
+public static partial class ImageLoader
 {
     private const string TAG = nameof(ImageLoader);
     private const int VERSION = 1;
-    private const int IMAGE_META_VERSION = 2;
-    private const string IMAGES_FOLDER_NAME = "Images";
-    private const string MAIN_DATABASE_FILE_NAME = "db_main.db";
+    private const string IMAGES_FOLDER_NAME = "Thumbnails";
+    private const string MAIN_DATABASE_FILE_NAME = "Images.sqlite";
     private const long MIN_CACHE_CAPACITY = 1024 * 1024 * 1024;
     private const int CACHE_TTL_DAYS = 30;
     private const int MAX_CACHE_ROWS = 100000;
@@ -45,13 +39,13 @@ internal static partial class ImageLoader
     private static int sPostMainThreadTask = 0;
     private static readonly ConcurrentQueue<DecodingImageItem> sDecodeQueue = new();
 
-    private static ImageCacheDatabase ImageCacheDatabase => sImageCacheDatabase ?? throw new InvalidOperationException("ImageCacheManager not initialized");
+    private static ImageCacheDatabase Database => sImageCacheDatabase ?? throw new InvalidOperationException("ImageCacheManager not initialized");
 
     public static void Initialize(string cacheDirectoryPath, bool clear)
     {
         _cacheDirectoryPath = cacheDirectoryPath;
 
-        string versionFilePath = Path.Combine(_cacheDirectoryPath, "version.txt");
+        string versionFilePath = Path.Combine(_cacheDirectoryPath, "Version.txt");
         int version = clear ? -1 : ReadVersion(versionFilePath);
         if (version != VERSION)
         {
@@ -79,6 +73,7 @@ internal static partial class ImageLoader
         string databaseFilePath = Path.Combine(_cacheDirectoryPath, MAIN_DATABASE_FILE_NAME);
         ImageCacheDatabase database = new(databaseFilePath);
         sImageCacheDatabase = database;
+        ImageLoaderContext.InjectDatabase(database);
 
         TaskDispatcher.LongRunningThreadPool.Submit(() =>
         {
@@ -88,20 +83,37 @@ internal static partial class ImageLoader
 
     public static void Clear()
     {
-        ImageCacheDatabase.Clear();
+        Database.Clear();
         sImageCache?.Clear();
     }
 
     public static Task LoadImage(IImageSource source, LoadImageOptions options)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(options);
+
         options = options.Clone();
-
         ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? source.PreferredSchedulerGroup;
-
         return ImageLoaderScheduler.Submit(async () =>
         {
-            using CacheRequestContext context = new(source);
-            if (!await LoadImage(context, options))
+            using ImageLoaderContext context = new(source);
+            if (!await LoadImageCore(context, options))
+            {
+                CoroutineUtils.RunInMainThread(options.Handler.OnFailure);
+            }
+        }, group, options.Priority);
+    }
+
+    public static Task LoadImage(ImageLoaderContext loaderContext, LoadImageOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(loaderContext);
+        ArgumentNullException.ThrowIfNull(options);
+
+        options = options.Clone();
+        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? loaderContext.Source.PreferredSchedulerGroup;
+        return ImageLoaderScheduler.Submit(async () =>
+        {
+            if (!await LoadImageCore(loaderContext, options))
             {
                 CoroutineUtils.RunInMainThread(options.Handler.OnFailure);
             }
@@ -110,18 +122,29 @@ internal static partial class ImageLoader
 
     public static Task<ImageMeta?> LoadImageMeta(IImageSource source, LoadImageMetaOptions options)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(options);
+
         options = options.Clone();
-
         ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? source.PreferredSchedulerGroup;
-
         return ImageLoaderScheduler.Submit(async () =>
         {
-            using CacheRequestContext context = new(source);
+            using ImageLoaderContext context = new(source);
             return await GetImageMeta(context);
         }, group, options.Priority);
     }
 
-    private static async Task<ImageMeta?> GetImageMeta(CacheRequestContext context)
+    public static Task<ImageMeta?> LoadImageMeta(ImageLoaderContext loaderContext, LoadImageMetaOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(loaderContext);
+        ArgumentNullException.ThrowIfNull(options);
+
+        options = options.Clone();
+        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? loaderContext.Source.PreferredSchedulerGroup;
+        return ImageLoaderScheduler.Submit(() => GetImageMeta(loaderContext), group, options.Priority);
+    }
+
+    private static async Task<ImageMeta?> GetImageMeta(ImageLoaderContext context)
     {
         ImageCacheDatabase.CacheRecord? record = await context.GetOrCreateCache();
         if (record is null)
@@ -131,7 +154,7 @@ internal static partial class ImageLoader
 
         return await record.Enqueue(async () =>
         {
-            string? fingerprint = context.Source.IsCacheValidationEnabled ? await context.GetFingerprint() : null;
+            string? fingerprint = await context.GetValidationFingerprint();
             ImageMeta? meta = CreateImageMetaFromCacheRecord(record, fingerprint);
             if (meta is not null)
             {
@@ -152,7 +175,7 @@ internal static partial class ImageLoader
 
             fingerprint ??= await context.GetFingerprint();
             record.Clear();
-            SaveImageMetaToCacheRecord(record, fingerprint, stream.Length, decoder);
+            ImageLoaderContext.SaveImageMetaToCacheRecord(record, fingerprint, stream.Length, decoder);
             record.Save();
 
             meta = CreateImageMetaFromCacheRecord(record, fingerprint);
@@ -168,7 +191,7 @@ internal static partial class ImageLoader
 
     private static ImageMeta? CreateImageMetaFromCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
     {
-        if (!ValidateCacheRecord(record, fingerprint))
+        if (!ImageLoaderContext.ValidateCacheRecord(record, fingerprint))
         {
             return null;
         }
@@ -275,54 +298,7 @@ internal static partial class ImageLoader
         };
     }
 
-    private static void SaveImageMetaToCacheRecord(ImageCacheDatabase.CacheRecord record, string sourceFingerprint, long size, BitmapDecoder decoder)
-    {
-        uint width = decoder.OrientedPixelWidth;
-        uint height = decoder.OrientedPixelHeight;
-        if (width == 0 || height == 0)
-        {
-            Logger.F(TAG, $"Invalid image dimensions: width={width}, height={height}");
-            return;
-        }
-
-        int bitsPerPixel = decoder.BitmapPixelFormat switch
-        {
-            BitmapPixelFormat.Unknown => 0,
-            BitmapPixelFormat.Rgba16 => 64,
-            BitmapPixelFormat.Rgba8 => 32,
-            BitmapPixelFormat.Gray16 => 16,
-            BitmapPixelFormat.Gray8 => 8,
-            BitmapPixelFormat.Bgra8 => 32,
-            BitmapPixelFormat.Nv12 => 12,
-            BitmapPixelFormat.P010 => 24,
-            BitmapPixelFormat.Yuy2 => 16,
-            _ => 0,
-        };
-        string decoderName = decoder.DecoderInformation.FriendlyName switch
-        {
-            "JPEG Decoder" => "JPEG",
-            "PNG Decoder" => "PNG",
-            "BMP Decoder" => "BMP",
-            "GIF Decoder" => "GIF",
-            "TIFF Decoder" => "TIFF",
-            "Microsoft HEIF Decoder" => "HEIF",
-            "Microsoft Webp Decoder" => "WebP",
-            _ => decoder.DecoderInformation.FriendlyName,
-        };
-
-        record.PutExt(ImageCacheExt.IMAGE_META_VERSION, IMAGE_META_VERSION.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_FINGERPRINT, sourceFingerprint);
-        record.PutExt(ImageCacheExt.IMAGE_META_WIDTH, width.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_HEIGHT, height.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DPI_X, decoder.DpiX.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DPI_Y, decoder.DpiY.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_BITS_PER_PIXEL, bitsPerPixel.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_DECODER_NAME, decoderName);
-        record.PutExt(ImageCacheExt.IMAGE_META_SIZE, size.ToString());
-        record.PutExt(ImageCacheExt.IMAGE_META_FRAME_COUNT, decoder.FrameCount.ToString());
-    }
-
-    private static async Task<bool> LoadImage(CacheRequestContext context, LoadImageOptions options)
+    private static async Task<bool> LoadImageCore(ImageLoaderContext context, LoadImageOptions options)
     {
         if (options.Token.IsCancellationRequested)
         {
@@ -405,7 +381,7 @@ internal static partial class ImageLoader
                 return false;
             }
 
-            string? fingerprint = context.Source.IsCacheValidationEnabled ? await context.GetFingerprint() : null;
+            string? fingerprint = await context.GetValidationFingerprint();
 
             Tuple<Func<Task<DecodedImageModel>>, Action>? tuple = await record.Enqueue<Tuple<Func<Task<DecodedImageModel>>, Action>?>(async () =>
             {
@@ -576,7 +552,7 @@ internal static partial class ImageLoader
     {
         cacheEntryKeys = ImageCacheStrategy.CalculateCacheEntryKeys(desiredSize.Width, desiredSize.Height, originalSize);
 
-        if (!ValidateCacheRecord(record, fingerprint))
+        if (!ImageLoaderContext.ValidateCacheRecord(record, fingerprint))
         {
             return null;
         }
@@ -597,7 +573,7 @@ internal static partial class ImageLoader
         return null;
     }
 
-    private static async Task SaveThumbnail(CacheRequestContext context, string cacheEntryKey, string fingerprint,
+    private static async Task SaveThumbnail(ImageLoaderContext context, string cacheEntryKey, string fingerprint,
         Size originalSize, LRUCache imageCache, ImageCacheDatabase.CacheRecord record)
     {
         if (!CalculateDesiredThumbnailSize(cacheEntryKey, originalSize, out Size thumbnailSize))
@@ -629,7 +605,7 @@ internal static partial class ImageLoader
 
         try
         {
-            string entry = StringUtils.RandomFileName(16);
+            string entry = RandomFileName(16);
             using LRUCacheStream? cacheFileStream = imageCache.Put(entry);
             if (cacheFileStream is null)
             {
@@ -784,23 +760,6 @@ internal static partial class ImageLoader
         return result;
     }
 
-    private static bool ValidateCacheRecord(ImageCacheDatabase.CacheRecord record, string? fingerprint)
-    {
-        string metaVersion = record.GetExt(ImageCacheExt.IMAGE_META_VERSION) ?? string.Empty;
-        if (metaVersion != IMAGE_META_VERSION.ToString())
-        {
-            return false;
-        }
-
-        string metaFingerprint = record.GetExt(ImageCacheExt.IMAGE_META_FINGERPRINT) ?? string.Empty;
-        if (fingerprint is not null && metaFingerprint != fingerprint)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
     private static LRUCache? GetImageLRUCache()
     {
         LRUCache? cache = sImageCache;
@@ -923,211 +882,21 @@ internal static partial class ImageLoader
         }
     }
 
+    private static string RandomFileName(int length)
+    {
+        const string symbols = "0123456789abcdefghijklmnopqrstuvwxyz";
+        StringBuilder sb = new();
+        for (int i = 0; i < length; ++i)
+        {
+            sb.Append(symbols[Random.Shared.Next(symbols.Length)]);
+        }
+
+        return sb.ToString();
+    }
+
     private static long GetCurrentTick()
     {
         return Environment.TickCount64;
-    }
-
-    private partial class CacheRequestContext(IImageSource source) : IDisposable
-    {
-        private readonly IImageSource _source = source;
-
-        private bool _connectionInitialized = false;
-        private IImageConnection? _connection = null;
-
-        private string? _cacheKey = null;
-        private string? _fingerprint = null;
-        private Stream? _sourceStream = null;
-        private BitmapDecoder? _bitmapDecoder = null;
-        private IVectorImageService? _vectorService = null;
-
-        public IImageSource Source => _source;
-
-        public void Dispose()
-        {
-            _connection?.Dispose();
-            _connection = null;
-            _sourceStream?.Dispose();
-            _sourceStream = null;
-            _bitmapDecoder = null;
-            _vectorService?.Dispose();
-            _vectorService = null;
-        }
-
-        public async Task<ImageCacheDatabase.CacheRecord?> GetOrCreateCache()
-        {
-            string uri = _source.Uri;
-            if (string.IsNullOrEmpty(uri))
-            {
-                Logger.E(TAG, "Image source URI is null or empty");
-                return null;
-            }
-
-            ImageCacheDatabase.CacheRecord? cache = ImageCacheDatabase.GetCache(uri);
-            if (cache is not null)
-            {
-                return cache;
-            }
-
-            string cacheKey = await GetCacheKey();
-            if (string.IsNullOrEmpty(cacheKey))
-            {
-                Logger.E(TAG, "Image cache key is null or empty");
-                return null;
-            }
-
-            return ImageCacheDatabase.GetOrCreateCache(cacheKey);
-        }
-
-        public async Task<string> GetCacheKey()
-        {
-            if (_cacheKey is not null)
-            {
-                return _cacheKey;
-            }
-
-            _cacheKey = string.Empty;
-
-            string uri = _source.Uri;
-            if (string.IsNullOrEmpty(uri))
-            {
-                Logger.E(TAG, "Image source URI is null or empty");
-                return _cacheKey;
-            }
-
-            if (!_source.IsCacheValidationEnabled)
-            {
-                string? knownCacheKey = ImageCacheDatabase.GetCacheKey(uri);
-                if (!string.IsNullOrEmpty(knownCacheKey))
-                {
-                    _cacheKey = knownCacheKey;
-                    return _cacheKey;
-                }
-            }
-
-            IImageConnection? connection = await GetConnection();
-            if (connection is null)
-            {
-                return _cacheKey;
-            }
-
-            string cacheKey = connection.CacheKey;
-            if (string.IsNullOrEmpty(cacheKey))
-            {
-                Logger.E(TAG, $"Image connection cache key is null or empty (uri={uri})");
-                return _cacheKey;
-            }
-
-            _cacheKey = cacheKey;
-            if (uri != cacheKey)
-            {
-                ImageCacheDatabase.SetCacheKey(uri, cacheKey);
-            }
-
-            return _cacheKey;
-        }
-
-        public async Task<string> GetFingerprint()
-        {
-            if (_fingerprint is not null)
-            {
-                return _fingerprint;
-            }
-
-            IImageConnection? connection = await GetConnection();
-            if (connection is null)
-            {
-                return string.Empty;
-            }
-
-            _fingerprint = connection.Fingerprint;
-            return _fingerprint;
-        }
-
-        public async Task<Stream?> GetSourceStream()
-        {
-            if (_sourceStream is not null)
-            {
-                _sourceStream.Seek(0, SeekOrigin.Begin);
-                return _sourceStream;
-            }
-
-            IImageConnection? connection = await GetConnection();
-            if (connection is null)
-            {
-                return null;
-            }
-
-            try
-            {
-                _sourceStream = await connection.OpenImageStream();
-            }
-            catch (Exception ex)
-            {
-                Logger.E(TAG, ex);
-            }
-
-            return _sourceStream;
-        }
-
-        public void UnrefSourceStream()
-        {
-            _sourceStream = null;
-            _bitmapDecoder = null;
-        }
-
-        public async Task<BitmapDecoder?> GetBitmapDecoder()
-        {
-            if (_bitmapDecoder is not null)
-            {
-                return _bitmapDecoder;
-            }
-
-            Stream? stream = await GetSourceStream();
-            if (stream is null)
-            {
-                return null;
-            }
-
-            try
-            {
-                _bitmapDecoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
-            }
-            catch (Exception ex)
-            {
-                Logger.E(TAG, ex);
-            }
-
-            return _bitmapDecoder;
-        }
-
-        public async Task<IVectorImageService?> GetVectorService()
-        {
-            if (_vectorService is not null)
-            {
-                return _vectorService;
-            }
-
-            IImageConnection? connection = await GetConnection();
-            if (connection is null)
-            {
-                return null;
-            }
-
-            _vectorService = connection.OpenVectorService();
-            return _vectorService;
-        }
-
-        private async Task<IImageConnection?> GetConnection()
-        {
-            if (!_connectionInitialized)
-            {
-                _connection = await _source.Open();
-                _connectionInitialized = true;
-            }
-
-            return _connection;
-        }
     }
 
     private class DecodingImageItem

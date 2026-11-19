@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
@@ -18,6 +17,7 @@ using ComicReaderUWP.Core.Common.ServiceManagement.Models;
 using ComicReaderUWP.Core.Common.ServiceManagement.Services;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Misc;
 

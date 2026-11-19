@@ -3,8 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:usercontrols="using:ComicReaderUWP.UserControls.Misc"
     d:DesignHeight="300"
     d:DesignWidth="400"
     DataContextChanged="ReaderPreviewImage_DataContextChanged"
@@ -14,7 +14,7 @@
         Width="140"
         Height="200"
         ContextRequested="ReaderPreviewImage_ContextRequested">
-        <image:SimpleImageView ImageSource="{x:Bind ViewModel.ImageSource, Mode=OneWay}" />
+        <usercontrols:SimpleImageView ImageSource="{x:Bind ViewModel.ImageSource, Mode=OneWay}" />
         <Grid
             Margin="0,0,8,8"
             Padding="5,2,5,5"

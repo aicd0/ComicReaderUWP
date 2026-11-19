@@ -6,8 +6,8 @@
     xmlns:controls="using:ComicReaderUWP.UserControls.Misc"
     xmlns:converters="using:ComicReaderUWP.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:usercontrols="using:ComicReaderUWP.UserControls.Misc"
     Tapped="BaseUserControl_Tapped"
     mc:Ignorable="d">
 
@@ -41,7 +41,7 @@
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0" Width="85">
-            <image:SimpleImageView
+            <usercontrols:SimpleImageView
                 x:Name="ImageHolder"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"

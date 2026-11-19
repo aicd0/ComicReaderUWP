@@ -4,7 +4,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
+using ComicReaderUWP.Core.Imaging;
 
 namespace ComicReaderUWP.Data.Models.Comic;
 

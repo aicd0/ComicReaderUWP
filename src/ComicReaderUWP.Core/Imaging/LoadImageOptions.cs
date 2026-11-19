@@ -1,11 +1,11 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.Utils;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
-internal class LoadImageOptions
+public class LoadImageOptions
 {
     public required CancellationSession.IToken Token { get; set; }
     public required IImageResultHandler Handler { get; set; }

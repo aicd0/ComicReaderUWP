@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
+using ComicReaderUWP.Core.Imaging;
 
 namespace ComicReaderUWP.Helpers.Imaging;
 
@@ -15,7 +15,7 @@ internal class EmptyImageSource : IImageSource
 
     public ImageLoaderSchedulerGroup PreferredSchedulerGroup => ImageLoaderSchedulerGroup.Default;
 
-    public bool IsCacheValidationEnabled => false;
+    public ImageCacheValidationMode CacheValidationMode => ImageCacheValidationMode.None;
 
     private EmptyImageSource() { }
 

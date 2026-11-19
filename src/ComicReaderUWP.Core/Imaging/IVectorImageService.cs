@@ -1,16 +1,13 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Threading.Tasks;
-
 using Microsoft.Graphics.Canvas;
 
 using Windows.Graphics.Imaging;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
-internal interface IVectorImageService : IDisposable
+public interface IVectorImageService : IDisposable
 {
     Task<SoftwareBitmap?> CreateSoftwareBitmap(int width, int height);
 

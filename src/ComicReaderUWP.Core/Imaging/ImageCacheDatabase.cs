@@ -1,20 +1,15 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.Data.Sqlite;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
 internal class ImageCacheDatabase(string databaseFilePath)
 {

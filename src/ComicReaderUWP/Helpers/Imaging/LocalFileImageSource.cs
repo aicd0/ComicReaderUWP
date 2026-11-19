@@ -5,9 +5,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Imaging;
 
 namespace ComicReaderUWP.Helpers.Imaging;
 
@@ -30,7 +30,7 @@ internal sealed partial class LocalFileImageSource : IImageSource
 
     public ImageLoaderSchedulerGroup PreferredSchedulerGroup => _preferredSchedulerGroup;
 
-    public bool IsCacheValidationEnabled => true;
+    public ImageCacheValidationMode CacheValidationMode => ImageCacheValidationMode.Synchronized;
 
     public Task<IImageConnection?> Open()
     {

@@ -1,16 +1,11 @@
 ﻿// Copyright (c) aicd0. All rights reserved.
-// Licensed under the MIT License.
+// Licensed under the GNU General Public License v3.0 or later.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 using ComicReaderUWP.Core.Common.Threading;
 
-namespace ComicReaderUWP.Common.Imaging;
+namespace ComicReaderUWP.Core.Imaging;
 
 internal static class ImageLoaderScheduler
 {

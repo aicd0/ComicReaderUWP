@@ -7,12 +7,12 @@ using System.IO;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Archive;
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Models.Misc;
 
 namespace ComicReaderUWP.Views.Pages.Settings;

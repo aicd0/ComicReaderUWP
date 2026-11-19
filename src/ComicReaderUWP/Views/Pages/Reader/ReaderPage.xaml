@@ -10,11 +10,11 @@
     xmlns:cwm="using:CommunityToolkit.WinUI.Media"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:hotkey="using:ComicReaderUWP.Common.HotKey"
-    xmlns:image="using:ComicReaderUWP.Common.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:reader="using:ComicReaderUWP.Views.Pages.Reader"
     xmlns:readercontrol="using:ComicReaderUWP.UserControls.Reader"
+    xmlns:usercontrols="using:ComicReaderUWP.UserControls.Misc"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -45,7 +45,7 @@
                 Fill="{ThemeResource ReaderFullscreenBackground}"
                 IsHitTestVisible="False"
                 Visibility="{x:Bind ViewModel.IsFullscreen, Mode=OneWay}" />
-            <image:SimpleImageView
+            <usercontrols:SimpleImageView
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 ImageUri="{x:Bind ViewModel.BackgroundImageUri, Mode=OneWay}"

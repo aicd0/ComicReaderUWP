@@ -10,12 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.Imaging;
 using ComicReaderUWP.Common.Models.F8;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Models.Misc;
 
 using Microsoft.Graphics.Canvas;
