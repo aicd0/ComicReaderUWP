@@ -106,7 +106,7 @@
                                     VerticalAlignment="Center"
                                     FontSize="16"
                                     FontWeight="SemiBold"
-                                    Foreground="{ThemeResource ForegroundGrey2}"
+                                    Foreground="{ThemeResource AppSecondaryText}"
                                     Text="{Binding Description}" />
                             </StackPanel>
                         </DataTemplate>

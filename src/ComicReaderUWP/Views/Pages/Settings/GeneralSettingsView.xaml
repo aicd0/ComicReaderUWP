@@ -74,7 +74,7 @@
         <Rectangle
             Height="1"
             Margin="0,16"
-            Fill="{ThemeResource ForegroundGrey1}" />
+            Fill="{ThemeResource AppSeperator1}" />
         <Button
             Click="ClearAllHistoryButton_Click"
             Content="{x:Bind StringResource.ClearAllHistory}"
