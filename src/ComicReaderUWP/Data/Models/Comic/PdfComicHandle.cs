@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Pdf;
-using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Tables;
 

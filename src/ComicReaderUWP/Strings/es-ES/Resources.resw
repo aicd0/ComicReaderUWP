@@ -597,6 +597,9 @@ La evaluación se realizará en el siguiente orden:
   <data name="ImageBrightness" xml:space="preserve">
     <value>Brillo</value>
   </data>
+  <data name="ImageCacheCapacity" xml:space="preserve">
+    <value>Capacidad de caché en memoria</value>
+  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>Contraste</value>
   </data>

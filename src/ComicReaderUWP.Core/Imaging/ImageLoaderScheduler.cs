@@ -56,6 +56,11 @@ internal static class ImageLoaderScheduler
         ImageMemoryCache.Instance.Invalidate(uri);
     }
 
+    public static void SetBufferCapacity(long bytes)
+    {
+        ImageMemoryCache.Instance.Capacity = bytes;
+    }
+
     public static void ClearBuffer()
     {
         ImageMemoryCache.Instance.Clear();

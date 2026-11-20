@@ -136,6 +136,7 @@ internal class InitTaskManager
     {
         Logger.Initialize();
         ImageLoader.Initialize(Path.Combine(StorageLocation.LocalCacheFolderPath, "ImageCache"), clear: false);
+        ImageLoader.SetMemoryCacheCapacity(AppSettingsModel.ImageCacheCapacity);
         FocusTracker.Initialize();
         PluginManager.Instance.LoadPlugins();
     }

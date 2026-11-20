@@ -6,6 +6,7 @@ using System.ComponentModel;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Models.Misc;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
@@ -13,6 +14,7 @@ namespace ComicReaderUWP.Views.Pages.Settings;
 internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
 {
     private const string TAG = nameof(ReaderSettingsViewModel);
+    private const long MEGABYTE = 1024L * 1024L;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -115,6 +117,17 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    private int _imageCacheCapacity;
+    public int ImageCacheCapacity
+    {
+        get => _imageCacheCapacity;
+        set
+        {
+            _imageCacheCapacity = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageCacheCapacity)));
+        }
+    }
+
     private List<KeepScreenOnBehaviorEntry> _keepScreenOnBehaviors = [];
     public List<KeepScreenOnBehaviorEntry> KeepScreenOnBehaviors
     {
@@ -165,6 +178,20 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
         AppSettingsModel.PreloadPagesBefore = value;
     }
 
+    public void SetImageCacheCapacity(int megabytes)
+    {
+        if (megabytes == _imageCacheCapacity)
+        {
+            return;
+        }
+
+        _imageCacheCapacity = megabytes;
+
+        long bytes = megabytes * MEGABYTE;
+        AppSettingsModel.ImageCacheCapacity = bytes;
+        ImageLoader.SetMemoryCacheCapacity(bytes);
+    }
+
     public void SetKeepScreenOnBehavior(int index)
     {
         if (index == _keepScreenOnBehaviorIndex || index < 0 || index >= _keepScreenOnBehaviors.Count)
@@ -194,6 +221,7 @@ internal partial class ReaderSettingsViewModel : INotifyPropertyChanged
             AutomaticallyHideCursor = AppSettingsModel.AutoHideCursor;
             PreloadPagesAfter = AppSettingsModel.PreloadPagesAfter;
             PreloadPagesBefore = AppSettingsModel.PreloadPagesBefore;
+            ImageCacheCapacity = (int)(AppSettingsModel.ImageCacheCapacity / MEGABYTE);
         });
     }
 

@@ -71,8 +71,11 @@
             Click="SaveBrowsingHistoryCheckBox_Click"
             Content="{x:Bind StringResource.SaveBrowsingHistory}"
             IsChecked="{x:Bind ViewModel.SaveBrowsingHistory, Mode=TwoWay}" />
+        <Rectangle
+            Height="1"
+            Margin="0,16"
+            Fill="{ThemeResource ForegroundGrey1}" />
         <Button
-            Margin="0,32,0,0"
             Click="ClearAllHistoryButton_Click"
             Content="{x:Bind StringResource.ClearAllHistory}"
             IsEnabled="{x:Bind ViewModel.IsClearHistoryEnabled, Mode=OneWay}" />

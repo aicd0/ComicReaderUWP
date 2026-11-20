@@ -597,6 +597,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="ImageBrightness" xml:space="preserve">
     <value>Luminosité</value>
   </data>
+  <data name="ImageCacheCapacity" xml:space="preserve">
+    <value>Capacité du cache mémoire</value>
+  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>Contraste</value>
   </data>

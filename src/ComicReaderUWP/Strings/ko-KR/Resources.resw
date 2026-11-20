@@ -598,6 +598,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="ImageBrightness" xml:space="preserve">
     <value>밝기</value>
   </data>
+  <data name="ImageCacheCapacity" xml:space="preserve">
+    <value>메모리 캐시 용량</value>
+  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>대비</value>
   </data>

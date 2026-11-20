@@ -50,22 +50,6 @@
             Click="HideCursorAutomaticallyCheckBox_Click"
             Content="{x:Bind StringResource.HideCursorAutomatically}"
             IsChecked="{x:Bind ViewModel.AutomaticallyHideCursor, Mode=TwoWay}" />
-        <TextBlock Margin="0,16,0,0" Text="{x:Bind StringResource.PreloadPagesAfter}" />
-        <Slider
-            Width="300"
-            HorizontalAlignment="Left"
-            Maximum="10"
-            Minimum="0"
-            ValueChanged="PreloadPagesAfterSlider_ValueChanged"
-            Value="{x:Bind ViewModel.PreloadPagesAfter, Mode=OneWay}" />
-        <TextBlock Margin="0,8,0,0" Text="{x:Bind StringResource.PreloadPagesBefore}" />
-        <Slider
-            Width="300"
-            HorizontalAlignment="Left"
-            Maximum="10"
-            Minimum="0"
-            ValueChanged="PreloadPagesBeforeSlider_ValueChanged"
-            Value="{x:Bind ViewModel.PreloadPagesBefore, Mode=OneWay}" />
         <Grid Margin="0,16,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -89,6 +73,42 @@
                 SelectedIndex="{x:Bind ViewModel.KeepScreenOnBehaviorIndex, Mode=OneWay}"
                 SelectionChanged="KeepScreenOnBehaviorComboBox_SelectionChanged" />
         </Grid>
+        <Rectangle
+            Height="1"
+            Margin="0,16"
+            Fill="{ThemeResource ForegroundGrey1}" />
+        <TextBlock Text="{x:Bind StringResource.PreloadPagesAfter}" />
+        <Slider
+            Width="300"
+            HorizontalAlignment="Left"
+            Maximum="10"
+            Minimum="0"
+            ValueChanged="PreloadPagesAfterSlider_ValueChanged"
+            Value="{x:Bind ViewModel.PreloadPagesAfter, Mode=OneWay}" />
+        <TextBlock Text="{x:Bind StringResource.PreloadPagesBefore}" />
+        <Slider
+            Width="300"
+            HorizontalAlignment="Left"
+            Maximum="10"
+            Minimum="0"
+            ValueChanged="PreloadPagesBeforeSlider_ValueChanged"
+            Value="{x:Bind ViewModel.PreloadPagesBefore, Mode=OneWay}" />
+        <TextBlock Margin="0,16,0,0" Text="{x:Bind StringResource.ImageCacheCapacity}" />
+        <StackPanel
+            Margin="0,8,0,0"
+            Orientation="Horizontal"
+            Spacing="8">
+            <muxc:NumberBox
+                Width="180"
+                LargeChange="128"
+                Maximum="4096"
+                Minimum="0"
+                SmallChange="32"
+                SpinButtonPlacementMode="Inline"
+                ValueChanged="ImageCacheCapacityNumberBox_ValueChanged"
+                Value="{x:Bind ViewModel.ImageCacheCapacity, Mode=OneWay}" />
+            <TextBlock VerticalAlignment="Center" Text="MB" />
+        </StackPanel>
     </StackPanel>
 
 </base:BaseUserControl>

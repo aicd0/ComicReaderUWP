@@ -597,6 +597,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="ImageBrightness" xml:space="preserve">
     <value>Helligkeit</value>
   </data>
+  <data name="ImageCacheCapacity" xml:space="preserve">
+    <value>Arbeitsspeicher-Cachekapazität</value>
+  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>Kontrast</value>
   </data>

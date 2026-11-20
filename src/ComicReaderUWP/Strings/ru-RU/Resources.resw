@@ -598,6 +598,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="ImageBrightness" xml:space="preserve">
     <value>Яркость</value>
   </data>
+  <data name="ImageCacheCapacity" xml:space="preserve">
+    <value>Объём кэша в памяти</value>
+  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>Контраст</value>
   </data>

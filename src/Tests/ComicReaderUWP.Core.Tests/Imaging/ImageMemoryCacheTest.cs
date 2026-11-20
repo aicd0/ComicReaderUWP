@@ -239,6 +239,47 @@ public class ImageMemoryCacheTest
     }
 
     [Test]
+    public async Task ShrinkingCapacity_EvictsImmediately()
+    {
+        ImageMemoryCache registry = CreateRegistry(12);
+        FakeSource source = new();
+        string[] keys = ["a", "b", "c"];
+        foreach (string key in keys)
+        {
+            source.Contents[key] = CreateBytes(4, (byte)key[0]);
+            await ReadAndDisposeAsync(await AcquireAsync(registry, source, key));
+        }
+
+        registry.Capacity = 4;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(registry.Count, Is.EqualTo(1));
+            Assert.That(registry.ApproximateSize, Is.EqualTo(4));
+            Assert.That(registry.Contains("c"), Is.True);
+        }
+
+        // The evicted pages are read again, the retained one is not.
+        await ReadAndDisposeAsync(await AcquireAsync(registry, source, "c"));
+        Assert.That(source.OpenCount("c"), Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task ShrinkingCapacity_KeepsContentReadableUntilReleased()
+    {
+        ImageMemoryCache registry = CreateRegistry(1024);
+        FakeSource source = new();
+        source.Contents["a"] = CreateBytes(4, (byte)'a');
+
+        Stream stream = await AcquireAsync(registry, source, "a");
+
+        registry.Capacity = 0;
+
+        Assert.That(registry.Contains("a"), Is.False);
+        Assert.That(await ReadAndDisposeAsync(stream), Is.EqualTo(CreateBytes(4, (byte)'a')));
+    }
+
+    [Test]
     public async Task Clear_KeepsContentReadableUntilReleased()
     {
         ImageMemoryCache registry = CreateRegistry(1024);
