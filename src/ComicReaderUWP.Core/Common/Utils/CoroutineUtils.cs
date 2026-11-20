@@ -27,18 +27,38 @@ public static class CoroutineUtils
         Run(() => MainThreadUtils.RunInMainThread(action, priority));
     }
 
+    public static void RunInMainThread<R>(Func<R> func, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    {
+        Run(() => MainThreadUtils.RunInMainThread(func, priority));
+    }
+
+    public static void RunInMainThread(Func<Task> func, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    {
+        Run(() => MainThreadUtils.RunInMainThread(func, priority));
+    }
+
+    public static void RunInMainThread<R>(Func<Task<R>> func, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    {
+        Run(() => MainThreadUtils.RunInMainThread(func, priority));
+    }
+
     public static void PostInMainThread(Action action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
         Run(() => MainThreadUtils.PostInMainThread(action, priority));
     }
 
-    public static void RunInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    public static void PostInMainThread<R>(Func<R> func, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        Run(() => MainThreadUtils.RunInMainThreadAsync(action, priority));
+        Run(() => MainThreadUtils.PostInMainThread(func, priority));
     }
 
-    public static void PostInMainThreadAsync(Func<Task> action, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    public static void PostInMainThread(Func<Task> func, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
     {
-        Run(() => MainThreadUtils.PostInMainThreadAsync(action, priority));
+        Run(() => MainThreadUtils.PostInMainThread(func, priority));
+    }
+
+    public static void PostInMainThread<R>(Func<Task<R>> func, DispatcherQueuePriority priority = DispatcherQueuePriority.Normal)
+    {
+        Run(() => MainThreadUtils.PostInMainThread(func, priority));
     }
 }

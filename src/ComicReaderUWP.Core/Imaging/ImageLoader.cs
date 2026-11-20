@@ -772,7 +772,7 @@ public static partial class ImageLoader
             return;
         }
 
-        CoroutineUtils.PostInMainThreadAsync(async () =>
+        CoroutineUtils.PostInMainThread(async () =>
         {
             long startTime = GetCurrentTick();
             Interlocked.Exchange(ref sPostMainThreadTask, 0);

@@ -733,7 +733,7 @@ internal sealed partial class ReaderPage : BasePage
         UIElement element = MainReaderView;
         void PostFocus(int round)
         {
-            CoroutineUtils.PostInMainThreadAsync(async () =>
+            CoroutineUtils.PostInMainThread(async () =>
             {
                 await Task.Delay(1);
                 if (!element.IsHitTestVisible || element.Visibility != Visibility.Visible || !windowAbility.IsActive)

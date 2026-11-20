@@ -123,7 +123,7 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
 
     private void ExpressionTipButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        ThirdPartyLauncher.StartTemporaryTextFile("FilterExpressionHelp.txt", StringResource.ExpressionReference);
+        CoroutineUtils.Run(() => ThirdPartyLauncher.OpenTemporaryTextFile("FilterExpressionHelp.txt", StringResource.ExpressionReference));
     }
 
     private void NameTextBox_TextChanged(object sender, TextChangedEventArgs e)
