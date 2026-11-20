@@ -4,8 +4,8 @@
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Storage;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Models.Comic;
 
@@ -49,7 +49,7 @@ internal sealed partial class ComicImageSource : IImageSource
     {
         if (_connection is null)
         {
-            ErrorResult<ComicConnection> connectionErr = await _comic.OpenComic();
+            OperationResult<ComicConnection> connectionErr = await _comic.OpenComic();
             if (!connectionErr.IsSuccessful)
             {
                 return null;

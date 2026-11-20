@@ -10,12 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Archive;
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Lifecycle.Utils;
 using ComicReaderUWP.Core.Common.Threading;
@@ -1181,39 +1181,35 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     // Comic Connection
     //
 
-    public async Task<ErrorResult<ComicConnection>> OpenComic()
+    public async Task<OperationResult<ComicConnection>> OpenComic()
     {
-        var err = ErrorLogger<ComicConnection>.Create(TAG);
-
-        ErrorResult<BaseComicConnection> connectionErr = await _internalModel.OpenComicConnection();
+        OperationResult<BaseComicConnection> connectionErr = await _internalModel.OpenComicConnection();
         if (!connectionErr.IsSuccessful)
         {
-            return err.Error(connectionErr);
+            return OperationResultExt<ComicConnection>.Failure(connectionErr);
         }
 
         BaseComicConnection connection = connectionErr.Result;
 
-        ErrorResult innerErr = await InitializeConnection(connection);
+        OperationResult innerErr = await InitializeConnection(connection);
         if (!innerErr.IsSuccessful)
         {
             connection.Dispose();
-            return err.Error(innerErr);
+            return OperationResultExt<ComicConnection>.Failure(innerErr);
         }
 
-        return err.Success(new ComicConnection(connection));
+        return OperationResultExt<ComicConnection>.Success(new ComicConnection(connection));
     }
 
-    private async Task<ErrorResult> InitializeConnection(BaseComicConnection connection)
+    private async Task<OperationResult> InitializeConnection(BaseComicConnection connection)
     {
-        var err = ErrorLogger.Create(TAG);
-
         bool needFlushExt = false;
 
         // Refresh page count
         int pageCount = connection.ImageCount;
         if (pageCount <= 0)
         {
-            return err.Error($"No images found at '{Location}'.", isFatal: true);
+            return OperationResultExt.Failure(TAG, $"No images found at '{Location}'.", isFatal: true);
         }
 
         await SetPageCount(pageCount);
@@ -1234,19 +1230,18 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
             await FlushExt();
         }
 
-        return err.Success();
+        return OperationResultExt.Success();
     }
 
     //
     // Helpers
     //
 
-    public Task<ErrorResult> ShowInFileExplorer()
+    public Task<OperationResult> ShowInFileExplorer()
     {
         if (IsCollection)
         {
-            var err = ErrorLogger.Create(TAG);
-            return Task.FromResult(err.Error("A collection has no file location."));
+            return Task.FromResult(OperationResultExt.Failure(TAG, "A collection has no file location."));
         }
 
         return ThirdPartyLauncher.ShowInFileExplorer(_internalModel.FileSystemPath);
@@ -1359,7 +1354,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     async Task<SDK.Plugins.Comic.IComicConnection?> SDK.Plugins.Comic.IComicModel.Open()
     {
-        ErrorResult<ComicConnection> connectionErr = await OpenComic();
+        OperationResult<ComicConnection> connectionErr = await OpenComic();
         if (!connectionErr.IsSuccessful)
         {
             return null;

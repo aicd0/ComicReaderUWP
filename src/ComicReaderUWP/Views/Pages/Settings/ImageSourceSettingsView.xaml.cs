@@ -4,7 +4,8 @@
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Providers;
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Common.ErrorHandling;
+using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
@@ -82,8 +83,8 @@ internal sealed partial class ImageSourceSettingsView : BaseUserControl
     {
         CoroutineUtils.Run(async () =>
         {
-            ErrorResult err = await ComicImportExclusionModel.Instance.EditWithNotepad();
-            err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+            OperationResult err = await ComicImportExclusionModel.Instance.EditWithNotepad();
+            err.ShowErrorMessage(ViewModel.Shared.ActionHandler);
         });
 
     }

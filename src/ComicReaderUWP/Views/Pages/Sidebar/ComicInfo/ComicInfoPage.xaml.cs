@@ -8,10 +8,10 @@ using System.Text.RegularExpressions;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
@@ -181,24 +181,12 @@ internal sealed partial class ComicInfoPage : BasePage
     {
         CoroutineUtils.Run(async () =>
         {
-            ErrorResult err = await ErrorLogger.Run(nameof(OnDirectoryTapped), async err =>
-            {
-                ComicModel? comic = ViewModel.Comic;
-                if (comic is null)
-                {
-                    return err.Error("Comic is null.");
-                }
+            ComicModel? comic = ViewModel.Comic;
+            OperationResult err = comic is null
+                ? OperationResultExt.Failure(nameof(OnDirectoryTapped), "Comic is null.")
+                : await comic.ShowInFileExplorer();
 
-                ErrorResult innerErr = await comic.ShowInFileExplorer();
-                if (!innerErr.IsSuccessful)
-                {
-                    return err.Error(innerErr);
-                }
-
-                return err.Success();
-            });
-
-            err.DisplayErrorMessage(PageActionHandler);
+            err.ShowErrorMessage(PageActionHandler);
         });
     }
 

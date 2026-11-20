@@ -4,7 +4,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.ErrorHandling;
+using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Data.Tables;
 
 namespace ComicReaderUWP.Data.Models.Comic;
@@ -31,9 +32,8 @@ internal partial class CollectionComicHandle : ComicHandle
         return [];
     }
 
-    public override Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
+    public override Task<OperationResult<BaseComicConnection>> OpenComicConnection()
     {
-        var err = ErrorLogger<BaseComicConnection>.Create(TAG);
-        return Task.FromResult(err.Error("A collection has no content to open."));
+        return Task.FromResult(OperationResultExt<BaseComicConnection>.Failure(TAG, "A collection has no content to open."));
     }
 }

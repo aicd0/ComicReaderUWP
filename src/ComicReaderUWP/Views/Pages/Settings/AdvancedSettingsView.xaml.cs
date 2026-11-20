@@ -4,10 +4,10 @@
 using System;
 
 using ComicReaderUWP.Common.BaseUI;
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
@@ -93,23 +93,20 @@ internal sealed partial class AdvancedSettingsView : BaseUserControl
 
     private async void OnOpenUserDataFolderClick(object sender, RoutedEventArgs e)
     {
-        ErrorResult err = await ErrorLogger.Run(nameof(OnOpenUserDataFolderClick), async err =>
+        OperationResult err;
+        try
         {
             string path = StorageLocation.LocalFolderPath;
-            try
-            {
-                Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
-                await Windows.System.Launcher.LaunchFolderAsync(folder);
-            }
-            catch (Exception ex)
-            {
-                return err.Error(ex);
-            }
+            Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
+            await Windows.System.Launcher.LaunchFolderAsync(folder);
+            err = OperationResultExt.Success();
+        }
+        catch (Exception ex)
+        {
+            err = OperationResultExt.Failure(nameof(OnOpenUserDataFolderClick), ex);
+        }
 
-            return err.Success();
-        });
-
-        err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+        err.ShowErrorMessage(ViewModel.Shared.ActionHandler);
     }
 
     private void ResetAllSettingsButton_Click(object sender, RoutedEventArgs e)

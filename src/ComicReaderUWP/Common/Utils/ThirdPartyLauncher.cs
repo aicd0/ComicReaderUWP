@@ -8,8 +8,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Storage;
 
 using Windows.Storage;
@@ -21,13 +21,11 @@ internal static class ThirdPartyLauncher
 {
     private const string TAG = nameof(ThirdPartyLauncher);
 
-    public static async Task<ErrorResult> ShowInFileExplorer(string path)
+    public static async Task<OperationResult> ShowInFileExplorer(string path)
     {
-        var err = ErrorLogger.Create(TAG);
-
         if (string.IsNullOrEmpty(path))
         {
-            return err.Error("Path is empty.", isFatal: true);
+            return OperationResultExt.Failure(TAG, "Path is empty.", isFatal: true);
         }
 
         try
@@ -47,20 +45,20 @@ internal static class ThirdPartyLauncher
             }
             else
             {
-                return err.Error($"Path does not exist: {path}");
+                return OperationResultExt.Failure(TAG, $"Path does not exist: {path}");
             }
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt.Failure(TAG, ex);
         }
 
-        return err.Success();
+        return OperationResultExt.Success();
     }
 
     public static void StartTemporaryTextFile(string filename, string text)
     {
-        ErrorResult<string> writeErr = WriteTemporaryTextFile(filename, text);
+        OperationResult<string> writeErr = WriteTemporaryTextFile(filename, text);
         if (!writeErr.IsSuccessful)
         {
             return;
@@ -81,15 +79,13 @@ internal static class ThirdPartyLauncher
         }
     }
 
-    public static async Task<ErrorResult<string>> EditTemporaryTextFileAsync(string filename, IEnumerable<string> lines)
+    public static async Task<OperationResult<string>> EditTemporaryTextFileAsync(string filename, IEnumerable<string> lines)
     {
-        var err = ErrorLogger<string>.Create(TAG);
-
         string text = string.Join(Environment.NewLine, lines);
-        ErrorResult<string> writeErr = WriteTemporaryTextFile(filename, text);
+        OperationResult<string> writeErr = WriteTemporaryTextFile(filename, text);
         if (!writeErr.IsSuccessful)
         {
-            return err.Error(writeErr);
+            return OperationResultExt<string>.Failure(writeErr);
         }
 
         string filePath = writeErr.Result;
@@ -104,23 +100,21 @@ internal static class ThirdPartyLauncher
             using var process = Process.Start(psi);
             if (process is null)
             {
-                return err.Error("Failed to launch notepad.");
+                return OperationResultExt<string>.Failure(TAG, "Failed to launch notepad.");
             }
 
             await process.WaitForExitAsync();
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt<string>.Failure(TAG, ex);
         }
 
-        return err.Success(filePath);
+        return OperationResultExt<string>.Success(filePath);
     }
 
-    private static ErrorResult<string> WriteTemporaryTextFile(string filename, string text)
+    private static OperationResult<string> WriteTemporaryTextFile(string filename, string text)
     {
-        var err = ErrorLogger<string>.Create(TAG);
-
         string directoryPath = StorageLocation.TemporaryFolderPath;
         try
         {
@@ -128,7 +122,7 @@ internal static class ThirdPartyLauncher
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt<string>.Failure(TAG, ex);
         }
 
         string filePath = Path.Combine(directoryPath, filename);
@@ -139,9 +133,9 @@ internal static class ThirdPartyLauncher
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt<string>.Failure(TAG, ex);
         }
 
-        return err.Success(filePath);
+        return OperationResultExt<string>.Success(filePath);
     }
 }

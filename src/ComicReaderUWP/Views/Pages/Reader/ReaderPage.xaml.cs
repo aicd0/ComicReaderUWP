@@ -41,14 +41,12 @@ namespace ComicReaderUWP.Views.Pages.Reader;
 
 internal sealed partial class ReaderPage : BasePage
 {
+    #region Constructor
+
     private const int SAVE_PREOGRESS_INTERVAL = 500;
 
     // Can only be accessed by UI thread
     public static IReadOnlyList<Tuple<int, string>> ActiveTabs { get; private set; } = [];
-
-    //
-    // Variables
-    //
 
     private bool _gridViewModeEnabled = false;
     private bool GridViewModeEnabled
@@ -81,10 +79,6 @@ internal sealed partial class ReaderPage : BasePage
     private long _lastZoomingTicks = 0;
     private int _zoomingStep = 1;
 
-    //
-    // Constructor
-    //
-
     public ReaderPage()
     {
         InitializeComponent();
@@ -94,9 +88,9 @@ internal sealed partial class ReaderPage : BasePage
         AddHandler(PointerPressedEvent, new PointerEventHandler(ReaderPage_AnyPointerPressed), handledEventsToo: true);
     }
 
-    //
-    // Lifecycle
-    //
+    #endregion
+
+    #region Lifecycle
 
     protected override void OnStart(PageBundle bundle)
     {
@@ -543,53 +537,25 @@ internal sealed partial class ReaderPage : BasePage
         return playlist;
     }
 
-    //
-    // Common Input Events
-    //
+    #endregion
 
-    private void ReaderPage_AnyPointerPressed(object sender, PointerRoutedEventArgs e)
+    #region Common events
+
+    private void OnGridViewItemClicked(object sender, ItemClickEventArgs e)
     {
-        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse)
+        var ctx = (ReaderPreviewImageViewModel)e.ClickedItem;
+        GridViewModeEnabled = false;
+
+        ReaderView reader = MainReaderView;
+        int frameIndex = reader.GetFrameIndexByPage(ctx.Page);
+        if (frameIndex >= 0)
         {
-            return;
+            MainReaderView.SetFrameIndex(frameIndex);
         }
-
-        bool IsElementInsideReader(object? source)
+        else
         {
-            for (var element = source as DependencyObject; element is not null; element = VisualTreeHelper.GetParent(element))
-            {
-                if (element == MainReaderView)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            MainReaderView.SetPage(ctx.Page);
         }
-
-        _isPointerInsideOverlay = !IsElementInsideReader(e.OriginalSource);
-    }
-
-    private void ReaderGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
-        {
-            return;
-        }
-
-        _isMouseInsideReader = true;
-        UpdateOverlayStateByMouse();
-    }
-
-    private void ReaderGrid_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
-        {
-            return;
-        }
-
-        _isMouseInsideReader = false;
-        UpdateOverlayStateByMouse();
     }
 
     private void Reader_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
@@ -685,12 +651,6 @@ internal sealed partial class ReaderPage : BasePage
         AppDB.AppKV.GetCollection(KVNames.KV_LIB_TIPS).Set(KVNames.KV_KEY_TIPS_READER_TIP_SHOWN, true);
     }
 
-    //
-    // BottomGrid
-    //
-
-    private double _bottomGridHeight = 0.0;
-
     private void BottomGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (_bottomGridHeight == e.NewSize.Height)
@@ -706,63 +666,12 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    //
-    // Progress
-    //
+    #endregion
+
+    #region Reader
 
     private bool _savingProgress = false;
     private bool _saveProgressInvalidated = false;
-
-    public void SaveProgress()
-    {
-        int CalculatePercentage(ReaderView reader)
-        {
-            double minimumPage = 0.5;
-            double maximumPage = reader.PageCount;
-            double page = Math.Clamp(reader.CurrentPage, minimumPage, maximumPage);
-            return Math.Clamp((int)Math.Round(100.0 * (page - minimumPage) / (maximumPage - minimumPage)), 0, 100);
-        }
-
-        if (_savingProgress)
-        {
-            _saveProgressInvalidated = true;
-            return;
-        }
-
-        CoroutineUtils.Run(async () =>
-        {
-            _savingProgress = true;
-            try
-            {
-                do
-                {
-                    _saveProgressInvalidated = false;
-
-                    ComicModel? comic = ViewModel.Comic;
-                    if (comic is null)
-                    {
-                        continue;
-                    }
-
-                    ReaderView reader = MainReaderView;
-                    int progress = CalculatePercentage(reader);
-                    double page = Math.Max(0, reader.CurrentPage);
-                    await comic.SetProgress(progress, page);
-
-                    await Task.Delay(SAVE_PREOGRESS_INTERVAL);
-                }
-                while (_saveProgressInvalidated);
-            }
-            finally
-            {
-                _savingProgress = false;
-            }
-        });
-    }
-
-    //
-    // Reader
-    //
 
     private void ApplyReaderSettings(ReaderSettingsModel readerSettingModel)
     {
@@ -847,37 +756,105 @@ internal sealed partial class ReaderPage : BasePage
         PostFocus(0);
     }
 
-    private void UpdateDisplayStatus()
+    public void SaveProgress()
     {
-        bool minimized = GetMainWindowAbility().IsMinimized;
-        AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.KeepScreenOnBehavior;
-        bool active = !minimized && IsResumed && behavior switch
+        int CalculatePercentage(ReaderView reader)
         {
-            AppSettingsModel.KeepScreenOnBehaviorEnum.Never => false,
-            AppSettingsModel.KeepScreenOnBehaviorEnum.Always => true,
-            AppSettingsModel.KeepScreenOnBehaviorEnum.DuringAutoScrolling => MainReaderView.IsAutoScrolling,
-            _ => false
-        };
+            double minimumPage = 0.5;
+            double maximumPage = reader.PageCount;
+            double page = Math.Clamp(reader.CurrentPage, minimumPage, maximumPage);
+            return Math.Clamp((int)Math.Round(100.0 * (page - minimumPage) / (maximumPage - minimumPage)), 0, 100);
+        }
 
-        if (active == _displayActive)
+        if (_savingProgress)
+        {
+            _saveProgressInvalidated = true;
+            return;
+        }
+
+        CoroutineUtils.Run(async () =>
+        {
+            _savingProgress = true;
+            try
+            {
+                do
+                {
+                    _saveProgressInvalidated = false;
+
+                    ComicModel? comic = ViewModel.Comic;
+                    if (comic is null)
+                    {
+                        continue;
+                    }
+
+                    ReaderView reader = MainReaderView;
+                    int progress = CalculatePercentage(reader);
+                    double page = Math.Max(0, reader.CurrentPage);
+                    await comic.SetProgress(progress, page);
+
+                    await Task.Delay(SAVE_PREOGRESS_INTERVAL);
+                }
+                while (_saveProgressInvalidated);
+            }
+            finally
+            {
+                _savingProgress = false;
+            }
+        });
+    }
+
+    #endregion
+
+    #region Gesture
+
+    private void ReaderPage_AnyPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse)
         {
             return;
         }
 
-        _displayActive = active;
-        if (active)
+        bool IsElementInsideReader(object? source)
         {
-            DisplayRequestManager.IncrememtKeepScreenOn();
+            for (var element = source as DependencyObject; element is not null; element = VisualTreeHelper.GetParent(element))
+            {
+                if (element == MainReaderView)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
-        else
-        {
-            DisplayRequestManager.DecrememtKeepScreenOn();
-        }
+
+        _isPointerInsideOverlay = !IsElementInsideReader(e.OriginalSource);
     }
 
-    //
-    // Overlay
-    //
+    private void ReaderGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+        {
+            return;
+        }
+
+        _isMouseInsideReader = true;
+        UpdateOverlayStateByMouse();
+    }
+
+    private void ReaderGrid_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse)
+        {
+            return;
+        }
+
+        _isMouseInsideReader = false;
+        UpdateOverlayStateByMouse();
+    }
+
+    #endregion
+
+    #region Overlay
 
     private bool _isPointerInsideOverlay = false;
     private bool _isMouseInsideRootElement = true;
@@ -885,6 +862,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private double _topOverlayHeight = 0.0;
     private double _rightOverlayWidth = 0.0;
+    private double _bottomGridHeight = 0.0;
     private bool _isOverlayVisible = true;
     private bool _isOverlayHold = false;
     private long _hideOverlaySession = 0;
@@ -929,7 +907,7 @@ internal sealed partial class ReaderPage : BasePage
 
     private void ToggleOverlayHold()
     {
-        _isOverlayHold = !_isOverlayHold;
+        _isOverlayHold = !_isOverlayVisible;
         if (_isOverlayHold)
         {
             ShowOverlay();
@@ -1032,9 +1010,22 @@ internal sealed partial class ReaderPage : BasePage
         GetMainPageAbility().SetOverlayVisibility(false);
     }
 
-    //
-    // Playback control
-    //
+    private void UpdatePinRelatedUI()
+    {
+        if (ViewModel.IsPinned)
+        {
+            MainReaderView.Margin = new Thickness(0, _topOverlayHeight, _rightOverlayWidth, _bottomGridHeight);
+            ShowOverlay();
+        }
+        else
+        {
+            MainReaderView.Margin = new Thickness(0);
+        }
+    }
+
+    #endregion
+
+    #region Playback control
 
     private void PlaybackSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
@@ -1151,6 +1142,10 @@ internal sealed partial class ReaderPage : BasePage
         return items;
     }
 
+    #endregion
+
+    #region Page state
+
     private void UpdatePage()
     {
         int CalculatePercentage(ReaderView reader)
@@ -1185,53 +1180,37 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    //
-    // Other UI
-    //
-
-    private void UpdatePinRelatedUI()
+    private void UpdateDisplayStatus()
     {
-        if (ViewModel.IsPinned)
+        bool minimized = GetMainWindowAbility().IsMinimized;
+        AppSettingsModel.KeepScreenOnBehaviorEnum behavior = AppSettingsModel.KeepScreenOnBehavior;
+        bool active = !minimized && IsResumed && behavior switch
         {
-            MainReaderView.Margin = new Thickness(0, _topOverlayHeight, _rightOverlayWidth, _bottomGridHeight);
-            ShowOverlay();
+            AppSettingsModel.KeepScreenOnBehaviorEnum.Never => false,
+            AppSettingsModel.KeepScreenOnBehaviorEnum.Always => true,
+            AppSettingsModel.KeepScreenOnBehaviorEnum.DuringAutoScrolling => MainReaderView.IsAutoScrolling,
+            _ => false
+        };
+
+        if (active == _displayActive)
+        {
+            return;
+        }
+
+        _displayActive = active;
+        if (active)
+        {
+            DisplayRequestManager.IncrememtKeepScreenOn();
         }
         else
         {
-            MainReaderView.Margin = new Thickness(0);
+            DisplayRequestManager.DecrememtKeepScreenOn();
         }
     }
 
-    private void OnGridViewItemClicked(object sender, ItemClickEventArgs e)
-    {
-        var ctx = (ReaderPreviewImageViewModel)e.ClickedItem;
-        GridViewModeEnabled = false;
+    #endregion
 
-        ReaderView reader = MainReaderView;
-        int frameIndex = reader.GetFrameIndexByPage(ctx.Page);
-        if (frameIndex >= 0)
-        {
-            MainReaderView.SetFrameIndex(frameIndex);
-        }
-        else
-        {
-            MainReaderView.SetPage(ctx.Page);
-        }
-    }
-
-    //
-    // Utilities
-    //
-
-    private IMainWindowAbility GetMainWindowAbility()
-    {
-        return GetAbility<IMainWindowAbility>()!;
-    }
-
-    private IMainPageAbilityForTab GetMainPageAbility()
-    {
-        return GetAbility<IMainPageAbilityForTab>()!;
-    }
+    #region Misc
 
     private void SyncCurrentComic()
     {
@@ -1261,6 +1240,74 @@ internal sealed partial class ReaderPage : BasePage
                 plugin.SetReadingComic(GetMainWindowAbility().PluginWindowContext, comic);
             }
         }
+    }
+
+    private HashSet<int> GetCurrentPageIndices()
+    {
+        double page = MainReaderView.CurrentPage;
+        int pageCount = MainReaderView.PageCount;
+
+        HashSet<int> indices = [];
+        int floor = (int)Math.Floor(page);
+        int ceiling = (int)Math.Ceiling(page);
+
+        if (floor > 0 && floor <= pageCount && page - floor <= 0.75)
+        {
+            indices.Add(floor - 1);
+        }
+
+        if (ceiling != floor && ceiling > 0 && ceiling <= pageCount && ceiling - page <= 0.75)
+        {
+            indices.Add(ceiling - 1);
+        }
+
+        return indices;
+    }
+
+    public enum ReaderStatusEnum
+    {
+        Loading,
+        Error,
+        Working,
+    }
+
+    public class ReaderStatusInfo
+    {
+        public required ReaderStatusEnum Status { get; init; }
+        public string Description { get; init; } = string.Empty;
+        public int Progress { get; init; } = -1;
+    }
+
+    private class ReaderConfigDatabase : ReaderView.IConfigurationDatabase
+    {
+        public string? ReadConfiguration(string key)
+        {
+            return AppDB.AppKV.GetCollection(KVNames.KV_LIB_READER_STATE).GetValue<string>(key);
+        }
+
+        public void WriteConfiguration(string key, string value)
+        {
+            AppDB.AppKV.GetCollection(KVNames.KV_LIB_READER_STATE).Set(key, value);
+        }
+    }
+
+    #endregion
+
+    #region Utilities
+
+    private IMainWindowAbility GetMainWindowAbility()
+    {
+        return GetAbility<IMainWindowAbility>()!;
+    }
+
+    private IMainPageAbilityForTab GetMainPageAbility()
+    {
+        return GetAbility<IMainPageAbilityForTab>()!;
+    }
+
+    private static long GetTick()
+    {
+        return Environment.TickCount;
     }
 
     private void AddToActiveTabs()
@@ -1314,61 +1361,5 @@ internal sealed partial class ReaderPage : BasePage
         ActiveTabs = copy;
     }
 
-    private HashSet<int> GetCurrentPageIndices()
-    {
-        double page = MainReaderView.CurrentPage;
-        int pageCount = MainReaderView.PageCount;
-
-        HashSet<int> indices = [];
-        int floor = (int)Math.Floor(page);
-        int ceiling = (int)Math.Ceiling(page);
-
-        if (floor > 0 && floor <= pageCount && page - floor <= 0.75)
-        {
-            indices.Add(floor - 1);
-        }
-
-        if (ceiling != floor && ceiling > 0 && ceiling <= pageCount && ceiling - page <= 0.75)
-        {
-            indices.Add(ceiling - 1);
-        }
-
-        return indices;
-    }
-
-    private static long GetTick()
-    {
-        return Environment.TickCount;
-    }
-
-    //
-    // Types
-    //
-
-    public enum ReaderStatusEnum
-    {
-        Loading,
-        Error,
-        Working,
-    }
-
-    public class ReaderStatusInfo
-    {
-        public required ReaderStatusEnum Status { get; init; }
-        public string Description { get; init; } = string.Empty;
-        public int Progress { get; init; } = -1;
-    }
-
-    private class ReaderConfigDatabase : ReaderView.IConfigurationDatabase
-    {
-        public string? ReadConfiguration(string key)
-        {
-            return AppDB.AppKV.GetCollection(KVNames.KV_LIB_READER_STATE).GetValue<string>(key);
-        }
-
-        public void WriteConfiguration(string key, string value)
-        {
-            AppDB.AppKV.GetCollection(KVNames.KV_LIB_READER_STATE).Set(key, value);
-        }
-    }
+    #endregion
 }
