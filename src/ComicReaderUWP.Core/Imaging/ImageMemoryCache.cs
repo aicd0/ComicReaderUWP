@@ -11,7 +11,7 @@ internal sealed partial class ImageMemoryCache
 {
     private const string TAG = nameof(ImageMemoryCache);
     private const long DEFAULT_CAPACITY = 128L * 1024 * 1024;
-    private const long DEFAULT_MAX_ENTRY_SIZE = 24L * 1024 * 1024;
+    private const long DEFAULT_MAX_ENTRY_SIZE = 32L * 1024 * 1024;
 
     internal static ImageMemoryCache Instance { get; } = new();
 
@@ -21,9 +21,27 @@ internal sealed partial class ImageMemoryCache
     private readonly Dictionary<string, Entry> _entries = [];
     private readonly Dictionary<string, Pending> _pending = [];
     private readonly LinkedList<Entry> _lru = [];
+    private long _capacity = DEFAULT_CAPACITY;
     private long _size;
 
-    internal long Capacity { get; set; } = DEFAULT_CAPACITY;
+    internal long Capacity
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _capacity;
+            }
+        }
+        set
+        {
+            lock (_lock)
+            {
+                _capacity = Math.Max(0, value);
+                Trim();
+            }
+        }
+    }
 
     internal long MaxEntrySize { get; set; } = DEFAULT_MAX_ENTRY_SIZE;
 
@@ -253,12 +271,12 @@ internal sealed partial class ImageMemoryCache
     private bool Publish(Entry entry)
     {
         long size = entry.Buffer.Length;
-        if (Capacity <= 0 || size > MaxEntrySize || size > Capacity)
+        if (_capacity <= 0 || size > MaxEntrySize || size > _capacity)
         {
             return false;
         }
 
-        while (_size + size > Capacity)
+        while (_size + size > _capacity)
         {
             if (!EvictOne())
             {
@@ -270,6 +288,20 @@ internal sealed partial class ImageMemoryCache
         _lru.AddFirst(entry.Node);
         _size += size;
         return true;
+    }
+
+    private void Trim()
+    {
+        while (_size > _capacity)
+        {
+            LinkedListNode<Entry>? node = _lru.Last;
+            if (node is null)
+            {
+                return;
+            }
+
+            Drop(node.Value, EvictionReason.LeastRecentlyUsed);
+        }
     }
 
     private void Drop(Entry entry, EvictionReason reason)

@@ -597,6 +597,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="ImageBrightness" xml:space="preserve">
     <value>明るさ</value>
   </data>
+  <data name="ImageCacheCapacity" xml:space="preserve">
+    <value>メモリキャッシュの容量</value>
+  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>コントラスト</value>
   </data>

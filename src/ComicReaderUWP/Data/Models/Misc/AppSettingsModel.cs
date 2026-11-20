@@ -23,6 +23,7 @@ namespace ComicReaderUWP.Data.Models.Misc;
 internal static class AppSettingsModel
 {
     private const string TAG = nameof(AppSettingsModel);
+    private const long DEFAULT_IMAGE_CACHE_CAPACITY = 128L * 1024 * 1024;
 
     private static readonly JsonDatabase _db = new();
 
@@ -294,6 +295,19 @@ internal static class AppSettingsModel
         set
         {
             _db.Write(model => model.PreloadPagesBefore = value);
+            _db.Save();
+        }
+    }
+
+    public static long ImageCacheCapacity
+    {
+        get
+        {
+            return _db.Read(model => model.ImageCacheCapacity ?? DEFAULT_IMAGE_CACHE_CAPACITY);
+        }
+        set
+        {
+            _db.Write(model => model.ImageCacheCapacity = value);
             _db.Save();
         }
     }
@@ -809,6 +823,9 @@ internal static class AppSettingsModel
 
         [JsonPropertyName("PreloadPagesBefore")]
         public int? PreloadPagesBefore { get; set; }
+
+        [JsonPropertyName("ImageCacheCapacity")]
+        public long? ImageCacheCapacity { get; set; }
 
         [JsonPropertyName("PromptBeforeRemovingComics")]
         public bool? PromptBeforeRemovingComics { get; set; }

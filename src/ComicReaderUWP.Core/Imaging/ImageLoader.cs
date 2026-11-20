@@ -88,6 +88,11 @@ public static partial class ImageLoader
         ImageLoaderScheduler.ClearBuffer();
     }
 
+    public static void SetMemoryCacheCapacity(long bytes)
+    {
+        ImageLoaderScheduler.SetBufferCapacity(bytes);
+    }
+
     public static Task LoadImage(IImageSource source, LoadImageOptions options)
     {
         ArgumentNullException.ThrowIfNull(source);
