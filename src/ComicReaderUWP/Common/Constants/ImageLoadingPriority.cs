@@ -5,6 +5,6 @@ namespace ComicReaderUWP.Common.Constants;
 
 internal static class ImageLoadingPriority
 {
-    public const int PREVIEW_IMAGE = 1;
+    public const int NORMAL = 1;
     public const int READER_IMAGE = 2;
 }

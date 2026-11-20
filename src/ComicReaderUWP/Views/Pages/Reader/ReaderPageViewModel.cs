@@ -13,10 +13,10 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Imaging;
@@ -486,30 +486,25 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             {
                 CoroutineUtils.Run(async () =>
                 {
-                    ErrorResult err = await ErrorLogger.Run($"{nameof(CreateImageContextMenuItems)}#Copy", async err =>
+                    async Task<OperationResult> CopyImageAsync()
                     {
                         using IImageConnection? connection = await imageSource.Open();
                         if (connection is null)
                         {
-                            return err.Error("Failed to open image connection.");
+                            return OperationResultExt.Failure(nameof(CreateImageContextMenuItems), "Failed to open image connection.");
                         }
 
                         using Stream? stream = await connection.OpenImageStream();
                         if (stream is null)
                         {
-                            return err.Error("Failed to open image stream.");
+                            return OperationResultExt.Failure(nameof(CreateImageContextMenuItems), "Failed to open image stream.");
                         }
 
-                        ErrorResult innerErr = await ClipboardUtils.SetImage(stream);
-                        if (!innerErr.IsSuccessful)
-                        {
-                            return err.Error(innerErr);
-                        }
+                        return await ClipboardUtils.SetImage(stream);
+                    }
 
-                        return err.Success();
-                    });
-
-                    err.DisplayErrorMessage(_actionHandler);
+                    OperationResult err = await CopyImageAsync();
+                    err.ShowErrorMessage(_actionHandler);
                 });
             },
         });
@@ -523,8 +518,8 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
             {
                 CoroutineUtils.Run(async () =>
                 {
-                    ErrorResult err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
-                    err.DisplayErrorMessage(_actionHandler);
+                    OperationResult err = await ThirdPartyLauncher.ShowInFileExplorer(imagePath);
+                    err.ShowErrorMessage(_actionHandler);
                 });
             }
         });
@@ -565,17 +560,11 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                 {
                     CoroutineUtils.Run(async () =>
                     {
-                        ErrorResult err = await ErrorLogger.Run($"{nameof(CreateImageContextMenuItems)}#CopyFile", async err =>
+                        async Task<OperationResult> CopyImageFileAsync()
                         {
                             if (!string.IsNullOrEmpty(imagePath))
                             {
-                                ErrorResult innerErr = await ClipboardUtils.SetFile(imagePath);
-                                if (!innerErr.IsSuccessful)
-                                {
-                                    return err.Error(innerErr);
-                                }
-
-                                return err.Success();
+                                return await ClipboardUtils.SetFile(imagePath);
                             }
 
                             ImageMeta? meta = await ImageLoader.LoadImageMeta(imageSource, new());
@@ -594,25 +583,20 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                             using IImageConnection? connection = await imageSource.Open();
                             if (connection is null)
                             {
-                                return err.Error("Failed to open image connection.");
+                                return OperationResultExt.Failure(nameof(CreateImageContextMenuItems), "Failed to open image connection.");
                             }
 
                             using Stream? stream = await connection.OpenImageStream();
                             if (stream is null)
                             {
-                                return err.Error("Failed to open image stream.");
+                                return OperationResultExt.Failure(nameof(CreateImageContextMenuItems), "Failed to open image stream.");
                             }
 
-                            ErrorResult streamErr = await ClipboardUtils.SetFile(stream, $"{index + 1}{extension}");
-                            if (!streamErr.IsSuccessful)
-                            {
-                                return err.Error(streamErr);
-                            }
+                            return await ClipboardUtils.SetFile(stream, $"{index + 1}{extension}");
+                        }
 
-                            return err.Success();
-                        });
-
-                        err.DisplayErrorMessage(_actionHandler);
+                        OperationResult err = await CopyImageFileAsync();
+                        err.ShowErrorMessage(_actionHandler);
                     });
                 },
             });
@@ -646,21 +630,18 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
                             return;
                         }
 
-                        ErrorResult err = ErrorLogger.Run($"{nameof(CreateImageContextMenuItems)}#DeleteFile", err =>
+                        OperationResult err;
+                        try
                         {
-                            try
-                            {
-                                File.Delete(imagePath);
-                            }
-                            catch (Exception ex)
-                            {
-                                return err.Error(ex);
-                            }
+                            File.Delete(imagePath);
+                            err = OperationResultExt.Success();
+                        }
+                        catch (Exception ex)
+                        {
+                            err = OperationResultExt.Failure(nameof(CreateImageContextMenuItems), ex);
+                        }
 
-                            return err.Success();
-                        });
-
-                        err.DisplayErrorMessage(_actionHandler);
+                        err.ShowErrorMessage(_actionHandler);
 
                         if (err.IsSuccessful)
                         {
@@ -808,13 +789,13 @@ internal partial class ReaderPageViewModel : INotifyPropertyChanged
         UpdateFavoriteStatusInternal(comic);
 
         // Open new comic
-        ErrorResult<ComicConnection> connectionErr = await comic.OpenComic();
+        OperationResult<ComicConnection> connectionErr = await comic.OpenComic();
         if (!connectionErr.IsSuccessful)
         {
             ReaderStatusLiveData.Emit(new()
             {
                 Status = ReaderPage.ReaderStatusEnum.Error,
-                Description = connectionErr.DetailedErrorMessage,
+                Description = connectionErr.ErrorMessage,
             });
             return;
         }

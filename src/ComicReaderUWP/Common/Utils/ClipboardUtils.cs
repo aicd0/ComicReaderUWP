@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Storage;
 
 using Windows.ApplicationModel.DataTransfer;
@@ -36,10 +36,8 @@ internal static class ClipboardUtils
         }
     }
 
-    public static async Task<ErrorResult> SetImage(Stream stream)
+    public static async Task<OperationResult> SetImage(Stream stream)
     {
-        var err = ErrorLogger.Create(nameof(SetImage));
-
         try
         {
             stream.Seek(0, SeekOrigin.Begin);
@@ -65,16 +63,14 @@ internal static class ClipboardUtils
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt.Failure(nameof(SetImage), ex);
         }
 
-        return err.Success();
+        return OperationResultExt.Success();
     }
 
-    public static async Task<ErrorResult> SetFile(string path)
+    public static async Task<OperationResult> SetFile(string path)
     {
-        var err = ErrorLogger.Create(nameof(SetFile));
-
         try
         {
             StorageFile file = await StorageFile.GetFileFromPathAsync(path);
@@ -82,14 +78,12 @@ internal static class ClipboardUtils
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt.Failure(nameof(SetFile), ex);
         }
     }
 
-    public static async Task<ErrorResult> SetFile(Stream stream, string filename)
+    public static async Task<OperationResult> SetFile(Stream stream, string filename)
     {
-        var err = ErrorLogger.Create(nameof(SetFile));
-
         string tempFilePath;
         try
         {
@@ -102,7 +96,7 @@ internal static class ClipboardUtils
         }
         catch (Exception ex)
         {
-            return err.Error("Failed to write the temporary file.", ex);
+            return OperationResultExt.Failure(nameof(SetFile), "Failed to write the temporary file.", ex);
         }
 
         try
@@ -112,14 +106,12 @@ internal static class ClipboardUtils
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt.Failure(nameof(SetFile), ex);
         }
     }
 
-    private static ErrorResult SetFile(StorageFile file)
+    private static OperationResult SetFile(StorageFile file)
     {
-        var err = ErrorLogger.Create(nameof(SetFile));
-
         try
         {
             DataPackage dataPackage = new()
@@ -133,9 +125,9 @@ internal static class ClipboardUtils
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt.Failure(nameof(SetFile), ex);
         }
 
-        return err.Success();
+        return OperationResultExt.Success();
     }
 }

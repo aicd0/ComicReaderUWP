@@ -11,10 +11,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Archive;
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Database;
@@ -602,7 +602,7 @@ internal abstract partial class ComicHandle
 
     public abstract IReadOnlyList<string> GetFolderViewPath();
 
-    public abstract Task<ErrorResult<BaseComicConnection>> OpenComicConnection();
+    public abstract Task<OperationResult<BaseComicConnection>> OpenComicConnection();
 
     //
     // DB Helpers

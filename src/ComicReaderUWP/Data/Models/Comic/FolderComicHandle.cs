@@ -7,10 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Database.SqlHelpers;
 using ComicReaderUWP.Data.Tables;
@@ -130,29 +130,25 @@ internal partial class FolderComicHandle : ComicHandle
         });
     }
 
-    public override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
+    public override async Task<OperationResult<BaseComicConnection>> OpenComicConnection()
     {
-        var err = ErrorLogger<BaseComicConnection>.Create(TAG);
-
-        ErrorResult<IReadOnlyList<string>> imageFilesErr = await ReloadImages();
+        OperationResult<IReadOnlyList<string>> imageFilesErr = await ReloadImages();
         if (!imageFilesErr.IsSuccessful)
         {
-            return err.Error(imageFilesErr);
+            return OperationResultExt<BaseComicConnection>.Failure(imageFilesErr);
         }
 
         IReadOnlyList<string> imageFiles = imageFilesErr.Result;
         if (imageFiles.Count == 0)
         {
-            return err.Error($"No images found at '{Location}'.");
+            return OperationResultExt<BaseComicConnection>.Failure(TAG, $"No images found at '{Location}'.");
         }
 
-        return err.Success(new FolderComicConnection(imageFiles));
+        return OperationResultExt<BaseComicConnection>.Success(new FolderComicConnection(imageFiles));
     }
 
-    private async Task<ErrorResult<IReadOnlyList<string>>> ReloadImages()
+    private async Task<OperationResult<IReadOnlyList<string>>> ReloadImages()
     {
-        var err = ErrorLogger<IReadOnlyList<string>>.Create(TAG);
-
         IEnumerable<string> files;
         try
         {
@@ -160,7 +156,7 @@ internal partial class FolderComicHandle : ComicHandle
         }
         catch (Exception ex)
         {
-            return err.Error($"Cannot access '{Location}'.", ex);
+            return OperationResultExt<IReadOnlyList<string>>.Failure(TAG, $"Cannot access '{Location}'.", ex);
         }
 
         IReadOnlyList<string> images = (string[])[.. files
@@ -170,7 +166,7 @@ internal partial class FolderComicHandle : ComicHandle
                 return AppInfoProvider.IsSupportedImageExtension(extension);
             })
             .OrderBy(file => StringUtils.SmartFileNameKeySelector(Path.GetFileNameWithoutExtension(file)), StringUtils.SmartFileNameComparer)];
-        return err.Success(images);
+        return OperationResultExt<IReadOnlyList<string>>.Success(images);
     }
 
     private partial class FolderComicConnection(IEnumerable<string> imageFiles) : BaseComicConnection

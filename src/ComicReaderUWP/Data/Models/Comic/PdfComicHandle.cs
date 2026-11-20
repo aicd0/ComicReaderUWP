@@ -10,8 +10,9 @@ using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.ErrorHandling;
+using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Pdf;
 using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Tables;
@@ -48,23 +49,21 @@ internal partial class PdfComicHandle : ComicHandle
         return dirName.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
     }
 
-    public override async Task<ErrorResult<BaseComicConnection>> OpenComicConnection()
+    public override async Task<OperationResult<BaseComicConnection>> OpenComicConnection()
     {
-        var err = ErrorLogger<BaseComicConnection>.Create(TAG);
-
         PdfManager.IPdfConnection? connection = await PdfManager.OpenPdf(Location, null);
         if (connection is null)
         {
-            return err.Error($"Cannot open PDF '{Location}'.");
+            return OperationResultExt<BaseComicConnection>.Failure(TAG, $"Cannot open PDF '{Location}'.");
         }
 
         if (connection.GetPageCount() == 0)
         {
             connection.Dispose();
-            return err.Error($"The PDF '{Location}' is empty.");
+            return OperationResultExt<BaseComicConnection>.Failure(TAG, $"The PDF '{Location}' is empty.");
         }
 
-        return err.Success(new PdfComicConnection(Location, connection));
+        return OperationResultExt<BaseComicConnection>.Success(new PdfComicConnection(Location, connection));
     }
 
     private static MemoryStream CreateStreamFromBuffer(nint buffer, int width, int height, int stride)

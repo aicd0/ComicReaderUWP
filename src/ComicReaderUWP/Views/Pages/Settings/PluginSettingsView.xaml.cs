@@ -7,10 +7,10 @@ using System.IO;
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
@@ -67,23 +67,20 @@ internal sealed partial class PluginSettingsView : BaseUserControl
     {
         CoroutineUtils.Run(async () =>
         {
-            ErrorResult err = await ErrorLogger.Run(nameof(OpenPluginsFolderButton_Click), async err =>
+            OperationResult err;
+            try
             {
                 string path = PluginManager.PluginsFolderPath;
-                try
-                {
-                    Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
-                    await Windows.System.Launcher.LaunchFolderAsync(folder);
-                }
-                catch (Exception ex)
-                {
-                    return err.Error(ex);
-                }
+                Windows.Storage.StorageFolder folder = await Windows.Storage.StorageFolder.GetFolderFromPathAsync(path);
+                await Windows.System.Launcher.LaunchFolderAsync(folder);
+                err = OperationResultExt.Success();
+            }
+            catch (Exception ex)
+            {
+                err = OperationResultExt.Failure(nameof(OpenPluginsFolderButton_Click), ex);
+            }
 
-                return err.Success();
-            });
-
-            err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+            err.ShowErrorMessage(ViewModel.Shared.ActionHandler);
         });
     }
 
@@ -117,26 +114,23 @@ internal sealed partial class PluginSettingsView : BaseUserControl
             string pluginsFolderPath = PluginManager.PluginsFolderPath;
             string dstFilePath = Path.Combine(pluginsFolderPath, file.Name);
 
-            ErrorResult err = ErrorLogger.Run(nameof(InstallPluginButton_Click), err =>
+            OperationResult err;
+            try
             {
-                try
-                {
-                    File.Copy(file.Path, dstFilePath, true);
-                }
-                catch (Exception ex)
-                {
-                    return err.Error(ex);
-                }
-
-                return err.Success();
-            });
+                File.Copy(file.Path, dstFilePath, true);
+                err = OperationResultExt.Success();
+            }
+            catch (Exception ex)
+            {
+                err = OperationResultExt.Failure(nameof(InstallPluginButton_Click), ex);
+            }
 
             if (err.IsSuccessful)
             {
                 ViewModel.ApplyOnNextLaunchVisible = true;
             }
 
-            err.DisplayErrorMessage(ViewModel.Shared.ActionHandler);
+            err.ShowErrorMessage(ViewModel.Shared.ActionHandler);
         });
     }
 

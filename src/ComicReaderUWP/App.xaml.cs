@@ -5,12 +5,12 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.InitTask;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
@@ -342,7 +342,7 @@ public partial class App : Application
             if (comic is not null)
             {
                 double page = -1.0;
-                ErrorResult<ComicConnection> connectionErr = await comic.OpenComic();
+                OperationResult<ComicConnection> connectionErr = await comic.OpenComic();
                 if (connectionErr.IsSuccessful)
                 {
                     using ComicConnection? connection = connectionErr.Result;

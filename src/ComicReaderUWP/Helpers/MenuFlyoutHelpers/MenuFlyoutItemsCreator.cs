@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Actions.Components;
 using ComicReaderUWP.Common.Actions.Providers;
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
@@ -121,8 +121,8 @@ internal static class MenuFlyoutItemsCreator
                 {
                     CoroutineUtils.Run(async () =>
                     {
-                        ErrorResult err = await primaryItem.ShowInFileExplorer();
-                        err.DisplayErrorMessage(actionHandler);
+                        OperationResult err = await primaryItem.ShowInFileExplorer();
+                        err.ShowErrorMessage(actionHandler);
                     });
                 },
             });

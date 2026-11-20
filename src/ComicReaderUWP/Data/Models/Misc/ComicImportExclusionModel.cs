@@ -10,9 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.SDK.Models;
@@ -74,18 +74,16 @@ internal class ComicImportExclusionModel
         }
     }
 
-    public async Task<ErrorResult> EditWithNotepad()
+    public async Task<OperationResult> EditWithNotepad()
     {
         EnsureInitialized();
 
-        var err = ErrorLogger.Create(TAG);
-
         string[] lines = [.. _excluded.Keys.OrderBy(location => location, StringComparer.Ordinal)];
 
-        ErrorResult<string> editErr = await ThirdPartyLauncher.EditTemporaryTextFileAsync("ComicImportExclusions.txt", lines);
+        OperationResult<string> editErr = await ThirdPartyLauncher.EditTemporaryTextFileAsync("ComicImportExclusions.txt", lines);
         if (!editErr.IsSuccessful)
         {
-            return err.Error(editErr);
+            return OperationResultExt.Failure(editErr);
         }
 
         string filePath = editErr.Result;
@@ -106,12 +104,12 @@ internal class ComicImportExclusionModel
         }
         catch (Exception ex)
         {
-            return err.Error(ex);
+            return OperationResultExt.Failure(TAG, ex);
         }
 
         Refresh(locations);
 
-        return err.Success();
+        return OperationResultExt.Success();
     }
 
     private void Refresh(IEnumerable<string> locations)

@@ -63,7 +63,7 @@ internal partial class SimpleImageView : UserControl
         nameof(ImagePriority),
         typeof(int),
         typeof(SimpleImageView),
-        new PropertyMetadata(ImageLoadingPriority.PREVIEW_IMAGE, OnImagePriorityChanged));
+        new PropertyMetadata(ImageLoadingPriority.NORMAL, OnImagePriorityChanged));
 
     private static void OnImagePriorityChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {

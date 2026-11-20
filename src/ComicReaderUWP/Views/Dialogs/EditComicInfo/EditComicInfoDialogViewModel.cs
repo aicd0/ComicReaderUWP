@@ -10,13 +10,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Common.ErrorHandling;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
 using ComicReaderUWP.Common.Storage;
 using ComicReaderUWP.Common.Utils;
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Models.Misc;
@@ -534,7 +534,7 @@ internal partial class EditComicInfoDialogViewModel : INotifyPropertyChanged
             return;
         }
 
-        ErrorResult err = await ThirdPartyLauncher.ShowInFileExplorer(folderPath);
+        OperationResult err = await ThirdPartyLauncher.ShowInFileExplorer(folderPath);
         if (!err.IsSuccessful)
         {
             Logger.E(TAG, err.Message, err.Exception);
