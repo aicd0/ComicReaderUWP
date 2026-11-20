@@ -168,14 +168,14 @@ internal sealed partial class ComicSelectionView : BaseUserControl
             case ComicFilterModel.ViewTypeEnum.Large:
                 ItemsGrid.ItemTemplate = LargeItemTemplate;
                 ItemsGrid.ItemContainerStyle = (Style)Resources["VerticalComicItemContainerStyle"];
-                ItemsGrid.DesiredWidth = (double)Application.Current.Resources["ComicItemVerticalDesiredWidth"];
-                ItemsGrid.ItemHeight = (double)Application.Current.Resources["ComicItemVerticalDesiredHeight"];
+                ItemsGrid.DesiredWidth = (double)Application.Current.Resources["ComicItemLargeDesiredWidth"];
+                ItemsGrid.ItemHeight = (double)Application.Current.Resources["ComicItemLargeDesiredHeight"];
                 break;
             case ComicFilterModel.ViewTypeEnum.Medium:
                 ItemsGrid.ItemTemplate = MediumItemTemplate;
                 ItemsGrid.ItemContainerStyle = (Style)Resources["SearchResultItemContainerExpandedStyle"];
-                ItemsGrid.DesiredWidth = (double)Application.Current.Resources["ComicItemHorizontalDesiredWidth"];
-                ItemsGrid.ItemHeight = (double)Application.Current.Resources["ComicItemHorizontalDesiredHeight"];
+                ItemsGrid.DesiredWidth = (double)Application.Current.Resources["ComicItemMediumDesiredWidth"];
+                ItemsGrid.ItemHeight = (double)Application.Current.Resources["ComicItemMediumDesiredHeight"];
                 break;
             default:
                 Logger.AssertNotReachHere("8A1F72C69B4D5307");
