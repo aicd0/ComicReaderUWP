@@ -78,7 +78,7 @@
         <Rectangle
             Height="1"
             Margin="0,16"
-            Fill="{ThemeResource ForegroundGrey1}" />
+            Fill="{ThemeResource AppSeperator1}" />
         <Button x:Uid="ShowHiddenComicButton" Click="ShowHiddenComicButton_Click" />
     </StackPanel>
 

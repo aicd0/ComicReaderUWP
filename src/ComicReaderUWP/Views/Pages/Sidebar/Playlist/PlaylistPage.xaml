@@ -56,7 +56,7 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             FontSize="13"
-                            Foreground="{ThemeResource ForegroundGrey2}"
+                            Foreground="{ThemeResource AppSecondaryText}"
                             Text="{x:Bind Progress, Mode=OneWay}" />
                     </Grid>
                 </DataTemplate>

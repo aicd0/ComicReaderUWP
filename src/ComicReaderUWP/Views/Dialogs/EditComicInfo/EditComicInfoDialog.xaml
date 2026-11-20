@@ -38,7 +38,7 @@
                 Padding="12,0,12,4"
                 Text="{x:Bind StringResource.Images}" />
         </muxc:SelectorBar>
-        <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+        <Rectangle Height="1" Fill="{ThemeResource AppSeperator2}" />
 
         <ScrollView
             Width="600"

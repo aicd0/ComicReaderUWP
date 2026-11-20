@@ -14,6 +14,9 @@
                     <ResourceDictionary.ThemeDictionaries>
                         <ResourceDictionary x:Key="Default">
                             <SolidColorBrush x:Key="AppBackgroundNone" Color="#282828" />
+                            <SolidColorBrush x:Key="AppSecondaryText" Color="#858585" />
+                            <SolidColorBrush x:Key="AppSeperator1" Color="#80404040" />
+                            <SolidColorBrush x:Key="AppSeperator2" Color="#404040" />
                             <muxm:AcrylicBrush
                                 x:Key="BackgroundImageAcrylic"
                                 FallbackColor="#404040"
@@ -21,11 +24,8 @@
                                 TintLuminosityOpacity="0.6"
                                 TintOpacity="0.5" />
                             <SolidColorBrush x:Key="BusyBackground" Color="#66000000" />
-                            <SolidColorBrush x:Key="ComicInfoSeparatorForeground" Color="#404040" />
                             <SolidColorBrush x:Key="CommandBarBackground" Color="#2D2D2D" />
                             <SolidColorBrush x:Key="CommandBarBorderBrush" Color="#1C1C1C" />
-                            <SolidColorBrush x:Key="ForegroundGrey1" Color="#404040" />
-                            <SolidColorBrush x:Key="ForegroundGrey2" Color="#858585" />
                             <SolidColorBrush x:Key="HistoryGroupHeaderBackground" Color="#404040" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#505050" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#555555" />
@@ -46,6 +46,9 @@
                         </ResourceDictionary>
                         <ResourceDictionary x:Key="Light">
                             <SolidColorBrush x:Key="AppBackgroundNone" Color="#FAF8FC" />
+                            <SolidColorBrush x:Key="AppSecondaryText" Color="#858585" />
+                            <SolidColorBrush x:Key="AppSeperator1" Color="#80C0C0C0" />
+                            <SolidColorBrush x:Key="AppSeperator2" Color="#E0E0E0" />
                             <muxm:AcrylicBrush
                                 x:Key="BackgroundImageAcrylic"
                                 FallbackColor="#C0C0C0"
@@ -53,11 +56,8 @@
                                 TintLuminosityOpacity="0.6"
                                 TintOpacity="0.5" />
                             <SolidColorBrush x:Key="BusyBackground" Color="#66FFFFFF" />
-                            <SolidColorBrush x:Key="ComicInfoSeparatorForeground" Color="#D0D0D0" />
                             <SolidColorBrush x:Key="CommandBarBackground" Color="#F9F9F9" />
                             <SolidColorBrush x:Key="CommandBarBorderBrush" Color="#EBEBEB" />
-                            <SolidColorBrush x:Key="ForegroundGrey1" Color="#E0E0E0" />
-                            <SolidColorBrush x:Key="ForegroundGrey2" Color="#858585" />
                             <SolidColorBrush x:Key="HistoryGroupHeaderBackground" Color="#DADADA" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#D0D0D0" />
@@ -78,13 +78,13 @@
                         </ResourceDictionary>
                         <ResourceDictionary x:Key="HighContrast">
                             <SolidColorBrush x:Key="AppBackgroundNone" Color="#FAF8FC" />
+                            <SolidColorBrush x:Key="AppSecondaryText" Color="#858585" />
+                            <SolidColorBrush x:Key="AppSeperator1" Color="#C0C0C0" />
+                            <SolidColorBrush x:Key="AppSeperator2" Color="#E0E0E0" />
                             <SolidColorBrush x:Key="BackgroundImageAcrylic" Color="#FFFFFF" />
                             <SolidColorBrush x:Key="BusyBackground" Color="#66FFFFFF" />
-                            <SolidColorBrush x:Key="ComicInfoSeparatorForeground" Color="#D0D0D0" />
                             <SolidColorBrush x:Key="CommandBarBackground" Color="#F9F9F9" />
                             <SolidColorBrush x:Key="CommandBarBorderBrush" Color="#EBEBEB" />
-                            <SolidColorBrush x:Key="ForegroundGrey1" Color="#E0E0E0" />
-                            <SolidColorBrush x:Key="ForegroundGrey2" Color="#858585" />
                             <SolidColorBrush x:Key="HistoryGroupHeaderBackground" Color="#DADADA" />
                             <SolidColorBrush x:Key="ListViewItemPointerOverBackground1" Color="#505050" />
                             <SolidColorBrush x:Key="ListViewItemPressedBackground1" Color="#555555" />

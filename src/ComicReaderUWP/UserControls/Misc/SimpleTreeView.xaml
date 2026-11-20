@@ -63,7 +63,7 @@
                         Grid.Column="3"
                         Margin="4,0,0,0"
                         VerticalAlignment="Center"
-                        Foreground="{ThemeResource ForegroundGrey2}"
+                        Foreground="{ThemeResource AppSecondaryText}"
                         Text="{x:Bind Description, Mode=OneWay}"
                         TextTrimming="CharacterEllipsis"
                         Visibility="{x:Bind Description, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}" />

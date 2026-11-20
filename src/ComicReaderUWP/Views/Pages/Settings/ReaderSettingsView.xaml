@@ -76,7 +76,7 @@
         <Rectangle
             Height="1"
             Margin="0,16"
-            Fill="{ThemeResource ForegroundGrey1}" />
+            Fill="{ThemeResource AppSeperator1}" />
         <TextBlock Text="{x:Bind StringResource.PreloadPagesAfter}" />
         <Slider
             Width="300"

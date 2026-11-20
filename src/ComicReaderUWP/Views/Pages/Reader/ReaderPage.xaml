@@ -61,7 +61,7 @@
                 x:Name="TbReaderStatus"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Foreground="{ThemeResource ForegroundGrey2}"
+                Foreground="{ThemeResource AppSecondaryText}"
                 HorizontalTextAlignment="Center" />
             <!--  Reader  -->
             <Grid
@@ -160,7 +160,7 @@
                                 <FontIcon
                                     VerticalAlignment="Center"
                                     FontSize="14"
-                                    Foreground="{ThemeResource ForegroundGrey2}"
+                                    Foreground="{ThemeResource AppSecondaryText}"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>
                             <StackPanel
@@ -177,7 +177,7 @@
                                 <FontIcon
                                     VerticalAlignment="Center"
                                     FontSize="14"
-                                    Foreground="{ThemeResource ForegroundGrey2}"
+                                    Foreground="{ThemeResource AppSecondaryText}"
                                     Glyph="&#xEC8F;" />
                             </StackPanel>
                             <TextBlock
@@ -185,7 +185,7 @@
                                 Margin="0,0,12,2"
                                 VerticalAlignment="Center"
                                 FontSize="14"
-                                Foreground="{ThemeResource ForegroundGrey2}"
+                                Foreground="{ThemeResource AppSecondaryText}"
                                 Text="{x:Bind ViewModel.SecondaryPageIndicatorText, Mode=OneWay}" />
                             <Button
                                 Click="PinButton_Click"

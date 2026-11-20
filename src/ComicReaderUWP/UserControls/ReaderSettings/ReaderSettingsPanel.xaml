@@ -116,7 +116,7 @@
                 Padding="12,0,12,4"
                 Text="{x:Bind ViewModel.ImageProcessingTabTitle, Mode=OneWay}" />
         </SelectorBar>
-        <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+        <Rectangle Height="1" Fill="{ThemeResource AppSeperator2}" />
 
         <!--  General Settings Tab  -->
         <StackPanel
@@ -192,7 +192,7 @@
             <Rectangle
                 Height="1"
                 Margin="0,8,0,0"
-                Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+                Fill="{ThemeResource AppSeperator2}" />
             <Grid Margin="14,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -217,7 +217,7 @@
                 </StackPanel>
             </Grid>
             <!--  Other Settings Section  -->
-            <Rectangle Height="1" Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+            <Rectangle Height="1" Fill="{ThemeResource AppSeperator2}" />
             <readersettings:SliderSettingView
                 x:Name="PageSpacingSlider"
                 Margin="0,8,0,0"
@@ -306,7 +306,7 @@
             <Rectangle
                 Height="1"
                 Margin="0,8,0,0"
-                Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+                Fill="{ThemeResource AppSeperator2}" />
             <readersettings:SliderSettingView
                 x:Name="BrightnessSlider"
                 Margin="0,8,0,0"
@@ -353,7 +353,7 @@
         <Rectangle
             Height="1"
             Margin="0,0,0,12"
-            Fill="{ThemeResource ComicInfoSeparatorForeground}" />
+            Fill="{ThemeResource AppSeperator2}" />
 
         <Grid Margin="14,0,14,12">
             <Grid.ColumnDefinitions>
