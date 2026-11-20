@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 
 using ComicReaderUWP.Core.Common.Threading;
+using ComicReaderUWP.Core.Common.Utils;
 
 namespace ComicReaderUWP.Core.Imaging;
 
@@ -40,10 +41,11 @@ internal static class ImageLoaderScheduler
             return cached;
         }
 
-        QueuedFunc<Stream?> item = new(() => ImageMemoryCache.Instance.AcquireAsync(uri, new()
+        QueuedRead item = new(() => ImageMemoryCache.Instance.AcquireAsync(uri, new()
         {
             Fingerprint = fingerprint,
             OpenStream = openStream,
+            Priority = request.Priority,
         }), request);
         Enqueue(item, request);
         return await item.Task;
@@ -102,6 +104,10 @@ internal static class ImageLoaderScheduler
         public string? Uri { get; init; }
 
         public long Sequence { get; init; }
+
+        public CancellationSession.IToken? Token { get; init; }
+
+        public bool IsCancellationRequested => Token?.IsCancellationRequested == true;
     }
 
     private sealed class GroupState(int maxConcurrentTasks)
@@ -241,6 +247,7 @@ internal static class ImageLoaderScheduler
         {
             Sequence = request.Sequence;
             Uri = request.Uri;
+            Token = request.Token;
 
             if (request.Uri is not null)
             {
@@ -251,6 +258,8 @@ internal static class ImageLoaderScheduler
         public long Sequence { get; }
 
         public string? Uri { get; }
+
+        public CancellationSession.IToken? Token { get; }
 
         public abstract Task ExecuteAsync();
 
@@ -268,15 +277,21 @@ internal static class ImageLoaderScheduler
         }
     }
 
-    private sealed class QueuedFunc<T>(Func<Task<T>> func, Request request) : QueuedItem(request)
+    private sealed class QueuedRead(Func<Task<Stream?>> func, Request request) : QueuedItem(request)
     {
-        private readonly TaskCompletionSource<T> _source = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<Stream?> _source = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public Task<T> Task => _source.Task;
+        public Task<Stream?> Task => _source.Task;
 
         public override async Task ExecuteAsync()
         {
             Begin();
+
+            if (Token?.IsCancellationRequested == true)
+            {
+                _source.SetResult(null);
+                return;
+            }
 
             try
             {

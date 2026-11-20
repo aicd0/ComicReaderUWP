@@ -94,8 +94,14 @@ public static partial class ImageLoader
         ArgumentNullException.ThrowIfNull(options);
 
         options = options.Clone();
-        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? source.PreferredSchedulerGroup;
-        ImageLoaderScheduler.Request request = CreateRequest(source, group, options.Priority);
+        ImageLoaderScheduler.Request request = new()
+        {
+            Group = options.SchedulerGroup ?? source.PreferredSchedulerGroup,
+            Priority = options.Priority,
+            Uri = source.Uri,
+            Sequence = ImageLoaderScheduler.NewSequence(),
+            Token = options.Token,
+        };
         return TaskDispatcher.DefaultThreadPool.SubmitAsync(async () =>
         {
             using ImageLoaderContext context = new(source);
@@ -112,8 +118,14 @@ public static partial class ImageLoader
         ArgumentNullException.ThrowIfNull(options);
 
         options = options.Clone();
-        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? loaderContext.Source.PreferredSchedulerGroup;
-        ImageLoaderScheduler.Request request = CreateRequest(loaderContext.Source, group, options.Priority);
+        ImageLoaderScheduler.Request request = new()
+        {
+            Group = options.SchedulerGroup ?? loaderContext.Source.PreferredSchedulerGroup,
+            Priority = options.Priority,
+            Uri = loaderContext.Source.Uri,
+            Sequence = ImageLoaderScheduler.NewSequence(),
+            Token = options.Token,
+        };
         return TaskDispatcher.DefaultThreadPool.SubmitAsync(async () =>
         {
             if (!await LoadImageCore(loaderContext, options, request))
@@ -129,8 +141,14 @@ public static partial class ImageLoader
         ArgumentNullException.ThrowIfNull(options);
 
         options = options.Clone();
-        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? source.PreferredSchedulerGroup;
-        ImageLoaderScheduler.Request request = CreateRequest(source, group, options.Priority);
+        ImageLoaderScheduler.Request request = new()
+        {
+            Group = options.SchedulerGroup ?? source.PreferredSchedulerGroup,
+            Priority = options.Priority,
+            Uri = source.Uri,
+            Sequence = ImageLoaderScheduler.NewSequence(),
+            Token = options.Token,
+        };
         return TaskDispatcher.DefaultThreadPool.SubmitAsync(async () =>
         {
             using ImageLoaderContext context = new(source);
@@ -144,8 +162,14 @@ public static partial class ImageLoader
         ArgumentNullException.ThrowIfNull(options);
 
         options = options.Clone();
-        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? source.PreferredSchedulerGroup;
-        ImageLoaderScheduler.Request request = CreateRequest(source, group, options.Priority);
+        ImageLoaderScheduler.Request request = new()
+        {
+            Group = options.SchedulerGroup ?? source.PreferredSchedulerGroup,
+            Priority = options.Priority,
+            Uri = source.Uri,
+            Sequence = ImageLoaderScheduler.NewSequence(),
+            Token = options.Token,
+        };
         return TaskDispatcher.DefaultThreadPool.SubmitAsync(async () =>
         {
             using ImageLoaderContext context = new(source);
@@ -159,21 +183,16 @@ public static partial class ImageLoader
         ArgumentNullException.ThrowIfNull(options);
 
         options = options.Clone();
-        ImageLoaderSchedulerGroup group = options.SchedulerGroup ?? loaderContext.Source.PreferredSchedulerGroup;
-        ImageLoaderScheduler.Request request = CreateRequest(loaderContext.Source, group, options.Priority);
+        ImageLoaderScheduler.Request request = new()
+        {
+            Group = options.SchedulerGroup ?? loaderContext.Source.PreferredSchedulerGroup,
+            Priority = options.Priority,
+            Uri = loaderContext.Source.Uri,
+            Sequence = ImageLoaderScheduler.NewSequence(),
+            Token = options.Token,
+        };
         return TaskDispatcher.DefaultThreadPool.SubmitAsync(
             () => GetImageMeta(loaderContext, request));
-    }
-
-    private static ImageLoaderScheduler.Request CreateRequest(IImageSource source, ImageLoaderSchedulerGroup group, int priority)
-    {
-        return new()
-        {
-            Group = group,
-            Priority = priority,
-            Uri = source.Uri,
-            Sequence = ImageLoaderScheduler.NewSequence(),
-        };
     }
 
     private static async Task<ImageContent?> LoadImageContentCore(ImageLoaderContext context, ImageLoaderScheduler.Request request)
@@ -344,7 +363,7 @@ public static partial class ImageLoader
 
     private static async Task<bool> LoadImageCore(ImageLoaderContext context, LoadImageOptions options, ImageLoaderScheduler.Request request)
     {
-        if (options.Token.IsCancellationRequested)
+        if (request.IsCancellationRequested)
         {
             return false;
         }
@@ -352,7 +371,7 @@ public static partial class ImageLoader
         long startTime = GetCurrentTick();
 
         ImageMeta? meta = await GetImageMeta(context, request);
-        if (meta is null)
+        if (meta is null || request.IsCancellationRequested)
         {
             return false;
         }

@@ -4,22 +4,30 @@
 using System.Collections.Concurrent;
 
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Imaging;
 
-namespace ComicReaderUWP.Core.Tests;
+namespace ComicReaderUWP.Core.Tests.Imaging;
 
 /// <summary>
-/// Captures the <c>Imaging/Cache</c> lines so a test can assert what the cache reported, e.g. that one page
-/// reads once and is then a hit.
+/// Captures the cache's event lines — the ones that report a read, a hit or an eviction — so a test can assert
+/// what the cache did, e.g. that one page reads once and is then a hit.
 /// </summary>
 internal sealed class ImagingLogCapture : Logger.ILogListener
 {
+    private static readonly string[] sEventPrefixes = ["read [", "hit [", "evict ["];
+
     private readonly ConcurrentQueue<string> _messages = new();
 
     public void OnLog(Logger.LogItem item)
     {
-        if (item.Tag.ToString() == "Imaging/Cache" && item.Message is not null)
+        if (item.Tag.ToString() != nameof(ImageMemoryCache) || item.Message is not string message)
         {
-            _messages.Enqueue(item.Message);
+            return;
+        }
+
+        if (sEventPrefixes.Any(prefix => message.StartsWith(prefix, StringComparison.Ordinal)))
+        {
+            _messages.Enqueue(message);
         }
     }
 

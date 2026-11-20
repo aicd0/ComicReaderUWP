@@ -258,7 +258,12 @@ public sealed partial class ImageLoaderContext(IImageSource source) : IDisposabl
     internal async Task<ImageMeta?> GetImageMeta(ImageLoaderScheduler.Request request)
     {
         using Stream? buffer = await GetSourceStream(request);
-        return buffer is null ? null : await DecodeImageMeta(buffer);
+        if (buffer is null || request.IsCancellationRequested)
+        {
+            return null;
+        }
+
+        return await DecodeImageMeta(buffer);
     }
 
     private async Task<string> GetCacheKey(ImageCacheDatabase db)

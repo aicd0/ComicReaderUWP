@@ -86,6 +86,7 @@ internal partial class ReaderView : UserControl
     private double _initialPage = 1.0;
 
     private readonly CancellationSession _reloadSession;
+    private readonly CancellationSession _loadImageSession;
     private readonly CancellationSession _initialJumpSession;
     private readonly ObservableCollection<ReaderFrameViewModel> _frameItemsSource = [];
     private Action<int>? _frameReadyHandler;
@@ -114,6 +115,7 @@ internal partial class ReaderView : UserControl
         _gestureRecognizer.SetHandler(_gestureHandler);
 
         _reloadSession = new();
+        _loadImageSession = new(_reloadSession);
         _initialJumpSession = new(_reloadSession);
     }
 
@@ -714,6 +716,9 @@ internal partial class ReaderView : UserControl
 
     #region Loader
 
+    private IReadOnlyList<IImageSource>? _loadingImages;
+    private int _loadingImageIndex = 0;
+
     private double InitialPage => Math.Min(_initialPage, PageCount + 0.5);
     private int InitialPageInteger => PageCount > 0 ? Math.Clamp((int)Math.Ceiling(InitialPage), 1, PageCount) : 1;
     private bool IsComicLoaded => _isLoaded && PageCount > 0;
@@ -732,6 +737,8 @@ internal partial class ReaderView : UserControl
         ThisListView.SetVisibleItemIndices([]);
 
         // Reset internal states
+        _loadingImageIndex = 0;
+        _loadingImages = images;
         PageCount = images.Count;
         _pageModels = new PageModel?[PageCount];
         _readyPageCount = 0;
@@ -806,12 +813,26 @@ internal partial class ReaderView : UserControl
 
         // Start loading frames
         DispatchReaderStateChangeEvent(ReaderStatus.Loading);
-
         _frameItemsSource.Clear();
+        ResumeImageGeometryLoading();
+    }
+
+    private void ResumeImageGeometryLoading()
+    {
+        IReadOnlyList<IImageSource>? images = _loadingImages;
+        int startIndex = _loadingImageIndex;
+        if (images is null || startIndex >= images.Count)
+        {
+            return;
+        }
+
+        CancellationSession.IToken token = _loadImageSession.Next();
 
         _loadInfoDispatcher.SubmitAsync(async () =>
         {
-            void dispatchToMainThread(List<PengingImageItem> pendingList)
+            List<PengingImageItem> pendingList = [];
+
+            void FlushPendingList()
             {
                 if (pendingList.Count == 0)
                 {
@@ -829,15 +850,47 @@ internal partial class ReaderView : UserControl
 
                     foreach (PengingImageItem item in pendingListCopy)
                     {
+                        _loadingImageIndex++;
                         AddPage(item.Page, item.OriginalWidth, item.OriginalHeight, item.Source);
+                    }
+
+                    if (_loadingImageIndex >= images.Count)
+                    {
+                        _loadingImages = null;
                     }
                 });
             }
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            List<PengingImageItem> pendingList = [];
-            for (int i = 0; i < images.Count; i++)
+
+            async Task<ImageMeta?> LoadMetaAsync(IImageSource image)
+            {
+                Task<ImageMeta?> task = ImageLoader.LoadImageMeta(image, new()
+                {
+                    Priority = ImageLoadingPriority.READER_IMAGE,
+                    Token = token,
+                });
+
+                while (!task.IsCompleted)
+                {
+                    await Task.WhenAny(task, Task.Delay(500));
+
+                    if (token.IsCancellationRequested)
+                    {
+                        return null;
+                    }
+
+                    if (!task.IsCompleted)
+                    {
+                        FlushPendingList();
+                    }
+                }
+
+                return await task;
+            }
+
+            for (int i = startIndex; i < images.Count; i++)
             {
                 if (token.IsCancellationRequested)
                 {
@@ -845,10 +898,11 @@ internal partial class ReaderView : UserControl
                 }
 
                 IImageSource image = images[i];
-                ImageMeta? meta = await ImageLoader.LoadImageMeta(image, new()
+                ImageMeta? meta = await LoadMetaAsync(image);
+                if (token.IsCancellationRequested)
                 {
-                    Priority = ImageLoadingPriority.READER_IMAGE,
-                });
+                    return;
+                }
 
                 int width = 0;
                 int height = 0;
@@ -869,11 +923,11 @@ internal partial class ReaderView : UserControl
                 if (stopwatch.LapSpan().TotalMilliseconds > 500)
                 {
                     stopwatch.Lap();
-                    dispatchToMainThread(pendingList);
+                    FlushPendingList();
                 }
             }
 
-            dispatchToMainThread(pendingList);
+            FlushPendingList();
         });
     }
 
@@ -1331,9 +1385,11 @@ internal partial class ReaderView : UserControl
             UpdateUI();
             UpdateLoader("Loaded");
             UpdateImages("Loaded");
+            ResumeImageGeometryLoading();
         }
         else
         {
+            _loadImageSession.Next();
             DisposeCursor();
         }
     }

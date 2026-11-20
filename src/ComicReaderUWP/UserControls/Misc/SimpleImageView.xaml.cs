@@ -214,7 +214,10 @@ internal partial class SimpleImageView : UserControl
             }
 
             ImageLoaderContext loaderContext = new(source);
-            ImageMeta? meta = await ImageLoader.LoadImageMeta(loaderContext, new());
+            ImageMeta? meta = await ImageLoader.LoadImageMeta(loaderContext, new()
+            {
+                Token = token,
+            });
 
             if (meta is null || token.IsCancellationRequested)
             {
@@ -392,6 +395,8 @@ internal partial class SimpleImageView : UserControl
 
     private void ReleaseLoadState()
     {
+        _sourceSession.Next();
+
         if (ImageHolder.Source is null)
         {
             _loadImageSession.Next();
