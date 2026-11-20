@@ -19,10 +19,12 @@ internal sealed partial class SliderSettingView : BaseUserControl
     {
         InitializeComponent();
 
+        UpdateLabelText();
         UpdateRestoreButtonVisibility();
 
         MainSlider.ValueChanged += (s, e) =>
         {
+            UpdateLabelText();
             ValueChanged?.Invoke(this, e);
         };
     }
@@ -41,7 +43,13 @@ internal sealed partial class SliderSettingView : BaseUserControl
         nameof(Label),
         typeof(string),
         typeof(SliderSettingView),
-        new PropertyMetadata(string.Empty));
+        new PropertyMetadata(string.Empty, OnLabelChanged));
+
+    private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (SliderSettingView)d;
+        control.UpdateLabelText();
+    }
 
     public double Value
     {
@@ -58,6 +66,7 @@ internal sealed partial class SliderSettingView : BaseUserControl
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (SliderSettingView)d;
+        control.UpdateLabelText();
         control.UpdateRestoreButtonVisibility();
     }
 
@@ -76,6 +85,7 @@ internal sealed partial class SliderSettingView : BaseUserControl
     private static void OnDefaultValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (SliderSettingView)d;
+        control.UpdateLabelText();
         control.UpdateRestoreButtonVisibility();
     }
 
@@ -178,5 +188,10 @@ internal sealed partial class SliderSettingView : BaseUserControl
     {
         bool visible = !_isOneRow && Value != DefaultValue;
         RestoreButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void UpdateLabelText()
+    {
+        LabelTextBlock.Text = Value != DefaultValue ? $"{Label} ({Value:0}) *" : $"{Label} ({Value:0})";
     }
 }
