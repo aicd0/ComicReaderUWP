@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using ComicReaderUWP.Core.Common.DebugTools;
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Imaging;
 
 namespace ComicReaderUWP.Core.Tests.Imaging;
@@ -326,6 +327,24 @@ public class ImageMemoryCacheIntegrationTest
         finally
         {
             Logger.RemoveListener(logs);
+        }
+    }
+
+    [Test]
+    public async Task CancelledMetadataRequest_DoesNotReadTheSource()
+    {
+        FakeSource source = new(CreateBmp(4, 4));
+        CancellationSession cancellation = new();
+        CancellationSession.IToken token = cancellation.Token;
+        cancellation.Next();
+
+        using ImageLoaderContext context = new(source);
+        ImageMeta? meta = await context.GetImageMeta(CreateRequest(source) with { Token = token });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(meta, Is.Null);
+            Assert.That(source.OpenCount, Is.Zero, "a cancelled request must not open the source");
         }
     }
 

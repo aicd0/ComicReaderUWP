@@ -36,6 +36,7 @@ internal partial class ReaderImageCompositor : IDisposable
     private static int _nextId = 0;
     private static readonly ITaskDispatcher _decodeDispatcher = TaskDispatcher.Factory.NewQueue("ReaderViewLoadImageQueue");
     private static readonly ITaskDispatcher _layoutDispatcher = TaskDispatcher.Factory.NewQueue("ReaderImageLayoutWorker");
+    private static int sPreloadSlots = 0;
 
     private static void Log(string tag, params object?[] values)
     {
@@ -262,32 +263,116 @@ internal partial class ReaderImageCompositor : IDisposable
     {
         Interlocked.Increment(ref item.PendingDecodeTasks);
 
+        ReaderImageSource? source;
+        CancellationSession.IToken token;
+        lock (item.Lock)
+        {
+            item.CancelPreload();
+            source = item.SupportVector ? null : item.Source;
+            token = item.PreloadToken;
+        }
+
+        Task<ImageContent?>? preloadTask = source is null ? null : StartPreload(source, token);
+
         _decodeDispatcher.SubmitAsync(async () =>
         {
-            if (Interlocked.Decrement(ref item.PendingDecodeTasks) > 0)
-            {
-                return;
-            }
-
-            if (!_resourceRef.TryRef(out InstanceResourceModel? res))
-            {
-                return;
-            }
-
             try
             {
-                Log("Decode", $"Start: I={_id},N={Name}:{item.Index},Uri={item.Source?.Source.Uri}");
-                await PerformDecode(item);
-                Log("Decode", $"End: I={_id},N={Name}:{item.Index},Uri={item.Source?.Source.Uri}");
+                if (Interlocked.Decrement(ref item.PendingDecodeTasks) > 0)
+                {
+                    return;
+                }
+
+                if (!_resourceRef.TryRef(out InstanceResourceModel? res))
+                {
+                    return;
+                }
+
+                try
+                {
+                    Log("Decode", $"Start: I={_id},N={Name}:{item.Index},Uri={item.Source?.Source.Uri}");
+                    await PerformDecode(item, source, preloadTask);
+                    Log("Decode", $"End: I={_id},N={Name}:{item.Index},Uri={item.Source?.Source.Uri}");
+                }
+                finally
+                {
+                    _resourceRef.Unref();
+                }
             }
             finally
             {
-                _resourceRef.Unref();
+                if (preloadTask is not null)
+                {
+                    CoroutineUtils.Run(async () =>
+                    {
+                        try
+                        {
+                            ImageContent? content = await preloadTask;
+                            content?.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.E(TAG, ex);
+                        }
+                        finally
+                        {
+                            Interlocked.Decrement(ref sPreloadSlots);
+                        }
+                    });
+                }
             }
         });
     }
 
-    private async Task PerformDecode(ImageItem item)
+    private static Task<ImageContent?>? StartPreload(ReaderImageSource source, CancellationSession.IToken token)
+    {
+        int limit = AppSettingsModel.PreloadPagesBefore + AppSettingsModel.PreloadPagesAfter + 1;
+        if (limit <= 0)
+        {
+            return null;
+        }
+
+        if (Interlocked.Increment(ref sPreloadSlots) > limit)
+        {
+            Interlocked.Decrement(ref sPreloadSlots);
+            return null;
+        }
+
+        return ReadAsync();
+
+        async Task<ImageContent?> ReadAsync()
+        {
+            try
+            {
+                using (IImageConnection? connection = await source.Source.Open())
+                {
+                    if (connection is null)
+                    {
+                        return null;
+                    }
+
+                    using IVectorImageService? vectorService = connection.OpenVectorService();
+                    if (vectorService is not null)
+                    {
+                        return null;
+                    }
+                }
+
+                return await ImageLoader.LoadImageContent(source.Source, new()
+                {
+                    Priority = ImageLoadingPriority.READER_IMAGE,
+                    Token = token,
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.E(TAG, ex);
+                return null;
+            }
+        }
+    }
+
+    private async Task PerformDecode(ImageItem item, ReaderImageSource? preloadSource, Task<ImageContent?>? preloadTask)
     {
         ReaderImageSource? source;
         SizeF8 frameSize;
@@ -311,7 +396,12 @@ internal partial class ReaderImageCompositor : IDisposable
         AnimatedBitmapModel? newBitmap = null;
 
         using IVectorImageService? vectorService = connection.OpenVectorService();
-        item.SupportVector = vectorService is not null;
+
+        lock (item.Lock)
+        {
+            item.SupportVector = vectorService is not null;
+        }
+
         if (vectorService is not null)
         {
             double width = frameSize.Width * _scale;
@@ -342,41 +432,30 @@ internal partial class ReaderImageCompositor : IDisposable
 
         if (newBitmap is null)
         {
-            using ImageContent? content = await ImageLoader.LoadImageContent(source.Source, new()
+            ImageContent? preloaded = null;
+            if (preloadTask is not null && source == preloadSource)
             {
-                Priority = ImageLoadingPriority.READER_IMAGE,
-            });
-
-            if (content is null)
-            {
-                Logger.W(TAG, $"Decode failed (Cannot open stream) (name={Name}-{item.Index}, uri={item.Source?.Source.Uri})");
-                return;
+                preloaded = await preloadTask;
             }
 
-            if (content.Meta is not null && content.Meta.FrameCount > 1)
+            if (preloaded is not null)
             {
-                newBitmap = AnimatedBitmapModel.FromStream(_canvasDevice, content.Stream);
+                newBitmap = await DecodeImage(preloaded);
             }
-
-            if (newBitmap is null)
+            else
             {
-                if (content.Stream.CanSeek)
+                using ImageContent? content = await ImageLoader.LoadImageContent(source.Source, new()
                 {
-                    content.Stream.Position = 0;
-                }
+                    Priority = ImageLoadingPriority.READER_IMAGE,
+                });
 
-                CanvasBitmap bitmap;
-                try
+                if (content is null)
                 {
-                    bitmap = await CanvasBitmap.LoadAsync(_canvasDevice, content.Stream.AsRandomAccessStream());
-                }
-                catch (Exception ex)
-                {
-                    Logger.E(TAG, ex);
+                    Logger.W(TAG, $"Decode failed (Cannot open stream) (name={Name}-{item.Index}, uri={item.Source?.Source.Uri})");
                     return;
                 }
 
-                newBitmap = AnimatedBitmapModel.FromCanvasBitmap(bitmap);
+                newBitmap = await DecodeImage(content);
             }
         }
 
@@ -396,6 +475,34 @@ internal partial class ReaderImageCompositor : IDisposable
 
         oldBitmapRef?.Unref();
         PostLayoutTask();
+    }
+
+    private async Task<AnimatedBitmapModel?> DecodeImage(ImageContent content)
+    {
+        if (content.Meta is not null && content.Meta.FrameCount > 1)
+        {
+            var animated = AnimatedBitmapModel.FromStream(_canvasDevice, content.Stream);
+            if (animated is not null)
+            {
+                return animated;
+            }
+        }
+
+        if (content.Stream.CanSeek)
+        {
+            content.Stream.Position = 0;
+        }
+
+        try
+        {
+            CanvasBitmap bitmap = await CanvasBitmap.LoadAsync(_canvasDevice, content.Stream.AsRandomAccessStream());
+            return AnimatedBitmapModel.FromCanvasBitmap(bitmap);
+        }
+        catch (Exception ex)
+        {
+            Logger.E(TAG, ex);
+            return null;
+        }
     }
 
     private void PostLayoutTask()
@@ -741,6 +848,8 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private sealed partial class ImageItem(int index) : IDisposable
     {
+        private readonly CancellationSession _preloadSession = new();
+
         public int PendingDecodeTasks = 0;
 
         public int Index { get; } = index;
@@ -752,11 +861,19 @@ internal partial class ReaderImageCompositor : IDisposable
 
         public RefCounted<AnimatedBitmapModel>? BitmapRef { get; set; }
 
+        public CancellationSession.IToken PreloadToken => _preloadSession.Token;
+
         public void Dispose()
         {
             Source = null;
             BitmapRef?.Unref();
             BitmapRef = null;
+            CancelPreload();
+        }
+
+        public void CancelPreload()
+        {
+            _preloadSession.Next();
         }
     }
 

@@ -1,6 +1,7 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Imaging;
 
 namespace ComicReaderUWP.Core.Tests.Imaging;
@@ -51,7 +52,8 @@ public class ImageLoaderSchedulerTest
     }
 
     /// <summary>Queues a read of a fresh uri, reporting the order in which reads actually happen.</summary>
-    private static Task<Stream?> ReadAsync(ImageLoaderSchedulerGroup group, long sequence, Action onRead, int priority = 0)
+    private static Task<Stream?> ReadAsync(ImageLoaderSchedulerGroup group, long sequence, Action onRead, int priority = 0,
+        CancellationSession.IToken? token = null)
     {
         byte[] content = new byte[16];
         ImageLoaderScheduler.Request request = new()
@@ -60,6 +62,7 @@ public class ImageLoaderSchedulerTest
             Priority = priority,
             Uri = "fake://read-" + Guid.NewGuid().ToString("N"),
             Sequence = sequence,
+            Token = token,
         };
 
         return ImageLoaderScheduler.AcquireBuffer(request, fingerprint: null, () =>
@@ -123,6 +126,31 @@ public class ImageLoaderSchedulerTest
 
         blocker.SetResult(null);
         await blocking;
+    }
+
+    [Test]
+    public async Task CancelledRead_NeverOpensTheSource()
+    {
+        ImageLoaderSchedulerGroup group = CreateGroup();
+        TaskCompletionSource<Stream?> blocker = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task<Stream?> blocking = BlockDeviceAsync(group, blocker);
+
+        CancellationSession cancellation = new();
+        CancellationSession.IToken token = cancellation.Token;
+        cancellation.Next();
+
+        int opens = 0;
+        Task<Stream?> read = ReadAsync(group, ImageLoaderScheduler.NewSequence(), () => ++opens, token: token);
+
+        blocker.SetResult(null);
+        await blocking;
+        using Stream? stream = await read.WaitAsync(TimeSpan.FromSeconds(5));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(stream, Is.Null);
+            Assert.That(opens, Is.Zero, "a read whose request was cancelled must not touch the device");
+        }
     }
 
     [Test]

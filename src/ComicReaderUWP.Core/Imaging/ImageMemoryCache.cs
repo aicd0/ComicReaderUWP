@@ -174,7 +174,7 @@ internal sealed partial class ImageMemoryCache
 
             if (buffer is null || buffer.Length == 0)
             {
-                LogRead(key, 0, Stopwatch.GetElapsedTime(startTime), pending.WaiterCount, ApproximateSize);
+                LogRead(key, 0, Stopwatch.GetElapsedTime(startTime), pending.WaiterCount, ApproximateSize, request.Priority);
                 return;
             }
 
@@ -194,7 +194,7 @@ internal sealed partial class ImageMemoryCache
                 cachedBytes = _size;
             }
 
-            LogRead(key, buffer.Length, Stopwatch.GetElapsedTime(startTime), consumers, cachedBytes);
+            LogRead(key, buffer.Length, Stopwatch.GetElapsedTime(startTime), consumers, cachedBytes, request.Priority);
         }
         catch (Exception ex)
         {
@@ -324,10 +324,10 @@ internal sealed partial class ImageMemoryCache
         }
     }
 
-    private static void LogRead(string key, long bytes, TimeSpan elapsed, int consumers, long cachedBytes)
+    private static void LogRead(string key, long bytes, TimeSpan elapsed, int consumers, long cachedBytes, int priority)
     {
         string consumersText = consumers == 1 ? "1 consumer" : $"{consumers} consumers";
-        Logger.I(TAG, $"read [buffered] {key} ({FormatBytes(bytes)}, {elapsed.TotalMilliseconds:F0} ms, {consumersText}, cache {FormatBytes(cachedBytes)})");
+        Logger.I(TAG, $"read [buffered] {key} ({FormatBytes(bytes)}, {elapsed.TotalMilliseconds:F0} ms, {consumersText}, priority {priority}, cache {FormatBytes(cachedBytes)})");
     }
 
     private static void LogResidentHit(string key)
@@ -380,6 +380,7 @@ internal sealed partial class ImageMemoryCache
     {
         public required Func<Task<Stream?>> OpenStream { get; init; }
         public string? Fingerprint { get; init; }
+        public int Priority { get; init; }
     }
 
     private sealed partial class Entry(string key, byte[] buffer, string? fingerprint)
