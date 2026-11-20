@@ -247,7 +247,7 @@ internal sealed partial class ComicInfoPage : BasePage
 
     private void NewTagTipButton_Click(object sender, RoutedEventArgs e)
     {
-        ThirdPartyLauncher.StartTemporaryTextFile("NewTagsHelp.txt", StringResourceProvider.Instance.EnterNewTagsHint);
+        CoroutineUtils.Run(() => ThirdPartyLauncher.OpenTemporaryTextFile("NewTagsHelp.txt", StringResourceProvider.Instance.EnterNewTagsHint));
     }
 
     private List<string> SearchTagHistory(string query)

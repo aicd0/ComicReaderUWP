@@ -3,6 +3,7 @@
 
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.Utils;
+using ComicReaderUWP.Core.Common.Utils;
 
 using Microsoft.UI.Xaml.Controls;
 
@@ -41,6 +42,6 @@ internal sealed partial class EditTagCateogoryDialog : BaseContentDialog
 
     private void LinksTipButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        ThirdPartyLauncher.StartTemporaryTextFile("TagLinkHelp.txt", StringResource.TagLinkTip);
+        CoroutineUtils.Run(() => ThirdPartyLauncher.OpenTemporaryTextFile("TagLinkHelp.txt", StringResource.TagLinkTip));
     }
 }

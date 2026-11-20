@@ -8,9 +8,9 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Storage;
+using ComicReaderUWP.Core.Common.Threading;
 
 using Windows.Storage;
 using Windows.System;
@@ -56,27 +56,35 @@ internal static class ThirdPartyLauncher
         return OperationResultExt.Success();
     }
 
-    public static void StartTemporaryTextFile(string filename, string text)
+    public static async Task<OperationResult<string>> OpenTemporaryTextFile(string filename, string text)
     {
         OperationResult<string> writeErr = WriteTemporaryTextFile(filename, text);
         if (!writeErr.IsSuccessful)
         {
-            return;
+            return OperationResult<string>.Failure(writeErr);
         }
 
-        try
+        OperationResult openErr = await OpenFile(writeErr.Result);
+        if (!openErr.IsSuccessful)
         {
-            var psi = new ProcessStartInfo
-            {
-                FileName = writeErr.Result,
-                UseShellExecute = true
-            };
-            Process.Start(psi);
+            return OperationResult<string>.Failure(openErr);
         }
-        catch (Exception ex)
+
+        return OperationResult<string>.Success(writeErr.Result);
+    }
+
+    public static async Task<OperationResult> OpenAssetsFile(string filename)
+    {
+        return await OpenFile(Path.Combine(AppContext.BaseDirectory, "Assets", filename));
+    }
+
+    public static async Task<OperationResult> OpenFile(string path)
+    {
+        return await StartProcess(new ProcessStartInfo
         {
-            Logger.F(TAG, nameof(StartTemporaryTextFile), ex);
-        }
+            FileName = path,
+            UseShellExecute = true
+        }, waitForExit: false);
     }
 
     public static async Task<OperationResult<string>> EditTemporaryTextFileAsync(string filename, IEnumerable<string> lines)
@@ -89,25 +97,16 @@ internal static class ThirdPartyLauncher
         }
 
         string filePath = writeErr.Result;
-        try
+        OperationResult started = await StartProcess(new ProcessStartInfo
         {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "notepad.exe",
-                Arguments = $"\"{filePath}\"",
-                UseShellExecute = false,
-            };
-            using var process = Process.Start(psi);
-            if (process is null)
-            {
-                return OperationResultExt<string>.Failure(TAG, "Failed to launch notepad.");
-            }
+            FileName = "notepad.exe",
+            Arguments = $"\"{filePath}\"",
+            UseShellExecute = false,
+        }, waitForExit: true);
 
-            await process.WaitForExitAsync();
-        }
-        catch (Exception ex)
+        if (!started.IsSuccessful)
         {
-            return OperationResultExt<string>.Failure(TAG, ex);
+            return OperationResultExt<string>.Failure(started);
         }
 
         return OperationResultExt<string>.Success(filePath);
@@ -137,5 +136,31 @@ internal static class ThirdPartyLauncher
         }
 
         return OperationResultExt<string>.Success(filePath);
+    }
+
+    private static Task<OperationResult> StartProcess(ProcessStartInfo info, bool waitForExit)
+    {
+        return MainThreadUtils.PostInMainThread(async () =>
+        {
+            try
+            {
+                using var process = Process.Start(info);
+                if (process is null)
+                {
+                    return OperationResultExt.Failure(TAG, "Failed to launch notepad.");
+                }
+
+                if (waitForExit)
+                {
+                    await process.WaitForExitAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                return OperationResultExt.Failure(TAG, ex);
+            }
+
+            return OperationResultExt.Success();
+        });
     }
 }
