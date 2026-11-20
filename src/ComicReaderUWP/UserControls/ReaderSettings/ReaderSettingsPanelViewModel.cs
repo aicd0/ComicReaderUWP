@@ -48,17 +48,6 @@ internal partial class ReaderSettingsPanelViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _coverPageCountLabel = string.Empty;
-    public string CoverPageCountLabel
-    {
-        get => _coverPageCountLabel;
-        set
-        {
-            _coverPageCountLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CoverPageCountLabel)));
-        }
-    }
-
     private string _swapLeftAndRightPagesLabel = string.Empty;
     public string SwapLeftAndRightPagesLabel
     {
@@ -81,28 +70,6 @@ internal partial class ReaderSettingsPanelViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _pageSpacingLabel = string.Empty;
-    public string PageSpacingLabel
-    {
-        get => _pageSpacingLabel;
-        set
-        {
-            _pageSpacingLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PageSpacingLabel)));
-        }
-    }
-
-    private string _autoScrollingLabel = string.Empty;
-    public string AutoScrollingLabel
-    {
-        get => _autoScrollingLabel;
-        set
-        {
-            _autoScrollingLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoScrollingLabel)));
-        }
-    }
-
     private string _originalSizeLabel = string.Empty;
     public string OriginalSizeLabel
     {
@@ -122,50 +89,6 @@ internal partial class ReaderSettingsPanelViewModel : INotifyPropertyChanged
         {
             _flipImageLabel = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FlipImageLabel)));
-        }
-    }
-
-    private string _antiAliasingFilterLabel = string.Empty;
-    public string AntiAliasingFilterLabel
-    {
-        get => _antiAliasingFilterLabel;
-        set
-        {
-            _antiAliasingFilterLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AntiAliasingFilterLabel)));
-        }
-    }
-
-    private string _brightnessLabel = string.Empty;
-    public string BrightnessLabel
-    {
-        get => _brightnessLabel;
-        set
-        {
-            _brightnessLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BrightnessLabel)));
-        }
-    }
-
-    private string _contrastLabel = string.Empty;
-    public string ContrastLabel
-    {
-        get => _contrastLabel;
-        set
-        {
-            _contrastLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ContrastLabel)));
-        }
-    }
-
-    private string _saturationLabel = string.Empty;
-    public string SaturationLabel
-    {
-        get => _saturationLabel;
-        set
-        {
-            _saturationLabel = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaturationLabel)));
         }
     }
 

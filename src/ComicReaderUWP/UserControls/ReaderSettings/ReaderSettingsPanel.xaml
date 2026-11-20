@@ -144,7 +144,7 @@
             </Grid>
             <readersettings:SliderSettingView
                 x:Name="CoverPageCountSlider"
-                Label="{x:Bind ViewModel.CoverPageCountLabel, Mode=OneWay}"
+                Label="{x:Bind StringResource.CoverPageCount}"
                 Maximum="2"
                 Minimum="0"
                 SnapsTo="Ticks"
@@ -221,14 +221,14 @@
             <readersettings:SliderSettingView
                 x:Name="PageSpacingSlider"
                 Margin="0,8,0,0"
-                Label="{x:Bind ViewModel.PageSpacingLabel, Mode=OneWay}"
+                Label="{x:Bind StringResource.PageSpacing}"
                 Maximum="200"
                 Minimum="0"
                 StepFrequency="1"
                 ValueChanged="PageSpacingSlider_ValueChanged" />
             <readersettings:SliderSettingView
                 x:Name="AutoScrollingSlider"
-                Label="{x:Bind ViewModel.AutoScrollingLabel, Mode=OneWay}"
+                Label="{x:Bind StringResource.AutoScrolling}"
                 Maximum="100"
                 Minimum="0"
                 StepFrequency="1"
@@ -297,7 +297,7 @@
             </Grid>
             <readersettings:SliderSettingView
                 x:Name="AntiAliasingFilterSlider"
-                Label="{x:Bind ViewModel.AntiAliasingFilterLabel, Mode=OneWay}"
+                Label="{x:Bind StringResource.AntiAliasingFilter}"
                 Maximum="200"
                 Minimum="0"
                 StepFrequency="1"
@@ -310,21 +310,21 @@
             <readersettings:SliderSettingView
                 x:Name="BrightnessSlider"
                 Margin="0,8,0,0"
-                Label="{x:Bind ViewModel.BrightnessLabel, Mode=OneWay}"
+                Label="{x:Bind StringResource.ImageBrightness}"
                 Maximum="100"
                 Minimum="0"
                 StepFrequency="1"
                 ValueChanged="BrightnessSlider_ValueChanged" />
             <readersettings:SliderSettingView
                 x:Name="ContrastSlider"
-                Label="{x:Bind ViewModel.ContrastLabel, Mode=OneWay}"
+                Label="{x:Bind StringResource.ImageContrast}"
                 Maximum="100"
                 Minimum="0"
                 StepFrequency="1"
                 ValueChanged="ContrastSlider_ValueChanged" />
             <readersettings:SliderSettingView
                 x:Name="SaturationSlider"
-                Label="{x:Bind ViewModel.SaturationLabel, Mode=OneWay}"
+                Label="{x:Bind StringResource.ImageSaturation}"
                 Maximum="100"
                 Minimum="0"
                 StepFrequency="1"
