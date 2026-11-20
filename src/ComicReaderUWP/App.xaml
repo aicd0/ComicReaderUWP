@@ -106,10 +106,10 @@
                     <x:Double x:Key="ContentDialogMinHeight">10</x:Double>
                     <x:Double x:Key="ContentDialogMaxWidth">1000</x:Double>
                     <x:Double x:Key="ContentDialogMinWidth">10</x:Double>
-                    <x:Double x:Key="ComicItemVerticalDesiredWidth">160</x:Double>
-                    <x:Double x:Key="ComicItemVerticalDesiredHeight">310</x:Double>
-                    <x:Double x:Key="ComicItemHorizontalDesiredWidth">320</x:Double>
-                    <x:Double x:Key="ComicItemHorizontalDesiredHeight">136</x:Double>
+                    <x:Double x:Key="ComicItemLargeDesiredWidth">160</x:Double>
+                    <x:Double x:Key="ComicItemLargeDesiredHeight">310</x:Double>
+                    <x:Double x:Key="ComicItemMediumDesiredWidth">320</x:Double>
+                    <x:Double x:Key="ComicItemMediumDesiredHeight">136</x:Double>
 
                     <Style TargetType="main:TitleBar">
                         <Setter Property="ButtonBackground" Value="Transparent" />

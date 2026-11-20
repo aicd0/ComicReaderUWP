@@ -58,11 +58,11 @@
                 ItemsPath="DisplayItems" />
 
             <DataTemplate x:Name="LargeItemTemplate" x:DataType="vm:ComicItemViewModel">
-                <comicitemview:ComicItemVertical />
+                <comicitemview:ComicItemLarge />
             </DataTemplate>
 
             <DataTemplate x:Name="MediumItemTemplate" x:DataType="vm:ComicItemViewModel">
-                <comicitemview:ComicItemHorizontal />
+                <comicitemview:ComicItemMedium />
             </DataTemplate>
 
         </ResourceDictionary>

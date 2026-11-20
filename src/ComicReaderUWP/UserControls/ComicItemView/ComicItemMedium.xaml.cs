@@ -11,11 +11,11 @@ using Microsoft.UI.Xaml.Input;
 
 namespace ComicReaderUWP.UserControls.ComicItemView;
 
-internal sealed partial class ComicItemVertical : BaseUserControl, IComicItemView
+internal sealed partial class ComicItemMedium : BaseUserControl, IComicItemView
 {
     private bool _isPrimaryPointerPressed;
 
-    public ComicItemVertical()
+    public ComicItemMedium()
     {
         InitializeComponent();
     }
