@@ -83,8 +83,6 @@ internal sealed partial class ReaderPage : BasePage
         InitializeComponent();
 
         _readerNavigationBar = new();
-
-        AddHandler(PointerPressedEvent, new PointerEventHandler(ReaderPage_AnyPointerPressed), handledEventsToo: true);
     }
 
     #endregion
@@ -231,6 +229,8 @@ internal sealed partial class ReaderPage : BasePage
             GetMainPageAbility().SetHiddenOverlayHitTestVisibility(autoToggleOverlaysOnCursor);
         });
 
+        GetMainWindowAbility().RegisterAnyPointerPressedHandler(this, MainWindow_AnyPointerPressed);
+
         GetMainWindowAbility().RegisterMinimizeChangedHandler(this, isMinimized =>
         {
             UpdateDisplayStatus();
@@ -367,7 +367,7 @@ internal sealed partial class ReaderPage : BasePage
 
             if (!MainReaderView.IsAutoScrolling)
             {
-                UnholdOverlay();
+                PostUnholdOverlay();
             }
 
             if (!isIntermediate)
@@ -410,7 +410,7 @@ internal sealed partial class ReaderPage : BasePage
         {
             if (isAutoScrolling)
             {
-                UnholdOverlay();
+                PostUnholdOverlay();
             }
 
             ViewModel.IsAutoPlaying = isAutoScrolling;
@@ -803,9 +803,9 @@ internal sealed partial class ReaderPage : BasePage
 
     #region Gesture
 
-    private void ReaderPage_AnyPointerPressed(object sender, PointerRoutedEventArgs e)
+    private void MainWindow_AnyPointerPressed(PointerDeviceType deviceType, object? originalSource)
     {
-        if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse)
+        if (deviceType == PointerDeviceType.Mouse)
         {
             return;
         }
@@ -823,7 +823,12 @@ internal sealed partial class ReaderPage : BasePage
             return false;
         }
 
-        _isPointerInsideOverlay = !IsElementInsideReader(e.OriginalSource);
+        bool pointerInsideOverlay = !IsElementInsideReader(originalSource);
+        _isPointerInsideOverlay = pointerInsideOverlay;
+        if (pointerInsideOverlay)
+        {
+            ShowOverlay();
+        }
     }
 
     private void ReaderGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -923,19 +928,23 @@ internal sealed partial class ReaderPage : BasePage
         }
     }
 
-    private void UnholdOverlay()
+    private void PostUnholdOverlay()
     {
-        _isOverlayHold = false;
+        // This request has to be posted, otherwise a later MainWindow_AnyPointerPressed will have it undone.
+        CoroutineUtils.PostInMainThread(() =>
+        {
+            _isOverlayHold = false;
 
-        PointerDeviceType pointerDeviceType = GetMainWindowAbility().LastPointerDeviceType;
-        if (pointerDeviceType == PointerDeviceType.Mouse || !_isPointerInsideOverlay)
-        {
-            HideOverlay();
-        }
-        else
-        {
-            HideOverlay(delay: 3000, ignorePointerPosition: true);
-        }
+            PointerDeviceType pointerDeviceType = GetMainWindowAbility().LastPointerDeviceType;
+            if (pointerDeviceType == PointerDeviceType.Mouse || !_isPointerInsideOverlay)
+            {
+                HideOverlay();
+            }
+            else
+            {
+                HideOverlay(delay: 3000, ignorePointerPosition: true);
+            }
+        });
     }
 
     private void ShowOverlay()

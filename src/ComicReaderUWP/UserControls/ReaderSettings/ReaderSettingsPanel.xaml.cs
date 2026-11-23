@@ -17,7 +17,6 @@ using ComicReaderUWP.Views.Dialogs.EditReaderSettingPreset;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace ComicReaderUWP.UserControls.ReaderSettings;
 
@@ -36,6 +35,7 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
     private IMainWindowAbility? _windowAbility;
     private ComicModel? _comic;
     private ReaderSettingsModel _comicSettings = ReaderSettingsModel.FromDefault();
+    private readonly ReaderSettingsModel _defaultSettings = ReaderSettingsModel.FromDefault();
     private ReaderSettingsModel? _presetSettings;
     private bool _updatingUI = false;
 
@@ -255,6 +255,8 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         PageLayoutSettings comicLayoutSettings = comicSettings.IsVertical ? comicSettings.VerticalPageLayout : comicSettings.HorizontalPageLayout;
         ReaderSettingsModel presetSettings = _presetSettings ?? comicSettings;
         PageLayoutSettings presetLayoutSettings = comicSettings.IsVertical ? presetSettings.VerticalPageLayout : presetSettings.HorizontalPageLayout;
+        ReaderSettingsModel defaultSettings = _defaultSettings;
+        PageLayoutSettings defaultLayoutSettings = comicSettings.IsVertical ? defaultSettings.VerticalPageLayout : defaultSettings.HorizontalPageLayout;
 
         bool settingsModified = false;
 
@@ -272,7 +274,8 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicLayoutSettings.CoverPageCount != presetLayoutSettings.CoverPageCount;
                 tabModified = tabModified || modified;
                 CoverPageCountSlider.Value = Math.Clamp(comicLayoutSettings.CoverPageCount, 0, 2);
-                CoverPageCountSlider.DefaultValue = presetLayoutSettings.CoverPageCount;
+                CoverPageCountSlider.RestoreValue = presetLayoutSettings.CoverPageCount;
+                CoverPageCountSlider.ResetValue = defaultLayoutSettings.CoverPageCount;
                 CoverPageCountSlider.Visibility = comicLayoutSettings.TwoPageMode ? Visibility.Visible : Visibility.Collapsed;
             }
 
@@ -322,14 +325,16 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicSettings.PageSpacing != presetSettings.PageSpacing;
                 tabModified = tabModified || modified;
                 PageSpacingSlider.Value = Math.Clamp(comicSettings.PageSpacing, 0, 200);
-                PageSpacingSlider.DefaultValue = presetSettings.PageSpacing;
+                PageSpacingSlider.RestoreValue = presetSettings.PageSpacing;
+                PageSpacingSlider.ResetValue = defaultSettings.PageSpacing;
             }
 
             {
                 bool modified = comicSettings.AutoScrollSpeed != presetSettings.AutoScrollSpeed;
                 tabModified = tabModified || modified;
                 AutoScrollingSlider.Value = Math.Clamp(comicSettings.AutoScrollSpeed, 0, 100);
-                AutoScrollingSlider.DefaultValue = presetSettings.AutoScrollSpeed;
+                AutoScrollingSlider.RestoreValue = presetSettings.AutoScrollSpeed;
+                AutoScrollingSlider.ResetValue = defaultSettings.AutoScrollSpeed;
             }
 
             {
@@ -364,28 +369,32 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
                 bool modified = comicSettings.AntiAliasingFilterPercentage != presetSettings.AntiAliasingFilterPercentage;
                 tabModified = tabModified || modified;
                 AntiAliasingFilterSlider.Value = Math.Clamp(comicSettings.AntiAliasingFilterPercentage, 0, 200);
-                AntiAliasingFilterSlider.DefaultValue = presetSettings.AntiAliasingFilterPercentage;
+                AntiAliasingFilterSlider.RestoreValue = presetSettings.AntiAliasingFilterPercentage;
+                AntiAliasingFilterSlider.ResetValue = defaultSettings.AntiAliasingFilterPercentage;
             }
 
             {
                 bool modified = comicSettings.BrightnessPercentage != presetSettings.BrightnessPercentage;
                 tabModified = tabModified || modified;
                 BrightnessSlider.Value = Math.Clamp(comicSettings.BrightnessPercentage, 0, 100);
-                BrightnessSlider.DefaultValue = presetSettings.BrightnessPercentage;
+                BrightnessSlider.RestoreValue = presetSettings.BrightnessPercentage;
+                BrightnessSlider.ResetValue = defaultSettings.BrightnessPercentage;
             }
 
             {
                 bool modified = comicSettings.ContrastPercentage != presetSettings.ContrastPercentage;
                 tabModified = tabModified || modified;
                 ContrastSlider.Value = Math.Clamp(comicSettings.ContrastPercentage, 0, 100);
-                ContrastSlider.DefaultValue = presetSettings.ContrastPercentage;
+                ContrastSlider.RestoreValue = presetSettings.ContrastPercentage;
+                ContrastSlider.ResetValue = defaultSettings.ContrastPercentage;
             }
 
             {
                 bool modified = comicSettings.SaturationPercentage != presetSettings.SaturationPercentage;
                 tabModified = tabModified || modified;
                 SaturationSlider.Value = Math.Clamp(comicSettings.SaturationPercentage, 0, 100);
-                SaturationSlider.DefaultValue = presetSettings.SaturationPercentage;
+                SaturationSlider.RestoreValue = presetSettings.SaturationPercentage;
+                SaturationSlider.ResetValue = defaultSettings.SaturationPercentage;
             }
 
             {
@@ -413,10 +422,16 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         NotifySettingsChanged();
     }
 
-    private void CoverPageCountSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    private void CoverPageCountSlider_ValueChanged(object? sender, EventArgs e)
     {
+        if (_updatingUI)
+        {
+            return;
+        }
+
         PageLayoutSettings pageLayoutSettings = _comicSettings.IsVertical ? _comicSettings.VerticalPageLayout : _comicSettings.HorizontalPageLayout;
-        pageLayoutSettings.CoverPageCount = Math.Clamp((int)e.NewValue, 0, 2);
+        int value = Math.Clamp((int)Math.Round(CoverPageCountSlider.Value), 0, 2);
+        pageLayoutSettings.CoverPageCount = value;
         NotifySettingsChanged();
     }
 
@@ -452,15 +467,27 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         NotifySettingsChanged();
     }
 
-    private void PageSpacingSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    private void PageSpacingSlider_ValueChanged(object? sender, EventArgs e)
     {
-        _comicSettings.PageSpacing = Math.Clamp((int)e.NewValue, 0, 200);
+        if (_updatingUI)
+        {
+            return;
+        }
+
+        int value = Math.Clamp((int)Math.Round(PageSpacingSlider.Value), 0, 200);
+        _comicSettings.PageSpacing = value;
         NotifySettingsChanged();
     }
 
-    private void AutoScrollingSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    private void AutoScrollingSlider_ValueChanged(object? sender, EventArgs e)
     {
-        _comicSettings.AutoScrollSpeed = Math.Clamp((int)e.NewValue, 0, 100);
+        if (_updatingUI)
+        {
+            return;
+        }
+
+        int value = Math.Clamp((int)Math.Round(AutoScrollingSlider.Value), 0, 100);
+        _comicSettings.AutoScrollSpeed = value;
         NotifySettingsChanged();
     }
 
@@ -518,27 +545,51 @@ internal sealed partial class ReaderSettingsPanel : BaseUserControl
         NotifySettingsChanged();
     }
 
-    private void AntiAliasingFilterSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    private void AntiAliasingFilterSlider_ValueChanged(object? sender, EventArgs e)
     {
-        _comicSettings.AntiAliasingFilterPercentage = Math.Clamp((int)e.NewValue, 0, 200);
+        if (_updatingUI)
+        {
+            return;
+        }
+
+        int value = Math.Clamp((int)Math.Round(AntiAliasingFilterSlider.Value), 0, 200);
+        _comicSettings.AntiAliasingFilterPercentage = value;
         NotifySettingsChanged();
     }
 
-    private void BrightnessSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    private void BrightnessSlider_ValueChanged(object? sender, EventArgs e)
     {
-        _comicSettings.BrightnessPercentage = Math.Clamp((int)e.NewValue, 0, 100);
+        if (_updatingUI)
+        {
+            return;
+        }
+
+        int value = Math.Clamp((int)Math.Round(BrightnessSlider.Value), 0, 100);
+        _comicSettings.BrightnessPercentage = value;
         NotifySettingsChanged();
     }
 
-    private void ContrastSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    private void ContrastSlider_ValueChanged(object? sender, EventArgs e)
     {
-        _comicSettings.ContrastPercentage = Math.Clamp((int)e.NewValue, 0, 100);
+        if (_updatingUI)
+        {
+            return;
+        }
+
+        int value = Math.Clamp((int)Math.Round(ContrastSlider.Value), 0, 100);
+        _comicSettings.ContrastPercentage = value;
         NotifySettingsChanged();
     }
 
-    private void SaturationSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    private void SaturationSlider_ValueChanged(object? sender, EventArgs e)
     {
-        _comicSettings.SaturationPercentage = Math.Clamp((int)e.NewValue, 0, 100);
+        if (_updatingUI)
+        {
+            return;
+        }
+
+        int value = Math.Clamp((int)Math.Round(SaturationSlider.Value), 0, 100);
+        _comicSettings.SaturationPercentage = value;
         NotifySettingsChanged();
     }
 

@@ -1,0 +1,70 @@
+<base:BaseUserControl
+    x:Class="ComicReaderUWP.UserControls.ReaderSettings.SettingEntryView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:ComicReaderUWP.Common.BaseUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="Root"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
+
+    <Grid Padding="14,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="Column0" Width="Auto" />
+            <ColumnDefinition x:Name="Column1" Width="12" />
+            <ColumnDefinition x:Name="Column2" Width="*" />
+            <ColumnDefinition x:Name="Column3" Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition x:Name="Row0" MinHeight="30" />
+            <RowDefinition x:Name="Row1" Height="0" />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            VerticalAlignment="Stretch"
+            Orientation="Horizontal"
+            Tapped="LabelStackPanel_Tapped">
+            <TextBlock
+                x:Name="LabelTextBlock"
+                Margin="0,0,0,2"
+                VerticalAlignment="Center" />
+            <FontIcon
+                x:Name="ExpandIcon"
+                Margin="6,0,0,0"
+                VerticalAlignment="Center"
+                FontSize="12"
+                Glyph="&#xE76C;" />
+        </StackPanel>
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="3"
+            Margin="0,0,0,2"
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="8">
+            <RichTextBlock x:Name="RestoreButton" IsTextSelectionEnabled="False">
+                <Paragraph>
+                    <Hyperlink Click="RestoreButton_Click">
+                        <Run Text="{x:Bind StringResource.Restore}" />
+                    </Hyperlink>
+                </Paragraph>
+            </RichTextBlock>
+            <RichTextBlock x:Name="ResetButton" IsTextSelectionEnabled="False">
+                <Paragraph>
+                    <Hyperlink Click="ResetButton_Click">
+                        <Run Text="{x:Bind StringResource.Reset}" />
+                    </Hyperlink>
+                </Paragraph>
+            </RichTextBlock>
+        </StackPanel>
+        <ContentPresenter
+            x:Name="EditorHost"
+            Grid.Row="0"
+            Grid.Column="3"
+            VerticalAlignment="Center" />
+    </Grid>
+
+</base:BaseUserControl>

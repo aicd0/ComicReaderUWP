@@ -5,86 +5,22 @@
     xmlns:base="using:ComicReaderUWP.Common.BaseUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    x:Name="Root"
+    xmlns:settings="using:ComicReaderUWP.UserControls.ReaderSettings"
     d:DesignHeight="300"
     d:DesignWidth="400"
     mc:Ignorable="d">
 
-    <Grid Padding="14,0">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="Column0" Width="Auto" />
-            <ColumnDefinition x:Name="Column1" Width="12" />
-            <ColumnDefinition x:Name="Column2" Width="*" />
-            <ColumnDefinition x:Name="Column3" Width="140" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="30" />
-            <RowDefinition x:Name="Row1" Height="0" />
-        </Grid.RowDefinitions>
-        <StackPanel
-            Grid.Row="0"
-            Grid.Column="0"
-            VerticalAlignment="Stretch"
-            Orientation="Horizontal"
-            Tapped="LabelStackPanel_Tapped">
-            <TextBlock
-                x:Name="LabelTextBlock"
-                Margin="0,0,0,2"
-                VerticalAlignment="Center" />
-            <FontIcon
-                x:Name="ExpandIcon"
-                Margin="6,0,0,0"
-                VerticalAlignment="Center"
-                FontSize="12"
-                Glyph="&#xE76C;" />
-        </StackPanel>
-        <RichTextBlock
-            x:Name="RestoreButton"
-            Grid.Row="0"
-            Grid.Column="3"
-            Margin="0,0,0,2"
-            VerticalAlignment="Center"
-            IsTextSelectionEnabled="False">
-            <Paragraph>
-                <Hyperlink Click="RestoreButton_Click">
-                    <Run Text="{x:Bind StringResource.Restore}" />
-                </Hyperlink>
-            </Paragraph>
-        </RichTextBlock>
-        <Slider
-            x:Name="MainSlider"
-            Grid.Row="0"
-            Grid.Column="3"
-            Margin="0,-2"
-            VerticalAlignment="Center"
-            Maximum="{Binding Maximum, ElementName=Root, Mode=OneWay}"
-            Minimum="{Binding Minimum, ElementName=Root, Mode=OneWay}"
-            SnapsTo="{Binding SnapsTo, ElementName=Root, Mode=OneWay}"
-            StepFrequency="{Binding StepFrequency, ElementName=Root, Mode=OneWay}"
-            TickFrequency="{Binding TickFrequency, ElementName=Root, Mode=OneWay}"
-            TickPlacement="{Binding TickPlacement, ElementName=Root, Mode=OneWay}"
-            Value="{Binding Value, ElementName=Root, Mode=TwoWay}" />
-
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup>
-                <VisualState x:Name="OneRow">
-                    <VisualState.Setters />
-                </VisualState>
-                <VisualState x:Name="TwoRows">
-                    <VisualState.Setters>
-                        <Setter Target="Column0.Width" Value="*" />
-                        <Setter Target="Column1.Width" Value="0" />
-                        <Setter Target="Column2.Width" Value="0" />
-                        <Setter Target="Column3.Width" Value="Auto" />
-                        <Setter Target="Row1.Height" Value="30" />
-                        <Setter Target="ExpandIcon.Glyph" Value="&#xE70D;" />
-                        <Setter Target="MainSlider.(Grid.Row)" Value="1" />
-                        <Setter Target="MainSlider.(Grid.Column)" Value="0" />
-                        <Setter Target="MainSlider.(Grid.ColumnSpan)" Value="4" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
-    </Grid>
+    <settings:SettingEntryView
+        x:Name="Entry"
+        EditorWidth="140"
+        RowHeight="30"
+        ShowValue="True">
+        <settings:SettingEntryView.Editor>
+            <Slider
+                x:Name="MainSlider"
+                Margin="0,-2"
+                ValueChanged="MainSlider_ValueChanged" />
+        </settings:SettingEntryView.Editor>
+    </settings:SettingEntryView>
 
 </base:BaseUserControl>
