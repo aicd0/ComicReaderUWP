@@ -869,11 +869,11 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="Rating" xml:space="preserve">
     <value>점수</value>
   </data>
+  <data name="Reader" xml:space="preserve">
+    <value>리더</value>
+  </data>
   <data name="ReaderExpander.Detail" xml:space="preserve">
     <value>리더를 사용자 정의하세요</value>
-  </data>
-  <data name="ReaderExpander.Header" xml:space="preserve">
-    <value>리더</value>
   </data>
   <data name="ReaderSettingButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>리더 설정</value>

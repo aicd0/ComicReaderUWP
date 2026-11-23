@@ -24,30 +24,19 @@ internal partial class EditKeyboardShortcutDialogViewModel : INotifyPropertyChan
         }
     }
 
-    private List<KeyboardShortcutActionEntry> _actions = [];
-    public List<KeyboardShortcutActionEntry> Actions
+    private KeyboardShortcutActionEntry? _selectedAction;
+    public KeyboardShortcutActionEntry? SelectedAction
     {
-        get => _actions;
-        private set
-        {
-            _actions = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Actions)));
-        }
-    }
-
-    private int _actionIndex = -1;
-    public int ActionIndex
-    {
-        get => _actionIndex;
+        get => _selectedAction;
         set
         {
-            _actionIndex = value;
-            if (value >= 0 && value < Actions.Count)
+            _selectedAction = value;
+            if (value is not null)
             {
-                _action = Actions[value].Id;
+                _action = value.Id;
             }
 
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ActionIndex)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedActionName)));
             Validate();
         }
     }
@@ -85,8 +74,13 @@ internal partial class EditKeyboardShortcutDialogViewModel : INotifyPropertyChan
         }
     }
 
+    public KeyboardShortcutActionGroup ActionTree { get; private set; } = new();
+
+    public string SelectedActionName => SelectedAction?.FullName ?? string.Empty;
+
     public KeyboardShortcutModel? Result { get; private set; }
 
+    private List<KeyboardShortcutActionEntry> _actions = [];
     private KeyboardShortcutModel? _original;
     private KeyboardShortcutModel? _key;
     private string _action = string.Empty;
@@ -96,19 +90,23 @@ internal partial class EditKeyboardShortcutDialogViewModel : INotifyPropertyChan
         _original = original;
 
         Title = original is null ? StringResourceProvider.Instance.AddKeyboardShortcut : StringResourceProvider.Instance.EditKeyboardShortcut;
-        Actions = KeyboardShortcutActions.GetAllEntries();
+        _actions = KeyboardShortcutActions.GetAllEntries();
+        ActionTree = KeyboardShortcutActions.BuildTree(_actions);
 
         int actionIndex = 0;
         if (original is not null)
         {
-            int index = Actions.FindIndex(entry => entry.Id == original.Action);
+            int index = _actions.FindIndex(entry => entry.Id == original.Action);
             if (index >= 0)
             {
                 actionIndex = index;
             }
         }
 
-        ActionIndex = actionIndex;
+        if (_actions.Count > 0)
+        {
+            SelectedAction = _actions[actionIndex];
+        }
 
         Validate();
     }

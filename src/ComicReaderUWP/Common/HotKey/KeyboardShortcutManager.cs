@@ -9,21 +9,18 @@ using ComicReaderUWP.Core.Common.Lifecycle.Utils;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Misc;
 
-using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Input;
 
-using Windows.Foundation;
 using Windows.System;
+using Windows.UI.Core;
 
 namespace ComicReaderUWP.Common.HotKey;
 
 internal static class KeyboardShortcutManager
 {
-    private const long TRIGGER_COOLDOWN = 200;
-
     private static readonly MutableLiveData<bool> sShortcutsChangedLiveData = new();
     public static ILiveData<bool> ShortcutsChangedLiveData => sShortcutsChangedLiveData;
 
-    private static readonly Dictionary<string, long> sLastTriggerTime = [];
     private static List<KeyboardShortcutModel>? sCachedShortcuts;
 
     static KeyboardShortcutManager()
@@ -60,6 +57,28 @@ internal static class KeyboardShortcutManager
         }
 
         return shortcuts;
+    }
+
+    public static KeyboardShortcutModel? GetShortcut(VirtualKey key)
+    {
+        VirtualKeyModifiers modifiers = GetCurrentModifiers();
+        foreach (KeyboardShortcutModel shortcut in GetCachedShortcuts())
+        {
+            if (shortcut.Key == key && shortcut.Modifiers == modifiers)
+            {
+                return shortcut;
+            }
+        }
+
+        foreach (KeyboardShortcutModel shortcut in KeyboardShortcutActions.InternalShortcuts)
+        {
+            if (shortcut.Key == key && shortcut.Modifiers == modifiers)
+            {
+                return shortcut;
+            }
+        }
+
+        return null;
     }
 
     public static string GetShortcutDisplayText(string action)
@@ -115,28 +134,31 @@ internal static class KeyboardShortcutManager
         AppSettingsModel.KeyboardShortcuts = [.. KeyboardShortcutActions.DefaultShortcuts];
     }
 
-    public static List<KeyboardAccelerator> CreateAccelerators(string action, TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> handler)
+    public static VirtualKeyModifiers GetCurrentModifiers()
     {
-        List<KeyboardAccelerator> accelerators = [];
-        foreach (KeyboardShortcutModel shortcut in GetShortcuts(action))
+        VirtualKeyModifiers modifiers = VirtualKeyModifiers.None;
+
+        if (IsKeyDown(VirtualKey.Control))
         {
-            KeyboardAccelerator accelerator = new()
-            {
-                Key = shortcut.Key,
-                Modifiers = shortcut.Modifiers,
-            };
-            accelerator.Invoked += (sender, args) =>
-            {
-                args.Handled = true;
-                if (IsTriggerAllowed(shortcut))
-                {
-                    handler(sender, args);
-                }
-            };
-            accelerators.Add(accelerator);
+            modifiers |= VirtualKeyModifiers.Control;
         }
 
-        return accelerators;
+        if (IsKeyDown(VirtualKey.Shift))
+        {
+            modifiers |= VirtualKeyModifiers.Shift;
+        }
+
+        if (IsKeyDown(VirtualKey.Menu))
+        {
+            modifiers |= VirtualKeyModifiers.Menu;
+        }
+
+        if (IsKeyDown(VirtualKey.LeftWindows) || IsKeyDown(VirtualKey.RightWindows))
+        {
+            modifiers |= VirtualKeyModifiers.Windows;
+        }
+
+        return modifiers;
     }
 
     public static bool IsReserved(VirtualKey key, VirtualKeyModifiers modifiers)
@@ -181,23 +203,6 @@ internal static class KeyboardShortcutManager
         return sCachedShortcuts ??= AppSettingsModel.KeyboardShortcuts;
     }
 
-    private static bool IsTriggerAllowed(KeyboardShortcutModel shortcut)
-    {
-        string triggerKey = $"{shortcut.Action}:{shortcut.Key}:{shortcut.Modifiers}";
-        long now = Environment.TickCount64;
-        if (sLastTriggerTime.TryGetValue(triggerKey, out long lastTime))
-        {
-            long elapsedMilliseconds = now - lastTime;
-            if (elapsedMilliseconds < TRIGGER_COOLDOWN)
-            {
-                return false;
-            }
-        }
-
-        sLastTriggerTime[triggerKey] = now;
-        return true;
-    }
-
     private static string GetScope(string action)
     {
         return KeyboardShortcutActions.Get(action)?.Scope ?? KeyboardShortcutActions.RootScope;
@@ -206,5 +211,11 @@ internal static class KeyboardShortcutManager
     private static bool AreScopesRelated(string scopeA, string scopeB)
     {
         return scopeA == scopeB || scopeA.StartsWith(scopeB + "/", StringComparison.Ordinal) || scopeB.StartsWith(scopeA + "/", StringComparison.Ordinal);
+    }
+
+    private static bool IsKeyDown(VirtualKey key)
+    {
+        CoreVirtualKeyStates state = InputKeyboardSource.GetKeyStateForCurrentThread(key);
+        return state.HasFlag(CoreVirtualKeyStates.Down);
     }
 }

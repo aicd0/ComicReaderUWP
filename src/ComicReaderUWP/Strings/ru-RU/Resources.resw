@@ -869,11 +869,11 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="Rating" xml:space="preserve">
     <value>Рейтинг</value>
   </data>
+  <data name="Reader" xml:space="preserve">
+    <value>Читатель</value>
+  </data>
   <data name="ReaderExpander.Detail" xml:space="preserve">
     <value>Настройте параметры чтения</value>
-  </data>
-  <data name="ReaderExpander.Header" xml:space="preserve">
-    <value>Читатель</value>
   </data>
   <data name="ReaderSettingButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Настройки читателя</value>

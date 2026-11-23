@@ -1,8 +1,11 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
+
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.HotKey;
+using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.UserControls.Misc;
 
 using Microsoft.UI.Xaml;
@@ -19,6 +22,10 @@ internal sealed partial class EditKeyboardShortcutDialog : BaseContentDialog
         InitializeComponent();
 
         ViewModel.Initialize(original);
+
+        MenuFlyout actionMenu = new();
+        actionMenu.Opening += ActionMenu_Opening;
+        ActionButton.Flyout = actionMenu;
 
         if (original is not null)
         {
@@ -53,8 +60,43 @@ internal sealed partial class EditKeyboardShortcutDialog : BaseContentDialog
         Hide();
     }
 
-    private void ActionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ActionMenu_Opening(object? sender, object args)
     {
-        ViewModel.ActionIndex = ((ComboBox)sender).SelectedIndex;
+        if (sender is not MenuFlyout flyout)
+        {
+            return;
+        }
+
+        flyout.Items.Clear();
+        foreach (BaseMenuFlyoutItemModel item in CreateActionMenuItems(ViewModel.ActionTree))
+        {
+            flyout.Items.Add(item.CreateMenuFlyoutItem());
+        }
+    }
+
+    private List<BaseMenuFlyoutItemModel> CreateActionMenuItems(KeyboardShortcutActionGroup group)
+    {
+        List<BaseMenuFlyoutItemModel> items = [];
+        foreach (KeyboardShortcutActionEntry entry in group.Entries)
+        {
+            KeyboardShortcutActionEntry choice = entry;
+            items.Add(new ToggleMenuFlyoutItemModel
+            {
+                Text = choice.Name,
+                IsChecked = choice == ViewModel.SelectedAction,
+                Click = () => ViewModel.SelectedAction = choice,
+            });
+        }
+
+        foreach (KeyboardShortcutActionGroup child in group.Groups)
+        {
+            items.Add(new SubItemMenuFlyoutItemModel
+            {
+                Text = child.Name,
+                Items = CreateActionMenuItems(child),
+            });
+        }
+
+        return items;
     }
 }

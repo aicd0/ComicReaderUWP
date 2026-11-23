@@ -870,11 +870,11 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="Rating" xml:space="preserve">
     <value>Rating</value>
   </data>
+  <data name="Reader" xml:space="preserve">
+    <value>Reader</value>
+  </data>
   <data name="ReaderExpander.Detail" xml:space="preserve">
     <value>Customize the reader</value>
-  </data>
-  <data name="ReaderExpander.Header" xml:space="preserve">
-    <value>Reader</value>
   </data>
   <data name="ReaderSettingButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Reader settings</value>

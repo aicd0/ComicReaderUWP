@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using ComicReaderUWP.Common.BaseUI;
 using ComicReaderUWP.Common.BaseUI.PageAbilities;
 using ComicReaderUWP.Common.Constants;
-using ComicReaderUWP.Common.HotKey;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Common.Plugins;
@@ -100,7 +99,6 @@ internal sealed partial class ReaderPage : BasePage
         GetMainPageAbility().SetCustomCenteredNavigationBar(_readerNavigationBar);
 
         // Initialize views
-        MainReaderView.LoadShortcuts();
         MainReaderView.OverScrollEnabled = AppSettingsModel.AutoSwitch;
         _readerNavigationBar.Initialize(GetMainWindowAbility());
         ViewModel.SetZooming((int)Math.Round(MainReaderView.Zooming * 100F));
@@ -143,19 +141,19 @@ internal sealed partial class ReaderPage : BasePage
     protected override void OnResume()
     {
         base.OnResume();
-
         UpdateDisplayStatus();
         AddToActiveTabs();
         SyncCurrentComic();
         GetWindowEventBus().With<PlaybackModel>(EventId.PlaybackChanged).Emit(ViewModel.Playback);
         UpdateReaderUI();
         FocusReader();
+        GetMainPageAbility().RegisterShortcutActionHandler(MainReaderView.InvokeShortcutAction);
     }
 
     protected override void OnPause()
     {
         base.OnPause();
-
+        GetMainPageAbility().UnregisterShortcutActionHandler(MainReaderView.InvokeShortcutAction);
         UpdateDisplayStatus();
     }
 
@@ -182,8 +180,6 @@ internal sealed partial class ReaderPage : BasePage
 
             ViewModel.UpdateComicMetadata();
         });
-
-        KeyboardShortcutManager.ShortcutsChangedLiveData.Observe(this, _ => MainReaderView.LoadShortcuts());
 
         AppSettingsModel.KeepScreenOnBehaviorChangedLiveData.Observe(this, _ => UpdateDisplayStatus());
 

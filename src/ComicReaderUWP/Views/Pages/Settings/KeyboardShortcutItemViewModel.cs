@@ -12,7 +12,7 @@ internal sealed class KeyboardShortcutItemViewModel(KeyboardShortcutModel model)
 
     public string ShortcutText => Model.ToString();
 
-    public string ActionName => KeyboardShortcutActions.Get(Model.Action)?.Name ?? Model.Action;
+    public string ActionName => KeyboardShortcutActions.GetFullName(Model.Action);
 
     public void Update(KeyboardShortcutModel model)
     {

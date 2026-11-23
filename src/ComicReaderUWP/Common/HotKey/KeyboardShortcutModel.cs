@@ -1,6 +1,7 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Text;
 
 using Windows.System;
@@ -75,7 +76,7 @@ internal sealed class KeyboardShortcutModel
             VirtualKey.Space => "Space",
             VirtualKey.Escape => "Esc",
             VirtualKey.Back => "Backspace",
-            _ => key.ToString(),
+            _ => Enum.IsDefined(key) ? key.ToString() : KeyboardKeyNames.GetName((uint)key) ?? key.ToString(),
         };
     }
 }

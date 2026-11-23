@@ -8,8 +8,12 @@ namespace ComicReaderUWP.Common.BaseUI.PageAbilities;
 
 internal interface IMainPageAbility : IPageAbility
 {
-    public delegate void TabUnselectedEventHandler();
+    public delegate bool ShortcutActionHandler(string action);
     public delegate void TitleBarVisibilityChangedEventHandler(bool visible);
+
+    void RegisterShortcutActionHandler(ShortcutActionHandler handler);
+
+    void UnregisterShortcutActionHandler(ShortcutActionHandler handler);
 
     void RegisterOverlayVisibilityChangedHandler(ILifecycleOwner owner, TitleBarVisibilityChangedEventHandler handler);
 
