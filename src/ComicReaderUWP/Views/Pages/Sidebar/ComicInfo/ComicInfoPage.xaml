@@ -37,12 +37,29 @@
             <!--  Information  -->
             <ScrollViewer
                 Grid.Row="0"
-                Padding="15,0,15,0"
+                Padding="16,0"
                 VerticalScrollBarVisibility="Auto">
                 <StackPanel Orientation="Vertical">
-                    <Grid Height="34" />
+                    <Grid Height="8" />
+                    <ComboBox
+                        Margin="0,8,0,0"
+                        DisplayMemberPath="Title"
+                        ItemsSource="{x:Bind ViewModel.Targets}"
+                        SelectedIndex="{x:Bind ViewModel.SelectedTargetIndex, Mode=OneWay}"
+                        SelectionChanged="OnTargetSelectionChanged"
+                        Visibility="{x:Bind ViewModel.IsTargetSelectorVisible, Mode=OneWay}" />
+                    <!--  Cover image  -->
+                    <controls:SimpleImageView
+                        MaxWidth="160"
+                        MaxHeight="160"
+                        Margin="0,16,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        ImageUri="{x:Bind ViewModel.CoverImageUri, Mode=OneWay}"
+                        Visibility="{x:Bind ViewModel.IsCoverImageVisible, Mode=OneWay}" />
                     <!--  Title1  -->
                     <TextBlock
+                        Margin="0,24,0,0"
                         FontSize="20"
                         FontWeight="SemiLight"
                         IsTextSelectionEnabled="True"
@@ -73,62 +90,64 @@
                         IsClearEnabled="True"
                         ValueChanged="OnRatingControlValueChanged"
                         Value="{x:Bind ViewModel.Rating, Mode=TwoWay}" />
-                    <Rectangle
-                        Height="1"
-                        Margin="0,18"
-                        Fill="{ThemeResource AppSeperator2}" />
-                    <!--  Directory  -->
-                    <RichTextBlock Margin="0,0,0,0" VerticalAlignment="Center">
-                        <Paragraph>
-                            <Run
-                                FontSize="13"
-                                FontWeight="SemiLight"
-                                Text="{x:Bind ViewModel.ComicDir, Mode=OneWay}" />
-                            <InlineUIContainer>
-                                <FontIcon
-                                    Margin="0,0,0,-2.5"
-                                    FontSize="13"
-                                    Glyph="&#xE838;"
-                                    Tapped="OnDirectoryTapped"
-                                    ToolTipService.ToolTip="{x:Bind StringResource.ShowInFileExplorer}" />
-                            </InlineUIContainer>
-                        </Paragraph>
-                    </RichTextBlock>
-                    <!--  Image descriptions  -->
-                    <ListView
-                        Margin="0"
-                        Padding="0"
-                        ItemsSource="{x:Bind ViewModel.ImageDescriptions}"
-                        SelectionMode="None">
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem">
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                                <Setter Property="Padding" Value="0" />
-                                <Setter Property="MinHeight" Value="0" />
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                        <ListView.ItemContainerTransitions>
-                            <TransitionCollection />
-                        </ListView.ItemContainerTransitions>
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <TextBlock
-                                    Margin="0,8,0,0"
+                    <StackPanel Orientation="Vertical" Visibility="{x:Bind ViewModel.IsComic, Mode=OneWay}">
+                        <Rectangle
+                            Height="1"
+                            Margin="0,18"
+                            Fill="{ThemeResource AppSeperator2}" />
+                        <!--  Directory  -->
+                        <RichTextBlock VerticalAlignment="Center">
+                            <Paragraph>
+                                <Run
                                     FontSize="13"
                                     FontWeight="SemiLight"
-                                    IsTextSelectionEnabled="True"
-                                    Text="{x:Bind}"
-                                    TextWrapping="Wrap" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                                    Text="{x:Bind ViewModel.ComicDir, Mode=OneWay}" />
+                                <InlineUIContainer>
+                                    <FontIcon
+                                        Margin="0,0,0,-2.5"
+                                        FontSize="13"
+                                        Glyph="&#xE838;"
+                                        Tapped="OnDirectoryTapped"
+                                        ToolTipService.ToolTip="{x:Bind StringResource.ShowInFileExplorer}" />
+                                </InlineUIContainer>
+                            </Paragraph>
+                        </RichTextBlock>
+                        <!--  Image descriptions  -->
+                        <ListView
+                            Margin="0"
+                            Padding="0"
+                            ItemsSource="{x:Bind ViewModel.ImageDescriptions}"
+                            SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="MinHeight" Value="0" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemContainerTransitions>
+                                <TransitionCollection />
+                            </ListView.ItemContainerTransitions>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <TextBlock
+                                        Margin="0,8,0,0"
+                                        FontSize="13"
+                                        FontWeight="SemiLight"
+                                        IsTextSelectionEnabled="True"
+                                        Text="{x:Bind}"
+                                        TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                    <!--  Tags  -->
                     <Rectangle
                         Height="1"
                         Margin="0,20"
                         Fill="{ThemeResource AppSeperator2}"
                         Visibility="{x:Bind ViewModel.HasAnyTags, Mode=OneWay}" />
-                    <!--  Tags  -->
                     <controls:ComicTagsView Tags="{x:Bind ViewModel.ComicTags}" />
                 </StackPanel>
             </ScrollViewer>

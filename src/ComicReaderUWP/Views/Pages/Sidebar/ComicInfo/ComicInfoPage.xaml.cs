@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 using ComicReaderUWP.Common.BaseUI;
@@ -52,15 +51,11 @@ internal sealed partial class ComicInfoPage : BasePage
 
     private void ObserveData()
     {
-        GlobalEvent.Instance.ComicUpdated.Observe(this, ids =>
-        {
-            ComicModel? comic = ViewModel.Comic;
-            if (comic is null || !ids.Contains(comic.Id))
-            {
-                return;
-            }
+        GlobalEvent.Instance.ComicUpdated.Observe(this, ViewModel.OnComicUpdated);
 
-            ViewModel.Reload();
+        GlobalEvent.Instance.CollectionUpdated.Observe(this, _ =>
+        {
+            ViewModel.RefreshTargets();
         });
 
         GlobalEvent.Instance.FavoriteUpdated.Observe(this, _ =>
@@ -101,6 +96,16 @@ internal sealed partial class ComicInfoPage : BasePage
             FillRichTextInlines(TbComicDescription.Inlines, description);
             TbComicDescription.Visibility = TbComicDescription.Inlines.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         });
+    }
+
+    private void OnTargetSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox comboBox)
+        {
+            return;
+        }
+
+        ViewModel.SetSelectedTargetIndex(comboBox.SelectedIndex);
     }
 
     private void SetCompletionStateButton_Click(object sender, RoutedEventArgs e)

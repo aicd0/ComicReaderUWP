@@ -852,6 +852,8 @@ internal sealed partial class ReaderPage : BasePage
 
     #region Overlay
 
+    private const int HIDE_OVERLAY_DELAY_MS = 1000;
+
     private bool _isPointerInsideOverlay = false;
     private bool _isMouseInsideRootElement = true;
     private bool _isMouseInsideReader = false;
@@ -859,7 +861,7 @@ internal sealed partial class ReaderPage : BasePage
     private double _topOverlayHeight = 0.0;
     private double _rightOverlayWidth = 0.0;
     private double _bottomGridHeight = 0.0;
-    private bool _isOverlayVisible = true;
+    private bool _isOverlayVisible = false;
     private bool _isOverlayHold = false;
     private long _hideOverlaySession = 0;
     private long _hideOverlayDeadline = -1;
@@ -878,8 +880,8 @@ internal sealed partial class ReaderPage : BasePage
                 pointerPos.Y <= windowSize.Height - padding;
         }
 
-        bool isPointerInsideWindow = GetMouseInsideWindowState();
-        bool isPointerInsideOverlay = (isPointerInsideWindow || _isMouseInsideRootElement) && !_isMouseInsideReader;
+        bool isMouseInsideWindow = GetMouseInsideWindowState();
+        bool isPointerInsideOverlay = (isMouseInsideWindow || _isMouseInsideRootElement) && !_isMouseInsideReader;
 
         if (isPointerInsideOverlay == _isPointerInsideOverlay)
         {
@@ -896,7 +898,7 @@ internal sealed partial class ReaderPage : BasePage
             }
             else
             {
-                HideOverlay(delay: 1000);
+                HideOverlay(delay: HIDE_OVERLAY_DELAY_MS);
             }
         }
     }
@@ -907,6 +909,13 @@ internal sealed partial class ReaderPage : BasePage
         if (_isOverlayHold)
         {
             ShowOverlay();
+
+            PointerDeviceType pointerDeviceType = GetMainWindowAbility().LastPointerDeviceType;
+            if (pointerDeviceType != PointerDeviceType.Mouse)
+            {
+                _isOverlayHold = false;
+                HideOverlay(delay: 3000);
+            }
         }
         else
         {
