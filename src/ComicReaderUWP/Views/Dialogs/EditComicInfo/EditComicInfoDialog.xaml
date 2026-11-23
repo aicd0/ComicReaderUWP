@@ -148,8 +148,8 @@
                         Orientation="Horizontal">
                         <TextBlock Style="{StaticResource FieldNameTextBlockStyle}" Text="{x:Bind ViewModel.TagsLabel, Mode=OneWay}" />
                         <Button
-                            Margin="6,12.5,0,0"
-                            Padding="0"
+                            Margin="2,8.5,0,0"
+                            Padding="4"
                             VerticalAlignment="Top"
                             Background="Transparent"
                             BorderThickness="0"

@@ -483,9 +483,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>Ausdruck</value>
   </data>
-  <data name="ExpressionValid" xml:space="preserve">
-    <value>SQL-Abfrage: $query</value>
-  </data>
   <data name="Favorite" xml:space="preserve">
     <value>Favorit</value>
   </data>

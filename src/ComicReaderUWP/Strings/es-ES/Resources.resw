@@ -483,9 +483,6 @@ La evaluación se realizará en el siguiente orden:
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>Expresión</value>
   </data>
-  <data name="ExpressionValid" xml:space="preserve">
-    <value>Consulta SQL: $query</value>
-  </data>
   <data name="Favorite" xml:space="preserve">
     <value>Favorito</value>
   </data>

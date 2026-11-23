@@ -73,13 +73,6 @@
 		<DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
 	</PropertyGroup>
 
-	<Target Name="CopyNativeMethods" BeforeTargets="BeforeBuild">
-		<Copy SourceFiles="NativeMethods.$(Platform).txt" DestinationFiles="NativeMethods.txt" />
-	</Target>
-	<ItemGroup>
-		<AdditionalFiles Include="NativeMethods.txt" />
-	</ItemGroup>
-
 	<PropertyGroup Condition="'$(IsPackaged)' != 'true'">
 		<WindowsPackageType>None</WindowsPackageType>
 		<Version>3.6.0.0</Version>
@@ -99,10 +92,6 @@
 		<PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.2.251219" />
 		<PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.251219" />
 		<PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.251219" />
-		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.264">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250909003" />
 		<PackageReference Include="SharpCompress" Version="0.48.1" />
 		<PackageReference Include="SkiaSharp" Version="3.119.4" />

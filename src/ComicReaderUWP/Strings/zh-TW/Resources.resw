@@ -481,9 +481,6 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>表達式</value>
   </data>
-  <data name="ExpressionValid" xml:space="preserve">
-    <value>SQL查詢語句：$query</value>
-  </data>
   <data name="Favorite" xml:space="preserve">
     <value>收藏</value>
   </data>

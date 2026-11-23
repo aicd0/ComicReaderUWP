@@ -58,8 +58,8 @@
                         VerticalAlignment="Top"
                         Text="{x:Bind StringResource.Links}" />
                     <Button
-                        Margin="6,12.5,0,0"
-                        Padding="0"
+                        Margin="2,8.5,0,0"
+                        Padding="4"
                         VerticalAlignment="Top"
                         Background="Transparent"
                         BorderThickness="0"
