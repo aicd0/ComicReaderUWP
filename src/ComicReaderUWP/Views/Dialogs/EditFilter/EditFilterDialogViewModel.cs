@@ -10,6 +10,7 @@ using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Expression.Filter;
 using ComicReaderUWP.Common.Expression.Filter.Sql;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Core.Common.DebugTools;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Core.Database.SqlHelpers;
@@ -335,7 +336,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         command.AppendCondition(condition);
 
         _isExpressionValid = true;
-        string hintMessage = StringResourceProvider.Instance.ExpressionValid.Replace("$query", command.ToString());
+        string hintMessage = DebugUtils.DeveloperMode ? $"SQL query: {command}" : string.Empty;
         ParseResultLiveData.Emit(hintMessage);
         UpdateButtonStates();
     }

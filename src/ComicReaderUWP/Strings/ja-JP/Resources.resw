@@ -483,9 +483,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>条件式</value>
   </data>
-  <data name="ExpressionValid" xml:space="preserve">
-    <value>SQLクエリステートメント: $query</value>
-  </data>
   <data name="Favorite" xml:space="preserve">
     <value>集める</value>
   </data>

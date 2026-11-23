@@ -12,11 +12,11 @@ GetWindowPlacement
 GetWindowRect
 INVALID_HANDLE_VALUE
 LocalFree
-MONITORINFOEXW
 MessageBox
 MonitorFromPoint
 MonitorFromRect
 MonitorFromWindow
+MONITORINFOEXW
 RegisterHotKey
 ScreenToClient
 SetForegroundWindow

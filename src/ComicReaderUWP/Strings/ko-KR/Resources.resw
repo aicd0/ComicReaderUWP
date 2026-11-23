@@ -484,9 +484,6 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>표현식</value>
   </data>
-  <data name="ExpressionValid" xml:space="preserve">
-    <value>SQL 쿼리: $query</value>
-  </data>
   <data name="Favorite" xml:space="preserve">
     <value>좋아하는</value>
   </data>

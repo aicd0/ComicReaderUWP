@@ -108,7 +108,6 @@ public class StringResourceProvider
     public string ExpressionNot => GetResourceString("ExpressionNot");
     public string ExpressionOr => GetResourceString("ExpressionOr");
     public string ExpressionReference => GetResourceString("ExpressionReference");
-    public string ExpressionValid => GetResourceString("ExpressionValid");
     public string Favorite => GetResourceString("Favorite");
     public string Favorites => GetResourceString("Favorites");
     public string Feedback => GetResourceString("Feedback");

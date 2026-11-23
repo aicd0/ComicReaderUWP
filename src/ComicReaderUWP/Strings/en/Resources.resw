@@ -485,9 +485,6 @@ The evaluation will be performed in the following order:
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>Expression</value>
   </data>
-  <data name="ExpressionValid" xml:space="preserve">
-    <value>SQL query: $query</value>
-  </data>
   <data name="Favorite" xml:space="preserve">
     <value>Favorite</value>
   </data>
