@@ -105,6 +105,7 @@
 
     <Style x:Key="ReaderPlaybackControlButtonStyle" TargetType="Button">
         <Style.Setters>
+            <Setter Property="AllowFocusOnInteraction" Value="False" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />

@@ -868,11 +868,11 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="Rating" xml:space="preserve">
     <value>スコア</value>
   </data>
+  <data name="Reader" xml:space="preserve">
+    <value>リーダー</value>
+  </data>
   <data name="ReaderExpander.Detail" xml:space="preserve">
     <value>カスタムリーダー</value>
-  </data>
-  <data name="ReaderExpander.Header" xml:space="preserve">
-    <value>リーダー</value>
   </data>
   <data name="ReaderSettingButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>リーダー設定</value>

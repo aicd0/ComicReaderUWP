@@ -218,6 +218,7 @@ public class StringResourceProvider
     public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");
     public string RandomComic => GetResourceString("RandomComic");
     public string Rating => GetResourceString("Rating");
+    public string Reader => GetResourceString("Reader");
     public string ReaderStatusError => GetResourceString("ReaderStatusError");
     public string ReaderStatusLoading => GetResourceString("ReaderStatusLoading");
     public string ReaderTipContent => GetResourceString("ReaderTipContent");

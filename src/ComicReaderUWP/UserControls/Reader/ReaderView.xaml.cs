@@ -109,6 +109,7 @@ internal partial class ReaderView : UserControl
 
         Loaded += OnLoadedOrUnloaded;
         Unloaded += OnLoadedOrUnloaded;
+        PreviewKeyDown += OnReaderPreviewKeyDown;
 
         _gestureReference = this;
         _gestureHandler = new(this);
@@ -433,47 +434,60 @@ internal partial class ReaderView : UserControl
         Reload(_originalDataModel);
     }
 
-    public void LoadShortcuts()
+    public bool InvokeShortcutAction(string action)
     {
-        void AddKeyboardAccelerators(string action, Windows.Foundation.TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> handler)
+        switch (action)
         {
-            foreach (KeyboardAccelerator accelerator in KeyboardShortcutManager.CreateAccelerators(action, handler))
-            {
-                ContentListView.KeyboardAccelerators.Add(accelerator);
-            }
+            case KeyboardShortcutActions.GoToNextPage:
+                MoveFrameByUser("JumpPageUsingShortcut", 1);
+                return true;
+            case KeyboardShortcutActions.GoToPreviousPage:
+                MoveFrameByUser("JumpPageUsingShortcut", -1);
+                return true;
+            case KeyboardShortcutActions.GoToLeftPage:
+                MoveFrameByUser("JumpToLeftPageUsingShortcut", _isLeftToRight ? -1 : 1);
+                return true;
+            case KeyboardShortcutActions.GoToRightPage:
+                MoveFrameByUser("JumpToRightPageUsingShortcut", _isLeftToRight ? 1 : -1);
+                return true;
+            case KeyboardShortcutActions.GoToFirstPage:
+                SetPage(1, "JumpToFirstPageUsingShortcut", ScrollSource.User);
+                return true;
+            case KeyboardShortcutActions.GoToLastPage:
+                SetPage(PageCount, "JumpToLastPageUsingShortcut", ScrollSource.User);
+                return true;
+            case KeyboardShortcutActions.OpenNextComic:
+                ReaderEventComicNavigation?.Invoke(this, true);
+                return true;
+            case KeyboardShortcutActions.OpenPreviousComic:
+                ReaderEventComicNavigation?.Invoke(this, false);
+                return true;
+            case KeyboardShortcutActions.GoToRandomPage:
+                {
+                    int page = Random.Shared.Next(Math.Max(1, PageCount)) + 1;
+                    SetPage(page, "JumpToRandomPageUsingShortcut", ScrollSource.User);
+                }
+
+                return true;
+            case KeyboardShortcutActions.ToggleAutoScroll:
+                if (_isMiddleButtonAutoScrolling)
+                {
+                    return false;
+                }
+
+                if (_isAutoScrolling)
+                {
+                    StopAutoScrolling();
+                }
+                else
+                {
+                    StartAutoScrolling();
+                }
+
+                return true;
+            default:
+                return false;
         }
-
-        ContentListView.KeyboardAccelerators.Clear();
-
-        AddKeyboardAccelerators(KeyboardShortcutActions.GoToNextPage, (_, _) => MoveFrameByUser("JumpPageUsingShortcut", 1));
-        AddKeyboardAccelerators(KeyboardShortcutActions.GoToPreviousPage, (_, _) => MoveFrameByUser("JumpPageUsingShortcut", -1));
-        AddKeyboardAccelerators(KeyboardShortcutActions.GoToLeftPage, (_, _) => MoveFrameByUser("JumpToLeftPageUsingShortcut", _isLeftToRight ? -1 : 1));
-        AddKeyboardAccelerators(KeyboardShortcutActions.GoToRightPage, (_, _) => MoveFrameByUser("JumpToRightPageUsingShortcut", _isLeftToRight ? 1 : -1));
-        AddKeyboardAccelerators(KeyboardShortcutActions.GoToFirstPage, (_, _) => SetPage(1, "JumpToFirstPageUsingShortcut", ScrollSource.User));
-        AddKeyboardAccelerators(KeyboardShortcutActions.GoToLastPage, (_, _) => SetPage(PageCount, "JumpToLastPageUsingShortcut", ScrollSource.User));
-        AddKeyboardAccelerators(KeyboardShortcutActions.OpenNextComic, (_, _) => ReaderEventComicNavigation?.Invoke(this, true));
-        AddKeyboardAccelerators(KeyboardShortcutActions.OpenPreviousComic, (_, _) => ReaderEventComicNavigation?.Invoke(this, false));
-        AddKeyboardAccelerators(KeyboardShortcutActions.GoToRandomPage, (_, _) =>
-        {
-            int page = Random.Shared.Next(Math.Max(1, PageCount)) + 1;
-            SetPage(page, "JumpToRandomPageUsingShortcut", ScrollSource.User);
-        });
-        AddKeyboardAccelerators(KeyboardShortcutActions.ToggleAutoScroll, (_, _) =>
-        {
-            if (_isMiddleButtonAutoScrolling)
-            {
-                return;
-            }
-
-            if (_isAutoScrolling)
-            {
-                StopAutoScrolling();
-            }
-            else
-            {
-                StartAutoScrolling();
-            }
-        });
     }
 
     public void MoveFrame(int increment)
@@ -1413,6 +1427,27 @@ internal partial class ReaderView : UserControl
             $"V={VerticalOffset}");
 
         SetScrollViewer2($"SizeChanged", ScrollSource.Programmatic, zoom: _zoom, page: CurrentPage);
+    }
+
+    #endregion
+
+    #region Keyboard Event Handlers
+
+    private void OnReaderPreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        KeyboardShortcutModel? shortcut = KeyboardShortcutManager.GetShortcut(e.Key);
+        if (shortcut is null)
+        {
+            return;
+        }
+
+        // The inner ScrollViewer consumes navigation keys (Up, Down, PageUp, Home, ...) in its own
+        // KeyDown handling and scrolls the content instead, so the reader shortcuts have to be
+        // dispatched in the tunnelling phase, before the ScrollViewer treats them as scrolling input.
+        if (InvokeShortcutAction(shortcut.Action))
+        {
+            e.Handled = true;
+        }
     }
 
     #endregion

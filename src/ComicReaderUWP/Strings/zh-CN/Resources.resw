@@ -868,11 +868,11 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="Rating" xml:space="preserve">
     <value>评分</value>
   </data>
+  <data name="Reader" xml:space="preserve">
+    <value>阅读器</value>
+  </data>
   <data name="ReaderExpander.Detail" xml:space="preserve">
     <value>自定义阅读器</value>
-  </data>
-  <data name="ReaderExpander.Header" xml:space="preserve">
-    <value>阅读器</value>
   </data>
   <data name="ReaderSettingButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>阅读器设置</value>

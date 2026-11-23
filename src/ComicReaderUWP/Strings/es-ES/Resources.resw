@@ -868,11 +868,11 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   <data name="Rating" xml:space="preserve">
     <value>Puntaje</value>
   </data>
+  <data name="Reader" xml:space="preserve">
+    <value>Lector</value>
+  </data>
   <data name="ReaderExpander.Detail" xml:space="preserve">
     <value>Personalizar el lector</value>
-  </data>
-  <data name="ReaderExpander.Header" xml:space="preserve">
-    <value>Lector</value>
   </data>
   <data name="ReaderSettingButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Configuración del lector</value>

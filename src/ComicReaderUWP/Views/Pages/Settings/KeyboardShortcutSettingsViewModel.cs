@@ -44,7 +44,7 @@ internal partial class KeyboardShortcutSettingsViewModel : INotifyPropertyChange
             items.Add(new KeyboardShortcutItemViewModel(shortcut));
         }
 
-        items.Sort((a, b) => string.Compare(a.ShortcutText, b.ShortcutText, StringComparison.Ordinal));
+        items.Sort((a, b) => string.Compare(a.Model.Action, b.Model.Action, StringComparison.Ordinal));
 
         DiffUtils.UpdateCollection(Shortcuts, items,
             (a, b) => a.Model.Action == b.Model.Action && a.Model.HasSameKeys(b.Model),

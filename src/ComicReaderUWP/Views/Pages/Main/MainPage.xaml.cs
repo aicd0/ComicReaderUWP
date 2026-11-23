@@ -50,6 +50,7 @@ internal sealed partial class MainPage : BasePage
     // Member variables
     //
 
+    private UIElement? _shortcutRoot;
     private Grid? _tabContainerGrid;
     private long _tabContainerGridOpacityListenerToken = 0;
     private bool _contentPresenterLoaded = false;
@@ -82,6 +83,29 @@ internal sealed partial class MainPage : BasePage
         _abilityForSidebar = new(this);
         MainSidebarView.SetHandler(new SidebarHandler(this));
         ContentGrid.Background = AppearanceManager.Instance.GetThemeBackground();
+    }
+
+    //
+    // Lifecycle
+    //
+
+    protected override void OnResume()
+    {
+        base.OnResume();
+
+        if (XamlRoot?.Content is { } root)
+        {
+            root.KeyDown -= MainPage_KeyDown;
+            root.KeyDown += MainPage_KeyDown;
+            _shortcutRoot = root;
+        }
+    }
+
+    protected override void OnPause()
+    {
+        base.OnPause();
+        _shortcutRoot?.KeyDown -= MainPage_KeyDown;
+        _shortcutRoot = null;
     }
 
     //
@@ -198,7 +222,6 @@ internal sealed partial class MainPage : BasePage
         ViewModel.Initialize(PageActionHandler);
         ObserveData();
         SyncSidebarOpenState(SidebarSplitView.IsPaneOpen, initialSync: true);
-        UpdateKeyboardAccelerators();
     }
 
     private void ObserveData()
@@ -207,8 +230,6 @@ internal sealed partial class MainPage : BasePage
         {
             ViewModel.IsBusy = busy;
         });
-
-        KeyboardShortcutManager.ShortcutsChangedLiveData.Observe(this, _ => UpdateKeyboardAccelerators());
 
         ComicModel.IsScanningLibraryLiveData.ObserveSticky(this, scanning =>
         {
@@ -359,44 +380,72 @@ internal sealed partial class MainPage : BasePage
     // Configurable keyboard shortcuts
     //
 
-    private void UpdateKeyboardAccelerators()
+    private void MainPage_KeyDown(object sender, KeyRoutedEventArgs e)
     {
-        void AddKeyboardAccelerators(string action, Windows.Foundation.TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> handler)
+        KeyboardShortcutModel? shortcut = KeyboardShortcutManager.GetShortcut(e.Key);
+        if (shortcut is null)
         {
-            foreach (KeyboardAccelerator accelerator in KeyboardShortcutManager.CreateAccelerators(action, handler))
-            {
-                KeyboardAccelerators.Add(accelerator);
-            }
+            return;
         }
 
-        KeyboardAccelerators.Clear();
+        if (InvokeShortcutAction(shortcut.Action) || InvokeTabShortcutAction(shortcut.Action))
+        {
+            e.Handled = true;
+        }
+    }
 
-        AddKeyboardAccelerators(KeyboardShortcutActions.AddNewTab, (_, _) => OpenNewTab());
-        AddKeyboardAccelerators(KeyboardShortcutActions.AddNewWindow, (_, _) => MainWindow.Open());
-        AddKeyboardAccelerators(KeyboardShortcutActions.CloseTab, (_, _) =>
+    private bool InvokeTabShortcutAction(string action)
+    {
+        return _currentTab is not null && _currentTab.Ability.InvokeShortcutAction(action);
+    }
+
+    private bool InvokeShortcutAction(string action)
+    {
+        switch (action)
         {
-            if (RootTabView.SelectedItem is TabViewItem closingTab)
-            {
-                CloseTabByUser(closingTab);
-            }
-        });
-        AddKeyboardAccelerators(KeyboardShortcutActions.ExitApp, (_, _) => ViewModel.ExitApp());
-        AddKeyboardAccelerators(KeyboardShortcutActions.ExitFullscreen, (_, _) => GetMainWindowAbility().ExitFullscreen());
-        AddKeyboardAccelerators(KeyboardShortcutActions.JumpToNextTab, (_, _) => JumpToAdjacentTab(1));
-        AddKeyboardAccelerators(KeyboardShortcutActions.JumpToPreviousTab, (_, _) => JumpToAdjacentTab(-1));
-        AddKeyboardAccelerators(KeyboardShortcutActions.OpenDevTools, (_, _) => ViewModel.OpenDevTools());
-        AddKeyboardAccelerators(KeyboardShortcutActions.ToggleFullscreen, (_, _) =>
-        {
-            IMainWindowAbility mainWindowAbility = GetMainWindowAbility();
-            if (mainWindowAbility.IsFullscreen)
-            {
-                mainWindowAbility.ExitFullscreen();
-            }
-            else
-            {
-                mainWindowAbility.EnterFullscreen();
-            }
-        });
+            case KeyboardShortcutActions.AddNewTab:
+                OpenNewTab();
+                return true;
+            case KeyboardShortcutActions.AddNewWindow:
+                MainWindow.Open();
+                return true;
+            case KeyboardShortcutActions.CloseTab:
+                if (RootTabView.SelectedItem is TabViewItem closingTab)
+                {
+                    CloseTabByUser(closingTab);
+                }
+
+                return true;
+            case KeyboardShortcutActions.ExitApp:
+                ViewModel.ExitApp();
+                return true;
+            case KeyboardShortcutActions.ExitFullscreen:
+                GetMainWindowAbility().ExitFullscreen();
+                return true;
+            case KeyboardShortcutActions.JumpToNextTab:
+                JumpToAdjacentTab(1);
+                return true;
+            case KeyboardShortcutActions.JumpToPreviousTab:
+                JumpToAdjacentTab(-1);
+                return true;
+            case KeyboardShortcutActions.OpenDevTools:
+                ViewModel.OpenDevTools();
+                return true;
+            case KeyboardShortcutActions.ToggleFullscreen:
+                IMainWindowAbility mainWindowAbility = GetMainWindowAbility();
+                if (mainWindowAbility.IsFullscreen)
+                {
+                    mainWindowAbility.ExitFullscreen();
+                }
+                else
+                {
+                    mainWindowAbility.EnterFullscreen();
+                }
+
+                return true;
+            default:
+                return false;
+        }
     }
 
     //
@@ -1235,6 +1284,7 @@ internal sealed partial class MainPage : BasePage
     {
         protected readonly WeakReference<MainPage> _parent = new(parent);
         private readonly LifecycleAwareAbility _lifecycleAbility = new();
+        private readonly List<IMainPageAbility.ShortcutActionHandler> _shortcutActionHandlers = [];
         private readonly MutableLiveData<bool> _overlayVisibilityChangeLiveData = new(parent._isOverlayVisible);
 
         public void RegisterPageLifecycleHandler(PageLifecycleEventHandler handler)
@@ -1245,6 +1295,29 @@ internal sealed partial class MainPage : BasePage
         public void UnregisterPageLifecycleHandler(PageLifecycleEventHandler handler)
         {
             _lifecycleAbility.UnregisterPageLifecycleHandler(handler);
+        }
+
+        public void RegisterShortcutActionHandler(IMainPageAbility.ShortcutActionHandler handler)
+        {
+            _shortcutActionHandlers.Add(handler);
+        }
+
+        public void UnregisterShortcutActionHandler(IMainPageAbility.ShortcutActionHandler handler)
+        {
+            _shortcutActionHandlers.Remove(handler);
+        }
+
+        public bool InvokeShortcutAction(string action)
+        {
+            foreach (IMainPageAbility.ShortcutActionHandler handler in _shortcutActionHandlers.ToArray())
+            {
+                if (handler(action))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void RegisterOverlayVisibilityChangedHandler(ILifecycleOwner owner, IMainPageAbility.TitleBarVisibilityChangedEventHandler handler)

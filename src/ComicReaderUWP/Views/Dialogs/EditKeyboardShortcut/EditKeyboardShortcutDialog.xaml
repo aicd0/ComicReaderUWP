@@ -45,13 +45,11 @@
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 Text="{x:Bind StringResource.Action}" />
-            <ComboBox
+            <DropDownButton
+                x:Name="ActionButton"
                 Grid.Row="3"
                 Grid.Column="2"
-                DisplayMemberPath="Name"
-                ItemsSource="{x:Bind ViewModel.Actions, Mode=OneWay}"
-                SelectedIndex="{x:Bind ViewModel.ActionIndex, Mode=OneWay}"
-                SelectionChanged="ActionComboBox_SelectionChanged" />
+                Content="{x:Bind ViewModel.SelectedActionName, Mode=OneWay}" />
         </Grid>
         <Grid Margin="0,16,0,0">
             <Grid.ColumnDefinitions>

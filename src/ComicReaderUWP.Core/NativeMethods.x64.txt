@@ -7,11 +7,13 @@ FindNextFile
 GetActiveWindow
 GetCursorPos
 GetDpiForWindow
+GetKeyNameText
 GetMonitorInfo
 GetWindowPlacement
 GetWindowRect
 INVALID_HANDLE_VALUE
 LocalFree
+MapVirtualKey
 MessageBox
 MonitorFromPoint
 MonitorFromRect

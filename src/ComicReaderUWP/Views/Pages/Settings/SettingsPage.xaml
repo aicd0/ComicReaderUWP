@@ -73,6 +73,7 @@
                     <settings:SettingExpander
                         x:Uid="ReaderExpander"
                         Glyph="&#xE736;"
+                        Header="{x:Bind StringResource.Reader}"
                         IsExpanded="False">
                         <settings:SettingExpander.InnerContent>
                             <settings:ReaderSettingsView x:Name="ReaderSettingsSection" />
