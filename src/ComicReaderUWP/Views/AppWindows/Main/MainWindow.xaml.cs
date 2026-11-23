@@ -125,6 +125,7 @@ internal sealed partial class MainWindow : Window
         SetWindowIcon();
 
         _pointerInputHandler = ContentFrame_AnyPointerInput;
+        _pointerPressedHandler = ContentFrame_AnyPointerPressed;
         SubscribeEvents();
 
         if (DebugUtils.DeveloperMode)
@@ -238,6 +239,7 @@ internal sealed partial class MainWindow : Window
     // do not use XAML for this purpose in order to prevent memory leaks.
 
     private readonly PointerEventHandler _pointerInputHandler;
+    private readonly PointerEventHandler _pointerPressedHandler;
 
     private void SubscribeEvents()
     {
@@ -246,7 +248,7 @@ internal sealed partial class MainWindow : Window
         ContentFrame.Loaded += ContentFrame_Loaded;
         ContentFrame.PointerEntered += ContentFrame_PointerEntered;
         ContentFrame.PointerExited += ContentFrame_PointerExited;
-        ContentFrame.AddHandler(UIElement.PointerPressedEvent, _pointerInputHandler, handledEventsToo: true);
+        ContentFrame.AddHandler(UIElement.PointerPressedEvent, _pointerPressedHandler, handledEventsToo: true);
         ContentFrame.AddHandler(UIElement.PointerMovedEvent, _pointerInputHandler, handledEventsToo: true);
         ContentFrame.AddHandler(UIElement.PointerWheelChangedEvent, _pointerInputHandler, handledEventsToo: true);
     }
@@ -258,7 +260,7 @@ internal sealed partial class MainWindow : Window
         ContentFrame.Loaded -= ContentFrame_Loaded;
         ContentFrame.PointerEntered -= ContentFrame_PointerEntered;
         ContentFrame.PointerExited -= ContentFrame_PointerExited;
-        ContentFrame.RemoveHandler(UIElement.PointerPressedEvent, _pointerInputHandler);
+        ContentFrame.RemoveHandler(UIElement.PointerPressedEvent, _pointerPressedHandler);
         ContentFrame.RemoveHandler(UIElement.PointerMovedEvent, _pointerInputHandler);
         ContentFrame.RemoveHandler(UIElement.PointerWheelChangedEvent, _pointerInputHandler);
     }
@@ -382,6 +384,13 @@ internal sealed partial class MainWindow : Window
     private void ContentFrame_AnyPointerInput(object sender, PointerRoutedEventArgs e)
     {
         Members._mainWindowAbility.SendLastPointerDeviceTypeChangedEvent(e.Pointer.PointerDeviceType);
+    }
+
+    private void ContentFrame_AnyPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        PointerDeviceType deviceType = e.Pointer.PointerDeviceType;
+        Members._mainWindowAbility.SendLastPointerDeviceTypeChangedEvent(deviceType);
+        Members._mainWindowAbility.SendAnyPointerPressedEvent(deviceType, e.OriginalSource);
     }
 
     private void ContentFrame_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -617,6 +626,7 @@ internal sealed partial class MainWindow : Window
         private readonly MutableLiveData<bool> _fullscreenLiveData = new(window._isFullscreen);
         private readonly MutableLiveData<bool> _pointerInsideLiveData = new(true);
         private readonly MutableLiveData<PointerDeviceType> _lastPointerDeviceTypeLiveData = new(PointerDeviceType.Mouse);
+        private readonly MutableLiveData<IMainWindowAbility.AnyPointerPressedData> _anyPointerPressedLiveData = new();
         private int _activeFlyoutCount = 0;
 
         public bool IsActive => GetWindow()?.IsActive ?? false;
@@ -736,6 +746,22 @@ internal sealed partial class MainWindow : Window
             }
 
             _lastPointerDeviceTypeLiveData.Emit(deviceType);
+        }
+
+        public void RegisterAnyPointerPressedHandler(ILifecycleOwner owner, IMainWindowAbility.AnyPointerPressedEventHandler handler)
+        {
+            _anyPointerPressedLiveData.Observe(owner, data =>
+            {
+                handler(data.DeviceType, data.OriginalSource);
+            }, new ObserveOptions()
+            {
+                PublishBehavior = LiveDataPublishBehavior.ActiveOnStart,
+            });
+        }
+
+        public void SendAnyPointerPressedEvent(PointerDeviceType deviceType, object? originalSource)
+        {
+            _anyPointerPressedLiveData.Emit(new(deviceType, originalSource));
         }
 
         public void EnterFullscreen()

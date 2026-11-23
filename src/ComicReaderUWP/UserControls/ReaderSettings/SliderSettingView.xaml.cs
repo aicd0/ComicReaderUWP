@@ -1,32 +1,26 @@
 // Copyright (c) aicd0. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+
 using ComicReaderUWP.Common.BaseUI;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
 
 namespace ComicReaderUWP.UserControls.ReaderSettings;
 
 internal sealed partial class SliderSettingView : BaseUserControl
 {
-    public event RangeBaseValueChangedEventHandler? ValueChanged;
+    public event EventHandler? ValueChanged;
 
-    private bool _isOneRow = true;
+    private bool _isSyncingValue;
 
     public SliderSettingView()
     {
         InitializeComponent();
 
-        UpdateLabelText();
-        UpdateRestoreButtonVisibility();
-
-        MainSlider.ValueChanged += (s, e) =>
-        {
-            UpdateLabelText();
-            ValueChanged?.Invoke(this, e);
-        };
+        Entry.ValueChanged += Entry_ValueChanged;
     }
 
     //
@@ -48,150 +42,111 @@ internal sealed partial class SliderSettingView : BaseUserControl
     private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (SliderSettingView)d;
-        control.UpdateLabelText();
+        control.Entry.Label = (string)e.NewValue;
     }
+
+    //
+    // Editor
+    //
 
     public double Value
     {
-        get => (double)GetValue(ValueProperty);
-        set => SetValue(ValueProperty, value);
+        get => Entry.Value;
+        set => Entry.Value = value;
     }
 
-    public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
-        nameof(Value),
-        typeof(double),
-        typeof(SliderSettingView),
-        new PropertyMetadata(0.0, OnValueChanged));
-
-    private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    public double RestoreValue
     {
-        var control = (SliderSettingView)d;
-        control.UpdateLabelText();
-        control.UpdateRestoreButtonVisibility();
+        get => Entry.RestoreValue;
+        set => Entry.RestoreValue = value;
     }
 
-    public double DefaultValue
+    public double ResetValue
     {
-        get => (double)GetValue(DefaultValueProperty);
-        set => SetValue(DefaultValueProperty, value);
-    }
-
-    public static readonly DependencyProperty DefaultValueProperty = DependencyProperty.Register(
-        nameof(DefaultValue),
-        typeof(double),
-        typeof(SliderSettingView),
-        new PropertyMetadata(0.0, OnDefaultValueChanged));
-
-    private static void OnDefaultValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        var control = (SliderSettingView)d;
-        control.UpdateLabelText();
-        control.UpdateRestoreButtonVisibility();
+        get => Entry.ResetValue;
+        set => Entry.ResetValue = value;
     }
 
     public double Maximum
     {
-        get => (double)GetValue(MaximumProperty);
-        set => SetValue(MaximumProperty, value);
+        get => MainSlider.Maximum;
+        set => MainSlider.Maximum = value;
     }
-
-    public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(
-        nameof(Maximum),
-        typeof(double),
-        typeof(SliderSettingView),
-        new PropertyMetadata(100.0));
 
     public double Minimum
     {
-        get => (double)GetValue(MinimumProperty);
-        set => SetValue(MinimumProperty, value);
+        get => MainSlider.Minimum;
+        set => MainSlider.Minimum = value;
     }
-
-    public static readonly DependencyProperty MinimumProperty = DependencyProperty.Register(
-        nameof(Minimum),
-        typeof(double),
-        typeof(SliderSettingView),
-        new PropertyMetadata(0.0));
 
     public SliderSnapsTo SnapsTo
     {
-        get => (SliderSnapsTo)GetValue(SnapsToProperty);
-        set => SetValue(SnapsToProperty, value);
+        get => MainSlider.SnapsTo;
+        set => MainSlider.SnapsTo = value;
     }
-
-    public static readonly DependencyProperty SnapsToProperty = DependencyProperty.Register(
-        nameof(SnapsTo),
-        typeof(SliderSnapsTo),
-        typeof(SliderSettingView),
-        new PropertyMetadata(SliderSnapsTo.StepValues));
 
     public double StepFrequency
     {
-        get => (double)GetValue(StepFrequencyProperty);
-        set => SetValue(StepFrequencyProperty, value);
+        get => MainSlider.StepFrequency;
+        set => MainSlider.StepFrequency = value;
     }
-
-    public static readonly DependencyProperty StepFrequencyProperty = DependencyProperty.Register(
-        nameof(StepFrequency),
-        typeof(double),
-        typeof(SliderSettingView),
-        new PropertyMetadata(1.0));
 
     public double TickFrequency
     {
-        get => (double)GetValue(TickFrequencyProperty);
-        set => SetValue(TickFrequencyProperty, value);
+        get => MainSlider.TickFrequency;
+        set => MainSlider.TickFrequency = value;
     }
-
-    public static readonly DependencyProperty TickFrequencyProperty = DependencyProperty.Register(
-        nameof(TickFrequency),
-        typeof(double),
-        typeof(SliderSettingView),
-        new PropertyMetadata(1.0));
 
     public TickPlacement TickPlacement
     {
-        get => (TickPlacement)GetValue(TickPlacementProperty);
-        set => SetValue(TickPlacementProperty, value);
+        get => MainSlider.TickPlacement;
+        set => MainSlider.TickPlacement = value;
     }
-
-    public static readonly DependencyProperty TickPlacementProperty = DependencyProperty.Register(
-        nameof(TickPlacement),
-        typeof(TickPlacement),
-        typeof(SliderSettingView),
-        new PropertyMetadata(TickPlacement.None));
 
     //
     // Events
     //
 
-    private void LabelStackPanel_Tapped(object sender, TappedRoutedEventArgs e)
+    private void MainSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
-        bool isOneRow = !_isOneRow;
-        if (VisualStateManager.GoToState(this, isOneRow ? "OneRow" : "TwoRows", false))
+        if (_isSyncingValue)
         {
-            _isOneRow = isOneRow;
-            UpdateRestoreButtonVisibility();
+            return;
         }
+
+        _isSyncingValue = true;
+        try
+        {
+            Entry.Value = MainSlider.Value;
+        }
+        finally
+        {
+            _isSyncingValue = false;
+        }
+
+        ValueChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private void RestoreButton_Click(object sender, RoutedEventArgs e)
+    private void Entry_ValueChanged(object? sender, EventArgs e)
     {
-        Value = DefaultValue;
-    }
+        if (_isSyncingValue)
+        {
+            return;
+        }
 
-    //
-    // UI
-    //
+        _isSyncingValue = true;
+        try
+        {
+            if (MainSlider.Value != Entry.Value)
+            {
+                MainSlider.Value = Entry.Value;
+            }
+        }
+        finally
+        {
+            _isSyncingValue = false;
+        }
 
-    private void UpdateRestoreButtonVisibility()
-    {
-        bool visible = !_isOneRow && Value != DefaultValue;
-        RestoreButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    private void UpdateLabelText()
-    {
-        LabelTextBlock.Text = Value != DefaultValue ? $"{Label} ({Value:0}) *" : $"{Label} ({Value:0})";
+        ValueChanged?.Invoke(this, EventArgs.Empty);
     }
 }

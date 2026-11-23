@@ -20,6 +20,10 @@ internal interface IMainWindowAbility : IPageAbility
 
     public delegate void LastPointerDeviceTypeChangedEventHandler(PointerDeviceType deviceType);
 
+    public delegate void AnyPointerPressedEventHandler(PointerDeviceType deviceType, object? originalSource);
+
+    public readonly record struct AnyPointerPressedData(PointerDeviceType DeviceType, object? OriginalSource);
+
     bool IsActive { get; }
 
     bool IsFullscreen { get; }
@@ -51,6 +55,8 @@ internal interface IMainWindowAbility : IPageAbility
     void RegisterPointerInsideRootElementChangedHandler(ILifecycleOwner owner, PointerInsideChangedEventHandler handler);
 
     void RegisterLastPointerDeviceTypeChangedHandler(ILifecycleOwner owner, LastPointerDeviceTypeChangedEventHandler handler);
+
+    void RegisterAnyPointerPressedHandler(ILifecycleOwner owner, AnyPointerPressedEventHandler handler);
 
     void RequestFocusLock();
 
