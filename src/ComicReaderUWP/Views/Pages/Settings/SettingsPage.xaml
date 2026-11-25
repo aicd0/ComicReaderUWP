@@ -9,6 +9,8 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:settings="using:ComicReaderUWP.Views.Pages.Settings"
     xmlns:triggers="using:ComicReaderUWP.Triggers"
+    IsTabStop="True"
+    UseSystemFocusVisuals="False"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -25,7 +27,7 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <Grid>
+    <Grid Background="Transparent" PointerPressed="RootGrid_PointerPressed">
         <ScrollViewer
             Padding="30,0,25,0"
             VerticalScrollBarVisibility="Auto"
