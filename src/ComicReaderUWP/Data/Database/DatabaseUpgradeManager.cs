@@ -138,13 +138,7 @@ internal static class DatabaseUpgradeManager
 
     private static void UpgradeSqliteDatabase()
     {
-        if (DatabaseVersionModel.SqliteDatabaseVersion >= DatabaseVersionModel.SQLITE_DATABASE_VERSION)
-        {
-            return;
-        }
-
-        SqliteDB.UpdateDatabase(DatabaseVersionModel.SqliteDatabaseVersion);
-        DatabaseVersionModel.SqliteDatabaseVersion = DatabaseVersionModel.SQLITE_DATABASE_VERSION;
+        SqliteDB.UpgradeDatabase();
     }
 
     private static void UpgradeFavorites()

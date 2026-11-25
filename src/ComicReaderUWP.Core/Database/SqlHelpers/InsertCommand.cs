@@ -51,7 +51,7 @@ public class InsertCommand
         CommandWrapper command = new();
 
         StringBuilder sb = new("INSERT INTO ");
-        sb.Append(_table.GetTableName());
+        sb.Append(_table.TableName);
         sb.Append(" (");
 
         {
@@ -124,7 +124,7 @@ public class InsertCommand
         sb.Append("; SELECT LAST_INSERT_ROWID();");
 
         command.SetCommandText(sb.ToString());
-        return (long)command.ExecuteScalar(_table.GetDatabase())!;
+        return (long)command.ExecuteScalar(_table.Database)!;
     }
 
     private class Token(IColumnTypeless column, object value)

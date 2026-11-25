@@ -23,17 +23,12 @@ internal class ComicTable : ITable
     public static StringColumn ColumnDescription { get; } = new("description");
     public static Int32Column ColumnCompletionStatus { get; } = new("completion_state");
     public static Int32Column ColumnPageCount { get; } = new("page_count");
+    public static StringColumn ColumnReleaseDate { get; } = new("release_date");
     public static StringColumn ColumnExt { get; } = new("ext");
 
     private ComicTable() { }
 
-    public SqlDatabase GetDatabase()
-    {
-        return SqliteDB.MainDatabase;
-    }
+    public SqlDatabase Database => SqliteDB.MainDatabase;
 
-    public string GetTableName()
-    {
-        return "comics";
-    }
+    public string TableName => "comics";
 }

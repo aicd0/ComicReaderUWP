@@ -435,51 +435,6 @@ Catégorie :: Tag1, Tag2    - Remplacez « Catégorie » par « Tag1 » et « Ta
   <data name="ExpressionOr" xml:space="preserve">
     <value>Ou</value>
   </data>
-  <data name="ExpressionReference" xml:space="preserve">
-    <value>Référence des expressions
-
-1. Variables
-
-%tag                  - Correspond à tous les tags d'une BD.
-%title                - Correspond au titre 1 ou 2.
-%title1               - Correspond au titre 1.
-%title2               - Correspond au titre 2.
-%rating               - Correspond à la note. Par exemple : 100 représente 5 étoiles, -1 représente aucune note.
-%completion_state     - État d'achèvement de la BD (0 - Non lu, 1 - Lu, 2 - Terminé).
-%progress             - Progression de la lecture, en pourcentage. Par exemple : 50 représente 50 %.
-%page_count           - Nombre total de pages.
-
-2. Opérateurs de variables
-
-=                     - Égal. Par exemple : %title = "Ceci est un titre"
-&gt;                     - Supérieur à. Par exemple : %rating &gt; 3
-&gt;=                    - Supérieur ou égal à.
-&lt;                     - Inférieur à.
-&lt;=                    - Inférieur ou égal à.
-... IN (...)          - Contenu par. Par exemple :
-                        %rating in (3, 4, 5) - Correspond aux bandes dessinées dont les notes sont comprises entre 3, 4 et 5.
-                        %tag.language in (languageA, languageB) - Correspond aux bandes dessinées dont la catégorie de balise « language » contient « languageA » ou « languageB ».
-                        (authorA, authorB) in %tag.authors - Correspond aux bandes dessinées dont la catégorie de balise « authors » contient à la fois « authorA » et « authorB ».
-                        apple in %tag - Correspond aux bandes dessinées contenant la balise « apple ».
-
-3. Opérateurs logiques
-
-AND                   - Et logique. Par exemple : %tag.fruit = apple and %title = "J'ai une pomme"
-OR                    - Ou logique. Par exemple : %title1 = "Apple is OK" or %title2 = "Orange is OK also"
-NOT                   - Non logique. Par exemple : NOT %tag = "hide this"
-
-4. Parenthèses
-
-Par défaut, les opérateurs sont évalués de gauche à droite. Utilisez (...) pour augmenter la priorité de l'expression incluse. Par exemple :
-
-%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)
-
-L'évaluation sera effectuée dans l'ordre suivant :
-
-1. NOT %tag.lang = langB  ==&gt;  Résultat1
-2. %tag.language = langA OR Result1  ==&gt;  Résultat2
-3. %tag.author = abc AND Result2  ==&gt;  Résultat3</value>
-  </data>
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>Expression</value>
   </data>
@@ -902,6 +857,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   </data>
   <data name="RefreshRandomSeed" xml:space="preserve">
     <value>Actualiser la graine aléatoire</value>
+  </data>
+  <data name="ReleaseDate" xml:space="preserve">
+    <value>Date de sortie</value>
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Retirer</value>

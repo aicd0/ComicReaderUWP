@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>表达式参考</title>
+<style>
+body { margin: 24px auto; max-width: 900px; padding: 0 24px; font-family: "Segoe UI", sans-serif; line-height: 1.5; color: #1a1a1a; background: #ffffff; }
+h1 { font-size: 1.6em; }
+h2 { margin-top: 1.8em; padding-bottom: 4px; font-size: 1.2em; border-bottom: 1px solid #d0d0d0; }
+table { width: 100%; margin: 8px 0; border-collapse: collapse; }
+td { padding: 4px 8px; vertical-align: top; border-bottom: 1px solid #eeeeee; }
+td.term { width: 1%; white-space: nowrap; font-family: Consolas, monospace; }
+td.desc { white-space: normal; }
+p { margin: 8px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>表达式参考</h1>
+<h2>1. 变量</h2>
+<table>
+<tr><td class="term">%tag</td><td class="desc">匹配漫画中的所有标签。</td></tr>
+<tr><td class="term">%title</td><td class="desc">匹配标题 1 或标题 2。</td></tr>
+<tr><td class="term">%title1</td><td class="desc">匹配标题 1。</td></tr>
+<tr><td class="term">%title2</td><td class="desc">匹配标题 2。</td></tr>
+<tr><td class="term">%rating</td><td class="desc">匹配评分。例如：100 代表 5 星，-1 代表无评分。</td></tr>
+<tr><td class="term">%completion_state</td><td class="desc">漫画完成状态（0 - 未读，1 - 正在阅读，2 - 已完成）。</td></tr>
+<tr><td class="term">%progress</td><td class="desc">阅读进度，以百分比表示。例如：50 代表 50%。</td></tr>
+<tr><td class="term">%page_count</td><td class="desc">总页数。</td></tr>
+<tr><td class="term">%release_date</td><td class="desc">匹配发行日期。格式为 YYYY-MM-DD HH:MM:SS，未设置时为空，因此单独使用 %release_date 仅匹配具有发行日期的漫画。<br>比较值可以是完整的日期时间，也可以是涵盖整个时间段的残缺日期：<br>2026 或 "2026" - 整个 2026 年。<br>"2026-1" 或 "2026/1" - 2026 年 1 月。<br>"2026-1-2" 或 "2026/1/2" - 2026 年 1 月 2 日。<br>运算符作用于时间段，而不是文本：<br>%release_date = 2026 - 2026 年之内。<br>%release_date &gt;= 2026 - 从 2026 年开始。<br>%release_date &gt; 2026 - 2026 年结束之后。<br>%release_date &lt; "2026-1" - 2026 年 1 月之前。<br>%release_date &lt;= "2026-1-2" - 2026 年 1 月 2 日或之前。<br>%release_date in (2026, 2027) - 2026 年或 2027 年之内。<br>完整的日期时间或任何不是日期的值都按文本比较。</td></tr>
+</table>
+<h2>2. 变量运算符</h2>
+<table>
+<tr><td class="term">=</td><td class="desc">等于。例如：%title = "This is a title"</td></tr>
+<tr><td class="term">&gt;</td><td class="desc">大于。例如：%rating &gt; 3</td></tr>
+<tr><td class="term">&gt;=</td><td class="desc">大于等于。</td></tr>
+<tr><td class="term">&lt;</td><td class="desc">小于。</td></tr>
+<tr><td class="term">&lt;=</td><td class="desc">小于等于。</td></tr>
+<tr><td class="term">... IN (...)</td><td class="desc">包含于。例如：<br>%rating in (3, 4, 5) - 匹配评分在 3、4 和 5 之间的漫画。<br>%tag.language in (languageA, languageB) - 匹配“language”标签类别包含“languageA”或“languageB”的漫画。<br>(authorA, authorB) in %tag.authors - 匹配“authors”标签类别同时包含“authorA”和“authorB”的漫画。<br>apple in %tag - 匹配包含标签“apple”的漫画。</td></tr>
+</table>
+<h2>3. 逻辑运算符</h2>
+<table>
+<tr><td class="term">AND</td><td class="desc">逻辑与。例如：%tag.fruit = apple AND %title = "我有一个苹果"</td></tr>
+<tr><td class="term">OR</td><td class="desc">逻辑或。例如：%title1 = "苹果还可以" OR %title2 = "橙子也可以"</td></tr>
+<tr><td class="term">NOT</td><td class="desc">逻辑非。例如：NOT %tag = "hide this"</td></tr>
+</table>
+<h2>4. 括号</h2>
+<p>默认情况下，运算符将从左到右进行求值。使用 (...) 可提高所包含表达式的优先级。例如：</p>
+<p>%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)</p>
+<p>求值将按以下顺序进行：</p>
+<p>1. NOT %tag.lang = langB  ==&gt;  结果 1</p>
+<p>2. %tag.language = langA OR 结果 1  ==&gt;  结果 2</p>
+<p>3. %tag.author = abc AND 结果 2  ==&gt;  结果 3</p>
+</body>
+</html>

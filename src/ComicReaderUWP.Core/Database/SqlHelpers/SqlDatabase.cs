@@ -50,4 +50,13 @@ public sealed partial class SqlDatabase : IDisposable
     {
         return _connection.CreateCommand();
     }
+
+    public bool TableExists(string tableName)
+    {
+        CommandWrapper command = new();
+        string parameterName = command.AppendParameter(tableName);
+        command.SetCommandText($"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = {parameterName}");
+        object? result = command.ExecuteScalar(this);
+        return result is long count && count > 0;
+    }
 }

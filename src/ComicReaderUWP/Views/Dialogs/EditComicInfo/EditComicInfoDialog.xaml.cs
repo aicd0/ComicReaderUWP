@@ -118,6 +118,11 @@ internal sealed partial class EditComicInfoDialog : BaseContentDialog
         ViewModel.SetRatingPercentageEnabled(((CheckBox)sender).IsChecked ?? false);
     }
 
+    private void ReleaseDatePicker_DateChanged(CalendarDatePicker sender, CalendarDatePickerDateChangedEventArgs args)
+    {
+        ViewModel.SetReleaseDate(sender.Date);
+    }
+
     private void TagTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         ViewModel.SetTags(((TextBox)sender).Text);

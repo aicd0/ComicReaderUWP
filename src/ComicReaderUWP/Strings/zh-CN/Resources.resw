@@ -435,51 +435,6 @@ $files</value>
   <data name="ExpressionOr" xml:space="preserve">
     <value>或</value>
   </data>
-  <data name="ExpressionReference" xml:space="preserve">
-    <value>表达式参考
-
-1. 变量
-
-%tag              - 匹配漫画中的所有标签。
-%title            - 匹配标题 1 或标题 2。
-%title1           - 匹配标题 1。
-%title2           - 匹配标题 2。
-%rating           - 匹配评分。例如：100 代表 5 星，-1 代表无评分。
-%completion_state - 漫画完成状态（0 - 未读，1 - 正在阅读，2 - 已完成）。
-%progress         - 阅读进度，以百分比表示。例如：50 代表 50%。
-%page_count       - 总页数。
-
-2. 变量运算符
-
-=                 - 等于。例如：%title = "This is a title"
-&gt;                 - 大于。例如：%rating &gt; 3
-&gt;=                - 大于等于。
-&lt;                 - 小于。
-&lt;=                - 小于等于。
-... IN (...)      - 包含于。例如：
-                    %rating in (3, 4, 5) - 匹配评分在 3、4 和 5 之间的漫画。
-                    %tag.language in (languageA, languageB) - 匹配“language”标签类别包含“languageA”或“languageB”的漫画。
-                    (authorA, authorB) in %tag.authors - 匹配“authors”标签类别同时包含“authorA”和“authorB”的漫画。
-                    apple in %tag - 匹配包含标签“apple”的漫画。
-
-3. 逻辑运算符
-
-AND               - 逻辑与。例如：%tag.fruit = apple AND %title = "我有一个苹果"
-OR                - 逻辑或。例如：%title1 = "苹果还可以" OR %title2 = "橙子也可以"
-NOT               - 逻辑非。例如：NOT %tag = "hide this"
-
-4. 括号
-
-默认情况下，运算符将从左到右进行求值。使用 (...) 可提高所包含表达式的优先级。例如：
-
-%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)
-
-求值将按以下顺序进行：
-
-1. NOT %tag.lang = langB  ==&gt;  结果 1
-2. %tag.language = langA OR 结果 1  ==&gt;  结果 2
-3. %tag.author = abc AND 结果 2  ==&gt;  结果 3</value>
-  </data>
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>表达式</value>
   </data>
@@ -902,6 +857,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="RefreshRandomSeed" xml:space="preserve">
     <value>刷新随机种子</value>
+  </data>
+  <data name="ReleaseDate" xml:space="preserve">
+    <value>发行日期</value>
   </data>
   <data name="Remove" xml:space="preserve">
     <value>移除</value>

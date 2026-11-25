@@ -107,7 +107,6 @@ public class StringResourceProvider
     public string ExpressionInvalid => GetResourceString("ExpressionInvalid");
     public string ExpressionNot => GetResourceString("ExpressionNot");
     public string ExpressionOr => GetResourceString("ExpressionOr");
-    public string ExpressionReference => GetResourceString("ExpressionReference");
     public string Favorite => GetResourceString("Favorite");
     public string Favorites => GetResourceString("Favorites");
     public string Feedback => GetResourceString("Feedback");
@@ -227,6 +226,7 @@ public class StringResourceProvider
     public string ReadingListEmpty => GetResourceString("ReadingListEmpty");
     public string Refresh => GetResourceString("Refresh");
     public string RefreshRandomSeed => GetResourceString("RefreshRandomSeed");
+    public string ReleaseDate => GetResourceString("ReleaseDate");
     public string Remove => GetResourceString("Remove");
     public string RemoveAndExclude => GetResourceString("RemoveAndExclude");
     public string RemoveFromFavorites => GetResourceString("RemoveFromFavorites");

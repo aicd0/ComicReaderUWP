@@ -42,7 +42,7 @@ public class DeleteCommand
         _executed = true;
 
         CommandWrapper command = GenerateCommand();
-        return command.ExecuteNonQuery(_table.GetDatabase());
+        return command.ExecuteNonQuery(_table.Database);
     }
 
     public async Task ExecuteAsync()
@@ -54,7 +54,7 @@ public class DeleteCommand
         _executed = true;
 
         CommandWrapper command = GenerateCommand();
-        await command.ExecuteNonQueryAsync(_table.GetDatabase());
+        await command.ExecuteNonQueryAsync(_table.Database);
     }
 
     private CommandWrapper GenerateCommand()
@@ -62,7 +62,7 @@ public class DeleteCommand
         CommandWrapper command = new();
 
         StringBuilder sb = new("DELETE FROM ");
-        sb.Append(_table.GetTableName());
+        sb.Append(_table.TableName);
 
         if (_conditions.Count > 0)
         {

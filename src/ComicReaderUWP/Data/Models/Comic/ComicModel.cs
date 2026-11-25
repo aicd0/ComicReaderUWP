@@ -991,6 +991,7 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     public string Description => _internalModel.Description;
     public CompletionStatusEnum CompletionStatus => _internalModel.CompletionStatus;
     public int PageCount => _internalModel.PageCount;
+    public DateTime? ReleaseDate => _internalModel.ReleaseDate;
     public IReadOnlyList<string> FolderViewPath => _internalModel.GetFolderViewPath();
     public Dictionary<string, HashSet<string>> TagsCopy => _internalModel.Tags.ToDictionary(p => p.Key, p => p.Value.Tags.ToHashSet());
 
@@ -1177,6 +1178,17 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
         DispatchUpdateEvent((long[])[Id]);
     }
 
+    public async Task SetReleaseDate(DateTime? releaseDate)
+    {
+        if (ReleaseDate == releaseDate)
+        {
+            return;
+        }
+
+        await _internalModel.SetReleaseDate(releaseDate);
+        DispatchUpdateEvent((long[])[Id]);
+    }
+
     //
     // Comic Connection
     //
@@ -1265,6 +1277,8 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
 
     int SDK.Plugins.Comic.IComicModel.Rating => Rating;
 
+    DateTime? SDK.Plugins.Comic.IComicModel.ReleaseDate => ReleaseDate;
+
     IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory> SDK.Plugins.Comic.IComicModel.Tags => _internalModel.TagsForPlugin;
 
     IReadOnlyDictionary<string, string> SDK.Plugins.Comic.IComicModel.Links
@@ -1312,6 +1326,11 @@ internal sealed partial class ComicModel : IEquatable<ComicModel>, SDK.Plugins.C
     Task SDK.Plugins.Comic.IComicModel.SetRating(int rating)
     {
         return SetRating(rating);
+    }
+
+    Task SDK.Plugins.Comic.IComicModel.SetReleaseDate(DateTime? releaseDate)
+    {
+        return SetReleaseDate(releaseDate);
     }
 
     Task SDK.Plugins.Comic.IComicModel.SetTags<T>(IEnumerable<KeyValuePair<string, T>> tags)

@@ -58,7 +58,7 @@ public class UpdateCommand
 
         CommandWrapper command = new();
 
-        StringBuilder sb = new($"UPDATE {_table.GetTableName()} SET ");
+        StringBuilder sb = new($"UPDATE {_table.TableName} SET ");
 
         bool divider = false;
         foreach (IToken token in _tokens.Values)
@@ -89,7 +89,7 @@ public class UpdateCommand
         }
 
         command.SetCommandText(sb.ToString());
-        return command.ExecuteNonQuery(_table.GetDatabase());
+        return command.ExecuteNonQuery(_table.Database);
     }
 
     private class Token : IToken

@@ -31,6 +31,7 @@ internal class ComicPropertyModel
     private const string PROP_TYPE_COMPLETION_STATUS = "CompletionState";
     private const string PROP_TYPE_LAST_READ_TIME = "LastReadTime";
     private const string PROP_TYPE_PAGES = "Pages";
+    private const string PROP_TYPE_RELEASE_DATE = "ReleaseDate";
     private const string PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY = "PluginVirtualProperty";
 
     private static readonly List<PropertyTypeEnum> _properties = [
@@ -40,6 +41,7 @@ internal class ComicPropertyModel
         PropertyTypeEnum.CompletionStatus,
         PropertyTypeEnum.LastReadTime,
         PropertyTypeEnum.Pages,
+        PropertyTypeEnum.ReleaseDate,
     ];
 
     private PropertyTypeEnum Type { get; init; } = PropertyTypeEnum.Title;
@@ -70,6 +72,7 @@ internal class ComicPropertyModel
                 PropertyTypeEnum.CompletionStatus => StringResourceProvider.Instance.CompletionStatus,
                 PropertyTypeEnum.LastReadTime => StringResourceProvider.Instance.LastReadTime,
                 PropertyTypeEnum.Pages => StringResourceProvider.Instance.PageCount,
+                PropertyTypeEnum.ReleaseDate => StringResourceProvider.Instance.ReleaseDate,
                 _ => string.Empty,
             };
         }
@@ -219,6 +222,7 @@ internal class ComicPropertyModel
             PropertyTypeEnum.CompletionStatus => CreateSorter(x => CompletionStateToComparable(x.CompletionStatus)),
             PropertyTypeEnum.LastReadTime => CreateSorter(x => x.LastVisit.Ticks),
             PropertyTypeEnum.Pages => CreateSorter(x => x.PageCount),
+            PropertyTypeEnum.ReleaseDate => CreateSorter(x => x.ReleaseDate),
             PropertyTypeEnum.PluginVirtualProperty => CreatePluginPropertySorter(),
             _ => CreateFallbackSorter(),
         };
@@ -334,6 +338,16 @@ internal class ComicPropertyModel
             return lastReadTime.ToString("D", EnvironmentProvider.Instance.GetCurrentAppLanguageInfo());
         }
 
+        string GetReleaseDateGroupName(ComicModel comic)
+        {
+            if (comic.ReleaseDate is not { } releaseDate)
+            {
+                return StringResourceProvider.Instance.Ungrouped;
+            }
+
+            return releaseDate.Year.ToString(EnvironmentProvider.Instance.GetCurrentAppLanguageInfo());
+        }
+
         IGroupSorter<ComicGroup, string> CreateSorter<T>(Func<ComicGroup, T> keySelector, Func<T, string>? keyInfoConverter = null, IComparer<T>? keyComparer = null)
         {
             return new BasicGroupSorter<ComicGroup, T>(orderMethod, keySelector, keyInfoConverter, keyComparer);
@@ -376,6 +390,7 @@ internal class ComicPropertyModel
                 PropertyTypeEnum.CompletionStatus => CreateSorter(x => GetCompletionStatusGroupSortingKey(x.Items[0])),
                 PropertyTypeEnum.LastReadTime => CreateSorter(x => x.Items[0].LastVisit.Ticks),
                 PropertyTypeEnum.Pages => CreateSorter(x => x.Items[0].PageCount),
+                PropertyTypeEnum.ReleaseDate => CreateSorter(x => x.Items[0].ReleaseDate?.Year ?? int.MinValue),
                 PropertyTypeEnum.PluginVirtualProperty => CreatePluginPropertySorter(),
                 _ => CreateFallbackSorter(),
             };
@@ -414,6 +429,7 @@ internal class ComicPropertyModel
             PropertyTypeEnum.CompletionStatus => CreateGrouper(x => (string[])[GetCompletionStatusGroupName(x)]),
             PropertyTypeEnum.LastReadTime => CreateGrouper(x => (string[])[GetLastReadTimeGroupName(x)]),
             PropertyTypeEnum.Pages => CreateGrouper(x => (string[])[GetPagesGroupName(x)]),
+            PropertyTypeEnum.ReleaseDate => CreateGrouper(x => (string[])[GetReleaseDateGroupName(x)]),
             PropertyTypeEnum.PluginVirtualProperty => CreatePluginPropertyGrouper(),
             _ => CreateFallbackGrouper(),
         };
@@ -444,6 +460,7 @@ internal class ComicPropertyModel
                 PropertyTypeEnum.CompletionStatus => (int)comic.CompletionStatus,
                 PropertyTypeEnum.LastReadTime => comic.LastVisit != DateTimeOffset.MinValue ? comic.LastVisit.ToUnixTimeMilliseconds() : null,
                 PropertyTypeEnum.Pages => comic.PageCount > 0 ? comic.PageCount : null,
+                PropertyTypeEnum.ReleaseDate => comic.ReleaseDate is { } releaseDate ? (releaseDate - DateTime.UnixEpoch).TotalMilliseconds : null,
                 PropertyTypeEnum.PluginVirtualProperty => sortingPropertyPluginSorter?.AsNumber(comic),
                 _ => null,
             };
@@ -552,6 +569,7 @@ internal class ComicPropertyModel
             PropertyTypeEnum.CompletionStatus => PROP_TYPE_COMPLETION_STATUS,
             PropertyTypeEnum.LastReadTime => PROP_TYPE_LAST_READ_TIME,
             PropertyTypeEnum.Pages => PROP_TYPE_PAGES,
+            PropertyTypeEnum.ReleaseDate => PROP_TYPE_RELEASE_DATE,
             PropertyTypeEnum.PluginVirtualProperty => PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY,
             _ => PROP_TYPE_TITLE,
         };
@@ -573,6 +591,7 @@ internal class ComicPropertyModel
             PROP_TYPE_COMPLETION_STATUS => PropertyTypeEnum.CompletionStatus,
             PROP_TYPE_LAST_READ_TIME => PropertyTypeEnum.LastReadTime,
             PROP_TYPE_PAGES => PropertyTypeEnum.Pages,
+            PROP_TYPE_RELEASE_DATE => PropertyTypeEnum.ReleaseDate,
             PROP_TYPE_PLUGIN_VIRTUAL_PROPERTY => PropertyTypeEnum.PluginVirtualProperty,
             _ => PropertyTypeEnum.Title,
         };
@@ -594,6 +613,7 @@ internal class ComicPropertyModel
         Title,
         LastReadTime,
         Pages,
+        ReleaseDate,
         PluginVirtualProperty,
     }
 

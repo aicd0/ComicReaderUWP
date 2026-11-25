@@ -3,19 +3,33 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 using ComicReaderUWP.Common.Expression;
 using ComicReaderUWP.Common.Expression.Filter.Sql;
 using ComicReaderUWP.Core.Database.SqlHelpers;
+using ComicReaderUWP.Data.Models.Comic;
 using ComicReaderUWP.Data.Tables;
 
 namespace ComicReaderUWP.Helpers.Search;
 
 internal class ComicFilterSQLProvider : ISQLCommandProvider
 {
+    #region Public Methods
+
     public ICondition CreateComparisonCondition(VariableOrValue left, VariableOrValue right, ComparisonTypeEnum comparisonType)
     {
+        if (left.Path is null && right.Path is not null && IsReleaseDatePath(right.Path))
+        {
+            return CreateReleaseDateComparison(left.Value, comparisonType, valueOnLeft: true);
+        }
+
+        if (right.Path is null && left.Path is not null && IsReleaseDatePath(left.Path))
+        {
+            return CreateReleaseDateComparison(right.Value, comparisonType, valueOnLeft: false);
+        }
+
         if (left.Path is null)
         {
             if (right.Path is null)
@@ -75,7 +89,14 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
             {
                 if (rightValueLiterals.Count > 0)
                 {
-                    conditions.Add(CreateCondition(leftItem.Path, (column) => new InCondition(ColumnOrValue.FromColumn(column), rightValueLiterals)));
+                    if (IsReleaseDatePath(leftItem.Path))
+                    {
+                        conditions.Add(CreateReleaseDateInCondition(rightValueLiterals));
+                    }
+                    else
+                    {
+                        conditions.Add(CreateCondition(leftItem.Path, (column) => new InCondition(ColumnOrValue.FromColumn(column), rightValueLiterals)));
+                    }
                 }
 
                 foreach (IReadOnlyList<string> rightPath in rightPaths)
@@ -118,6 +139,131 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
         throw new ExpressionException($"Invalid variable path '{ToVariableName(path)}'");
     }
 
+    #endregion
+
+    #region Date time
+
+    private static bool IsReleaseDatePath(IReadOnlyList<string> path)
+    {
+        return path.Count == 1 && path[0].ToLower() == ComicSQLProviderUtils.VAR_RELEASE_DATE;
+    }
+
+    private static ICondition CreateReleaseDateComparison(object value, ComparisonTypeEnum comparisonType, bool valueOnLeft)
+    {
+        if (!TryParseReleaseDateRange(value, out DateTime start, out DateTime endExclusive))
+        {
+            return valueOnLeft ?
+                new ComparisonCondition(ColumnOrValue.FromValue(value), ColumnOrValue.FromColumn(ComicTable.ColumnReleaseDate), ToSQLComparisonType(comparisonType)) :
+                new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnReleaseDate), ColumnOrValue.FromValue(value), ToSQLComparisonType(comparisonType));
+        }
+
+        return CreateReleaseDateRangeCondition(start, endExclusive, valueOnLeft ? FlipComparisonType(comparisonType) : comparisonType);
+    }
+
+    private static ICondition CreateReleaseDateInCondition(List<object?> values)
+    {
+        List<ICondition> conditions = [];
+        foreach (object? value in values)
+        {
+            if (value is not null)
+            {
+                conditions.Add(CreateReleaseDateComparison(value, ComparisonTypeEnum.Equal, valueOnLeft: false));
+            }
+        }
+
+        return conditions.Count == 0 ? new BooleanCondition(false) : new OrCondition(conditions);
+    }
+
+    private static ICondition CreateReleaseDateRangeCondition(DateTime start, DateTime endExclusive, ComparisonTypeEnum comparisonType)
+    {
+        return comparisonType switch
+        {
+            ComparisonTypeEnum.Equal => new AndCondition((ICondition[])[
+                CreateReleaseDateBoundCondition(start, ComparisonCondition.TypeEnum.GreaterThanOrEqual),
+                CreateReleaseDateBoundCondition(endExclusive, ComparisonCondition.TypeEnum.LessThan),
+            ]),
+            ComparisonTypeEnum.GreaterThan => CreateReleaseDateBoundCondition(endExclusive, ComparisonCondition.TypeEnum.GreaterThanOrEqual),
+            ComparisonTypeEnum.GreaterThanOrEqual => CreateReleaseDateBoundCondition(start, ComparisonCondition.TypeEnum.GreaterThanOrEqual),
+            ComparisonTypeEnum.LessThan => CreateReleaseDateBoundCondition(start, ComparisonCondition.TypeEnum.LessThan),
+            ComparisonTypeEnum.LessThanOrEqual => CreateReleaseDateBoundCondition(endExclusive, ComparisonCondition.TypeEnum.LessThan),
+            _ => throw new ExpressionException("Unsupported comparison type."),
+        };
+    }
+
+    private static ICondition CreateReleaseDateBoundCondition(DateTime bound, ComparisonCondition.TypeEnum type)
+    {
+        return new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnReleaseDate), ColumnOrValue.FromValue(ComicHandle.FormatReleaseDate(bound)), type);
+    }
+
+    private static ComparisonTypeEnum FlipComparisonType(ComparisonTypeEnum type)
+    {
+        return type switch
+        {
+            ComparisonTypeEnum.GreaterThan => ComparisonTypeEnum.LessThan,
+            ComparisonTypeEnum.GreaterThanOrEqual => ComparisonTypeEnum.LessThanOrEqual,
+            ComparisonTypeEnum.LessThan => ComparisonTypeEnum.GreaterThan,
+            ComparisonTypeEnum.LessThanOrEqual => ComparisonTypeEnum.GreaterThanOrEqual,
+            _ => type,
+        };
+    }
+
+    private static bool TryParseReleaseDateRange(object value, out DateTime start, out DateTime endExclusive)
+    {
+        start = default;
+        endExclusive = default;
+
+        string? text = value switch
+        {
+            string textValue => textValue.Trim(),
+            long numberValue => numberValue.ToString(CultureInfo.InvariantCulture),
+            _ => null,
+        };
+        if (string.IsNullOrEmpty(text))
+        {
+            return false;
+        }
+
+        string[] parts = text.Split('-', '/');
+        if (parts.Length > 3)
+        {
+            return false;
+        }
+
+        int year;
+        int month = 1;
+        int day = 1;
+        if (!int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out year))
+        {
+            return false;
+        }
+        if (parts.Length >= 2 && !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out month))
+        {
+            return false;
+        }
+        if (parts.Length == 3 && !int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out day))
+        {
+            return false;
+        }
+
+        if (year < 1 || year > 9999 || month < 1 || month > 12 || day < 1 || day > DateTime.DaysInMonth(year, month))
+        {
+            return false;
+        }
+
+        start = new DateTime(year, month, day);
+        endExclusive = parts.Length switch
+        {
+            1 => start.AddYears(1),
+            2 => start.AddMonths(1),
+            _ => start.AddDays(1),
+        };
+        return true;
+    }
+
+    #endregion
+
+    #region Helpers
+
     private static ICondition CreateCondition(IReadOnlyList<string> left, Func<IColumnTypeless, ICondition> conditionCreator)
     {
         if (left.Count == 0)
@@ -157,6 +303,7 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
             ComicSQLProviderUtils.VAR_TITLE2 => NotNullAndEmptyCondition(ComicTable.ColumnTitle2),
             ComicSQLProviderUtils.VAR_PROGRESS => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnProgress), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThanOrEqual),
             ComicSQLProviderUtils.VAR_PAGE_COUNT => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnPageCount), ColumnOrValue.FromValue(0), ComparisonCondition.TypeEnum.GreaterThan),
+            ComicSQLProviderUtils.VAR_RELEASE_DATE => NotNullAndEmptyCondition(ComicTable.ColumnReleaseDate),
             ComicSQLProviderUtils.VAR_HIDDEN => new ComparisonCondition(ColumnOrValue.FromColumn(ComicTable.ColumnHidden), ColumnOrValue.FromValue(true)),
             _ => throw new ExpressionException($"Variable '{path1}' cannot be used as a condition"),
         };
@@ -196,6 +343,7 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
             ComicSQLProviderUtils.VAR_TITLE2 => conditionCreator(ComicTable.ColumnTitle2),
             ComicSQLProviderUtils.VAR_PROGRESS => conditionCreator(ComicTable.ColumnProgress),
             ComicSQLProviderUtils.VAR_PAGE_COUNT => conditionCreator(ComicTable.ColumnPageCount),
+            ComicSQLProviderUtils.VAR_RELEASE_DATE => conditionCreator(ComicTable.ColumnReleaseDate),
             ComicSQLProviderUtils.VAR_HIDDEN => conditionCreator(ComicTable.ColumnHidden),
             _ => throw new ExpressionException($"Variable '{path1}' cannot be used here"),
         };
@@ -244,4 +392,6 @@ internal class ComicFilterSQLProvider : ISQLCommandProvider
         }
         return sb.ToString();
     }
+
+    #endregion
 }

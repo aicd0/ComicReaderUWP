@@ -61,6 +61,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="8" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="8" />
@@ -129,8 +131,19 @@
                             IsChecked="{x:Bind ViewModel.RatingPercentageEnabled, Mode=OneWay}" />
                     </Grid>
 
-                    <StackPanel
+                    <TextBlock
                         Grid.Row="8"
+                        Grid.Column="0"
+                        Style="{StaticResource FieldNameTextBlockStyle}"
+                        Text="{x:Bind ViewModel.ReleaseDateLabel, Mode=OneWay}" />
+                    <CalendarDatePicker
+                        Grid.Row="8"
+                        Grid.Column="2"
+                        Date="{x:Bind ViewModel.ReleaseDate, Mode=OneWay}"
+                        DateChanged="ReleaseDatePicker_DateChanged" />
+
+                    <StackPanel
+                        Grid.Row="10"
                         Grid.Column="2"
                         Orientation="Vertical">
                         <muxc:InfoBar
@@ -142,7 +155,7 @@
                         <Grid Height="8" Visibility="{x:Bind ViewModel.IsTagInfoBarOpen, Mode=OneWay}" />
                     </StackPanel>
                     <StackPanel
-                        Grid.Row="9"
+                        Grid.Row="11"
                         Grid.Column="0"
                         HorizontalAlignment="Right"
                         Orientation="Horizontal">
@@ -160,14 +173,14 @@
                         </Button>
                     </StackPanel>
                     <TextBox
-                        Grid.Row="9"
+                        Grid.Row="11"
                         Grid.Column="2"
                         AcceptsReturn="True"
                         Text="{x:Bind ViewModel.Tags, Mode=OneWay}"
                         TextChanged="TagTextBox_TextChanged"
                         TextWrapping="Wrap" />
                     <StackPanel
-                        Grid.Row="10"
+                        Grid.Row="12"
                         Grid.Column="2"
                         Margin="0,4,0,0"
                         Orientation="Horizontal">
@@ -186,17 +199,17 @@
                     </StackPanel>
 
                     <TextBlock
-                        Grid.Row="12"
+                        Grid.Row="14"
                         Grid.Column="0"
                         Style="{StaticResource FieldNameTextBlockStyle}"
                         Text="{x:Bind StringResource.Links}" />
                     <controls:EditLinksView
-                        Grid.Row="12"
+                        Grid.Row="14"
                         Grid.Column="2"
                         Links="{x:Bind ViewModel.Links}" />
 
                     <CheckBox
-                        Grid.Row="13"
+                        Grid.Row="15"
                         Grid.Column="0"
                         Grid.ColumnSpan="3"
                         Click="ClearReaderSettingsCheckBox_Click"

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Référence des expressions</title>
+<style>
+body { margin: 24px auto; max-width: 900px; padding: 0 24px; font-family: "Segoe UI", sans-serif; line-height: 1.5; color: #1a1a1a; background: #ffffff; }
+h1 { font-size: 1.6em; }
+h2 { margin-top: 1.8em; padding-bottom: 4px; font-size: 1.2em; border-bottom: 1px solid #d0d0d0; }
+table { width: 100%; margin: 8px 0; border-collapse: collapse; }
+td { padding: 4px 8px; vertical-align: top; border-bottom: 1px solid #eeeeee; }
+td.term { width: 1%; white-space: nowrap; font-family: Consolas, monospace; }
+td.desc { white-space: normal; }
+p { margin: 8px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Référence des expressions</h1>
+<h2>1. Variables</h2>
+<table>
+<tr><td class="term">%tag</td><td class="desc">Correspond à tous les tags d'une BD.</td></tr>
+<tr><td class="term">%title</td><td class="desc">Correspond au titre 1 ou 2.</td></tr>
+<tr><td class="term">%title1</td><td class="desc">Correspond au titre 1.</td></tr>
+<tr><td class="term">%title2</td><td class="desc">Correspond au titre 2.</td></tr>
+<tr><td class="term">%rating</td><td class="desc">Correspond à la note. Par exemple : 100 représente 5 étoiles, -1 représente aucune note.</td></tr>
+<tr><td class="term">%completion_state</td><td class="desc">État d'achèvement de la BD (0 - Non lu, 1 - Lu, 2 - Terminé).</td></tr>
+<tr><td class="term">%progress</td><td class="desc">Progression de la lecture, en pourcentage. Par exemple : 50 représente 50 %.</td></tr>
+<tr><td class="term">%page_count</td><td class="desc">Nombre total de pages.</td></tr>
+<tr><td class="term">%release_date</td><td class="desc">Correspond à la date de sortie. Format YYYY-MM-DD HH:MM:SS ; vide lorsqu'elle n'est pas définie, donc un %release_date seul ne correspond qu'aux BD qui ont une date.<br>La valeur peut être une date et une heure complètes, ou une date partielle couvrant une période :<br>2026 ou "2026" - Toute l'année 2026.<br>"2026-1" ou "2026/1" - Janvier 2026.<br>"2026-1-2" ou "2026/1/2" - Le 2 janvier 2026.<br>Les opérateurs s'appliquent à la période, pas au texte :<br>%release_date = 2026 - Dans 2026.<br>%release_date &gt;= 2026 - À partir du début de 2026.<br>%release_date &gt; 2026 - Après la fin de 2026.<br>%release_date &lt; "2026-1" - Avant janvier 2026.<br>%release_date &lt;= "2026-1-2" - Le 2 janvier 2026 ou avant.<br>%release_date in (2026, 2027) - Dans 2026 ou 2027.<br>Une date et une heure complètes, ou toute valeur qui n'est pas une date, sont comparées comme du texte.</td></tr>
+</table>
+<h2>2. Opérateurs de variables</h2>
+<table>
+<tr><td class="term">=</td><td class="desc">Égal. Par exemple : %title = "Ceci est un titre"</td></tr>
+<tr><td class="term">&gt;</td><td class="desc">Supérieur à. Par exemple : %rating &gt; 3</td></tr>
+<tr><td class="term">&gt;=</td><td class="desc">Supérieur ou égal à.</td></tr>
+<tr><td class="term">&lt;</td><td class="desc">Inférieur à.</td></tr>
+<tr><td class="term">&lt;=</td><td class="desc">Inférieur ou égal à.</td></tr>
+<tr><td class="term">... IN (...)</td><td class="desc">Contenu par. Par exemple :<br>%rating in (3, 4, 5) - Correspond aux bandes dessinées dont les notes sont comprises entre 3, 4 et 5.<br>%tag.language in (languageA, languageB) - Correspond aux bandes dessinées dont la catégorie de balise « language » contient « languageA » ou « languageB ».<br>(authorA, authorB) in %tag.authors - Correspond aux bandes dessinées dont la catégorie de balise « authors » contient à la fois « authorA » et « authorB ».<br>apple in %tag - Correspond aux bandes dessinées contenant la balise « apple ».</td></tr>
+</table>
+<h2>3. Opérateurs logiques</h2>
+<table>
+<tr><td class="term">AND</td><td class="desc">Et logique. Par exemple : %tag.fruit = apple and %title = "J'ai une pomme"</td></tr>
+<tr><td class="term">OR</td><td class="desc">Ou logique. Par exemple : %title1 = "Apple is OK" or %title2 = "Orange is OK also"</td></tr>
+<tr><td class="term">NOT</td><td class="desc">Non logique. Par exemple : NOT %tag = "hide this"</td></tr>
+</table>
+<h2>4. Parenthèses</h2>
+<p>Par défaut, les opérateurs sont évalués de gauche à droite. Utilisez (...) pour augmenter la priorité de l'expression incluse. Par exemple :</p>
+<p>%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)</p>
+<p>L'évaluation sera effectuée dans l'ordre suivant :</p>
+<p>1. NOT %tag.lang = langB  ==&gt;  Résultat1</p>
+<p>2. %tag.language = langA OR Result1  ==&gt;  Résultat2</p>
+<p>3. %tag.author = abc AND Result2  ==&gt;  Résultat3</p>
+</body>
+</html>

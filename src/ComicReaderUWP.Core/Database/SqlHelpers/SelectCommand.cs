@@ -110,7 +110,7 @@ public partial class SelectCommand
         _executed = true;
         var tokens = new List<ITokenInternal>(_tokens.Values);
         CommandWrapper command = GenerateCommand(tokens);
-        return new Reader(command.ExecuteReader(_table.GetDatabase()), tokens);
+        return new Reader(command.ExecuteReader(_table.Database), tokens);
     }
 
     public async Task<IReader> ExecuteAsync()
@@ -123,7 +123,7 @@ public partial class SelectCommand
         _executed = true;
         var tokens = new List<ITokenInternal>(_tokens.Values);
         CommandWrapper command = GenerateCommand(tokens);
-        return new Reader(await command.ExecuteReaderAsync(_table.GetDatabase()), tokens);
+        return new Reader(await command.ExecuteReaderAsync(_table.Database), tokens);
     }
 
     public override string ToString()
@@ -174,7 +174,7 @@ public partial class SelectCommand
         }
 
         sb.Append(" FROM ");
-        sb.Append(_table.GetTableName());
+        sb.Append(_table.TableName);
 
         if (_conditions.Count > 0)
         {

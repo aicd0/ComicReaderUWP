@@ -16,13 +16,7 @@ internal class ComicHistoryTable : ITable
 
     private ComicHistoryTable() { }
 
-    public SqlDatabase GetDatabase()
-    {
-        return SqliteDB.MiscDatabase;
-    }
+    public SqlDatabase Database => SqliteDB.MiscDatabase;
 
-    public string GetTableName()
-    {
-        return "comic_history";
-    }
+    public string TableName => "comic_history";
 }

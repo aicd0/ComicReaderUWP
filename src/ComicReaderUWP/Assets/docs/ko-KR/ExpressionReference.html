@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>표현식 참조</title>
+<style>
+body { margin: 24px auto; max-width: 900px; padding: 0 24px; font-family: "Segoe UI", sans-serif; line-height: 1.5; color: #1a1a1a; background: #ffffff; }
+h1 { font-size: 1.6em; }
+h2 { margin-top: 1.8em; padding-bottom: 4px; font-size: 1.2em; border-bottom: 1px solid #d0d0d0; }
+table { width: 100%; margin: 8px 0; border-collapse: collapse; }
+td { padding: 4px 8px; vertical-align: top; border-bottom: 1px solid #eeeeee; }
+td.term { width: 1%; white-space: nowrap; font-family: Consolas, monospace; }
+td.desc { white-space: normal; }
+p { margin: 8px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>표현식 참조</h1>
+<h2>1. 변수</h2>
+<table>
+<tr><td class="term">%tag</td><td class="desc">만화의 모든 태그를 찾습니다.</td></tr>
+<tr><td class="term">%title</td><td class="desc">제목 1 또는 제목 2를 찾습니다.</td></tr>
+<tr><td class="term">%title1</td><td class="desc">제목 1을 찾습니다.</td></tr>
+<tr><td class="term">%title2</td><td class="desc">제목 2를 찾습니다.</td></tr>
+<tr><td class="term">%rating</td><td class="desc">평점을 찾습니다. 예: 100는 별 5개를, -1은평점 없음을 나타냅니다.</td></tr>
+<tr><td class="term">%completion_state</td><td class="desc">만화 완료 상태(0 - 읽지 않음, 1 - 읽음, 2 - 완료).</td></tr>
+<tr><td class="term">%progress</td><td class="desc">읽기 진행률(백분율). 예: 50은 50%를 나타냅니다.</td></tr>
+<tr><td class="term">%page_count</td><td class="desc">총 페이지 수.</td></tr>
+<tr><td class="term">%release_date</td><td class="desc">출시일을 찾습니다. 형식은 YYYY-MM-DD HH:MM:SS이며, 설정되지 않으면 비어 있으므로 %release_date만 지정하면 날짜가 있는 만화에만 일치합니다.<br>값은 전체 날짜와 시간 또는 기간 전체를 나타내는 부분 날짜일 수 있습니다:<br>2026 또는 "2026" - 2026년 전체.<br>"2026-1" 또는 "2026/1" - 2026년 1월.<br>"2026-1-2" 또는 "2026/1/2" - 2026년 1월 2일.<br>연산자는 텍스트가 아니라 기간에 적용됩니다:<br>%release_date = 2026 - 2026년 이내.<br>%release_date &gt;= 2026 - 2026년 시작부터.<br>%release_date &gt; 2026 - 2026년 이후.<br>%release_date &lt; "2026-1" - 2026년 1월 이전.<br>%release_date &lt;= "2026-1-2" - 2026년 1월 2일 또는 그 이전.<br>%release_date in (2026, 2027) - 2026년 또는 2027년 이내.<br>전체 날짜와 시간 또는 날짜가 아닌 값은 텍스트로 비교됩니다.</td></tr>
+</table>
+<h2>2. 변수 연산자</h2>
+<table>
+<tr><td class="term">=</td><td class="desc">같음. 예: %title = "This is a title"</td></tr>
+<tr><td class="term">&gt;</td><td class="desc">보다 큼. 예: %rating &gt; 3</td></tr>
+<tr><td class="term">&gt;=</td><td class="desc">크거나 같음.</td></tr>
+<tr><td class="term">&lt;</td><td class="desc">보다 작음.</td></tr>
+<tr><td class="term">&lt;=</td><td class="desc">작거나 같음.</td></tr>
+<tr><td class="term">... IN (...)</td><td class="desc">다음에 포함됨. 예:<br>%rating in (3, 4, 5) - 평점이 3, 4, 5점 이내인 만화를 찾습니다.<br>%tag.language in (languageA, languageB) - "language" 태그 범주에 "languageA" 또는 "languageB"가 포함된 만화를 찾습니다.<br>(authorA, authorB) in %tag.authors - "authors" 태그 범주에 "authorA"와 "authorB"가 모두 포함된 만화를 찾습니다.<br>apple in %tag - "apple" 태그가 포함된 만화를 찾습니다.</td></tr>
+</table>
+<h2>3. 논리 연산자</h2>
+<table>
+<tr><td class="term">AND</td><td class="desc">논리 and. 예:%tag.fruit = apple AND %title = "I have an apple"</td></tr>
+<tr><td class="term">OR</td><td class="desc">논리 or. 예:%title1 = "Apple is OK" OR %title2 = "Orange is also OK"</td></tr>
+<tr><td class="term">NOT</td><td class="desc">논리 not. 예: NOT %tag = "hide this"</td></tr>
+</table>
+<h2>4. 괄호</h2>
+<p>기본적으로 연산자는 왼쪽에서 오른쪽으로 평가됩니다. (...)를 사용하면 포함된 표현식의 우선순위를 높일 수 있습니다. 예:</p>
+<p>%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)</p>
+<p>평가는 다음 순서로 수행됩니다.</p>
+<p>1. NOT %tag.lang = langB  ==&gt;  Result1</p>
+<p>2. %tag.language = langA OR Result1  ==&gt;  Result2</p>
+<p>3. %tag.author = abc AND Result2  ==&gt;  Result3</p>
+</body>
+</html>
