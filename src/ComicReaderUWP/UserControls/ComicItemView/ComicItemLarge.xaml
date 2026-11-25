@@ -43,12 +43,12 @@
                 <RowDefinition Height="Auto" MinHeight="100" />
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Padding="20,32,20,0">
-                <Grid Height="150">
+            <Grid Grid.Row="0" Padding="16,24,16,0">
+                <Grid Height="184">
                     <Border
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        CornerRadius="5">
+                        CornerRadius="4">
                         <usercontrols:SimpleImageView x:Name="ImageHolder" ImageUri="{x:Bind Item.CoverImageUri, Mode=OneWay}" />
                     </Border>
                 </Grid>
@@ -81,7 +81,7 @@
                     Margin="0,0,0,4"
                     FontSize="14"
                     FontWeight="SemiBold"
-                    MaxLines="{x:Bind Item.TitleMaxLines, Mode=OneWay}"
+                    MaxLines="{x:Bind GetTitleMaxLines(Item.IsCollection, Item.IsRatingVisible), Mode=OneWay}"
                     Text="{x:Bind Item.Title, Mode=OneWay}"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="Wrap"
