@@ -203,6 +203,7 @@ public class StringResourceProvider
     public string PageCount => GetResourceString("PageCount");
     public string PageN => GetResourceString("PageN");
     public string PageSpacing => GetResourceString("PageSpacing");
+    public string Paste => GetResourceString("Paste");
     public string Pause => GetResourceString("Pause");
     public string Pin => GetResourceString("Pin");
     public string Play => GetResourceString("Play");

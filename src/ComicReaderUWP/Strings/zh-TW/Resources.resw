@@ -821,6 +821,9 @@ NOT                 - 邏輯非。例如：NOT %tag = "hide this"
   <data name="PageSpacing" xml:space="preserve">
     <value>頁面間距</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>貼上</value>
+  </data>
   <data name="Pause" xml:space="preserve">
     <value>暫停</value>
   </data>

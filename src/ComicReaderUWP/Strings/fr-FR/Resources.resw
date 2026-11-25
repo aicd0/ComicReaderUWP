@@ -823,6 +823,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   <data name="PageSpacing" xml:space="preserve">
     <value>Espacement</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Coller</value>
+  </data>
   <data name="Pause" xml:space="preserve">
     <value>Pause</value>
   </data>

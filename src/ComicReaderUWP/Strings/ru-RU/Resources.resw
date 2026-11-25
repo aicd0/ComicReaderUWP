@@ -824,6 +824,9 @@ NOT                      - Логическое не. Например: NOT %tag
   <data name="PageSpacing" xml:space="preserve">
     <value>Интервал</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Вставить</value>
+  </data>
   <data name="Pause" xml:space="preserve">
     <value>Пауза</value>
   </data>

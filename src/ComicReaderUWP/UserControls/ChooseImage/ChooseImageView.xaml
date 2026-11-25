@@ -11,7 +11,12 @@
     mc:Ignorable="d">
 
     <StackPanel Orientation="Vertical">
-        <Grid HorizontalAlignment="Left">
+        <Grid
+            HorizontalAlignment="Left"
+            AllowDrop="True"
+            ContextRequested="ImageDropTarget_ContextRequested"
+            DragOver="ImageDropTarget_DragOver"
+            Drop="ImageDropTarget_Drop">
             <Border
                 x:Name="ImageBorder"
                 MaxWidth="260"
@@ -38,6 +43,13 @@
                     Opacity="0.6" />
             </Border>
         </Grid>
+
+        <TextBlock
+            x:Name="ImageInfoTextBlock"
+            Margin="0,4,0,0"
+            HorizontalAlignment="Left"
+            TextWrapping="Wrap"
+            Visibility="Collapsed" />
 
         <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
             <Button
