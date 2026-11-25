@@ -824,6 +824,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   <data name="PageSpacing" xml:space="preserve">
     <value>페이지 간격</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>붙여넣기</value>
+  </data>
   <data name="Pause" xml:space="preserve">
     <value>일시정지</value>
   </data>

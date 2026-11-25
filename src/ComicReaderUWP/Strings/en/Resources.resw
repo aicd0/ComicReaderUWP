@@ -825,6 +825,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="PageSpacing" xml:space="preserve">
     <value>Page spacing</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
   <data name="Pause" xml:space="preserve">
     <value>Pause</value>
   </data>
