@@ -594,9 +594,6 @@ L'évaluation sera effectuée dans l'ordre suivant :
   <data name="ImageBrightness" xml:space="preserve">
     <value>Luminosité</value>
   </data>
-  <data name="ImageCacheCapacity" xml:space="preserve">
-    <value>Capacité du cache mémoire</value>
-  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>Contraste</value>
   </data>
@@ -605,6 +602,9 @@ L'évaluation sera effectuée dans l'ordre suivant :
   </data>
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Images sur cet appareil</value>
+  </data>
+  <data name="ImageMemoryCacheCapacity" xml:space="preserve">
+    <value>Capacité du cache mémoire des images</value>
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Saturation</value>

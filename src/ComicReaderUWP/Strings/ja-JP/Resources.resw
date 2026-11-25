@@ -594,9 +594,6 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   <data name="ImageBrightness" xml:space="preserve">
     <value>明るさ</value>
   </data>
-  <data name="ImageCacheCapacity" xml:space="preserve">
-    <value>メモリキャッシュの容量</value>
-  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>コントラスト</value>
   </data>
@@ -605,6 +602,9 @@ NOT               - 論理否定。例: NOT %tag = "hide this"
   </data>
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>このデバイス上の画像</value>
+  </data>
+  <data name="ImageMemoryCacheCapacity" xml:space="preserve">
+    <value>画像メモリキャッシュの容量</value>
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>彩度</value>

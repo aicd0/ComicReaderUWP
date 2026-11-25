@@ -144,8 +144,8 @@ public class StringResourceProvider
     public string Horizontal => GetResourceString("Horizontal");
     public string Image => GetResourceString("Image");
     public string ImageBrightness => GetResourceString("ImageBrightness");
-    public string ImageCacheCapacity => GetResourceString("ImageCacheCapacity");
     public string ImageContrast => GetResourceString("ImageContrast");
+    public string ImageMemoryCacheCapacity => GetResourceString("ImageMemoryCacheCapacity");
     public string ImageSaturation => GetResourceString("ImageSaturation");
     public string Images => GetResourceString("Images");
     public string IncludeHiddenComics => GetResourceString("IncludeHiddenComics");

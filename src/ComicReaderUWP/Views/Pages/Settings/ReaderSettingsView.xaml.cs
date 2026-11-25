@@ -96,15 +96,4 @@ internal sealed partial class ReaderSettingsView : BaseUserControl
     {
         ViewModel.SetKeepScreenOnBehavior(((ComboBox)sender).SelectedIndex);
     }
-
-    private void ImageCacheCapacityNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-    {
-        if (double.IsNaN(args.NewValue))
-        {
-            return;
-        }
-
-        int value = Math.Clamp((int)args.NewValue, 0, 4096);
-        ViewModel.SetImageCacheCapacity(value);
-    }
 }
