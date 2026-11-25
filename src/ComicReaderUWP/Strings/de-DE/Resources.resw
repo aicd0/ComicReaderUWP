@@ -435,51 +435,6 @@ Kategorie:: Tag1, Tag2    - Überschreibe „Kategorie“ mit „Tag1“ und „
   <data name="ExpressionOr" xml:space="preserve">
     <value>Oder</value>
   </data>
-  <data name="ExpressionReference" xml:space="preserve">
-    <value>Ausdrucksreferenz
-
-1. Variablen
-
-%tag                      - Alle Tags eines Comics abgleichen.
-%title                    - Titel 1 oder Titel 2 abgleichen.
-%title1                   - Titel 1 abgleichen.
-%title2                   - Titel 2 abgleichen.
-%rating                   - Bewertung abgleichen. Beispiel: 100 steht für 5 Sterne, -1 für keine Bewertung.
-%completion_state         - Status der Comic-Vervollständigung (0 - Ungelesen, 1 - Lesen, 2 - Abgeschlossen).
-%progress                 - Lesefortschritt in Prozent. Beispiel: 50 steht für 50 %.
-%page_count               - Seitenanzahl.
-
-2. Variablenoperatoren
-
-=                         - Gleich. Beispiel: %title = "Dies ist ein Titel."
-&gt;                         - Größer als. Beispiel: %rating &gt; 3
-&gt;=                        - Größer als oder gleich.
-&lt;                         - Kleiner als.
-&lt;=                        - Kleiner als oder gleich.
-... IN (...)              - Enthalten in. Beispiel:
-                            %rating in (3, 4, 5) - Findet Comics, deren Bewertungen zwischen 3, 4 und 5 liegen.
-                            %tag.language in (languageA, languageB) - Findet Comics, deren Tag-Kategorie „language“ „languageA“ oder „languageB“ enthält.
-                            (authorA, authorB) in %tag.authors - Findet Comics, deren Tag-Kategorie „authors“ sowohl „authorA“ als auch „authorB“ enthält.
-                            apple in %tag - Findet Comics, die den Tag „apple“ enthalten.
-
-3. Logische Operatoren
-
-AND                       - Logisch und. Beispiel: %tag.fruit = apple AND %title = "Ich habe einen Apfel"
-OR                        - Logisch oder. Beispiel: %title1 = "Apfel ist OK" OR %title2 = "Orange ist auch OK"
-NOT                       - Logisch nicht. Beispiel: NOT %tag = "dieses ausblenden"
-
-4. Klammern
-
-Standardmäßig werden Operatoren von links nach rechts ausgewertet. Verwenden Sie (...), um die Priorität des eingefügten Ausdrucks zu erhöhen. Beispiel:
-
-%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)
-
-Die Auswertung erfolgt in der folgenden Reihenfolge:
-
-1. NOT %tag.lang = langB  ==&gt;  Ergebnis1
-2. %tag.language = langA OR Ergebnis1  ==&gt;  Ergebnis2
-3. %tag.author = abc AND Ergebnis2  ==&gt;  Ergebnis3</value>
-  </data>
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>Ausdruck</value>
   </data>
@@ -902,6 +857,9 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   </data>
   <data name="RefreshRandomSeed" xml:space="preserve">
     <value>Zufallssamen aktualisieren</value>
+  </data>
+  <data name="ReleaseDate" xml:space="preserve">
+    <value>Veröffentlichungsdatum</value>
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Entfernen</value>

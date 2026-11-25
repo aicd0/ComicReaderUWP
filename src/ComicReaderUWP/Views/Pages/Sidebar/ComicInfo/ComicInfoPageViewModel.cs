@@ -9,6 +9,7 @@ using System.Linq;
 
 using ComicReaderUWP.Common.Actions;
 using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
@@ -97,7 +98,17 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
         {
             _comicTitle2 = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ComicTitle2)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsComicTitle2Visible)));
+        }
+    }
+
+    private string _releaseDateText = string.Empty;
+    public string ReleaseDateText
+    {
+        get => _releaseDateText;
+        set
+        {
+            _releaseDateText = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ReleaseDateText)));
         }
     }
 
@@ -149,7 +160,6 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
     public ComicModel? Comic => _selectedComic;
     public PlaylistModel Playlist { get; set; } = PlaylistModel.CreateEmpty();
     public PlaybackModel? Playback { get; set; }
-    public bool IsComicTitle2Visible => ComicTitle2.Length > 0;
     public bool IsCoverImageVisible => !string.IsNullOrEmpty(CoverImageUri);
     public ObservableCollection<ComicModel> Targets { get; } = [];
     public ObservableCollection<TagCollectionViewModel> ComicTags { get; } = [];
@@ -356,6 +366,10 @@ internal partial class ComicInfoPageViewModel : INotifyPropertyChanged
             ComicTitle1 = comic.Title1;
             ComicTitle2 = comic.Title2;
         }
+
+        ReleaseDateText = comic.ReleaseDate is { } releaseDate ?
+            releaseDate.ToString("d", EnvironmentProvider.Instance.GetCurrentAppLanguageInfo()) :
+            string.Empty;
 
         ComicDescriptionLiveData.Emit(comic.Description);
 

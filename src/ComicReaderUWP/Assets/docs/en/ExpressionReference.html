@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Expression Reference</title>
+<style>
+body { margin: 24px auto; max-width: 900px; padding: 0 24px; font-family: "Segoe UI", sans-serif; line-height: 1.5; color: #1a1a1a; background: #ffffff; }
+h1 { font-size: 1.6em; }
+h2 { margin-top: 1.8em; padding-bottom: 4px; font-size: 1.2em; border-bottom: 1px solid #d0d0d0; }
+table { width: 100%; margin: 8px 0; border-collapse: collapse; }
+td { padding: 4px 8px; vertical-align: top; border-bottom: 1px solid #eeeeee; }
+td.term { width: 1%; white-space: nowrap; font-family: Consolas, monospace; }
+td.desc { white-space: normal; }
+p { margin: 8px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Expression Reference</h1>
+<h2>1. Variables</h2>
+<table>
+<tr><td class="term">%tag</td><td class="desc">Match all tags in a comic.</td></tr>
+<tr><td class="term">%title</td><td class="desc">Match title 1 or title 2.</td></tr>
+<tr><td class="term">%title1</td><td class="desc">Match title 1.</td></tr>
+<tr><td class="term">%title2</td><td class="desc">Match title 2.</td></tr>
+<tr><td class="term">%rating</td><td class="desc">Match rating. For example: 100 represents 5 stars, -1 represents no rating.</td></tr>
+<tr><td class="term">%completion_state</td><td class="desc">Comic completion state (0 - Unread, 1 - Reading, 2 - Completed).</td></tr>
+<tr><td class="term">%progress</td><td class="desc">reading progress, in percentage. For example: 50 represents 50%.</td></tr>
+<tr><td class="term">%page_count</td><td class="desc">Total pages.</td></tr>
+<tr><td class="term">%release_date</td><td class="desc">Match release date. Formatted as YYYY-MM-DD HH:MM:SS; empty when unset, so a bare %release_date matches only comics that have one.<br>Comparands may be a full date and time, or a partial date covering a period:<br>2026 or "2026" - The whole year 2026.<br>"2026-1" or "2026/1" - January 2026.<br>"2026-1-2" or "2026/1/2" - January 2, 2026.<br>Operators apply to that period rather than to the text:<br>%release_date = 2026 - Within 2026.<br>%release_date &gt;= 2026 - From the start of 2026.<br>%release_date &gt; 2026 - After the end of 2026.<br>%release_date &lt; "2026-1" - Before January 2026.<br>%release_date &lt;= "2026-1-2" - On or before January 2, 2026.<br>%release_date in (2026, 2027) - Within 2026 or 2027.<br>A full date and time, or anything that is not a date, is compared as plain text.</td></tr>
+</table>
+<h2>2. Variable operators</h2>
+<table>
+<tr><td class="term">=</td><td class="desc">Equal. For example: %title = "This is a title"</td></tr>
+<tr><td class="term">&gt;</td><td class="desc">Greater than. For example: %rating &gt; 3</td></tr>
+<tr><td class="term">&gt;=</td><td class="desc">Greater than or equal.</td></tr>
+<tr><td class="term">&lt;</td><td class="desc">Less than.</td></tr>
+<tr><td class="term">&lt;=</td><td class="desc">Less than or equal.</td></tr>
+<tr><td class="term">... IN (...)</td><td class="desc">Contained by. For example:<br>%rating in (3, 4, 5) - Match those comics whose ratings are within 3, 4 and 5.<br>%tag.language in (languageA, languageB) - Match those comics whose "language" tag category contains "languageA" or "languageB".<br>(authorA, authorB) in %tag.authors - Match those comics whose "authors" tag category contains both "authorA" and "authorB".<br>apple in %tag - Match those comics which contains tag "apple".</td></tr>
+</table>
+<h2>3. Logic operators</h2>
+<table>
+<tr><td class="term">AND</td><td class="desc">Logic and. For example: %tag.fruit = apple AND %title = "I have an apple"</td></tr>
+<tr><td class="term">OR</td><td class="desc">Logic or. For example: %title1 = "Apple is OK" OR %title2 = "Orange is also OK"</td></tr>
+<tr><td class="term">NOT</td><td class="desc">Logic not. For example: NOT %tag = "hide this"</td></tr>
+</table>
+<h2>4. Parentheses</h2>
+<p>By default, operators will be evaluated from left to right. Use (...) to elevate the priority of included expression. For example:</p>
+<p>    %tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)</p>
+<p>The evaluation will be performed in the following order:</p>
+<p>    1. NOT %tag.lang = langB  ==&gt;  Result1</p>
+<p>    2. %tag.language = langA OR Result1  ==&gt;  Result2</p>
+<p>    3. %tag.author = abc AND Result2  ==&gt;  Result3</p>
+</body>
+</html>

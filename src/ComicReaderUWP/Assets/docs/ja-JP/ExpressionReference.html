@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>式リファレンス</title>
+<style>
+body { margin: 24px auto; max-width: 900px; padding: 0 24px; font-family: "Segoe UI", sans-serif; line-height: 1.5; color: #1a1a1a; background: #ffffff; }
+h1 { font-size: 1.6em; }
+h2 { margin-top: 1.8em; padding-bottom: 4px; font-size: 1.2em; border-bottom: 1px solid #d0d0d0; }
+table { width: 100%; margin: 8px 0; border-collapse: collapse; }
+td { padding: 4px 8px; vertical-align: top; border-bottom: 1px solid #eeeeee; }
+td.term { width: 1%; white-space: nowrap; font-family: Consolas, monospace; }
+td.desc { white-space: normal; }
+p { margin: 8px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>式リファレンス</h1>
+<h2>1. 変数</h2>
+<table>
+<tr><td class="term">%tag</td><td class="desc">コミック内のすべてのタグに一致します。</td></tr>
+<tr><td class="term">%title</td><td class="desc">タイトル1またはタイトル2に一致します。</td></tr>
+<tr><td class="term">%title1</td><td class="desc">タイトル1に一致します。</td></tr>
+<tr><td class="term">%title2</td><td class="desc">タイトル2に一致します。</td></tr>
+<tr><td class="term">%rating</td><td class="desc">評価に一致します。例：100は星5つ、-1は評価なしを表します。</td></tr>
+<tr><td class="term">%completion_state</td><td class="desc">コミックの完了状態（0 - 未読、1 - 読んでいる、2 - 完了）。</td></tr>
+<tr><td class="term">%progress</td><td class="desc">読書の進捗状況（パーセンテージ）。例：50は50%を表します。</td></tr>
+<tr><td class="term">%page_count</td><td class="desc">総ページ数。</td></tr>
+<tr><td class="term">%release_date</td><td class="desc">発売日に一致します。形式は YYYY-MM-DD HH:MM:SS で、未設定の場合は空のため、%release_date だけを指定すると日付があるコミックにのみ一致します。<br>値には完全な日時、または期間全体を表す部分的な日付を指定できます：<br>2026 または "2026" - 2026 年全体。<br>"2026-1" または "2026/1" - 2026 年 1 月。<br>"2026-1-2" または "2026/1/2" - 2026 年 1 月 2 日。<br>演算子はテキストではなく期間に適用されます：<br>%release_date = 2026 - 2026 年内。<br>%release_date &gt;= 2026 - 2026 年の初め以降。<br>%release_date &gt; 2026 - 2026 年の終わりより後。<br>%release_date &lt; "2026-1" - 2026 年 1 月より前。<br>%release_date &lt;= "2026-1-2" - 2026 年 1 月 2 日以前。<br>%release_date in (2026, 2027) - 2026 年または 2027 年内。<br>完全な日時や、日付ではない値はテキストとして比較されます。</td></tr>
+</table>
+<h2>2. 変数演算子</h2>
+<table>
+<tr><td class="term">=</td><td class="desc">等しい。例：%title = "This is a title"</td></tr>
+<tr><td class="term">&gt;</td><td class="desc">より大きい。例：%rating &gt; 3</td></tr>
+<tr><td class="term">&gt;=</td><td class="desc">以上。</td></tr>
+<tr><td class="term">&lt;</td><td class="desc">より小さい。</td></tr>
+<tr><td class="term">&lt;=</td><td class="desc">以下。</td></tr>
+<tr><td class="term">... IN (...)</td><td class="desc">包含。例：<br>%rating in (3, 4, 5) - 評価が3、4、5のコミックにマッチします。<br>%tag.language in (languageA, languageB) - 「language」タグカテゴリに「languageA」または「languageB」が含まれるコミックにマッチします。<br>(authorA, authorB) in %tag.authors - 「authors」タグカテゴリに「authorA」と「authorB」の両方が含まれるコミックにマッチします。<br>apple in %tag - 「apple」タグを含むコミックにマッチします。</td></tr>
+</table>
+<h2>3. 論理演算子</h2>
+<table>
+<tr><td class="term">AND</td><td class="desc">論理積。例：%tag.fruit = apple AND %title = "I have an apple"</td></tr>
+<tr><td class="term">OR</td><td class="desc">論理和。例：%title1 = "Apple is OK" OR %title2 = "Orange is also OK"</td></tr>
+<tr><td class="term">NOT</td><td class="desc">論理否定。例: NOT %tag = "hide this"</td></tr>
+</table>
+<h2>4. 括弧</h2>
+<p>デフォルトでは、演算子は左から右に評価されます。(...) を使用すると、含まれる式の優先順位が上がります。例:</p>
+<p>%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)</p>
+<p>評価は以下の順序で実行されます:</p>
+<p>1. NOT %tag.lang = langB  ==&gt;  結果1</p>
+<p>2. %tag.language = langA OR 結果1  ==&gt;  結果2</p>
+<p>3. %tag.author = abc AND 結果2  ==&gt;  結果3</p>
+</body>
+</html>

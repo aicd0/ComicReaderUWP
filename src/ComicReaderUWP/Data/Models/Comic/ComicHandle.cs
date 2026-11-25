@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -29,10 +30,16 @@ internal abstract partial class ComicHandle
     //
 
     private const string TAG = nameof(ComicHandle);
+    private const string RELEASE_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     //
     // Static Methods
     //
+
+    public static string FormatReleaseDate(DateTime? value)
+    {
+        return value is { } date ? date.ToString(RELEASE_DATE_FORMAT, CultureInfo.InvariantCulture) : string.Empty;
+    }
 
     public static ICondition CreateComicOnlyCondition()
     {
@@ -134,6 +141,7 @@ internal abstract partial class ComicHandle
             IReaderToken<string> descriptionToken = command.PutQueryString(ComicTable.ColumnDescription);
             IReaderToken<int> completionStatusToken = command.PutQueryInt32(ComicTable.ColumnCompletionStatus);
             IReaderToken<int> pageCountToken = command.PutQueryInt32(ComicTable.ColumnPageCount);
+            IReaderToken<string> releaseDateToken = command.PutQueryString(ComicTable.ColumnReleaseDate);
             IReaderToken<string> extToken = command.PutQueryString(ComicTable.ColumnExt);
             using SelectCommand.IReader reader = command.Execute();
 
@@ -152,6 +160,7 @@ internal abstract partial class ComicHandle
                 string description = descriptionToken.GetValue();
                 CompletionStatusEnum completionStatus = ParseCompletionStatus(completionStatusToken.GetValue());
                 int pageCount = pageCountToken.GetValue();
+                DateTime? releaseDate = ParseReleaseDate(releaseDateToken.GetValue());
                 string extJson = extToken.GetValue();
 
                 ComicHandle? comic = FromType(type);
@@ -173,6 +182,7 @@ internal abstract partial class ComicHandle
                 comic._tags = new([]);
                 comic.CompletionStatus = completionStatus;
                 comic.PageCount = pageCount;
+                comic.ReleaseDate = releaseDate;
 
                 if (!string.IsNullOrEmpty(extJson))
                 {
@@ -320,6 +330,16 @@ internal abstract partial class ComicHandle
         return CompletionStatusEnum.Unread;
     }
 
+    private static DateTime? ParseReleaseDate(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        return DateTime.TryParseExact(text, RELEASE_DATE_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime value) ? value : null;
+    }
+
     //
     // Member variables
     //
@@ -345,6 +365,7 @@ internal abstract partial class ComicHandle
     public IReadOnlyDictionary<string, ComicTagCategory> Tags => _tags;
     public IReadOnlyDictionary<string, SDK.Plugins.Comic.IComicTagCategory> TagsForPlugin => _tags;
     public int PageCount { get; set; } = -1;
+    public DateTime? ReleaseDate { get; private set; }
 
     public abstract bool IsEditable { get; }
     public virtual string FileSystemPath => Location;
@@ -578,6 +599,24 @@ internal abstract partial class ComicHandle
         });
     }
 
+    public async Task SetReleaseDate(DateTime? releaseDate)
+    {
+        ReleaseDate = releaseDate;
+
+        await Enqueue(() =>
+        {
+            if (IsExternal)
+            {
+                return;
+            }
+
+            UpdateCommand.Create(ComicTable.Instance)
+                .AppendColumn(ComicTable.ColumnReleaseDate, GetColumnValue(ComicTable.ColumnReleaseDate))
+                .AppendCondition(ComicTable.ColumnId, Id)
+                .Execute();
+        });
+    }
+
     //
     // Utilities
     //
@@ -622,8 +661,9 @@ internal abstract partial class ComicHandle
             ComicTable.ColumnLastPosition,
             ComicTable.ColumnDescription,
             ComicTable.ColumnCompletionStatus,
-            ComicTable.ColumnExt,
             ComicTable.ColumnPageCount,
+            ComicTable.ColumnReleaseDate,
+            ComicTable.ColumnExt,
         ];
     });
 
@@ -642,8 +682,9 @@ internal abstract partial class ComicHandle
         evaluators[ComicTable.ColumnLastPosition.Name] = i => TypeAssert.AssertDouble(i.LastPosition);
         evaluators[ComicTable.ColumnDescription.Name] = i => TypeAssert.AssertString(i.Description);
         evaluators[ComicTable.ColumnCompletionStatus.Name] = i => TypeAssert.AssertInt((int)i.CompletionStatus);
-        evaluators[ComicTable.ColumnExt.Name] = i => TypeAssert.AssertString(JsonSerializer.Serialize(i._ext));
         evaluators[ComicTable.ColumnPageCount.Name] = i => TypeAssert.AssertInt(i.PageCount);
+        evaluators[ComicTable.ColumnReleaseDate.Name] = i => TypeAssert.AssertString(FormatReleaseDate(i.ReleaseDate));
+        evaluators[ComicTable.ColumnExt.Name] = i => TypeAssert.AssertString(JsonSerializer.Serialize(i._ext));
         return evaluators;
     });
 

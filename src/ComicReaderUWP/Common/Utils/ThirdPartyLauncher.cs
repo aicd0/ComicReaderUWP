@@ -4,10 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
+using ComicReaderUWP.Common.Localization;
+using ComicReaderUWP.Core.Common.AppEnvironment;
 using ComicReaderUWP.Core.Common.ErrorHandling;
 using ComicReaderUWP.Core.Common.Storage;
 using ComicReaderUWP.Core.Common.Threading;
@@ -76,6 +79,12 @@ internal static class ThirdPartyLauncher
     public static async Task<OperationResult> OpenAssetsFile(string filename)
     {
         return await OpenFile(Path.Combine(AppContext.BaseDirectory, "Assets", filename));
+    }
+
+    public static async Task<OperationResult> OpenDocument(string filename)
+    {
+        string path = Path.Combine("docs", GetDocumentLanguage(), filename);
+        return await OpenAssetsFile(path);
     }
 
     public static async Task<OperationResult> OpenFile(string path)
@@ -162,5 +171,23 @@ internal static class ThirdPartyLauncher
 
             return OperationResultExt.Success();
         });
+    }
+
+    private static string GetDocumentLanguage()
+    {
+        CultureInfo culture = EnvironmentProvider.Instance.GetCurrentAppLanguageInfo();
+        string docsPath = Path.Combine(AppContext.BaseDirectory, "Assets", "docs");
+        if (!Directory.Exists(docsPath))
+        {
+            return "en";
+        }
+
+        List<string> languages = [];
+        foreach (string directory in Directory.GetDirectories(docsPath))
+        {
+            languages.Add(Path.GetFileName(directory));
+        }
+
+        return LocalizationUtils.ResolveLanguage(culture, languages) ?? "en";
     }
 }

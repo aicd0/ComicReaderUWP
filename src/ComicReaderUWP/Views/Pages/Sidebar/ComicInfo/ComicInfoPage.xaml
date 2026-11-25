@@ -73,7 +73,16 @@
                         IsTextSelectionEnabled="True"
                         Text="{x:Bind ViewModel.ComicTitle2, Mode=OneWay}"
                         TextWrapping="Wrap"
-                        Visibility="{x:Bind ViewModel.IsComicTitle2Visible, Mode=OneWay}" />
+                        Visibility="{x:Bind ViewModel.ComicTitle2, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}" />
+                    <!--  Release date  -->
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        FontSize="13"
+                        FontWeight="SemiLight"
+                        IsTextSelectionEnabled="True"
+                        Text="{x:Bind ViewModel.ReleaseDateText, Mode=OneWay}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.ReleaseDateText, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}" />
                     <!--  Description  -->
                     <TextBlock
                         x:Name="TbComicDescription"

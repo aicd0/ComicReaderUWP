@@ -435,51 +435,6 @@ Categoría:: Etiqueta1, Etiqueta2    - Sobrescribe “Categoría” con “Etiqu
   <data name="ExpressionOr" xml:space="preserve">
     <value>O</value>
   </data>
-  <data name="ExpressionReference" xml:space="preserve">
-    <value>Referencia de expresiones
-
-1. Variables
-
-%tag                 - Coincidir con todas las etiquetas de un cómic.
-%title               - Coincidir con el título 1 o el título 2.
-%title1              - Coincidir con el título 1.
-%title2              - Coincidir con el título 2.
-%rating              - Coincidir con la calificación. Por ejemplo: 100 representa 5 estrellas, -1 representa ninguna calificación.
-%completion_state    - Estado de finalización del cómic (0 - Sin leer, 1 - Leyendo, 2 - Completado).
-%progress            - Progreso de lectura, en porcentaje. Por ejemplo: 50 representa el 50%.
-%page_count          - Páginas totales.
-
-2. Operadores de variables
-
-=                    - Igual. Por ejemplo: %title = "Este es un título"
-&gt;                    - Mayor que. Por ejemplo: %rating &gt; 3
-&gt;=                   - Mayor o igual que.
-&lt;                    - Menor que.
-&lt;=                   - Menor o igual que.
-... IN (...)         - Contenido por. Por ejemplo:
-                       %rating in (3, 4, 5) - Encuentra los cómics cuyas calificaciones estén entre 3, 4 y 5.
-                       %tag.language in (languageA, languageB) - Encuentra los cómics cuya categoría de etiqueta "language" contenga "languageA" o "languageB".
-                       (authorA, authorB) in %tag.authors - Encuentra los cómics cuya categoría de etiqueta "authors" contenga tanto "authorA" como "authorB".
-                       apple in %tag - Encuentra los cómics que contengan la etiqueta "apple".
-
-3. Operadores lógicos
-
-AND                  - Operador lógico "y". Por ejemplo: %tag.fruit = apple AND %title = "Tengo una manzana".
-OR                   - Operador lógico "o". Por ejemplo: %title1 = "Apple is OK" OR %title2 = "Orange is OK"
-NOT                  - Operador lógico "no". Por ejemplo: NOT %tag = "ocultar esto".
-
-4. Paréntesis
-
-Por defecto, los operadores se evalúan de izquierda a derecha. Utilice (...) para aumentar la prioridad de la expresión incluida. Por ejemplo:
-
-%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)
-
-La evaluación se realizará en el siguiente orden:
-
-1. NOT %tag.lang = langB  ==&gt;  Resultado1
-2. %tag.language = langA OR Result1  ==&gt;  Resultado2
-3. %tag.author = abc AND Result2  ==&gt;  Resultado3</value>
-  </data>
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>Expresión</value>
   </data>
@@ -902,6 +857,9 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   </data>
   <data name="RefreshRandomSeed" xml:space="preserve">
     <value>Actualizar semilla aleatoria</value>
+  </data>
+  <data name="ReleaseDate" xml:space="preserve">
+    <value>Fecha de lanzamiento</value>
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Eliminar</value>

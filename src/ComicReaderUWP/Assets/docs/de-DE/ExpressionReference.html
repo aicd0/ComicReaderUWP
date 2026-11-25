@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ausdrucksreferenz</title>
+<style>
+body { margin: 24px auto; max-width: 900px; padding: 0 24px; font-family: "Segoe UI", sans-serif; line-height: 1.5; color: #1a1a1a; background: #ffffff; }
+h1 { font-size: 1.6em; }
+h2 { margin-top: 1.8em; padding-bottom: 4px; font-size: 1.2em; border-bottom: 1px solid #d0d0d0; }
+table { width: 100%; margin: 8px 0; border-collapse: collapse; }
+td { padding: 4px 8px; vertical-align: top; border-bottom: 1px solid #eeeeee; }
+td.term { width: 1%; white-space: nowrap; font-family: Consolas, monospace; }
+td.desc { white-space: normal; }
+p { margin: 8px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Ausdrucksreferenz</h1>
+<h2>1. Variablen</h2>
+<table>
+<tr><td class="term">%tag</td><td class="desc">Alle Tags eines Comics abgleichen.</td></tr>
+<tr><td class="term">%title</td><td class="desc">Titel 1 oder Titel 2 abgleichen.</td></tr>
+<tr><td class="term">%title1</td><td class="desc">Titel 1 abgleichen.</td></tr>
+<tr><td class="term">%title2</td><td class="desc">Titel 2 abgleichen.</td></tr>
+<tr><td class="term">%rating</td><td class="desc">Bewertung abgleichen. Beispiel: 100 steht für 5 Sterne, -1 für keine Bewertung.</td></tr>
+<tr><td class="term">%completion_state</td><td class="desc">Status der Comic-Vervollständigung (0 - Ungelesen, 1 - Lesen, 2 - Abgeschlossen).</td></tr>
+<tr><td class="term">%progress</td><td class="desc">Lesefortschritt in Prozent. Beispiel: 50 steht für 50 %.</td></tr>
+<tr><td class="term">%page_count</td><td class="desc">Seitenanzahl.</td></tr>
+<tr><td class="term">%release_date</td><td class="desc">Veröffentlichungsdatum abgleichen. Format YYYY-MM-DD HH:MM:SS; leer, wenn nicht gesetzt, sodass ein einzelnes %release_date nur Comics mit Datum abgleicht.<br>Der Vergleichswert kann ein vollständiges Datum mit Uhrzeit oder ein unvollständiges Datum sein, das einen Zeitraum abdeckt:<br>2026 oder "2026" - Das ganze Jahr 2026.<br>"2026-1" oder "2026/1" - Januar 2026.<br>"2026-1-2" oder "2026/1/2" - Der 2. Januar 2026.<br>Operatoren wirken auf den Zeitraum, nicht auf den Text:<br>%release_date = 2026 - Innerhalb von 2026.<br>%release_date &gt;= 2026 - Ab Beginn von 2026.<br>%release_date &gt; 2026 - Nach Ende von 2026.<br>%release_date &lt; "2026-1" - Vor Januar 2026.<br>%release_date &lt;= "2026-1-2" - Am oder vor dem 2. Januar 2026.<br>%release_date in (2026, 2027) - Innerhalb von 2026 oder 2027.<br>Ein vollständiges Datum mit Uhrzeit oder ein Wert, der kein Datum ist, wird als Text verglichen.</td></tr>
+</table>
+<h2>2. Variablenoperatoren</h2>
+<table>
+<tr><td class="term">=</td><td class="desc">Gleich. Beispiel: %title = "Dies ist ein Titel."</td></tr>
+<tr><td class="term">&gt;</td><td class="desc">Größer als. Beispiel: %rating &gt; 3</td></tr>
+<tr><td class="term">&gt;=</td><td class="desc">Größer als oder gleich.</td></tr>
+<tr><td class="term">&lt;</td><td class="desc">Kleiner als.</td></tr>
+<tr><td class="term">&lt;=</td><td class="desc">Kleiner als oder gleich.</td></tr>
+<tr><td class="term">... IN (...)</td><td class="desc">Enthalten in. Beispiel:<br>%rating in (3, 4, 5) - Findet Comics, deren Bewertungen zwischen 3, 4 und 5 liegen.<br>%tag.language in (languageA, languageB) - Findet Comics, deren Tag-Kategorie „language“ „languageA“ oder „languageB“ enthält.<br>(authorA, authorB) in %tag.authors - Findet Comics, deren Tag-Kategorie „authors“ sowohl „authorA“ als auch „authorB“ enthält.<br>apple in %tag - Findet Comics, die den Tag „apple“ enthalten.</td></tr>
+</table>
+<h2>3. Logische Operatoren</h2>
+<table>
+<tr><td class="term">AND</td><td class="desc">Logisch und. Beispiel: %tag.fruit = apple AND %title = "Ich habe einen Apfel"</td></tr>
+<tr><td class="term">OR</td><td class="desc">Logisch oder. Beispiel: %title1 = "Apfel ist OK" OR %title2 = "Orange ist auch OK"</td></tr>
+<tr><td class="term">NOT</td><td class="desc">Logisch nicht. Beispiel: NOT %tag = "dieses ausblenden"</td></tr>
+</table>
+<h2>4. Klammern</h2>
+<p>Standardmäßig werden Operatoren von links nach rechts ausgewertet. Verwenden Sie (...), um die Priorität des eingefügten Ausdrucks zu erhöhen. Beispiel:</p>
+<p>%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)</p>
+<p>Die Auswertung erfolgt in der folgenden Reihenfolge:</p>
+<p>1. NOT %tag.lang = langB  ==&gt;  Ergebnis1</p>
+<p>2. %tag.language = langA OR Ergebnis1  ==&gt;  Ergebnis2</p>
+<p>3. %tag.author = abc AND Ergebnis2  ==&gt;  Ergebnis3</p>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Referencia de expresiones</title>
+<style>
+body { margin: 24px auto; max-width: 900px; padding: 0 24px; font-family: "Segoe UI", sans-serif; line-height: 1.5; color: #1a1a1a; background: #ffffff; }
+h1 { font-size: 1.6em; }
+h2 { margin-top: 1.8em; padding-bottom: 4px; font-size: 1.2em; border-bottom: 1px solid #d0d0d0; }
+table { width: 100%; margin: 8px 0; border-collapse: collapse; }
+td { padding: 4px 8px; vertical-align: top; border-bottom: 1px solid #eeeeee; }
+td.term { width: 1%; white-space: nowrap; font-family: Consolas, monospace; }
+td.desc { white-space: normal; }
+p { margin: 8px 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Referencia de expresiones</h1>
+<h2>1. Variables</h2>
+<table>
+<tr><td class="term">%tag</td><td class="desc">Coincidir con todas las etiquetas de un cómic.</td></tr>
+<tr><td class="term">%title</td><td class="desc">Coincidir con el título 1 o el título 2.</td></tr>
+<tr><td class="term">%title1</td><td class="desc">Coincidir con el título 1.</td></tr>
+<tr><td class="term">%title2</td><td class="desc">Coincidir con el título 2.</td></tr>
+<tr><td class="term">%rating</td><td class="desc">Coincidir con la calificación. Por ejemplo: 100 representa 5 estrellas, -1 representa ninguna calificación.</td></tr>
+<tr><td class="term">%completion_state</td><td class="desc">Estado de finalización del cómic (0 - Sin leer, 1 - Leyendo, 2 - Completado).</td></tr>
+<tr><td class="term">%progress</td><td class="desc">Progreso de lectura, en porcentaje. Por ejemplo: 50 representa el 50%.</td></tr>
+<tr><td class="term">%page_count</td><td class="desc">Páginas totales.</td></tr>
+<tr><td class="term">%release_date</td><td class="desc">Coincidir con la fecha de lanzamiento. Formato YYYY-MM-DD HH:MM:SS; vacía cuando no está establecida, por lo que un %release_date solo coincide con los cómics que tienen fecha.<br>El valor puede ser una fecha y hora completas, o una fecha parcial que abarca un periodo:<br>2026 o "2026" - Todo el año 2026.<br>"2026-1" o "2026/1" - Enero de 2026.<br>"2026-1-2" o "2026/1/2" - El 2 de enero de 2026.<br>Los operadores se aplican al periodo, no al texto:<br>%release_date = 2026 - Dentro de 2026.<br>%release_date &gt;= 2026 - Desde el comienzo de 2026.<br>%release_date &gt; 2026 - Después del final de 2026.<br>%release_date &lt; "2026-1" - Antes de enero de 2026.<br>%release_date &lt;= "2026-1-2" - El 2 de enero de 2026 o antes.<br>%release_date in (2026, 2027) - Dentro de 2026 o 2027.<br>Una fecha y hora completas, o cualquier valor que no sea una fecha, se comparan como texto.</td></tr>
+</table>
+<h2>2. Operadores de variables</h2>
+<table>
+<tr><td class="term">=</td><td class="desc">Igual. Por ejemplo: %title = "Este es un título"</td></tr>
+<tr><td class="term">&gt;</td><td class="desc">Mayor que. Por ejemplo: %rating &gt; 3</td></tr>
+<tr><td class="term">&gt;=</td><td class="desc">Mayor o igual que.</td></tr>
+<tr><td class="term">&lt;</td><td class="desc">Menor que.</td></tr>
+<tr><td class="term">&lt;=</td><td class="desc">Menor o igual que.</td></tr>
+<tr><td class="term">... IN (...)</td><td class="desc">Contenido por. Por ejemplo:<br>%rating in (3, 4, 5) - Encuentra los cómics cuyas calificaciones estén entre 3, 4 y 5.<br>%tag.language in (languageA, languageB) - Encuentra los cómics cuya categoría de etiqueta "language" contenga "languageA" o "languageB".<br>(authorA, authorB) in %tag.authors - Encuentra los cómics cuya categoría de etiqueta "authors" contenga tanto "authorA" como "authorB".<br>apple in %tag - Encuentra los cómics que contengan la etiqueta "apple".</td></tr>
+</table>
+<h2>3. Operadores lógicos</h2>
+<table>
+<tr><td class="term">AND</td><td class="desc">Operador lógico "y". Por ejemplo: %tag.fruit = apple AND %title = "Tengo una manzana".</td></tr>
+<tr><td class="term">OR</td><td class="desc">Operador lógico "o". Por ejemplo: %title1 = "Apple is OK" OR %title2 = "Orange is OK"</td></tr>
+<tr><td class="term">NOT</td><td class="desc">Operador lógico "no". Por ejemplo: NOT %tag = "ocultar esto".</td></tr>
+</table>
+<h2>4. Paréntesis</h2>
+<p>Por defecto, los operadores se evalúan de izquierda a derecha. Utilice (...) para aumentar la prioridad de la expresión incluida. Por ejemplo:</p>
+<p>%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)</p>
+<p>La evaluación se realizará en el siguiente orden:</p>
+<p>1. NOT %tag.lang = langB  ==&gt;  Resultado1</p>
+<p>2. %tag.language = langA OR Result1  ==&gt;  Resultado2</p>
+<p>3. %tag.author = abc AND Result2  ==&gt;  Resultado3</p>
+</body>
+</html>

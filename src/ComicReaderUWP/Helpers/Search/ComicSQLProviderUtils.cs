@@ -17,6 +17,7 @@ internal class ComicSQLProviderUtils
     public const string VAR_TITLE2 = "title2";
     public const string VAR_PROGRESS = "progress";
     public const string VAR_PAGE_COUNT = "page_count";
+    public const string VAR_RELEASE_DATE = "release_date";
     public const string VAR_HIDDEN = "hidden";
 
     public static ICondition CreateTagCondition(ICondition condition)

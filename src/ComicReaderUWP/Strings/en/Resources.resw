@@ -435,53 +435,6 @@ Category:: Tag1, Tag2    - Overwrite "Category" with "Tag1" and "Tag2".</value>
   <data name="ExpressionOr" xml:space="preserve">
     <value>Or</value>
   </data>
-  <data name="ExpressionReference" xml:space="preserve">
-    <value>Expression Reference
-
-1. Variables
-
-%tag                - Match all tags in a comic.
-%title              - Match title 1 or title 2.
-%title1             - Match title 1.
-%title2             - Match title 2.
-%rating             - Match rating. For example: 100 represents 5 stars, -1 represents no rating.
-%completion_state   - Comic completion state (0 - Unread, 1 - Reading, 2 - Completed).
-%progress           - reading progress, in percentage. For example: 50 represents 50%.
-%page_count         - Total pages.
-
-2. Variable operators
-
-=                   - Equal. For example: %title = "This is a title"
-&gt;                   - Greater than. For example: %rating &gt; 3
-&gt;=                  - Greater than or equal.
-&lt;                   - Less than.
-&lt;=                  - Less than or equal.
-... IN (...)        - Contained by. For example:
-                      %rating in (3, 4, 5) - Match those comics whose ratings are within 3, 4 and 5.
-                      %tag.language in (languageA, languageB) - Match those comics whose "language" tag category contains "languageA" or "languageB".
-                      (authorA, authorB) in %tag.authors - Match those comics whose "authors" tag category contains both "authorA" and "authorB".
-                      apple in %tag - Match those comics which contains tag "apple".
-
-3. Logic operators
-
-AND                 - Logic and. For example: %tag.fruit = apple AND %title = "I have an apple"
-OR                  - Logic or. For example: %title1 = "Apple is OK" OR %title2 = "Orange is also OK"
-NOT                 - Logic not. For example: NOT %tag = "hide this"
-
-4. Parentheses
-
-By default, operators will be evaluated from left to right. Use (...) to elevate the
-priority of included expression. For example:
-
-    %tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)
-
-The evaluation will be performed in the following order:
-
-    1. NOT %tag.lang = langB  ==&gt;  Result1
-    2. %tag.language = langA OR Result1  ==&gt;  Result2
-    3. %tag.author = abc AND Result2  ==&gt;  Result3
-</value>
-  </data>
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>Expression</value>
   </data>
@@ -904,6 +857,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   </data>
   <data name="RefreshRandomSeed" xml:space="preserve">
     <value>Refresh random seed</value>
+  </data>
+  <data name="ReleaseDate" xml:space="preserve">
+    <value>Release date</value>
   </data>
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>

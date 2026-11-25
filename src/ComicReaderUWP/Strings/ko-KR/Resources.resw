@@ -435,52 +435,6 @@ $files</value>
   <data name="ExpressionOr" xml:space="preserve">
     <value>또는</value>
   </data>
-  <data name="ExpressionReference" xml:space="preserve">
-    <value>표현식 참조
-
-1. 변수
-
-%tag                 - 만화의 모든 태그를 찾습니다.
-%title               - 제목 1 또는 제목 2를 찾습니다.
-%title1              - 제목 1을 찾습니다.
-%title2              - 제목 2를 찾습니다.
-%rating              - 평점을 찾습니다. 예: 100는 별 5개를, -1은평점 없음을 나타냅니다.
-%completion_state    - 만화 완료 상태(0 - 읽지 않음, 1 - 읽음, 2 - 완료).
-%progress            - 읽기 진행률(백분율). 예: 50은 50%를 나타냅니다.
-%page_count          - 총 페이지 수.
-
-2. 변수 연산자
-
-=                    - 같음. 예: %title = "This is a title"
-&gt;                    - 보다 큼. 예: %rating &gt; 3
-&gt;=                   - 크거나 같음.
-&lt;                    - 보다 작음.
-&lt;=                   - 작거나 같음.
-... IN (...)         - 다음에 포함됨. 예:
-                       %rating in (3, 4, 5) - 평점이 3, 4, 5점 이내인 만화를 찾습니다.
-                       %tag.language in (languageA, languageB) - "language" 태그 범주에 "languageA" 또는 "languageB"가 포함된 만화를 찾습니다.
-                       (authorA, authorB) in %tag.authors - "authors" 태그 범주에 "authorA"와 "authorB"가 모두 포함된 만화를 찾습니다.
-                       apple in %tag - "apple" 태그가 포함된 만화를 찾습니다.
-
-3. 논리 연산자
-
-AND                  - 논리 and. 예:%tag.fruit = apple AND %title = "I have an apple"
-OR                   - 논리 or. 예:%title1 = "Apple is OK" OR %title2 = "Orange is also OK"
-NOT                  - 논리 not. 예: NOT %tag = "hide this"
-
-4. 괄호
-
-기본적으로 연산자는 왼쪽에서 오른쪽으로 평가됩니다. (...)를 사용하면 포함된 표현식의 우선순위를 높일 수 있습니다.
-예:
-
-%tag.author = abc AND (%tag.language = langA OR NOT %tag.lang = langB)
-
-평가는 다음 순서로 수행됩니다.
-
-1. NOT %tag.lang = langB  ==&gt;  Result1
-2. %tag.language = langA OR Result1  ==&gt;  Result2
-3. %tag.author = abc AND Result2  ==&gt;  Result3</value>
-  </data>
   <data name="ExpressionTextBlock.Text" xml:space="preserve">
     <value>표현식</value>
   </data>
@@ -903,6 +857,9 @@ NOT                  - 논리 not. 예: NOT %tag = "hide this"
   </data>
   <data name="RefreshRandomSeed" xml:space="preserve">
     <value>랜덤 시드 새로고침</value>
+  </data>
+  <data name="ReleaseDate" xml:space="preserve">
+    <value>출시일</value>
   </data>
   <data name="Remove" xml:space="preserve">
     <value>제거</value>

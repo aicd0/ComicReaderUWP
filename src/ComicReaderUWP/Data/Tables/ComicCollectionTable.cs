@@ -15,13 +15,7 @@ internal class ComicCollectionTable : ITable
 
     private ComicCollectionTable() { }
 
-    public SqlDatabase GetDatabase()
-    {
-        return SqliteDB.MainDatabase;
-    }
+    public SqlDatabase Database => SqliteDB.MainDatabase;
 
-    public string GetTableName()
-    {
-        return "comic_collections";
-    }
+    public string TableName => "comic_collections";
 }

@@ -19,6 +19,8 @@ public interface IComicModel
 
     int Rating { get; }
 
+    DateTime? ReleaseDate { get; }
+
     IReadOnlyDictionary<string, IComicTagCategory> Tags { get; }
 
     IReadOnlyDictionary<string, string> Links { get; }
@@ -34,6 +36,8 @@ public interface IComicModel
     Task SetDescription(string description);
 
     Task SetRating(int rating);
+
+    Task SetReleaseDate(DateTime? releaseDate);
 
     Task SetTags<T>(IEnumerable<KeyValuePair<string, T>> tags) where T : IEnumerable<string>;
 

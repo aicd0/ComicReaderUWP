@@ -13,7 +13,6 @@ internal static class DatabaseVersionModel
 {
     public const int VERSION = 1;
     public const int MAIN_VERSION = 4;
-    public const int SQLITE_DATABASE_VERSION = SqliteDB.DATABASE_VERSION;
     public const int KV_STORE_VERSION = 1;
     public const int FAVORITES_VERSION = 1;
     public const int HISTORY_VERSION = 1;
@@ -61,18 +60,8 @@ internal static class DatabaseVersionModel
         }
     }
 
-    public static int SqliteDatabaseVersion
-    {
-        get
-        {
-            return _db.Read(model => model.SqliteDatabaseVersion ?? model.LegacySqliteDatabaseVersion ?? 0);
-        }
-        set
-        {
-            _db.Write(model => model.SqliteDatabaseVersion = value);
-            _db.Save();
-        }
-    }
+    // Legacy: the SQLite schema version used to be stored in this file; it now lives in the main database.
+    public static int SqliteDatabaseVersion => _db.Read(model => model.SqliteDatabaseVersion ?? model.LegacySqliteDatabaseVersion ?? 0);
 
     public static int FavoritesVersion
     {
@@ -126,7 +115,6 @@ internal static class DatabaseVersionModel
                     Version = VERSION,
                     MainVersion = MAIN_VERSION,
                     KVStoreVersion = KV_STORE_VERSION,
-                    SqliteDatabaseVersion = SQLITE_DATABASE_VERSION,
                     FavoritesVersion = FAVORITES_VERSION,
                     HistoryVersion = HISTORY_VERSION,
                     AppSettingsVersion = APP_SETTING_VERSION,
