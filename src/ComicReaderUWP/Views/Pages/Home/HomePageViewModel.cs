@@ -16,6 +16,7 @@ using ComicReaderUWP.Core.Common.Lifecycle;
 using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Data.Models.MediaProperty;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
@@ -573,14 +574,14 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
 
             if (groupBy is not null)
             {
-                List<ComicPropertyModel.GroupItem<ComicModel>> groups = groupBy.GroupComics(comics, x => x,
+                List<GroupItem<ComicModel>> groups = groupBy.GroupComics(comics, x => x,
                     filter.GroupOrderMethod,
                     filter.GroupSortingFunction,
                     filter.GroupSortingProperty,
                     filter.MergeSingleItemGroups);
                 var playlist = new PlaylistModel.Builder();
                 comicsGrouped = [];
-                foreach (ComicPropertyModel.GroupItem<ComicModel> group in groups)
+                foreach (GroupItem<ComicModel> group in groups)
                 {
                     List<ComicModel> sorted = SortComicsByProerty(group.Items, sortBy, filter.ComicOrderMethod);
                     playlist.AddComics(sorted);
@@ -647,6 +648,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     private List<BaseMenuFlyoutItemModel> CreateSortByMenuItems(List<ComicPropertyModel> properties,
         ComicPropertyModel? selectedProperty, ComicFilterModel.OrderMethodEnum selectedOrderMethod)
     {
+        properties = [.. properties.Where(x => x.CanSort)];
+
         List<BaseMenuFlyoutItemModel> items = [];
 
         items.AddRange(CreateSortByPropertyMenuItems(properties, selectedProperty, p =>
@@ -709,7 +712,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             }
         });
 
-        items.AddRange(CreateSortByPropertyMenuItems(properties, selectedProperty, p =>
+        items.AddRange(CreateSortByPropertyMenuItems([.. properties.Where(x => x.CanGroup)], selectedProperty, p =>
         {
             SelectSortOrGroup(filter =>
             {
@@ -829,6 +832,8 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         ComicFilterModel.FunctionTypeEnum sortingFunction, ComicPropertyModel? sortingProperty,
         Action<ComicFilterModel.FunctionTypeEnum, ComicPropertyModel?> clickHandler)
     {
+        properties = [.. properties.Where(x => x.CanAggregate)];
+
         string GetFunctionDisplayName(ComicFilterModel.FunctionTypeEnum function)
         {
             return function switch
@@ -900,62 +905,50 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
             value.Add(property);
         }
 
-        List<ComicPropertyModel>? plainProperties = null;
-        List<KeyValuePair<string, List<ComicPropertyModel>>> propertyGroupList = [];
-        foreach (KeyValuePair<string, List<ComicPropertyModel>> kvp in propertyGroupMap)
+        List<BaseMenuFlyoutItemModel> items = [];
+        HashSet<string> emittedGroups = [];
+        foreach (ComicPropertyModel property in properties)
         {
-            if (kvp.Key == string.Empty)
+            string groupName = property.DisplayGroupName;
+            if (groupName == string.Empty)
             {
-                plainProperties = kvp.Value;
+                items.Add(CreatePropertyItem(property, property.DisplayFullName));
                 continue;
             }
 
-            propertyGroupList.Add(kvp);
-            kvp.Value.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName));
-        }
-
-        List<Tuple<string, BaseMenuFlyoutItemModel>> items = [];
-        if (plainProperties is not null)
-        {
-            foreach (ComicPropertyModel p in plainProperties)
+            if (emittedGroups.Contains(groupName))
             {
-                items.Add(new(p.DisplayName, new ToggleMenuFlyoutItemModel()
-                {
-                    Text = p.DisplayName,
-                    IsChecked = p.Equals(selectedProperty),
-                    Click = () =>
-                    {
-                        clickHandler(p);
-                    }
-                }));
+                continue;
             }
-        }
 
-        foreach (KeyValuePair<string, List<ComicPropertyModel>> kvp in propertyGroupList)
-        {
+            emittedGroups.Add(groupName);
             List<BaseMenuFlyoutItemModel> subItems = [];
-            foreach (ComicPropertyModel p in kvp.Value)
+            foreach (ComicPropertyModel groupProperty in propertyGroupMap[groupName])
             {
-                subItems.Add(new ToggleMenuFlyoutItemModel()
-                {
-                    Text = p.DisplayName,
-                    IsChecked = p.Equals(selectedProperty),
-                    Click = () =>
-                    {
-                        clickHandler(p);
-                    }
-                });
+                subItems.Add(CreatePropertyItem(groupProperty, groupProperty.DisplayName));
             }
 
-            items.Add(new(kvp.Key, new SubItemMenuFlyoutItemModel()
+            items.Add(new SubItemMenuFlyoutItemModel()
             {
-                Text = kvp.Key,
+                Text = groupName,
                 Items = subItems,
-            }));
+            });
         }
 
-        items.Sort((a, b) => string.Compare(a.Item1, b.Item1, StringComparison.InvariantCultureIgnoreCase));
-        return items.Select(x => x.Item2);
+        return items;
+
+        ToggleMenuFlyoutItemModel CreatePropertyItem(ComicPropertyModel property, string text)
+        {
+            return new ToggleMenuFlyoutItemModel()
+            {
+                Text = text,
+                IsChecked = property.Equals(selectedProperty),
+                Click = () =>
+                {
+                    clickHandler(property);
+                },
+            };
+        }
     }
 
     private static long GetTick()

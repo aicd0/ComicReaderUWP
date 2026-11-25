@@ -216,6 +216,9 @@ public class StringResourceProvider
     public string Proceed => GetResourceString("Proceed");
     public string Progress => GetResourceString("Progress");
     public string PromptBeforeRemovingComics => GetResourceString("PromptBeforeRemovingComics");
+    public string PropertyUnitMonth => GetResourceString("PropertyUnitMonth");
+    public string PropertyUnitQuarter => GetResourceString("PropertyUnitQuarter");
+    public string PropertyUnitYear => GetResourceString("PropertyUnitYear");
     public string RandomComic => GetResourceString("RandomComic");
     public string Rating => GetResourceString("Rating");
     public string Reader => GetResourceString("Reader");
@@ -273,6 +276,7 @@ public class StringResourceProvider
     public string TagLinkTip => GetResourceString("TagLinkTip");
     public string Tags => GetResourceString("Tags");
     public string TextWithColon => GetResourceString("TextWithColon");
+    public string TextWithParentheses => GetResourceString("TextWithParentheses");
     public string Tip => GetResourceString("Tip");
     public string Title => GetResourceString("Title");
     public string Title1 => GetResourceString("Title1");
@@ -303,6 +307,11 @@ public class StringResourceProvider
     public string WithColon(string text)
     {
         return TextWithColon.Replace("$text", text);
+    }
+
+    public string WithParentheses(string text, string detail)
+    {
+        return TextWithParentheses.Replace("$text", text).Replace("$detail", detail);
     }
 
     private static string GetResourceString(string resource)

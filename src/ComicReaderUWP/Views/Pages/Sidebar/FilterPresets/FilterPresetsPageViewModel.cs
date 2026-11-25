@@ -17,6 +17,7 @@ using ComicReaderUWP.Core.Common.Threading;
 using ComicReaderUWP.Core.Common.Utils;
 using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.Data.Models.Comic;
+using ComicReaderUWP.Data.Models.MediaProperty;
 using ComicReaderUWP.Data.Models.Misc;
 using ComicReaderUWP.Helpers.MenuFlyoutHelpers;
 using ComicReaderUWP.Helpers.Misc;
@@ -249,12 +250,12 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
             if (groupBy != null)
             {
-                List<ComicPropertyModel.GroupItem<ComicModel>> groupItems = groupBy.GroupComics(items, x => x,
+                List<GroupItem<ComicModel>> groupItems = groupBy.GroupComics(items, x => x,
                     filter.GroupOrderMethod,
                     filter.GroupSortingFunction,
                     filter.GroupSortingProperty,
                     filter.MergeSingleItemGroups);
-                foreach (ComicPropertyModel.GroupItem<ComicModel> item in groupItems)
+                foreach (GroupItem<ComicModel> item in groupItems)
                 {
                     SimpleTreeViewNodeModel groupNode = new()
                     {

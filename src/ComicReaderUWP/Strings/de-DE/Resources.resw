@@ -820,6 +820,15 @@ Mit einem Klick auf „Fortfahren“ bestätigen Sie, dass Sie die Risiken verst
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Vor dem Entfernen von Comics bestätigen</value>
   </data>
+  <data name="PropertyUnitMonth" xml:space="preserve">
+    <value>Monat</value>
+  </data>
+  <data name="PropertyUnitQuarter" xml:space="preserve">
+    <value>Quartal</value>
+  </data>
+  <data name="PropertyUnitYear" xml:space="preserve">
+    <value>Jahr</value>
+  </data>
   <data name="RandomComic" xml:space="preserve">
     <value>Zufälliger comic</value>
   </data>
@@ -1025,6 +1034,9 @@ Kategorie 2: Tag 4, Tag 5</value>
   </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
+  </data>
+  <data name="TextWithParentheses" xml:space="preserve">
+    <value>$text ($detail)</value>
   </data>
   <data name="ThemeDark.Content" xml:space="preserve">
     <value>Dunkel</value>

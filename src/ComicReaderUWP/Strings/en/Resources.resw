@@ -820,6 +820,15 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>Prompt before removing comics</value>
   </data>
+  <data name="PropertyUnitMonth" xml:space="preserve">
+    <value>Month</value>
+  </data>
+  <data name="PropertyUnitQuarter" xml:space="preserve">
+    <value>Quarter</value>
+  </data>
+  <data name="PropertyUnitYear" xml:space="preserve">
+    <value>Year</value>
+  </data>
   <data name="RandomComic" xml:space="preserve">
     <value>Random comic</value>
   </data>
@@ -1025,6 +1034,9 @@ Category2: Tag4, Tag5</value>
   </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
+  </data>
+  <data name="TextWithParentheses" xml:space="preserve">
+    <value>$text ($detail)</value>
   </data>
   <data name="ThemeDark.Content" xml:space="preserve">
     <value>Dark</value>
