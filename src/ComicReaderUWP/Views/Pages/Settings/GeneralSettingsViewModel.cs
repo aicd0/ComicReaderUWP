@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Core.Common.Utils;
+using ComicReaderUWP.Core.Imaging;
 using ComicReaderUWP.Data.Models.Misc;
 
 namespace ComicReaderUWP.Views.Pages.Settings;
@@ -14,6 +15,7 @@ namespace ComicReaderUWP.Views.Pages.Settings;
 internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 {
     private const string TAG = nameof(GeneralSettingsViewModel);
+    private const long MEGABYTE = 1024L * 1024L;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -105,6 +107,17 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    private int _imageMemoryCacheCapacity;
+    public int ImageMemoryCacheCapacity
+    {
+        get => _imageMemoryCacheCapacity;
+        set
+        {
+            _imageMemoryCacheCapacity = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ImageMemoryCacheCapacity)));
+        }
+    }
+
     public void Initialize(SettingsSharedViewModel shared)
     {
         Shared = shared;
@@ -131,6 +144,20 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
 
         _openComicDefaultBaheviorIndex = index;
         AppSettingsModel.OpenComicDefaultBehavior = _openComicDefaultBaheviors[index].Behavior;
+    }
+
+    public void SetImageMemoryCacheCapacity(int megabytes)
+    {
+        if (megabytes == _imageMemoryCacheCapacity)
+        {
+            return;
+        }
+
+        _imageMemoryCacheCapacity = megabytes;
+
+        long bytes = megabytes * MEGABYTE;
+        AppSettingsModel.ImageMemoryCacheCapacity = bytes;
+        ImageLoader.SetMemoryCacheCapacity(bytes);
     }
 
     private void Update()
@@ -197,6 +224,7 @@ internal partial class GeneralSettingsViewModel : INotifyPropertyChanged
     private void UpdateCommonSettings()
     {
         EnableCompressedFileCache = AppSettingsModel.EnableCompressedFileCache;
+        ImageMemoryCacheCapacity = (int)(AppSettingsModel.ImageMemoryCacheCapacity / MEGABYTE);
     }
 
     private async Task UpdateHistory()

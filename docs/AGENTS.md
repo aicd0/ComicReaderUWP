@@ -16,6 +16,9 @@
   when the reason is not obvious. "It is only a reference assignment" is not a mechanism.
 - Ownership decides placement: state that has to agree with other state belongs to the object holding both (a view
   holds its picture and its words, so the view binds them), never to a caller that must remember the pairing.
+- Never switch HEAD to another commit or stage/unstage changes without the user's explicit permission. The user may
+  stage, unstage or commit at any time; that does not mean the change is approved or rejected, and is never to be
+  treated as input.
 
 ## Building
 

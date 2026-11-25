@@ -594,9 +594,6 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   <data name="ImageBrightness" xml:space="preserve">
     <value>Helligkeit</value>
   </data>
-  <data name="ImageCacheCapacity" xml:space="preserve">
-    <value>Arbeitsspeicher-Cachekapazität</value>
-  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>Kontrast</value>
   </data>
@@ -605,6 +602,9 @@ Die Auswertung erfolgt in der folgenden Reihenfolge:
   </data>
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>Bilder auf diesem Gerät</value>
+  </data>
+  <data name="ImageMemoryCacheCapacity" xml:space="preserve">
+    <value>Arbeitsspeicher-Cachekapazität für Bilder</value>
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>Sättigung</value>

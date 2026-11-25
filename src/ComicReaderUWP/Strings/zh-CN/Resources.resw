@@ -594,9 +594,6 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   <data name="ImageBrightness" xml:space="preserve">
     <value>亮度</value>
   </data>
-  <data name="ImageCacheCapacity" xml:space="preserve">
-    <value>内存缓存容量</value>
-  </data>
   <data name="ImageContrast" xml:space="preserve">
     <value>对比度</value>
   </data>
@@ -605,6 +602,9 @@ NOT               - 逻辑非。例如：NOT %tag = "hide this"
   </data>
   <data name="ImageLocationExpander.Header" xml:space="preserve">
     <value>此设备上的图片</value>
+  </data>
+  <data name="ImageMemoryCacheCapacity" xml:space="preserve">
+    <value>图片内存缓存容量</value>
   </data>
   <data name="ImageSaturation" xml:space="preserve">
     <value>饱和度</value>

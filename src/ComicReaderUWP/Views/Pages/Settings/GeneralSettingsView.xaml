@@ -71,6 +71,22 @@
             Click="SaveBrowsingHistoryCheckBox_Click"
             Content="{x:Bind StringResource.SaveBrowsingHistory}"
             IsChecked="{x:Bind ViewModel.SaveBrowsingHistory, Mode=TwoWay}" />
+        <TextBlock Margin="0,16,0,0" Text="{x:Bind StringResource.ImageMemoryCacheCapacity}" />
+        <StackPanel
+            Margin="0,8,0,0"
+            Orientation="Horizontal"
+            Spacing="8">
+            <muxc:NumberBox
+                Width="180"
+                LargeChange="128"
+                Maximum="4096"
+                Minimum="0"
+                SmallChange="32"
+                SpinButtonPlacementMode="Inline"
+                ValueChanged="ImageMemoryCacheCapacityNumberBox_ValueChanged"
+                Value="{x:Bind ViewModel.ImageMemoryCacheCapacity, Mode=OneWay}" />
+            <TextBlock VerticalAlignment="Center" Text="MB" />
+        </StackPanel>
         <Rectangle
             Height="1"
             Margin="0,16"
