@@ -818,6 +818,15 @@
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>移除漫畫前提示</value>
   </data>
+  <data name="PropertyUnitMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="PropertyUnitQuarter" xml:space="preserve">
+    <value>季度</value>
+  </data>
+  <data name="PropertyUnitYear" xml:space="preserve">
+    <value>年</value>
+  </data>
   <data name="RandomComic" xml:space="preserve">
     <value>隨機漫畫</value>
   </data>
@@ -1023,6 +1032,9 @@ $plugins</value>
   </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text：</value>
+  </data>
+  <data name="TextWithParentheses" xml:space="preserve">
+    <value>$text（$detail）</value>
   </data>
   <data name="ThemeDark.Content" xml:space="preserve">
     <value>深色</value>

@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using ComicReaderUWP.Common.Localization;
 using ComicReaderUWP.Common.Misc;
 using ComicReaderUWP.Core.Database.JSON;
+using ComicReaderUWP.Data.Models.MediaProperty;
 
 namespace ComicReaderUWP.Data.Models.Misc;
 
@@ -166,17 +167,17 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
             {
                 Name = model.Name ?? string.Empty,
                 Modified = model.Modified ?? false,
-                SortBy = ComicPropertyModel.FromJson(model.SortBy) ?? defaultModel.SortBy,
+                SortBy = ComicPropertyModel.FromSortJson(model.SortBy) ?? defaultModel.SortBy,
                 ComicOrderMethod = string.IsNullOrEmpty(model.ComicOrderMethod) ?
                     defaultModel.ComicOrderMethod :
                     StringToOrderMethod(model.ComicOrderMethod),
-                GroupBy = ComicPropertyModel.FromJson(model.GroupBy),
+                GroupBy = ComicPropertyModel.FromGroupJson(model.GroupBy),
                 GroupOrderMethod = string.IsNullOrEmpty(model.GroupOrderMethod) ?
                     defaultModel.GroupOrderMethod :
                     StringToOrderMethod(model.GroupOrderMethod),
                 GroupSortingFunction = string.IsNullOrEmpty(model.GroupSortingFunction) ?
                     defaultModel.GroupSortingFunction : StringToFunctionType(model.GroupSortingFunction),
-                GroupSortingProperty = ComicPropertyModel.FromJson(model.GroupSortingProperty),
+                GroupSortingProperty = ComicPropertyModel.FromSortJson(model.GroupSortingProperty),
                 CollapsedGroups = (model.CollapsedGroups ?? []).Where(x => !string.IsNullOrEmpty(x)).Select(x => x!).ToFrozenSet(),
                 ViewType = string.IsNullOrEmpty(model.ViewType) ?
                     defaultModel.ViewType : StringToViewType(model.ViewType),

@@ -820,6 +820,15 @@ $files</value>
   <data name="PromptBeforeRemovingComics" xml:space="preserve">
     <value>マンガを削除する前に確認</value>
   </data>
+  <data name="PropertyUnitMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="PropertyUnitQuarter" xml:space="preserve">
+    <value>四半期</value>
+  </data>
+  <data name="PropertyUnitYear" xml:space="preserve">
+    <value>年</value>
+  </data>
   <data name="RandomComic" xml:space="preserve">
     <value>ランダムコミック</value>
   </data>
@@ -1025,6 +1034,9 @@ $plugins</value>
   </data>
   <data name="TextWithColon" xml:space="preserve">
     <value>$text: </value>
+  </data>
+  <data name="TextWithParentheses" xml:space="preserve">
+    <value>$text（$detail）</value>
   </data>
   <data name="ThemeDark.Content" xml:space="preserve">
     <value>暗い</value>
