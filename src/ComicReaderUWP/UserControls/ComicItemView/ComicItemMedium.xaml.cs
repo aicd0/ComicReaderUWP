@@ -22,6 +22,11 @@ internal sealed partial class ComicItemMedium : BaseUserControl, IComicItemView
 
     public ComicItemViewModel? Item { get; private set; }
 
+    public int GetTitleMaxLines(bool isCollection, bool isRatingVisible)
+    {
+        return isCollection && isRatingVisible ? 2 : 3;
+    }
+
     public void SetComicModel(ComicItemViewModel? item)
     {
         if (item == Item)
