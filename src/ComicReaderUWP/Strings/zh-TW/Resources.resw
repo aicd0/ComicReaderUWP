@@ -734,6 +734,9 @@
   <data name="OpenComicDefaultBehavior" xml:space="preserve">
     <value>開啟漫畫時的預設行為</value>
   </data>
+  <data name="OpenFile" xml:space="preserve">
+    <value>打開檔案</value>
+  </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>開啟首頁</value>
   </data>

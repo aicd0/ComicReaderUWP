@@ -188,6 +188,7 @@ public class StringResourceProvider
     public string OnlyAppliesToReadingComics => GetResourceString("OnlyAppliesToReadingComics");
     public string Open => GetResourceString("Open");
     public string OpenComicDefaultBehavior => GetResourceString("OpenComicDefaultBehavior");
+    public string OpenFile => GetResourceString("OpenFile");
     public string OpenHomePage => GetResourceString("OpenHomePage");
     public string OpenInCurrentTab => GetResourceString("OpenInCurrentTab");
     public string OpenInLastActiveReaderTab => GetResourceString("OpenInLastActiveReaderTab");
