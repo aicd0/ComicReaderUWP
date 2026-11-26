@@ -40,7 +40,7 @@ internal partial class ReaderImageCompositor : IDisposable
 
     private static void Log(string tag, params object?[] values)
     {
-        Logger.I(LogTag.N(TAG, tag), string.Join(',', values));
+        Logger.I($"{TAG}/{tag}", string.Join(',', values));
     }
 
     private readonly int _id = Interlocked.Increment(ref _nextId);

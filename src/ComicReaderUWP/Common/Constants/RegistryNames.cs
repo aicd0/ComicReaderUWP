@@ -13,10 +13,16 @@ internal static class RegistryNames
     public const string SEARCH_HISTORY = $"{GLOBAL}/SearchHistory";
     public const string SETTINGS = $"{GLOBAL}/Settings";
     public const string COMIC_IMPORT_EXCLUSIONS = $"{SETTINGS}/ComicImportExclusions";
+    public const string STATE = $"{GLOBAL}/State";
     public const string RESOURCES = "/Resources";
     public const string RUNTIME_RESOURCES = $"{RESOURCES}/Runtime";
     public const string PLAYLISTS = $"{RUNTIME_RESOURCES}/Playlists";
     public const string TAB_RESOURCES = $"{RESOURCES}/Tabs";
+
+    public static class StateKey
+    {
+        public const string LOG_STARTED = "LogStarted";
+    }
 
     public static class SettingsKey
     {

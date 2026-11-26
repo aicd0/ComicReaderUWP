@@ -10,7 +10,7 @@ namespace ComicReaderUWP.Common.BaseUI;
 
 internal class SimpleLifecycleManager
 {
-    private LogTag? _tag = null;
+    private string? _tag = null;
     private ILifecycleHandler? _lifecycleHandler;
     private readonly SimpleLifecycle _lifecycle = new();
     private readonly PreLifecycleObserver _preLifecycleObserver;
@@ -29,7 +29,7 @@ internal class SimpleLifecycleManager
 
     public void Initialize(string name, ILifecycleHandler handler)
     {
-        _tag = LogTag.N("PageLifecycle", name);
+        _tag = $"PageLifecycle/{name}";
         _lifecycleHandler = handler;
     }
 
