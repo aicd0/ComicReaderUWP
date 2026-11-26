@@ -96,7 +96,6 @@ public class StringResourceProvider
     public string Enabled => GetResourceString("Enabled");
     public string EnterFullscreen => GetResourceString("EnterFullscreen");
     public string EnterNewTags => GetResourceString("EnterNewTags");
-    public string EnterNewTagsHint => GetResourceString("EnterNewTagsHint");
     public string Error => GetResourceString("Error");
     public string ErrorCommonDescription => GetResourceString("ErrorCommonDescription");
     public string Exit => GetResourceString("Exit");
@@ -274,7 +273,6 @@ public class StringResourceProvider
     public string Statistics => GetResourceString("Statistics");
     public string SwapLeftAndRightPages => GetResourceString("SwapLeftAndRightPages");
     public string Tag => GetResourceString("Tag");
-    public string TagLinkTip => GetResourceString("TagLinkTip");
     public string Tags => GetResourceString("Tags");
     public string TextWithColon => GetResourceString("TextWithColon");
     public string TextWithParentheses => GetResourceString("TextWithParentheses");

@@ -401,10 +401,6 @@ $files</value>
   <data name="EnterNewTags" xml:space="preserve">
     <value>Введите новые теги</value>
   </data>
-  <data name="EnterNewTagsHint" xml:space="preserve">
-    <value>Категория: Тег1, Тег2     - Добавить «Тег1» и «Тег2» в «Категорию».
-Категория:: Тег1, Тег2    - Перезаписать «Категорию» на «Тег1» и «Тег2».</value>
-  </data>
   <data name="Error" xml:space="preserve">
     <value>Ошибка</value>
   </data>
@@ -1025,12 +1021,6 @@ $plugins</value>
     <value>Правильное использование тегов может облегчить организацию вашей библиотеки. Например:
 Категория1: Тег1, Тег2, Тег3
 Категория2: Тег4, Тег5</value>
-  </data>
-  <data name="TagLinkTip" xml:space="preserve">
-    <value>Специальные переменные:
-
-{%tag}          — Заменено на экранированное имя тега
-{%tag_category} — Заменено на экранированную категорию тега</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>Теги</value>

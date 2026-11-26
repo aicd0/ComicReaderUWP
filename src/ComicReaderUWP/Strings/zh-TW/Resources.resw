@@ -399,10 +399,6 @@
   <data name="EnterNewTags" xml:space="preserve">
     <value>輸入新標籤</value>
   </data>
-  <data name="EnterNewTagsHint" xml:space="preserve">
-    <value>分類: 標籤1,標籤2     - 將「標籤1」和「標籤2」新增到「分類」中。
-分類:: 標籤1,標籤2    - 以「標籤1」和「標籤2」覆蓋「分類」。</value>
-  </data>
   <data name="Error" xml:space="preserve">
     <value>錯誤</value>
   </data>
@@ -1023,12 +1019,6 @@ $plugins</value>
     <value>為漫畫添加標籤可以使您的倉庫更易於管理，例如：
 類別1: 標籤1, 標籤2, 標籤3
 類別2: 標籤4, 標籤5</value>
-  </data>
-  <data name="TagLinkTip" xml:space="preserve">
-    <value>特殊變數：
-
-{%tag}          - 替換為轉義標籤名稱
-{%tag_category} - 替換為轉義標籤類別</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>標籤</value>

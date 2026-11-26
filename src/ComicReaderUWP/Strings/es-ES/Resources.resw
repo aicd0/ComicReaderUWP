@@ -401,10 +401,6 @@ $files</value>
   <data name="EnterNewTags" xml:space="preserve">
     <value>Introducir nuevas etiquetas</value>
   </data>
-  <data name="EnterNewTagsHint" xml:space="preserve">
-    <value>Categoría: Etiqueta1, Etiqueta2     - Añade “Etiqueta1” y “Etiqueta2” a “Categoría”.
-Categoría:: Etiqueta1, Etiqueta2    - Sobrescribe “Categoría” con “Etiqueta1” y “Etiqueta2”.</value>
-  </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
@@ -1025,12 +1021,6 @@ $plugins</value>
     <value>Usar las etiquetas correctamente puede facilitar la organización de tu biblioteca. Por ejemplo:
 Categoría 1: Etiqueta 1, Etiqueta 2, Etiqueta 3
 Categoría 2: Etiqueta 4, Etiqueta 5</value>
-  </data>
-  <data name="TagLinkTip" xml:space="preserve">
-    <value>Variables especiales:
-
-{%tag}          - Se reemplaza con el nombre de la etiqueta con escape
-{%tag_category} - Se reemplaza con la categoría de la etiqueta con escape</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>Etiquetas</value>
