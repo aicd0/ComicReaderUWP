@@ -18,7 +18,7 @@ internal sealed class ImagingLogCapture : Logger.ILogListener
 
     private readonly ConcurrentQueue<string> _messages = new();
 
-    public void OnLog(Logger.LogItem item)
+    public void OnLog(LogEntry item)
     {
         if (item.Tag.ToString() != nameof(ImageMemoryCache) || item.Message is not string message)
         {
