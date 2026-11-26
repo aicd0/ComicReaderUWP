@@ -10,7 +10,7 @@
 		<Nullable>enable</Nullable>
 		<PackageId>ComicReaderUWP.SDK</PackageId>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+		<TargetFramework>net11.0-windows10.0.22621.0</TargetFramework>
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 		<Version>1.6.0.0</Version>
 		<WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250909003" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.5" />
 	</ItemGroup>
 
 </Project>

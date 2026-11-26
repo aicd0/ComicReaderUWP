@@ -321,8 +321,9 @@ internal static class ArchiveManager
                 }
                 catch (SharpCompress.Common.ArchiveOperationException ex)
                 {
-                    Logger.E(TAG, ex);
-                    return;
+                    // Since SharpCompress 0.50, ArchiveFactory rejects compressed streams such as .tar.gz, .tar.bz2
+                    // and .tar.xz, while ReaderFactory still reads them. Fall through to the reader below.
+                    Logger.I(TAG, $"Unable to open archive, falling back to reader: {ex.Message}");
                 }
                 catch (Exception ex)
                 {

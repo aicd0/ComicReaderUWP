@@ -29,7 +29,7 @@
 		<PublishProfile>win10-$(Platform).pubxml</PublishProfile>
 		<RunCodeAnalysis>false</RunCodeAnalysis>
 		<RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-		<TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+		<TargetFramework>net11.0-windows10.0.22621.0</TargetFramework>
 		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 		<UseVSHostingProcess>false</UseVSHostingProcess>
@@ -88,13 +88,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="bblanchon.PDFium.Win32" Version="145.0.7606" />
+		<PackageReference Include="bblanchon.PDFium.Win32" Version="160.0.8179" />
 		<PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.2.251219" />
 		<PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.251219" />
 		<PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.251219" />
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250909003" />
-		<PackageReference Include="SharpCompress" Version="0.48.1" />
-		<PackageReference Include="SkiaSharp" Version="3.119.4" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.5" />
+		<PackageReference Include="SharpCompress" Version="0.50.12" />
+		<PackageReference Include="SkiaSharp" Version="4.157.0" />
 	</ItemGroup>
 
 	<ItemGroup>
