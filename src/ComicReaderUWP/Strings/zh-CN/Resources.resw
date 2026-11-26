@@ -401,10 +401,6 @@ $files</value>
   <data name="EnterNewTags" xml:space="preserve">
     <value>输入新标签</value>
   </data>
-  <data name="EnterNewTagsHint" xml:space="preserve">
-    <value>分类: 标签1,标签2     - 将“标签1”和“标签2”添加到“分类”中。
-分类:: 标签1,标签2    - 用“标签1”和“标签2”覆盖“分类”。</value>
-  </data>
   <data name="Error" xml:space="preserve">
     <value>错误</value>
   </data>
@@ -1025,12 +1021,6 @@ $plugins</value>
     <value>为漫画添加标签可以使您的仓库更易于管理，例如：
 类别1: 标签1, 标签2, 标签3
 类别2: 标签4, 标签5</value>
-  </data>
-  <data name="TagLinkTip" xml:space="preserve">
-    <value>特殊变量：
-
-{%tag}          - 替换为转义标签名称
-{%tag_category} - 替换为转义标签类别</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>标签</value>

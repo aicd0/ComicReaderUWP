@@ -401,10 +401,6 @@ $files</value>
   <data name="EnterNewTags" xml:space="preserve">
     <value>Saisir de nouvelles étiquettes</value>
   </data>
-  <data name="EnterNewTagsHint" xml:space="preserve">
-    <value>Catégorie : Tag1, Tag2     - Ajoutez « Tag1 » et « Tag2 » à « Catégorie ».
-Catégorie :: Tag1, Tag2    - Remplacez « Catégorie » par « Tag1 » et « Tag2 ».</value>
-  </data>
   <data name="Error" xml:space="preserve">
     <value>Erreur</value>
   </data>
@@ -1025,12 +1021,6 @@ Démarrer en mode sans échec ?</value>
     <value>Utiliser correctement les étiquettes peut faciliter l'organisation de votre bibliothèque. Par exemple :
 Catégorie 1 : Étiquette 1, Étiquette 2, Étiquette 3
 Catégorie 2 : Étiquette 4, Étiquette 5</value>
-  </data>
-  <data name="TagLinkTip" xml:space="preserve">
-    <value>Variables spéciales :
-
-{%tag}          - Remplacé par le nom de la balise échappée
-{%tag_category} - Remplacé par la catégorie de la balise échappée</value>
   </data>
   <data name="Tags" xml:space="preserve">
     <value>Étiquette</value>
