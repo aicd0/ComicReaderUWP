@@ -736,6 +736,9 @@ By clicking "Proceed", you confirm that you understand the risks and want to con
   <data name="OpenComicDefaultBehavior" xml:space="preserve">
     <value>Default behavior when opening a comic</value>
   </data>
+  <data name="OpenFile" xml:space="preserve">
+    <value>Open file</value>
+  </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>Open home page</value>
   </data>

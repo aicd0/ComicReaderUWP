@@ -165,6 +165,19 @@ internal partial class MainPageViewModel : INotifyPropertyChanged
 
         items.Add(new SimpleMenuFlyoutItemModel()
         {
+            Text = StringResourceProvider.Instance.OpenFile,
+            Icon = new FontIconSource() { Glyph = "\uE8E5" },
+            Click = () =>
+            {
+                ActionModel actionModel = ActionModel.Builder.Create(OpenFileProvider.NAME).Build();
+                _actionHandler.HandleNoResult(actionModel);
+            },
+        });
+
+        items.Add(new SeparatorMenuFlyoutItemModel());
+
+        items.Add(new SimpleMenuFlyoutItemModel()
+        {
             Text = StringResourceProvider.Instance.NewTab,
             Icon = new FontIconSource() { Glyph = "\uE8A5" },
             ShortcutAction = KeyboardShortcutActions.AddNewTab,

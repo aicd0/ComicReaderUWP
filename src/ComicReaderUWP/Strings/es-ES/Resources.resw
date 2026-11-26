@@ -736,6 +736,9 @@ Al hacer clic en "Continuar", confirmas que entiendes los riesgos y deseas conti
   <data name="OpenComicDefaultBehavior" xml:space="preserve">
     <value>Comportamiento predeterminado al abrir un cómic</value>
   </data>
+  <data name="OpenFile" xml:space="preserve">
+    <value>Abrir archivo</value>
+  </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>Abrir página de inicio</value>
   </data>

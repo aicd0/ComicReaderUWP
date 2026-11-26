@@ -736,6 +736,9 @@ En cliquant sur « Continuer », vous confirmez que vous comprenez les risques e
   <data name="OpenComicDefaultBehavior" xml:space="preserve">
     <value>Comportement par défaut lors de l’ouverture d’une bande dessinée</value>
   </data>
+  <data name="OpenFile" xml:space="preserve">
+    <value>Ouvrir un fichier</value>
+  </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>Ouvrir la page d’accueil</value>
   </data>

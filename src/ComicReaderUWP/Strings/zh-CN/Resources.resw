@@ -736,6 +736,9 @@ $files</value>
   <data name="OpenComicDefaultBehavior" xml:space="preserve">
     <value>打开漫画时的默认行为</value>
   </data>
+  <data name="OpenFile" xml:space="preserve">
+    <value>打开文件</value>
+  </data>
   <data name="OpenHomePage" xml:space="preserve">
     <value>打开主页</value>
   </data>
