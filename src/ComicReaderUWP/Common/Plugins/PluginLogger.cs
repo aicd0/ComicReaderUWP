@@ -14,26 +14,31 @@ internal class PluginLogger(string pluginName) : ILogger
 
     public void D(string tag, string? message)
     {
-        Logger.D(LogTag.N(TAG, pluginName, tag), message);
+        Logger.D(Compose(tag), message);
     }
 
     public void I(string tag, string? message)
     {
-        Logger.I(LogTag.N(TAG, pluginName, tag), message);
+        Logger.I(Compose(tag), message);
     }
 
     public void W(string tag, string? message)
     {
-        Logger.W(LogTag.N(TAG, pluginName, tag), message);
+        Logger.W(Compose(tag), message);
     }
 
     public void E(string tag, string? message, Exception? exception)
     {
-        Logger.E(LogTag.N(TAG, pluginName, tag), message, exception);
+        Logger.E(Compose(tag), message, exception);
     }
 
     public void F(string tag, string? message, Exception? exception)
     {
-        Logger.F(LogTag.N(TAG, pluginName, tag), message, exception);
+        Logger.F(Compose(tag), message, exception);
+    }
+
+    private string Compose(string? tag)
+    {
+        return $"{TAG}/{pluginName}/{tag}";
     }
 }

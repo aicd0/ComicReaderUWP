@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +25,7 @@ using ComicReaderUWP.Data.Database;
 using ComicReaderUWP.SDK.Models;
 using ComicReaderUWP.ViewModels;
 
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
 
 namespace ComicReaderUWP.Views.Pages.DevTools;
@@ -33,7 +33,9 @@ namespace ComicReaderUWP.Views.Pages.DevTools;
 internal sealed partial class DevToolsPage : BasePage
 {
     private const string TAG = nameof(DevToolsPage);
+
     private const int MAX_LOG_ITEM_COUNT = 10000;
+    private const int LOG_FILTER_DELAY_MILLISECONDS = 500;
     private const int COUNTER_UPDATE_INTERVAL = 500;
 
     public DevToolsPage()
@@ -41,6 +43,13 @@ internal sealed partial class DevToolsPage : BasePage
         InitializeComponent();
 
         _logListener = new LogListener(this);
+
+        InitializeLogLevelComboBox();
+
+        _logFilterTimer = DispatcherQueue.CreateTimer();
+        _logFilterTimer.Interval = TimeSpan.FromMilliseconds(LOG_FILTER_DELAY_MILLISECONDS);
+        _logFilterTimer.IsRepeating = false;
+        _logFilterTimer.Tick += LogFilterTimer_Tick;
     }
 
     //
@@ -54,7 +63,7 @@ internal sealed partial class DevToolsPage : BasePage
         GetMainPageAbility().SetTitle("Dev tools");
         GetMainPageAbility().SetIcon(new SymbolIconSource() { Symbol = Symbol.Repair });
 
-        StartOrStopLogger(AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).GetValueOrDefault(KVNames.KV_KEY_APP_LOG_STARTED, true));
+        StartOrStopLogger(AppDB.MainRegistry.CreateKey(RegistryNames.STATE).GetValueOrDefault(RegistryNames.StateKey.LOG_STARTED, true));
         UpdateLogToggleButton();
 
         InitializeCounters();
@@ -74,6 +83,13 @@ internal sealed partial class DevToolsPage : BasePage
         base.OnStop();
 
         Logger.RemoveListener(_logListener);
+
+        if (_logFilterTimer is not null)
+        {
+            _logFilterTimer.Stop();
+            _logFilterTimer.Tick -= LogFilterTimer_Tick;
+            _logFilterTimer = null;
+        }
     }
 
     //
@@ -215,10 +231,14 @@ internal sealed partial class DevToolsPage : BasePage
     //
 
     private readonly LogListener _logListener;
+    private DispatcherQueueTimer? _logFilterTimer;
     private bool _logStarted = false;
     private bool _logStickToLatest = true;
+    private LogLevel _logMinimumLevel = LogLevel.Console;
+    private string[] _logFilters = [];
     private readonly ObservableRingCollection<LogItemViewModel> _logItems = [];
-    private readonly ConcurrentQueue<string> _pendingLogMessages = new();
+    private readonly Queue<LogEntry> _logEntries = new();
+    private readonly ConcurrentQueue<LogEntry> _pendingLogs = new();
     private int _logFlushScheduled = 0;
 
     public ObservableRingCollection<LogItemViewModel> LogItems => _logItems;
@@ -237,6 +257,97 @@ internal sealed partial class DevToolsPage : BasePage
         }
     }
 
+    /// <summary>
+    /// The choices are the levels a reader thinks in, and each one keeps its own level and everything above it.
+    /// Console lines sit below every choice, so the lowest choice — Debug — is the one that shows them.
+    /// </summary>
+    private void InitializeLogLevelComboBox()
+    {
+        LogLevelComboBox.ItemsSource = new List<LogLevelOption>
+        {
+            new("Debug", LogLevel.Console),
+            new("Info", LogLevel.Info),
+            new("Warning", LogLevel.Warning),
+            new("Error", LogLevel.Error),
+            new("Fatal", LogLevel.Fatal),
+        };
+        LogLevelComboBox.SelectedIndex = 0;
+    }
+
+    private void LogLevelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LogLevelComboBox.SelectedItem is not LogLevelOption option)
+        {
+            return;
+        }
+
+        _logMinimumLevel = option.MinimumLevel;
+        ApplyLogFilter();
+    }
+
+    private void LogFilterTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        _logFilters = LogFilterTextBox.Text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+
+        if (_logFilterTimer is not null)
+        {
+            _logFilterTimer.Stop();
+            _logFilterTimer.Start();
+        }
+    }
+
+    private void LogFilterTimer_Tick(DispatcherQueueTimer sender, object args)
+    {
+        ApplyLogFilter();
+    }
+
+    private void ApplyLogFilter()
+    {
+        List<LogItemViewModel> items = [];
+        foreach (LogEntry entry in _logEntries)
+        {
+            if (IsLogAccepted(entry))
+            {
+                items.Add(entry.Item);
+            }
+        }
+
+        _logItems.ReplaceAll(items);
+
+        if (_logStickToLatest)
+        {
+            ScrollToLatestLog();
+        }
+    }
+
+    private bool IsLogAccepted(LogEntry entry)
+    {
+        if (entry.Level < _logMinimumLevel)
+        {
+            return false;
+        }
+
+        if (entry.Level >= LogLevel.Fatal)
+        {
+            return true;
+        }
+
+        string[] filters = _logFilters;
+        if (filters.Length == 0)
+        {
+            return true;
+        }
+
+        foreach (string filter in filters)
+        {
+            if (Logger.IsTagMatch(filter, entry.Tag))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void StartOrStopLogger(bool started)
     {
         if (started && !DebugUtils.DeveloperMode)
@@ -249,7 +360,7 @@ internal sealed partial class DevToolsPage : BasePage
             return;
         }
 
-        AppDB.AppKV.GetCollection(KVNames.KV_LIB_APP).Set(KVNames.KV_KEY_APP_LOG_STARTED, started);
+        AppDB.MainRegistry.CreateKey(RegistryNames.STATE).Set(RegistryNames.StateKey.LOG_STARTED, started);
         _logStarted = started;
         if (started)
         {
@@ -274,9 +385,9 @@ internal sealed partial class DevToolsPage : BasePage
         LogListView.ScrollIntoView(_logItems[^1]);
     }
 
-    private void AppendLog(string message)
+    private void AppendLog(LogEntry entry)
     {
-        _pendingLogMessages.Enqueue(message);
+        _pendingLogs.Enqueue(entry);
 
         if (Interlocked.Exchange(ref _logFlushScheduled, 1) == 0)
         {
@@ -289,13 +400,19 @@ internal sealed partial class DevToolsPage : BasePage
         Interlocked.Exchange(ref _logFlushScheduled, 0);
 
         LogItemViewModel? lastItem = null;
-        while (_pendingLogMessages.TryDequeue(out string? message))
+        while (_pendingLogs.TryDequeue(out LogEntry entry))
         {
-            lastItem = new LogItemViewModel()
+            _logEntries.Enqueue(entry);
+            if (IsLogAccepted(entry))
             {
-                Text = message,
-            };
-            _logItems.Add(lastItem);
+                _logItems.Add(entry.Item);
+                lastItem = entry.Item;
+            }
+        }
+
+        while (_logEntries.Count > MAX_LOG_ITEM_COUNT)
+        {
+            _logEntries.Dequeue();
         }
 
         while (_logItems.Count > MAX_LOG_ITEM_COUNT)
@@ -311,7 +428,7 @@ internal sealed partial class DevToolsPage : BasePage
 
     private class LogListener(DevToolsPage page) : Logger.ILogListener
     {
-        public void OnLog(Logger.LogItem item)
+        public void OnLog(Core.Common.DebugTools.LogEntry item)
         {
             Interlocked.Increment(ref page._receivedLogCount);
             page.RequestCounterUpdate();
@@ -321,16 +438,17 @@ internal sealed partial class DevToolsPage : BasePage
                 return;
             }
 
-            if (item.Level <= 4)
-            {
-                List<LogTag?> consoleWhitelist = DebugModel.ConsoleWhitelist;
-                if (!consoleWhitelist.Any(t => t is null || t.ContainsAny(item.Tag)))
-                {
-                    return;
-                }
-            }
+            page.AppendLog(new LogEntry(item.Level, item.Tag, new LogItemViewModel { Text = item.DisplayMessage }));
+        }
+    }
 
-            page.AppendLog(item.DisplayMessage);
+    private readonly record struct LogEntry(LogLevel Level, string Tag, LogItemViewModel Item);
+
+    private sealed record LogLevelOption(string Label, LogLevel MinimumLevel)
+    {
+        public override string ToString()
+        {
+            return Label;
         }
     }
 

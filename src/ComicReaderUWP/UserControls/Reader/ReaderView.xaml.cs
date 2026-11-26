@@ -3404,7 +3404,7 @@ internal partial class ReaderView : UserControl
 
     private static void Log(string tag, params object?[] values)
     {
-        Logger.I(LogTag.N(TAG, tag), string.Join(',', values));
+        Logger.I($"{TAG}/{tag}", string.Join(',', values));
     }
 
     private static void PostToCurrentThread(Action action, int delayMilliseconds = 0)

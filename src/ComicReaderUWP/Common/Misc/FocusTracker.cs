@@ -11,9 +11,9 @@ internal static class FocusTracker
 {
     private const string TAG = nameof(FocusTracker);
 
-    private static readonly LogTag _gotFocusTag = LogTag.N(TAG, "GotFocus");
-    private static readonly LogTag _losingFocusTag = LogTag.N(TAG, "LosingFocus");
-    private static readonly LogTag _lostFocusTag = LogTag.N(TAG, "LostFocus");
+    private static readonly string _gotFocusTag = $"{TAG}/GotFocus";
+    private static readonly string _losingFocusTag = $"{TAG}/LosingFocus";
+    private static readonly string _lostFocusTag = $"{TAG}/LostFocus";
 
     public static void Initialize()
     {

@@ -11,25 +11,22 @@ namespace ComicReaderUWP.Core.Common.DebugTools;
 
 public static class Logger
 {
-    private const string TAG = "Logger";
-    private const int LEVEL_CONSOLE = 0;
-    private const int LEVEL_DEBUG = 1;
-    private const int LEVEL_INFO = 2;
-    private const int LEVEL_WARN = 3;
-    private const int LEVEL_ERROR = 4;
-    private const int LEVEL_FATAL = 5;
+    private const string TAG = nameof(Logger);
+
     private const int FLUSH_INTERVAL = 5000;
     private const int BUFFER_SIZE = 1000;
+    private const string EMPTY_TAG = "Empty";
 
     private static int sNextLogId = 0;
     private static int sPostDispatch = 0;
-    private static readonly ConcurrentQueue<LogItem> sPendingQueue = new();
-    private static readonly LinkedList<LogItem> sBuffer = new();
+    private static readonly ConcurrentQueue<LogEntry> sPendingQueue = new();
+    private static readonly LinkedList<LogEntry> sBuffer = new();
     private static readonly ConcurrentDictionary<ILogListener, LogListenerWrapper> sListeners = [];
 
     private static int sInitialized = 0;
-    private static string sLogFolderPath = "";
-    private static readonly ConcurrentQueue<LogItem> sFlushQueue = new();
+    private static string sLogFolderPath = string.Empty;
+    private static string sLogTreeFolderPath = string.Empty;
+    private static readonly ConcurrentQueue<LogEntry> sFlushQueue = new();
     private static long sLastErrorReportTime = 0;
 
     private static bool Initialized => sInitialized == 1;
@@ -43,9 +40,11 @@ public static class Logger
         }
 
         sLogFolderPath = StorageLocation.LocalCacheFolderPath + "\\Logs\\";
+        sLogTreeFolderPath = sLogFolderPath + "Tree\\";
 
         Thread logThread = new(LogThreadMain)
         {
+            Name = "Logger",
             IsBackground = true,
             Priority = ThreadPriority.Lowest,
         };
@@ -92,100 +91,74 @@ public static class Logger
         FlushToFile();
     }
 
-    public static void D(string? tag, string? message)
+    public static bool IsTagMatch(string filter, string tag)
     {
-        Log(LEVEL_DEBUG, LogTag.N(tag), message, null);
+        if (tag.Equals(filter, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return tag.Length > filter.Length
+            && tag[filter.Length] == '/'
+            && tag.StartsWith(filter, StringComparison.Ordinal);
     }
 
-    public static void D(LogTag? tag, string? message)
+    public static string[] GetLogTreeFilePaths(string? tag)
     {
-        Log(LEVEL_DEBUG, tag, message, null);
+        if (!Initialized)
+        {
+            return [];
+        }
+
+        return LogTree.GetFilePaths(sLogTreeFolderPath, tag ?? string.Empty);
+    }
+
+    public static void D(string? tag, string? message)
+    {
+        Log(LogLevel.Debug, tag, message, null);
     }
 
     public static void I(string? tag, string? message)
     {
-        Log(LEVEL_INFO, LogTag.N(tag), message, null);
-    }
-
-    public static void I(LogTag? tag, string? message)
-    {
-        Log(LEVEL_INFO, tag, message, null);
+        Log(LogLevel.Info, tag, message, null);
     }
 
     public static void W(string? tag, string? message)
     {
-        Log(LEVEL_WARN, LogTag.N(tag), message, null);
-    }
-
-    public static void W(LogTag? tag, string? message)
-    {
-        Log(LEVEL_WARN, tag, message, null);
+        Log(LogLevel.Warning, tag, message, null);
     }
 
     public static void E(string? tag, string? message)
     {
-        Log(LEVEL_ERROR, LogTag.N(tag), message, null);
-    }
-
-    public static void E(LogTag? tag, string? message)
-    {
-        Log(LEVEL_ERROR, tag, message, null);
+        Log(LogLevel.Error, tag, message, null);
     }
 
     public static void E(string? tag, Exception? exception)
     {
-        Log(LEVEL_ERROR, LogTag.N(tag), null, exception);
-    }
-
-    public static void E(LogTag? tag, Exception? exception)
-    {
-        Log(LEVEL_ERROR, tag, null, exception);
+        Log(LogLevel.Error, tag, null, exception);
     }
 
     public static void E(string? tag, string? message, Exception? exception)
     {
-        Log(LEVEL_ERROR, LogTag.N(tag), message, exception);
-    }
-
-    public static void E(LogTag? tag, string? message, Exception? exception)
-    {
-        Log(LEVEL_ERROR, tag, message, exception);
+        Log(LogLevel.Error, tag, message, exception);
     }
 
     public static void F(string? tag, string? message)
     {
         AssertException exceptionNotNull = new(message);
-        Log(LEVEL_FATAL, LogTag.N(tag), message, exceptionNotNull);
-    }
-
-    public static void F(LogTag? tag, string? message)
-    {
-        AssertException exceptionNotNull = new(message);
-        Log(LEVEL_FATAL, tag, message, exceptionNotNull);
+        Log(LogLevel.Fatal, tag, message, exceptionNotNull);
     }
 
     public static void F(string? tag, Exception? exception)
     {
         AssertException exceptionNotNull = new(null, exception);
-        Log(LEVEL_FATAL, LogTag.N(tag), null, exceptionNotNull);
-    }
-
-    public static void F(LogTag? tag, Exception? exception)
-    {
-        AssertException exceptionNotNull = new(null, exception);
-        Log(LEVEL_FATAL, tag, null, exceptionNotNull);
+        Log(LogLevel.Fatal, tag, null, exceptionNotNull);
     }
 
     public static void F(string? tag, string? message, Exception? exception)
     {
         AssertException exceptionNotNull = new(message, exception);
-        Log(LEVEL_FATAL, LogTag.N(tag), message, exceptionNotNull);
-    }
-
-    public static void F(LogTag? tag, string? message, Exception? exception)
-    {
-        AssertException exceptionNotNull = new(message, exception);
-        Log(LEVEL_FATAL, tag, message, exceptionNotNull);
+        Log(LogLevel.Fatal, tag, message, exceptionNotNull);
     }
 
     public static void Assert(bool condition, string? message)
@@ -206,12 +179,12 @@ public static class Logger
     private static void AssertNotReachHereInternal(string? message, Exception? exception)
     {
         AssertException exceptionNotNull = new(message, exception);
-        Log(LEVEL_FATAL, LogTag.N("Assert"), message, exceptionNotNull);
+        Log(LogLevel.Fatal, "Assert", message, exceptionNotNull);
     }
 
     private static void Console(string message)
     {
-        Log(LEVEL_CONSOLE, LogTag.N(TAG), message, null);
+        Log(LogLevel.Console, TAG, message, null);
     }
 
     private static void LogThreadMain()
@@ -225,10 +198,10 @@ public static class Logger
         }
     }
 
-    private static void Log(int level, LogTag? tag, string? message, Exception? exception)
+    private static void Log(LogLevel level, string? tag, string? message, Exception? exception)
     {
-        tag ??= LogTag.Empty;
-        var item = new LogItem
+        tag ??= EMPTY_TAG;
+        var item = new LogEntry
         {
             Id = Interlocked.Increment(ref sNextLogId) - 1,
             Time = DateTimeOffset.Now,
@@ -241,7 +214,7 @@ public static class Logger
         sPendingQueue.Enqueue(item);
         DispatchLogItems();
 
-        if (item.Level >= LEVEL_FATAL)
+        if (item.Level >= LogLevel.Fatal)
         {
             if (item.Exception is AssertException assertException)
             {
@@ -265,25 +238,25 @@ public static class Logger
         TaskDispatcher.DefaultQueue.Submit(() =>
         {
             Interlocked.Exchange(ref sPostDispatch, 0);
-            List<LogItem> pendingLogs = [];
-            while (sPendingQueue.TryDequeue(out LogItem? item))
+            List<LogEntry> pendingLogs = [];
+            while (sPendingQueue.TryDequeue(out LogEntry? item))
             {
                 pendingLogs.Add(item);
             }
 
-            foreach (LogItem item in pendingLogs)
+            foreach (LogEntry item in pendingLogs)
             {
                 sBuffer.AddLast(item);
             }
 
             List<LogListenerWrapper> snapshot = [.. sListeners.Values];
-            List<LogItem> dispatchingItems = [];
+            List<LogEntry> dispatchingItems = [];
             foreach (LogListenerWrapper listener in snapshot)
             {
                 dispatchingItems.Clear();
-                for (LinkedListNode<LogItem>? node = sBuffer.Last; node != null; node = node.Previous)
+                for (LinkedListNode<LogEntry>? node = sBuffer.Last; node != null; node = node.Previous)
                 {
-                    LogItem item = node.Value;
+                    LogEntry item = node.Value;
                     if (item.Id <= listener.LastId)
                     {
                         break;
@@ -294,7 +267,7 @@ public static class Logger
 
                 for (int i = dispatchingItems.Count - 1; i >= 0; i--)
                 {
-                    LogItem item = dispatchingItems[i];
+                    LogEntry item = dispatchingItems[i];
                     listener.LastId = item.Id;
                     listener.Listener.OnLog(item);
                 }
@@ -314,10 +287,10 @@ public static class Logger
             return;
         }
 
-        List<LogItem> logs = [];
+        List<LogEntry> logs = [];
         while (true)
         {
-            if (sFlushQueue.TryDequeue(out LogItem? item))
+            if (sFlushQueue.TryDequeue(out LogEntry? item))
             {
                 logs.Add(item);
             }
@@ -328,17 +301,13 @@ public static class Logger
         }
 
         FlushToLogFile(logs);
-
-        if (DebugModel.LogTreeEnabled)
-        {
-            FlushToLogTree(logs);
-        }
+        FlushToLogTree(logs);
     }
 
-    private static void FlushToLogFile(List<LogItem> logs)
+    private static void FlushToLogFile(List<LogEntry> logs)
     {
         StringBuilder sb = new();
-        foreach (LogItem item in logs)
+        foreach (LogEntry item in logs)
         {
             sb.Append(item.DisplayMessage);
             sb.Append('\n');
@@ -361,64 +330,9 @@ public static class Logger
         }
     }
 
-    private static void FlushToLogTree(List<LogItem> logs)
+    private static void FlushToLogTree(List<LogEntry> logs)
     {
-        Dictionary<string, List<LogItem>> fileLogs = [];
-        foreach (LogItem item in logs)
-        {
-            string[] tags = item.Tag.ToString().Split(',');
-            foreach (string tag in tags)
-            {
-                string[] categories = tag.Split('/');
-                bool divider = false;
-                StringBuilder sb = new();
-                foreach (string category in categories)
-                {
-                    if (divider)
-                    {
-                        sb.Append('\\');
-                    }
-                    divider = true;
-                    sb.Append(category);
-                    string path = sb.ToString();
-                    if (!fileLogs.TryGetValue(path, out List<LogItem>? logItems))
-                    {
-                        logItems = [];
-                        fileLogs[path] = logItems;
-                    }
-                    logItems.Add(item);
-                }
-            }
-        }
-
-        string cacheFolder = sLogFolderPath + "tree\\";
-        string fileName = "log_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
-
-        foreach (KeyValuePair<string, List<LogItem>> pair in fileLogs)
-        {
-            StringBuilder sb = new();
-            foreach (LogItem item in pair.Value)
-            {
-                sb.Append(item.DisplayMessage);
-                sb.Append('\n');
-            }
-            string content = sb.ToString();
-
-            string folderPath = cacheFolder + pair.Key;
-            string filePath = $"{folderPath}\\{fileName}";
-            try
-            {
-                Directory.CreateDirectory(folderPath);
-                using StreamWriter writer = new(filePath, true, Encoding.UTF8);
-                writer.Write(content);
-                Console($"flushed {pair.Value.Count} logs to {filePath}");
-            }
-            catch (Exception ex)
-            {
-                F(TAG, ex);
-                break;
-            }
-        }
+        LogTree.Append(sLogTreeFolderPath, logs);
     }
 
     private static void LogToConsole(string message)
@@ -448,68 +362,17 @@ public static class Logger
 
     private class InternalLogListener : ILogListener
     {
-        public void OnLog(LogItem item)
+        public void OnLog(LogEntry item)
         {
             if (DebugModel.ConsoleEnabled)
             {
-                List<LogTag?> consoleWhitelist = DebugModel.ConsoleWhitelist;
-                if (consoleWhitelist.Any(t => t is null || t.ContainsAny(item.Tag)))
-                {
-                    LogToConsole(item.DisplayMessage);
-                }
+                LogToConsole(item.DisplayMessage);
             }
 
-            if (DebugUtils.DebugMode && item.Level >= LEVEL_INFO)
+            if (DebugUtils.DebugMode && item.Level >= LogLevel.Info)
             {
                 sFlushQueue.Enqueue(item);
             }
-        }
-    }
-
-    public class LogItem
-    {
-        public required int Id { init; get; }
-        public required DateTimeOffset Time { init; get; }
-        public required int Level { init; get; }
-        public required LogTag Tag { init; get; }
-        public required string? Message { init; get; }
-        public required Exception? Exception { init; get; }
-
-        private string? _displayMessage = null;
-        public string DisplayMessage
-        {
-            get
-            {
-                string? msg = _displayMessage;
-                if (msg == null)
-                {
-                    msg = GenerateDisplayMessage();
-                    _displayMessage = msg;
-                }
-
-                return msg;
-            }
-        }
-
-        private string GenerateDisplayMessage()
-        {
-            string levelTag = Level switch
-            {
-                LEVEL_CONSOLE => "C",
-                LEVEL_DEBUG => "D",
-                LEVEL_INFO => "I",
-                LEVEL_WARN => "W",
-                LEVEL_ERROR => "E",
-                LEVEL_FATAL => "F",
-                _ => "U",
-            };
-            string realMessage = $"{Time:yyyy/M/d HH:mm:ss.fff} [{levelTag},{Tag}] {Message}";
-            if (Exception != null)
-            {
-                realMessage += "\n" + Exception.ToString();
-            }
-
-            return realMessage;
         }
     }
 
@@ -533,6 +396,6 @@ public static class Logger
 
     public interface ILogListener
     {
-        void OnLog(LogItem item);
+        void OnLog(LogEntry item);
     }
 }

@@ -16,12 +16,12 @@ public static class DebugModel
     private const string TAG = nameof(DebugModel);
     private const string KEY_WAIT_FOR_DEBUGGER = "WaitForDebugger";
     private const string KEY_CONSOLE_ENABLED = "ConsoleEnabled";
-    private const string KEY_LOG_TREE_ENABLED = "LogTreeEnabled";
-    private const string KEY_CONSOLE_WHITELIST = "ConsoleWhitelist";
+    private const string KEY_LOG_TREE_WHITELIST = "LogTreeWhitelist";
 
-    private static readonly object _lock = new();
-    private static JsonModel? _jsonModel;
-    private static List<LogTag?>? _consoleWhitelist;
+    private static readonly string[] _logTreeBaseTags = [];
+
+    private static readonly Lock _lock = new();
+    private static volatile JsonModel? _jsonModel;
 
     private static readonly JsonSerializerOptions _serializerOption = new()
     {
@@ -36,17 +36,15 @@ public static class DebugModel
     public static void SaveJsonConfig(string json)
     {
         JsonModel jsonModel = JsonSerializer.Deserialize<JsonModel>(json) ?? new();
-        string consoleWhitelistJson = JsonSerializer.Serialize(jsonModel.ConsoleWhitelist);
+        string logTreeWhitelistJson = JsonSerializer.Serialize(jsonModel.LogTreeWhitelist);
         lock (_lock)
         {
             _jsonModel = jsonModel;
-            _consoleWhitelist = null;
 
             IRegistryKey registryKey = GetRegistryKey();
             registryKey.Set(KEY_WAIT_FOR_DEBUGGER, jsonModel.WaitForDebugger);
             registryKey.Set(KEY_CONSOLE_ENABLED, jsonModel.ConsoleEnabled);
-            registryKey.Set(KEY_CONSOLE_WHITELIST, consoleWhitelistJson);
-            registryKey.Set(KEY_LOG_TREE_ENABLED, jsonModel.LogTreeEnabled);
+            registryKey.Set(KEY_LOG_TREE_WHITELIST, logTreeWhitelistJson);
         }
     }
 
@@ -60,31 +58,31 @@ public static class DebugModel
         get => DebugUtils.DeveloperMode && GetJsonModel().ConsoleEnabled;
     }
 
-    public static bool LogTreeEnabled
+    public static bool IsLogTreeWhitelisted(string tag)
     {
-        get => DebugUtils.DeveloperMode && GetJsonModel().LogTreeEnabled;
-    }
-
-    public static List<LogTag?> ConsoleWhitelist
-    {
-        get
+        foreach (string baseTag in _logTreeBaseTags)
         {
-            if (_consoleWhitelist is not null)
+            if (Logger.IsTagMatch(baseTag, tag))
             {
-                return _consoleWhitelist;
+                return true;
             }
-
-            List<string?> tagList = GetJsonModel().ConsoleWhitelist ?? [null];
-            List<LogTag?> tags = new(tagList.Count);
-            foreach (string? item in tagList)
-            {
-                var tag = LogTag.FromString(item ?? string.Empty);
-                tags.Add(tag);
-            }
-
-            _consoleWhitelist = tags;
-            return tags;
         }
+
+        List<string?>? whitelist = GetJsonModel().LogTreeWhitelist;
+        if (whitelist is null)
+        {
+            return false;
+        }
+
+        foreach (string? entry in whitelist)
+        {
+            if (entry is null || Logger.IsTagMatch(entry, tag))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static JsonModel GetJsonModel()
@@ -103,13 +101,13 @@ public static class DebugModel
 
             IRegistryKey registryKey = GetRegistryKey();
 
-            string consoleWhitelistJson = registryKey.GetValueOrDefault(KEY_CONSOLE_WHITELIST, string.Empty);
-            List<string?>? consoleWhitelist = null;
-            if (!string.IsNullOrEmpty(consoleWhitelistJson))
+            string logTreeWhitelistJson = registryKey.GetValueOrDefault(KEY_LOG_TREE_WHITELIST, string.Empty);
+            List<string?>? logTreeWhitelist = null;
+            if (!string.IsNullOrEmpty(logTreeWhitelistJson))
             {
                 try
                 {
-                    consoleWhitelist = JsonSerializer.Deserialize<List<string?>>(consoleWhitelistJson);
+                    logTreeWhitelist = JsonSerializer.Deserialize<List<string?>>(logTreeWhitelistJson);
                 }
                 catch (Exception ex)
                 {
@@ -121,8 +119,7 @@ public static class DebugModel
             {
                 WaitForDebugger = registryKey.GetValueOrDefault(KEY_WAIT_FOR_DEBUGGER, false),
                 ConsoleEnabled = registryKey.GetValueOrDefault(KEY_CONSOLE_ENABLED, false),
-                ConsoleWhitelist = consoleWhitelist,
-                LogTreeEnabled = registryKey.GetValueOrDefault(KEY_LOG_TREE_ENABLED, false),
+                LogTreeWhitelist = logTreeWhitelist,
             };
 
             return _jsonModel;
@@ -142,10 +139,7 @@ public static class DebugModel
         [JsonPropertyName("ConsoleEnabled")]
         public bool ConsoleEnabled { get; set; }
 
-        [JsonPropertyName("ConsoleWhitelist")]
-        public List<string?>? ConsoleWhitelist { get; set; }
-
-        [JsonPropertyName("LogTreeEnabled")]
-        public bool LogTreeEnabled { get; set; }
+        [JsonPropertyName("LogTreeWhitelist")]
+        public List<string?>? LogTreeWhitelist { get; set; }
     }
 }

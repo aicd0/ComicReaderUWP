@@ -25,6 +25,19 @@ public class ObservableRingCollection<T> : Collection<T>, INotifyCollectionChang
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    public void ReplaceAll(IEnumerable<T> items)
+    {
+        CheckReentrancy();
+        Items.Clear();
+        foreach (T item in items)
+        {
+            Items.Add(item);
+        }
+        RaisePropertyChanged(COUNT_PROPERTY_NAME);
+        RaisePropertyChanged(INDEXER_PROPERTY_NAME);
+        RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+    }
+
     protected override void InsertItem(int index, T item)
     {
         CheckReentrancy();
