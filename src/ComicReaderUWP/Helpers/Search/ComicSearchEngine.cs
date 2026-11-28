@@ -29,7 +29,7 @@ internal class ComicSearchEngine
     public string SearchText { get; set; } = string.Empty;
     public string Expression { get; set; } = string.Empty;
     public bool IncludeHidden { get; set; } = false;
-    public bool ExcludeInCollectionComics { get; set; } = false;
+    public bool IncludeInCollectionComics { get; set; } = true;
     public ICondition? CustomCondition { get; set; } = null;
 
     public void SetResultCallback(Action<IReadOnlyList<ComicModel>>? callback)
@@ -149,7 +149,7 @@ internal class ComicSearchEngine
     {
         string searchText = SearchText;
         bool includeHidden = IncludeHidden;
-        bool excludeInCollectionComics = ExcludeInCollectionComics;
+        bool includeInCollectionComics = IncludeInCollectionComics;
         ICondition? expressionCondition = ParseExpression(Expression);
         ICondition? customCondition = CustomCondition;
 
@@ -182,7 +182,7 @@ internal class ComicSearchEngine
                 command.AppendCondition(customCondition);
             }
 
-            if (excludeInCollectionComics)
+            if (!includeInCollectionComics)
             {
                 command.AppendCondition(CreateExcludeInCollectionsCondition());
             }

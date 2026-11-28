@@ -126,6 +126,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
         public IReadOnlySet<string> CollapsedGroups { get; set; } = FrozenSet<string>.Empty;
         public ViewTypeEnum ViewType { get; set; } = ViewTypeEnum.Large;
         public bool IncludeHiddenComics { get; set; } = false;
+        public bool IncludeCollectionComics { get; set; } = false;
         public bool SaveViewSettings { get; set; } = false;
         public bool SaveSortingAndGroupingSettings { get; set; } = true;
         public bool MergeSingleItemGroups { get; set; } = false;
@@ -153,6 +154,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 CollapsedGroups = [.. CollapsedGroups],
                 ViewType = ViewTypeToString(ViewType),
                 IncludeHiddenComics = IncludeHiddenComics,
+                IncludeCollectionComics = IncludeCollectionComics,
                 SaveViewSettings = SaveViewSettings,
                 SaveSortingAndGroupingSettings = SaveSortingAndGroupingSettings,
                 MergeSingleItemGroups = MergeSingleItemGroups,
@@ -182,6 +184,7 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
                 ViewType = string.IsNullOrEmpty(model.ViewType) ?
                     defaultModel.ViewType : StringToViewType(model.ViewType),
                 IncludeHiddenComics = model.IncludeHiddenComics ?? defaultModel.IncludeHiddenComics,
+                IncludeCollectionComics = model.IncludeCollectionComics ?? defaultModel.IncludeCollectionComics,
                 SaveViewSettings = model.SaveViewSettings ?? defaultModel.SaveViewSettings,
                 SaveSortingAndGroupingSettings = model.SaveSortingAndGroupingSettings ?? defaultModel.SaveSortingAndGroupingSettings,
                 MergeSingleItemGroups = model.MergeSingleItemGroups ?? defaultModel.MergeSingleItemGroups,
@@ -326,6 +329,9 @@ class ComicFilterModel : JsonDatabase<ComicFilterModel.JsonModel>
 
         [JsonPropertyName("GroupSortingProperty")]
         public JsonNode? GroupSortingProperty { get; set; }
+
+        [JsonPropertyName("IncludeCollectionComics")]
+        public bool? IncludeCollectionComics { get; set; }
 
         [JsonPropertyName("IncludeHiddenComics")]
         public bool? IncludeHiddenComics { get; set; }

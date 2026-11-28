@@ -73,7 +73,6 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
     public void Initialize(ActionHandler actionHandler)
     {
         _actionHandler = actionHandler;
-        _searchEngine.ExcludeInCollectionComics = true;
         _searchEngine.SetResultCallback(OnComicSearchResult);
     }
 
@@ -207,6 +206,7 @@ internal partial class FilterPresetsPageViewModel : INotifyPropertyChanged
 
         _searchEngine.Expression = selectedFilter.Expression;
         _searchEngine.IncludeHidden = selectedFilter.IncludeHiddenComics;
+        _searchEngine.IncludeInCollectionComics = selectedFilter.IncludeCollectionComics;
         _searchEngine.Update();
     }
 

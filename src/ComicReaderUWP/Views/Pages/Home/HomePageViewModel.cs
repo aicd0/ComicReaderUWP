@@ -74,7 +74,6 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
     public void Initialize(ActionHandler actionHandler, string? filterJson)
     {
         _actionHandler = actionHandler;
-        _searchEngine.ExcludeInCollectionComics = true;
         _searchEngine.SetResultCallback(OnComicSearchResult);
         _filterSettingsModel = ComicFilterModel.Instance.GetModel() ?? new();
 
@@ -512,7 +511,9 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         }
 
         // Update comics
-        if (_searchEngine.Expression == filter.Expression && _searchEngine.IncludeHidden == filter.IncludeHiddenComics)
+        if (_searchEngine.Expression == filter.Expression &&
+            _searchEngine.IncludeHidden == filter.IncludeHiddenComics &&
+            _searchEngine.IncludeInCollectionComics == filter.IncludeCollectionComics)
         {
             ScheduleDisplayComics();
         }
@@ -520,6 +521,7 @@ internal partial class HomePageViewModel : INotifyPropertyChanged
         {
             _searchEngine.Expression = filter.Expression;
             _searchEngine.IncludeHidden = filter.IncludeHiddenComics;
+            _searchEngine.IncludeInCollectionComics = filter.IncludeCollectionComics;
             ScheduleUpdateComics();
         }
     }

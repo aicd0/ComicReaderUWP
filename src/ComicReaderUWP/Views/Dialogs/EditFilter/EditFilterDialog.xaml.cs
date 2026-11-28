@@ -142,6 +142,12 @@ internal sealed partial class EditFilterDialog : BaseContentDialog
         ViewModel.SetIncludeHiddenComics(isChecked);
     }
 
+    private void IncludeCollectionComicsCheckBox_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        bool isChecked = ((CheckBox)sender).IsChecked ?? false;
+        ViewModel.SetIncludeCollectionComics(isChecked);
+    }
+
     private void SaveViewSettingsCheckBox_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         bool isChecked = ((CheckBox)sender).IsChecked ?? false;

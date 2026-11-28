@@ -98,6 +98,10 @@
             Content="{x:Bind StringResource.IncludeHiddenComics}"
             IsChecked="{x:Bind ViewModel.IncludeHiddenComics, Mode=TwoWay}" />
         <CheckBox
+            Click="IncludeCollectionComicsCheckBox_Click"
+            Content="{x:Bind StringResource.IncludeCollectionComicsItems}"
+            IsChecked="{x:Bind ViewModel.IncludeCollectionComics, Mode=TwoWay}" />
+        <CheckBox
             Click="SaveViewSettingsCheckBox_Click"
             Content="{x:Bind StringResource.SaveViewSettings}"
             IsChecked="{x:Bind ViewModel.SaveViewSettings, Mode=TwoWay}" />

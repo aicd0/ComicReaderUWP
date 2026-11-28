@@ -561,6 +561,9 @@
   <data name="Images" xml:space="preserve">
     <value>圖片</value>
   </data>
+  <data name="IncludeCollectionComicsItems" xml:space="preserve">
+    <value>包含合集內的漫畫</value>
+  </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>包含隱藏漫畫</value>
   </data>

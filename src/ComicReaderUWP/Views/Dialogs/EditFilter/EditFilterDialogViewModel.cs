@@ -63,6 +63,17 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _includeCollectionComics = false;
+    public bool IncludeCollectionComics
+    {
+        get => _includeCollectionComics;
+        set
+        {
+            _includeCollectionComics = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IncludeCollectionComics)));
+        }
+    }
+
     private bool _saveViewSettings = false;
     public bool SaveViewSettings
     {
@@ -132,6 +143,17 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
         }
 
         filter.IncludeHiddenComics = includeHiddenComics;
+    }
+
+    public void SetIncludeCollectionComics(bool includeCollectionComics)
+    {
+        ComicFilterModel.ExternalFilterModel? filter = _filter;
+        if (filter is null)
+        {
+            return;
+        }
+
+        filter.IncludeCollectionComics = includeCollectionComics;
     }
 
     public void SetSaveViewSettings(bool save)
@@ -289,6 +311,7 @@ internal partial class EditFilterDialogViewModel : INotifyPropertyChanged
             UpdateExpression(filter.Expression);
             ExpressionLiveData.Emit(filter.Expression);
             IncludeHiddenComics = filter.IncludeHiddenComics;
+            IncludeCollectionComics = filter.IncludeCollectionComics;
             SaveViewSettings = filter.SaveViewSettings;
             SaveSortingAndGroupingSettings = filter.SaveSortingAndGroupingSettings;
         }

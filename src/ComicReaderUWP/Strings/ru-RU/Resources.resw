@@ -563,6 +563,9 @@ $files</value>
   <data name="Images" xml:space="preserve">
     <value>Изображения</value>
   </data>
+  <data name="IncludeCollectionComicsItems" xml:space="preserve">
+    <value>Включать комиксы из коллекций</value>
+  </data>
   <data name="IncludeHiddenComics" xml:space="preserve">
     <value>Включать скрытые комиксы</value>
   </data>

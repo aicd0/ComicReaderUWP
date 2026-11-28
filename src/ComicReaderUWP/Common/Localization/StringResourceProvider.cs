@@ -146,6 +146,7 @@ public class StringResourceProvider
     public string ImageMemoryCacheCapacity => GetResourceString("ImageMemoryCacheCapacity");
     public string ImageSaturation => GetResourceString("ImageSaturation");
     public string Images => GetResourceString("Images");
+    public string IncludeCollectionComicsItems => GetResourceString("IncludeCollectionComicsItems");
     public string IncludeHiddenComics => GetResourceString("IncludeHiddenComics");
     public string InstallPlugin => GetResourceString("InstallPlugin");
     public string InstallPluginWarning => GetResourceString("InstallPluginWarning");
