@@ -24,7 +24,6 @@ internal class ComicSearchEngine
     private int _updateSubmitted = 0;
 
     private Action<IReadOnlyList<ComicModel>>? _resultCallback = null;
-    private readonly List<ComicModel> _comicItems = [];
 
     public string SearchText { get; set; } = string.Empty;
     public string Expression { get; set; } = string.Empty;
@@ -84,8 +83,6 @@ internal class ComicSearchEngine
             return xIndex - yIndex;
         });
 
-        _comicItems.Clear();
-        _comicItems.AddRange(comicItems);
         _resultCallback?.Invoke(comicItems);
     }
 
@@ -208,14 +205,7 @@ internal class ComicSearchEngine
                 {
                     Id = idToken.GetValue(),
                     Similarity = similarity,
-                    SortTitle = title1 + " " + title2
                 });
-            }
-
-            var all = new List<long>(matches.Count);
-            foreach (Match match in matches)
-            {
-                all.Add(match.Id);
             }
 
             return true;
@@ -246,6 +236,5 @@ internal class ComicSearchEngine
     {
         public long Id;
         public int Similarity = 0;
-        public string SortTitle = "";
     }
 }
